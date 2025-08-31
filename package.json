@@ -1,0 +1,26 @@
+{
+  "name": "aurigraph-dlt-mcp",
+  "version": "1.0.0",
+  "description": "GitHub MCP configuration for Aurigraph-DLT project",
+  "scripts": {
+    "mcp:github": "node ./node_modules/@modelcontextprotocol/server-github/dist/index.js",
+    "mcp:test": "node scripts/test-github-mcp.js",
+    "mcp:setup": "./scripts/setup-github-mcp.sh",
+    "mcp:global-setup": "./scripts/setup-global-mcp.sh",
+    "mcp:install": "npm install @modelcontextprotocol/server-github",
+    "mcp:verify": "curl -s -H \"Authorization: token $GITHUB_PERSONAL_ACCESS_TOKEN\" https://api.github.com/user"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server-github": "^2025.4.8"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "mcp",
+    "github",
+    "aurigraph",
+    "dlt",
+    "model-context-protocol"
+  ],
+  "author": "Aurigraph Team",
+  "license": "MIT"
+}
