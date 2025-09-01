@@ -1,7 +1,7 @@
 export interface QuantumKeyPairV2 {
     publicKey: string;
     privateKey: string;
-    algorithm: 'CRYSTALS-Kyber' | 'CRYSTALS-Dilithium' | 'SPHINCS+' | 'Falcon' | 'Rainbow';
+    algorithm: 'CRYSTALS-Kyber' | 'CRYSTALS-Dilithium' | 'SPHINCS+' | 'Falcon' | 'Rainbow' | 'NTRU';
     quantumLevel: number;
     distributionKey?: string;
 }
@@ -82,12 +82,28 @@ export declare class QuantumCryptoManagerV2 {
     rotateKeys(): Promise<void>;
     private startPerformanceMonitoring;
     getQuantumStatus(): any;
-    getMetrics(): any;
     private calculateQuantumReadiness;
     private calculateDistributionEfficiency;
     private calculateConsensusProofEfficiency;
     generateKeyPair(algorithm: 'CRYSTALS-Kyber' | 'CRYSTALS-Dilithium' | 'SPHINCS+'): Promise<QuantumKeyPairV2>;
     sign(data: string): Promise<string>;
     hash(data: string): Promise<string>;
+    generateChannelKey(): Promise<Buffer>;
+    generateEncryptionKey(): Promise<Buffer>;
+    encryptWithChannel(data: Buffer, channelKey: Buffer): Promise<Buffer>;
+    decryptWithChannel(encryptedData: Buffer, channelKey: Buffer): Promise<Buffer>;
+    generateKyberKeyPair(): Promise<any>;
+    generateDilithiumKeyPair(): Promise<any>;
+    generateSphincsKeyPair(): Promise<any>;
+    generateNTRUKeyPair(): Promise<QuantumKeyPairV2>;
+    ntruEncrypt(data: string, publicKey: string): Promise<string>;
+    ntruDecrypt(encryptedData: string, privateKey: string): Promise<string>;
+    ntruSign(data: string, privateKey: string): Promise<string>;
+    ntruVerify(data: string, signature: string, publicKey: string): Promise<boolean>;
+    ntruKeyExchange(privateKey: string, peerPublicKey: string): Promise<string>;
+    private callNTRUService;
+    generateQuantumKeyPairNTRU(): Promise<QuantumKeyPairV2>;
+    getNTRUPerformanceMetrics(): any;
+    hashData(data: string): Promise<string>;
 }
 //# sourceMappingURL=QuantumCryptoManagerV2.d.ts.map

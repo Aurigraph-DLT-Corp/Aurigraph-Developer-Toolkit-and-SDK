@@ -6,7 +6,7 @@ const inversify_1 = require("inversify");
 const Logger_1 = require("./core/Logger");
 const ConfigManager_1 = require("./core/ConfigManager");
 const AV18Node_1 = require("./core/AV18Node");
-const QuantumCryptoManagerV2_1 = require("./crypto/QuantumCryptoManagerV2");
+const QuantumCryptoManager_1 = require("./crypto/QuantumCryptoManager");
 const ZKProofSystem_1 = require("./zk/ZKProofSystem");
 const AIOptimizer_1 = require("./ai/AIOptimizer");
 const CrossChainBridge_1 = require("./crosschain/CrossChainBridge");
@@ -31,18 +31,8 @@ class AV18Platform {
         // Core services
         this.container.bind(Logger_1.Logger).toConstantValue(new Logger_1.Logger('AV18-Container'));
         this.container.bind(ConfigManager_1.ConfigManager).to(ConfigManager_1.ConfigManager).inSingletonScope();
-        // Enhanced crypto services
-        this.container.bind(QuantumCryptoManagerV2_1.QuantumCryptoManagerV2)
-            .toConstantValue(new QuantumCryptoManagerV2_1.QuantumCryptoManagerV2({
-            securityLevel: 6,
-            quantumKeyDistribution: true,
-            quantumRandomGeneration: true,
-            quantumStateChannels: true,
-            quantumConsensusProofs: true,
-            postQuantumSmartContracts: true,
-            hardwareAcceleration: true
-        }));
         // Core components
+        this.container.bind(QuantumCryptoManager_1.QuantumCryptoManager).to(QuantumCryptoManager_1.QuantumCryptoManager).inSingletonScope();
         this.container.bind(ZKProofSystem_1.ZKProofSystem).to(ZKProofSystem_1.ZKProofSystem).inSingletonScope();
         this.container.bind(AIOptimizer_1.AIOptimizer).to(AIOptimizer_1.AIOptimizer).inSingletonScope();
         this.container.bind(CrossChainBridge_1.CrossChainBridge).to(CrossChainBridge_1.CrossChainBridge).inSingletonScope();
@@ -73,8 +63,8 @@ class AV18Platform {
     }
     async initializeCoreServices() {
         this.logger.info('Initializing AV10-18 core services...');
-        // Initialize enhanced quantum crypto
-        const quantumCrypto = this.container.get(QuantumCryptoManagerV2_1.QuantumCryptoManagerV2);
+        // Initialize quantum crypto (original for compatibility)
+        const quantumCrypto = new QuantumCryptoManager_1.QuantumCryptoManager();
         await quantumCrypto.initialize();
         // Initialize ZK proof system
         const zkProofSystem = this.container.get(ZKProofSystem_1.ZKProofSystem);
@@ -82,19 +72,19 @@ class AV18Platform {
         // Initialize AI optimizer
         const aiOptimizer = this.container.get(AIOptimizer_1.AIOptimizer);
         await aiOptimizer.initialize();
+        // Initialize monitoring service
+        const monitoring = this.container.get(VizorDashboard_1.VizorMonitoringService);
         // Initialize cross-chain bridge
         const crossChainBridge = this.container.get(CrossChainBridge_1.CrossChainBridge);
         await crossChainBridge.initialize();
-        // Initialize channel manager
-        const channelManager = this.container.get(ChannelManager_1.ChannelManager);
+        // Initialize channel manager with dependencies
+        const channelManager = new ChannelManager_1.ChannelManager(quantumCrypto, monitoring);
         await channelManager.initialize();
-        // Initialize monitoring service
-        const monitoring = this.container.get(VizorDashboard_1.VizorMonitoringService);
         this.logger.info('Core services initialized');
     }
     async initializeComplianceEngine() {
         this.logger.info('Initializing Autonomous Compliance Engine...');
-        const quantumCrypto = this.container.get(QuantumCryptoManagerV2_1.QuantumCryptoManagerV2);
+        const quantumCrypto = this.container.get(QuantumCryptoManager_1.QuantumCryptoManager);
         const aiOptimizer = this.container.get(AIOptimizer_1.AIOptimizer);
         this.complianceEngine = new AutonomousComplianceEngine_1.AutonomousComplianceEngine({
             jurisdictions: ['US', 'EU', 'UK', 'CA', 'AU', 'SG', 'JP'],

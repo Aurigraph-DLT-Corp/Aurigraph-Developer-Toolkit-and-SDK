@@ -1105,7 +1105,7 @@ export class MCPInterface extends EventEmitter {
         return {
             assetId: params.assetId,
             analytics: {
-                valuation: this.calculateAssetValuation Analytics(asset),
+                valuation: this.calculateAssetValuationAnalytics(asset),
                 performance: this.calculateAssetPerformance(asset),
                 tokenization: this.calculateAssetTokenizationAnalytics(asset),
                 riskProfile: this.calculateAssetRiskProfile(asset),

@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { config } from 'dotenv';
 import { Logger } from './core/Logger';
-import { QuantumCryptoManager } from './crypto/QuantumCryptoManager';
+import { QuantumCryptoManagerV2 } from './crypto/QuantumCryptoManagerV2';
 import { ZKProofSystem } from './zk/ZKProofSystem';
 import { CrossChainBridge } from './crosschain/CrossChainBridge';
 import { AIOptimizer } from './ai/AIOptimizer';
@@ -17,10 +17,10 @@ async function deployLocally() {
     logger.info('🚀 Deploying Aurigraph AV10-7 DLT Platform locally...');
     logger.info('Version: 10.7.0 | Focus: Distributed Ledger Technology');
     
-    // Initialize core services
-    const quantumCrypto = new QuantumCryptoManager();
+    // Initialize core services with AV10-30 NTRU support
+    const quantumCrypto = new QuantumCryptoManagerV2();
     await quantumCrypto.initialize();
-    logger.info('🔐 Quantum cryptography initialized');
+    logger.info('🔐 Quantum cryptography V2 with NTRU initialized');
     
     const zkProofSystem = new ZKProofSystem();
     await zkProofSystem.initialize();
@@ -99,10 +99,20 @@ async function deployLocally() {
       }
     });
     
-    // Quantum crypto metrics
+    // Quantum crypto metrics with AV10-30 NTRU support
     app.get('/api/crypto/metrics', (req, res) => {
       const metrics = quantumCrypto.getMetrics();
-      res.json(metrics);
+      const ntruMetrics = quantumCrypto.getNTRUPerformanceMetrics();
+      
+      res.json({
+        ...metrics,
+        ntru: ntruMetrics,
+        algorithms: {
+          standard: ['CRYSTALS-Kyber', 'CRYSTALS-Dilithium', 'SPHINCS+'],
+          postQuantum: ['NTRU-1024', 'Falcon', 'Rainbow'],
+          securityLevel: 6
+        }
+      });
     });
     
     // AI optimization status

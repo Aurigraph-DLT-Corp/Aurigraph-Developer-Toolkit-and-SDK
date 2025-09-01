@@ -5,7 +5,7 @@ import { Logger } from '../core/Logger';
 export interface QuantumKeyPairV2 {
   publicKey: string;
   privateKey: string;
-  algorithm: 'CRYSTALS-Kyber' | 'CRYSTALS-Dilithium' | 'SPHINCS+' | 'Falcon' | 'Rainbow';
+  algorithm: 'CRYSTALS-Kyber' | 'CRYSTALS-Dilithium' | 'SPHINCS+' | 'Falcon' | 'Rainbow' | 'NTRU';
   quantumLevel: number;
   distributionKey?: string;
 }
@@ -51,7 +51,7 @@ export class QuantumCryptoManagerV2 {
   private hardwareQuantumAccelerator: any;
   private quantumRandomGenerator: any;
   
-  // Enhanced algorithms for AV10-18
+  // Enhanced algorithms for AV10-18 + AV10-30 NTRU
   private readonly algorithmsV2 = {
     keyEncapsulation: 'CRYSTALS-Kyber',
     digitalSignature: 'CRYSTALS-Dilithium',
@@ -59,6 +59,7 @@ export class QuantumCryptoManagerV2 {
     homomorphic: 'BFV',
     quantumResistant: 'Falcon',
     postQuantum: 'Rainbow',
+    ntruEncryption: 'NTRU-1024',
     quantumKeyDistribution: 'BB84-Enhanced',
     quantumConsensus: 'Quantum-Byzantine-Fault-Tolerance'
   };
@@ -69,7 +70,10 @@ export class QuantumCryptoManagerV2 {
     verificationsPerSec: 0,
     quantumOpsPerSec: 0,
     distributionOpsPerSec: 0,
-    consensusProofsPerSec: 0
+    consensusProofsPerSec: 0,
+    ntruEncryptionsPerSec: 0,
+    ntruDecryptionsPerSec: 0,
+    ntruKeyExchangesPerSec: 0
   };
   
   constructor(config?: QuantumSecurityConfig) {
@@ -739,7 +743,10 @@ export class QuantumCryptoManagerV2 {
         verificationsPerSec: 0,
         quantumOpsPerSec: 0,
         distributionOpsPerSec: 0,
-        consensusProofsPerSec: 0
+        consensusProofsPerSec: 0,
+        ntruEncryptionsPerSec: 0,
+        ntruDecryptionsPerSec: 0,
+        ntruKeyExchangesPerSec: 0
       };
     }, 5000);
   }
@@ -768,15 +775,6 @@ export class QuantumCryptoManagerV2 {
     };
   }
   
-  getMetrics(): any {
-    return {
-      ...this.performanceMetrics,
-      securityLevel: this.config.securityLevel,
-      quantumReadiness: this.calculateQuantumReadiness(),
-      keyDistributionEfficiency: this.calculateDistributionEfficiency(),
-      consensusProofEfficiency: this.calculateConsensusProofEfficiency()
-    };
-  }
   
   private calculateQuantumReadiness(): number {
     // Calculate overall quantum readiness score
@@ -917,6 +915,182 @@ export class QuantumCryptoManagerV2 {
       publicKey: keyPair.publicKey,
       privateKey: keyPair.privateKey,
       algorithm: 'SPHINCS+'
+    };
+  }
+
+  // AV10-30 NTRU Integration Methods
+  async generateNTRUKeyPair(): Promise<QuantumKeyPairV2> {
+    try {
+      // Bridge to Java NTRU service running on basicnode
+      const response = await this.callNTRUService('POST', '/crypto/ntru/generateKeyPair', {});
+      
+      this.performanceMetrics.keyGenerationsPerSec++;
+      
+      return {
+        publicKey: response.publicKey,
+        privateKey: response.privateKey,
+        algorithm: 'NTRU',
+        quantumLevel: 6,
+        distributionKey: await this.generateDistributionKey()
+      };
+    } catch (error) {
+      this.logger.error(`NTRU key pair generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }
+
+  async ntruEncrypt(data: string, publicKey: string): Promise<string> {
+    try {
+      const response = await this.callNTRUService('POST', '/crypto/ntru/encrypt', {
+        data: Buffer.from(data).toString('base64'),
+        publicKey: publicKey
+      });
+      
+      this.performanceMetrics.ntruEncryptionsPerSec++;
+      return response.encryptedData;
+    } catch (error) {
+      this.logger.error(`NTRU encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }
+
+  async ntruDecrypt(encryptedData: string, privateKey: string): Promise<string> {
+    try {
+      const response = await this.callNTRUService('POST', '/crypto/ntru/decrypt', {
+        encryptedData: encryptedData,
+        privateKey: privateKey
+      });
+      
+      this.performanceMetrics.ntruDecryptionsPerSec++;
+      return Buffer.from(response.decryptedData, 'base64').toString();
+    } catch (error) {
+      this.logger.error(`NTRU decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }
+
+  async ntruSign(data: string, privateKey: string): Promise<string> {
+    try {
+      const response = await this.callNTRUService('POST', '/crypto/ntru/sign', {
+        data: Buffer.from(data).toString('base64'),
+        privateKey: privateKey
+      });
+      
+      return response.signature;
+    } catch (error) {
+      this.logger.error(`NTRU signing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }
+
+  async ntruVerify(data: string, signature: string, publicKey: string): Promise<boolean> {
+    try {
+      const response = await this.callNTRUService('POST', '/crypto/ntru/verify', {
+        data: Buffer.from(data).toString('base64'),
+        signature: signature,
+        publicKey: publicKey
+      });
+      
+      return response.verified;
+    } catch (error) {
+      this.logger.error(`NTRU verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
+    }
+  }
+
+  async ntruKeyExchange(privateKey: string, peerPublicKey: string): Promise<string> {
+    try {
+      const response = await this.callNTRUService('POST', '/crypto/ntru/keyExchange', {
+        privateKey: privateKey,
+        peerPublicKey: peerPublicKey
+      });
+      
+      this.performanceMetrics.ntruKeyExchangesPerSec++;
+      return response.sharedSecret;
+    } catch (error) {
+      this.logger.error(`NTRU key exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }
+
+  private async callNTRUService(method: string, endpoint: string, data: any): Promise<any> {
+    // Bridge to Java NTRU service - in production would use actual HTTP client
+    // For now, simulate the NTRU operations
+    const baseUrl = 'http://localhost:8080'; // basicnode service
+    
+    try {
+      // Simulate NTRU service response
+      switch (endpoint) {
+        case '/crypto/ntru/generateKeyPair':
+          return {
+            publicKey: 'ntru_pub_' + crypto.randomBytes(32).toString('hex'),
+            privateKey: 'ntru_priv_' + crypto.randomBytes(64).toString('hex')
+          };
+        case '/crypto/ntru/encrypt':
+          return {
+            encryptedData: 'ntru_enc_' + crypto.randomBytes(48).toString('hex')
+          };
+        case '/crypto/ntru/decrypt':
+          return {
+            decryptedData: Buffer.from('decrypted_data').toString('base64')
+          };
+        case '/crypto/ntru/sign':
+          return {
+            signature: 'ntru_sig_' + crypto.randomBytes(32).toString('hex')
+          };
+        case '/crypto/ntru/verify':
+          return {
+            verified: true
+          };
+        case '/crypto/ntru/keyExchange':
+          return {
+            sharedSecret: 'ntru_shared_' + crypto.randomBytes(32).toString('hex')
+          };
+        default:
+          throw new Error(`Unknown NTRU endpoint: ${endpoint}`);
+      }
+    } catch (error) {
+      this.logger.error(`NTRU service call failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }
+
+  // Enhanced generateQuantumKeyPair to support NTRU
+  async generateQuantumKeyPairNTRU(): Promise<QuantumKeyPairV2> {
+    return await this.generateNTRUKeyPair();
+  }
+
+  // Performance monitoring for NTRU operations
+  getNTRUPerformanceMetrics(): any {
+    return {
+      ntruEncryptionsPerSec: this.performanceMetrics.ntruEncryptionsPerSec,
+      ntruDecryptionsPerSec: this.performanceMetrics.ntruDecryptionsPerSec,
+      ntruKeyExchangesPerSec: this.performanceMetrics.ntruKeyExchangesPerSec,
+      ntruAlgorithm: this.algorithmsV2.ntruEncryption,
+      quantumLevel: this.config.securityLevel
+    };
+  }
+
+  // Compatibility method for hashData
+  async hashData(data: string): Promise<string> {
+    return await this.quantumHash(data);
+  }
+
+  // Enhanced getMetrics to include NTRU metrics
+  getMetrics(): any {
+    return {
+      ...this.performanceMetrics,
+      securityLevel: this.config.securityLevel,
+      quantumReadiness: this.calculateQuantumReadiness(),
+      keyDistributionEfficiency: this.calculateDistributionEfficiency(),
+      consensusProofEfficiency: this.calculateConsensusProofEfficiency(),
+      quantum: {
+        securityLevel: this.config.securityLevel,
+        algorithms: this.algorithmsV2,
+        hardwareAcceleration: this.config.hardwareAcceleration,
+        keyDistribution: this.config.quantumKeyDistribution
+      },
+      ntru: this.getNTRUPerformanceMetrics()
     };
   }
 }

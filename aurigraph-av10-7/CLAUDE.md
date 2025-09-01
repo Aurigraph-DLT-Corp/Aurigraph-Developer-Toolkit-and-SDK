@@ -353,3 +353,22 @@ curl -I "http://localhost:PORT/non-existent-path"
 ```
 
 This solution permanently resolves font loading CSP errors across all Aurigraph projects and provides flexible CSP configurations for different deployment environments.
+
+## JIRA Integration
+
+### Credentials
+**Instance URL**: https://aurigraphdlt.atlassian.net
+**Project Key**: AV10
+**User Email**: subbu@aurigraph.io
+**API Key**: ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C
+
+### Usage
+- Use `scripts/update-jira-tickets.js` for automated ticket updates
+- Project URL: https://aurigraphdlt.atlassian.net/jira/software/projects/AV10/list
+- All AV10-18 tickets created with AV10- prefix (e.g., AV10-1801, AV10-1802)
+
+### Common Ticket Types
+- **Story**: Feature implementation
+- **Bug**: Defect resolution  
+- **Epic**: Major feature grouping
+- **Task**: Development work items

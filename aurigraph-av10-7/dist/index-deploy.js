@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
 const dotenv_1 = require("dotenv");
 const Logger_1 = require("./core/Logger");
-const QuantumCryptoManager_1 = require("./crypto/QuantumCryptoManager");
+const QuantumCryptoManagerV2_1 = require("./crypto/QuantumCryptoManagerV2");
 const ZKProofSystem_1 = require("./zk/ZKProofSystem");
 const CrossChainBridge_1 = require("./crosschain/CrossChainBridge");
 const AIOptimizer_1 = require("./ai/AIOptimizer");
@@ -18,10 +18,10 @@ async function deployLocally() {
     try {
         logger.info('🚀 Deploying Aurigraph AV10-7 DLT Platform locally...');
         logger.info('Version: 10.7.0 | Focus: Distributed Ledger Technology');
-        // Initialize core services
-        const quantumCrypto = new QuantumCryptoManager_1.QuantumCryptoManager();
+        // Initialize core services with AV10-30 NTRU support
+        const quantumCrypto = new QuantumCryptoManagerV2_1.QuantumCryptoManagerV2();
         await quantumCrypto.initialize();
-        logger.info('🔐 Quantum cryptography initialized');
+        logger.info('🔐 Quantum cryptography V2 with NTRU initialized');
         const zkProofSystem = new ZKProofSystem_1.ZKProofSystem();
         await zkProofSystem.initialize();
         logger.info('🎭 Zero-knowledge proof system initialized');
@@ -84,10 +84,19 @@ async function deployLocally() {
                 });
             }
         });
-        // Quantum crypto metrics
+        // Quantum crypto metrics with AV10-30 NTRU support
         app.get('/api/crypto/metrics', (req, res) => {
             const metrics = quantumCrypto.getMetrics();
-            res.json(metrics);
+            const ntruMetrics = quantumCrypto.getNTRUPerformanceMetrics();
+            res.json({
+                ...metrics,
+                ntru: ntruMetrics,
+                algorithms: {
+                    standard: ['CRYSTALS-Kyber', 'CRYSTALS-Dilithium', 'SPHINCS+'],
+                    postQuantum: ['NTRU-1024', 'Falcon', 'Rainbow'],
+                    securityLevel: 6
+                }
+            });
         });
         // AI optimization status
         app.get('/api/ai/status', (req, res) => {

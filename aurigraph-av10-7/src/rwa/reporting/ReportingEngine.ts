@@ -511,7 +511,7 @@ export class ReportingEngine {
         const warnings = events.filter(e => e.severity === 'MEDIUM');
         const passed = events.filter(e => e.eventType.includes('PASSED') || e.eventType.includes('VERIFIED'));
 
-        const analysisBy Category = events.reduce((acc, event) => {
+        const analysisByCategory = events.reduce((acc, event) => {
             const category = event.entityType;
             if (!acc[category]) {
                 acc[category] = { total: 0, violations: 0, warnings: 0, passed: 0 };
@@ -533,7 +533,7 @@ export class ReportingEngine {
                 passed: passed.length,
                 complianceRate: events.length > 0 ? (passed.length / events.length * 100).toFixed(2) : '0.00'
             },
-            categoryBreakdown: analysisBy Category,
+            categoryBreakdown: analysisByCategory,
             recentViolations: violations.slice(0, 10).map(v => ({
                 timestamp: v.timestamp,
                 type: v.eventType,
