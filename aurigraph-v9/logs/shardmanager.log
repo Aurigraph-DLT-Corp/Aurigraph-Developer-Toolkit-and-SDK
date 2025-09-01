@@ -722,3 +722,6 @@
 [2025-09-01 16:22:33.633] INFO [ShardManager]: Starting shard rebalancing...
 [2025-09-01 16:22:33.641] INFO [ShardManager]: Migrating data from shard-0 to shard-2
 [2025-09-01 16:22:33.641] INFO [ShardManager]: Shard rebalancing completed
+[2025-09-01 16:27:33.631] INFO [ShardManager]: Starting shard rebalancing...
+[2025-09-01 16:27:33.632] INFO [ShardManager]: Migrating data from shard-0 to shard-1
+[2025-09-01 16:27:33.633] INFO [ShardManager]: Shard rebalancing completed
