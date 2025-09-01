@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply dark;
+  }
+  
+  body {
+    @apply bg-gray-950 text-gray-50;
+  }
+}
+
+@layer components {
+  .metric-card {
+    @apply bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  .quantum-glow {
+    @apply animate-glow ring-2 ring-blue-500/50;
+  }
+  
+  .status-indicator {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .status-active {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+  }
+  
+  .status-warning {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+  }
+  
+  .status-error {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+  }
+}
