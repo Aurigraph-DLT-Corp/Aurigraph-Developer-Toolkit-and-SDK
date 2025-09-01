@@ -14,8 +14,8 @@ const logger = new Logger('AV10-7-Deploy');
 
 async function deployLocally() {
   try {
-    logger.info('🚀 Deploying Aurigraph AV10-7 Quantum Nexus locally...');
-    logger.info('Version: 10.7.0 | Codename: Quantum Nexus');
+    logger.info('🚀 Deploying Aurigraph AV10-7 DLT Platform locally...');
+    logger.info('Version: 10.7.0 | Focus: Distributed Ledger Technology');
     
     // Initialize core services
     const quantumCrypto = new QuantumCryptoManager();
@@ -44,7 +44,7 @@ async function deployLocally() {
       res.json({
         status: 'healthy',
         version: '10.7.0',
-        platform: 'AV10-7 Quantum Nexus',
+        platform: 'AV10-7 DLT Platform',
         services: {
           quantumCrypto: 'active',
           zkProofs: 'active',

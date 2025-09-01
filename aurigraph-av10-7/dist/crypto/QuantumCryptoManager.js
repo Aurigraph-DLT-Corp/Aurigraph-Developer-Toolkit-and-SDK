@@ -333,6 +333,34 @@ let QuantumCryptoManager = class QuantumCryptoManager {
             securityLevel: this.securityLevel
         };
     }
+    // AV10-18 compatibility methods
+    async initializeQuantumConsensus() {
+        this.logger.info('Initializing quantum consensus');
+    }
+    async preSign(data) {
+        return await this.sign(data);
+    }
+    async generateConsensusProof(data) {
+        return {
+            type: 'quantum-consensus',
+            data: await this.sign(JSON.stringify(data))
+        };
+    }
+    async generateQuantumRandom(bytes) {
+        return crypto.randomBytes(bytes);
+    }
+    async quantumHash(data) {
+        return await this.hash(data);
+    }
+    async quantumSign(data) {
+        return await this.sign(data);
+    }
+    async generateLeadershipProof(data) {
+        return {
+            type: 'leadership',
+            proof: await this.sign(JSON.stringify(data))
+        };
+    }
 };
 exports.QuantumCryptoManager = QuantumCryptoManager;
 exports.QuantumCryptoManager = QuantumCryptoManager = __decorate([

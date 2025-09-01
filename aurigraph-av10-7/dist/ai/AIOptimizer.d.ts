@@ -20,5 +20,28 @@ export declare class AIOptimizer extends EventEmitter {
     getMetrics(): Promise<any>;
     stop(): Promise<void>;
     isOptimizationEnabled(): boolean;
+    initialize(): Promise<void>;
+    enableV18Features(features: any): Promise<void>;
+    enableComplianceMode(config: any): Promise<void>;
+    trainComplianceModels(data: any): Promise<void>;
+    calculateKYCScore(data: any): Promise<any>;
+    detectAMLPatterns(data: any): Promise<any>;
+    calculateIntelligentRiskScore(data: any): Promise<any>;
+    optimizeThroughput(params: any): Promise<any>;
+    enableAutonomousMode(config: any): Promise<void>;
+    autonomousOptimize(metrics: any): Promise<any>;
+    predictOptimalLeader(params: any): Promise<any>;
+    enableLeaderMode(): Promise<void>;
+    generateResolutionStrategy(params: any): Promise<any>;
+    performEnhancedVerification(params: any): Promise<any>;
+    reviewTransaction(params: any): Promise<any>;
+    verifyResolutionEffectiveness(params: any): Promise<any>;
+    recordResolutionSuccess(params: any): Promise<void>;
+    performMinorOptimization(): Promise<void>;
+    predictMaintenanceNeeds(params: any): Promise<any>;
+    updateLearningParameters(): Promise<void>;
+    performContinuousOptimization(params: any): Promise<any>;
+    optimizeResourceAllocation(params: any): Promise<any>;
+    generateComplianceRecommendations(params: any): Promise<string[]>;
 }
 //# sourceMappingURL=AIOptimizer.d.ts.map

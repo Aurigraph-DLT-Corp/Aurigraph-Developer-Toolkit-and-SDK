@@ -1,7 +1,7 @@
 # Aurigraph AV10-7 Development Team Agent Framework
 
 ## Project Overview
-Aurigraph AV10-7 "Quantum Nexus" - A quantum-resilient blockchain platform with 1M+ TPS, zero-knowledge privacy, and cross-chain interoperability.
+Aurigraph AV10-7 DLT Platform - A quantum-resilient distributed ledger technology platform with 1M+ TPS, zero-knowledge privacy, and cross-chain interoperability.
 
 ## Development Team Agent Structure
 
@@ -274,3 +274,82 @@ aurigraph-av10-7/
 5. **Performance Optimization**: Target 2M+ TPS for next version
 
 This framework enables systematic development of the AV10-7 platform using specialized agents for different technical domains while maintaining integration and quality standards.
+
+## Content Security Policy (CSP) Font Loading Fix
+
+### Problem
+Express.js applications often encounter CSP font loading errors:
+```
+Refused to load the font 'http://localhost:3001/res/font.woff2' because it violates the following Content Security Policy directive: "default-src 'none'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+```
+
+### Root Cause
+- Express.js sets restrictive `default-src 'none'` CSP headers by default
+- Font loading requires `font-src` directive to be explicitly allowed
+- CSP headers can be overridden by middleware order or built-in security
+
+### Universal Solution
+
+#### 1. CSP Middleware (src/middleware/CSPMiddleware.ts)
+Use the standardized CSPMiddleware class for all projects:
+
+```typescript
+import { CSPMiddleware } from './middleware/CSPMiddleware';
+
+// For web applications with UI
+app.use(CSPMiddleware.webApp());
+
+// For API-only servers  
+app.use(CSPMiddleware.apiServer());
+
+// For development (less restrictive)
+app.use(CSPMiddleware.development());
+
+// Force override any existing CSP (use when other middleware conflicts)
+app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
+```
+
+#### 2. Implementation Pattern
+```typescript
+// MUST be first middleware to ensure CSP headers are set correctly
+app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
+
+// Then add other middleware
+app.use(cors());
+app.use(express.json());
+// ... other middleware
+```
+
+#### 3. CSP Directives Included
+- **font-src**: `'self' data: https: blob:` - Allows all font loading methods
+- **style-src**: `'self' 'unsafe-inline' https:` - Allows CSS and inline styles
+- **script-src**: `'self' 'unsafe-inline' 'unsafe-eval'` - Allows JavaScript execution
+- **img-src**: `'self' data: https: blob:` - Allows images from all sources
+- **connect-src**: `'self' ws: wss: https:` - Allows WebSocket and HTTPS connections
+
+#### 4. Environment-Specific Usage
+- **Production**: Use `CSPMiddleware.apiServer()` for strict security
+- **Development**: Use `CSPMiddleware.development()` for flexibility
+- **Web Apps**: Use `CSPMiddleware.webApp()` for full UI support
+- **Conflicts**: Use `CSPMiddleware.forceOverride()` when other middleware interferes
+
+### Quick Fix Commands
+```bash
+# 1. Copy CSPMiddleware.ts to your project
+cp src/middleware/CSPMiddleware.ts /path/to/project/src/middleware/
+
+# 2. Add import to your Express server
+# import { CSPMiddleware } from './middleware/CSPMiddleware';
+
+# 3. Add as first middleware
+# app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
+```
+
+### Verification
+Test CSP headers are applied correctly:
+```bash
+curl -I "http://localhost:PORT/non-existent-path"
+# Should show: Content-Security-Policy: default-src 'self'; font-src 'self' data: https: blob:...
+```
+
+This solution permanently resolves font loading CSP errors across all Aurigraph projects and provides flexible CSP configurations for different deployment environments.
