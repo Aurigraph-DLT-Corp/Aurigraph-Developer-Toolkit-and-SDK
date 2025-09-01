@@ -4,13 +4,19 @@ exports.ValidatorNode = void 0;
 const Logger_1 = require("../core/Logger");
 const events_1 = require("events");
 class ValidatorNode extends events_1.EventEmitter {
+    logger;
+    nodeId;
+    config;
+    quantumCrypto;
+    vizorMonitoring;
+    currentRound = null;
+    stake;
+    channels = new Map(); // channelId -> userNodeIds
+    isLeader = false;
+    consensusState = 'idle';
+    transactionQueue = [];
     constructor(config, quantumCrypto, vizorMonitoring) {
         super();
-        this.currentRound = null;
-        this.channels = new Map(); // channelId -> userNodeIds
-        this.isLeader = false;
-        this.consensusState = 'idle';
-        this.transactionQueue = [];
         this.nodeId = config.nodeId;
         this.config = config;
         this.stake = config.stakingAmount;
@@ -261,3 +267,4 @@ class ValidatorNode extends events_1.EventEmitter {
     }
 }
 exports.ValidatorNode = ValidatorNode;
+//# sourceMappingURL=ValidatorNode.js.map

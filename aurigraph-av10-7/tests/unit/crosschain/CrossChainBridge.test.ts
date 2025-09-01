@@ -44,7 +44,7 @@ describe('CrossChainBridge', () => {
         hash: '0xabcdef'
       };
 
-      const result = await bridge.processBridgeTransaction(mockTransaction as any);
+      const result = await bridge.processBridgeTransactionForTesting(mockTransaction as any);
       expect(result).toBeDefined();
     });
 
@@ -57,7 +57,7 @@ describe('CrossChainBridge', () => {
       };
 
       // Should handle gracefully with validation
-      await expect(bridge.processBridgeTransaction(invalidTx as any)).resolves.not.toThrow();
+      await expect(bridge.processBridgeTransactionForTesting(invalidTx as any)).resolves.not.toThrow();
     });
 
     it('should maintain 99%+ success rate', async () => {
@@ -73,7 +73,7 @@ describe('CrossChainBridge', () => {
       let successCount = 0;
       for (const tx of transactions) {
         try {
-          await bridge.processBridgeTransaction(tx as any);
+          await bridge.processBridgeTransactionForTesting(tx as any);
           successCount++;
         } catch (error) {
           // Expected some failures
@@ -101,7 +101,7 @@ describe('CrossChainBridge', () => {
       };
 
       const startTime = Date.now();
-      await bridge.processBridgeTransaction(transaction as any);
+      await bridge.processBridgeTransactionForTesting(transaction as any);
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(5000); // <5s for cross-chain

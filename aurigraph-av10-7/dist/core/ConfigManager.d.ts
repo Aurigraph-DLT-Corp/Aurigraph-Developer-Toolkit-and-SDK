@@ -59,11 +59,13 @@ export declare class ConfigManager {
     private logger;
     private config;
     constructor();
+    initialize(): Promise<void>;
     loadConfiguration(): Promise<void>;
     private getDefaultConfig;
     private loadEnvironmentOverrides;
     private validateConfiguration;
     getConfig(): AV10Config;
+    get(path: string, defaultValue?: any): any;
     getNodeConfig(): Promise<NodeConfig>;
     getConsensusConfig(): ConsensusConfig;
     getNetworkConfig(): NetworkConfig;

@@ -33,17 +33,28 @@ export declare class CrossChainBridge extends EventEmitter {
     private liquidityPools;
     private quantumCrypto;
     private zkProofSystem;
+    private wormhole;
+    private wormholeEnabled;
     private metrics;
     constructor();
     initialize(): Promise<void>;
+    private initializeWormhole;
     private initializeSupportedChains;
     private addChain;
     private setupLiquidityPools;
     private startBridgeValidators;
     private initializeChainListeners;
     bridgeAsset(sourceChain: string, targetChain: string, asset: string, amount: string, recipient: string, sender: string): Promise<CrossChainTransaction>;
+    private bridgeWithWormhole;
+    private mapChainToWormhole;
+    private simulateWormholeTransfer;
+    private bridgeWithNativeImplementation;
     private lockAssets;
     private processBridgeTransaction;
+    private enhancedValidation;
+    private checkNetworkHealth;
+    private mintAssetsWithRetry;
+    private verifyCompletion;
     private waitForConfirmations;
     private mintAssets;
     private validatePendingTransactions;
@@ -55,6 +66,9 @@ export declare class CrossChainBridge extends EventEmitter {
     getSupportedChains(): ChainConfig[];
     getLiquidityPools(): LiquidityPool[];
     getMetrics(): any;
+    processBridgeTransactionForTesting(tx: CrossChainTransaction): Promise<void>;
+    getWormholeStatus(): Promise<any>;
+    checkWormholeRouteAvailability(sourceChain: string, targetChain: string, asset: string): Promise<boolean>;
     stop(): Promise<void>;
 }
 //# sourceMappingURL=CrossChainBridge.d.ts.map

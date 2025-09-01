@@ -5,12 +5,15 @@ const Logger_1 = require("../core/Logger");
 const ValidatorNode_1 = require("./ValidatorNode");
 const events_1 = require("events");
 class ValidatorOrchestrator extends events_1.EventEmitter {
+    logger;
+    validators = new Map();
+    channels = new Map();
+    quantumCrypto;
+    vizorMonitoring;
+    consensusRounds = new Map();
+    leaderElectionInterval = null;
     constructor(quantumCrypto, vizorMonitoring) {
         super();
-        this.validators = new Map();
-        this.channels = new Map();
-        this.consensusRounds = new Map();
-        this.leaderElectionInterval = null;
         this.quantumCrypto = quantumCrypto;
         this.vizorMonitoring = vizorMonitoring;
         this.logger = new Logger_1.Logger('ValidatorOrchestrator');
@@ -244,3 +247,4 @@ class ValidatorOrchestrator extends events_1.EventEmitter {
     }
 }
 exports.ValidatorOrchestrator = ValidatorOrchestrator;
+//# sourceMappingURL=ValidatorOrchestrator.js.map

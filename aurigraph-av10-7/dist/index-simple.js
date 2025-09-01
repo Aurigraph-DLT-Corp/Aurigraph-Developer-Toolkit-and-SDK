@@ -102,3 +102,4 @@ async function main() {
     }
 }
 main().catch(console.error);
+//# sourceMappingURL=index-simple.js.map

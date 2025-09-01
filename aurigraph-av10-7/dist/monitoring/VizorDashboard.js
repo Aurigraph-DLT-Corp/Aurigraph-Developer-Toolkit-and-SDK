@@ -4,11 +4,13 @@ exports.VizorMonitoringService = void 0;
 const Logger_1 = require("../core/Logger");
 const events_1 = require("events");
 class VizorMonitoringService extends events_1.EventEmitter {
+    logger;
+    metrics = new Map();
+    dashboards = new Map();
+    metricsBuffer = [];
+    flushInterval;
     constructor() {
         super();
-        this.metrics = new Map();
-        this.dashboards = new Map();
-        this.metricsBuffer = [];
         this.logger = new Logger_1.Logger('VizorMonitoring');
         this.flushInterval = setInterval(() => this.flushMetrics(), 5000);
         this.setupDefaultDashboards();
@@ -303,3 +305,4 @@ class VizorMonitoringService extends events_1.EventEmitter {
     }
 }
 exports.VizorMonitoringService = VizorMonitoringService;
+//# sourceMappingURL=VizorDashboard.js.map

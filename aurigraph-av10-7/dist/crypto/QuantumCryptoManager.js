@@ -47,16 +47,17 @@ const inversify_1 = require("inversify");
 const crypto = __importStar(require("crypto"));
 const Logger_1 = require("../core/Logger");
 let QuantumCryptoManager = class QuantumCryptoManager {
+    logger;
+    keyPairs = new Map();
+    securityLevel = 5; // NIST Level 5
+    // Quantum algorithms
+    algorithms = {
+        keyEncapsulation: 'CRYSTALS-Kyber',
+        digitalSignature: 'CRYSTALS-Dilithium',
+        hashBasedSignature: 'SPHINCS+',
+        homomorphic: 'BFV' // Brakerski-Fan-Vercauteren
+    };
     constructor() {
-        this.keyPairs = new Map();
-        this.securityLevel = 5; // NIST Level 5
-        // Quantum algorithms
-        this.algorithms = {
-            keyEncapsulation: 'CRYSTALS-Kyber',
-            digitalSignature: 'CRYSTALS-Dilithium',
-            hashBasedSignature: 'SPHINCS+',
-            homomorphic: 'BFV' // Brakerski-Fan-Vercauteren
-        };
         this.logger = new Logger_1.Logger('QuantumCrypto');
     }
     async initialize() {
@@ -272,6 +273,37 @@ let QuantumCryptoManager = class QuantumCryptoManager {
     getSecurityLevel() {
         return this.securityLevel;
     }
+    async generateKeyPair(algorithm) {
+        switch (algorithm) {
+            case 'CRYSTALS-Kyber':
+                return await this.generateKyberKeyPair();
+            case 'CRYSTALS-Dilithium':
+                return await this.generateDilithiumKeyPair();
+            case 'SPHINCS+':
+                return await this.generateSphincsKeyPair();
+            default:
+                throw new Error(`Unsupported algorithm: ${algorithm}`);
+        }
+    }
+    async homomorphicEncrypt(value) {
+        return await this.encryptHomomorphic(value);
+    }
+    async homomorphicAdd(cipher1, cipher2) {
+        return await this.computeOnEncrypted(cipher1, 'add', cipher2);
+    }
+    async homomorphicMultiply(cipher1, cipher2) {
+        return await this.computeOnEncrypted(cipher1, 'multiply', cipher2);
+    }
+    getMetrics() {
+        return {
+            keyPairs: this.keyPairs.size,
+            securityLevel: this.securityLevel,
+            algorithms: this.algorithms,
+            activeAlgorithms: Object.keys(this.algorithms).length,
+            memoryUsage: process.memoryUsage(),
+            uptime: process.uptime()
+        };
+    }
     async benchmark() {
         const iterations = 1000;
         const testData = 'benchmark test data';
@@ -307,3 +339,4 @@ exports.QuantumCryptoManager = QuantumCryptoManager = __decorate([
     (0, inversify_1.injectable)(),
     __metadata("design:paramtypes", [])
 ], QuantumCryptoManager);
+//# sourceMappingURL=QuantumCryptoManager.js.map

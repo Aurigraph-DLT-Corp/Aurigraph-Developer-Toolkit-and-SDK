@@ -14,10 +14,11 @@ const inversify_1 = require("inversify");
 const events_1 = require("events");
 const Logger_1 = require("../core/Logger");
 let NetworkOrchestrator = class NetworkOrchestrator extends events_1.EventEmitter {
+    logger;
+    peers = new Map();
+    pendingTransactions = [];
     constructor() {
         super();
-        this.peers = new Map();
-        this.pendingTransactions = [];
         this.logger = new Logger_1.Logger('NetworkOrchestrator');
     }
     async initialize() {
@@ -69,3 +70,4 @@ exports.NetworkOrchestrator = NetworkOrchestrator = __decorate([
     (0, inversify_1.injectable)(),
     __metadata("design:paramtypes", [])
 ], NetworkOrchestrator);
+//# sourceMappingURL=NetworkOrchestrator.js.map

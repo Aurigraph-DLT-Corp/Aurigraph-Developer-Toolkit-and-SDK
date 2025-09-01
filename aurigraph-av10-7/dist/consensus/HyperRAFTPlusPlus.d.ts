@@ -28,6 +28,9 @@ export interface Transaction {
     hash: string;
     data: any;
     timestamp: number;
+    from?: string;
+    to?: string;
+    amount?: number;
     zkProof?: any;
     signature?: string;
 }
@@ -72,7 +75,6 @@ export declare class HyperRAFTPlusPlus extends EventEmitter {
     private sendHeartbeat;
     processTransactionBatch(transactions: Transaction[]): Promise<Block>;
     private validateTransactions;
-    private validateSingleTransaction;
     private generateZKProofs;
     private executeTransactions;
     private executeTransactionChunk;
@@ -83,7 +85,21 @@ export declare class HyperRAFTPlusPlus extends EventEmitter {
     private updatePerformanceMetrics;
     private startPerformanceMonitoring;
     private optimizePerformance;
+    private validateTransactionsWithRetry;
+    private validateSingleTransaction;
+    private generateZKProofsWithFallback;
+    private executeTransactionsWithIsolation;
+    private executeSingleTransactionEnhanced;
+    private preExecutionCheck;
+    private postExecutionVerification;
+    private commitStateWithVerification;
+    private verifyStateRoot;
+    private aggregateProofsWithCompression;
+    private updateTransactionSuccessRate;
+    start(): Promise<void>;
     stop(): Promise<void>;
+    getStatus(): any;
+    getPerformanceMetrics(): any;
     getMetrics(): any;
 }
 //# sourceMappingURL=HyperRAFTPlusPlus.d.ts.map

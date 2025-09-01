@@ -47,18 +47,19 @@ const inversify_1 = require("inversify");
 const Logger_1 = require("../core/Logger");
 const crypto = __importStar(require("crypto"));
 let ZKProofSystem = class ZKProofSystem {
+    logger;
+    circuits = new Map();
+    proofCache = new Map();
+    recursiveAggregation = false;
+    // Performance metrics
+    metrics = {
+        proofsGenerated: 0,
+        proofsVerified: 0,
+        avgGenerationTime: 0,
+        avgVerificationTime: 0,
+        cacheHitRate: 0
+    };
     constructor() {
-        this.circuits = new Map();
-        this.proofCache = new Map();
-        this.recursiveAggregation = false;
-        // Performance metrics
-        this.metrics = {
-            proofsGenerated: 0,
-            proofsVerified: 0,
-            avgGenerationTime: 0,
-            avgVerificationTime: 0,
-            cacheHitRate: 0
-        };
         this.logger = new Logger_1.Logger('ZKProofSystem');
     }
     async initialize() {
@@ -374,3 +375,4 @@ exports.ZKProofSystem = ZKProofSystem = __decorate([
     (0, inversify_1.injectable)(),
     __metadata("design:paramtypes", [])
 ], ZKProofSystem);
+//# sourceMappingURL=ZKProofSystem.js.map

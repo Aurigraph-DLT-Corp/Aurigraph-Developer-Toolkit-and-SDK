@@ -307,6 +307,42 @@ export class QuantumCryptoManager {
     return this.securityLevel;
   }
   
+  async generateKeyPair(algorithm: 'CRYSTALS-Kyber' | 'CRYSTALS-Dilithium' | 'SPHINCS+'): Promise<QuantumKeyPair> {
+    switch (algorithm) {
+      case 'CRYSTALS-Kyber':
+        return await this.generateKyberKeyPair();
+      case 'CRYSTALS-Dilithium':
+        return await this.generateDilithiumKeyPair();
+      case 'SPHINCS+':
+        return await this.generateSphincsKeyPair();
+      default:
+        throw new Error(`Unsupported algorithm: ${algorithm}`);
+    }
+  }
+  
+  async homomorphicEncrypt(value: number): Promise<HomomorphicCipher> {
+    return await this.encryptHomomorphic(value);
+  }
+  
+  async homomorphicAdd(cipher1: HomomorphicCipher, cipher2: HomomorphicCipher): Promise<HomomorphicCipher> {
+    return await this.computeOnEncrypted(cipher1, 'add', cipher2);
+  }
+  
+  async homomorphicMultiply(cipher1: HomomorphicCipher, cipher2: HomomorphicCipher): Promise<HomomorphicCipher> {
+    return await this.computeOnEncrypted(cipher1, 'multiply', cipher2);
+  }
+  
+  getMetrics(): any {
+    return {
+      keyPairs: this.keyPairs.size,
+      securityLevel: this.securityLevel,
+      algorithms: this.algorithms,
+      activeAlgorithms: Object.keys(this.algorithms).length,
+      memoryUsage: process.memoryUsage(),
+      uptime: process.uptime()
+    };
+  }
+  
   async benchmark(): Promise<any> {
     const iterations = 1000;
     const testData = 'benchmark test data';

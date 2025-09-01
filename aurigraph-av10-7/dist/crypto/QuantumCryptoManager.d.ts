@@ -40,6 +40,11 @@ export declare class QuantumCryptoManager {
     combineMultiPartySignatures(signatures: string[], threshold: number): Promise<string>;
     rotateKeys(): void;
     getSecurityLevel(): number;
+    generateKeyPair(algorithm: 'CRYSTALS-Kyber' | 'CRYSTALS-Dilithium' | 'SPHINCS+'): Promise<QuantumKeyPair>;
+    homomorphicEncrypt(value: number): Promise<HomomorphicCipher>;
+    homomorphicAdd(cipher1: HomomorphicCipher, cipher2: HomomorphicCipher): Promise<HomomorphicCipher>;
+    homomorphicMultiply(cipher1: HomomorphicCipher, cipher2: HomomorphicCipher): Promise<HomomorphicCipher>;
+    getMetrics(): any;
     benchmark(): Promise<any>;
 }
 //# sourceMappingURL=QuantumCryptoManager.d.ts.map

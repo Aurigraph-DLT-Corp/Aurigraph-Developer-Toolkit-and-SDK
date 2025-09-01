@@ -241,12 +241,15 @@ npm run test:integration
 
 ## 📚 Documentation
 
+- [Development Framework](CLAUDE.md) - Agent-based development structure
+- [Project Changelog](CHANGELOG.md) - Complete project history and milestones
 - [Architecture Guide](docs/architecture.md)
-- [API Reference](docs/api.md)
+- [API Reference](docs/api.md) 
 - [Deployment Guide](docs/deployment.md)
 - [Security Manual](docs/security.md)
 - [Cross-Chain Guide](docs/cross-chain.md)
 - [Zero-Knowledge Guide](docs/zk-proofs.md)
+- [Vizor Monitoring](docs/vizor.md) - Dashboard and reporting guide
 
 ## 🤝 Contributing
 

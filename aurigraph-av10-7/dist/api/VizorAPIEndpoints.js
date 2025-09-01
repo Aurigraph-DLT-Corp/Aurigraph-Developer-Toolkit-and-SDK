@@ -7,6 +7,11 @@ exports.VizorAPIEndpoints = void 0;
 const express_1 = __importDefault(require("express"));
 const Logger_1 = require("../core/Logger");
 class VizorAPIEndpoints {
+    logger;
+    vizorService;
+    validatorOrchestrator;
+    channelManager;
+    router;
     constructor(vizorService, validatorOrchestrator, channelManager) {
         this.logger = new Logger_1.Logger('VizorAPI');
         this.vizorService = vizorService;
@@ -294,3 +299,4 @@ class VizorAPIEndpoints {
     }
 }
 exports.VizorAPIEndpoints = VizorAPIEndpoints;
+//# sourceMappingURL=VizorAPIEndpoints.js.map

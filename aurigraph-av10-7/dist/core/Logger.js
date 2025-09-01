@@ -16,6 +16,8 @@ exports.Logger = void 0;
 const winston_1 = __importDefault(require("winston"));
 const inversify_1 = require("inversify");
 let Logger = class Logger {
+    logger;
+    component;
     constructor(component) {
         this.component = component;
         const logFormat = winston_1.default.format.combine(winston_1.default.format.timestamp({
@@ -90,3 +92,4 @@ exports.Logger = Logger = __decorate([
     (0, inversify_1.injectable)(),
     __metadata("design:paramtypes", [String])
 ], Logger);
+//# sourceMappingURL=Logger.js.map

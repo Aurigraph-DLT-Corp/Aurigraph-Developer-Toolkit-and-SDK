@@ -4,13 +4,16 @@ exports.ChannelManager = void 0;
 const Logger_1 = require("../core/Logger");
 const events_1 = require("events");
 class ChannelManager extends events_1.EventEmitter {
+    logger;
+    userNodes = new Map();
+    channels = new Map();
+    channelKeys = new Map();
+    messageQueue = new Map();
+    quantumCrypto;
+    vizorMonitoring;
+    processingInterval = null;
     constructor(quantumCrypto, vizorMonitoring) {
         super();
-        this.userNodes = new Map();
-        this.channels = new Map();
-        this.channelKeys = new Map();
-        this.messageQueue = new Map();
-        this.processingInterval = null;
         this.quantumCrypto = quantumCrypto;
         this.vizorMonitoring = vizorMonitoring;
         this.logger = new Logger_1.Logger('ChannelManager');
@@ -228,3 +231,4 @@ class ChannelManager extends events_1.EventEmitter {
     }
 }
 exports.ChannelManager = ChannelManager;
+//# sourceMappingURL=ChannelManager.js.map

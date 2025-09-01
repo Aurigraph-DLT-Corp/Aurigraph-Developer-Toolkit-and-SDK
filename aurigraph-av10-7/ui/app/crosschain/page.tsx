@@ -12,7 +12,7 @@ import {
   Clock,
   AlertCircle,
   Plus,
-  Refresh
+  RotateCcw
 } from 'lucide-react';
 import type { ChainConnection } from '../../types';
 
@@ -216,7 +216,7 @@ export default function CrossChainPage() {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-white">Recent Bridge Transactions</h3>
           <button className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm">
-            <Refresh className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4" />
             <span>Refresh</span>
           </button>
         </div>

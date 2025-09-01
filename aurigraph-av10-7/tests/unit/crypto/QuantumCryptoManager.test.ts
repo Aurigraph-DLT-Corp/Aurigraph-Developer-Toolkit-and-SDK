@@ -82,10 +82,9 @@ describe('QuantumCryptoManager', () => {
       const signature = await cryptoManager.sign(data);
       
       expect(signature).toBeDefined();
-      expect(signature.signature).toBeDefined();
-      expect(signature.algorithm).toBeDefined();
+      expect(typeof signature).toBe('string');
       
-      const isValid = await cryptoManager.verify(data, signature.signature);
+      const isValid = await cryptoManager.verify(data, signature);
       expect(isValid).toBe(true);
     });
 
@@ -95,7 +94,7 @@ describe('QuantumCryptoManager', () => {
       
       // Modify data after signing
       const modifiedData = 'modified-transaction-data';
-      const isValid = await cryptoManager.verify(modifiedData, signature.signature);
+      const isValid = await cryptoManager.verify(modifiedData, signature);
       
       expect(isValid).toBe(false);
     });
@@ -105,7 +104,7 @@ describe('QuantumCryptoManager', () => {
       const data = 'test-data';
       const signature = await cryptoManager.sign(data);
       
-      const isValid = await cryptoManager.verify(data, signature.signature, keyPair.publicKey);
+      const isValid = await cryptoManager.verify(data, signature, keyPair.publicKey);
       expect(isValid).toBe(true);
     });
   });
@@ -116,34 +115,36 @@ describe('QuantumCryptoManager', () => {
     });
 
     it('should encrypt and decrypt data successfully', async () => {
-      const plaintext = 'sensitive-blockchain-data';
+      const plaintext = Buffer.from('sensitive-blockchain-data');
+      const channelKey = await cryptoManager.generateChannelKey();
       
-      const encrypted = await cryptoManager.encrypt(plaintext);
-      expect(encrypted.ciphertext).toBeDefined();
-      expect(encrypted.ciphertext).not.toBe(plaintext);
+      const encrypted = await cryptoManager.encryptWithChannel(plaintext, channelKey);
+      expect(encrypted).toBeDefined();
+      expect(encrypted.length).toBeGreaterThan(plaintext.length);
       
-      const decrypted = await cryptoManager.decrypt(encrypted.ciphertext);
-      expect(decrypted).toBe(plaintext);
+      const decrypted = await cryptoManager.decryptWithChannel(encrypted, channelKey);
+      expect(decrypted.toString()).toBe(plaintext.toString());
     });
 
     it('should handle large data encryption', async () => {
-      const largeData = 'x'.repeat(10000); // 10KB data
+      const largeData = Buffer.from('x'.repeat(10000)); // 10KB data
+      const channelKey = await cryptoManager.generateChannelKey();
       
-      const encrypted = await cryptoManager.encrypt(largeData);
-      const decrypted = await cryptoManager.decrypt(encrypted.ciphertext);
+      const encrypted = await cryptoManager.encryptWithChannel(largeData, channelKey);
+      const decrypted = await cryptoManager.decryptWithChannel(encrypted, channelKey);
       
-      expect(decrypted).toBe(largeData);
+      expect(decrypted.toString()).toBe(largeData.toString());
     });
 
     it('should fail decryption with wrong key', async () => {
-      const plaintext = 'test-data';
-      const encrypted = await cryptoManager.encrypt(plaintext);
+      const plaintext = Buffer.from('test-data');
+      const channelKey = await cryptoManager.generateChannelKey();
+      const wrongKey = await cryptoManager.generateChannelKey();
+      const encrypted = await cryptoManager.encryptWithChannel(plaintext, channelKey);
       
-      // Generate new key pair to simulate wrong key
-      await cryptoManager.generateKeyPair('CRYSTALS-Kyber');
-      
+      // Try to decrypt with wrong key
       await expect(
-        cryptoManager.decrypt(encrypted.ciphertext)
+        cryptoManager.decryptWithChannel(encrypted, wrongKey)
       ).rejects.toThrow();
     });
   });
@@ -229,7 +230,7 @@ describe('QuantumCryptoManager', () => {
       const signDuration = Date.now() - startTime;
       
       const verifyStart = Date.now();
-      const isValid = await cryptoManager.verify(data, signature.signature);
+      const isValid = await cryptoManager.verify(data, signature);
       const verifyDuration = Date.now() - verifyStart;
       
       expect(isValid).toBe(true);

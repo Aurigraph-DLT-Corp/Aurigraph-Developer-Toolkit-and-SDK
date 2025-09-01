@@ -77,6 +77,10 @@ export class ConfigManager {
     this.config = this.getDefaultConfig();
   }
   
+  async initialize(): Promise<void> {
+    await this.loadConfiguration();
+  }
+
   async loadConfiguration(): Promise<void> {
     this.logger.info('Loading AV10-7 configuration...');
     
@@ -199,6 +203,21 @@ export class ConfigManager {
   
   getConfig(): AV10Config {
     return this.config;
+  }
+  
+  get(path: string, defaultValue?: any): any {
+    const keys = path.split('.');
+    let current = this.config as any;
+    
+    for (const key of keys) {
+      if (current && typeof current === 'object' && key in current) {
+        current = current[key];
+      } else {
+        return defaultValue;
+      }
+    }
+    
+    return current;
   }
   
   async getNodeConfig(): Promise<NodeConfig> {

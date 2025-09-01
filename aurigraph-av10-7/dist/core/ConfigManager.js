@@ -14,9 +14,14 @@ const inversify_1 = require("inversify");
 const fs_1 = require("fs");
 const Logger_1 = require("./Logger");
 let ConfigManager = class ConfigManager {
+    logger;
+    config;
     constructor() {
         this.logger = new Logger_1.Logger('ConfigManager');
         this.config = this.getDefaultConfig();
+    }
+    async initialize() {
+        await this.loadConfiguration();
     }
     async loadConfiguration() {
         this.logger.info('Loading AV10-7 configuration...');
@@ -127,6 +132,19 @@ let ConfigManager = class ConfigManager {
     getConfig() {
         return this.config;
     }
+    get(path, defaultValue) {
+        const keys = path.split('.');
+        let current = this.config;
+        for (const key of keys) {
+            if (current && typeof current === 'object' && key in current) {
+                current = current[key];
+            }
+            else {
+                return defaultValue;
+            }
+        }
+        return current;
+    }
     async getNodeConfig() {
         return this.config.node;
     }
@@ -154,3 +172,4 @@ exports.ConfigManager = ConfigManager = __decorate([
     (0, inversify_1.injectable)(),
     __metadata("design:paramtypes", [])
 ], ConfigManager);
+//# sourceMappingURL=ConfigManager.js.map
