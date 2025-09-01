@@ -1,0 +1,28 @@
+
+> aurigraph-av10-7@10.7.0 start
+> node dist/index-simple.js
+
+node:events:496
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Function.listen (/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/node_modules/express/lib/application.js:635:24)
+    at /Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/dist/api/MonitoringAPIServer.js:170:36
+    at new Promise (<anonymous>)
+    at MonitoringAPIServer.start (/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/dist/api/MonitoringAPIServer.js:169:16)
+    at main (/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/dist/index-simple.js:53:29)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v22.18.0
