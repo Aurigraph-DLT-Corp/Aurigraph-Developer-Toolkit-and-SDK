@@ -240,6 +240,37 @@ curl http://localhost:3001/api/v10/performance/realtime
 curl http://localhost:3001/api/v10/reports/generate/platform-overview
 ```
 
+## ⚠️ MANDATORY AGENT DEPLOYMENT REQUIREMENT ⚠️
+
+### CRITICAL INSTRUCTION - ALWAYS FOLLOW
+**ALL FURTHER DEVELOPMENT MUST EMPLOY AURIGRAPH DEVELOPMENT TEAM AGENTS**
+
+When implementing any feature, ticket, or enhancement:
+1. **ALWAYS** use the Task tool with appropriate sub-agents
+2. **NEVER** implement directly without agent coordination
+3. **COORDINATE** through the Primary Agent for complex tasks
+4. **DELEGATE** specific work to specialized sub-agents
+5. **INTEGRATE** all deliverables through the agent framework
+
+### Agent Selection Guidelines
+- **Quantum Security Agent**: For cryptography, encryption, security features
+- **AI Optimization Agent**: For machine learning, neural networks, predictive analytics
+- **Consensus Protocol Agent**: For blockchain consensus, validator management
+- **Zero-Knowledge Privacy Agent**: For privacy, ZK proofs, confidential transactions
+- **Cross-Chain Agent**: For interoperability, bridges, multi-chain features
+- **Monitoring Agent**: For dashboards, metrics, observability
+- **Network Infrastructure Agent**: For P2P, communication, networking
+- **UI/UX Development Agent**: For interfaces, dashboards, user experience
+- **DevOps Agent**: For deployment, infrastructure, operations
+- **Testing Agent**: For quality assurance, testing, validation
+
+### Agent Coordination Protocol
+1. **Primary Agent** analyzes requirements and assigns to sub-agents
+2. **Sub-agents** implement specialized components
+3. **Integration** through standardized interfaces
+4. **Validation** across all agent deliverables
+5. **Deployment** coordinated by DevOps Agent
+
 ## Agent Development Guidelines
 
 ### Code Standards
