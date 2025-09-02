@@ -8,7 +8,19 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "export": "next export"
+    "export": "next export",
+    "dev-setup": "./dev-setup.sh",
+    "dev-utils": "node dev-utils.js",
+    "setup-hooks": "./setup-git-hooks.sh",
+    "dev-start": "node dev-utils.js start",
+    "dev-test": "node dev-utils.js test",
+    "dev-build": "node dev-utils.js build",
+    "dev-clean": "node dev-utils.js clean",
+    "dev-status": "node dev-utils.js status",
+    "jira-tickets": "node update-jira-tickets.js",
+    "jira-info": "node update-jira-tickets.js info",
+    "jira-instructions": "node update-jira-tickets.js instructions",
+    "jira-summary": "node update-jira-tickets.js summary"
   },
   "dependencies": {
     "next": "14.0.3",
