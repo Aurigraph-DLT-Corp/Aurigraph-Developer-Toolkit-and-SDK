@@ -16,6 +16,7 @@ const AssetRegistry_1 = require("./rwa/registry/AssetRegistry");
 const MCPInterface_1 = require("./rwa/mcp/MCPInterface");
 const HyperRAFTPlusPlusV2_1 = require("./consensus/HyperRAFTPlusPlusV2");
 const AIOptimizer_1 = require("./ai/AIOptimizer");
+const PrometheusExporter_1 = require("./monitoring/PrometheusExporter");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 (0, dotenv_1.config)();
@@ -34,6 +35,10 @@ async function deployComprehensivePlatform() {
         const aiOptimizer = new AIOptimizer_1.AIOptimizer();
         await aiOptimizer.start();
         logger.info('🤖 AI Optimizer started');
+        // Initialize Prometheus monitoring
+        const prometheusExporter = new PrometheusExporter_1.PrometheusExporter();
+        await prometheusExporter.start(9090);
+        logger.info('📊 Prometheus metrics exporter started on port 9090');
         // AV10-23: Smart Contract Platform
         const smartContracts = new SmartContractPlatform_1.SmartContractPlatform(quantumCrypto);
         await smartContracts.initialize();
@@ -80,7 +85,8 @@ async function deployComprehensivePlatform() {
             mcpInterface,
             rwaWebInterface,
             consensus,
-            aiOptimizer
+            aiOptimizer,
+            prometheusExporter
         };
         // Setup comprehensive API
         const app = (0, express_1.default)();
@@ -232,12 +238,30 @@ async function deployComprehensivePlatform() {
         });
         // Start RWA Web Interface on separate port
         await rwaWebInterface.start(3021);
-        // Performance monitoring for comprehensive platform
+        // Performance monitoring and Prometheus metrics update
         setInterval(async () => {
             const nodeMetrics = dltNode.getMetrics();
+            const nodeStatus = dltNode.getStatus();
             const contractMetrics = smartContracts.getPerformanceMetrics();
             const cryptoMetrics = quantumCrypto.getMetrics();
             const governanceMetrics = governance.getGovernanceMetrics();
+            // Update Prometheus metrics
+            prometheusExporter.updateTPS(nodeMetrics.performance.tps);
+            prometheusExporter.updateBlockHeight(nodeStatus.blockHeight);
+            prometheusExporter.updateActiveNodes('VALIDATOR', 3);
+            prometheusExporter.updateActiveNodes('FULL', nodeStatus.peerCount);
+            prometheusExporter.updateQuantumSecurityLevel(6);
+            prometheusExporter.updateNTRUEncryptions(cryptoMetrics.ntru.ntruEncryptionsPerSec);
+            prometheusExporter.updateGovernanceProposals('active', governanceMetrics.activeProposals);
+            prometheusExporter.updateNodeStatus('AV10-NODE-001', 'VALIDATOR', nodeStatus.status === 'running');
+            prometheusExporter.updatePeerConnections('AV10-NODE-001', nodeStatus.peerCount);
+            prometheusExporter.updateSupportedChains(50);
+            // Update resource usage
+            if (nodeStatus.resourceUsage) {
+                prometheusExporter.updateResourceUsage('AV10-NODE-001', 'memory', nodeStatus.resourceUsage.memoryMB / 2048 * 100);
+                prometheusExporter.updateResourceUsage('AV10-NODE-001', 'cpu', nodeStatus.resourceUsage.cpuPercent);
+                prometheusExporter.updateResourceUsage('AV10-NODE-001', 'disk', nodeStatus.resourceUsage.diskGB / 100 * 100);
+            }
             logger.info(`📊 Comprehensive Metrics: ` +
                 `Node TPS: ${nodeMetrics.performance.tps} | ` +
                 `Contracts: ${contractMetrics.totalContracts} | ` +

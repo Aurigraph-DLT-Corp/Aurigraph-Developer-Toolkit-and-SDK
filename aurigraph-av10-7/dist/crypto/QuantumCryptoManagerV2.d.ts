@@ -105,5 +105,6 @@ export declare class QuantumCryptoManagerV2 {
     generateQuantumKeyPairNTRU(): Promise<QuantumKeyPairV2>;
     getNTRUPerformanceMetrics(): any;
     hashData(data: string): Promise<string>;
+    getMetrics(): any;
 }
 //# sourceMappingURL=QuantumCryptoManagerV2.d.ts.map

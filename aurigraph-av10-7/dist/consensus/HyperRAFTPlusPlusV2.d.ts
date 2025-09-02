@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { QuantumCryptoManager } from '../crypto/QuantumCryptoManager';
+import { QuantumCryptoManagerV2 } from '../crypto/QuantumCryptoManagerV2';
 import { ZKProofSystem } from '../zk/ZKProofSystem';
 import { AIOptimizer } from '../ai/AIOptimizer';
 export interface ConsensusConfigV2 {
@@ -74,7 +74,7 @@ export declare class HyperRAFTPlusPlusV2 extends EventEmitter {
     private quantumConsensusEnabled;
     private multiDimensionalValidation;
     private zeroLatencyMode;
-    constructor(config: ConsensusConfigV2, quantumCrypto: QuantumCryptoManager, zkProofSystem: ZKProofSystem, aiOptimizer: AIOptimizer);
+    constructor(config: ConsensusConfigV2, quantumCrypto: QuantumCryptoManagerV2, zkProofSystem: ZKProofSystem, aiOptimizer: AIOptimizer);
     initialize(): Promise<void>;
     private initializeValidationPipelines;
     private initializeAdaptiveSharding;
@@ -122,6 +122,7 @@ export declare class HyperRAFTPlusPlusV2 extends EventEmitter {
     getStatus(): any;
     getPerformanceMetrics(): any;
     getEnhancedMetrics(): any;
+    submitTransaction(transaction: any): Promise<boolean>;
     getMetrics(): any;
 }
 //# sourceMappingURL=HyperRAFTPlusPlusV2.d.ts.map

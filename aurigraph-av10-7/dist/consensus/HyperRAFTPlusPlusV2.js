@@ -13,7 +13,7 @@ exports.HyperRAFTPlusPlusV2 = void 0;
 const inversify_1 = require("inversify");
 const events_1 = require("events");
 const Logger_1 = require("../core/Logger");
-const QuantumCryptoManager_1 = require("../crypto/QuantumCryptoManager");
+const QuantumCryptoManagerV2_1 = require("../crypto/QuantumCryptoManagerV2");
 const ZKProofSystem_1 = require("../zk/ZKProofSystem");
 const AIOptimizer_1 = require("../ai/AIOptimizer");
 let HyperRAFTPlusPlusV2 = class HyperRAFTPlusPlusV2 extends events_1.EventEmitter {
@@ -660,6 +660,24 @@ let HyperRAFTPlusPlusV2 = class HyperRAFTPlusPlusV2 extends events_1.EventEmitte
             }
         };
     }
+    async submitTransaction(transaction) {
+        try {
+            // Add transaction to pool for batch processing
+            const txId = transaction.id || `tx_${Date.now()}_${Math.random()}`;
+            this.transactionPool.set(txId, transaction);
+            // If we have enough transactions or timeout reached, process batch
+            if (this.transactionPool.size >= this.config.batchSize) {
+                const transactions = Array.from(this.transactionPool.values());
+                this.transactionPool.clear();
+                await this.processTransactionBatchV2(transactions);
+            }
+            return true;
+        }
+        catch (error) {
+            this.logger.error(`Failed to submit transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            return false;
+        }
+    }
     getMetrics() {
         return this.getEnhancedMetrics();
     }
@@ -667,7 +685,7 @@ let HyperRAFTPlusPlusV2 = class HyperRAFTPlusPlusV2 extends events_1.EventEmitte
 exports.HyperRAFTPlusPlusV2 = HyperRAFTPlusPlusV2;
 exports.HyperRAFTPlusPlusV2 = HyperRAFTPlusPlusV2 = __decorate([
     (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [Object, QuantumCryptoManager_1.QuantumCryptoManager,
+    __metadata("design:paramtypes", [Object, QuantumCryptoManagerV2_1.QuantumCryptoManagerV2,
         ZKProofSystem_1.ZKProofSystem,
         AIOptimizer_1.AIOptimizer])
 ], HyperRAFTPlusPlusV2);

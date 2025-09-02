@@ -37,16 +37,20 @@
   },
   "dependencies": {
     "@types/node": "^20.10.0",
+    "@types/ws": "^8.18.1",
     "@wormhole-foundation/sdk": "^3.4.5",
     "cors": "^2.8.5",
     "dotenv": "^16.3.0",
     "express": "^4.18.2",
+    "express-prometheus-middleware": "^1.2.0",
     "inversify": "^6.0.2",
     "lodash": "^4.17.21",
+    "prom-client": "^13.2.0",
     "reflect-metadata": "^0.2.0",
     "typescript": "^5.3.0",
     "uuid": "^9.0.1",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.0",

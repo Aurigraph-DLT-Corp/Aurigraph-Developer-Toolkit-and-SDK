@@ -637,15 +637,6 @@ let QuantumCryptoManagerV2 = class QuantumCryptoManagerV2 {
             }
         };
     }
-    getMetrics() {
-        return {
-            ...this.performanceMetrics,
-            securityLevel: this.config.securityLevel,
-            quantumReadiness: this.calculateQuantumReadiness(),
-            keyDistributionEfficiency: this.calculateDistributionEfficiency(),
-            consensusProofEfficiency: this.calculateConsensusProofEfficiency()
-        };
-    }
     calculateQuantumReadiness() {
         // Calculate overall quantum readiness score
         let readiness = 0.8; // Base readiness
@@ -921,6 +912,10 @@ let QuantumCryptoManagerV2 = class QuantumCryptoManagerV2 {
     getMetrics() {
         return {
             ...this.performanceMetrics,
+            securityLevel: this.config.securityLevel,
+            quantumReadiness: this.calculateQuantumReadiness(),
+            keyDistributionEfficiency: this.calculateDistributionEfficiency(),
+            consensusProofEfficiency: this.calculateConsensusProofEfficiency(),
             quantum: {
                 securityLevel: this.config.securityLevel,
                 algorithms: this.algorithmsV2,

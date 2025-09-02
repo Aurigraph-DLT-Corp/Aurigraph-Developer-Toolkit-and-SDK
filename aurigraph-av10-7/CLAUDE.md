@@ -150,23 +150,31 @@ Aurigraph AV10-7 DLT Platform - A quantum-resilient distributed ledger technolog
 - **Cross-chain**: 9+ blockchain bridge support
 
 ### Monitoring & Management (✅ Complete)
-- **Vizor Dashboards**: Real-time performance monitoring
-- **Management UI**: http://localhost:8080
-- **API Endpoints**: http://localhost:3001/api/v10/
-- **Channel Management**: Encrypted user node communication
+- **Management Dashboard**: http://localhost:3040 (Standalone)
+- **Containerized Dashboard**: http://localhost:3140 (Docker)
+- **Real-time Demo System**: Start/Stop demo with live metrics
+- **Multi-channel Management**: Create and manage DLT channels
+- **Node Management**: Deploy validators and basic nodes
+- **Performance Monitoring**: Live TPS, transaction counts, quantum metrics
 
 ### Active Services
-- **Main Platform**: `npm start` (running on multiple ports)
-- **Management UI**: `npm run ui:dev` (port 8080)
-- **Monitoring API**: Integrated with platform (port 3001)
-- **Validator Network**: 3 nodes with 2.75M AV10 stake
+- **Management Dashboard**: `npx ts-node start-management-dashboard.ts` (port 3040)
+- **Containerized Environment**: `docker compose -f docker-compose.test.yml up -d`
+  - Validator: http://localhost:8181
+  - Node 1 (FULL): http://localhost:8201  
+  - Node 2 (LIGHT): http://localhost:8202
+  - Dashboard: http://localhost:3140
+- **Demo System**: Real-time transaction simulation with quantum security
 
 ## Quick Commands
 
 ### Platform Management
 ```bash
-# Start full platform
-npm run start:full
+# Start management dashboard (standalone)
+npx ts-node start-management-dashboard.ts
+
+# Start containerized environment
+docker compose -f docker-compose.test.yml up -d
 
 # Build platform
 npm run build
@@ -176,6 +184,21 @@ npm run benchmark
 
 # Deploy to testnet
 npm run deploy:testnet
+```
+
+### Containerized Management
+```bash
+# Start containerized DLT environment
+docker compose -f docker-compose.test.yml up -d
+
+# Access points
+# - Management Dashboard: http://localhost:3140
+# - Validator Node: http://localhost:8181
+# - Full Node: http://localhost:8201
+# - Light Node: http://localhost:8202
+
+# Stop containerized environment
+docker compose -f docker-compose.test.yml down
 ```
 
 ### UI Development
@@ -353,6 +376,72 @@ curl -I "http://localhost:PORT/non-existent-path"
 ```
 
 This solution permanently resolves font loading CSP errors across all Aurigraph projects and provides flexible CSP configurations for different deployment environments.
+
+## Vue.js Error Handling
+
+### Common Vue Render Function Errors
+
+#### Problem: formatTPS undefined errors
+```
+TypeError: Cannot read properties of undefined (reading 'toString')
+    at Proxy.formatTPS ((index):775:32)
+```
+
+#### Root Cause
+- Vue component methods try to call `.toString()` on undefined values
+- API responses may return undefined for metrics during initialization
+- Race conditions between data loading and rendering
+
+#### Solution Applied
+1. **Null Checking in formatTPS function**:
+```javascript
+formatTPS(tps) {
+    if (!tps && tps !== 0) return '0';  // Handle undefined/null
+    if (tps >= 1000000) {
+        return (tps / 1000000).toFixed(1) + 'M';
+    } else if (tps >= 1000) {
+        return (tps / 1000).toFixed(0) + 'K';
+    }
+    return tps.toString();
+}
+```
+
+2. **Safe Property Access in Templates**:
+```html
+<!-- Before: ERROR -->
+<div>{{ demoStats.currentTPS.toLocaleString() }}</div>
+
+<!-- After: SAFE -->
+<div>{{ (demoStats.currentTPS || 0).toLocaleString() }}</div>
+```
+
+3. **Default Values in getChannelMetrics**:
+```javascript
+getChannelMetrics(channelId) {
+    const metrics = this.metrics.find(m => m.channelId === channelId);
+    return metrics || { 
+        totalTPS: 0, 
+        activeValidators: 0, 
+        totalTransactions: 0,
+        latency: 0
+    };
+}
+```
+
+#### Cache Busting for Browser Refresh
+Added timestamp to Vue.js script to force browser reload:
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js?v=${Date.now()}"></script>
+```
+
+#### Manual Fix Commands
+```bash
+# Hard refresh browser (clears cache)
+Ctrl+F5  # Windows/Linux
+Cmd+Shift+R  # Mac
+
+# Or open in incognito/private mode
+```
 
 ## JIRA Integration
 
