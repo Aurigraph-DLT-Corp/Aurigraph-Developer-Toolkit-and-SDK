@@ -11,8 +11,11 @@ import { AssetRegistry } from './rwa/registry/AssetRegistry';
 import { MCPInterface } from './rwa/mcp/MCPInterface';
 import { HyperRAFTPlusPlusV2 } from './consensus/HyperRAFTPlusPlusV2';
 import { AIOptimizer } from './ai/AIOptimizer';
+import { AutonomousProtocolEvolutionEngine } from './ai/AutonomousProtocolEvolutionEngine';
+import { NeuralNetworkEngine } from './ai/NeuralNetworkEngine';
 import { PrometheusExporter } from './monitoring/PrometheusExporter';
 import { PerformanceMonitor } from './monitoring/PerformanceMonitor';
+import { CrossDimensionalTokenizer } from './rwa/tokenization/CrossDimensionalTokenizer';
 import express from 'express';
 import cors from 'cors';
 
@@ -33,6 +36,9 @@ interface PlatformServices {
   aiOptimizer: AIOptimizer;
   prometheusExporter: PrometheusExporter;
   performanceMonitor: PerformanceMonitor;
+  protocolEvolution: AutonomousProtocolEvolutionEngine;
+  neuralNetwork: NeuralNetworkEngine;
+  crossDimensionalTokenizer: CrossDimensionalTokenizer;
 }
 
 async function deployComprehensivePlatform() {
@@ -130,6 +136,43 @@ async function deployComprehensivePlatform() {
     performanceMonitor.startMonitoring();
     logger.info('📈 AV10-16: Performance Monitoring System initialized');
 
+    // AV10-9: Autonomous Protocol Evolution Engine
+    const protocolEvolution = new AutonomousProtocolEvolutionEngine(
+      aiOptimizer,
+      quantumCrypto,
+      consensus,
+      {
+        evolutionInterval: 30000, // 30 seconds
+        learningRate: 0.01,
+        maxParameterChange: 0.1,
+        evolutionThreshold: 0.02,
+        safetyMode: true,
+        quantumEvolution: true
+      }
+    );
+    
+    await protocolEvolution.startEvolution();
+    logger.info('🧬 AV10-9: Autonomous Protocol Evolution Engine initialized');
+
+    // Enhanced Neural Network Engine
+    const neuralNetwork = new NeuralNetworkEngine(quantumCrypto, true);
+    logger.info('🧠 Enhanced Neural Network Engine initialized');
+
+    // AV10-10: Cross-Dimensional Tokenizer
+    const crossDimensionalTokenizer = new CrossDimensionalTokenizer(
+      quantumCrypto,
+      rwaRegistry,
+      {
+        enableQuantumSuperposition: true,
+        enableTemporalProjection: true,
+        enableProbabilisticSplitting: true,
+        maxDimensions: 6,
+        decoherenceProtection: true,
+        quantumErrorCorrection: true
+      }
+    );
+    logger.info('🌌 AV10-10: Cross-Dimensional Tokenizer initialized');
+
     const services: PlatformServices = {
       quantumCrypto,
       smartContracts,
@@ -142,7 +185,10 @@ async function deployComprehensivePlatform() {
       consensus,
       aiOptimizer,
       prometheusExporter,
-      performanceMonitor
+      performanceMonitor,
+      protocolEvolution,
+      neuralNetwork,
+      crossDimensionalTokenizer
     };
 
     // Setup comprehensive API
@@ -318,6 +364,90 @@ async function deployComprehensivePlatform() {
       mcpInterface.getApp()(req, res, next);
     });
 
+    // AV10-9: Autonomous Protocol Evolution APIs
+    app.get('/api/evolution/status', (req, res) => {
+      const status = protocolEvolution.getEvolutionStatus();
+      res.json(status);
+    });
+
+    app.get('/api/evolution/metrics', (req, res) => {
+      const metrics = protocolEvolution.getEvolutionMetrics();
+      res.json({ metrics });
+    });
+
+    app.get('/api/evolution/parameters', (req, res) => {
+      const parameters = protocolEvolution.getCurrentParameters();
+      const parameterArray = Array.from(parameters.values());
+      res.json({ parameters: parameterArray });
+    });
+
+    // Enhanced Neural Network APIs
+    app.get('/api/ai/networks', (req, res) => {
+      const networks = neuralNetwork.getAllNetworks().map(n => ({
+        id: n.id,
+        name: n.name,
+        type: n.type,
+        layers: n.layers.length,
+        quantumEnhanced: n.quantumEnhanced
+      }));
+      res.json({ networks });
+    });
+
+    app.get('/api/ai/status', (req, res) => {
+      const status = neuralNetwork.getSystemStatus();
+      res.json(status);
+    });
+
+    app.post('/api/ai/networks/:networkId/predict', async (req, res) => {
+      try {
+        const { inputs } = req.body;
+        if (!Array.isArray(inputs) || inputs.length === 0) {
+          return res.status(400).json({ error: 'Invalid inputs provided' });
+        }
+        
+        const inputArrays = inputs.map(input => new Float32Array(input));
+        const result = await neuralNetwork.predict(req.params.networkId, inputArrays);
+        
+        res.json({
+          predictions: Array.from(result.predictions),
+          confidence: result.confidence,
+          uncertainty: result.uncertainty ? Array.from(result.uncertainty) : undefined
+        });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Prediction failed'
+        });
+      }
+    });
+
+    // AV10-10: Cross-Dimensional Tokenizer APIs
+    app.get('/api/xd-tokenizer/statistics', (req, res) => {
+      const stats = crossDimensionalTokenizer.getDimensionalStatistics();
+      
+      // Convert Maps to Objects for JSON serialization
+      const result = {
+        ...stats,
+        dimensionDistribution: Object.fromEntries(stats.dimensionDistribution),
+        layerDistribution: Object.fromEntries(stats.layerDistribution)
+      };
+      
+      res.json(result);
+    });
+
+    app.get('/api/xd-tokenizer/assets', (req, res) => {
+      const assets = crossDimensionalTokenizer.getAllCrossDimensionalAssets();
+      res.json({ 
+        count: assets.length, 
+        assets: assets.map(a => ({
+          id: a.id,
+          name: a.name,
+          dimensions: a.dimensions.length,
+          primaryDimension: a.primaryDimension
+        }))
+      });
+    });
+
     // Start comprehensive platform
     const PORT = process.env.AV10_COMPREHENSIVE_PORT || 3036;
     
@@ -331,6 +461,10 @@ async function deployComprehensivePlatform() {
       logger.info(`   Governance: http://localhost:${PORT}/api/governance/proposals`);
       logger.info(`   DLT Node: http://localhost:${PORT}/api/node/status`);
       logger.info(`   RWA Platform: http://localhost:${PORT}/api/rwa/`);
+      logger.info(`   Performance Monitor: http://localhost:${PORT}/api/performance/report`);
+      logger.info(`   Protocol Evolution: http://localhost:${PORT}/api/evolution/status`);
+      logger.info(`   Neural Network AI: http://localhost:${PORT}/api/ai/status`);
+      logger.info(`   Cross-Dimensional Tokenizer: http://localhost:${PORT}/api/xd-tokenizer/statistics`);
       logger.info('');
       logger.info('🏛️ Implementation Status:');
       logger.info('   ✅ AV10-18: HyperRAFT++ V2 Consensus');
@@ -338,6 +472,10 @@ async function deployComprehensivePlatform() {
       logger.info('   ✅ AV10-23: Smart Contract Platform');
       logger.info('   ✅ AV10-30: Post-Quantum NTRU Cryptography');
       logger.info('   ✅ AV10-36: Enhanced DLT Nodes');
+      logger.info('   ✅ AV10-16: Performance Monitoring System');
+      logger.info('   ✅ AV10-9: Autonomous Protocol Evolution Engine');
+      logger.info('   ✅ AV10-10: Cross-Dimensional Tokenizer');
+      logger.info('   ✅ Enhanced Neural Network AI Engine');
       logger.info('');
       logger.info('📈 Platform Capabilities:');
       logger.info('   🚀 Performance: 1M+ TPS | <500ms finality');
