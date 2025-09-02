@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { EventEmitter } from 'events';
 import { Logger } from '../core/Logger';
-import { QuantumCryptoManager } from '../crypto/QuantumCryptoManager';
+import { QuantumCryptoManagerV2 } from '../crypto/QuantumCryptoManagerV2';
 import { ZKProofSystem } from '../zk/ZKProofSystem';
 import { AIOptimizer } from '../ai/AIOptimizer';
 
@@ -68,7 +68,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
   private logger: Logger;
   private config: ConsensusConfigV2;
   private state: ConsensusStateV2;
-  private quantumCrypto: QuantumCryptoManager;
+  private quantumCrypto: QuantumCryptoManagerV2;
   private zkProofSystem: ZKProofSystem;
   private aiOptimizer: AIOptimizer;
   
@@ -98,7 +98,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
   
   constructor(
     config: ConsensusConfigV2,
-    quantumCrypto: QuantumCryptoManager,
+    quantumCrypto: QuantumCryptoManagerV2,
     zkProofSystem: ZKProofSystem,
     aiOptimizer: AIOptimizer
   ) {
@@ -865,6 +865,26 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
         activeShards: this.shardManagers.size
       }
     };
+  }
+  
+  async submitTransaction(transaction: any): Promise<boolean> {
+    try {
+      // Add transaction to pool for batch processing
+      const txId = transaction.id || `tx_${Date.now()}_${Math.random()}`;
+      this.transactionPool.set(txId, transaction);
+      
+      // If we have enough transactions or timeout reached, process batch
+      if (this.transactionPool.size >= this.config.batchSize) {
+        const transactions = Array.from(this.transactionPool.values());
+        this.transactionPool.clear();
+        await this.processTransactionBatchV2(transactions);
+      }
+      
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to submit transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
+    }
   }
   
   getMetrics(): any {
