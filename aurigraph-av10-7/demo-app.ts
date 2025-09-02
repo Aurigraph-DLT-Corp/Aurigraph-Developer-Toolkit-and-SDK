@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { ChannelManager } from './src/management/ChannelManager';
 import { Logger } from './src/core/Logger';
 import { QuantumCryptoManagerV2 } from './src/crypto/QuantumCryptoManagerV2';
@@ -42,8 +42,8 @@ let demoStats: DemoStats = {
   currentTPS: 0,
   quantumEncryptions: 0,
   zkProofsGenerated: 0,
-  activeValidators: 1,
-  activeNodes: 2,
+  activeValidators: 7,
+  activeNodes: 27,
   networkUptime: 100,
   securityLevel: 6
 };
@@ -118,7 +118,7 @@ class TransactionSimulator {
 const simulator = new TransactionSimulator();
 
 // API Routes
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -285,6 +285,207 @@ app.get('/', (req, res) => {
             opacity: 0.6;
             font-size: 0.9rem;
         }
+        
+        /* Enhanced Node and Transaction Visualization Styles */
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        
+        .node-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .node-item.validator {
+            border-color: #00ff88;
+        }
+        
+        .node-item.full {
+            border-color: #0099ff;
+        }
+        
+        .node-item.light {
+            border-color: #ff6b7a;
+        }
+        
+        .node-item.archive {
+            border-color: #ffd93d;
+        }
+        
+        .node-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+        }
+        
+        .node-status.active {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+        
+        .node-status.syncing {
+            background: #ffd93d;
+            box-shadow: 0 0 10px #ffd93d;
+        }
+        
+        .node-status.offline {
+            background: #ff4757;
+            box-shadow: 0 0 10px #ff4757;
+        }
+        
+        .node-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .node-type {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+        
+        .node-tps {
+            font-size: 0.7rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .tx-visualization {
+            position: relative;
+        }
+        
+        #txCanvas {
+            width: 100%;
+            height: 300px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+        }
+        
+        .tx-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .tx-type {
+            display: flex;
+            align-items: center;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .tx-type::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .tx-type.defi::before {
+            background: #ff6b7a;
+            box-shadow: 0 0 6px #ff6b7a;
+        }
+        
+        .tx-type.privacy::before {
+            background: #0099ff;
+            box-shadow: 0 0 6px #0099ff;
+        }
+        
+        .tx-type.cross-chain::before {
+            background: #ffd93d;
+            box-shadow: 0 0 6px #ffd93d;
+        }
+        
+        .tx-type.smart-contract::before {
+            background: #ff0080;
+            box-shadow: 0 0 6px #ff0080;
+        }
+        
+        .tx-type.transfer::before {
+            background: #00ff88;
+            box-shadow: 0 0 6px #00ff88;
+        }
+
+        /* Leader Election Panel Styles */
+        .leader-panel {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.1));
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .current-leader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255,215,0,0.1);
+            border-radius: 10px;
+        }
+
+        .leader-crown {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+
+        .leader-info {
+            text-align: left;
+        }
+
+        .leader-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 0.25rem;
+        }
+
+        .leader-term {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .election-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+
+        .election-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .election-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffaa00);
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -390,6 +591,61 @@ app.get('/', (req, res) => {
                 <div class="metric">
                     <span class="metric-label">Network Uptime</span>
                     <span class="metric-value" id="uptime">100%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Enhanced Panels -->
+        <div class="demo-card leader-panel">
+            <h3 class="card-title">👑 Leader Election & Consensus</h3>
+            <div class="current-leader">
+                <div class="leader-crown">👑</div>
+                <div class="leader-info">
+                    <div class="leader-name" id="currentLeader">VAL-003</div>
+                    <div class="leader-term">Term #<span id="currentTerm">42</span> • Elected <span id="electionTime">3.2s</span> ago</div>
+                </div>
+            </div>
+            <div class="election-status">
+                <span>Next Election</span>
+                <span id="nextElection">4.8s</span>
+            </div>
+            <div class="election-status">
+                <span>Consensus Health</span>
+                <span style="color: #00ff88;" id="consensusHealth">100%</span>
+            </div>
+            <div class="election-status">
+                <span>Block Height</span>
+                <span id="blockHeight">1,247,832</span>
+            </div>
+            <div class="election-progress">
+                <div class="election-bar" id="electionProgress" style="width: 35%"></div>
+            </div>
+        </div>
+
+        <div class="demo-card">
+            <h3 class="card-title">🌐 Active Network Nodes</h3>
+            <div class="nodes-grid" id="nodesGrid">
+                <div class="node-item validator">
+                    <div class="node-status active"></div>
+                    <div class="node-info">
+                        <div class="node-name">VAL-001</div>
+                        <div class="node-type">Validator</div>
+                        <div class="node-tps">250K TPS</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-card">
+            <h3 class="card-title">🎯 Transaction Flow Visualization</h3>
+            <div class="tx-visualization" id="txVisualization">
+                <canvas id="txCanvas" width="600" height="300"></canvas>
+                <div class="tx-legend">
+                    <div class="tx-type defi">DeFi</div>
+                    <div class="tx-type privacy">Privacy</div>
+                    <div class="tx-type cross-chain">Cross-Chain</div>
+                    <div class="tx-type smart-contract">Smart Contract</div>
+                    <div class="tx-type transfer">Transfer</div>
                 </div>
             </div>
         </div>
@@ -577,8 +833,188 @@ app.get('/', (req, res) => {
             }
         }
 
-        // Auto-start stats updates
-        startStatsUpdates();
+        // Node visualization functions
+        function initializeNodeVisualization() {
+            updateNodesGrid();
+            setInterval(updateNodesGrid, 5000); // Update every 5 seconds
+        }
+
+        async function updateNodesGrid() {
+            try {
+                const response = await fetch('/api/demo/nodes');
+                const nodes = await response.json();
+                
+                const nodesGrid = document.getElementById('nodesGrid');
+                nodesGrid.innerHTML = '';
+                
+                nodes.forEach(node => {
+                    const nodeElement = createNodeElement(node);
+                    nodesGrid.appendChild(nodeElement);
+                });
+            } catch (error) {
+                console.error('Error updating nodes grid:', error);
+            }
+        }
+
+        function createNodeElement(node) {
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'node-item ' + node.type;
+            
+            nodeDiv.innerHTML = 
+                '<div class="node-status ' + node.status + '"></div>' +
+                '<div class="node-info">' +
+                    '<div class="node-name">' + node.name + '</div>' +
+                    '<div class="node-type">' + node.type + '</div>' +
+                    '<div class="node-tps">' + formatTPS(node.tps) + '</div>' +
+                '</div>';
+            
+            return nodeDiv;
+        }
+
+        function formatTPS(tps) {
+            if (!tps && tps !== 0) return '0';
+            if (tps >= 1000000) {
+                return (tps / 1000000).toFixed(1) + 'M TPS';
+            } else if (tps >= 1000) {
+                return (tps / 1000).toFixed(0) + 'K TPS';
+            }
+            return tps + ' TPS';
+        }
+
+        // Transaction visualization functions
+        let txCanvas, txCtx;
+        let particles = [];
+        let animationId;
+
+        function initializeTransactionVisualization() {
+            txCanvas = document.getElementById('txCanvas');
+            txCtx = txCanvas.getContext('2d');
+            
+            // Set canvas size
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Start animation loop
+            animateTransactions();
+            
+            // Add particles periodically
+            setInterval(addTransactionParticle, 200);
+        }
+
+        function resizeCanvas() {
+            const container = txCanvas.parentElement;
+            txCanvas.width = container.offsetWidth;
+            txCanvas.height = 300;
+        }
+
+        function addTransactionParticle() {
+            if (!simulationActive) return;
+            
+            const colors = {
+                'defi': '#ff6b7a',
+                'privacy': '#0099ff',
+                'cross-chain': '#ffd93d',
+                'smart-contract': '#ff0080',
+                'transfer': '#00ff88'
+            };
+            
+            const types = Object.keys(colors);
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            particles.push({
+                x: 0,
+                y: Math.random() * txCanvas.height,
+                vx: 2 + Math.random() * 3,
+                vy: (Math.random() - 0.5) * 2,
+                color: colors[type],
+                size: 3 + Math.random() * 4,
+                life: 1.0,
+                type: type
+            });
+            
+            // Limit particle count
+            if (particles.length > 100) {
+                particles.shift();
+            }
+        }
+
+        function animateTransactions() {
+            txCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            txCtx.fillRect(0, 0, txCanvas.width, txCanvas.height);
+            
+            particles.forEach((particle, index) => {
+                // Update position
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life -= 0.01;
+                
+                // Remove dead particles
+                if (particle.life <= 0 || particle.x > txCanvas.width) {
+                    particles.splice(index, 1);
+                    return;
+                }
+                
+                // Draw particle
+                txCtx.globalAlpha = particle.life;
+                txCtx.fillStyle = particle.color;
+                txCtx.beginPath();
+                txCtx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                txCtx.fill();
+                
+                // Add glow effect
+                txCtx.shadowColor = particle.color;
+                txCtx.shadowBlur = 10;
+                txCtx.fill();
+                txCtx.shadowBlur = 0;
+            });
+            
+            txCtx.globalAlpha = 1;
+            animationId = requestAnimationFrame(animateTransactions);
+        }
+
+        // Leader election functions
+        let electionTimer = 0;
+        let currentTerm = 42;
+        let blockHeight = 1247832;
+
+        function initializeLeaderElection() {
+            updateLeaderInfo();
+            setInterval(updateLeaderInfo, 1000); // Update every second
+            setInterval(simulateElection, 8000); // New election every 8 seconds
+        }
+
+        async function updateLeaderInfo() {
+            try {
+                const response = await fetch('/api/demo/leader');
+                const leaderData = await response.json();
+                
+                document.getElementById('currentLeader').textContent = leaderData.currentLeader;
+                document.getElementById('currentTerm').textContent = leaderData.term;
+                document.getElementById('electionTime').textContent = leaderData.electedAgo;
+                document.getElementById('nextElection').textContent = leaderData.nextElection;
+                document.getElementById('consensusHealth').textContent = leaderData.consensusHealth + '%';
+                document.getElementById('blockHeight').textContent = leaderData.blockHeight.toLocaleString();
+                
+                // Update progress bar
+                const progress = ((8 - parseFloat(leaderData.nextElection)) / 8) * 100;
+                document.getElementById('electionProgress').style.width = progress + '%';
+                
+            } catch (error) {
+                console.error('Error updating leader info:', error);
+            }
+        }
+
+        function simulateElection() {
+            addLogEntry('🗳️ Leader election initiated for term ' + (currentTerm + 1));
+            const validators = ['VAL-001', 'VAL-002', 'VAL-003', 'VAL-004', 'VAL-005', 'VAL-006', 'VAL-007'];
+            const newLeader = validators[Math.floor(Math.random() * validators.length)];
+            currentTerm++;
+            blockHeight += Math.floor(Math.random() * 1000) + 500;
+            
+            setTimeout(() => {
+                addLogEntry('👑 ' + newLeader + ' elected as leader for term ' + currentTerm);
+            }, 1000);
+        }
         
         // Add welcome message
         setTimeout(() => {
@@ -586,6 +1022,15 @@ app.get('/', (req, res) => {
             addLogEntry('🔗 Connected to containerized testnet');
             addLogEntry('💎 Quantum security level 6 active');
         }, 1000);
+
+        // Initialize node visualization
+        initializeNodeVisualization();
+        
+        // Initialize transaction flow canvas
+        initializeTransactionVisualization();
+        
+        // Initialize leader election tracking
+        initializeLeaderElection();
     </script>
 </body>
 </html>
@@ -593,11 +1038,66 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-app.get('/api/demo/stats', (req, res) => {
+app.get('/api/demo/stats', (req: Request, res: Response) => {
   res.json(simulator.getStats());
 });
 
-app.post('/api/demo/start-simulation', (req, res) => {
+app.get('/api/demo/nodes', (req: Request, res: Response) => {
+  // Simulate active nodes data
+  const nodes = [
+    { name: 'VAL-001', type: 'validator', status: 'active', tps: 250000 },
+    { name: 'VAL-002', type: 'validator', status: 'active', tps: 245000 },
+    { name: 'VAL-003', type: 'validator', status: 'active', tps: 248000 },
+    { name: 'VAL-004', type: 'validator', status: 'active', tps: 252000 },
+    { name: 'VAL-005', type: 'validator', status: 'active', tps: 246000 },
+    { name: 'VAL-006', type: 'validator', status: 'active', tps: 251000 },
+    { name: 'VAL-007', type: 'validator', status: 'active', tps: 249000 },
+    { name: 'FULL-001', type: 'full', status: 'active', tps: 45000 },
+    { name: 'FULL-002', type: 'full', status: 'active', tps: 47000 },
+    { name: 'FULL-003', type: 'full', status: 'active', tps: 46000 },
+    { name: 'FULL-004', type: 'full', status: 'active', tps: 48000 },
+    { name: 'FULL-005', type: 'full', status: 'active', tps: 44000 },
+    { name: 'FULL-006', type: 'full', status: 'active', tps: 49000 },
+    { name: 'FULL-007', type: 'full', status: 'active', tps: 45000 },
+    { name: 'FULL-008', type: 'full', status: 'active', tps: 47000 },
+    { name: 'FULL-009', type: 'full', status: 'active', tps: 46000 },
+    { name: 'FULL-010', type: 'full', status: 'active', tps: 48000 },
+    { name: 'FULL-011', type: 'full', status: 'active', tps: 45000 },
+    { name: 'FULL-012', type: 'full', status: 'active', tps: 49000 },
+    { name: 'FULL-013', type: 'full', status: 'active', tps: 47000 },
+    { name: 'FULL-014', type: 'full', status: 'active', tps: 46000 },
+    { name: 'FULL-015', type: 'full', status: 'active', tps: 48000 },
+    { name: 'LIGHT-001', type: 'light', status: 'active', tps: 15000 },
+    { name: 'LIGHT-002', type: 'light', status: 'active', tps: 16000 },
+    { name: 'LIGHT-003', type: 'light', status: 'active', tps: 14000 },
+    { name: 'ARCH-001', type: 'archive', status: 'active', tps: 25000 },
+    { name: 'ARCH-002', type: 'archive', status: 'active', tps: 26000 }
+  ];
+  
+  res.json(nodes);
+});
+
+app.get('/api/demo/leader', (req: Request, res: Response) => {
+  // Simulate leader election data
+  const validators = ['VAL-001', 'VAL-002', 'VAL-003', 'VAL-004', 'VAL-005', 'VAL-006', 'VAL-007'];
+  const currentLeader = validators[Math.floor(Math.random() * validators.length)];
+  const term = Math.floor(Date.now() / 8000) % 1000 + 42; // New term every 8 seconds
+  const electionCycle = Date.now() % 8000; // 8 second cycle
+  const electedAgo = (electionCycle / 1000).toFixed(1) + 's';
+  const nextElection = ((8000 - electionCycle) / 1000).toFixed(1) + 's';
+  const blockHeight = 1247832 + Math.floor(Date.now() / 1000) - 1756786533; // Incremental block height
+  
+  res.json({
+    currentLeader,
+    term,
+    electedAgo,
+    nextElection,
+    consensusHealth: 100,
+    blockHeight
+  });
+});
+
+app.post('/api/demo/start-simulation', (req: Request, res: Response) => {
   try {
     simulator.start();
     res.json({ success: true, message: 'Transaction simulation started' });
@@ -606,7 +1106,7 @@ app.post('/api/demo/start-simulation', (req, res) => {
   }
 });
 
-app.post('/api/demo/stop-simulation', (req, res) => {
+app.post('/api/demo/stop-simulation', (req: Request, res: Response) => {
   try {
     simulator.stop();
     res.json({ success: true, message: 'Transaction simulation stopped' });
@@ -615,7 +1115,7 @@ app.post('/api/demo/stop-simulation', (req, res) => {
   }
 });
 
-app.post('/api/demo/generate-zkproof', async (req, res) => {
+app.post('/api/demo/generate-zkproof', async (req: Request, res: Response) => {
   try {
     if (!zkProofSystem) {
       zkProofSystem = new ZKProofSystem();
@@ -635,7 +1135,7 @@ app.post('/api/demo/generate-zkproof', async (req, res) => {
   }
 });
 
-app.post('/api/demo/quantum-encrypt', async (req, res) => {
+app.post('/api/demo/quantum-encrypt', async (req: Request, res: Response) => {
   try {
     if (!quantumCrypto) {
       quantumCrypto = new QuantumCryptoManagerV2();
@@ -655,7 +1155,7 @@ app.post('/api/demo/quantum-encrypt', async (req, res) => {
   }
 });
 
-app.post('/api/demo/stress-test', async (req, res) => {
+app.post('/api/demo/stress-test', async (req: Request, res: Response) => {
   try {
     // Simulate stress test
     const startTime = Date.now();
@@ -687,7 +1187,7 @@ app.post('/api/demo/stress-test', async (req, res) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
