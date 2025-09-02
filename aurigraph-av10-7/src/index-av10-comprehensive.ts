@@ -16,6 +16,7 @@ import { NeuralNetworkEngine } from './ai/NeuralNetworkEngine';
 import { PrometheusExporter } from './monitoring/PrometheusExporter';
 import { PerformanceMonitor } from './monitoring/PerformanceMonitor';
 import { CrossDimensionalTokenizer } from './rwa/tokenization/CrossDimensionalTokenizer';
+import { CircularEconomyEngine } from './sustainability/CircularEconomyEngine';
 import express from 'express';
 import cors from 'cors';
 
@@ -39,6 +40,7 @@ interface PlatformServices {
   protocolEvolution: AutonomousProtocolEvolutionEngine;
   neuralNetwork: NeuralNetworkEngine;
   crossDimensionalTokenizer: CrossDimensionalTokenizer;
+  circularEconomyEngine: CircularEconomyEngine;
 }
 
 async function deployComprehensivePlatform() {
@@ -173,6 +175,24 @@ async function deployComprehensivePlatform() {
     );
     logger.info('🌌 AV10-10: Cross-Dimensional Tokenizer initialized');
 
+    // AV10-13: Circular Economy Engine
+    const circularEconomyEngine = new CircularEconomyEngine(
+      quantumCrypto,
+      rwaRegistry,
+      performanceMonitor,
+      {
+        optimizationInterval: 60000, // 1 minute
+        targetCircularityIndex: 0.8, // 80% circular
+        carbonNeutralityTarget: new Date('2030-01-01'),
+        enableAIOptimization: true,
+        enablePredictiveAnalytics: true,
+        enableRealTimeMonitoring: true,
+        sustainabilityReportingFrequency: 86400000, // 24 hours
+        stakeholderNotifications: true
+      }
+    );
+    logger.info('🌱 AV10-13: Circular Economy Engine initialized');
+
     const services: PlatformServices = {
       quantumCrypto,
       smartContracts,
@@ -188,7 +208,8 @@ async function deployComprehensivePlatform() {
       performanceMonitor,
       protocolEvolution,
       neuralNetwork,
-      crossDimensionalTokenizer
+      crossDimensionalTokenizer,
+      circularEconomyEngine
     };
 
     // Setup comprehensive API
@@ -448,6 +469,175 @@ async function deployComprehensivePlatform() {
       });
     });
 
+    // AV10-13: Circular Economy Engine APIs
+    app.get('/api/sustainability/metrics', (req, res) => {
+      const metrics = circularEconomyEngine.getCurrentMetrics();
+      const metricsObj = Object.fromEntries(metrics);
+      res.json({ metrics: metricsObj });
+    });
+
+    app.get('/api/sustainability/report', (req, res) => {
+      const report = circularEconomyEngine.getLatestReport();
+      if (!report) {
+        return res.json({ message: 'No reports available yet' });
+      }
+      
+      // Convert Maps to Objects for JSON serialization
+      const serializedReport = {
+        ...report,
+        metrics: Object.fromEntries(report.metrics),
+        goalProgress: Object.fromEntries(report.goalProgress)
+      };
+      
+      res.json(serializedReport);
+    });
+
+    app.get('/api/sustainability/reports', (req, res) => {
+      const reports = circularEconomyEngine.getSustainabilityReports();
+      const limit = parseInt(req.query.limit as string) || 10;
+      const serializedReports = reports.slice(-limit).map(report => ({
+        ...report,
+        metrics: Object.fromEntries(report.metrics),
+        goalProgress: Object.fromEntries(report.goalProgress)
+      }));
+      
+      res.json({ reports: serializedReports, total: reports.length });
+    });
+
+    app.get('/api/sustainability/resource-flows', (req, res) => {
+      const flows = circularEconomyEngine.getResourceFlows();
+      const serializedFlows = flows.map(flow => ({
+        ...flow,
+        environmentalImpact: Object.fromEntries(flow.environmentalImpact),
+        metadata: Object.fromEntries(flow.metadata)
+      }));
+      
+      res.json({ resourceFlows: serializedFlows, count: flows.length });
+    });
+
+    app.get('/api/sustainability/circular-processes', (req, res) => {
+      const processes = circularEconomyEngine.getCircularProcesses();
+      const serializedProcesses = processes.map(process => ({
+        ...process,
+        inputRequirements: Object.fromEntries(process.inputRequirements),
+        outputGeneration: Object.fromEntries(process.outputGeneration),
+        byproducts: Object.fromEntries(process.byproducts),
+        optimizationModel: {
+          ...process.optimizationModel,
+          parameters: Object.fromEntries(process.optimizationModel.parameters)
+        }
+      }));
+      
+      res.json({ processes: serializedProcesses, count: processes.length });
+    });
+
+    app.get('/api/sustainability/goals', (req, res) => {
+      const goals = circularEconomyEngine.getSustainabilityGoals();
+      const goalsObj = Object.fromEntries(goals);
+      res.json({ goals: goalsObj });
+    });
+
+    app.put('/api/sustainability/goals/:goal', (req, res) => {
+      try {
+        const goal = req.params.goal as any;
+        const { target, deadline, priority } = req.body;
+        
+        if (!target || !deadline || priority === undefined) {
+          return res.status(400).json({ error: 'Missing required goal parameters' });
+        }
+        
+        circularEconomyEngine.updateSustainabilityGoal(goal, {
+          target: parseFloat(target),
+          deadline: new Date(deadline),
+          priority: parseFloat(priority)
+        });
+        
+        res.json({ success: true, message: `Goal ${goal} updated successfully` });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Goal update failed'
+        });
+      }
+    });
+
+    app.get('/api/sustainability/impact-history', (req, res) => {
+      const history = circularEconomyEngine.getImpactHistory();
+      const limit = parseInt(req.query.limit as string) || 50;
+      res.json({ impactHistory: history.slice(-limit), total: history.length });
+    });
+
+    app.get('/api/sustainability/status', (req, res) => {
+      const status = circularEconomyEngine.getSystemStatus();
+      res.json(status);
+    });
+
+    app.post('/api/sustainability/generate-report', (req, res) => {
+      try {
+        const report = circularEconomyEngine.generateSustainabilityReport();
+        const serializedReport = {
+          ...report,
+          metrics: Object.fromEntries(report.metrics),
+          goalProgress: Object.fromEntries(report.goalProgress)
+        };
+        res.json({ success: true, report: serializedReport });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Report generation failed'
+        });
+      }
+    });
+
+    app.post('/api/sustainability/circular-loops', async (req, res) => {
+      try {
+        const { id, name, description, strategies, goals } = req.body;
+        
+        if (!id || !name) {
+          return res.status(400).json({ error: 'Missing required loop parameters' });
+        }
+        
+        const loop = await circularEconomyEngine.createCircularLoop({
+          id,
+          name,
+          description: description || '',
+          strategies: strategies || [],
+          goals: goals || []
+        });
+        
+        res.json({ success: true, loop: { id: loop.id, name: loop.name, isActive: loop.isActive } });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Circular loop creation failed'
+        });
+      }
+    });
+
+    app.post('/api/sustainability/circular-loops/:loopId/activate', (req, res) => {
+      try {
+        circularEconomyEngine.activateCircularLoop(req.params.loopId);
+        res.json({ success: true, message: `Circular loop ${req.params.loopId} activated` });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Loop activation failed'
+        });
+      }
+    });
+
+    app.post('/api/sustainability/circular-loops/:loopId/deactivate', (req, res) => {
+      try {
+        circularEconomyEngine.deactivateCircularLoop(req.params.loopId);
+        res.json({ success: true, message: `Circular loop ${req.params.loopId} deactivated` });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Loop deactivation failed'
+        });
+      }
+    });
+
     // Start comprehensive platform
     const PORT = process.env.AV10_COMPREHENSIVE_PORT || 3036;
     
@@ -465,6 +655,7 @@ async function deployComprehensivePlatform() {
       logger.info(`   Protocol Evolution: http://localhost:${PORT}/api/evolution/status`);
       logger.info(`   Neural Network AI: http://localhost:${PORT}/api/ai/status`);
       logger.info(`   Cross-Dimensional Tokenizer: http://localhost:${PORT}/api/xd-tokenizer/statistics`);
+      logger.info(`   Circular Economy Engine: http://localhost:${PORT}/api/sustainability/metrics`);
       logger.info('');
       logger.info('🏛️ Implementation Status:');
       logger.info('   ✅ AV10-18: HyperRAFT++ V2 Consensus');
@@ -475,6 +666,7 @@ async function deployComprehensivePlatform() {
       logger.info('   ✅ AV10-16: Performance Monitoring System');
       logger.info('   ✅ AV10-9: Autonomous Protocol Evolution Engine');
       logger.info('   ✅ AV10-10: Cross-Dimensional Tokenizer');
+      logger.info('   ✅ AV10-13: Circular Economy Engine');
       logger.info('   ✅ Enhanced Neural Network AI Engine');
       logger.info('');
       logger.info('📈 Platform Capabilities:');
