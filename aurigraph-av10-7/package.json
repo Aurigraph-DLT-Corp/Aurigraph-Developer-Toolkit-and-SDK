@@ -36,6 +36,7 @@
     "dev4": "npm run validate:dev4"
   },
   "dependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0",
     "@types/node": "^20.10.0",
     "@types/ws": "^8.18.1",
     "@wormhole-foundation/sdk": "^3.4.5",

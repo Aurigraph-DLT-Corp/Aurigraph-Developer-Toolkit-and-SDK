@@ -20,6 +20,9 @@ import { CircularEconomyEngine } from './sustainability/CircularEconomyEngine';
 import { CollectiveIntelligenceNetwork } from './ai/CollectiveIntelligenceNetwork';
 import { CarbonNegativeOperationsEngine } from './sustainability/CarbonNegativeOperationsEngine';
 import { AutonomousAssetManager } from './rwa/management/AutonomousAssetManager';
+import { NTRUCryptoEngine } from './crypto/NTRUCryptoEngine';
+import { AdvancedNeuralNetworkEngine } from './ai/AdvancedNeuralNetworkEngine';
+import { HighPerformanceIntegrationEngine } from './platform/HighPerformanceIntegrationEngine';
 import express from 'express';
 import cors from 'cors';
 
@@ -47,17 +50,30 @@ interface PlatformServices {
   collectiveIntelligence: CollectiveIntelligenceNetwork;
   carbonNegativeEngine: CarbonNegativeOperationsEngine;
   autonomousAssetManager: AutonomousAssetManager;
+  ntruCrypto: NTRUCryptoEngine;
+  advancedNeuralNetwork: AdvancedNeuralNetworkEngine;
+  integrationEngine: HighPerformanceIntegrationEngine;
 }
 
 async function deployComprehensivePlatform() {
   try {
     logger.info('🚀 Deploying Comprehensive Aurigraph AV10 Platform...');
-    logger.info('Integrating: AV10-18, AV10-20, AV10-23, AV10-30, AV10-36');
+    logger.info('Integrating: AV10-18, AV10-20, AV10-23, AV10-28, AV10-30, AV10-36');
     
     // Initialize core services
     const quantumCrypto = new QuantumCryptoManagerV2();
     await quantumCrypto.initialize();
-    logger.info('🔐 AV10-30: Post-Quantum NTRU Cryptography initialized');
+    logger.info('🔐 Base Quantum Cryptography initialized');
+
+    // AV10-30: NTRU Post-Quantum Cryptography
+    const ntruCrypto = new NTRUCryptoEngine();
+    await ntruCrypto.initialize();
+    logger.info('🔐 AV10-30: NTRU Post-Quantum Cryptography initialized');
+
+    // AV10-28: Advanced Neural Network Engine  
+    const advancedNeuralNetwork = new AdvancedNeuralNetworkEngine();
+    await advancedNeuralNetwork.initialize();
+    logger.info('🧠 AV10-28: Advanced Neural Network Engine initialized');
 
     const consensus = new HyperRAFTPlusPlusV2();
     await consensus.initialize();
@@ -230,6 +246,12 @@ async function deployComprehensivePlatform() {
     await autonomousAssetManager.start();
     logger.info('💼 AV10-15: Autonomous Asset Manager initialized');
 
+    // AV10-28: High-Performance Integration Engine
+    const integrationEngine = new HighPerformanceIntegrationEngine();
+    await integrationEngine.initialize();
+    await integrationEngine.start();
+    logger.info('🚀 AV10-28: High-Performance Integration Engine initialized');
+
     const services: PlatformServices = {
       quantumCrypto,
       smartContracts,
@@ -249,7 +271,10 @@ async function deployComprehensivePlatform() {
       circularEconomyEngine,
       collectiveIntelligence,
       carbonNegativeEngine,
-      autonomousAssetManager
+      autonomousAssetManager,
+      ntruCrypto,
+      advancedNeuralNetwork,
+      integrationEngine
     };
 
     // Setup comprehensive API
@@ -267,7 +292,8 @@ async function deployComprehensivePlatform() {
           'AV10-18': 'HyperRAFT++ V2 Consensus',
           'AV10-20': 'RWA Tokenization Platform', 
           'AV10-23': 'Smart Contract Platform with Ricardian Contracts',
-          'AV10-30': 'Post-Quantum Cryptography with NTRU',
+          'AV10-28': 'Advanced Neural Network Engine with Quantum Integration',
+          'AV10-30': 'Post-Quantum Cryptography with NTRU Encryption',
           'AV10-36': 'Enhanced DLT Nodes'
         },
         services: {
@@ -289,17 +315,125 @@ async function deployComprehensivePlatform() {
       });
     });
 
-    // AV10-30: Quantum crypto APIs
+    // AV10-30: NTRU Crypto APIs
+    app.get('/api/crypto/ntru/status', async (req, res) => {
+      try {
+        const ntruMetrics = ntruCrypto.getPerformanceMetrics();
+        const keyInfo = ntruCrypto.getKeyPairInfo('master-ntru-4096');
+        
+        res.json({
+          status: 'operational',
+          algorithm: 'NTRU-4096',
+          securityLevel: 256,
+          performance: ntruMetrics,
+          keyInfo: keyInfo,
+          quantumResistant: true
+        });
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'NTRU status error' });
+      }
+    });
+
+    app.post('/api/crypto/ntru/generatekey', async (req, res) => {
+      try {
+        const { keyId, algorithm } = req.body;
+        const keyPair = await ntruCrypto.generateKeyPair(keyId, algorithm || 'NTRU-4096');
+        
+        res.json({
+          success: true,
+          keyId: keyId,
+          algorithm: keyPair.algorithm,
+          keySize: keyPair.keySize,
+          securityLevel: keyPair.securityLevel,
+          generatedAt: keyPair.generatedAt
+        });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : 'Key generation failed' });
+      }
+    });
+
+    app.post('/api/crypto/ntru/encrypt', async (req, res) => {
+      try {
+        const { data, recipientKeyId } = req.body;
+        const dataBuffer = Buffer.from(data, 'base64');
+        const encryptionResult = await ntruCrypto.encrypt(dataBuffer, recipientKeyId);
+        
+        res.json({
+          success: true,
+          ciphertext: encryptionResult.ciphertext.toString('base64'),
+          algorithm: encryptionResult.algorithm,
+          keyId: encryptionResult.keyId,
+          timestamp: encryptionResult.timestamp
+        });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : 'Encryption failed' });
+      }
+    });
+
+    // AV10-28: Advanced Neural Network APIs
+    app.get('/api/ai/neural/status', async (req, res) => {
+      try {
+        const modelInfo = advancedNeuralNetwork.getModelInfo();
+        
+        res.json({
+          status: 'operational',
+          initialized: modelInfo.config ? true : false,
+          isTraining: modelInfo.isTraining,
+          architecture: modelInfo.architecture,
+          performance: modelInfo.performance,
+          quantumIntegration: modelInfo.config.quantumIntegration.enabled
+        });
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Neural network status error' });
+      }
+    });
+
+    app.post('/api/ai/neural/predict', async (req, res) => {
+      try {
+        const { inputData } = req.body;
+        // Convert input data to tensor (simplified)
+        const tensor = require('@tensorflow/tfjs-node').tensor(inputData);
+        const prediction = await advancedNeuralNetwork.predict(tensor);
+        
+        res.json({
+          success: true,
+          predictions: prediction.predictions,
+          confidence: prediction.confidence,
+          uncertainty: prediction.uncertainty,
+          inferenceTime: prediction.inferenceTime,
+          quantumCoherence: prediction.quantumCoherence
+        });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : 'Prediction failed' });
+      }
+    });
+
+    app.get('/api/platform/integration/status', async (req, res) => {
+      try {
+        const systemStatus = await integrationEngine.getSystemStatus();
+        
+        res.json({
+          platform: 'AV10-28 High-Performance Integration Engine',
+          status: systemStatus.status,
+          uptime: systemStatus.uptime,
+          metrics: systemStatus.metrics,
+          componentHealth: systemStatus.componentHealth,
+          recentEvents: systemStatus.recentEvents.slice(-10)
+        });
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Integration status error' });
+      }
+    });
+
+    // Base Quantum crypto APIs
     app.get('/api/crypto/status', (req, res) => {
       const metrics = quantumCrypto.getMetrics();
-      const ntruMetrics = quantumCrypto.getNTRUPerformanceMetrics();
       
       res.json({
         version: '2.0',
-        algorithms: ['CRYSTALS-Kyber', 'CRYSTALS-Dilithium', 'SPHINCS+', 'NTRU-1024'],
+        algorithms: ['CRYSTALS-Kyber', 'CRYSTALS-Dilithium', 'SPHINCS+'],
         securityLevel: 6,
         metrics: metrics,
-        ntru: ntruMetrics,
         quantumReady: true
       });
     });
@@ -849,6 +983,7 @@ async function deployComprehensivePlatform() {
       logger.info('   ✅ AV10-18: HyperRAFT++ V2 Consensus');
       logger.info('   ✅ AV10-20: RWA Tokenization Platform');
       logger.info('   ✅ AV10-23: Smart Contract Platform');
+      logger.info('   ✅ AV10-28: Advanced Neural Network Engine with Quantum Integration');
       logger.info('   ✅ AV10-30: Post-Quantum NTRU Cryptography');
       logger.info('   ✅ AV10-36: Enhanced DLT Nodes');
       logger.info('   ✅ AV10-16: Performance Monitoring System');
