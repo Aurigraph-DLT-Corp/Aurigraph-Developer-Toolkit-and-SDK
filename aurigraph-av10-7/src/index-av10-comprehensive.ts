@@ -12,6 +12,7 @@ import { MCPInterface } from './rwa/mcp/MCPInterface';
 import { HyperRAFTPlusPlusV2 } from './consensus/HyperRAFTPlusPlusV2';
 import { AIOptimizer } from './ai/AIOptimizer';
 import { PrometheusExporter } from './monitoring/PrometheusExporter';
+import { PerformanceMonitor } from './monitoring/PerformanceMonitor';
 import express from 'express';
 import cors from 'cors';
 
@@ -31,6 +32,7 @@ interface PlatformServices {
   consensus: HyperRAFTPlusPlusV2;
   aiOptimizer: AIOptimizer;
   prometheusExporter: PrometheusExporter;
+  performanceMonitor: PerformanceMonitor;
 }
 
 async function deployComprehensivePlatform() {
@@ -99,6 +101,35 @@ async function deployComprehensivePlatform() {
     
     logger.info('🏛️ AV10-20: RWA Tokenization Platform initialized');
 
+    // AV10-16: Performance Monitoring System
+    const performanceMonitor = new PerformanceMonitor(
+      process.env.NODE_ID || 'AV10-PLATFORM',
+      {
+        maxMemoryMB: 4096,
+        targetTPS: 1000000,
+        uptimeTargetPercent: 99.9,
+        cpuWarningThreshold: 80,
+        cpuCriticalThreshold: 95
+      }
+    );
+    
+    // Set up performance monitoring event handlers
+    performanceMonitor.on('compliance-violation', (report) => {
+      logger.error('🚨 AV10-17 COMPLIANCE VIOLATION:', report);
+    });
+    
+    performanceMonitor.on('compliance-validated', (report) => {
+      logger.info('✅ AV10-17 COMPLIANCE VALIDATED:', {
+        nodeId: report.nodeId,
+        tps: report.currentTPS,
+        memory: report.memoryUsageMB,
+        uptime: report.uptime
+      });
+    });
+    
+    performanceMonitor.startMonitoring();
+    logger.info('📈 AV10-16: Performance Monitoring System initialized');
+
     const services: PlatformServices = {
       quantumCrypto,
       smartContracts,
@@ -110,7 +141,8 @@ async function deployComprehensivePlatform() {
       rwaWebInterface,
       consensus,
       aiOptimizer,
-      prometheusExporter
+      prometheusExporter,
+      performanceMonitor
     };
 
     // Setup comprehensive API
@@ -208,6 +240,50 @@ async function deployComprehensivePlatform() {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Proposal creation failed'
+        });
+      }
+    });
+
+    // AV10-16: Performance Monitoring APIs
+    app.get('/api/performance/report', (req, res) => {
+      const report = performanceMonitor.generatePerformanceReport();
+      res.json(report);
+    });
+
+    app.get('/api/performance/compliance', (req, res) => {
+      const isCompliant = performanceMonitor.validateAV1017Compliance();
+      const metrics = performanceMonitor.getComplianceMetrics();
+      res.json({
+        av1017Compliant: isCompliant,
+        metrics: metrics
+      });
+    });
+
+    app.get('/api/performance/metrics', (req, res) => {
+      const metrics = performanceMonitor.getComplianceMetrics();
+      res.json({ metrics });
+    });
+
+    app.post('/api/performance/transaction', (req, res) => {
+      const { processingTime } = req.body;
+      performanceMonitor.recordTransaction(processingTime);
+      res.json({ 
+        success: true, 
+        totalTransactions: performanceMonitor.generatePerformanceReport().totalTransactions 
+      });
+    });
+
+    app.put('/api/performance/thresholds', (req, res) => {
+      try {
+        performanceMonitor.updateThresholds(req.body);
+        res.json({ 
+          success: true, 
+          thresholds: performanceMonitor.getThresholds() 
+        });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to update thresholds'
         });
       }
     });

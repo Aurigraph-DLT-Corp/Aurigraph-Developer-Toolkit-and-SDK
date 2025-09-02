@@ -443,6 +443,132 @@ Cmd+Shift+R  # Mac
 # Or open in incognito/private mode
 ```
 
+## Terraform Infrastructure as Code
+
+### Overview
+Terraform configuration for managing Aurigraph DLT infrastructure across all environments (dev4, test, prod).
+
+### Installation
+Terraform v1.5.7+ already installed on dev4:
+```bash
+terraform version  # Verify installation
+```
+
+### Configuration Structure
+```
+terraform/
+├── main.tf          # Core infrastructure resources
+├── images.tf        # Docker image definitions
+├── variables.tf     # Configurable parameters
+├── outputs.tf       # Endpoint URLs and status
+└── environments/
+    ├── dev.tfvars   # Development environment
+    ├── test.tfvars  # Testing environment
+    └── prod.tfvars  # Production environment
+```
+
+### Quick Commands
+```bash
+# Initialize Terraform
+cd terraform && terraform init
+
+# Plan infrastructure changes
+terraform plan -var-file="environments/dev.tfvars"
+
+# Apply infrastructure
+terraform apply -var-file="environments/dev.tfvars" -auto-approve
+
+# Destroy infrastructure
+terraform destroy -var-file="environments/dev.tfvars" -auto-approve
+
+# Show current state
+terraform show
+
+# Get outputs (URLs, ports, status)
+terraform output
+```
+
+### Environment Configuration
+Create environment-specific `.tfvars` files:
+
+**environments/dev.tfvars**:
+```hcl
+environment = "dev"
+validator_count = 1
+node_count = 2
+enable_monitoring = true
+quantum_enabled = true
+consensus_algorithm = "HyperRAFT++"
+target_tps = 1000000
+```
+
+**environments/prod.tfvars**:
+```hcl
+environment = "prod"
+validator_count = 3
+node_count = 5
+enable_monitoring = true
+quantum_enabled = true
+consensus_algorithm = "HyperRAFT++"
+target_tps = 2000000
+```
+
+### Infrastructure Components Managed
+- **Validator Nodes**: HyperRAFT++ consensus validators
+- **Basic Nodes**: Full and light nodes for transaction processing
+- **Management Dashboard**: Web interface for platform management
+- **Monitoring Stack**: Prometheus metrics + Vizor dashboards
+- **Docker Network**: Isolated container networking
+- **Load Balancing**: Multi-node traffic distribution
+
+### Usage Across All Apps
+Use this pattern in all Aurigraph applications:
+
+1. **Copy terraform/ directory** to each project
+2. **Modify main.tf** for app-specific resources
+3. **Update variables.tf** for app parameters
+4. **Create environment configs** in environments/
+5. **Use consistent naming**: `aurigraph-{app}-{environment}`
+
+### Integration with Dev4 Apps
+```bash
+# Deploy AV10-7 platform
+cd aurigraph-av10-7/terraform
+terraform apply -var-file="environments/dev.tfvars"
+
+# Deploy other Aurigraph apps
+cd aurigraph-v9/terraform
+terraform apply -var-file="environments/dev.tfvars"
+
+# Deploy monitoring across all apps
+cd monitoring-stack/terraform
+terraform apply -var-file="environments/dev.tfvars"
+```
+
+### Terraform State Management
+- **Local State**: Default for development
+- **Remote State**: Use S3/GCS for team collaboration
+- **State Locking**: Prevent concurrent modifications
+- **Backup Strategy**: Automated state backups
+
+### Best Practices
+1. **Environment Separation**: Always use `-var-file` for environments
+2. **Resource Naming**: Consistent `aurigraph-{service}-{env}` pattern
+3. **Port Management**: Use variable-based port allocation
+4. **Dependencies**: Explicit `depends_on` for service ordering
+5. **Health Checks**: Include container health monitoring
+6. **Secrets Management**: Use Terraform variables for sensitive data
+
+### Outputs and Monitoring
+Terraform provides all service endpoints:
+```bash
+terraform output validator_endpoints    # Validator URLs
+terraform output node_endpoints        # Node URLs  
+terraform output management_dashboard  # Management URL
+terraform output vizor_dashboard       # Monitoring URL
+terraform output infrastructure_status # Overall status
+```
+
 ## JIRA Integration
 
 ### Credentials
