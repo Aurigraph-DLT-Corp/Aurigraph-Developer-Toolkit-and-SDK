@@ -126,6 +126,7 @@ app.get('/', (req: Request, res: Response) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aurigraph DLT Demo - Quantum-Secure Blockchain</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -365,7 +366,7 @@ app.get('/', (req: Request, res: Response) => {
             position: relative;
         }
         
-        #txCanvas {
+        #txLineChart {
             width: 100%;
             height: 300px;
             background: rgba(0,0,0,0.3);
@@ -595,7 +596,7 @@ app.get('/', (req: Request, res: Response) => {
             </div>
         </div>
 
-        <!-- New Enhanced Panels -->
+        <!-- Row 2: Leader Election Center Panel -->
         <div class="demo-card leader-panel">
             <h3 class="card-title">👑 Leader Election & Consensus</h3>
             <div class="current-leader">
@@ -622,6 +623,7 @@ app.get('/', (req: Request, res: Response) => {
             </div>
         </div>
 
+        <!-- Row 3: Enhanced Panels -->
         <div class="demo-card">
             <h3 class="card-title">🌐 Active Network Nodes</h3>
             <div class="nodes-grid" id="nodesGrid">
@@ -637,16 +639,9 @@ app.get('/', (req: Request, res: Response) => {
         </div>
 
         <div class="demo-card">
-            <h3 class="card-title">🎯 Transaction Flow Visualization</h3>
+            <h3 class="card-title">📈 Transaction Flow Line Graph</h3>
             <div class="tx-visualization" id="txVisualization">
-                <canvas id="txCanvas" width="600" height="300"></canvas>
-                <div class="tx-legend">
-                    <div class="tx-type defi">DeFi</div>
-                    <div class="tx-type privacy">Privacy</div>
-                    <div class="tx-type cross-chain">Cross-Chain</div>
-                    <div class="tx-type smart-contract">Smart Contract</div>
-                    <div class="tx-type transfer">Transfer</div>
-                </div>
+                <canvas id="txLineChart" width="600" height="300" style="background: rgba(0,0,0,0.2); border-radius: 8px;"></canvas>
             </div>
         </div>
 
@@ -881,95 +876,165 @@ app.get('/', (req: Request, res: Response) => {
             return tps + ' TPS';
         }
 
-        // Transaction visualization functions
-        let txCanvas, txCtx;
-        let particles = [];
-        let animationId;
+        // Transaction line graph with Chart.js
+        let txLineChart;
+        let chartData = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Transfer',
+                    data: [],
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Smart Contract',
+                    data: [],
+                    borderColor: '#ff0080',
+                    backgroundColor: 'rgba(255, 0, 128, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2
+                },
+                {
+                    label: 'DeFi',
+                    data: [],
+                    borderColor: '#ff6b7a',
+                    backgroundColor: 'rgba(255, 107, 122, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Privacy',
+                    data: [],
+                    borderColor: '#0099ff',
+                    backgroundColor: 'rgba(0, 153, 255, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Cross-Chain',
+                    data: [],
+                    borderColor: '#ffd93d',
+                    backgroundColor: 'rgba(255, 217, 61, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2
+                }
+            ]
+        };
 
         function initializeTransactionVisualization() {
-            txCanvas = document.getElementById('txCanvas');
-            txCtx = txCanvas.getContext('2d');
+            const ctx = document.getElementById('txLineChart').getContext('2d');
             
-            // Set canvas size
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+            txLineChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: '#fff',
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Time (last 30 seconds)',
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#888',
+                                maxTicksLimit: 6
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Transactions per Second',
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#888',
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value/1000000).toFixed(1) + 'M';
+                                    if (value >= 1000) return (value/1000).toFixed(0) + 'K';
+                                    return value;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 0
+                    }
+                }
+            });
             
-            // Start animation loop
-            animateTransactions();
+            // Initialize with empty data
+            for (let i = 0; i < 30; i++) {
+                const time = new Date(Date.now() - (30-i) * 1000);
+                chartData.labels.push(time.toLocaleTimeString());
+                chartData.datasets.forEach(dataset => {
+                    dataset.data.push(0);
+                });
+            }
             
-            // Add particles periodically
-            setInterval(addTransactionParticle, 200);
+            // Start data generation
+            setInterval(updateLineChart, 1000);
         }
 
-        function resizeCanvas() {
-            const container = txCanvas.parentElement;
-            txCanvas.width = container.offsetWidth;
-            txCanvas.height = 300;
-        }
-
-        function addTransactionParticle() {
+        function updateLineChart() {
             if (!simulationActive) return;
             
-            const colors = {
-                'defi': '#ff6b7a',
-                'privacy': '#0099ff',
-                'cross-chain': '#ffd93d',
-                'smart-contract': '#ff0080',
-                'transfer': '#00ff88'
-            };
+            // Add new time label
+            const now = new Date();
+            chartData.labels.push(now.toLocaleTimeString());
             
-            const types = Object.keys(colors);
-            const type = types[Math.floor(Math.random() * types.length)];
+            // Generate realistic transaction data per type
+            const transferTPS = Math.floor(Math.random() * 70000) + 200000;  // 200-270K
+            const smartContractTPS = Math.floor(Math.random() * 60000) + 180000; // 180-240K
+            const defiTPS = Math.floor(Math.random() * 50000) + 150000;     // 150-200K
+            const privacyTPS = Math.floor(Math.random() * 40000) + 120000;  // 120-160K
+            const crossChainTPS = Math.floor(Math.random() * 30000) + 100000; // 100-130K
             
-            particles.push({
-                x: 0,
-                y: Math.random() * txCanvas.height,
-                vx: 2 + Math.random() * 3,
-                vy: (Math.random() - 0.5) * 2,
-                color: colors[type],
-                size: 3 + Math.random() * 4,
-                life: 1.0,
-                type: type
-            });
+            // Add new data points
+            chartData.datasets[0].data.push(transferTPS);      // Transfer
+            chartData.datasets[1].data.push(smartContractTPS); // Smart Contract
+            chartData.datasets[2].data.push(defiTPS);          // DeFi
+            chartData.datasets[3].data.push(privacyTPS);       // Privacy
+            chartData.datasets[4].data.push(crossChainTPS);    // Cross-Chain
             
-            // Limit particle count
-            if (particles.length > 100) {
-                particles.shift();
+            // Remove old data (keep last 30 points)
+            if (chartData.labels.length > 30) {
+                chartData.labels.shift();
+                chartData.datasets.forEach(dataset => {
+                    dataset.data.shift();
+                });
             }
-        }
-
-        function animateTransactions() {
-            txCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            txCtx.fillRect(0, 0, txCanvas.width, txCanvas.height);
             
-            particles.forEach((particle, index) => {
-                // Update position
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                particle.life -= 0.01;
-                
-                // Remove dead particles
-                if (particle.life <= 0 || particle.x > txCanvas.width) {
-                    particles.splice(index, 1);
-                    return;
-                }
-                
-                // Draw particle
-                txCtx.globalAlpha = particle.life;
-                txCtx.fillStyle = particle.color;
-                txCtx.beginPath();
-                txCtx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                txCtx.fill();
-                
-                // Add glow effect
-                txCtx.shadowColor = particle.color;
-                txCtx.shadowBlur = 10;
-                txCtx.fill();
-                txCtx.shadowBlur = 0;
-            });
-            
-            txCtx.globalAlpha = 1;
-            animationId = requestAnimationFrame(animateTransactions);
+            // Update chart
+            txLineChart.update('none');
         }
 
         // Leader election functions

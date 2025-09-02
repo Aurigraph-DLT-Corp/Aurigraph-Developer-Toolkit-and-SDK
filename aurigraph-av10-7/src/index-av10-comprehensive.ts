@@ -17,6 +17,9 @@ import { PrometheusExporter } from './monitoring/PrometheusExporter';
 import { PerformanceMonitor } from './monitoring/PerformanceMonitor';
 import { CrossDimensionalTokenizer } from './rwa/tokenization/CrossDimensionalTokenizer';
 import { CircularEconomyEngine } from './sustainability/CircularEconomyEngine';
+import { CollectiveIntelligenceNetwork } from './ai/CollectiveIntelligenceNetwork';
+import { CarbonNegativeOperationsEngine } from './sustainability/CarbonNegativeOperationsEngine';
+import { AutonomousAssetManager } from './rwa/management/AutonomousAssetManager';
 import express from 'express';
 import cors from 'cors';
 
@@ -41,6 +44,9 @@ interface PlatformServices {
   neuralNetwork: NeuralNetworkEngine;
   crossDimensionalTokenizer: CrossDimensionalTokenizer;
   circularEconomyEngine: CircularEconomyEngine;
+  collectiveIntelligence: CollectiveIntelligenceNetwork;
+  carbonNegativeEngine: CarbonNegativeOperationsEngine;
+  autonomousAssetManager: AutonomousAssetManager;
 }
 
 async function deployComprehensivePlatform() {
@@ -193,6 +199,37 @@ async function deployComprehensivePlatform() {
     );
     logger.info('🌱 AV10-13: Circular Economy Engine initialized');
 
+    // AV10-14: Collective Intelligence Network
+    const collectiveIntelligence = new CollectiveIntelligenceNetwork(
+      quantumCrypto,
+      neuralNetwork,
+      protocolEvolution
+    );
+    
+    await collectiveIntelligence.start();
+    logger.info('🧠 AV10-14: Collective Intelligence Network initialized');
+
+    // AV10-12: Carbon Negative Operations Engine
+    const carbonNegativeEngine = new CarbonNegativeOperationsEngine(
+      quantumCrypto,
+      circularEconomyEngine,
+      neuralNetwork
+    );
+    
+    await carbonNegativeEngine.start();
+    logger.info('🌱 AV10-12: Carbon Negative Operations Engine initialized');
+
+    // AV10-15: Autonomous Asset Manager
+    const autonomousAssetManager = new AutonomousAssetManager(
+      quantumCrypto,
+      rwaRegistry,
+      neuralNetwork,
+      collectiveIntelligence
+    );
+    
+    await autonomousAssetManager.start();
+    logger.info('💼 AV10-15: Autonomous Asset Manager initialized');
+
     const services: PlatformServices = {
       quantumCrypto,
       smartContracts,
@@ -209,7 +246,10 @@ async function deployComprehensivePlatform() {
       protocolEvolution,
       neuralNetwork,
       crossDimensionalTokenizer,
-      circularEconomyEngine
+      circularEconomyEngine,
+      collectiveIntelligence,
+      carbonNegativeEngine,
+      autonomousAssetManager
     };
 
     // Setup comprehensive API
@@ -638,6 +678,151 @@ async function deployComprehensivePlatform() {
       }
     });
 
+    // AV10-14: Collective Intelligence Network APIs
+    app.get('/api/collective-intelligence/status', (req, res) => {
+      const status = collectiveIntelligence.getNetworkStatus();
+      res.json(status);
+    });
+
+    app.get('/api/collective-intelligence/nodes', (req, res) => {
+      const nodes = Object.fromEntries(collectiveIntelligence.getNodes());
+      res.json({ nodes });
+    });
+
+    app.get('/api/collective-intelligence/decisions', (req, res) => {
+      const decisions = Object.fromEntries(collectiveIntelligence.getActiveDecisions());
+      res.json({ decisions });
+    });
+
+    app.post('/api/collective-intelligence/propose-decision', async (req, res) => {
+      try {
+        const { type, proposal, proposer } = req.body;
+        const decisionId = await collectiveIntelligence.proposeCollectiveDecision(type, proposal, proposer);
+        res.json({ success: true, decisionId });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Decision proposal failed'
+        });
+      }
+    });
+
+    app.post('/api/collective-intelligence/vote/:decisionId', async (req, res) => {
+      try {
+        const { voterId, support, confidence, reasoning } = req.body;
+        const success = await collectiveIntelligence.voteOnDecision(
+          req.params.decisionId, voterId, support, confidence, reasoning
+        );
+        res.json({ success });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Voting failed'
+        });
+      }
+    });
+
+    // AV10-12: Carbon Negative Operations APIs
+    app.get('/api/carbon-negative/status', (req, res) => {
+      const status = carbonNegativeEngine.getEngineStatus();
+      res.json(status);
+    });
+
+    app.get('/api/carbon-negative/metrics', (req, res) => {
+      const metrics = carbonNegativeEngine.getCarbonMetrics();
+      res.json({ metrics });
+    });
+
+    app.get('/api/carbon-negative/budgets', (req, res) => {
+      const budgets = Object.fromEntries(carbonNegativeEngine.getCarbonBudgets());
+      res.json({ budgets });
+    });
+
+    app.get('/api/carbon-negative/operations', (req, res) => {
+      const operations = Object.fromEntries(carbonNegativeEngine.getCarbonOperations());
+      res.json({ operations });
+    });
+
+    app.get('/api/carbon-negative/renewable-energy', (req, res) => {
+      const sources = Object.fromEntries(carbonNegativeEngine.getRenewableEnergySources());
+      res.json({ sources });
+    });
+
+    app.post('/api/carbon-negative/register-operation', async (req, res) => {
+      try {
+        const operationId = await carbonNegativeEngine.registerCarbonOperation(req.body);
+        res.json({ success: true, operationId });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Operation registration failed'
+        });
+      }
+    });
+
+    // AV10-15: Autonomous Asset Manager APIs
+    app.get('/api/asset-manager/status', (req, res) => {
+      const status = autonomousAssetManager.getManagerStatus();
+      res.json(status);
+    });
+
+    app.get('/api/asset-manager/portfolios', (req, res) => {
+      const portfolios = Object.fromEntries(autonomousAssetManager.getPortfolios());
+      // Convert Maps to Objects for JSON serialization
+      const serializedPortfolios = {};
+      for (const [id, portfolio] of Object.entries(portfolios)) {
+        serializedPortfolios[id] = {
+          ...portfolio,
+          assets: Object.fromEntries(portfolio.assets),
+          targetAllocation: Object.fromEntries(portfolio.targetAllocation),
+          currentAllocation: Object.fromEntries(portfolio.currentAllocation)
+        };
+      }
+      res.json({ portfolios: serializedPortfolios });
+    });
+
+    app.get('/api/asset-manager/portfolio/:portfolioId', (req, res) => {
+      const portfolio = autonomousAssetManager.getPortfolio(req.params.portfolioId);
+      if (!portfolio) {
+        return res.status(404).json({ success: false, error: 'Portfolio not found' });
+      }
+      
+      const serializedPortfolio = {
+        ...portfolio,
+        assets: Object.fromEntries(portfolio.assets),
+        targetAllocation: Object.fromEntries(portfolio.targetAllocation),
+        currentAllocation: Object.fromEntries(portfolio.currentAllocation)
+      };
+      res.json({ portfolio: serializedPortfolio });
+    });
+
+    app.post('/api/asset-manager/create-portfolio', async (req, res) => {
+      try {
+        const portfolioId = await autonomousAssetManager.createPortfolio(req.body.id, req.body.config);
+        res.json({ success: true, portfolioId });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Portfolio creation failed'
+        });
+      }
+    });
+
+    app.post('/api/asset-manager/portfolio/:portfolioId/rebalance', async (req, res) => {
+      try {
+        const sessionId = await autonomousAssetManager.initiateRebalancing(
+          req.params.portfolioId, 
+          req.body.trigger || 'MANUAL'
+        );
+        res.json({ success: true, sessionId });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Rebalancing failed'
+        });
+      }
+    });
+
     // Start comprehensive platform
     const PORT = process.env.AV10_COMPREHENSIVE_PORT || 3036;
     
@@ -656,6 +841,9 @@ async function deployComprehensivePlatform() {
       logger.info(`   Neural Network AI: http://localhost:${PORT}/api/ai/status`);
       logger.info(`   Cross-Dimensional Tokenizer: http://localhost:${PORT}/api/xd-tokenizer/statistics`);
       logger.info(`   Circular Economy Engine: http://localhost:${PORT}/api/sustainability/metrics`);
+      logger.info(`   Collective Intelligence: http://localhost:${PORT}/api/collective-intelligence/status`);
+      logger.info(`   Carbon Negative Operations: http://localhost:${PORT}/api/carbon-negative/status`);
+      logger.info(`   Autonomous Asset Manager: http://localhost:${PORT}/api/asset-manager/status`);
       logger.info('');
       logger.info('🏛️ Implementation Status:');
       logger.info('   ✅ AV10-18: HyperRAFT++ V2 Consensus');
@@ -666,7 +854,10 @@ async function deployComprehensivePlatform() {
       logger.info('   ✅ AV10-16: Performance Monitoring System');
       logger.info('   ✅ AV10-9: Autonomous Protocol Evolution Engine');
       logger.info('   ✅ AV10-10: Cross-Dimensional Tokenizer');
+      logger.info('   ✅ AV10-12: Carbon Negative Operations Engine');
       logger.info('   ✅ AV10-13: Circular Economy Engine');
+      logger.info('   ✅ AV10-14: Collective Intelligence Network');
+      logger.info('   ✅ AV10-15: Autonomous Asset Manager');
       logger.info('   ✅ Enhanced Neural Network AI Engine');
       logger.info('');
       logger.info('📈 Platform Capabilities:');
