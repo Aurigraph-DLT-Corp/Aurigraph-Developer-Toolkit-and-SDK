@@ -1,8 +1,25 @@
 {
-  "name": "aurigraph-dlt-mcp",
+  "name": "aurigraph-dlt",
   "version": "1.0.0",
-  "description": "GitHub MCP configuration for Aurigraph-DLT project",
+  "description": "Aurigraph-DLT Quantum Blockchain Platform with GitHub MCP integration",
   "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint",
+    "export": "next export",
+    "dev-setup": "./dev-setup.sh",
+    "dev-utils": "node dev-utils.js",
+    "setup-hooks": "./setup-git-hooks.sh",
+    "dev-start": "node dev-utils.js start",
+    "dev-test": "node dev-utils.js test",
+    "dev-build": "node dev-utils.js build",
+    "dev-clean": "node dev-utils.js clean",
+    "dev-status": "node dev-utils.js status",
+    "jira-tickets": "node update-jira-tickets.js",
+    "jira-info": "node update-jira-tickets.js info",
+    "jira-instructions": "node update-jira-tickets.js instructions",
+    "jira-summary": "node update-jira-tickets.js summary",
     "mcp:github": "node ./node_modules/@modelcontextprotocol/server-github/dist/index.js",
     "mcp:test": "node scripts/test-github-mcp.js",
     "mcp:setup": "./scripts/setup-github-mcp.sh",
@@ -11,16 +28,30 @@
     "mcp:verify": "curl -s -H \"Authorization: token $GITHUB_PERSONAL_ACCESS_TOKEN\" https://api.github.com/user"
   },
   "dependencies": {
-    "@modelcontextprotocol/server-github": "^2025.4.8"
+    "@modelcontextprotocol/server-github": "^2025.4.8",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
   "keywords": [
-    "mcp",
-    "github",
     "aurigraph",
     "dlt",
+    "quantum-blockchain",
+    "consciousness-aware",
+    "parallel-universe",
+    "autonomous-evolution",
+    "real-world-assets",
+    "mcp",
+    "github",
     "model-context-protocol"
   ],
-  "author": "Aurigraph Team",
+  "author": "Aurigraph DLT Corp",
   "license": "MIT"
 }
