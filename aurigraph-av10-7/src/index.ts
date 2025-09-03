@@ -1,113 +1,131 @@
 import 'reflect-metadata';
 import { config } from 'dotenv';
 import { Logger } from './core/Logger';
-import { ContainerFactory, initializeQuantumContainer, QuantumServiceLocator } from './core/Container';
+import { ConfigManager } from './core/ConfigManager';
+import { QuantumCryptoManager } from './crypto/QuantumCryptoManager';
+import { ZKProofSystem } from './zk/ZKProofSystem';
+import { CrossChainBridge } from './crosschain/CrossChainBridge';
+import { AIOptimizer } from './ai/AIOptimizer';
+import { HyperRAFTPlusPlus } from './consensus/HyperRAFTPlusPlus';
+import { MonitoringService } from './monitoring/MonitoringService';
 import { MonitoringAPIServer } from './api/MonitoringAPIServer';
+import { VizorMonitoringService } from './monitoring/VizorDashboard';
+import { ValidatorOrchestrator } from './consensus/ValidatorOrchestrator';
+import { ChannelManager } from './network/ChannelManager';
+import express from 'express';
+import cors from 'cors';
 
 config();
 
-const logger = new Logger('AV10-7-QuantumNexus-Main');
+const logger = new Logger('AV10-7-DLT-Main');
 
-async function bootstrapAV10QuantumNexus() {
+async function startAV10DLTPlatform() {
   try {
-    logger.info('🚀 Starting Aurigraph AV10-7 Quantum Nexus...');
-    logger.info('Version: 10.7.0 | Codename: Revolutionary Platform Implementation Core');
-    logger.info('🌌 Initializing parallel universes...');
-    logger.info('🧠 Activating consciousness interface...');
-    logger.info('🔄 Enabling autonomous evolution...');
+    logger.info('🚀 Starting Aurigraph AV10-7 DLT Platform...');
+    logger.info('Version: 10.7.0 | Focus: Distributed Ledger Technology');
+    logger.info('🔗 Initializing blockchain services...');
 
-    // Initialize quantum container with all revolutionary capabilities
-    await initializeQuantumContainer();
+    // Initialize core DLT services
+    const configManager = new ConfigManager();
+    await configManager.initialize();
+    logger.info('⚙️ Configuration manager initialized');
 
-    // Get quantum nexus instance
-    const quantumNexus = QuantumServiceLocator.getQuantumNexus();
-    const quantumStatus = quantumNexus.getStatus();
+    const quantumCrypto = new QuantumCryptoManager();
+    await quantumCrypto.initialize();
+    logger.info('🔐 Quantum cryptography initialized');
 
-    logger.info(`✅ Quantum Nexus operational:`);
-    logger.info(`   🌌 Parallel Universes: ${quantumStatus.parallelUniverses}`);
-    logger.info(`   🧠 Consciousness Interfaces: ${quantumStatus.consciousnessInterfaces}`);
-    logger.info(`   🔄 Evolution Generation: ${quantumStatus.evolutionGeneration}`);
-    logger.info(`   ⚡ Average Coherence: ${quantumStatus.performance.averageCoherence.toFixed(3)}`);
-    logger.info(`   🎯 Reality Stability: ${quantumStatus.performance.realityStability.toFixed(3)}`);
+    const zkProofSystem = new ZKProofSystem();
+    await zkProofSystem.initialize();
+    logger.info('🎭 Zero-knowledge proof system initialized');
 
-    // Get AV10 Node with quantum capabilities
-    const av10Node = QuantumServiceLocator.getAV10Node();
-    const nodeStatus = av10Node.getStatus();
+    const aiOptimizer = new AIOptimizer();
+    await aiOptimizer.start();
+    logger.info('🤖 AI optimizer started');
 
-    logger.info(`✅ AV10 Node operational:`);
-    logger.info(`   🆔 Node ID: ${nodeStatus.nodeId}`);
-    logger.info(`   📊 Status: ${nodeStatus.status}`);
-    logger.info(`   🔐 Quantum Secure: ${nodeStatus.security.quantumSecure}`);
-    logger.info(`   🌌 Quantum Nexus: ${nodeStatus.quantum.nexusInitialized}`);
+    const crossChainBridge = new CrossChainBridge();
+    await crossChainBridge.initialize();
+    logger.info('🌉 Cross-chain bridge initialized');
 
-    // Start Quantum Nexus API Server
-    const apiServer = ContainerFactory.createMonitoringAPIServer();
-    await apiServer.start(8080);
+    const monitoringService = new MonitoringService();
+    await monitoringService.start();
+    logger.info('📊 Monitoring service started');
 
-    logger.info('✅ Aurigraph AV10-7 Quantum Nexus started successfully');
-    logger.info(`🌌 Quantum Features:`);
-    logger.info(`   📈 Target TPS: 1,000,000+ (quantum enhanced)`);
-    logger.info(`   ⚡ Finality: <10ms (parallel universe processing)`);
-    logger.info(`   🔒 Security: Post-Quantum Level 5 + Consciousness Protection`);
-    logger.info(`   🧠 Consciousness Interface: Active`);
-    logger.info(`   🔄 Autonomous Evolution: Enabled`);
-    logger.info(`   🌍 Cross-chain: 50+ blockchains + parallel universes`);
-    logger.info(`🌐 API Server: http://localhost:8080`);
-    logger.info(`📚 Quantum API Docs: http://localhost:8080/api/v10/quantum/docs`);
+    const vizorMonitoring = new VizorMonitoringService();
+    logger.info('📈 Vizor monitoring service initialized');
 
-    // Setup graceful shutdown
-    setupGracefulShutdown(av10Node, apiServer);
+    // Initialize consensus components
+    const validatorOrchestrator = new ValidatorOrchestrator(quantumCrypto, vizorMonitoring);
+    await validatorOrchestrator.initialize();
+    logger.info('🏛️ Validator orchestrator initialized');
+
+    const channelManager = new ChannelManager(quantumCrypto, vizorMonitoring);
+    await channelManager.initialize();
+    logger.info('📡 Channel manager initialized');
+
+    // Start API server
+    const monitoringAPI = new MonitoringAPIServer(vizorMonitoring, validatorOrchestrator, channelManager);
+    await monitoringAPI.start(3000);
+    logger.info('🌐 DLT API server started on port 3000');
+
+    // Create consensus engine
+    const consensus = new HyperRAFTPlusPlus({
+      nodeId: 'av10-primary',
+      validators: ['av10-primary', 'av10-validator-2', 'av10-validator-3'],
+      electionTimeout: 1000,
+      heartbeatInterval: 1000,
+      batchSize: 10000,
+      pipelineDepth: 4,
+      parallelThreads: 256,
+      zkProofsEnabled: true,
+      aiOptimizationEnabled: true,
+      quantumSecure: true
+    }, quantumCrypto, zkProofSystem, aiOptimizer);
+    
+    await consensus.initialize();
+    await consensus.start();
+    logger.info('🏗️ HyperRAFT++ consensus started');
+
+    logger.info('✅ AV10-7 DLT Platform started successfully');
+    logger.info('📈 Target TPS: 1,000,000+ | Finality: <500ms');
+    logger.info('🔒 Security: Post-Quantum Level 5 | Privacy: ZK-Enabled');
+    logger.info('🌍 Cross-chain: Wormhole + Native (30+ blockchains)');
+    logger.info('🏛️ Consensus: HyperRAFT++ with AI optimization');
+    
+    // Start DLT performance monitoring
+    setInterval(async () => {
+      const consensusMetrics = consensus.getPerformanceMetrics();
+      const bridgeMetrics = await crossChainBridge.getMetrics();
+      const cryptoMetrics = quantumCrypto.getMetrics();
+      
+      logger.info('═══════════════════════════════════════════════════════');
+      logger.info(`📊 AV10-7 DLT Performance`);
+      logger.info(`⚡ TPS: ${consensusMetrics.tps.toLocaleString()} | Latency: ${consensusMetrics.avgLatency}ms`);
+      logger.info(`🎭 ZK Proofs: Active | 🌉 Bridge TXs: ${bridgeMetrics.totalTransactions}`);
+      logger.info(`🔐 Quantum Security: Level ${cryptoMetrics.securityLevel} ✅ | 🤖 AI Optimization: Active ✅`);
+      logger.info(`🏛️ Validators: ${validatorOrchestrator.getNetworkStatus().validators.length} active`);
+      logger.info(`📡 Channels: ${channelManager.getAllChannelStatuses().length} encrypted channels`);
+      logger.info('═══════════════════════════════════════════════════════');
+    }, 15000);
+    
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      logger.info('\n⚠️  SIGINT received, shutting down AV10-7 DLT Platform...');
+      await consensus.stop();
+      await crossChainBridge.stop();
+      await aiOptimizer.stop();
+      await monitoringService.stop();
+      await validatorOrchestrator.stop();
+      await channelManager.stop();
+      await monitoringAPI.stop();
+      vizorMonitoring.stop();
+      logger.info('👋 AV10-7 DLT Platform shutdown complete');
+      process.exit(0);
+    });
     
   } catch (error) {
-    logger.error('Failed to start AV10-7:', error);
+    logger.error('Failed to start AV10-7 DLT Platform:', error);
     process.exit(1);
   }
 }
 
-// Old dependency injection removed - now using quantum container
-
-function setupGracefulShutdown(node: any, apiServer: any) {
-  const shutdown = async (signal: string) => {
-    logger.info(`\n⚠️  ${signal} received, initiating Quantum Nexus graceful shutdown...`);
-
-    try {
-      // Stop API server
-      if (apiServer && typeof apiServer.stop === 'function') {
-        await apiServer.stop();
-        logger.info('🌐 Quantum API Server stopped');
-      }
-
-      // Stop AV10 node with quantum nexus
-      if (node && typeof node.stop === 'function') {
-        await node.stop();
-        logger.info('🌌 Quantum Nexus stopped');
-      }
-
-      logger.info('👋 Aurigraph AV10-7 Quantum Nexus shutdown complete');
-      process.exit(0);
-    } catch (error) {
-      logger.error('❌ Error during shutdown:', error);
-      process.exit(1);
-    }
-  };
-
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGHUP', () => shutdown('SIGHUP'));
-
-  process.on('uncaughtException', (error) => {
-    logger.error('Uncaught exception:', error);
-    shutdown('UNCAUGHT_EXCEPTION');
-  });
-
-  process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled rejection at:', promise, 'reason:', reason);
-    shutdown('UNHANDLED_REJECTION');
-  });
-}
-
-// Start the Quantum Nexus platform
-bootstrapAV10QuantumNexus().catch((error) => {
-  logger.error('Failed to bootstrap AV10-7 Quantum Nexus:', error);
-  process.exit(1);
-});
+startAV10DLTPlatform().catch(console.error);

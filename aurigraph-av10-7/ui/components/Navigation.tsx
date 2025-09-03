@@ -2,26 +2,29 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  Home, 
-  Shield, 
-  Network, 
-  Zap, 
-  Brain, 
+import {
+  Home,
+  Shield,
+  Network,
+  Zap,
+  Brain,
   Search,
   Settings,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Atom,
+  BarChart3
 } from 'lucide-react';
 
 const navItems = [
   { href: '/', icon: Home, label: 'Dashboard' },
+  { href: '/av18', icon: Atom, label: 'AV10-18' },
+  { href: '/vizro', icon: BarChart3, label: 'Vizro Analytics' },
   { href: '/security', icon: Shield, label: 'Quantum Security' },
   { href: '/crosschain', icon: Network, label: 'Cross-Chain' },
   { href: '/transactions', icon: Search, label: 'Explorer' },
   { href: '/ai', icon: Brain, label: 'AI Optimizer' },
   { href: '/nodes', icon: Activity, label: 'Validators' },
-  { href: '/vizor', icon: TrendingUp, label: 'Vizor' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -36,7 +39,7 @@ export default function Navigation() {
             <div className="flex items-center space-x-2">
               <Zap className="w-8 h-8 text-blue-400 animate-pulse" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                AV10-7 Quantum Nexus
+                AV10-18 Platform
               </span>
             </div>
           </div>

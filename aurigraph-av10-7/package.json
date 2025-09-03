@@ -1,7 +1,7 @@
 {
-  "name": "aurigraph-av10-7",
-  "version": "10.7.0",
-  "description": "Quantum-resilient blockchain platform with 1M+ TPS, zero-knowledge proofs, and cross-chain interoperability",
+  "name": "aurigraph-av10-18",
+  "version": "10.18.0",
+  "description": "Next-generation quantum-resilient DLT platform with 5M+ TPS, autonomous compliance, and universal interoperability",
   "main": "dist/index-simple.js",
   "scripts": {
     "build": "tsc",
@@ -30,20 +30,29 @@
     "ui:install": "cd ui && npm install",
     "ui:dev": "cd ui && npm run dev",
     "ui:build": "cd ui && npm run build",
-    "start:full": "npm run build && npm start & cd ui && npm run dev"
+    "start:full": "npm run build && npm start & cd ui && npm run dev",
+    "deploy:dev4": "ts-node src/deploy-dev4.ts",
+    "validate:dev4": "ts-node src/validate-dev4.ts",
+    "dev4": "npm run validate:dev4"
   },
   "dependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0",
     "@types/node": "^20.10.0",
+    "@types/ws": "^8.18.1",
     "@wormhole-foundation/sdk": "^3.4.5",
     "cors": "^2.8.5",
     "dotenv": "^16.3.0",
     "express": "^4.18.2",
+    "express-prometheus-middleware": "^1.2.0",
     "inversify": "^6.0.2",
     "lodash": "^4.17.21",
+    "mqtt": "^5.14.0",
+    "prom-client": "^13.2.0",
     "reflect-metadata": "^0.2.0",
     "typescript": "^5.3.0",
     "uuid": "^9.0.1",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.0",
@@ -92,12 +101,15 @@
     "cryptography",
     "consensus",
     "distributed-ledger",
-    "1m-tps"
+    "5m-tps",
+    "autonomous-compliance",
+    "quantum-native",
+    "enterprise-dlt"
   ],
   "author": "Aurigraph Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aurigraph/av10-7"
+    "url": "https://github.com/aurigraph/av10-18"
   }
 }

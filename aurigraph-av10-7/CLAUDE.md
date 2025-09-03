@@ -1,7 +1,7 @@
 # Aurigraph AV10-7 Development Team Agent Framework
 
 ## Project Overview
-Aurigraph AV10-7 "Quantum Nexus" - A quantum-resilient blockchain platform with 1M+ TPS, zero-knowledge privacy, and cross-chain interoperability.
+Aurigraph AV10-7 DLT Platform - A quantum-resilient distributed ledger technology platform with 1M+ TPS, zero-knowledge privacy, and cross-chain interoperability.
 
 ## Development Team Agent Structure
 
@@ -150,23 +150,31 @@ Aurigraph AV10-7 "Quantum Nexus" - A quantum-resilient blockchain platform with 
 - **Cross-chain**: 9+ blockchain bridge support
 
 ### Monitoring & Management (✅ Complete)
-- **Vizor Dashboards**: Real-time performance monitoring
-- **Management UI**: http://localhost:8080
-- **API Endpoints**: http://localhost:3001/api/v10/
-- **Channel Management**: Encrypted user node communication
+- **Management Dashboard**: http://localhost:3040 (Standalone)
+- **Containerized Dashboard**: http://localhost:3140 (Docker)
+- **Real-time Demo System**: Start/Stop demo with live metrics
+- **Multi-channel Management**: Create and manage DLT channels
+- **Node Management**: Deploy validators and basic nodes
+- **Performance Monitoring**: Live TPS, transaction counts, quantum metrics
 
 ### Active Services
-- **Main Platform**: `npm start` (running on multiple ports)
-- **Management UI**: `npm run ui:dev` (port 8080)
-- **Monitoring API**: Integrated with platform (port 3001)
-- **Validator Network**: 3 nodes with 2.75M AV10 stake
+- **Management Dashboard**: `npx ts-node start-management-dashboard.ts` (port 3040)
+- **Containerized Environment**: `docker compose -f docker-compose.test.yml up -d`
+  - Validator: http://localhost:8181
+  - Node 1 (FULL): http://localhost:8201  
+  - Node 2 (LIGHT): http://localhost:8202
+  - Dashboard: http://localhost:3140
+- **Demo System**: Real-time transaction simulation with quantum security
 
 ## Quick Commands
 
 ### Platform Management
 ```bash
-# Start full platform
-npm run start:full
+# Start management dashboard (standalone)
+npx ts-node start-management-dashboard.ts
+
+# Start containerized environment
+docker compose -f docker-compose.test.yml up -d
 
 # Build platform
 npm run build
@@ -176,6 +184,21 @@ npm run benchmark
 
 # Deploy to testnet
 npm run deploy:testnet
+```
+
+### Containerized Management
+```bash
+# Start containerized DLT environment
+docker compose -f docker-compose.test.yml up -d
+
+# Access points
+# - Management Dashboard: http://localhost:3140
+# - Validator Node: http://localhost:8181
+# - Full Node: http://localhost:8201
+# - Light Node: http://localhost:8202
+
+# Stop containerized environment
+docker compose -f docker-compose.test.yml down
 ```
 
 ### UI Development
@@ -216,6 +239,37 @@ curl http://localhost:3001/api/v10/performance/realtime
 # Generate reports
 curl http://localhost:3001/api/v10/reports/generate/platform-overview
 ```
+
+## ⚠️ MANDATORY AGENT DEPLOYMENT REQUIREMENT ⚠️
+
+### CRITICAL INSTRUCTION - ALWAYS FOLLOW
+**ALL FURTHER DEVELOPMENT MUST EMPLOY AURIGRAPH DEVELOPMENT TEAM AGENTS**
+
+When implementing any feature, ticket, or enhancement:
+1. **ALWAYS** use the Task tool with appropriate sub-agents
+2. **NEVER** implement directly without agent coordination
+3. **COORDINATE** through the Primary Agent for complex tasks
+4. **DELEGATE** specific work to specialized sub-agents
+5. **INTEGRATE** all deliverables through the agent framework
+
+### Agent Selection Guidelines
+- **Quantum Security Agent**: For cryptography, encryption, security features
+- **AI Optimization Agent**: For machine learning, neural networks, predictive analytics
+- **Consensus Protocol Agent**: For blockchain consensus, validator management
+- **Zero-Knowledge Privacy Agent**: For privacy, ZK proofs, confidential transactions
+- **Cross-Chain Agent**: For interoperability, bridges, multi-chain features
+- **Monitoring Agent**: For dashboards, metrics, observability
+- **Network Infrastructure Agent**: For P2P, communication, networking
+- **UI/UX Development Agent**: For interfaces, dashboards, user experience
+- **DevOps Agent**: For deployment, infrastructure, operations
+- **Testing Agent**: For quality assurance, testing, validation
+
+### Agent Coordination Protocol
+1. **Primary Agent** analyzes requirements and assigns to sub-agents
+2. **Sub-agents** implement specialized components
+3. **Integration** through standardized interfaces
+4. **Validation** across all agent deliverables
+5. **Deployment** coordinated by DevOps Agent
 
 ## Agent Development Guidelines
 
@@ -274,3 +328,293 @@ aurigraph-av10-7/
 5. **Performance Optimization**: Target 2M+ TPS for next version
 
 This framework enables systematic development of the AV10-7 platform using specialized agents for different technical domains while maintaining integration and quality standards.
+
+## Content Security Policy (CSP) Font Loading Fix
+
+### Problem
+Express.js applications often encounter CSP font loading errors:
+```
+Refused to load the font 'http://localhost:3001/res/font.woff2' because it violates the following Content Security Policy directive: "default-src 'none'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+```
+
+### Root Cause
+- Express.js sets restrictive `default-src 'none'` CSP headers by default
+- Font loading requires `font-src` directive to be explicitly allowed
+- CSP headers can be overridden by middleware order or built-in security
+
+### Universal Solution
+
+#### 1. CSP Middleware (src/middleware/CSPMiddleware.ts)
+Use the standardized CSPMiddleware class for all projects:
+
+```typescript
+import { CSPMiddleware } from './middleware/CSPMiddleware';
+
+// For web applications with UI
+app.use(CSPMiddleware.webApp());
+
+// For API-only servers  
+app.use(CSPMiddleware.apiServer());
+
+// For development (less restrictive)
+app.use(CSPMiddleware.development());
+
+// Force override any existing CSP (use when other middleware conflicts)
+app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
+```
+
+#### 2. Implementation Pattern
+```typescript
+// MUST be first middleware to ensure CSP headers are set correctly
+app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
+
+// Then add other middleware
+app.use(cors());
+app.use(express.json());
+// ... other middleware
+```
+
+#### 3. CSP Directives Included
+- **font-src**: `'self' data: https: blob:` - Allows all font loading methods
+- **style-src**: `'self' 'unsafe-inline' https:` - Allows CSS and inline styles
+- **script-src**: `'self' 'unsafe-inline' 'unsafe-eval'` - Allows JavaScript execution
+- **img-src**: `'self' data: https: blob:` - Allows images from all sources
+- **connect-src**: `'self' ws: wss: https:` - Allows WebSocket and HTTPS connections
+
+#### 4. Environment-Specific Usage
+- **Production**: Use `CSPMiddleware.apiServer()` for strict security
+- **Development**: Use `CSPMiddleware.development()` for flexibility
+- **Web Apps**: Use `CSPMiddleware.webApp()` for full UI support
+- **Conflicts**: Use `CSPMiddleware.forceOverride()` when other middleware interferes
+
+### Quick Fix Commands
+```bash
+# 1. Copy CSPMiddleware.ts to your project
+cp src/middleware/CSPMiddleware.ts /path/to/project/src/middleware/
+
+# 2. Add import to your Express server
+# import { CSPMiddleware } from './middleware/CSPMiddleware';
+
+# 3. Add as first middleware
+# app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
+```
+
+### Verification
+Test CSP headers are applied correctly:
+```bash
+curl -I "http://localhost:PORT/non-existent-path"
+# Should show: Content-Security-Policy: default-src 'self'; font-src 'self' data: https: blob:...
+```
+
+This solution permanently resolves font loading CSP errors across all Aurigraph projects and provides flexible CSP configurations for different deployment environments.
+
+## Vue.js Error Handling
+
+### Common Vue Render Function Errors
+
+#### Problem: formatTPS undefined errors
+```
+TypeError: Cannot read properties of undefined (reading 'toString')
+    at Proxy.formatTPS ((index):775:32)
+```
+
+#### Root Cause
+- Vue component methods try to call `.toString()` on undefined values
+- API responses may return undefined for metrics during initialization
+- Race conditions between data loading and rendering
+
+#### Solution Applied
+1. **Null Checking in formatTPS function**:
+```javascript
+formatTPS(tps) {
+    if (!tps && tps !== 0) return '0';  // Handle undefined/null
+    if (tps >= 1000000) {
+        return (tps / 1000000).toFixed(1) + 'M';
+    } else if (tps >= 1000) {
+        return (tps / 1000).toFixed(0) + 'K';
+    }
+    return tps.toString();
+}
+```
+
+2. **Safe Property Access in Templates**:
+```html
+<!-- Before: ERROR -->
+<div>{{ demoStats.currentTPS.toLocaleString() }}</div>
+
+<!-- After: SAFE -->
+<div>{{ (demoStats.currentTPS || 0).toLocaleString() }}</div>
+```
+
+3. **Default Values in getChannelMetrics**:
+```javascript
+getChannelMetrics(channelId) {
+    const metrics = this.metrics.find(m => m.channelId === channelId);
+    return metrics || { 
+        totalTPS: 0, 
+        activeValidators: 0, 
+        totalTransactions: 0,
+        latency: 0
+    };
+}
+```
+
+#### Cache Busting for Browser Refresh
+Added timestamp to Vue.js script to force browser reload:
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js?v=${Date.now()}"></script>
+```
+
+#### Manual Fix Commands
+```bash
+# Hard refresh browser (clears cache)
+Ctrl+F5  # Windows/Linux
+Cmd+Shift+R  # Mac
+
+# Or open in incognito/private mode
+```
+
+## Terraform Infrastructure as Code
+
+### Overview
+Terraform configuration for managing Aurigraph DLT infrastructure across all environments (dev4, test, prod).
+
+### Installation
+Terraform v1.5.7+ already installed on dev4:
+```bash
+terraform version  # Verify installation
+```
+
+### Configuration Structure
+```
+terraform/
+├── main.tf          # Core infrastructure resources
+├── images.tf        # Docker image definitions
+├── variables.tf     # Configurable parameters
+├── outputs.tf       # Endpoint URLs and status
+└── environments/
+    ├── dev.tfvars   # Development environment
+    ├── test.tfvars  # Testing environment
+    └── prod.tfvars  # Production environment
+```
+
+### Quick Commands
+```bash
+# Initialize Terraform
+cd terraform && terraform init
+
+# Plan infrastructure changes
+terraform plan -var-file="environments/dev.tfvars"
+
+# Apply infrastructure
+terraform apply -var-file="environments/dev.tfvars" -auto-approve
+
+# Destroy infrastructure
+terraform destroy -var-file="environments/dev.tfvars" -auto-approve
+
+# Show current state
+terraform show
+
+# Get outputs (URLs, ports, status)
+terraform output
+```
+
+### Environment Configuration
+Create environment-specific `.tfvars` files:
+
+**environments/dev.tfvars**:
+```hcl
+environment = "dev"
+validator_count = 1
+node_count = 2
+enable_monitoring = true
+quantum_enabled = true
+consensus_algorithm = "HyperRAFT++"
+target_tps = 1000000
+```
+
+**environments/prod.tfvars**:
+```hcl
+environment = "prod"
+validator_count = 3
+node_count = 5
+enable_monitoring = true
+quantum_enabled = true
+consensus_algorithm = "HyperRAFT++"
+target_tps = 2000000
+```
+
+### Infrastructure Components Managed
+- **Validator Nodes**: HyperRAFT++ consensus validators
+- **Basic Nodes**: Full and light nodes for transaction processing
+- **Management Dashboard**: Web interface for platform management
+- **Monitoring Stack**: Prometheus metrics + Vizor dashboards
+- **Docker Network**: Isolated container networking
+- **Load Balancing**: Multi-node traffic distribution
+
+### Usage Across All Apps
+Use this pattern in all Aurigraph applications:
+
+1. **Copy terraform/ directory** to each project
+2. **Modify main.tf** for app-specific resources
+3. **Update variables.tf** for app parameters
+4. **Create environment configs** in environments/
+5. **Use consistent naming**: `aurigraph-{app}-{environment}`
+
+### Integration with Dev4 Apps
+```bash
+# Deploy AV10-7 platform
+cd aurigraph-av10-7/terraform
+terraform apply -var-file="environments/dev.tfvars"
+
+# Deploy other Aurigraph apps
+cd aurigraph-v9/terraform
+terraform apply -var-file="environments/dev.tfvars"
+
+# Deploy monitoring across all apps
+cd monitoring-stack/terraform
+terraform apply -var-file="environments/dev.tfvars"
+```
+
+### Terraform State Management
+- **Local State**: Default for development
+- **Remote State**: Use S3/GCS for team collaboration
+- **State Locking**: Prevent concurrent modifications
+- **Backup Strategy**: Automated state backups
+
+### Best Practices
+1. **Environment Separation**: Always use `-var-file` for environments
+2. **Resource Naming**: Consistent `aurigraph-{service}-{env}` pattern
+3. **Port Management**: Use variable-based port allocation
+4. **Dependencies**: Explicit `depends_on` for service ordering
+5. **Health Checks**: Include container health monitoring
+6. **Secrets Management**: Use Terraform variables for sensitive data
+
+### Outputs and Monitoring
+Terraform provides all service endpoints:
+```bash
+terraform output validator_endpoints    # Validator URLs
+terraform output node_endpoints        # Node URLs  
+terraform output management_dashboard  # Management URL
+terraform output vizor_dashboard       # Monitoring URL
+terraform output infrastructure_status # Overall status
+```
+
+## JIRA Integration
+
+### Credentials
+**Instance URL**: https://aurigraphdlt.atlassian.net
+**Project Key**: AV10
+**User Email**: subbu@aurigraph.io
+**API Key**: ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C
+
+### Usage
+- Use `scripts/update-jira-tickets.js` for automated ticket updates
+- Project URL: https://aurigraphdlt.atlassian.net/jira/software/projects/AV10/list
+- All AV10-18 tickets created with AV10- prefix (e.g., AV10-1801, AV10-1802)
+
+### Common Ticket Types
+- **Story**: Feature implementation
+- **Bug**: Defect resolution  
+- **Epic**: Major feature grouping
+- **Task**: Development work items

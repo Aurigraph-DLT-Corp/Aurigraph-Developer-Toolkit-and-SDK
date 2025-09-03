@@ -46,5 +46,12 @@ export declare class QuantumCryptoManager {
     homomorphicMultiply(cipher1: HomomorphicCipher, cipher2: HomomorphicCipher): Promise<HomomorphicCipher>;
     getMetrics(): any;
     benchmark(): Promise<any>;
+    initializeQuantumConsensus(): Promise<void>;
+    preSign(data: string): Promise<string>;
+    generateConsensusProof(data: any): Promise<any>;
+    generateQuantumRandom(bytes: number): Promise<Buffer>;
+    quantumHash(data: string): Promise<string>;
+    quantumSign(data: string): Promise<string>;
+    generateLeadershipProof(data: any): Promise<any>;
 }
 //# sourceMappingURL=QuantumCryptoManager.d.ts.map

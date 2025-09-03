@@ -1,9 +1,0 @@
-{
-  "/not-found": "app/not-found.js",
-  "/nodes/page": "app/nodes/page.js",
-  "/crosschain/page": "app/crosschain/page.js",
-  "/page": "app/page.js",
-  "/vizor/page": "app/vizor/page.js",
-  "/ai/page": "app/ai/page.js",
-  "/transactions/page": "app/transactions/page.js"
-}

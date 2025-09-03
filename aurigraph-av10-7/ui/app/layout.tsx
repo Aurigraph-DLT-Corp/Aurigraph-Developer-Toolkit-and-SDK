@@ -5,8 +5,8 @@ import Navigation from '../components/Navigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Aurigraph AV10-7 | Quantum Nexus Management',
-  description: 'Management interface for the quantum-resilient blockchain platform',
+  title: 'Aurigraph AV10-18 | Next-Gen DLT Platform',
+  description: 'Management interface for the quantum-native DLT platform with 5M+ TPS and autonomous compliance',
 }
 
 export default function RootLayout({

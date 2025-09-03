@@ -1,0 +1,286 @@
+version: '3.8'
+
+# Aurigraph AV10-7 Dev4 Environment
+# Agent-coordinated deployment for 800K+ TPS testing
+# All AV10 components integrated
+
+services:
+  # Validator Node 1
+  validator-dev4-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator.dev4
+    container_name: aurigraph-validator-dev4-01
+    hostname: validator-dev4-01
+    environment:
+      - NODE_ID=VAL-DEV4-001
+      - NODE_TYPE=VALIDATOR
+      - API_PORT=8180
+      - CONSENSUS_PORT=8180
+      - P2P_PORT=30180
+      - NETWORK_ID=aurigraph-dev4
+      - QUANTUM_ENABLED=true
+      - TARGET_TPS=800000
+      - CONSENSUS_ALGORITHM=HyperRAFT++
+    ports:
+      - "8180:8180"
+      - "30180:30180"
+    volumes:
+      - ./config/dev4/validator:/app/config
+      - validator-dev4-01-data:/app/data
+      - validator-dev4-01-logs:/app/logs
+    networks:
+      - aurigraph-dev4
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8192M
+          cpus: '4'
+        reservations:
+          memory: 4096M
+          cpus: '2'
+
+  # Basic Node 1 (Full Node)
+  node-dev4-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.node.dev4
+    container_name: aurigraph-node-dev4-01
+    hostname: node-dev4-01
+    environment:
+      - NODE_ID=NODE-DEV4-001
+      - NODE_TYPE=FULL
+      - API_PORT=8200
+      - P2P_PORT=30200
+      - NETWORK_ID=aurigraph-dev4
+      - VALIDATOR_ENDPOINT=validator-dev4-01:8180
+      - AV10_FEATURES=quantum-sharding,rwa-platform,smart-contracts
+    ports:
+      - "8200:8200"
+      - "30200:30200"
+    volumes:
+      - ./config/dev4/node01:/app/config
+      - node-dev4-01-data:/app/data
+      - node-dev4-01-logs:/app/logs
+    networks:
+      - aurigraph-dev4
+    depends_on:
+      - validator-dev4-01
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+          cpus: '2'
+        reservations:
+          memory: 2048M
+          cpus: '1'
+
+  # Basic Node 2 (Full Node)
+  node-dev4-02:
+    build:
+      context: .
+      dockerfile: Dockerfile.node.dev4
+    container_name: aurigraph-node-dev4-02
+    hostname: node-dev4-02
+    environment:
+      - NODE_ID=NODE-DEV4-002
+      - NODE_TYPE=FULL
+      - API_PORT=8201
+      - P2P_PORT=30201
+      - NETWORK_ID=aurigraph-dev4
+      - VALIDATOR_ENDPOINT=validator-dev4-01:8180
+      - AV10_FEATURES=predictive-analytics,neural-networks,digital-twin
+    ports:
+      - "8201:8201"
+      - "30201:30201"
+    volumes:
+      - ./config/dev4/node02:/app/config
+      - node-dev4-02-data:/app/data
+      - node-dev4-02-logs:/app/logs
+    networks:
+      - aurigraph-dev4
+    depends_on:
+      - validator-dev4-01
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+          cpus: '2'
+        reservations:
+          memory: 2048M
+          cpus: '1'
+
+  # Basic Node 3 (Light Node)
+  node-dev4-03:
+    build:
+      context: .
+      dockerfile: Dockerfile.node.dev4
+    container_name: aurigraph-node-dev4-03
+    hostname: node-dev4-03
+    environment:
+      - NODE_ID=NODE-DEV4-003
+      - NODE_TYPE=LIGHT
+      - API_PORT=8202
+      - P2P_PORT=30202
+      - NETWORK_ID=aurigraph-dev4
+      - VALIDATOR_ENDPOINT=validator-dev4-01:8180
+      - AV10_FEATURES=compliance,ntru-crypto
+    ports:
+      - "8202:8202"
+      - "30202:30202"
+    volumes:
+      - ./config/dev4/node03:/app/config
+      - node-dev4-03-data:/app/data
+      - node-dev4-03-logs:/app/logs
+    networks:
+      - aurigraph-dev4
+    depends_on:
+      - validator-dev4-01
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+          cpus: '1'
+        reservations:
+          memory: 1024M
+          cpus: '0.5'
+
+  # Management Dashboard
+  management-dev4:
+    build:
+      context: .
+      dockerfile: Dockerfile.management.dev4
+    container_name: aurigraph-management-dev4
+    hostname: management-dev4
+    environment:
+      - NODE_ENV=production
+      - API_PORT=3240
+      - NETWORK_ID=aurigraph-dev4
+      - VALIDATOR_ENDPOINTS=validator-dev4-01:8180
+      - NODE_ENDPOINTS=node-dev4-01:8200,node-dev4-02:8201,node-dev4-03:8202
+      - TARGET_TPS=800000
+    ports:
+      - "3240:3240"
+    volumes:
+      - management-dev4-logs:/app/logs
+    networks:
+      - aurigraph-dev4
+    depends_on:
+      - validator-dev4-01
+      - node-dev4-01
+      - node-dev4-02
+      - node-dev4-03
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+          cpus: '1'
+
+  # Prometheus Monitoring
+  prometheus-dev4:
+    image: prom/prometheus:v2.47.0
+    container_name: aurigraph-prometheus-dev4
+    hostname: prometheus-dev4
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.listen-address=:9190'
+    ports:
+      - "9190:9190"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-dev4-data:/prometheus
+    networks:
+      - aurigraph-dev4
+    restart: unless-stopped
+
+  # Vizor Dashboard
+  vizor-dev4:
+    build:
+      context: .
+      dockerfile: Dockerfile.vizor
+    container_name: aurigraph-vizor-dev4
+    hostname: vizor-dev4
+    environment:
+      - VIZOR_PORT=3252
+      - PROMETHEUS_ENDPOINT=prometheus-dev4:9190
+      - MANAGEMENT_ENDPOINT=management-dev4:3240
+      - ENVIRONMENT=dev4
+    ports:
+      - "3252:3252"
+    volumes:
+      - vizor-dev4-logs:/app/logs
+    networks:
+      - aurigraph-dev4
+    depends_on:
+      - prometheus-dev4
+      - management-dev4
+    restart: unless-stopped
+
+networks:
+  aurigraph-dev4:
+    driver: bridge
+    name: aurigraph-dev4-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  # Validator volumes
+  validator-dev4-01-data:
+    driver: local
+  validator-dev4-01-logs:
+    driver: local
+  
+  # Node volumes
+  node-dev4-01-data:
+    driver: local
+  node-dev4-01-logs:
+    driver: local
+  node-dev4-02-data:
+    driver: local
+  node-dev4-02-logs:
+    driver: local
+  node-dev4-03-data:
+    driver: local
+  node-dev4-03-logs:
+    driver: local
+  
+  # Management and monitoring volumes
+  management-dev4-logs:
+    driver: local
+  prometheus-dev4-data:
+    driver: local
+  vizor-dev4-logs:
+    driver: local
+
+# Dev4 deployment metadata
+x-deployment-info:
+  environment: dev4
+  version: AV10-7
+  target_tps: 800000
+  agent_coordinated: true
+  deployment_date: "2025-09-03"
+  components:
+    - AV10-08: Quantum Sharding
+    - AV10-20: RWA Platform
+    - AV10-21: Asset Registration
+    - AV10-22: Digital Twin
+    - AV10-23: Smart Contracts
+    - AV10-24: Compliance
+    - AV10-26: Predictive Analytics
+    - AV10-28: Neural Networks
+    - AV10-30: NTRU Crypto
+    - AV10-32: Node Density
+    - AV10-34: Network Topology
+    - AV10-36: Enhanced Nodes

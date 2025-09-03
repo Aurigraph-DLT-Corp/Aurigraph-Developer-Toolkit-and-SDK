@@ -1,0 +1,128 @@
+import { EventEmitter } from 'events';
+import { QuantumCryptoManagerV2 } from '../crypto/QuantumCryptoManagerV2';
+import { ZKProofSystem } from '../zk/ZKProofSystem';
+import { AIOptimizer } from '../ai/AIOptimizer';
+export interface ConsensusConfigV2 {
+    nodeId: string;
+    validators: string[];
+    electionTimeout: number;
+    heartbeatInterval: number;
+    batchSize: number;
+    pipelineDepth: number;
+    parallelThreads: number;
+    zkProofsEnabled: boolean;
+    aiOptimizationEnabled: boolean;
+    quantumSecure: boolean;
+    adaptiveSharding: boolean;
+    quantumConsensusProofs: boolean;
+    multiDimensionalValidation: boolean;
+    zeroLatencyFinality: boolean;
+}
+export interface ConsensusStateV2 {
+    term: number;
+    leader: string | null;
+    state: 'follower' | 'candidate' | 'leader';
+    commitIndex: number;
+    lastApplied: number;
+    throughput: number;
+    latency: number;
+    shardId: number;
+    validationPipelines: number;
+    quantumProofCount: number;
+}
+export interface TransactionV2 {
+    id: string;
+    hash: string;
+    data: any;
+    timestamp: number;
+    from?: string;
+    to?: string;
+    amount?: number;
+    zkProof?: any;
+    quantumSignature?: string;
+    shardId?: number;
+    priority?: number;
+}
+export interface BlockV2 {
+    height: number;
+    hash: string;
+    previousHash: string;
+    transactions: TransactionV2[];
+    timestamp: number;
+    validator: string;
+    consensusProof: any;
+    zkAggregateProof?: any;
+    quantumConsensusProof?: any;
+    shardId: number;
+    validationResults: any[];
+}
+export declare class HyperRAFTPlusPlusV2 extends EventEmitter {
+    private logger;
+    private config;
+    private state;
+    private quantumCrypto;
+    private zkProofSystem;
+    private aiOptimizer;
+    private transactionPool;
+    private validationPipelines;
+    private shardManagers;
+    private quantumConsensusCache;
+    private performanceMetrics;
+    private adaptiveTimeout;
+    private shardingEnabled;
+    private autonomousOptimization;
+    private quantumConsensusEnabled;
+    private multiDimensionalValidation;
+    private zeroLatencyMode;
+    constructor(config: ConsensusConfigV2, quantumCrypto: QuantumCryptoManagerV2, zkProofSystem: ZKProofSystem, aiOptimizer: AIOptimizer);
+    initialize(): Promise<void>;
+    private initializeValidationPipelines;
+    private initializeAdaptiveSharding;
+    private initializeQuantumConsensus;
+    private initializeAutonomousOptimization;
+    private startAutonomousMonitoring;
+    private applyOptimization;
+    private rebalanceShards;
+    private redistributeShardLoad;
+    private startEnhancedConsensus;
+    private startZeroLatencyOptimization;
+    private preValidateIncomingTransactions;
+    processTransactionBatchV2(transactions: TransactionV2[]): Promise<BlockV2>;
+    private performMultiDimensionalValidation;
+    private validateSignatures;
+    private validateState;
+    private validateQuantumProofs;
+    private validateZKProofs;
+    private generateQuantumConsensusProof;
+    private zeroLatencyExecution;
+    private instantExecuteChunk;
+    private quantumStateCommitment;
+    private verifyQuantumStateIntegrity;
+    private advancedProofAggregation;
+    private compressProofData;
+    private calculateQuantumBlockHash;
+    private getPreviousBlockHash;
+    private getQuantumSignatures;
+    private updateEnhancedMetrics;
+    private startEnhancedPerformanceMonitoring;
+    private performAutonomousOptimization;
+    private startAdaptiveElectionTimer;
+    private startQuantumElection;
+    private requestQuantumVotes;
+    private getNetworkConditions;
+    private assessQuantumReadiness;
+    private becomeFollower;
+    private becomeLeader;
+    private initializeEnhancedLeaderCapabilities;
+    private enableQuantumLeadershipProofs;
+    private optimizeValidationPipelines;
+    private executeTransactionsWithIsolation;
+    start(): Promise<void>;
+    stop(): Promise<void>;
+    getStatus(): any;
+    getPerformanceMetrics(): any;
+    getEnhancedMetrics(): any;
+    submitTransaction(transaction: any): Promise<boolean>;
+    getMetrics(): any;
+}
+//# sourceMappingURL=HyperRAFTPlusPlusV2.d.ts.map

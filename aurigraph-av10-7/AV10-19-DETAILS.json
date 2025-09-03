@@ -1,0 +1,391 @@
+{
+  "key": "AV10-19",
+  "summary": "AGV9-689: Basic Node Implementation - Docker + Quarkus",
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Implement user-friendly basic nodes with Docker containerization, simplified onboarding, and API gateway integration for easy network participation."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Core Features"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Docker containerized deployment"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "User-friendly web interface"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Simplified onboarding process"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "API gateway integration"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Automatic updates and maintenance"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Resource monitoring and optimization"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Docker Configuration"
+          }
+        ]
+      },
+      {
+        "type": "codeBlock",
+        "attrs": {
+          "language": "dockerfile"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "FROM quay.io/quarkus/ubi-quarkus-graalvm:24-java24\nCOPY --chown=1001 target/*-runner /work/application\nEXPOSE 8080\nUSER 1001\nCMD [\"./application\", \"-Dquarkus.http.host=0.0.0.0\"]"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Quarkus Configuration"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "quarkus-container-image-docker - Container building"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "quarkus-smallrye-health - Health checks"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "quarkus-smallrye-openapi - API documentation"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "quarkus-qute - Web templating"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "quarkus-websockets - Real-time updates"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Performance Requirements"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Memory usage <512MB"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "CPU usage <2 cores"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Container startup <5 seconds"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "99.9% uptime"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Implementation Details"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Duration: 8 weeks"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Priority: High - User adoption"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Dependencies: Validator nodes, Docker infrastructure"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "rule"
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Co-authored by "
+          },
+          {
+            "type": "text",
+            "text": "Augment Code",
+            "marks": [
+              {
+                "type": "link",
+                "attrs": {
+                  "href": "https://www.augmentcode.com/?utm_source=atlassian&utm_medium=jira_issue&utm_campaign=jira"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "status": "In Progress",
+  "type": "Task",
+  "created": "2025-08-31T15:09:31.100+0530",
+  "updated": "2025-09-02T00:15:12.118+0530"
+}
