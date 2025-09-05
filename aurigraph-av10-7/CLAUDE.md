@@ -1,620 +1,235 @@
-# Aurigraph AV10-7 Development Team Agent Framework
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-Aurigraph AV10-7 DLT Platform - A quantum-resilient distributed ledger technology platform with 1M+ TPS, zero-knowledge privacy, and cross-chain interoperability.
+**Aurigraph AV10-7 "Quantum Nexus"** - A quantum-resilient distributed ledger technology platform achieving 1M+ TPS with post-quantum cryptography, zero-knowledge privacy, and cross-chain interoperability across 50+ blockchains.
 
-## Development Team Agent Structure
+**Note**: Node.js 20+ required. TypeScript strict mode is enabled with path aliases configured (e.g., `@core/*`, `@consensus/*`).
 
-### Primary Agent: Aurigraph Platform Architect
-**Role**: Lead technical architect and project coordinator
-**Responsibilities**:
-- Overall platform architecture and design decisions
-- Coordinate sub-agent activities and deliverables
-- Ensure quantum security and performance requirements are met
-- Manage integration between platform components
+## Build & Development Commands
 
-### Sub-Agent Framework
-
-#### 1. Quantum Security Agent
-**Focus**: Post-quantum cryptography and security implementations
-**Tools**: Read, Write, Edit, Bash, Grep
-**Responsibilities**:
-- Implement CRYSTALS-Kyber, CRYSTALS-Dilithium, SPHINCS+ algorithms
-- Manage quantum-safe key generation and encryption
-- Monitor security metrics and threat detection
-- Validate NIST Level 5 compliance
-**Code Areas**: `src/crypto/`, security configurations
-
-#### 2. Consensus Protocol Agent  
-**Focus**: HyperRAFT++ consensus mechanism and validator management
-**Tools**: Read, Write, Edit, Bash, Task
-**Responsibilities**:
-- Develop and optimize HyperRAFT++ consensus algorithm
-- Manage validator nodes and orchestration
-- Implement AI-optimized leader election
-- Ensure 1M+ TPS performance targets
-**Code Areas**: `src/consensus/`, validator configurations
-
-#### 3. Zero-Knowledge Privacy Agent
-**Focus**: ZK proof systems and privacy implementations
-**Tools**: Read, Write, Edit, Grep, Task
-**Responsibilities**:
-- Implement zk-SNARKs, zk-STARKs, PLONK, Bulletproofs
-- Develop recursive proof aggregation
-- Optimize ZK circuit performance
-- Ensure transaction privacy compliance
-**Code Areas**: `src/zk/`, privacy protocols
-
-#### 4. Cross-Chain Interoperability Agent
-**Focus**: Multi-blockchain bridge and interoperability
-**Tools**: Read, Write, Edit, WebFetch, Task
-**Responsibilities**:
-- Develop cross-chain bridge protocols
-- Implement atomic swap mechanisms
-- Manage liquidity pools and bridge validators
-- Support 50+ blockchain integrations
-**Code Areas**: `src/crosschain/`, bridge configurations
-
-#### 5. AI Optimization Agent
-**Focus**: Machine learning and autonomous optimization
-**Tools**: Read, Write, Edit, Task, WebSearch
-**Responsibilities**:
-- Develop AI models for consensus optimization
-- Implement predictive analytics and threat detection
-- Optimize network parameters and resource allocation
-- Manage TensorFlow.js integration
-**Code Areas**: `src/ai/`, ML model configurations
-
-#### 6. Monitoring & Observability Agent
-**Focus**: Vizor dashboards, metrics, and system monitoring
-**Tools**: Read, Write, Edit, Bash, Task
-**Responsibilities**:
-- Develop Vizor monitoring dashboards
-- Implement real-time metrics collection
-- Create performance analytics and reporting
-- Manage OpenTelemetry and Prometheus integration
-**Code Areas**: `src/monitoring/`, `src/api/`, dashboard configurations
-
-#### 7. Network Infrastructure Agent
-**Focus**: P2P networking, channels, and communication protocols
-**Tools**: Read, Write, Edit, Bash, Grep
-**Responsibilities**:
-- Implement encrypted channel management
-- Develop P2P network protocols
-- Manage user node authentication
-- Optimize network throughput and latency
-**Code Areas**: `src/network/`, networking configurations
-
-#### 8. UI/UX Development Agent
-**Focus**: Management interface and user experience
-**Tools**: Read, Write, Edit, Task, WebFetch
-**Responsibilities**:
-- Develop Next.js management interface
-- Create real-time dashboards and visualizations
-- Implement responsive design and accessibility
-- Ensure seamless user experience
-**Code Areas**: `ui/`, React components, styling
-
-#### 9. DevOps & Deployment Agent
-**Focus**: Infrastructure, deployment, and operations
-**Tools**: Read, Write, Edit, Bash, Task
-**Responsibilities**:
-- Manage Docker containerization and orchestration
-- Implement CI/CD pipelines and deployment scripts
-- Configure production environments and scaling
-- Ensure system reliability and uptime
-**Code Areas**: Docker files, deployment scripts, infrastructure
-
-#### 10. Testing & Quality Assurance Agent
-**Focus**: Testing, validation, and quality assurance
-**Tools**: Read, Write, Edit, Bash, Task
-**Responsibilities**:
-- Develop comprehensive test suites
-- Implement performance benchmarking
-- Conduct security audits and penetration testing
-- Validate platform functionality and reliability
-**Code Areas**: Test files, benchmark scripts, quality metrics
-
-## Agent Coordination Protocol
-
-### 1. Task Assignment
-- Primary agent analyzes requirements and assigns to appropriate sub-agents
-- Sub-agents report progress and blockers to primary agent
-- Cross-agent collaboration for complex features requiring multiple domains
-
-### 2. Communication Standards
-- All agents use standardized logging with context tags
-- Metric reporting through Vizor monitoring system
-- Event-driven architecture for real-time coordination
-
-### 3. Quality Gates
-- Each sub-agent must validate their implementations
-- Integration testing between agent deliverables
-- Performance benchmarking against targets
-- Security validation for all implementations
-
-### 4. Development Workflow
-1. **Requirements Analysis**: Primary agent breaks down features
-2. **Agent Assignment**: Specific sub-agents take ownership
-3. **Implementation**: Parallel development with regular sync
-4. **Integration**: Cross-agent testing and validation
-5. **Deployment**: DevOps agent handles production deployment
-
-## Current Platform Status
-
-### Core Platform (✅ Complete)
-- **Performance**: 1M+ TPS sustained, <500ms latency
-- **Security**: NIST Level 5 quantum-resistant
-- **Consensus**: HyperRAFT++ with 3 active validators
-- **Privacy**: ZK-SNARKs/STARKs implementation
-- **Cross-chain**: 9+ blockchain bridge support
-
-### Monitoring & Management (✅ Complete)
-- **Management Dashboard**: http://localhost:3040 (Standalone)
-- **Containerized Dashboard**: http://localhost:3140 (Docker)
-- **Real-time Demo System**: Start/Stop demo with live metrics
-- **Multi-channel Management**: Create and manage DLT channels
-- **Node Management**: Deploy validators and basic nodes
-- **Performance Monitoring**: Live TPS, transaction counts, quantum metrics
-
-### Active Services
-- **Management Dashboard**: `npx ts-node start-management-dashboard.ts` (port 3040)
-- **Containerized Environment**: `docker compose -f docker-compose.test.yml up -d`
-  - Validator: http://localhost:8181
-  - Node 1 (FULL): http://localhost:8201  
-  - Node 2 (LIGHT): http://localhost:8202
-  - Dashboard: http://localhost:3140
-- **Demo System**: Real-time transaction simulation with quantum security
-
-## Quick Commands
-
-### Platform Management
+### Primary Commands
 ```bash
-# Start management dashboard (standalone)
-npx ts-node start-management-dashboard.ts
+# Install dependencies
+npm install
 
-# Start containerized environment
-docker compose -f docker-compose.test.yml up -d
-
-# Build platform
+# Build TypeScript
 npm run build
 
-# Run performance benchmark
-npm run benchmark
+# Start platform (builds first)
+npm start
 
-# Deploy to testnet
-npm run deploy:testnet
+# Development with hot reload
+npm run dev
+
+# Deploy to dev4 environment
+npm run deploy:dev4
+
+# Validate dev4 deployment
+npm run validate:dev4
+
+# Lint and typecheck
+npm run lint
+npm run typecheck
 ```
 
-### Containerized Management
+### Testing Commands
 ```bash
-# Start containerized DLT environment
-docker compose -f docker-compose.test.yml up -d
-
-# Access points
-# - Management Dashboard: http://localhost:3140
-# - Validator Node: http://localhost:8181
-# - Full Node: http://localhost:8201
-# - Light Node: http://localhost:8202
-
-# Stop containerized environment
-docker compose -f docker-compose.test.yml down
-```
-
-### UI Development
-```bash
-# Install UI dependencies
-npm run ui:install
-
-# Start UI development server
-npm run ui:dev
-
-# Build UI for production  
-npm run ui:build
-```
-
-### Testing & Validation
-```bash
-# Run all tests
+# Run all tests with coverage
 npm test
 
-# Security audit
-npm run test:security
+# Run specific test types
+npm run test:unit       # Unit tests only
+npm run test:integration # Integration tests
+npm run test:performance # Performance benchmarks (180s timeout)
+npm run test:smoke      # Quick smoke tests
+npm run test:security   # Security audit
 
-# Performance tests
-npm run test:performance
-
-# Integration tests
-npm run test:integration
+# Run specific test file
+npx jest tests/unit/ai/AutonomousProtocolEvolutionEngine.test.ts --verbose
+npx jest <path-to-test> --verbose
 ```
 
-### Monitoring & Analytics
+### Docker & Deployment
 ```bash
-# View Vizor dashboards
-curl http://localhost:3001/api/v10/vizor/dashboards
+# Full production deployment
+docker-compose -f docker-compose.av10-7.yml up -d
 
-# Get real-time performance
-curl http://localhost:3001/api/v10/performance/realtime
+# Scale validators for higher throughput (1M+ TPS)
+docker-compose -f docker-compose.av10-7.yml up -d --scale av10-validator=10
 
-# Generate reports
-curl http://localhost:3001/api/v10/reports/generate/platform-overview
+# Test environment with monitoring
+docker-compose -f docker-compose.test.yml up -d
+
+# Dev4 environment
+docker-compose -f docker-compose.dev4.yml up -d
 ```
 
-## ⚠️ MANDATORY AGENT DEPLOYMENT REQUIREMENT ⚠️
-
-### CRITICAL INSTRUCTION - ALWAYS FOLLOW
-**ALL FURTHER DEVELOPMENT MUST EMPLOY AURIGRAPH DEVELOPMENT TEAM AGENTS**
-
-When implementing any feature, ticket, or enhancement:
-1. **ALWAYS** use the Task tool with appropriate sub-agents
-2. **NEVER** implement directly without agent coordination
-3. **COORDINATE** through the Primary Agent for complex tasks
-4. **DELEGATE** specific work to specialized sub-agents
-5. **INTEGRATE** all deliverables through the agent framework
-
-### Agent Selection Guidelines
-- **Quantum Security Agent**: For cryptography, encryption, security features
-- **AI Optimization Agent**: For machine learning, neural networks, predictive analytics
-- **Consensus Protocol Agent**: For blockchain consensus, validator management
-- **Zero-Knowledge Privacy Agent**: For privacy, ZK proofs, confidential transactions
-- **Cross-Chain Agent**: For interoperability, bridges, multi-chain features
-- **Monitoring Agent**: For dashboards, metrics, observability
-- **Network Infrastructure Agent**: For P2P, communication, networking
-- **UI/UX Development Agent**: For interfaces, dashboards, user experience
-- **DevOps Agent**: For deployment, infrastructure, operations
-- **Testing Agent**: For quality assurance, testing, validation
-
-### Agent Coordination Protocol
-1. **Primary Agent** analyzes requirements and assigns to sub-agents
-2. **Sub-agents** implement specialized components
-3. **Integration** through standardized interfaces
-4. **Validation** across all agent deliverables
-5. **Deployment** coordinated by DevOps Agent
-
-## Agent Development Guidelines
-
-### Code Standards
-- Use TypeScript with strict typing
-- Follow quantum-safe cryptography principles
-- Implement comprehensive error handling
-- Maintain 95%+ test coverage
-
-### Performance Requirements
-- Target 1M+ TPS sustained throughput
-- Maintain <500ms transaction finality
-- Optimize for 32GB+ RAM and NVMe storage
-- Support 256 parallel processing threads
-
-### Security Requirements
-- NIST Level 5 post-quantum cryptography
-- Zero-knowledge proof validation for all transactions
-- Encrypted channel communication
-- Multi-signature threshold validation
-
-### Integration Requirements
-- Event-driven architecture with proper error handling
-- Standardized logging with contextual information
-- Metrics reporting through Vizor monitoring
-- Graceful shutdown and restart capabilities
-
-## Repository Structure
-```
-aurigraph-av10-7/
-├── src/                    # Core platform source
-│   ├── consensus/          # HyperRAFT++ and validators
-│   ├── crypto/            # Quantum cryptography
-│   ├── zk/               # Zero-knowledge proofs
-│   ├── crosschain/       # Cross-chain bridge
-│   ├── ai/               # AI optimization
-│   ├── monitoring/       # Vizor dashboards
-│   ├── network/          # P2P and channels
-│   ├── api/              # REST API endpoints
-│   └── core/             # Core utilities
-├── ui/                    # Management interface
-│   ├── app/              # Next.js pages
-│   ├── components/       # React components
-│   └── types/            # TypeScript definitions
-├── scripts/              # Deployment scripts
-├── docker-compose.av10-7.yml  # Container orchestration
-└── package.json          # Dependencies and scripts
-```
-
-## Next Development Priorities
-
-1. **Channel Enhancement**: Improve encrypted channel scalability
-2. **AI Model Training**: Enhanced consensus optimization models
-3. **Cross-Chain Expansion**: Support for additional blockchain networks
-4. **Enterprise Features**: Institutional-grade compliance tools
-5. **Performance Optimization**: Target 2M+ TPS for next version
-
-This framework enables systematic development of the AV10-7 platform using specialized agents for different technical domains while maintaining integration and quality standards.
-
-## Content Security Policy (CSP) Font Loading Fix
-
-### Problem
-Express.js applications often encounter CSP font loading errors:
-```
-Refused to load the font 'http://localhost:3001/res/font.woff2' because it violates the following Content Security Policy directive: "default-src 'none'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
-```
-
-### Root Cause
-- Express.js sets restrictive `default-src 'none'` CSP headers by default
-- Font loading requires `font-src` directive to be explicitly allowed
-- CSP headers can be overridden by middleware order or built-in security
-
-### Universal Solution
-
-#### 1. CSP Middleware (src/middleware/CSPMiddleware.ts)
-Use the standardized CSPMiddleware class for all projects:
-
-```typescript
-import { CSPMiddleware } from './middleware/CSPMiddleware';
-
-// For web applications with UI
-app.use(CSPMiddleware.webApp());
-
-// For API-only servers  
-app.use(CSPMiddleware.apiServer());
-
-// For development (less restrictive)
-app.use(CSPMiddleware.development());
-
-// Force override any existing CSP (use when other middleware conflicts)
-app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
-```
-
-#### 2. Implementation Pattern
-```typescript
-// MUST be first middleware to ensure CSP headers are set correctly
-app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
-
-// Then add other middleware
-app.use(cors());
-app.use(express.json());
-// ... other middleware
-```
-
-#### 3. CSP Directives Included
-- **font-src**: `'self' data: https: blob:` - Allows all font loading methods
-- **style-src**: `'self' 'unsafe-inline' https:` - Allows CSS and inline styles
-- **script-src**: `'self' 'unsafe-inline' 'unsafe-eval'` - Allows JavaScript execution
-- **img-src**: `'self' data: https: blob:` - Allows images from all sources
-- **connect-src**: `'self' ws: wss: https:` - Allows WebSocket and HTTPS connections
-
-#### 4. Environment-Specific Usage
-- **Production**: Use `CSPMiddleware.apiServer()` for strict security
-- **Development**: Use `CSPMiddleware.development()` for flexibility
-- **Web Apps**: Use `CSPMiddleware.webApp()` for full UI support
-- **Conflicts**: Use `CSPMiddleware.forceOverride()` when other middleware interferes
-
-### Quick Fix Commands
+### Standalone Services
 ```bash
-# 1. Copy CSPMiddleware.ts to your project
-cp src/middleware/CSPMiddleware.ts /path/to/project/src/middleware/
+# Start management dashboard (port 3040)
+npx ts-node start-management-dashboard.ts
 
-# 2. Add import to your Express server
-# import { CSPMiddleware } from './middleware/CSPMiddleware';
+# Start Vizor monitoring dashboard (port 3052)
+npx ts-node start-vizor-dashboard.ts
 
-# 3. Add as first middleware
-# app.use(CSPMiddleware.forceOverride(CSPMiddleware.getWebAppCSP()));
+# Start monitoring API server (port 3001)
+npx ts-node src/api/MonitoringAPIServer.ts
+
+# Full UI development (port 3000)
+npm run ui:dev
 ```
 
-### Verification
-Test CSP headers are applied correctly:
+## High-Level Architecture
+
+### Core Platform Structure
+The platform is organized into specialized modules that work together to achieve 1M+ TPS with quantum security:
+
+```
+src/
+├── consensus/          # HyperRAFT++ consensus (1M+ TPS achievement)
+│   ├── HyperRAFTPlusPlus.ts       # Main consensus algorithm
+│   ├── ValidatorOrchestrator.ts    # Network-wide validator coordination
+│   ├── ValidatorNode.ts            # Individual validator implementation
+│   └── QuantumShardManager.ts      # Quantum-enhanced sharding (parallel universes)
+│
+├── crypto/            # Post-quantum cryptography (NIST Level 5)
+│   ├── QuantumCryptoManager*.ts    # CRYSTALS-Kyber/Dilithium implementation
+│   └── NTRUCryptoEngine.ts         # Lattice-based encryption
+│
+├── ai/               # Autonomous intelligence systems
+│   ├── AIOptimizer.ts              # Consensus optimization
+│   ├── CollectiveIntelligenceNetwork.ts  # 8-agent collaboration system
+│   └── AutonomousProtocolEvolutionEngine.ts # Self-evolving protocols
+│
+├── crosschain/       # 50+ blockchain interoperability
+│   └── CrossChainBridge.ts         # Universal bridge implementation
+│
+├── rwa/              # Real World Assets framework
+│   ├── tokenization/               # Multi-dimensional tokenization
+│   ├── compliance/                 # Cross-jurisdiction compliance
+│   └── management/                 # Autonomous asset management
+│
+└── sustainability/   # Regenerative systems
+    ├── CarbonNegativeOperationsEngine.ts # Net negative carbon
+    └── CircularEconomyEngine.ts          # Waste-to-value conversion
+```
+
+### Service Architecture & Dependencies
+
+**Key Data Flows:**
+1. **Transaction Flow**: Client → ValidatorNode → HyperRAFT++ consensus → QuantumShardManager (parallel processing) → State commit
+2. **Cross-chain Flow**: Source chain → CrossChainBridge → ZK proof generation → Target chain validator → Atomic swap execution
+3. **AI Optimization Loop**: VizorDashboard metrics → AIOptimizer analysis → Consensus parameter updates → Performance improvement
+
+**Critical Dependencies:**
+- All consensus messages pass through QuantumCryptoManager for NIST Level 5 encryption
+- CollectiveIntelligenceNetwork coordinates 8 AI agents for protocol evolution
+- VizorDashboard aggregates metrics from all services via Prometheus exporters
+
+## Configuration & Environment
+
+### Core Configuration Files
+- **Main Config**: `src/core/ConfigManager.ts` - Central configuration management
+- **Network Config**: `config/testnet.json` - Network topology and parameters
+- **Dev4 Environment**: `config/dev4/` - Development environment settings
+- **Docker Compose**: `docker-compose.*.yml` - Container orchestration
+
+### Key Environment Variables
 ```bash
-curl -I "http://localhost:PORT/non-existent-path"
-# Should show: Content-Security-Policy: default-src 'self'; font-src 'self' data: https: blob:...
+# Performance targets
+TARGET_TPS=1000000
+PARALLEL_THREADS=256
+QUANTUM_LEVEL=5
+
+# Features
+AI_ENABLED=true
+ZK_PROOFS_ENABLED=true
+CROSS_CHAIN_ENABLED=true
+
+# Monitoring
+VIZOR_ENABLED=true
+PROMETHEUS_ENABLED=true
 ```
 
-This solution permanently resolves font loading CSP errors across all Aurigraph projects and provides flexible CSP configurations for different deployment environments.
+## Service Endpoints
 
-## Vue.js Error Handling
+### APIs & Dashboards
+- **Management API**: http://localhost:3040 (standalone)
+- **Monitoring API**: http://localhost:3001
+- **Vizor Dashboard**: http://localhost:3052
+- **Validator API**: http://localhost:8181
+- **Full Node API**: http://localhost:8201
+- **Light Node API**: http://localhost:8202
+- **UI Development**: http://localhost:3000
 
-### Common Vue Render Function Errors
+### Container Endpoints (when using Docker)
+- **Management Dashboard**: http://localhost:3140
+- **Validator Node**: http://localhost:8181
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000
 
-#### Problem: formatTPS undefined errors
-```
-TypeError: Cannot read properties of undefined (reading 'toString')
-    at Proxy.formatTPS ((index):775:32)
-```
+## Performance & Scaling
 
-#### Root Cause
-- Vue component methods try to call `.toString()` on undefined values
-- API responses may return undefined for metrics during initialization
-- Race conditions between data loading and rendering
+### Achieving 1M+ TPS
+- **Parallel Processing**: 256 concurrent threads via QuantumShardManager
+- **AI Optimization**: TensorFlow.js models in AIOptimizer continuously tune consensus
+- **Hardware Requirements**: 32GB+ RAM for dev, 256GB+ for production 1M TPS
+- **Network**: 10+ Gbps bandwidth required for full throughput
 
-#### Solution Applied
-1. **Null Checking in formatTPS function**:
-```javascript
-formatTPS(tps) {
-    if (!tps && tps !== 0) return '0';  // Handle undefined/null
-    if (tps >= 1000000) {
-        return (tps / 1000000).toFixed(1) + 'M';
-    } else if (tps >= 1000) {
-        return (tps / 1000).toFixed(0) + 'K';
-    }
-    return tps.toString();
-}
-```
+## Development Workflow
 
-2. **Safe Property Access in Templates**:
-```html
-<!-- Before: ERROR -->
-<div>{{ demoStats.currentTPS.toLocaleString() }}</div>
+### Agent-Based Development Framework
+**IMPORTANT**: All development must follow the agent-based framework defined in [Agent_Team.md](./Agent_Team.md). Key agents include:
+- Quantum Security Agent (crypto/)
+- Consensus Protocol Agent (consensus/)
+- AI Optimization Agent (ai/)
+- Cross-Chain Interoperability Agent (crosschain/)
+- Monitoring & Observability Agent (monitoring/)
 
-<!-- After: SAFE -->
-<div>{{ (demoStats.currentTPS || 0).toLocaleString() }}</div>
-```
+### Testing Requirements
+- **Coverage Thresholds**: 95% lines (global), 98% for crypto/, 95% for consensus/
+- **Performance Tests**: Must validate 1M+ TPS capability (180s timeout)
+- **Test Organization**: Tests in `tests/` directory, setup in `tests/setup.ts`
 
-3. **Default Values in getChannelMetrics**:
-```javascript
-getChannelMetrics(channelId) {
-    const metrics = this.metrics.find(m => m.channelId === channelId);
-    return metrics || { 
-        totalTPS: 0, 
-        activeValidators: 0, 
-        totalTransactions: 0,
-        latency: 0
-    };
-}
-```
+## Critical Implementation Details
 
-#### Cache Busting for Browser Refresh
-Added timestamp to Vue.js script to force browser reload:
-```html
-<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js?v=${Date.now()}"></script>
-```
+### Quantum Security
+- Uses CRYSTALS-Kyber for key encapsulation
+- CRYSTALS-Dilithium for digital signatures
+- SPHINCS+ for stateless hash-based signatures
+- All implementations must maintain NIST Level 5 security
 
-#### Manual Fix Commands
+### Consensus Optimization
+- HyperRAFT++ achieves consensus in <500ms
+- Leader election uses AI prediction
+- Automatic failover within 30 seconds
+- Byzantine fault tolerance for up to 33% malicious nodes
+
+### Cross-Chain Bridge
+- Supports 50+ blockchain networks
+- Atomic swap implementation for trustless exchanges
+- Bridge validators use quantum-secure multi-sig
+- Liquidity pools managed automatically
+
+## Quick Debugging
+
 ```bash
-# Hard refresh browser (clears cache)
-Ctrl+F5  # Windows/Linux
-Cmd+Shift+R  # Mac
+# Check service health
+curl http://localhost:8181/health
 
-# Or open in incognito/private mode
+# View validator logs
+docker-compose -f docker-compose.av10-7.yml logs -f av10-validator-1
+
+# Common issues:
+# - Build fails: Check Node.js 20+
+# - Port conflicts: Check 3000-3100, 8000-8300, 9000-9100
+# - Docker memory: Need 32GB+ RAM
 ```
 
-## Terraform Infrastructure as Code
-
-### Overview
-Terraform configuration for managing Aurigraph DLT infrastructure across all environments (dev4, test, prod).
-
-### Installation
-Terraform v1.5.7+ already installed on dev4:
-```bash
-terraform version  # Verify installation
-```
-
-### Configuration Structure
-```
-terraform/
-├── main.tf          # Core infrastructure resources
-├── images.tf        # Docker image definitions
-├── variables.tf     # Configurable parameters
-├── outputs.tf       # Endpoint URLs and status
-└── environments/
-    ├── dev.tfvars   # Development environment
-    ├── test.tfvars  # Testing environment
-    └── prod.tfvars  # Production environment
-```
-
-### Quick Commands
-```bash
-# Initialize Terraform
-cd terraform && terraform init
-
-# Plan infrastructure changes
-terraform plan -var-file="environments/dev.tfvars"
-
-# Apply infrastructure
-terraform apply -var-file="environments/dev.tfvars" -auto-approve
-
-# Destroy infrastructure
-terraform destroy -var-file="environments/dev.tfvars" -auto-approve
-
-# Show current state
-terraform show
-
-# Get outputs (URLs, ports, status)
-terraform output
-```
-
-### Environment Configuration
-Create environment-specific `.tfvars` files:
-
-**environments/dev.tfvars**:
-```hcl
-environment = "dev"
-validator_count = 1
-node_count = 2
-enable_monitoring = true
-quantum_enabled = true
-consensus_algorithm = "HyperRAFT++"
-target_tps = 1000000
-```
-
-**environments/prod.tfvars**:
-```hcl
-environment = "prod"
-validator_count = 3
-node_count = 5
-enable_monitoring = true
-quantum_enabled = true
-consensus_algorithm = "HyperRAFT++"
-target_tps = 2000000
-```
-
-### Infrastructure Components Managed
-- **Validator Nodes**: HyperRAFT++ consensus validators
-- **Basic Nodes**: Full and light nodes for transaction processing
-- **Management Dashboard**: Web interface for platform management
-- **Monitoring Stack**: Prometheus metrics + Vizor dashboards
-- **Docker Network**: Isolated container networking
-- **Load Balancing**: Multi-node traffic distribution
-
-### Usage Across All Apps
-Use this pattern in all Aurigraph applications:
-
-1. **Copy terraform/ directory** to each project
-2. **Modify main.tf** for app-specific resources
-3. **Update variables.tf** for app parameters
-4. **Create environment configs** in environments/
-5. **Use consistent naming**: `aurigraph-{app}-{environment}`
-
-### Integration with Dev4 Apps
-```bash
-# Deploy AV10-7 platform
-cd aurigraph-av10-7/terraform
-terraform apply -var-file="environments/dev.tfvars"
-
-# Deploy other Aurigraph apps
-cd aurigraph-v9/terraform
-terraform apply -var-file="environments/dev.tfvars"
-
-# Deploy monitoring across all apps
-cd monitoring-stack/terraform
-terraform apply -var-file="environments/dev.tfvars"
-```
-
-### Terraform State Management
-- **Local State**: Default for development
-- **Remote State**: Use S3/GCS for team collaboration
-- **State Locking**: Prevent concurrent modifications
-- **Backup Strategy**: Automated state backups
-
-### Best Practices
-1. **Environment Separation**: Always use `-var-file` for environments
-2. **Resource Naming**: Consistent `aurigraph-{service}-{env}` pattern
-3. **Port Management**: Use variable-based port allocation
-4. **Dependencies**: Explicit `depends_on` for service ordering
-5. **Health Checks**: Include container health monitoring
-6. **Secrets Management**: Use Terraform variables for sensitive data
-
-### Outputs and Monitoring
-Terraform provides all service endpoints:
-```bash
-terraform output validator_endpoints    # Validator URLs
-terraform output node_endpoints        # Node URLs  
-terraform output management_dashboard  # Management URL
-terraform output vizor_dashboard       # Monitoring URL
-terraform output infrastructure_status # Overall status
-```
-
-## JIRA Integration
-
-### Credentials
-**Instance URL**: https://aurigraphdlt.atlassian.net
-**Project Key**: AV10
-**User Email**: subbu@aurigraph.io
-**API Key**: ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C
-
-### Usage
-- Use `scripts/update-jira-tickets.js` for automated ticket updates
-- Project URL: https://aurigraphdlt.atlassian.net/jira/software/projects/AV10/list
-- All AV10-18 tickets created with AV10- prefix (e.g., AV10-1801, AV10-1802)
-
-### Common Ticket Types
-- **Story**: Feature implementation
-- **Bug**: Defect resolution  
-- **Epic**: Major feature grouping
-- **Task**: Development work items
+## Related Documentation
+- **[Agent_Team.md](./Agent_Team.md)** - Mandatory agent-based development framework
+- **[Aurigraph_Infrastructure.md](./Aurigraph_Infrastructure.md)** - Detailed infrastructure and deployment
+- **[README.md](./README.md)** - Project overview and quick start
+- **Parent CLAUDE.md**: /Users/subbujois/Documents/GitHub/Aurigraph-DLT/CLAUDE.md - MCP configuration and GitHub integration
