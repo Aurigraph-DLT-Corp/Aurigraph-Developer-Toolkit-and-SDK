@@ -276,8 +276,8 @@ export class PredictiveAnalyticsDashboard {
         const modelId = req.params.modelId;
         await this.triggerModelRetrain(modelId);
         res.json({ success: true, message: 'Model retrain initiated' });
-      } catch (error) {
-        res.status(500).json({ error: error.message });
+      } catch (error: unknown) {
+        res.status(500).json({ error: (error as Error).message });
       }
     });
 
@@ -365,7 +365,7 @@ export class PredictiveAnalyticsDashboard {
         try {
           const message = JSON.parse(data.toString());
           this.handleWebSocketMessage(ws, message);
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error('❌ WebSocket message parsing error:', error);
         }
       });
@@ -421,7 +421,7 @@ export class PredictiveAnalyticsDashboard {
       // Collect model-specific metrics
       await this.collectModelMetrics();
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Error collecting metrics:', error);
     }
   }
@@ -464,7 +464,7 @@ export class PredictiveAnalyticsDashboard {
       // Store historical data point
       this.storeHistoricalDataPoint(modelId, updatedMetrics);
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Error updating metrics for model ${modelId}:`, error);
     }
   }
@@ -562,7 +562,7 @@ export class PredictiveAnalyticsDashboard {
           this.handleDriftAlert(alert);
         }
 
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Drift detection failed for model ${modelId}:`, error);
       }
     }
@@ -631,7 +631,7 @@ export class PredictiveAnalyticsDashboard {
       
       this.logger.info(`✅ Auto-remediation completed for model ${alert.modelId}`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Auto-remediation failed for model ${alert.modelId}:`, error);
     }
   }
@@ -683,7 +683,7 @@ export class PredictiveAnalyticsDashboard {
       if (client.readyState === WebSocket.OPEN) {
         try {
           client.send(message);
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error('❌ Error broadcasting to client:', error);
         }
       }
@@ -703,7 +703,7 @@ export class PredictiveAnalyticsDashboard {
       if (client.readyState === WebSocket.OPEN) {
         try {
           client.send(message);
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error('❌ Error broadcasting alert to client:', error);
         }
       }
@@ -725,7 +725,7 @@ export class PredictiveAnalyticsDashboard {
 
     try {
       ws.send(JSON.stringify(initialData));
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Error sending initial data to client:', error);
     }
   }
@@ -765,7 +765,7 @@ export class PredictiveAnalyticsDashboard {
       
       try {
         ws.send(JSON.stringify(response));
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error('❌ Error sending model details to client:', error);
       }
     }
@@ -1394,7 +1394,7 @@ export class PredictiveAnalyticsDashboard {
                 try {
                     const data = JSON.parse(event.data);
                     handleWebSocketMessage(data);
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Error parsing WebSocket message:', error);
                 }
             };
@@ -1820,7 +1820,7 @@ export class PredictiveAnalyticsDashboard {
                         analyticsData.realTimeAnalytics = data;
                         updateStatusIndicators();
                         updateMetricsOverview();
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Error fetching analytics data:', error);
                     }
                 }

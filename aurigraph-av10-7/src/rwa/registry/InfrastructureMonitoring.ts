@@ -826,14 +826,14 @@ export class InfrastructureMonitoring extends EventEmitter {
           timestamp: now
         });
 
-      } catch (error) {
+      } catch (error: unknown) {
         const errorResult: HealthCheckResult = {
           checkId,
           timestamp: now,
           status: HealthStatus.UNKNOWN,
           responseTime: 0,
-          message: `Health check failed: ${error.message}`,
-          details: { error: error.message }
+          message: `Health check failed: ${(error as Error).message}`,
+          details: { error: (error as Error).message }
         };
 
         healthCheck.lastRun = now;
@@ -842,7 +842,7 @@ export class InfrastructureMonitoring extends EventEmitter {
 
         this.emit('healthCheckFailed', {
           checkId,
-          error: error.message,
+          error: (error as Error).message,
           timestamp: now
         });
       }
@@ -1027,14 +1027,14 @@ export class InfrastructureMonitoring extends EventEmitter {
         ] : undefined
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         checkId: healthCheck.id,
         timestamp: new Date(),
         status: HealthStatus.CRITICAL,
         responseTime: performance.now() - startTime,
-        message: `HTTP check failed: ${error.message}`,
-        details: { error: error.message }
+        message: `HTTP check failed: ${(error as Error).message}`,
+        details: { error: (error as Error).message }
       };
     }
   }
@@ -1147,10 +1147,10 @@ export class InfrastructureMonitoring extends EventEmitter {
         metrics: systemMetrics
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.emit('metricsCollectionFailed', {
         timestamp,
-        error: error.message
+        error: (error as Error).message
       });
     }
   }
@@ -1536,18 +1536,18 @@ export class InfrastructureMonitoring extends EventEmitter {
 
         this.emit('notificationSent', { channelId, alert });
 
-      } catch (error) {
+      } catch (error: unknown) {
         const action: AlertAction = {
           id: this.generateActionId(),
           type: 'NOTIFICATION',
           status: 'FAILED',
-          result: `Failed to send to ${channel.name}: ${error.message}`,
+          result: `Failed to send to ${channel.name}: ${(error as Error).message}`,
           timestamp: new Date()
         };
         
         alert.actions.push(action);
 
-        this.emit('notificationFailed', { channelId, alert, error: error.message });
+        this.emit('notificationFailed', { channelId, alert, error: (error as Error).message });
       }
     }
   }
@@ -1646,11 +1646,11 @@ export class InfrastructureMonitoring extends EventEmitter {
 
       this.emit('remediationCompleted', { alert, action });
 
-    } catch (error) {
+    } catch (error: unknown) {
       alertAction.status = 'FAILED';
-      alertAction.result = `Failed to execute ${action.action}: ${error.message}`;
+      alertAction.result = `Failed to execute ${action.action}: ${(error as Error).message}`;
 
-      this.emit('remediationFailed', { alert, action, error: error.message });
+      this.emit('remediationFailed', { alert, action, error: (error as Error).message });
     }
   }
 
@@ -1724,10 +1724,10 @@ export class InfrastructureMonitoring extends EventEmitter {
           await this.handleSLARecovery(sla);
         }
 
-      } catch (error) {
+      } catch (error: unknown) {
         this.emit('slaMonitoringError', {
           slaId,
-          error: error.message
+          error: (error as Error).message
         });
       }
     }

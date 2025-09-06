@@ -279,9 +279,9 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       this.logger.info(`📊 Analytics: Real-time dashboard active`);
       this.logger.info(`⚡ Performance targets: ${this.neuralEngine.getModelInfo().config.performanceTargets.throughput} opt/sec`);
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize Quantum Interference Optimizer:', error);
-      throw new Error(`Quantum Interference Optimizer initialization failed: ${error.message}`);
+      throw new Error(`Quantum Interference Optimizer initialization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -731,9 +731,9 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Optimization failed:', error);
-      throw new Error(`Interference pattern optimization failed: ${error.message}`);
+      throw new Error(`Interference pattern optimization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -1029,11 +1029,11 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       }
       
       const prediction = await this.realitySelector!.predict(
-        tf.tensor2d([modifiedFeatures])
+        tf.tensor2d([Array.from(modifiedFeatures)])
       ) as tf.Tensor;
       
       const data = await prediction.data();
-      const alternative = await this.createOptimalReality(inputPattern, data);
+      const alternative = await this.createOptimalReality(inputPattern, new Float32Array(Array.from(data)));
       alternative.pathId = `alt-${i}-${alternative.pathId}`;
       
       alternatives.push(alternative);
@@ -1074,7 +1074,7 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       
       return selectedReality;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Reality selection failed:', error);
       
       // Fallback to highest probability reality
@@ -1142,9 +1142,9 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       
       return predictedState;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Quantum state prediction failed:', error);
-      throw new Error(`Quantum state prediction failed: ${error.message}`);
+      throw new Error(`Quantum state prediction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -1322,9 +1322,9 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       
       return correctedSyndrome;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Autonomous error correction failed:', error);
-      throw new Error(`Error correction failed: ${error.message}`);
+      throw new Error(`Error correction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -1466,11 +1466,11 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       
       this.emit('taskCompleted', { task, result });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Optimization task failed:', error);
       
       if (task.callback) {
-        task.callback(error, null);
+        task.callback(error instanceof Error ? error : new Error(String(error)), null);
       }
       
       this.emit('taskFailed', { task, error });
@@ -1554,7 +1554,7 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       
       this.logger.info('✅ Adaptive retraining completed');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Adaptive retraining failed:', error);
     }
   }
@@ -1775,7 +1775,7 @@ export class QuantumInterferenceOptimizer extends EventEmitter {
       // Implementation would load models from disk
       this.logger.debug('Checking for pre-trained quantum models...');
       // For now, we'll use the models we just trained
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.debug('No pre-trained models found, using freshly trained models');
     }
   }

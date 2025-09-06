@@ -25,7 +25,7 @@ class FractionalTokenizer extends events_1.EventEmitter {
         if (this.tokensByAsset.has(asset.id)) {
             throw new Error('Asset is already tokenized');
         }
-        const tokenId = this.generateTokenId(asset);
+        const tokenId = await this.generateTokenId(asset);
         const shareValue = asset.valuation.currentValue / request.totalShares;
         const token = {
             tokenId,
@@ -216,16 +216,16 @@ class FractionalTokenizer extends events_1.EventEmitter {
             totalHolders: stats.totalHolders.size
         };
     }
-    generateTokenId(asset) {
+    async generateTokenId(asset) {
         const typePrefix = asset.type.substring(0, 3);
         const timestamp = Date.now();
-        const hash = this.cryptoManager.hashData(asset.id);
+        const hash = await this.cryptoManager.hashData(asset.id);
         return `FT-${typePrefix}-${timestamp}-${hash.substring(0, 8)}`;
     }
     async deploySmartContract(token) {
         // Simulate smart contract deployment
         const contractCode = this.generateContractCode(token);
-        const hash = this.cryptoManager.hashData(contractCode);
+        const hash = await this.cryptoManager.hashData(contractCode);
         return `0xAV10${hash.substring(0, 32)}`;
     }
     generateContractCode(token) {

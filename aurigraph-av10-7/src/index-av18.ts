@@ -68,7 +68,7 @@ class AV18Platform {
       
       this.logger.info('✅ AV10-18 Platform initialization complete');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize AV10-18 Platform:', error);
       throw error;
     }
@@ -157,7 +157,7 @@ class AV18Platform {
       
       this.logger.info('✅ AV10-18 Platform started successfully!');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to start AV10-18 Platform:', error);
       await this.cleanup();
       throw error;
@@ -247,7 +247,7 @@ class AV18Platform {
       
       this.logger.info('All services stopped gracefully');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error during cleanup:', error);
     }
   }
@@ -312,7 +312,7 @@ async function main() {
       process.exit(1);
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to start AV10-18 Platform:', error);
     process.exit(1);
   }

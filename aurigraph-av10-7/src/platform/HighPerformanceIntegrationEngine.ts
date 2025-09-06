@@ -197,9 +197,9 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
       this.logger.info(`🔒 Security: Quantum + NTRU cryptography enabled`);
       this.logger.info(`⚡ Auto-scaling: ${this.config.scalingParameters.autoScaling ? 'Enabled' : 'Disabled'}`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize High-Performance Integration Engine:', error);
-      throw new Error(`Integration engine initialization failed: ${error.message}`);
+      throw new Error(`Integration engine initialization failed: ${(error as Error).message}`);
     }
   }
 
@@ -249,9 +249,9 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
         severity: 'INFO'
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to start High-Performance Integration Engine:', error);
-      throw new Error(`Integration engine startup failed: ${error.message}`);
+      throw new Error(`Integration engine startup failed: ${(error as Error).message}`);
     }
   }
 
@@ -297,9 +297,9 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
         severity: 'INFO'
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Error stopping High-Performance Integration Engine:', error);
-      throw new Error(`Integration engine shutdown failed: ${error.message}`);
+      throw new Error(`Integration engine shutdown failed: ${(error as Error).message}`);
     }
   }
 
@@ -354,7 +354,7 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
 
       this.logger.info('✅ Performance optimization completed');
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Performance optimization failed:', error);
     }
   }
@@ -371,7 +371,7 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
 
       this.logger.info(`✅ Resource scaling ${direction} completed`);
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Resource scaling ${direction} failed:`, error);
     }
   }
@@ -545,7 +545,7 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
         }
         this.updateComponentHealth(name, 'HEALTHY');
         this.logger.info(`✅ ${name} started successfully`);
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Failed to start ${name}:`, error);
         this.updateComponentHealth(name, 'CRITICAL');
       }
@@ -556,7 +556,7 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
     setInterval(async () => {
       try {
         await this.updatePerformanceMetrics();
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error('❌ Error updating performance metrics:', error);
       }
     }, this.config.monitoringConfig.metricsInterval);
@@ -569,7 +569,7 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
       setInterval(async () => {
         try {
           await this.optimizePerformance();
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error('❌ Error in optimization cycle:', error);
         }
       }, this.performanceOptimizer.optimizationInterval);
@@ -582,7 +582,7 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
     setInterval(async () => {
       try {
         await this.checkScalingTriggers();
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error('❌ Error in auto-scaling check:', error);
       }
     }, 60000); // Check every minute
@@ -594,7 +594,7 @@ export class HighPerformanceIntegrationEngine extends EventEmitter {
     setInterval(async () => {
       try {
         await this.performHealthChecks();
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error('❌ Error in health check cycle:', error);
       }
     }, this.healthChecker.checkInterval);

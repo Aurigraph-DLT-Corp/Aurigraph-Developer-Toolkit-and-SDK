@@ -92,7 +92,7 @@ export class ConfigManager {
         const fileConfig = JSON.parse(fileContent);
         this.config = { ...this.config, ...fileConfig };
         this.logger.info('Configuration loaded from file');
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.warn('Failed to load config file, using defaults', error);
       }
     }

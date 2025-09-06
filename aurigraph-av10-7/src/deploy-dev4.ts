@@ -58,7 +58,7 @@ async function validateEnvironment(): Promise<boolean> {
         });
       });
       logger.debug(`✅ Port ${port} is available`);
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error(`❌ Port ${port} is already in use`);
       return false;
     }
@@ -353,7 +353,7 @@ async function deployAV10Dev4(): Promise<void> {
     // Setup graceful shutdown
     setupGracefulShutdown(services);
 
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(`❌ Failed to deploy AV10-7 DLT Platform on dev4:`, error);
     process.exit(1);
   }
@@ -378,7 +378,7 @@ function startPerformanceMonitoring(services: any): void {
       logger.info(`🏛️ Validators: ${networkStatus.validators.length} active | 📡 Channels: ${channelStatus.length} encrypted`);
       logger.info(`💻 Environment: dev4 | 🚀 Port: ${process.env.API_PORT || '4004'}`);
       logger.info('═══════════════════════════════════════════════════════');
-    } catch (error) {
+    } catch (error: unknown) {
       logger.debug('Performance monitoring error:', error);
     }
   }, 15000);
@@ -399,7 +399,7 @@ function setupGracefulShutdown(services: any): void {
       
       logger.info('👋 AV10-7 DLT Platform (dev4) shutdown complete');
       process.exit(0);
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error during shutdown:', error);
       process.exit(1);
     }

@@ -69,3 +69,31 @@ resource "docker_image" "aurigraph_metrics" {
   }
   keep_locally = true
 }
+
+# Cross-Chain Bridge Image
+resource "docker_image" "aurigraph_bridge" {
+  name = "aurigraph/bridge:av10-7"
+  build {
+    context    = ".."
+    dockerfile = "Dockerfile.bridge"
+    tag        = ["aurigraph/bridge:av10-7"]
+    build_args = {
+      SERVICE_TYPE = "bridge"
+    }
+  }
+  keep_locally = true
+}
+
+# Quantum KMS Image
+resource "docker_image" "aurigraph_quantum" {
+  name = "aurigraph/quantum:av10-7"
+  build {
+    context    = ".."
+    dockerfile = "Dockerfile.quantum"
+    tag        = ["aurigraph/quantum:av10-7"]
+    build_args = {
+      SERVICE_TYPE = "quantum"
+    }
+  }
+  keep_locally = true
+}

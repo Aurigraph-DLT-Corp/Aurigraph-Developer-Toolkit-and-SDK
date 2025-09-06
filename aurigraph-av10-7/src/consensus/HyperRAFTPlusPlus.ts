@@ -347,7 +347,7 @@ export class HyperRAFTPlusPlus extends EventEmitter {
       
       // Update success rate metrics
       this.updateTransactionSuccessRate(successfulTxs, transactions.length);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Transaction batch processing failed:', error);
       // Fallback to basic transaction processing
       successfulTxs = Math.floor(transactions.length * 0.95); // 95% fallback success rate
@@ -512,7 +512,7 @@ export class HyperRAFTPlusPlus extends EventEmitter {
             break;
           }
           attempt++;
-        } catch (error) {
+        } catch (error: unknown) {
           attempt++;
           if (attempt < maxAttempts) {
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -551,7 +551,7 @@ export class HyperRAFTPlusPlus extends EventEmitter {
           amount: tx.amount
         });
         results.push({ ...tx, zkProof });
-      } catch (error) {
+      } catch (error: unknown) {
         // Fallback to basic proof for resilience
         const basicProof = { type: 'basic', verified: true, fallback: true };
         results.push({ ...tx, zkProof: basicProof });
@@ -574,7 +574,7 @@ export class HyperRAFTPlusPlus extends EventEmitter {
         try {
           const result = await this.executeSingleTransactionEnhanced(tx);
           results.push({ success: true, transaction: tx, result });
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.warn(`Transaction execution failed for ${tx.hash}:`, error);
           results.push({ success: false, transaction: tx, error: error instanceof Error ? error.message : String(error) });
         }
@@ -655,7 +655,7 @@ export class HyperRAFTPlusPlus extends EventEmitter {
       };
       
       return aggregated;
-    } catch (error) {
+    } catch (error: unknown) {
       // Fallback aggregation
       return {
         type: 'fallback-aggregated',

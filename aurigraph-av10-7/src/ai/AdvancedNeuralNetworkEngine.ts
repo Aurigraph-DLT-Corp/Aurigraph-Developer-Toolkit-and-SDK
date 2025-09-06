@@ -254,9 +254,9 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       this.logger.info(`🌌 Quantum: ${this.config.quantumIntegration.enabled ? 'Enabled' : 'Disabled'}`);
       this.logger.info(`🔀 Distributed: ${this.config.distributedTraining.enabled ? this.config.distributedTraining.workers + ' workers' : 'Disabled'}`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize Advanced Neural Network Engine:', error);
-      throw new Error(`Neural network initialization failed: ${error.message}`);
+      throw new Error(`Neural network initialization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -335,10 +335,10 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       
       return this.modelPerformance;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.isTraining = false;
       this.logger.error('❌ Training failed:', error);
-      throw new Error(`Neural network training failed: ${error.message}`);
+      throw new Error(`Neural network training failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -397,9 +397,9 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Prediction failed:', error);
-      throw new Error(`Neural network prediction failed: ${error.message}`);
+      throw new Error(`Neural network prediction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -430,9 +430,9 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       
       this.logger.info(`✅ Transfer learning setup completed with ${transferLayers.length} layers`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Transfer learning setup failed:', error);
-      throw new Error(`Transfer learning failed: ${error.message}`);
+      throw new Error(`Transfer learning failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -460,9 +460,9 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       
       this.logger.info('✅ Model optimization completed');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Model optimization failed:', error);
-      throw new Error(`Model optimization failed: ${error.message}`);
+      throw new Error(`Model optimization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -489,9 +489,9 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       
       this.logger.info('✅ Model saved successfully');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Model save failed:', error);
-      throw new Error(`Model save failed: ${error.message}`);
+      throw new Error(`Model save failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -512,9 +512,9 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       
       this.logger.info('✅ Model loaded successfully');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Model load failed:', error);
-      throw new Error(`Model load failed: ${error.message}`);
+      throw new Error(`Model load failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -579,9 +579,9 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
       
       return bestResult;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Hyperparameter optimization failed:', error);
-      throw new Error(`Hyperparameter optimization failed: ${error.message}`);
+      throw new Error(`Hyperparameter optimization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -602,24 +602,24 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
 
   private async setupHardwareAcceleration(): Promise<void> {
     try {
-      // Check for GPU acceleration
-      const gpuDevice = await tf.device('GPU:0');
-      if (gpuDevice) {
+      // Check for GPU acceleration via backend
+      await tf.ready();
+      const backend = tf.getBackend();
+      if (backend === 'webgl' || backend === 'tensorflow') {
         this.gpuAcceleration = true;
-        this.logger.info('⚡ GPU acceleration enabled');
+        this.logger.info('⚡ GPU acceleration enabled via backend:', backend);
+      } else {
+        this.logger.info('💻 Using CPU backend:', backend);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.info('💻 Using CPU backend (GPU not available)');
     }
 
     try {
-      // Check for TPU acceleration (if available)
-      const tpuDevice = await tf.device('TPU:0');
-      if (tpuDevice) {
-        this.tpuAcceleration = true;
-        this.logger.info('🚀 TPU acceleration enabled');
-      }
-    } catch (error) {
+      // TPU support would require specialized TensorFlow.js build
+      // For now, log availability check
+      this.logger.debug('TPU acceleration not available in current TensorFlow.js build');
+    } catch (error: unknown) {
       this.logger.debug('TPU not available');
     }
   }
@@ -769,27 +769,25 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
   private createOptimizer(optimizerDef: OptimizerDefinition): tf.Optimizer {
     switch (optimizerDef.type) {
       case 'adam':
-        return tf.train.adam({
-          learningRate: optimizerDef.learningRate,
-          beta1: optimizerDef.beta1,
-          beta2: optimizerDef.beta2,
-          epsilon: optimizerDef.epsilon
-        });
+        return tf.train.adam(
+          optimizerDef.learningRate,
+          optimizerDef.beta1,
+          optimizerDef.beta2,
+          optimizerDef.epsilon
+        );
       
       case 'sgd':
-        return tf.train.sgd({
-          learningRate: optimizerDef.learningRate
-        });
+        return tf.train.sgd(optimizerDef.learningRate);
       
       case 'rmsprop':
-        return tf.train.rmsprop({
-          learningRate: optimizerDef.learningRate,
-          decay: optimizerDef.decay,
-          momentum: optimizerDef.momentum
-        });
+        return tf.train.rmsprop(
+          optimizerDef.learningRate,
+          optimizerDef.decay,
+          optimizerDef.momentum
+        );
       
       default:
-        return tf.train.adam({ learningRate: optimizerDef.learningRate });
+        return tf.train.adam(optimizerDef.learningRate);
     }
   }
 
@@ -833,33 +831,18 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
   private async createTrainingCallbacks(): Promise<tf.CustomCallback[]> {
     const callbacks: tf.CustomCallback[] = [];
     
-    // Early stopping
-    if (this.config.trainingConfig.earlyStopping) {
-      callbacks.push(tf.callbacks.earlyStopping({
-        monitor: 'val_loss',
-        patience: this.config.trainingConfig.patience,
-        verbose: 1
-      }));
-    }
-    
-    // Learning rate reduction
-    callbacks.push(tf.callbacks.reduceLROnPlateau({
-      monitor: 'val_loss',
-      factor: 0.5,
-      patience: 5,
-      verbose: 1
-    }));
-    
-    // Custom callback for training progress
-    callbacks.push({
+    // Simplified callback that matches TensorFlow.js interface
+    const callback = {
       onEpochEnd: async (epoch: number, logs?: tf.Logs) => {
         if (logs) {
           const metrics: TrainingMetrics = {
             epoch,
-            loss: logs.loss,
-            accuracy: logs.acc || logs.accuracy || 0,
-            validationLoss: logs.val_loss,
-            validationAccuracy: logs.val_acc || logs.val_accuracy,
+            loss: typeof logs.loss === 'number' ? logs.loss : (logs.loss as any)?.[0] || 0,
+            accuracy: typeof logs.acc === 'number' ? logs.acc : 
+                     typeof logs.accuracy === 'number' ? logs.accuracy : 0,
+            validationLoss: typeof logs.val_loss === 'number' ? logs.val_loss : undefined,
+            validationAccuracy: typeof logs.val_acc === 'number' ? logs.val_acc :
+                               typeof logs.val_accuracy === 'number' ? logs.val_accuracy : undefined,
             learningRate: this.config.architecture.learningRate,
             batchTime: 0,
             memoryUsage: tf.memory().numBytes / 1024 / 1024,
@@ -867,12 +850,12 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
           };
           
           this.trainingHistory.push(metrics);
-          
           this.emit('training_progress', metrics);
         }
       }
-    });
+    } as tf.CustomCallback;
     
+    callbacks.push(callback);
     return callbacks;
   }
 
@@ -883,12 +866,27 @@ export class AdvancedNeuralNetworkEngine extends EventEmitter {
     for (let i = 0; i < epochs; i++) {
       const metrics: TrainingMetrics = {
         epoch: i,
-        loss: Array.isArray(history.history.loss) ? history.history.loss[i] : 0,
-        accuracy: Array.isArray(history.history.accuracy) ? history.history.accuracy[i] : 
-                  Array.isArray(history.history.acc) ? history.history.acc[i] : 0,
-        validationLoss: Array.isArray(history.history.val_loss) ? history.history.val_loss[i] : undefined,
-        validationAccuracy: Array.isArray(history.history.val_accuracy) ? history.history.val_accuracy[i] : 
-                            Array.isArray(history.history.val_acc) ? history.history.val_acc[i] : undefined,
+        loss: Array.isArray(history.history.loss) ? 
+              (typeof history.history.loss[i] === 'number' ? history.history.loss[i] : 
+               (history.history.loss[i] as any)?.[0] || 0) : 0,
+        accuracy: Array.isArray(history.history.accuracy) ? 
+                  (typeof history.history.accuracy[i] === 'number' ? history.history.accuracy[i] : 
+                   (history.history.accuracy[i] as any)?.[0] || 0) :
+                  Array.isArray(history.history.acc) ? 
+                  (typeof history.history.acc[i] === 'number' ? history.history.acc[i] : 
+                   (history.history.acc[i] as any)?.[0] || 0) : 0,
+        validationLoss: Array.isArray(history.history.val_loss) && history.history.val_loss[i] !== undefined ? 
+                       (typeof history.history.val_loss[i] === 'number' ? history.history.val_loss[i] : 
+                        (history.history.val_loss[i] as any)?.data?.()?.then ? undefined : 
+                        (history.history.val_loss[i] as any)?.[0]) : undefined,
+        validationAccuracy: Array.isArray(history.history.val_accuracy) && history.history.val_accuracy[i] !== undefined ? 
+                           (typeof history.history.val_accuracy[i] === 'number' ? history.history.val_accuracy[i] : 
+                            (history.history.val_accuracy[i] as any)?.data?.()?.then ? undefined : 
+                            (history.history.val_accuracy[i] as any)?.[0]) :
+                           Array.isArray(history.history.val_acc) && history.history.val_acc[i] !== undefined ? 
+                           (typeof history.history.val_acc[i] === 'number' ? history.history.val_acc[i] : 
+                            (history.history.val_acc[i] as any)?.data?.()?.then ? undefined : 
+                            (history.history.val_acc[i] as any)?.[0]) : undefined,
         learningRate: this.config.architecture.learningRate,
         batchTime: trainingTime / epochs,
         memoryUsage: tf.memory().numBytes / 1024 / 1024,

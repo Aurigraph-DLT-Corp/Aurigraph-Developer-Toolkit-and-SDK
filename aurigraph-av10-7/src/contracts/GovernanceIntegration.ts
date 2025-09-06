@@ -103,7 +103,7 @@ export class GovernanceIntegration {
       this.logger.info(`Governance proposal created: ${proposalId}`);
 
       return proposal;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Proposal creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -151,7 +151,7 @@ export class GovernanceIntegration {
       await this.checkProposalFinalization(proposal);
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Voting failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -183,7 +183,7 @@ export class GovernanceIntegration {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Proposal execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -208,7 +208,7 @@ export class GovernanceIntegration {
 
       proposal.status = 'EXECUTED';
       this.logger.info(`Proposal executed successfully: ${proposal.id}`);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Proposal execution failed: ${proposal.id}`);
       throw error;
     }
@@ -305,7 +305,7 @@ export class GovernanceIntegration {
       this.logger.info(`Voting power delegated: ${delegator} -> ${delegatee}`);
       
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Delegation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }

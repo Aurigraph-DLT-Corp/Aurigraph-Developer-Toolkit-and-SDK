@@ -113,7 +113,7 @@ async function main() {
       process.exit(0);
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Failed to start AV10-7:', error);
     process.exit(1);
   }

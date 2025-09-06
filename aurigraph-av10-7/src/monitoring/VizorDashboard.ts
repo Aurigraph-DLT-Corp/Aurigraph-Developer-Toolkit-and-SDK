@@ -54,7 +54,7 @@ export class VizorMonitoringService extends EventEmitter {
       
       this.emit('metric', metric);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to record Vizor metric:', error);
     }
   }
@@ -277,7 +277,7 @@ export class VizorMonitoringService extends EventEmitter {
       }
       
       return metrics.slice(-100); // Return last 100 points
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to query Vizor metrics:', error);
       return [];
     }

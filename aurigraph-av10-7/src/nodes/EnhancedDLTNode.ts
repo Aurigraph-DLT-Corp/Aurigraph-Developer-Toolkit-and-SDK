@@ -172,7 +172,7 @@ export class EnhancedDLTNode {
         this.logger.info(`Node synchronized and active: ${this.config.nodeId}`);
       }, 5000);
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Node initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       this.status.status = 'OFFLINE';
       throw error;
@@ -201,7 +201,7 @@ export class EnhancedDLTNode {
       }
 
       return consensusResult;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Transaction processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -243,7 +243,7 @@ export class EnhancedDLTNode {
 
       this.logger.info(`Block created: ${block.hash} at height ${block.height}`);
       return block;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Block creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -280,7 +280,7 @@ export class EnhancedDLTNode {
       }, 1000);
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Peer connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -300,7 +300,7 @@ export class EnhancedDLTNode {
       this.status.status = 'ACTIVE';
       
       this.logger.info('Network synchronization completed');
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Network sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       this.status.status = 'DEGRADED';
     }
@@ -343,7 +343,7 @@ export class EnhancedDLTNode {
       
       const isValid = await this.cryptoManager.verify(txData, transaction.signature, transaction.from);
       return isValid;
-    } catch (error) {
+    } catch (error: unknown) {
       return false;
     }
   }
@@ -498,7 +498,7 @@ export class EnhancedDLTNode {
       
       this.status.status = 'OFFLINE';
       this.logger.info(`Node shutdown completed: ${this.config.nodeId}`);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Node shutdown failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -521,7 +521,7 @@ export class EnhancedDLTNode {
       
       await this.syncWithNetwork();
       this.logger.info(`Joined network: ${networkId}`);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Network join failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }

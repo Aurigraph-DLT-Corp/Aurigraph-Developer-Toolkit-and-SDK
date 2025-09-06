@@ -660,7 +660,7 @@ export class TwinManager extends EventEmitter {
           platformId: platform.platformId 
         });
         
-      } catch (error) {
+      } catch (error: unknown) {
         platform.status = 'ERROR';
         this.emit('iotPlatformError', { 
           lifecycleId: `LIFECYCLE-${lifecycle.twinId}`, 

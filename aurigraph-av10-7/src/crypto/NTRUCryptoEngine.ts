@@ -182,7 +182,7 @@ export class NTRUCryptoEngine {
       this.logger.info(`⚡ Hardware Acceleration: ${this.config.hardwareAcceleration ? 'Enabled' : 'Disabled'}`);
       this.logger.info(`🔄 Hybrid Mode: ${this.config.hybridMode ? 'NTRU+AES' : 'Pure NTRU'}`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize NTRU Crypto Engine:', error);
       throw new Error(`NTRU initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -227,7 +227,7 @@ export class NTRUCryptoEngine {
       
       return keyPair;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Key generation failed for ${keyId}:`, error);
       throw new Error(`NTRU key generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -284,9 +284,9 @@ export class NTRUCryptoEngine {
 
       return encryptionResult;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Encryption failed for recipient ${recipientKeyId}:`, error);
-      throw new Error(`NTRU encryption failed: ${error.message}`);
+      throw new Error(`NTRU encryption failed: ${(error as any).message || error}`);
     }
   }
 
@@ -336,9 +336,9 @@ export class NTRUCryptoEngine {
 
       return decryptionResult;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Decryption failed for key ${privateKeyId}:`, error);
-      throw new Error(`NTRU decryption failed: ${error.message}`);
+      throw new Error(`NTRU decryption failed: ${(error as any).message || error}`);
     }
   }
 
@@ -376,9 +376,9 @@ export class NTRUCryptoEngine {
 
       return ntruSignature;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Signature generation failed for signer ${signerKeyId}:`, error);
-      throw new Error(`NTRU signature failed: ${error.message}`);
+      throw new Error(`NTRU signature failed: ${(error as any).message || error}`);
     }
   }
 
@@ -412,7 +412,7 @@ export class NTRUCryptoEngine {
 
       return isValid;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Signature verification failed for key ${publicKeyId}:`, error);
       return false;
     }
@@ -437,9 +437,9 @@ export class NTRUCryptoEngine {
 
       return sessionKey;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Key exchange failed:', error);
-      throw new Error(`NTRU key exchange failed: ${error.message}`);
+      throw new Error(`NTRU key exchange failed: ${(error as any).message || error}`);
     }
   }
 
@@ -487,7 +487,7 @@ export class NTRUCryptoEngine {
       };
       
       this.logger.info('⚡ Hardware acceleration initialized');
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn('⚠️ Hardware acceleration not available, using software implementation');
       this.config.hardwareAcceleration = false;
     }
@@ -503,7 +503,7 @@ export class NTRUCryptoEngine {
       };
       
       this.logger.info('🎲 Quantum random number generator initialized');
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn('⚠️ Quantum RNG not available, using cryptographically secure PRNG');
     }
   }
@@ -532,7 +532,7 @@ export class NTRUCryptoEngine {
           if (keyPair.expiresAt && keyPair.expiresAt <= now) {
             try {
               await this.rotateKey(keyId);
-            } catch (error) {
+            } catch (error: unknown) {
               this.logger.error(`❌ Automatic key rotation failed for ${keyId}:`, error);
             }
           }
@@ -556,7 +556,8 @@ export class NTRUCryptoEngine {
     const nonce = crypto.randomBytes(16);
     
     // Encrypt data with AES-GCM
-    const cipher = crypto.createCipherGCM('aes-256-gcm', aesKey);
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, iv) as crypto.CipherGCM;
     cipher.setAAD(nonce);
     let encrypted = cipher.update(data);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
@@ -587,7 +588,8 @@ export class NTRUCryptoEngine {
       }, encryptedKey);
       
       // Decrypt data with AES-GCM
-      const decipher = crypto.createDecipherGCM('aes-256-gcm', aesKey);
+      const iv = Buffer.from(encryptedData.substring(0, 32), 'hex');
+      const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, iv) as crypto.DecipherGCM;
       decipher.setAAD(encryptedData.nonce);
       decipher.setAuthTag(encryptedData.tag);
       
@@ -595,7 +597,7 @@ export class NTRUCryptoEngine {
       plaintext = Buffer.concat([plaintext, decipher.final()]);
       
       return { plaintext, verified: true };
-    } catch (error) {
+    } catch (error: unknown) {
       return { plaintext: Buffer.alloc(0), verified: false };
     }
   }
@@ -616,7 +618,7 @@ export class NTRUCryptoEngine {
       const verified = true; // Would implement proper verification
       
       return { plaintext, verified };
-    } catch (error) {
+    } catch (error: unknown) {
       return { plaintext: Buffer.alloc(0), verified: false };
     }
   }
@@ -634,7 +636,7 @@ export class NTRUCryptoEngine {
       const hash = crypto.createHash('sha256').update(message).digest();
       const expectedSignature = crypto.createHmac('sha256', publicKey).update(hash).digest();
       return signature.equals(expectedSignature);
-    } catch (error) {
+    } catch (error: unknown) {
       return false;
     }
   }

@@ -173,7 +173,7 @@ export class SmartContractPlatform {
       
       this.logger.info(`Ricardian contract created: ${contractId}`);
       return contract;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Contract creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -212,7 +212,7 @@ export class SmartContractPlatform {
       this.logger.info(`Contract signed by party ${partyId}: ${contractId}`);
       
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Contract signing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -262,7 +262,7 @@ export class SmartContractPlatform {
       }
 
       return execution;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Contract execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -295,7 +295,7 @@ export class SmartContractPlatform {
           auditTrail: [`Created from template ${templateId}`]
         }
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Template contract creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -320,7 +320,7 @@ export class SmartContractPlatform {
 
       this.logger.info(`Dispute resolution completed for contract: ${contractId}`);
       return resolution.resolved;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Dispute resolution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }

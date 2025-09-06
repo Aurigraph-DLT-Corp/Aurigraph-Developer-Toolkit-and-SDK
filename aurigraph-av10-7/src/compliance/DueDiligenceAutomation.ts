@@ -746,8 +746,7 @@ export class DueDiligenceAutomation extends EventEmitter {
           estimatedDuration: template.estimatedDuration
         },
         {
-          nodeId: process.env.NODE_ID || 'due-diligence-automation',
-          requesterId: request.requesterId
+          nodeId: process.env.NODE_ID || 'due-diligence-automation'
         },
         request.requesterId
       );
@@ -759,7 +758,7 @@ export class DueDiligenceAutomation extends EventEmitter {
 
       return profileId;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to initiate due diligence for entity ${request.entityId}:`, error);
       throw error;
     }
@@ -1211,7 +1210,7 @@ export class DueDiligenceAutomation extends EventEmitter {
 
       this.emit('profileProcessed', { profile });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Error processing due diligence profile ${profile.id}:`, error);
       profile.status = 'REJECTED';
       profile.lastUpdated = new Date();
@@ -1291,7 +1290,7 @@ export class DueDiligenceAutomation extends EventEmitter {
         }
       );
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Error processing component ${component.type}:`, error);
       component.status = 'FAILED';
       component.findings.push({
@@ -1893,7 +1892,7 @@ export class DueDiligenceAutomation extends EventEmitter {
 
       try {
         await this.evaluateMonitoringTriggers(profile);
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Error monitoring profile ${profile.id}:`, error);
       }
     }

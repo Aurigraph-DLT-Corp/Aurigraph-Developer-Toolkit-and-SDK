@@ -58,7 +58,7 @@ export class VizorAPIEndpoints {
     try {
       const dashboards = this.vizorService.getAllDashboards();
       res.json({ dashboards, total: dashboards.length });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get dashboards:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -75,7 +75,7 @@ export class VizorAPIEndpoints {
       }
 
       res.json(dashboard);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get dashboard:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -87,7 +87,7 @@ export class VizorAPIEndpoints {
       const data = await this.vizorService.getWidgetData(dashboardId, widgetId);
       
       res.json(data || { error: 'Widget data not found' });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get widget data:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -104,7 +104,7 @@ export class VizorAPIEndpoints {
 
       const metrics = await this.vizorService.queryMetrics(query as string, timeRange);
       res.json({ metrics, count: metrics.length });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to query metrics:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -117,7 +117,7 @@ export class VizorAPIEndpoints {
       
       await this.vizorService.recordMetric(metric);
       res.json({ success: true, recorded: metric.name });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to record custom metric:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -127,7 +127,7 @@ export class VizorAPIEndpoints {
     try {
       const networkStatus = this.validatorOrchestrator.getNetworkStatus();
       res.json(networkStatus);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get validators:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -145,7 +145,7 @@ export class VizorAPIEndpoints {
       }
 
       res.json(validator);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get validator status:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -159,7 +159,7 @@ export class VizorAPIEndpoints {
         totalStake: networkStatus.totalStake,
         validators: networkStatus.validators.length
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get consensus rounds:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -169,7 +169,7 @@ export class VizorAPIEndpoints {
     try {
       const channels = this.channelManager.getAllChannelStatuses();
       res.json({ channels, total: channels.length });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get channels:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -186,7 +186,7 @@ export class VizorAPIEndpoints {
       }
 
       res.json(channel);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get channel details:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -199,7 +199,7 @@ export class VizorAPIEndpoints {
       
       await this.channelManager.registerUserNode(userNodeId, channelId);
       res.json({ success: true, message: `User ${userNodeId} added to channel ${channelId}` });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to add user to channel:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -211,7 +211,7 @@ export class VizorAPIEndpoints {
       
       // Implementation would remove user from channel
       res.json({ success: true, message: `User ${userId} removed from channel ${channelId}` });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to remove user from channel:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -232,7 +232,7 @@ export class VizorAPIEndpoints {
       };
 
       res.json(performance);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get realtime performance:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -250,7 +250,7 @@ export class VizorAPIEndpoints {
         timeRange: { start: startTime, end: endTime },
         metrics: metrics.slice(-100) // Last 100 data points
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get performance history:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -268,7 +268,7 @@ export class VizorAPIEndpoints {
 
       const report = await this.vizorService.generateReport(dashboardId, timeRange);
       res.json(report);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate report:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -308,7 +308,7 @@ export class VizorAPIEndpoints {
         default:
           res.status(400).json({ error: 'Format not implemented' });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to export report:', error);
       res.status(500).json({ error: 'Internal server error' });
     }

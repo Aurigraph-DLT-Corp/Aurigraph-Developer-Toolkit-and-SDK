@@ -49,7 +49,7 @@ async function validatePortAvailability(): Promise<ValidationResult[]> {
         message: `Port ${port} available for ${service}`,
         details: { port, service }
       });
-    } catch (error) {
+    } catch (error: unknown) {
       results.push({
         service: `Port ${port} (${service})`,
         status: 'FAIL',
@@ -203,7 +203,7 @@ async function validateDirectories(): Promise<ValidationResult[]> {
           details: { path: dir, action: 'verified' }
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       results.push({
         service: `Directory: ${dir}`,
         status: 'FAIL',
@@ -286,7 +286,7 @@ async function startValidationAPI(): Promise<void> {
         timestamp: new Date().toISOString(),
         environment: 'dev4'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({
         error: 'Validation failed',
         message: (error as Error).message
@@ -459,7 +459,7 @@ async function runValidation(): Promise<void> {
       process.exit(1);
     }
 
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('❌ Validation failed:', error);
     process.exit(1);
   }

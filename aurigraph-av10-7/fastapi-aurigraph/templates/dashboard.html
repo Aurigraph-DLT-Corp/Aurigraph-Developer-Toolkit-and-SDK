@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph AV10-7 FastAPI Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2a 100%);
+            color: #00ff88;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #00ff88;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00ff88, #0088ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            background: #00ff88;
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            height: calc(100vh - 70px);
+            gap: 2px;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 2px;
+        }
+
+        .sidebar {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            align-content: start;
+        }
+
+        .metrics-panel {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .widget {
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .widget-title {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+            background: linear-gradient(90deg, #00ff88, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-operational { background: #00ff88; }
+        .status-warning { background: #ffaa00; }
+        .status-error { background: #ff3366; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ffff);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 255, 136, 0.05);
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+
+        .config-value {
+            color: #00ffff;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #00ff88, #0088ff);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .connection-status {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .websocket-connected {
+            color: #00ff88;
+        }
+
+        .websocket-disconnected {
+            color: #ff3366;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">⚡ AURIGRAPH AV10-7 FASTAPI PLATFORM</div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('overview')">Overview</button>
+            <button class="nav-tab" onclick="switchTab('av10-features')">AV10 Features</button>
+            <button class="nav-tab" onclick="switchTab('performance')">Performance</button>
+            <button class="nav-tab" onclick="switchTab('config')">Configuration</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <span class="status-indicator status-operational"></span>
+            <span>FastAPI Operational</span>
+            <span class="connection-status" id="ws-status">WebSocket: Connecting...</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="widget">
+                <div class="widget-title">Platform Status</div>
+                <div class="config-item">
+                    <span>Status</span>
+                    <span class="config-value" id="platform-status">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span>Version</span>
+                    <span class="config-value">10.7.0 FastAPI</span>
+                </div>
+                <div class="config-item">
+                    <span>Uptime</span>
+                    <span class="config-value" id="uptime">0s</span>
+                </div>
+            </div>
+
+            <div class="widget" style="margin-top: 20px;">
+                <div class="widget-title">Quick Actions</div>
+                <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="testCompliance()">Test Compliance</button>
+                <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="optimizeTopology()">Optimize Network</button>
+                <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="testIntegration()">Test Integration</button>
+                <button class="btn" style="width: 100%;" onclick="runBenchmark()">Run Benchmark</button>
+            </div>
+
+            <div class="widget" style="margin-top: 20px;">
+                <div class="widget-title">WebSocket Status</div>
+                <div class="config-item">
+                    <span>Connections</span>
+                    <span class="config-value" id="ws-connections">0</span>
+                </div>
+                <div class="config-item">
+                    <span>Last Update</span>
+                    <span class="config-value" id="last-update">Never</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Overview Tab -->
+            <div id="overview-tab" class="tab-content active">
+                <div class="widget">
+                    <div class="widget-title">🚀 Transaction Throughput</div>
+                    <div class="metric-value" id="tps">0</div>
+                    <div class="metric-label">Transactions Per Second</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="tps-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">⚡ Network Latency</div>
+                    <div class="metric-value" id="latency">0ms</div>
+                    <div class="metric-label">Average Response Time</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="latency-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">🔐 Quantum Security</div>
+                    <div class="metric-value">NIST-5</div>
+                    <div class="metric-label">Maximum Quantum Resistance</div>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">🤖 AI Optimization</div>
+                    <div class="metric-value" id="ai-score">0%</div>
+                    <div class="metric-label">Optimization Score</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="ai-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AV10 Features Tab -->
+            <div id="av10-features-tab" class="tab-content">
+                <div class="widget">
+                    <div class="widget-title">🏛️ AV10-24: Compliance Framework</div>
+                    <div class="config-item">
+                        <span>Compliance Score</span>
+                        <span class="config-value" id="compliance-score">100%</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Active Rules</span>
+                        <span class="config-value" id="active-rules">850</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Jurisdictions</span>
+                        <span class="config-value" id="jurisdictions-count">8</span>
+                    </div>
+                    <button class="btn" style="margin-top: 10px; width: 100%;" onclick="validateCompliance()">Validate Transaction</button>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">🌐 AV10-32: Node Density Manager</div>
+                    <div class="config-item">
+                        <span>Total Nodes</span>
+                        <span class="config-value" id="total-nodes">12</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Network Efficiency</span>
+                        <span class="config-value" id="network-efficiency">100%</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Active Regions</span>
+                        <span class="config-value" id="active-regions">3</span>
+                    </div>
+                    <button class="btn" style="margin-top: 10px; width: 100%;" onclick="optimizeNetwork()">Optimize Topology</button>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">⚡ AV10-34: Integration Engine</div>
+                    <div class="config-item">
+                        <span>Throughput</span>
+                        <span class="config-value" id="integration-throughput">0 ops/sec</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Latency</span>
+                        <span class="config-value" id="integration-latency">0ms</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Cache Hit Rate</span>
+                        <span class="config-value" id="cache-hit-rate">95%</span>
+                    </div>
+                    <button class="btn" style="margin-top: 10px; width: 100%;" onclick="testConnection()">Test Connection</button>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="performance-tab" class="tab-content">
+                <div class="widget">
+                    <div class="widget-title">Performance Metrics</div>
+                    <div class="config-item">
+                        <span>Current TPS</span>
+                        <span class="config-value" id="current-tps">0</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Peak TPS</span>
+                        <span class="config-value" id="peak-tps">0</span>
+                    </div>
+                    <div class="config-item">
+                        <span>ZK Proofs/sec</span>
+                        <span class="config-value" id="zk-proofs">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Tab -->
+            <div id="config-tab" class="tab-content">
+                <div class="widget">
+                    <div class="widget-title">Platform Configuration</div>
+                    <div class="config-item">
+                        <span>FastAPI Version</span>
+                        <span class="config-value">0.104.1</span>
+                    </div>
+                    <div class="config-item">
+                        <span>Python Version</span>
+                        <span class="config-value">3.11+</span>
+                    </div>
+                    <div class="config-item">
+                        <span>WebSocket Support</span>
+                        <span class="config-value">Enabled</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="metrics-panel">
+            <div class="widget">
+                <div class="widget-title">Real-Time Metrics</div>
+                <div id="metrics-display">
+                    Waiting for data...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket connection
+        let ws = null;
+        let reconnectInterval = null;
+        let platformState = {};
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                document.getElementById('ws-status').textContent = 'WebSocket: Connected';
+                document.getElementById('ws-status').className = 'connection-status websocket-connected';
+                if (reconnectInterval) {
+                    clearInterval(reconnectInterval);
+                    reconnectInterval = null;
+                }
+            };
+            
+            ws.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            };
+            
+            ws.onclose = function() {
+                document.getElementById('ws-status').textContent = 'WebSocket: Disconnected';
+                document.getElementById('ws-status').className = 'connection-status websocket-disconnected';
+                
+                // Attempt to reconnect
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(connectWebSocket, 5000);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function handleWebSocketMessage(message) {
+            if (message.type === 'state_update') {
+                platformState = message.data;
+                updateDashboard();
+                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+            }
+        }
+
+        function updateDashboard() {
+            if (!platformState.platform) return;
+
+            // Platform status
+            updateElement('platform-status', platformState.platform.status || 'Unknown');
+            updateElement('uptime', formatUptime(platformState.platform.uptime || 0));
+            
+            // Performance metrics
+            updateElement('tps', formatNumber(platformState.platform.tps || 0));
+            updateElement('latency', (platformState.platform.latency || 0) + 'ms');
+            updateElement('current-tps', formatNumber(platformState.performance?.currentTps || 0));
+            updateElement('peak-tps', formatNumber(platformState.performance?.peakTps || 0));
+            updateElement('zk-proofs', platformState.performance?.zkProofsPerSec || 0);
+            
+            // AI metrics
+            updateElement('ai-score', Math.round(platformState.ai?.optimizationScore || 0) + '%');
+            updateProgress('ai-progress', platformState.ai?.optimizationScore || 0);
+            
+            // AV10 Features
+            if (platformState.compliance) {
+                updateElement('compliance-score', Math.round(platformState.compliance.complianceScore || 100) + '%');
+                updateElement('active-rules', platformState.compliance.activeRules || 0);
+                updateElement('jurisdictions-count', platformState.compliance.jurisdictions?.length || 0);
+            }
+            
+            if (platformState.node_density) {
+                updateElement('total-nodes', platformState.node_density.totalNodes || 0);
+                updateElement('network-efficiency', Math.round(platformState.node_density.networkEfficiency || 100) + '%');
+                updateElement('active-regions', platformState.node_density.regionsActive || 0);
+            }
+            
+            if (platformState.integration) {
+                updateElement('integration-throughput', formatNumber(platformState.integration.throughput || 0) + ' ops/sec');
+                updateElement('integration-latency', (platformState.integration.latency || 0) + 'ms');
+                updateElement('cache-hit-rate', Math.round(platformState.integration.cacheHitRate || 95) + '%');
+            }
+            
+            // Progress bars
+            updateProgress('tps-progress', (platformState.platform.tps || 0) / 1500000 * 100);
+            updateProgress('latency-progress', Math.max(0, 100 - (platformState.platform.latency || 0) / 5));
+        }
+
+        function updateElement(id, value) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        }
+
+        function updateProgress(id, percent) {
+            const element = document.getElementById(id);
+            if (element) element.style.width = Math.min(100, percent) + '%';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            if (hours > 0) return hours + 'h ' + minutes + 'm';
+            if (minutes > 0) return minutes + 'm ' + secs + 's';
+            return secs + 's';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // API interaction functions
+        async function testCompliance() {
+            try {
+                const response = await fetch('/api/av10/compliance/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transaction: 'test-tx-' + Date.now(),
+                        jurisdiction: 'US'
+                    })
+                });
+                const result = await response.json();
+                alert(`Compliance Test: ${result.success ? 'PASSED' : 'FAILED'}\\nScore: ${result.score || 'N/A'}%`);
+            } catch (error) {
+                alert('Compliance test failed: ' + error.message);
+            }
+        }
+
+        async function optimizeNetwork() {
+            try {
+                const response = await fetch('/api/av10/node-density/optimize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        region: 'global',
+                        targetTps: 1200000
+                    })
+                });
+                const result = await response.json();
+                alert(`Network Optimization: ${result.success ? 'SUCCESS' : 'FAILED'}\\nNew Nodes: ${result.newNodes || 0}\\nImprovement: ${result.expectedImprovement || 'N/A'}`);
+            } catch (error) {
+                alert('Network optimization failed: ' + error.message);
+            }
+        }
+
+        async function testConnection() {
+            try {
+                const response = await fetch('/api/av10/integration/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint: 'https://api.example.com',
+                        type: 'REST API'
+                    })
+                });
+                const result = await response.json();
+                alert(`Integration Test: ${result.success ? 'SUCCESS' : 'FAILED'}\\nLatency: ${result.latency || 'N/A'}ms\\nConnection ID: ${result.connectionId || 'N/A'}`);
+            } catch (error) {
+                alert('Integration test failed: ' + error.message);
+            }
+        }
+
+        async function runBenchmark() {
+            try {
+                const response = await fetch('/api/av10/integration/benchmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'REST API',
+                        duration: 10
+                    })
+                });
+                const result = await response.json();
+                alert(`Benchmark Complete:\\nThroughput: ${result.throughput || 'N/A'} ops/sec\\nLatency P95: ${result.latency?.p95 || 'N/A'}ms\\nError Rate: ${result.error_rate || 'N/A'}%`);
+            } catch (error) {
+                alert('Benchmark failed: ' + error.message);
+            }
+        }
+
+        // Initialize
+        connectWebSocket();
+        
+        // Fetch initial data
+        fetch('/api/unified/state')
+            .then(response => response.json())
+            .then(data => {
+                platformState = data;
+                updateDashboard();
+            })
+            .catch(error => console.error('Error fetching initial state:', error));
+    </script>
+</body>
+</html>

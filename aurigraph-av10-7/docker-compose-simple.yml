@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # FastAPI Platform Service
+  fastapi-platform:
+    build:
+      context: ./fastapi-aurigraph
+      dockerfile: Dockerfile
+    container_name: av10-fastapi
+    ports:
+      - "3100:3100"
+    environment:
+      - PLATFORM_NAME=Aurigraph AV10-7
+      - TARGET_TPS=1000000
+      - QUANTUM_LEVEL=5
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  # Web UI with Nginx
+  web-ui:
+    image: nginx:alpine
+    container_name: av10-ui
+    ports:
+      - "8080:80"
+    volumes:
+      - ./ui:/usr/share/nginx/html:ro
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:alpine
+    container_name: av10-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+networks:
+  aurigraph-network:
+    driver: bridge

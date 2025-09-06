@@ -311,14 +311,11 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
           performance: this.configuration.performance
         },
         {
-          nodeId: process.env.NODE_ID || 'av10-21-system',
-          av10_21: true,
-          quantumSafe: this.configuration.security.quantumSafe,
-          enterprise: this.configuration.operationalMode === 'ENTERPRISE'
+          nodeId: process.env.NODE_ID || 'av10-21-system'
         }
       );
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('AV10-21 System initialization failed:', error);
       this.systemStatus.status = 'ERROR';
       this.systemStatus.lastStatusChange = new Date();
@@ -444,7 +441,7 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
       this.systemStatus.components.quantumSecurity = 'ONLINE';
       this.logger.info('✓ Quantum Security Integration initialized');
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Component initialization failed:', error);
       throw error;
     }
@@ -595,7 +592,7 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
 
       this.logger.info('System self-test completed successfully');
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('System self-test failed:', error);
       throw error;
     }
@@ -661,7 +658,7 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
 
       return operationResult.id;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Operation processing failed for ${request.id}:`, error);
       
       // Update operation result with error
@@ -747,7 +744,7 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
       // Remove from active operations
       this.activeOperations.delete(request.id);
 
-    } catch (error) {
+    } catch (error: unknown) {
       result.status = 'FAILED';
       result.completed = new Date();
       result.performance.processingTime = Date.now() - startTime;
@@ -829,11 +826,11 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
     const ddRequest = {
       entityId: request.entityId,
       entityType: request.entityType,
-      tier: this.determineDueDiligenceTier(request),
+      tier: this.determineDueDiligenceTier(request) as "SIMPLIFIED" | "STANDARD" | "ENHANCED" | "SUPREME" | undefined,
       jurisdiction: request.jurisdiction,
       purpose: 'AV10-21 Asset Verification',
       requesterId: request.metadata.requesterId,
-      priority: request.priority,
+      priority: (request.priority === 'CRITICAL' ? 'HIGH' : request.priority) as "LOW" | "MEDIUM" | "HIGH" | "URGENT",
       deadline: request.metadata.deadline,
       businessJustification: request.metadata.businessJustification
     };
@@ -995,10 +992,7 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
         securityLevel: result.security.securityLevel
       },
       {
-        nodeId: process.env.NODE_ID || 'av10-21-system',
-        av10_21: true,
-        quantumSafe: result.security.quantumSafe,
-        securityContextId
+        nodeId: process.env.NODE_ID || 'av10-21-system'
       }
     );
   }
@@ -1349,7 +1343,12 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
     };
 
     // Get compliance metrics
-    const complianceData = await this.auditTrail.generateComplianceDashboard();
+    const complianceData = await this.auditTrail.generateReport(
+      'COMPLIANCE',
+      Date.now() - 86400000,
+      Date.now(),
+      'US'
+    );
 
     // Get security metrics
     const securityMetrics = await this.quantumSecurity.getSecurityMetrics();
@@ -1366,10 +1365,10 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
       recentOperations: last50Operations,
       performanceMetrics,
       complianceMetrics: {
-        complianceRate: complianceData.summary.complianceRate || 0,
+        complianceRate: (complianceData.summary as any)?.complianceRate || 0,
         violations: complianceData.summary.criticalEvents || 0,
-        frameworks: complianceData.complianceFrameworks,
-        jurisdictions: complianceData.jurisdictionBreakdown
+        frameworks: (complianceData as any).complianceFrameworks || [],
+        jurisdictions: (complianceData as any).jurisdictionBreakdown || []
       },
       securityMetrics: {
         quantumReadiness: securityMetrics.securityMetrics.quantumReadiness,
@@ -1467,12 +1466,9 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
       {
         changes: config,
         newConfiguration: this.configuration,
-        av10_21: true
       },
       {
-        nodeId: process.env.NODE_ID || 'av10-21-system',
-        av10_21: true,
-        configurationChange: true
+        nodeId: process.env.NODE_ID || 'av10-21-system'
       }
     );
 
@@ -1510,8 +1506,7 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
         finalStatus: this.systemStatus
       },
       {
-        nodeId: process.env.NODE_ID || 'av10-21-system',
-        av10_21: true
+        nodeId: process.env.NODE_ID || 'av10-21-system'
       }
     );
     
@@ -1519,16 +1514,6 @@ export class AV10_21_AssetRegistrationVerificationSystem extends EventEmitter {
     this.logger.info('AV10-21 System shutdown completed');
   }
 }
-
-// Export all interfaces and classes
-export {
-  AV10_21_Configuration,
-  AV10_21_SystemStatus,
-  AV10_21_OperationRequest,
-  AV10_21_OperationResult,
-  AV10_21_DashboardData,
-  AV10_21_AssetRegistrationVerificationSystem
-};
 
 // Default export
 export default AV10_21_AssetRegistrationVerificationSystem;

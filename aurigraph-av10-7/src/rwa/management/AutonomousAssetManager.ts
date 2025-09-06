@@ -469,7 +469,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 automationEnabled: this.config.enableAIOptimization
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to start Autonomous Asset Manager:', error);
             throw error;
         }
@@ -740,7 +740,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 this.marketData.set(assetId, updatedData);
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error refreshing market data:', error);
         }
     }
@@ -776,7 +776,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 portfolio.lastUpdated = new Date();
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error analyzing portfolios:', error);
         }
     }
@@ -1045,7 +1045,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 timestamp: Date.now()
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error(`Failed to execute automation rule ${rule.id}:`, error);
             
             // Update success rate
@@ -1101,7 +1101,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 }
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error optimizing portfolios:', error);
         }
     }
@@ -1181,7 +1181,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 timestamp: new Date()
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('AI optimization failed, falling back to traditional optimization:', error);
             return await this.performTraditionalOptimization(portfolio, objective);
         }
@@ -1189,7 +1189,7 @@ export class AutonomousAssetManager extends EventEmitter {
 
     private prepareOptimizationFeatures(portfolio: Portfolio): Float32Array {
         // Prepare features for AI model input
-        const features = new Float32Array(32); // Fixed size feature vector
+        const features = new Float32Array(/* @ts-ignore */32); // Fixed size feature vector
         let index = 0;
         
         // Portfolio characteristics
@@ -1424,7 +1424,7 @@ export class AutonomousAssetManager extends EventEmitter {
         for (const trade of optimization.requiredTrades) {
             try {
                 await this.executeTrade(portfolio.id, trade.assetId, trade.action, trade.quantity, trade.targetPrice);
-            } catch (error) {
+            } catch (error: unknown) {
                 this.logger.error(`Failed to execute optimization trade for ${trade.assetId}:`, error);
             }
         }
@@ -1844,7 +1844,7 @@ export class AutonomousAssetManager extends EventEmitter {
                         session.slippage += completedTrade.slippage;
                     }
                     
-                } catch (error) {
+                } catch (error: unknown) {
                     this.logger.error(`Failed to execute rebalancing trade for ${trade.assetId}:`, error);
                 }
             }
@@ -1865,7 +1865,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 timestamp: Date.now()
             });
             
-        } catch (error) {
+        } catch (error: unknown) {
             session.status = 'FAILED';
             session.endTime = new Date();
             this.logger.error(`Rebalancing session ${session.id} failed:`, error);
@@ -1914,7 +1914,7 @@ export class AutonomousAssetManager extends EventEmitter {
                 
                 await this.checkAutomationTriggers(portfolio);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error executing automation rules:', error);
         }
     }

@@ -55,7 +55,7 @@ export class ManagementAPI {
       try {
         const channels = this.channelManager.getAllChannels();
         res.json({ success: true, channels });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -67,7 +67,7 @@ export class ManagementAPI {
       try {
         const channel = await this.channelManager.createChannel(req.body);
         res.json({ success: true, channel });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -83,7 +83,7 @@ export class ManagementAPI {
         } else {
           res.status(404).json({ success: false, error: 'Channel not found' });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -95,7 +95,7 @@ export class ManagementAPI {
       try {
         const success = await this.channelManager.deleteChannel(req.params.id);
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -108,7 +108,7 @@ export class ManagementAPI {
       try {
         const success = await this.channelManager.activateChannel(req.params.id);
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -120,7 +120,7 @@ export class ManagementAPI {
       try {
         const success = await this.channelManager.deactivateChannel(req.params.id);
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -136,7 +136,7 @@ export class ManagementAPI {
           ? this.channelManager.getValidatorsInChannel(channelId)
           : this.channelManager.getAllValidators();
         res.json({ success: true, validators });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -149,7 +149,7 @@ export class ManagementAPI {
         const { channelId, ...config } = req.body;
         const validator = await this.channelManager.createValidator(channelId, config);
         res.json({ success: true, validator });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -161,7 +161,7 @@ export class ManagementAPI {
       try {
         const success = await this.channelManager.startValidator(req.params.id);
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -173,7 +173,7 @@ export class ManagementAPI {
       try {
         const success = await this.channelManager.stopValidator(req.params.id);
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -187,7 +187,7 @@ export class ManagementAPI {
         const { count, startingPort } = req.body;
         const validators = await this.channelManager.createValidatorSet(req.params.id, count, startingPort);
         res.json({ success: true, validators });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -203,7 +203,7 @@ export class ManagementAPI {
           ? this.channelManager.getNodesInChannel(channelId)
           : this.channelManager.getAllNodes();
         res.json({ success: true, nodes });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -216,7 +216,7 @@ export class ManagementAPI {
         const { channelId, ...config } = req.body;
         const node = await this.channelManager.createBasicNode(channelId, config);
         res.json({ success: true, node });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -228,7 +228,7 @@ export class ManagementAPI {
       try {
         const success = await this.channelManager.startBasicNode(req.params.id);
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -240,7 +240,7 @@ export class ManagementAPI {
       try {
         const success = await this.channelManager.stopBasicNode(req.params.id);
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -254,7 +254,7 @@ export class ManagementAPI {
         const { nodeTypes, startingPort } = req.body;
         const nodes = await this.channelManager.createNodeSet(req.params.id, nodeTypes, startingPort);
         res.json({ success: true, nodes });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -273,7 +273,7 @@ export class ManagementAPI {
           const allMetrics = this.channelManager.getAllChannelMetrics();
           res.json({ success: true, metrics: allMetrics });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -285,7 +285,7 @@ export class ManagementAPI {
       try {
         const overview = this.channelManager.getSystemOverview();
         res.json({ success: true, overview });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -298,7 +298,7 @@ export class ManagementAPI {
       try {
         await this.startDemo();
         res.json({ success: true, message: 'Demo started successfully' });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -310,7 +310,7 @@ export class ManagementAPI {
       try {
         await this.stopDemo();
         res.json({ success: true, message: 'Demo stopped successfully' });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           success: false, 
           error: error instanceof Error ? error.message : 'Unknown error' 
@@ -378,7 +378,7 @@ export class ManagementAPI {
           }
         });
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Demo simulation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, 200); // Every 200ms
@@ -951,7 +951,7 @@ export class ManagementAPI {
                 try {
                     await this.refreshData();
                     setInterval(() => this.refreshData(), 10000); // Refresh every 10 seconds
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Failed to initialize dashboard:', error);
                 }
             },
@@ -972,7 +972,7 @@ export class ManagementAPI {
                         this.nodes = nodesRes.data.nodes || [];
                         this.overview = overviewRes.data.overview || {};
                         this.metrics = metricsRes.data.metrics || [];
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Failed to refresh data:', error);
                     }
                 },
@@ -1001,7 +1001,7 @@ export class ManagementAPI {
                             this.showCreateChannel = false;
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         this.showMessage('Failed to create channel: ' + error.response?.data?.error, 'error');
                     }
                 },
@@ -1013,7 +1013,7 @@ export class ManagementAPI {
                             this.showMessage('Channel activated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         this.showMessage('Failed to activate channel: ' + error.response?.data?.error, 'error');
                     }
                 },
@@ -1025,7 +1025,7 @@ export class ManagementAPI {
                             this.showMessage('Channel deactivated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         this.showMessage('Failed to deactivate channel: ' + error.response?.data?.error, 'error');
                     }
                 },
@@ -1039,7 +1039,7 @@ export class ManagementAPI {
                             this.showMessage('🚀 Demo started! Connecting to containerized nodes...', 'success');
                             this.startDemoUpdates();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Start demo error:', error);
                         this.showMessage('Failed to start demo: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1054,7 +1054,7 @@ export class ManagementAPI {
                             this.showMessage('🛑 Demo stopped', 'info');
                             this.stopDemoUpdates();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Stop demo error:', error);
                         this.showMessage('Failed to stop demo: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1068,7 +1068,7 @@ export class ManagementAPI {
                             const response = await axios.get('/api/demo/status');
                             this.demoStats = response.data.stats;
                             this.demoActive = response.data.running;
-                        } catch (error) {
+                        } catch (error: unknown) {
                             console.error('Demo stats update error:', error);
                         }
                     }, 1000);
@@ -1089,7 +1089,7 @@ export class ManagementAPI {
                                 this.showMessage('Channel deleted successfully!', 'success');
                                 await this.refreshData();
                             }
-                        } catch (error) {
+                        } catch (error: unknown) {
                             this.showMessage('Failed to delete channel: ' + error.response?.data?.error, 'error');
                         }
                     }
@@ -1140,7 +1140,7 @@ export class ManagementAPI {
                         
                         this.showMessage('TEST environment created with 5 validators and 20 nodes!', 'success');
                         await this.refreshData();
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Create TEST Environment error:', error);
                         this.showMessage('Failed to create TEST environment: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1154,7 +1154,7 @@ export class ManagementAPI {
                             this.showMessage('Channel ' + channelId + ' activated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Activate channel error:', error);
                         this.showMessage('Failed to activate channel: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1168,7 +1168,7 @@ export class ManagementAPI {
                             this.showMessage('Channel ' + channelId + ' deactivated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Deactivate channel error:', error);
                         this.showMessage('Failed to deactivate channel: ' + (error.response?.data?.error || error.message), 'error');
                     }

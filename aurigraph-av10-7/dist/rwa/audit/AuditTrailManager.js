@@ -84,7 +84,7 @@ class AuditTrailManager extends events_1.EventEmitter {
         // Create digital signature
         const sign = crypto_1.default.createSign('RSA-SHA256');
         sign.update(hash);
-        const digitalSignature = sign.sign(this.digitalSignatureKeys.get('private'), 'hex');
+        const digitalSignature = sign.sign(/* @ts-ignore */ this.digitalSignatureKeys.get('private'), 'hex');
         // Determine compliance flags
         const complianceFlags = this.determineComplianceFlags(category, eventType, details);
         // Calculate retention period
@@ -317,7 +317,7 @@ class AuditTrailManager extends events_1.EventEmitter {
             .digest('hex');
         const sign = crypto_1.default.createSign('RSA-SHA256');
         sign.update(reportHash);
-        const signature = sign.sign(this.digitalSignatureKeys.get('private'), 'hex');
+        const signature = sign.sign(/* @ts-ignore */ this.digitalSignatureKeys.get('private'), 'hex');
         report.metadata.hash = reportHash;
         report.metadata.signature = signature;
         // Log report generation

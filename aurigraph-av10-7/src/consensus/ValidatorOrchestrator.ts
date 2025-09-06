@@ -83,7 +83,7 @@ export class ValidatorOrchestrator extends EventEmitter {
 
       this.logger.info(`✅ Initialized ${this.validators.size} validators across ${this.channels.size} channels`);
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to initialize validator orchestrator:', error);
       throw error;
     }
@@ -127,7 +127,7 @@ export class ValidatorOrchestrator extends EventEmitter {
 
       return channel;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to create channel ${channelId}:`, error);
       throw error;
     }
@@ -197,7 +197,7 @@ export class ValidatorOrchestrator extends EventEmitter {
 
       return isValid;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to route channel transaction ${transaction.id}:`, error);
       return false;
     }

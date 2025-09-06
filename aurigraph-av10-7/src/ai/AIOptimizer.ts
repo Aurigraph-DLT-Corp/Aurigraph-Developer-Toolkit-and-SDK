@@ -119,7 +119,7 @@ export class AIOptimizer extends EventEmitter {
         });
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Optimization failed:', error);
     }
   }

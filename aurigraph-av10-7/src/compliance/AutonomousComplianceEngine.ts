@@ -779,7 +779,7 @@ export class AutonomousComplianceEngine extends EventEmitter {
       this.logger.info(`🤖 AI-Enabled: ✅ | Predictive: ${this.predictiveCompliance ? '✅' : '❌'}`);
       this.logger.info(`📊 Auto-Resolution Rate: ${this.autoResolutionRate}%`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to start Autonomous Compliance Engine:', error);
       throw error;
     }

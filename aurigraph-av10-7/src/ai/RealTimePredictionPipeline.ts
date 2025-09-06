@@ -221,9 +221,9 @@ export class RealTimePredictionPipeline extends EventEmitter {
       this.logger.info('✅ AV10-26 Real-Time Prediction Pipeline initialized successfully');
       this.logger.info(`⚡ Configuration: ${this.config.parallelism} workers, ${this.config.batchSize} batch size`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize Real-Time Prediction Pipeline:', error);
-      throw new Error(`Pipeline initialization failed: ${error.message}`);
+      throw new Error(`Pipeline initialization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -249,7 +249,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
       // Update streaming windows
       this.updateStreamingWindows(dataPoint);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Streaming data processing failed:', error);
       this.emit('processing_error', { dataPoint, error });
     }
@@ -291,7 +291,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
             this.recordSuccess(circuitBreaker);
           }
           
-        } catch (error) {
+        } catch (error: unknown) {
           if (circuitBreaker) {
             this.recordFailure(circuitBreaker);
           }
@@ -350,7 +350,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Prediction failed for request ${request.requestId}:`, error);
       throw error;
     }
@@ -387,7 +387,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
       
       return results;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Batch prediction failed:', error);
       throw error;
     }
@@ -630,7 +630,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
     try {
       const result = await this.makePrediction(request);
       this.emit('immediate_result', result);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Immediate processing failed:', error);
     }
   }
@@ -709,7 +709,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
       // Emit window analysis results
       this.emit('window_analysis', { windowId, insights, window });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Window processing failed for ${windowId}:`, error);
     }
   }
@@ -804,7 +804,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Stage ${stage.name} failed:`, error);
       throw error;
     }
@@ -843,7 +843,7 @@ export class RealTimePredictionPipeline extends EventEmitter {
       
       return { request, features: enrichedFeatures };
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn('Feature enrichment failed, using original features');
       return data;
     }

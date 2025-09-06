@@ -715,7 +715,7 @@ export class LegalComplianceModule extends EventEmitter {
 
       return assessmentId;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Compliance assessment failed for entity ${entityId}:`, error);
       throw error;
     }
@@ -864,7 +864,7 @@ export class LegalComplianceModule extends EventEmitter {
 
       evidence.push(`requirement-assessment-${requirement.id}-${Date.now()}`);
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Error assessing requirement ${requirement.id}:`, error);
       findings.push(`Assessment error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       status = 'NOT_MET';
@@ -1220,7 +1220,7 @@ export class LegalComplianceModule extends EventEmitter {
           if (triggered) {
             await this.handleRuleViolation(rule, monitoring);
           }
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error(`Error evaluating monitoring rule ${rule.id}:`, error);
         }
       }
@@ -1474,7 +1474,7 @@ export class LegalComplianceModule extends EventEmitter {
   }
 
   private async submitImmediateReport(event: any): Promise<void> {
-    this.logger.critical(`Submitting immediate regulatory report for critical event`);
+    this.logger.error(`Submitting immediate regulatory report for critical event`);
   }
 
   // Public API methods

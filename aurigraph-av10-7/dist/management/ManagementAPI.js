@@ -942,7 +942,7 @@ class ManagementAPI {
                 try {
                     await this.refreshData();
                     setInterval(() => this.refreshData(), 10000); // Refresh every 10 seconds
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Failed to initialize dashboard:', error);
                 }
             },
@@ -963,7 +963,7 @@ class ManagementAPI {
                         this.nodes = nodesRes.data.nodes || [];
                         this.overview = overviewRes.data.overview || {};
                         this.metrics = metricsRes.data.metrics || [];
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Failed to refresh data:', error);
                     }
                 },
@@ -992,7 +992,7 @@ class ManagementAPI {
                             this.showCreateChannel = false;
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         this.showMessage('Failed to create channel: ' + error.response?.data?.error, 'error');
                     }
                 },
@@ -1004,7 +1004,7 @@ class ManagementAPI {
                             this.showMessage('Channel activated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         this.showMessage('Failed to activate channel: ' + error.response?.data?.error, 'error');
                     }
                 },
@@ -1016,7 +1016,7 @@ class ManagementAPI {
                             this.showMessage('Channel deactivated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         this.showMessage('Failed to deactivate channel: ' + error.response?.data?.error, 'error');
                     }
                 },
@@ -1030,7 +1030,7 @@ class ManagementAPI {
                             this.showMessage('🚀 Demo started! Connecting to containerized nodes...', 'success');
                             this.startDemoUpdates();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Start demo error:', error);
                         this.showMessage('Failed to start demo: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1045,7 +1045,7 @@ class ManagementAPI {
                             this.showMessage('🛑 Demo stopped', 'info');
                             this.stopDemoUpdates();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Stop demo error:', error);
                         this.showMessage('Failed to stop demo: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1059,7 +1059,7 @@ class ManagementAPI {
                             const response = await axios.get('/api/demo/status');
                             this.demoStats = response.data.stats;
                             this.demoActive = response.data.running;
-                        } catch (error) {
+                        } catch (error: unknown) {
                             console.error('Demo stats update error:', error);
                         }
                     }, 1000);
@@ -1080,7 +1080,7 @@ class ManagementAPI {
                                 this.showMessage('Channel deleted successfully!', 'success');
                                 await this.refreshData();
                             }
-                        } catch (error) {
+                        } catch (error: unknown) {
                             this.showMessage('Failed to delete channel: ' + error.response?.data?.error, 'error');
                         }
                     }
@@ -1131,7 +1131,7 @@ class ManagementAPI {
                         
                         this.showMessage('TEST environment created with 5 validators and 20 nodes!', 'success');
                         await this.refreshData();
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Create TEST Environment error:', error);
                         this.showMessage('Failed to create TEST environment: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1145,7 +1145,7 @@ class ManagementAPI {
                             this.showMessage('Channel ' + channelId + ' activated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Activate channel error:', error);
                         this.showMessage('Failed to activate channel: ' + (error.response?.data?.error || error.message), 'error');
                     }
@@ -1159,7 +1159,7 @@ class ManagementAPI {
                             this.showMessage('Channel ' + channelId + ' deactivated successfully!', 'success');
                             await this.refreshData();
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Deactivate channel error:', error);
                         this.showMessage('Failed to deactivate channel: ' + (error.response?.data?.error || error.message), 'error');
                     }

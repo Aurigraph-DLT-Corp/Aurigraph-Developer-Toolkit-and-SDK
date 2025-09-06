@@ -193,14 +193,10 @@ public class PerformanceMonitor {
         }
     }
     
-    private void recordComplianceMetric(String name, ComplianceStatus status, String description) {
-        ComplianceMetric metric = new ComplianceMetric();
-        metric.name = name;
-        metric.status = status;
-        metric.description = description;
-        metric.timestamp = Instant.now();
-        metrics.put(name, metric);
-    }
+    // Configuration properties (should be injected)
+    private final int maxMemoryMB = 512;
+    private final int targetTPS = 50000;
+    private final double uptimeTargetPercent = 99.99;
     
     public static class AV1017PerformanceReport {
         public String nodeId;

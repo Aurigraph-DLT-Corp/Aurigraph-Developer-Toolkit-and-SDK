@@ -22,7 +22,7 @@ class YieldTokenizer extends events_1.EventEmitter {
         if (this.yieldTokensByAsset.has(asset.id)) {
             throw new Error('Yield token already exists for this asset');
         }
-        const tokenId = this.generateYieldTokenId(asset);
+        const tokenId = await this.generateYieldTokenId(asset);
         const yieldToken = {
             tokenId,
             assetId: asset.id,
@@ -96,7 +96,7 @@ class YieldTokenizer extends events_1.EventEmitter {
             }
         ];
         for (const poolConfig of pools) {
-            const poolId = this.generatePoolId(tokenId, poolConfig.name);
+            const poolId = await this.generatePoolId(tokenId, poolConfig.name);
             const pool = {
                 poolId,
                 name: poolConfig.name,
@@ -440,13 +440,13 @@ class YieldTokenizer extends events_1.EventEmitter {
             activeStakers: stats.activeStakers.size
         };
     }
-    generateYieldTokenId(asset) {
+    async generateYieldTokenId(asset) {
         const timestamp = Date.now();
-        const hash = this.cryptoManager.hashData(asset.id);
+        const hash = await this.cryptoManager.hashData(asset.id);
         return `YT-${timestamp}-${hash.substring(0, 8)}`;
     }
-    generatePoolId(tokenId, name) {
-        const hash = this.cryptoManager.hashData(`${tokenId}-${name}`);
+    async generatePoolId(tokenId, name) {
+        const hash = await this.cryptoManager.hashData(`${tokenId}-${name}`);
         return `POOL-${hash.substring(0, 12)}`;
     }
     generateStakeId() {

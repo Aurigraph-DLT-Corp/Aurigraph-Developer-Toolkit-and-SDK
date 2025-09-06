@@ -80,7 +80,7 @@ export class FormalVerification {
       this.logger.info(`Formal verification completed: ${contract.id} - Score: ${score}% - Verified: ${verified}`);
       
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Formal verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -316,7 +316,7 @@ export class FormalVerification {
         const mockContract = { id: contractId } as RicardianContract;
         const result = await this.verifyContract(mockContract);
         results.set(contractId, result);
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Batch verification failed for ${contractId}`);
       }
     }

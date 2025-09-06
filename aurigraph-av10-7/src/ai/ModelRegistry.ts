@@ -275,7 +275,7 @@ export class ModelRegistry extends EventEmitter {
       this.logger.info('✅ AV10-26 Model Registry initialized successfully');
       this.logger.info(`📊 Loaded: ${this.models.size} models, ${this.experiments.size} experiments`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize Model Registry:', error);
       throw new Error(`Model Registry initialization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -320,7 +320,7 @@ export class ModelRegistry extends EventEmitter {
       
       return modelId;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Model registration failed:', error);
       throw new Error(`Model registration failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -371,7 +371,7 @@ export class ModelRegistry extends EventEmitter {
       
       return newVersion;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Model update failed for ${modelId}:`, error);
       throw error;
     }
@@ -405,7 +405,7 @@ export class ModelRegistry extends EventEmitter {
       this.logger.info(`✅ Model loaded: ${modelId} v${version || 'latest'}`);
       return model;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Model loading failed for ${modelId}:`, error);
       throw error;
     }
@@ -436,7 +436,7 @@ export class ModelRegistry extends EventEmitter {
       this.logger.info(`✅ Model archived: ${modelId}`);
       this.emit('model_deleted', { modelId, force });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Model deletion failed for ${modelId}:`, error);
       throw error;
     }
@@ -519,7 +519,7 @@ export class ModelRegistry extends EventEmitter {
       this.logger.info(`🔄 Model rolled back: ${modelId} to v${targetVersion}`);
       this.emit('model_rollback', { modelId, targetVersion });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Model rollback failed for ${modelId}:`, error);
       throw error;
     }

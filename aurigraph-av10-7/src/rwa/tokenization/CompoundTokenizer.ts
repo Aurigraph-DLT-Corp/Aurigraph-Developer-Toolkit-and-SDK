@@ -185,7 +185,7 @@ export class CompoundTokenizer extends EventEmitter {
       throw new Error('Asset weights must sum to 100%');
     }
 
-    const tokenId = this.generateCompoundTokenId(name);
+    const tokenId = await this.generateCompoundTokenId(name);
     
     const allocations: AssetAllocation[] = await Promise.all(
       assets.map(async (a) => {
@@ -666,9 +666,9 @@ export class CompoundTokenizer extends EventEmitter {
     }, 60000); // Check every minute
   }
 
-  private generateCompoundTokenId(name: string): string {
+  private async generateCompoundTokenId(name: string): Promise<string> {
     const timestamp = Date.now();
-    const hash = this.cryptoManager.hashData(name);
+    const hash = await this.cryptoManager.hashData(name);
     return `CT-${timestamp}-${hash.substring(0, 8)}`;
   }
 

@@ -1382,10 +1382,10 @@ export class DisasterRecoverySystem extends EventEmitter {
       if (this.shouldRunJob(job, now)) {
         try {
           await this.executeBackupJob(job);
-        } catch (error) {
+        } catch (error: unknown) {
           this.emit('jobSchedulingError', {
             jobId,
-            error: error.message,
+            error: (error as Error).message,
             timestamp: now
           });
         }
@@ -1487,14 +1487,14 @@ export class DisasterRecoverySystem extends EventEmitter {
         bytesProcessed: runDetails.bytesProcessed
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       job.statistics.totalRuns++;
       job.statistics.failedRuns++;
       job.status = BackupJobStatus.FAILED;
       runDetails.status = BackupJobStatus.FAILED;
       runDetails.errors.push({
         code: 'EXECUTION_ERROR',
-        message: error.message,
+        message: (error as Error).message,
         timestamp: new Date(),
         severity: 'CRITICAL'
       });
@@ -1504,7 +1504,7 @@ export class DisasterRecoverySystem extends EventEmitter {
       this.emit('backupJobFailed', {
         jobId: job.id,
         runId,
-        error: error.message,
+        error: (error as Error).message,
         duration: runDetails.duration
       });
 
@@ -1623,11 +1623,11 @@ export class DisasterRecoverySystem extends EventEmitter {
       if (notification.events.includes(event)) {
         try {
           await this.sendNotification(notification, job, event, runDetails);
-        } catch (error) {
+        } catch (error: unknown) {
           this.emit('notificationError', {
             jobId: job.id,
             notificationType: notification.type,
-            error: error.message
+            error: (error as Error).message
           });
         }
       }
@@ -1720,10 +1720,10 @@ export class DisasterRecoverySystem extends EventEmitter {
 
       this.emit('metricsCollected', { timestamp, metrics });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.emit('metricsCollectionFailed', {
         timestamp,
-        error: error.message
+        error: (error as Error).message
       });
     }
   }
@@ -1778,9 +1778,9 @@ export class DisasterRecoverySystem extends EventEmitter {
         if (!isHealthy) {
           this.emit('targetUnhealthy', { targetId: target.id, healthScore: target.healthScore });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         target.healthScore = Math.max(0, target.healthScore - 10);
-        this.emit('targetHealthCheckFailed', { targetId: target.id, error: error.message });
+        this.emit('targetHealthCheckFailed', { targetId: target.id, error: (error as Error).message });
       }
     }
 
@@ -1880,7 +1880,7 @@ export class DisasterRecoverySystem extends EventEmitter {
     // Execute restore in background
     this.executeRestoreJob(restoreJob).catch(error => {
       restoreJob.status = RestoreStatus.FAILED;
-      this.emit('restoreFailed', { restoreId, error: error.message });
+      this.emit('restoreFailed', { restoreId, error: (error as Error).message });
     });
 
     this.emit('restoreInitiated', { restoreId, restoreJob });
@@ -1929,7 +1929,7 @@ export class DisasterRecoverySystem extends EventEmitter {
         bytesRestored: job.progress.bytesRestored
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       job.status = RestoreStatus.FAILED;
       job.completed = new Date();
       throw error;
@@ -1963,12 +1963,12 @@ export class DisasterRecoverySystem extends EventEmitter {
           timestamp: new Date()
         });
 
-      } catch (error) {
+      } catch (error: unknown) {
         this.emit('procedureFailed', {
           planId,
           executionId,
           procedureId: procedure.id,
-          error: error.message,
+          error: (error as Error).message,
           timestamp: new Date()
         });
 
@@ -1977,7 +1977,7 @@ export class DisasterRecoverySystem extends EventEmitter {
           await this.executeRollback(procedure.rollback);
         }
 
-        throw new Error(`Recovery plan failed at procedure ${procedure.name}: ${error.message}`);
+        throw new Error(`Recovery plan failed at procedure ${procedure.name}: ${(error as Error).message}`);
       }
     }
 
@@ -2017,12 +2017,12 @@ export class DisasterRecoverySystem extends EventEmitter {
 
         return; // Success
 
-      } catch (error) {
+      } catch (error: unknown) {
         attempts++;
         
         if (attempts >= maxAttempts) {
           if (step.onFailure === 'ABORT') {
-            throw new Error(`Step ${step.id} failed after ${attempts} attempts: ${error.message}`);
+            throw new Error(`Step ${step.id} failed after ${attempts} attempts: ${(error as Error).message}`);
           } else if (step.onFailure === 'MANUAL') {
             console.log(`Step ${step.id} requires manual intervention`);
             // In a real implementation, this would pause and wait for manual confirmation
@@ -2042,8 +2042,8 @@ export class DisasterRecoverySystem extends EventEmitter {
     for (const step of rollback.steps) {
       try {
         await this.executeRecoveryStep(step);
-      } catch (error) {
-        console.log(`Rollback step failed: ${error.message}`);
+      } catch (error: unknown) {
+        console.log(`Rollback step failed: ${(error as Error).message}`);
         // Continue with other rollback steps
       }
     }

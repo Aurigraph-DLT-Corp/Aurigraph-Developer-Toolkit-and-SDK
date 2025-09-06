@@ -1,9 +1,14 @@
 # Variables for Aurigraph DLT Infrastructure
 
 variable "environment" {
-  description = "Environment name (dev, test, prod)"
+  description = "Environment name (dev4, test, staging, prod)"
   type        = string
-  default     = "dev"
+  default     = "dev4"
+  
+  validation {
+    condition     = contains(["dev4", "test", "staging", "prod"], var.environment)
+    error_message = "Environment must be one of: dev4, test, staging, prod"
+  }
 }
 
 variable "validator_count" {

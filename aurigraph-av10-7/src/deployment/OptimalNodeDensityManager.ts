@@ -208,7 +208,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
         densityMetrics: this.densityMetrics
       });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to initialize Optimal Node Density Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -257,7 +257,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
       this.logger.info(`   Disk: ${diskSpaceGB.toFixed(2)}GB total, ${availableDiskGB.toFixed(2)}GB available (${(diskUtilization * 100).toFixed(1)}% used)`);
       
       return this.systemResources;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to detect system resources: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -427,7 +427,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
       
       return success;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Scaling failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
       
@@ -449,7 +449,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
           successCount++;
           this.logger.info(`✅ Node ${nodeInstance.id} created successfully`);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Failed to create node ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
@@ -477,7 +477,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
           successCount++;
           this.logger.info(`✅ Node ${nodeToRemove.id} terminated successfully`);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Failed to terminate node ${nodes[i].id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
@@ -540,7 +540,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
         return null;
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to create node ${nodeId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
     }
@@ -575,7 +575,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
         return false;
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to terminate node ${nodeId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -605,7 +605,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
         await this.restartNode(node.id);
         optimized++;
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Failed to restart node ${node.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
@@ -710,7 +710,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
           });
         });
       });
-    } catch (error) {
+    } catch (error: unknown) {
       return { diskSpaceGB: 100, availableDiskGB: 50 };
     }
   }
@@ -732,7 +732,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
           };
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Not in a container or limits not available
     }
     
@@ -803,7 +803,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
       }
       
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to launch node ${node.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -832,7 +832,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
         return false;
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Shutdown failed for node ${node.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -935,7 +935,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
           nodeCount: this.nodes.size
         });
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Resource monitoring error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, 15000); // Every 15 seconds
@@ -983,7 +983,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
           totalNodes: nodes.length
         });
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Health check error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, this.config.healthChecks.intervalMs);
@@ -1109,7 +1109,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
         // Wait before next check
         await new Promise(resolve => setTimeout(resolve, checkInterval));
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.debug(`Health check attempt failed for ${node.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
@@ -1145,7 +1145,7 @@ export class OptimalNodeDensityManager extends EventEmitter {
       }
       
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       return false;
     }
   }

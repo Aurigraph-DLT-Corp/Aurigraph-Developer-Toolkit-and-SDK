@@ -14,6 +14,7 @@ import io.aurigraph.basicnode.service.APIGatewayConnector;
 import io.aurigraph.basicnode.service.ResourceMonitor;
 import io.aurigraph.basicnode.compliance.AV1017ComplianceManager;
 import io.aurigraph.basicnode.compliance.PerformanceMonitor;
+import io.aurigraph.basicnode.compliance.AV1017ValidationService;
 import java.util.logging.Logger;
 
 /**
@@ -65,6 +66,9 @@ public class BasicNodeApplication {
         @Inject
         PerformanceMonitor performanceMonitor;
         
+        @Inject
+        AV1017ValidationService validationService;
+        
         void onStart(@Observes StartupEvent ev) {
             logger.info("🔧 Initializing AV10-17 compliance framework...");
             
@@ -84,6 +88,19 @@ public class BasicNodeApplication {
                 var report = complianceManager.generateComplianceReport();
                 logger.severe("Compliance Score: " + String.format("%.2f", report.complianceScore) + "% (Required: 95%+)");
             }
+            
+            // Trigger comprehensive validation asynchronously
+            validationService.performFullValidation()
+                .thenAccept(validationReport -> {
+                    logger.info("🔍 Comprehensive AV10-17 validation completed: " + validationReport.toString());
+                    if (validationReport.criticalFailures != null && !validationReport.criticalFailures.isEmpty()) {
+                        logger.severe("❌ Critical AV10-17 failures: " + validationReport.criticalFailures);
+                    }
+                })
+                .exceptionally(throwable -> {
+                    logger.severe("❌ Comprehensive validation failed: " + throwable.getMessage());
+                    return null;
+                });
             
             logger.info("🎯 AV10-17 node initialization completed");
         }

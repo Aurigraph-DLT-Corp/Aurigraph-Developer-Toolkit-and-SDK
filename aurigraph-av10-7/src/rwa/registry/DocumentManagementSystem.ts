@@ -409,12 +409,12 @@ export class DocumentManagementSystem extends EventEmitter {
       });
 
       worker.on('error', (error) => {
-        this.emit('workerError', { workerId, error: error.message });
+        this.emit('workerError', { workerId, error: (error as Error).message });
       });
 
       this.ocrWorkers.set(workerId, worker);
-    } catch (error) {
-      this.emit('workerCreationError', { workerId, type: 'OCR', error: error.message });
+    } catch (error: unknown) {
+      this.emit('workerCreationError', { workerId, type: 'OCR', error: (error as Error).message });
     }
   }
 
@@ -429,8 +429,8 @@ export class DocumentManagementSystem extends EventEmitter {
       });
 
       this.backupWorkers.set(workerId, worker);
-    } catch (error) {
-      this.emit('workerCreationError', { workerId, type: 'BACKUP', error: error.message });
+    } catch (error: unknown) {
+      this.emit('workerCreationError', { workerId, type: 'BACKUP', error: (error as Error).message });
     }
   }
 
@@ -445,8 +445,8 @@ export class DocumentManagementSystem extends EventEmitter {
       });
 
       this.searchWorkers.set(workerId, worker);
-    } catch (error) {
-      this.emit('workerCreationError', { workerId, type: 'SEARCH', error: error.message });
+    } catch (error: unknown) {
+      this.emit('workerCreationError', { workerId, type: 'SEARCH', error: (error as Error).message });
     }
   }
 
@@ -652,11 +652,11 @@ export class DocumentManagementSystem extends EventEmitter {
 
       return documentId;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logAccess(userId, 'DOCUMENT_STORE_FAILED', { 
         documentId, 
         filename, 
-        error: error.message 
+        error: (error as Error).message 
       });
       throw error;
     }
@@ -728,10 +728,10 @@ export class DocumentManagementSystem extends EventEmitter {
 
       return { buffer, document };
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logAccess(userId, 'DOCUMENT_RETRIEVAL_FAILED', { 
         documentId, 
-        error: error.message 
+        error: (error as Error).message 
       });
       throw error;
     }
@@ -844,8 +844,8 @@ export class DocumentManagementSystem extends EventEmitter {
 
       return document.versions[0].version;
 
-    } catch (error) {
-      this.logAccess(userId, 'DOCUMENT_UPDATE_FAILED', { documentId, error: error.message });
+    } catch (error: unknown) {
+      this.logAccess(userId, 'DOCUMENT_UPDATE_FAILED', { documentId, error: (error as Error).message });
       throw error;
     }
   }
@@ -903,8 +903,8 @@ export class DocumentManagementSystem extends EventEmitter {
       this.metrics.totalDocuments--;
       this.metrics.totalSize -= document.size;
 
-    } catch (error) {
-      this.logAccess(userId, 'DOCUMENT_DELETE_FAILED', { documentId, error: error.message });
+    } catch (error: unknown) {
+      this.logAccess(userId, 'DOCUMENT_DELETE_FAILED', { documentId, error: (error as Error).message });
       throw error;
     }
   }
@@ -973,8 +973,8 @@ export class DocumentManagementSystem extends EventEmitter {
 
       return searchResult;
 
-    } catch (error) {
-      this.logAccess(userId, 'SEARCH_FAILED', { query, error: error.message });
+    } catch (error: unknown) {
+      this.logAccess(userId, 'SEARCH_FAILED', { query, error: (error as Error).message });
       throw error;
     }
   }
@@ -1432,11 +1432,11 @@ export class DocumentManagementSystem extends EventEmitter {
         if (!isHealthy) {
           this.emit('storageBackendUnhealthy', { backendId: id });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         backend.available = false;
         backend.healthScore = 0;
         backend.lastHealthCheck = new Date();
-        this.emit('storageBackendError', { backendId: id, error: error.message });
+        this.emit('storageBackendError', { backendId: id, error: (error as Error).message });
       }
     }
   }

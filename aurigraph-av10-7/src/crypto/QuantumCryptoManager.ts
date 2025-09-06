@@ -86,7 +86,7 @@ export class QuantumCryptoManager {
   async generateChannelKey(): Promise<Buffer> {
     try {
       return crypto.randomBytes(32); // 256-bit quantum-safe key
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate channel key:', error);
       throw error;
     }
@@ -95,7 +95,7 @@ export class QuantumCryptoManager {
   async generateEncryptionKey(): Promise<Buffer> {
     try {
       return crypto.randomBytes(32); // 256-bit encryption key
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate encryption key:', error);
       throw error;
     }
@@ -110,7 +110,7 @@ export class QuantumCryptoManager {
       encrypted = Buffer.concat([encrypted, cipher.final()]);
       
       return Buffer.concat([iv, encrypted]);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to encrypt with channel key:', error);
       throw error;
     }
@@ -127,7 +127,7 @@ export class QuantumCryptoManager {
       decrypted = Buffer.concat([decrypted, decipher.final()]);
       
       return decrypted;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to decrypt with channel key:', error);
       throw error;
     }
@@ -208,7 +208,7 @@ export class QuantumCryptoManager {
       verify.end();
       
       return verify.verify(key, signature, 'hex');
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Signature verification failed:', error);
       return false;
     }

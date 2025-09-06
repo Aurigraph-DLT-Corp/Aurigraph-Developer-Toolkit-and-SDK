@@ -800,9 +800,9 @@ export class CrossJurisdictionEngine extends EventEmitter {
       
       return true;
       
-    } catch (error) {
+    } catch (error: unknown) {
       report.status = 'REJECTED';
-      this.emit('reportRejected', { reportId, error: error.message });
+      this.emit('reportRejected', { reportId, error: (error as Error).message });
       return false;
     }
   }
@@ -832,7 +832,7 @@ export class CrossJurisdictionEngine extends EventEmitter {
         if (reportRule.automation && this.isReportDue(reportRule)) {
           try {
             await this.generateAutomatedReport(jurisdiction, reportRule.reportType);
-          } catch (error) {
+          } catch (error: unknown) {
             this.emit('automatedReportingError', { jurisdiction, reportType: reportRule.reportType, error });
           }
         }

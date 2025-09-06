@@ -106,7 +106,7 @@ export class MCPServer {
                 const response = await this.mcpInterface.processRequest(mcpRequest);
                 
                 res.status(response.error ? 400 : 200).json(response);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -148,7 +148,7 @@ export class MCPServer {
                     timestamp: Date.now(),
                     batchSize: requests.length
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -173,7 +173,7 @@ export class MCPServer {
                 const clientId = req.params.clientId;
                 const statistics = await this.mcpInterface.getClientStatistics(clientId);
                 res.json(statistics);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(404).json({
                     error: {
                         code: 404,
@@ -188,7 +188,7 @@ export class MCPServer {
             try {
                 const metrics = await this.reportingEngine.getDashboardMetrics();
                 res.json(metrics);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -252,7 +252,7 @@ export class MCPServer {
                     publicKey: registration.publicKey,
                     status: 'REGISTERED'
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(400).json({
                     error: {
                         code: 400,

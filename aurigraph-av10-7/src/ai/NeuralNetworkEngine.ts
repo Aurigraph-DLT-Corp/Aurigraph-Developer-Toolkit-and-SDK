@@ -169,7 +169,7 @@ export class NeuralNetworkEngine extends EventEmitter {
             // In a real implementation, this would initialize WebGL for GPU compute
             this.logger.info('🖥️ GPU compute context initialized (simulated)');
             return undefined; // Simplified for this implementation
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to initialize WebGL, falling back to CPU:', error);
             return undefined;
         }
@@ -397,7 +397,7 @@ export class NeuralNetworkEngine extends EventEmitter {
             
             return history;
             
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error(`Training failed for network ${networkId}:`, error);
             this.emit('training-failed', { networkId, error });
             throw error;
@@ -935,13 +935,14 @@ export class NeuralNetworkEngine extends EventEmitter {
         const epsilon = 1e-8;
         
         // Initialize momentum and velocity if not exists
-        if (!layer.gradients!.weights['momentum']) {
-            (layer.gradients!.weights as any).momentum = new Float32Array(layer.weights.length);
-            (layer.gradients!.weights as any).velocity = new Float32Array(layer.weights.length);
+        const gradientsWithExtras = layer.gradients!.weights as any;
+        if (!gradientsWithExtras.momentum) {
+            gradientsWithExtras.momentum = new Float32Array(layer.weights.length);
+            gradientsWithExtras.velocity = new Float32Array(layer.weights.length);
         }
         
-        const momentum = (layer.gradients!.weights as any).momentum;
-        const velocity = (layer.gradients!.weights as any).velocity;
+        const momentum = gradientsWithExtras.momentum as Float32Array;
+        const velocity = gradientsWithExtras.velocity as Float32Array;
         
         for (let i = 0; i < layer.weights.length; i++) {
             const gradient = layer.gradients!.weights[i];
@@ -966,11 +967,12 @@ export class NeuralNetworkEngine extends EventEmitter {
         const decay = 0.9;
         const epsilon = 1e-8;
         
-        if (!layer.gradients!.weights['rms']) {
-            (layer.gradients!.weights as any).rms = new Float32Array(layer.weights.length);
+        const gradientsWithRms = layer.gradients!.weights as any;
+        if (!gradientsWithRms.rms) {
+            gradientsWithRms.rms = new Float32Array(layer.weights.length);
         }
         
-        const rms = (layer.gradients!.weights as any).rms;
+        const rms = gradientsWithRms.rms as Float32Array;
         
         for (let i = 0; i < layer.weights.length; i++) {
             const gradient = layer.gradients!.weights[i];
@@ -1076,9 +1078,9 @@ export class NeuralNetworkEngine extends EventEmitter {
             confidence,
             uncertainty,
             quantumProbabilities: network.quantumEnhanced ? this.calculateQuantumProbabilities(avgPrediction) : undefined,
-            metadata: new Map([
+            metadata: new Map<string, string>([
                 ['networkId', networkId],
-                ['inputCount', inputs.length],
+                ['inputCount', inputs.length.toString()],
                 ['timestamp', new Date().toISOString()]
             ])
         };
@@ -1188,7 +1190,7 @@ export class NeuralNetworkEngine extends EventEmitter {
         
         // Verify quantum signature if available
         if (modelData.quantumSignature && this.quantumCrypto) {
-            const isValid = await this.quantumCrypto.verify(modelData.checksum, modelData.quantumSignature);
+            const isValid = await this.quantumCrypto.verify(modelData.checksum, modelData.quantumSignature, 'default-public-key');
             if (!isValid) {
                 throw new Error('Quantum signature verification failed');
             }

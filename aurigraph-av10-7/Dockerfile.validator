@@ -1,92 +1,20 @@
 FROM node:20-alpine
 
-# Install Java 24 for NTRU backend
-RUN apk add --no-cache openjdk21
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
-
 # Install dependencies
+COPY package*.json ./
 RUN npm ci --only=production
 
 # Copy source code
-COPY src/ ./src/
-COPY config/ ./config/
+COPY tsconfig.json ./
+COPY src ./src
 
-# Build the application
+# Build TypeScript
 RUN npm run build
 
-# Create startup script for validators
-RUN echo '#!/bin/sh' > /app/start-validators.sh && \
-    echo 'echo "🚀 Starting 5 Validator Nodes in TEST Channel..."' >> /app/start-validators.sh && \
-    echo 'echo "Channel: $CHANNEL_NAME"' >> /app/start-validators.sh && \
-    echo 'echo "Network: $NETWORK_ID"' >> /app/start-validators.sh && \
-    echo 'echo "Consensus: $CONSENSUS_TYPE"' >> /app/start-validators.sh && \
-    echo 'echo ""' >> /app/start-validators.sh && \
-    echo '' >> /app/start-validators.sh && \
-    echo '# Start 5 validator processes' >> /app/start-validators.sh && \
-    echo 'for i in $(seq 1 5); do' >> /app/start-validators.sh && \
-    echo '  port=$((8080 + i))' >> /app/start-validators.sh && \
-    echo '  p2p_port=$((30000 + i))' >> /app/start-validators.sh && \
-    echo '  echo "Starting Validator VAL-00$i on port $port..."' >> /app/start-validators.sh && \
-    echo '  NODE_ID="VAL-00$i" \' >> /app/start-validators.sh && \
-    echo '  NODE_TYPE="VALIDATOR" \' >> /app/start-validators.sh && \
-    echo '  API_PORT="$port" \' >> /app/start-validators.sh && \
-    echo '  P2P_PORT="$p2p_port" \' >> /app/start-validators.sh && \
-    echo '  VALIDATOR_INDEX="$i" \' >> /app/start-validators.sh && \
-    echo '  node dist/nodes/validator-node.js &' >> /app/start-validators.sh && \
-    echo 'done' >> /app/start-validators.sh && \
-    echo '' >> /app/start-validators.sh && \
-    echo 'echo ""' >> /app/start-validators.sh && \
-    echo 'echo "✅ All 5 validators started successfully!"' >> /app/start-validators.sh && \
-    echo 'echo "🔗 Validator APIs: ports 8081-8085"' >> /app/start-validators.sh && \
-    echo 'echo "📡 P2P Network: ports 30001-30005"' >> /app/start-validators.sh && \
-    echo 'echo "🔐 Quantum Security: Level $QUANTUM_SECURITY_LEVEL"' >> /app/start-validators.sh && \
-    echo 'echo "🎯 Target TPS: $TPS_TARGET"' >> /app/start-validators.sh && \
-    echo 'echo ""' >> /app/start-validators.sh && \
-    echo 'wait' >> /app/start-validators.sh && \
-    chmod +x /app/start-validators.sh
+# Expose port
+EXPOSE 8181
 
-# Create validator node entry point
-RUN echo 'import { EnhancedDLTNode } from "../nodes/EnhancedDLTNode";' > /app/dist/nodes/validator-node.js && \
-    echo 'import { QuantumCryptoManagerV2 } from "../crypto/QuantumCryptoManagerV2";' >> /app/dist/nodes/validator-node.js && \
-    echo 'import { HyperRAFTPlusPlusV2 } from "../consensus/HyperRAFTPlusPlusV2";' >> /app/dist/nodes/validator-node.js && \
-    echo 'import { Logger } from "../core/Logger";' >> /app/dist/nodes/validator-node.js && \
-    echo '' >> /app/dist/nodes/validator-node.js && \
-    echo 'async function startValidator() {' >> /app/dist/nodes/validator-node.js && \
-    echo '  const logger = new Logger(`Validator-${process.env.NODE_ID}`);' >> /app/dist/nodes/validator-node.js && \
-    echo '  logger.info(`🔥 Starting ${process.env.NODE_ID} in ${process.env.CHANNEL_NAME} channel`);' >> /app/dist/nodes/validator-node.js && \
-    echo '' >> /app/dist/nodes/validator-node.js && \
-    echo '  const quantumCrypto = new QuantumCryptoManagerV2();' >> /app/dist/nodes/validator-node.js && \
-    echo '  await quantumCrypto.initialize();' >> /app/dist/nodes/validator-node.js && \
-    echo '' >> /app/dist/nodes/validator-node.js && \
-    echo '  const consensus = new HyperRAFTPlusPlusV2();' >> /app/dist/nodes/validator-node.js && \
-    echo '  await consensus.initialize();' >> /app/dist/nodes/validator-node.js && \
-    echo '' >> /app/dist/nodes/validator-node.js && \
-    echo '  const config = {' >> /app/dist/nodes/validator-node.js && \
-    echo '    nodeId: process.env.NODE_ID,' >> /app/dist/nodes/validator-node.js && \
-    echo '    nodeType: "VALIDATOR",' >> /app/dist/nodes/validator-node.js && \
-    echo '    networkId: process.env.NETWORK_ID,' >> /app/dist/nodes/validator-node.js && \
-    echo '    port: parseInt(process.env.API_PORT),' >> /app/dist/nodes/validator-node.js && \
-    echo '    p2pPort: parseInt(process.env.P2P_PORT),' >> /app/dist/nodes/validator-node.js && \
-    echo '    channelName: process.env.CHANNEL_NAME,' >> /app/dist/nodes/validator-node.js && \
-    echo '    quantumSecurity: true,' >> /app/dist/nodes/validator-node.js && \
-    echo '    enableSharding: true,' >> /app/dist/nodes/validator-node.js && \
-    echo '    consensusRole: process.env.VALIDATOR_INDEX === "1" ? "LEADER" : "FOLLOWER"' >> /app/dist/nodes/validator-node.js && \
-    echo '  };' >> /app/dist/nodes/validator-node.js && \
-    echo '' >> /app/dist/nodes/validator-node.js && \
-    echo '  const node = new EnhancedDLTNode(config, quantumCrypto, consensus);' >> /app/dist/nodes/validator-node.js && \
-    echo '  await node.initialize();' >> /app/dist/nodes/validator-node.js && \
-    echo '' >> /app/dist/nodes/validator-node.js && \
-    echo '  logger.info(`✅ Validator ${process.env.NODE_ID} ready in TEST channel`);' >> /app/dist/nodes/validator-node.js && \
-    echo '}' >> /app/dist/nodes/validator-node.js && \
-    echo '' >> /app/dist/nodes/validator-node.js && \
-    echo 'startValidator().catch(console.error);' >> /app/dist/nodes/validator-node.js
-
-EXPOSE 8081-8085 30001-30005
-
-CMD ["/app/start-validators.sh"]
+# Run validator
+CMD ["node", "dist/consensus/ValidatorNode.js"]

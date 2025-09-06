@@ -72,7 +72,7 @@ export class FractionalTokenizer extends EventEmitter {
       throw new Error('Asset is already tokenized');
     }
 
-    const tokenId = this.generateTokenId(asset);
+    const tokenId = await this.generateTokenId(asset);
     const shareValue = asset.valuation.currentValue / request.totalShares;
 
     const token: FractionalToken = {
@@ -313,17 +313,17 @@ export class FractionalTokenizer extends EventEmitter {
     };
   }
 
-  private generateTokenId(asset: Asset): string {
+  private async generateTokenId(asset: Asset): Promise<string> {
     const typePrefix = asset.type.substring(0, 3);
     const timestamp = Date.now();
-    const hash = this.cryptoManager.hashData(asset.id);
+    const hash = await this.cryptoManager.hashData(asset.id);
     return `FT-${typePrefix}-${timestamp}-${hash.substring(0, 8)}`;
   }
 
   private async deploySmartContract(token: FractionalToken): Promise<string> {
     // Simulate smart contract deployment
     const contractCode = this.generateContractCode(token);
-    const hash = this.cryptoManager.hashData(contractCode);
+    const hash = await this.cryptoManager.hashData(contractCode);
     return `0xAV10${hash.substring(0, 32)}`;
   }
 

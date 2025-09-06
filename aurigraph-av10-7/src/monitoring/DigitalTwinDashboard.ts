@@ -320,7 +320,7 @@ export class DigitalTwinDashboard {
       try {
         const dashboard = await this.createCustomDashboard(assetId, config);
         res.json(dashboard);
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ 
           error: error instanceof Error ? error.message : 'Unknown error' 
         });
@@ -2457,7 +2457,7 @@ export class DigitalTwinDashboard {
       if (client.readyState === WebSocket.OPEN) {
         try {
           client.send(messageStr);
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error('Failed to send message to client:', error);
           this.clients.delete(client);
         }

@@ -255,9 +255,9 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       this.logger.info(`📊 Models loaded: Asset(${this.assetValuationModels.size}) Market(${this.marketTrendModels.size}) Risk(${this.riskAssessmentModels.size})`);
       this.logger.info(`⚡ Target latency: ${this.config.predictionLatency}ms, Accuracy: ${this.config.accuracy * 100}%`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize Predictive Analytics Engine:', error);
-      throw new Error(`Analytics engine initialization failed: ${error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error)}`);
+      throw new Error(`Analytics engine initialization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -317,7 +317,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Asset valuation prediction failed:', error);
       throw new Error(`Asset valuation prediction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -383,7 +383,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Market trend analysis failed:', error);
       throw new Error(`Market trend analysis failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -449,7 +449,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         sharpeRatio,
         sortino,
         beta,
-        valueAtRisk,
+        var: valueAtRisk,
         expectedShortfall,
         recommendations
       };
@@ -461,7 +461,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Risk assessment failed:', error);
       throw new Error(`Risk assessment failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -488,7 +488,8 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       // Prepare time series data
       const sequences = this.createSequences(historicalData, 24);
-      const inputTensor = tf.tensor3d([sequences[sequences.length - 1]]);
+      const lastSequence = sequences[sequences.length - 1];
+      const inputTensor = tf.tensor2d([lastSequence]);
       
       // Make forecast
       const forecast = model.predict(inputTensor) as tf.Tensor;
@@ -529,7 +530,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return result;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Performance forecasting failed:', error);
       throw new Error(`Performance forecasting failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -605,7 +606,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return anomalies;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Anomaly detection failed:', error);
       throw new Error(`Anomaly detection failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -650,7 +651,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
           predictions.push(prediction);
           weights.push(weight);
           
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.warn(`Model ${modelType} failed: ${error instanceof Error ? error.message : String(error)}`);
           // Continue with other models
         }
@@ -674,7 +675,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return ensembleResult;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Ensemble prediction failed:', error);
       throw new Error(`Ensemble prediction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -698,7 +699,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         await this.processBatch();
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Real-time stream processing failed:', error);
       this.metrics.errorRate++;
     }
@@ -730,7 +731,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       this.logger.info(`✅ Model ${modelId} updated successfully`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Model update failed for ${modelId}:`, error);
       throw error;
     }
@@ -1054,7 +1055,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         const result = await this.processRealTimeItem(item);
         this.metrics.concurrentRequests--;
         return result;
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error('Batch item processing failed:', error);
         this.metrics.errorRate++;
         this.metrics.concurrentRequests--;
@@ -1142,7 +1143,8 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
 
   private async calculateVolatility(assetClass: string, features: Record<string, number>): Promise<number> {
     // Simplified volatility calculation
-    const historicalPrices = features.historicalPrices || [features.currentValue];
+    const historicalPrices = Array.isArray(features.historicalPrices) ? 
+                            features.historicalPrices : [features.currentValue];
     if (historicalPrices.length < 2) return 0.1; // Default volatility
     
     const returns = [];
@@ -1221,7 +1223,15 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
 
   private calculateMarketVolatility(historicalData: number[][]): number {
     const prices = historicalData.map(d => d[0]);
-    return this.calculateVolatility('general', { currentValue: prices[prices.length - 1], historicalPrices: prices });
+    // Synchronous volatility calculation
+    if (prices.length < 2) return 0.1;
+    const returns = [];
+    for (let i = 1; i < prices.length; i++) {
+      returns.push((prices[i] - prices[i-1]) / prices[i-1]);
+    }
+    const mean = returns.reduce((a, b) => a + b) / returns.length;
+    const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2)) / returns.length;
+    return Math.sqrt(variance);
   }
 
   private calculateAverageVolume(historicalData: number[][]): number {
@@ -1392,7 +1402,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
   }
 
   private identifyPerformanceFactors(metric: string): string[] {
-    const factors = {
+    const factors: Record<string, string[]> = {
       'throughput': ['concurrent_users', 'database_load', 'cache_hit_rate', 'network_latency'],
       'latency': ['cpu_usage', 'memory_usage', 'disk_io', 'network_io'],
       'error_rate': ['code_quality', 'input_validation', 'external_dependencies', 'resource_limits'],
@@ -1414,7 +1424,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
     if (predicted > current * 1.2) { // 20% increase predicted
       if (metric === 'throughput') {
         recommendations.push({
-          type: 'scaling',
+          type: 'scaling' as const,
           priority: 0.9,
           impact: 0.8,
           effort: 0.6,
@@ -1425,7 +1435,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       if (metric === 'latency') {
         recommendations.push({
-          type: 'caching',
+          type: 'caching' as const,
           priority: 0.8,
           impact: 0.7,
           effort: 0.4,
@@ -1644,7 +1654,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       'art': ['artist_reputation', 'historical_performance', 'provenance', 'condition']
     };
     
-    return [...baseFeatures, ...(specificFeatures[assetClass] || [])];
+    return [...baseFeatures, ...((specificFeatures as Record<string, string[]>)[assetClass] || [])];
   }
 
   // Methods required by the integration layer
@@ -1716,42 +1726,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
     return assessment;
   }
 
-  async forecastPerformance(entityId: string, entityType: string, metrics: string[], horizon: number): Promise<any> {
-    const forecast = {
-      entityId,
-      entityType,
-      horizon,
-      projections: metrics.reduce((proj, metric) => {
-        proj[metric] = {
-          current: Math.random() * 100,
-          forecast: Math.random() * 120,
-          trend: ['INCREASING', 'DECREASING', 'STABLE'][Math.floor(Math.random() * 3)]
-        };
-        return proj;
-      }, {}),
-      confidence: 0.82,
-      optimistic: Math.random() * 150,
-      realistic: Math.random() * 120,
-      pessimistic: Math.random() * 80,
-      timestamp: Date.now()
-    };
-    
-    return forecast;
-  }
-
-  async detectAnomalies(dataStream: any[], thresholds: any, sensitivity: string): Promise<any[]> {
-    const anomalies = dataStream.filter(() => Math.random() < 0.1) // 10% chance
-      .map((data, index) => ({
-        timestamp: Date.now() - index * 1000,
-        severity: ['LOW', 'MEDIUM', 'HIGH'][Math.floor(Math.random() * 3)],
-        confidence: Math.random() * 0.3 + 0.7,
-        description: 'Unusual pattern detected in data stream',
-        affectedMetrics: ['price', 'volume', 'volatility'].slice(0, Math.floor(Math.random() * 3) + 1),
-        data
-      }));
-    
-    return anomalies;
-  }
+  // Duplicate methods removed - using implementations above
 
   async initializeAssetModels(assetId: string, assetType: string, metadata: any): Promise<void> {
     // Initialize prediction models for new asset
@@ -1766,7 +1741,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       metadata
     };
     
-    this.assetValuationModels.set(assetType, model);
+    this.assetValuationModels.set(assetType, model as any);
     this.logger.info(`Initialized prediction models for asset ${assetId} (${assetType})`);
   }
 

@@ -147,7 +147,7 @@ export class AV18Node extends EventEmitter {
       
       this.logger.info('AV10-18 Node initialized successfully');
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to initialize AV10-18 Node:', error);
       throw error;
     }
@@ -689,7 +689,7 @@ export class AV18Node extends EventEmitter {
         timestamp: Date.now()
       });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to start AV10-18 Node:', error);
       throw error;
     }

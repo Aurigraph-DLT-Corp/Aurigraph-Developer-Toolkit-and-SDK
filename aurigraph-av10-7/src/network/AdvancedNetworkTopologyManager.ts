@@ -312,7 +312,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
         optimizationScore: this.topology.optimizationScore
       });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to initialize Advanced Network Topology Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -370,7 +370,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
       
       return nodeId;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to add node ${nodeId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -430,7 +430,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
       
       return true;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to remove node ${nodeId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -527,7 +527,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
       
       return true;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to establish connection: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -609,7 +609,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
       
       return true;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Network topology optimization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
       
@@ -820,7 +820,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
           address: '127.0.0.1',
           capabilities: this.getDefaultCapabilities()
         });
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Failed to add initial node: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
@@ -1708,7 +1708,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
           totalNodes: nodes.length
         });
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Health monitoring error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, this.config.monitoring.healthCheckInterval);
@@ -1743,7 +1743,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
           await this.detectPerformanceAnomalies();
         }
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Metrics collection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, this.config.monitoring.metricsCollectionInterval);
@@ -1795,7 +1795,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
         
         this.logger.debug(`🗺️ Routing tables updated for ${this.routingTables.size} nodes`);
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Routing update error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, this.config.routing.updateInterval);
@@ -1815,7 +1815,7 @@ export class AdvancedNetworkTopologyManager extends EventEmitter {
           }
         }
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Auto-optimization error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, this.config.optimizationInterval);

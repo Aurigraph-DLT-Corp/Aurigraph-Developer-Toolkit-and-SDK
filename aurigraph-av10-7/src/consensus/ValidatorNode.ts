@@ -74,7 +74,7 @@ export class ValidatorNode extends EventEmitter {
       
       this.logger.info(`✅ Validator ${this.nodeId} initialized with stake: ${this.stake} AV10`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to initialize validator node:', error);
       throw error;
     }
@@ -120,7 +120,7 @@ export class ValidatorNode extends EventEmitter {
       this.logger.debug(`Processed channel transaction ${transaction.id} in channel ${transaction.channelId}`);
       return true;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to process channel transaction ${transaction.id}:`, error);
       return false;
     }
@@ -233,7 +233,7 @@ export class ValidatorNode extends EventEmitter {
 
       this.emit('consensus-commit', { round, latency });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to commit round ${round.roundId}:`, error);
       this.consensusState = 'idle';
       throw error;
@@ -290,7 +290,7 @@ export class ValidatorNode extends EventEmitter {
                 await this.commitRound(this.currentRound);
               }
             }, 200 + Math.random() * 300); // 200-500ms consensus time
-          } catch (error) {
+          } catch (error: unknown) {
             this.logger.error('Consensus round failed:', error);
             this.consensusState = 'idle';
           }

@@ -278,9 +278,9 @@ export class MetricsCollector extends EventEmitter {
       this.logger.info(`🔍 Drift detection: ${this.config.driftDetection.enabled ? 'enabled' : 'disabled'}`);
       this.logger.info(`🚨 Alerting: ${this.config.alerting.enabled ? 'enabled' : 'disabled'}`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to start Metrics Collector:', error);
-      throw new Error(`Metrics collector startup failed: ${error.message}`);
+      throw new Error(`Metrics collector startup failed: ${(error as Error).message}`);
     }
   }
 
@@ -332,7 +332,7 @@ export class MetricsCollector extends EventEmitter {
       // Emit metric collected event
       this.emit('metric_collected', { name, value, modelId, metadata });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Error collecting metric ${name}:`, error);
     }
   }
@@ -364,7 +364,7 @@ export class MetricsCollector extends EventEmitter {
       
       this.emit('performance_metrics_collected', performanceMetric);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Error collecting performance metrics for ${modelId}:`, error);
     }
   }
@@ -437,7 +437,7 @@ export class MetricsCollector extends EventEmitter {
         });
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Error monitoring feature ${featureName} for ${modelId}:`, error);
     }
   }
@@ -516,9 +516,9 @@ export class MetricsCollector extends EventEmitter {
       
       return driftAnalysis;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Drift analysis failed for model ${modelId}:`, error);
-      return this.createErrorDriftAnalysis(modelId, error.message);
+      return this.createErrorDriftAnalysis(modelId, (error as Error).message);
     }
   }
 
@@ -590,7 +590,7 @@ export class MetricsCollector extends EventEmitter {
       
       return healthScore;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Error calculating health score for ${modelId}:`, error);
       return this.createDefaultHealthScore(modelId);
     }
@@ -626,7 +626,7 @@ export class MetricsCollector extends EventEmitter {
           this.collectionStats.alertsTriggered++;
         }
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Error evaluating alert rule ${rule.name}:`, error);
       }
     }
@@ -651,7 +651,7 @@ export class MetricsCollector extends EventEmitter {
     for (const action of rule.actions) {
       try {
         await this.executeAlertAction(action, alert);
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Error executing alert action ${action.type}:`, error);
       }
     }
@@ -806,7 +806,7 @@ export class MetricsCollector extends EventEmitter {
       for (const modelId of this.modelHealthScores.keys()) {
         try {
           await this.analyzeDrift(modelId);
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error(`❌ Drift detection failed for ${modelId}:`, error);
         }
       }
@@ -822,7 +822,7 @@ export class MetricsCollector extends EventEmitter {
       for (const modelId of modelIds) {
         try {
           await this.calculateModelHealthScore(modelId);
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error(`❌ Health score calculation failed for ${modelId}:`, error);
         }
       }
@@ -977,7 +977,7 @@ export class MetricsCollector extends EventEmitter {
         statisticalTests
       };
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Error calculating feature drift for ${featureName}:`, error);
       return this.createNoDriftAnalysis(featureName);
     }
@@ -1213,7 +1213,7 @@ export class MetricsCollector extends EventEmitter {
       if (driftScore <= 0.8) return 50;
       return 25;
       
-    } catch (error) {
+    } catch (error: unknown) {
       return 50; // Default score if drift analysis fails
     }
   }

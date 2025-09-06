@@ -140,7 +140,7 @@ export class YieldTokenizer extends EventEmitter {
       throw new Error('Yield token already exists for this asset');
     }
 
-    const tokenId = this.generateYieldTokenId(asset);
+    const tokenId = await this.generateYieldTokenId(asset);
 
     const yieldToken: YieldBearingToken = {
       tokenId,
@@ -222,7 +222,7 @@ export class YieldTokenizer extends EventEmitter {
     ];
 
     for (const poolConfig of pools) {
-      const poolId = this.generatePoolId(tokenId, poolConfig.name);
+      const poolId = await this.generatePoolId(tokenId, poolConfig.name);
       
       const pool: StakingPool = {
         poolId,
@@ -672,14 +672,14 @@ export class YieldTokenizer extends EventEmitter {
     };
   }
 
-  private generateYieldTokenId(asset: Asset): string {
+  private async generateYieldTokenId(asset: Asset): Promise<string> {
     const timestamp = Date.now();
-    const hash = this.cryptoManager.hashData(asset.id);
+    const hash = await this.cryptoManager.hashData(asset.id);
     return `YT-${timestamp}-${hash.substring(0, 8)}`;
   }
 
-  private generatePoolId(tokenId: string, name: string): string {
-    const hash = this.cryptoManager.hashData(`${tokenId}-${name}`);
+  private async generatePoolId(tokenId: string, name: string): Promise<string> {
+    const hash = await this.cryptoManager.hashData(`${tokenId}-${name}`);
     return `POOL-${hash.substring(0, 12)}`;
   }
 

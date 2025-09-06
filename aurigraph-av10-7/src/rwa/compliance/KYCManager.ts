@@ -554,7 +554,7 @@ export class KYCManager extends EventEmitter {
       try {
         const result = await this.performSanctionScreening(userId);
         results.set(userId, result);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`Bulk screening failed for user ${userId}:`, error);
       }
     }

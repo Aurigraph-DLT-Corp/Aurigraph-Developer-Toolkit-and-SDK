@@ -67,7 +67,7 @@ export class MCPRouter {
                 }
 
                 next();
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -93,7 +93,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -118,7 +118,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -143,7 +143,7 @@ export class MCPRouter {
                 });
 
                 res.status(201).json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -169,7 +169,7 @@ export class MCPRouter {
                 });
 
                 res.status(201).json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -194,7 +194,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -219,7 +219,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -245,7 +245,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -270,7 +270,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -296,7 +296,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -321,7 +321,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -347,7 +347,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -375,7 +375,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -401,7 +401,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -426,7 +426,7 @@ export class MCPRouter {
                 });
 
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,
@@ -450,7 +450,7 @@ export class MCPRouter {
                     url,
                     events
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(400).json({
                     error: {
                         code: 400,
@@ -469,7 +469,7 @@ export class MCPRouter {
                     webhookId: req.params.webhookId,
                     status: 'UNREGISTERED'
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(400).json({
                     error: {
                         code: 400,
@@ -518,7 +518,7 @@ export class MCPRouter {
                     batchSize: requests.length,
                     timestamp: Date.now()
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: {
                         code: 500,

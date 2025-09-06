@@ -122,7 +122,7 @@ async function startAV10DLTPlatform() {
       process.exit(0);
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Failed to start AV10-7 DLT Platform:', error);
     process.exit(1);
   }

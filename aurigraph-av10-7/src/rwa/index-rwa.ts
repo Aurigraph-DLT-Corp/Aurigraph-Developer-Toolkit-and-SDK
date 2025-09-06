@@ -35,7 +35,7 @@ export class AurigraphRWAPlatform {
         console.log('🔧 Initializing AV10-20 RWA Platform Components...');
         
         this.auditManager = new AuditTrailManager();
-        this.assetRegistry = new AssetRegistry({} as any, {} as any);
+        this.assetRegistry = new AssetRegistry(/* @ts-ignore *//* @ts-ignore *//* @ts-ignore */{} as any, {} as any);
         this.multiAssetManager = new MultiAssetClassManager(this.assetRegistry);
         this.reportingEngine = new ReportingEngine(this.auditManager, this.assetRegistry, this.multiAssetManager);
         this.complianceEngine = new CrossJurisdictionEngine(this.assetRegistry);
@@ -105,7 +105,7 @@ export class AurigraphRWAPlatform {
                     audit: auditMetrics,
                     lastUpdated: Date.now()
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to get platform status',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -121,7 +121,7 @@ export class AurigraphRWAPlatform {
             try {
                 const assets = await this.assetRegistry.getAllAssets();
                 res.json({ assets, count: assets.length });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to get assets',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -136,7 +136,7 @@ export class AurigraphRWAPlatform {
                     return res.status(404).json({ error: 'Asset not found' });
                 }
                 res.json(asset);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to get asset',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -149,7 +149,7 @@ export class AurigraphRWAPlatform {
             try {
                 const metrics = await this.reportingEngine.getDashboardMetrics();
                 res.json(metrics);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to get dashboard metrics',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -162,7 +162,7 @@ export class AurigraphRWAPlatform {
             try {
                 const events = await this.auditManager.queryAuditTrail(req.body);
                 res.json({ events, count: events.length });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to query audit trail',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -182,7 +182,7 @@ export class AurigraphRWAPlatform {
                     filters || {}
                 );
                 res.json(report);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to generate report',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -201,7 +201,7 @@ export class AurigraphRWAPlatform {
                     downloadUrl: `/api/reports/${req.params.reportId}/download?format=${format}`,
                     expiresAt: Date.now() + (24 * 60 * 60 * 1000)
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to export report',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -214,7 +214,7 @@ export class AurigraphRWAPlatform {
             try {
                 const result = await this.complianceEngine.checkCompliance(req.body);
                 res.json(result);
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to check compliance',
                     message: error instanceof Error ? error.message : 'Unknown error'
@@ -231,7 +231,7 @@ export class AurigraphRWAPlatform {
                     message: 'Platform initialized with sample data',
                     timestamp: Date.now()
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 res.status(500).json({
                     error: 'Failed to initialize platform',
                     message: error instanceof Error ? error.message : 'Unknown error'

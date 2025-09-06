@@ -423,7 +423,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
           tx.hash, tx.quantumSignature || '', tx.from || ''
         );
         results.push({ valid, type: 'signature' });
-      } catch (error) {
+      } catch (error: unknown) {
         results.push({ valid: false, type: 'signature', error });
       }
     }
@@ -457,7 +457,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
         }
         
         results.push({ valid, type: 'quantum' });
-      } catch (error) {
+      } catch (error: unknown) {
         results.push({ valid: false, type: 'quantum', error });
       }
     }
@@ -474,7 +474,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
           await this.zkProofSystem.verifyProof(tx.zkProof) : 
           true; // Allow transactions without ZK proofs
         results.push({ valid, type: 'zk' });
-      } catch (error) {
+      } catch (error: unknown) {
         results.push({ valid: false, type: 'zk', error });
       }
     }
@@ -498,7 +498,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
       this.state.quantumProofCount++;
       
       return quantumProof;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn('Quantum consensus proof generation failed:', error);
       return { type: 'fallback', error: (error as Error).message };
     }
@@ -581,7 +581,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
         compressionRatio: compressed.ratio,
         verificationTime: compressed.verificationTime
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         type: 'fallback-aggregated',
         count: proofs.length,
@@ -881,7 +881,7 @@ export class HyperRAFTPlusPlusV2 extends EventEmitter {
       }
       
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to submit transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }

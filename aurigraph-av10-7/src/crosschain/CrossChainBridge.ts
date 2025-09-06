@@ -12,7 +12,7 @@ const initWormholeSDK = async () => {
   try {
     WormholeSDK = await import('@wormhole-foundation/sdk');
     return WormholeSDK;
-  } catch (error) {
+  } catch (error: unknown) {
     return null;
   }
 };
@@ -117,7 +117,7 @@ export class CrossChainBridge extends EventEmitter {
       };
       
       this.logger.info('Successfully connected to Wormhole protocol');
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to initialize Wormhole:', error);
       this.wormholeEnabled = false;
     }
@@ -294,7 +294,7 @@ export class CrossChainBridge extends EventEmitter {
       try {
         await this.bridgeWithWormhole(tx);
         return tx;
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.warn('Wormhole bridge failed, falling back to native implementation:', error);
       }
     }
@@ -371,7 +371,7 @@ export class CrossChainBridge extends EventEmitter {
       this.emit('wormhole-bridge-completed', tx);
       this.logger.info(`Wormhole bridge transaction ${tx.id} completed`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       tx.status = 'failed';
       this.logger.error(`Wormhole bridge failed for transaction ${tx.id}:`, error);
       throw error;
@@ -496,7 +496,7 @@ export class CrossChainBridge extends EventEmitter {
         this.logger.info(`Bridge transaction ${tx.id} completed successfully`);
         return;
         
-      } catch (error) {
+      } catch (error: unknown) {
         attempt++;
         this.logger.warn(`Bridge transaction ${tx.id} attempt ${attempt} failed:`, error);
         
@@ -559,7 +559,7 @@ export class CrossChainBridge extends EventEmitter {
       try {
         await this.mintAssets(tx);
         return;
-      } catch (error) {
+      } catch (error: unknown) {
         mintAttempt++;
         if (mintAttempt >= maxMintAttempts) throw error;
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -753,7 +753,7 @@ export class CrossChainBridge extends EventEmitter {
         platforms: ['EVM', 'Solana', 'Cosmwasm', 'Sui', 'Aptos'],
         wormholeVersion: '3.x'
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         enabled: false,
         status: 'error',
@@ -778,7 +778,7 @@ export class CrossChainBridge extends EventEmitter {
       // Check if route is supported by Wormhole
       return this.wormhole.supportedChains.includes(sourceChainName) &&
              this.wormhole.supportedChains.includes(targetChainName);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(`Failed to check Wormhole route availability:`, error);
       return false;
     }

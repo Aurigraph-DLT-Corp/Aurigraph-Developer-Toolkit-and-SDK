@@ -67,7 +67,7 @@ async function deployLocally() {
           metrics: metrics,
           supportedChains: ['ethereum', 'polygon', 'bsc', 'avalanche', 'solana', 'near', 'cosmos', 'algorand']
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ error: 'Failed to get bridge status' });
       }
     });
@@ -91,7 +91,7 @@ async function deployLocally() {
           transaction: tx,
           message: 'Bridge transfer initiated'
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Bridge transfer failed'
@@ -162,7 +162,7 @@ async function deployLocally() {
       process.exit(0);
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Failed to deploy AV10-7 locally:', error);
     process.exit(1);
   }

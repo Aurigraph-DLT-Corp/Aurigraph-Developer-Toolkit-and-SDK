@@ -649,8 +649,8 @@ export class MultiAssetClassManager extends EventEmitter {
         default:
           return { passed: true, details: 'Rule condition not implemented' };
       }
-    } catch (error) {
-      return { passed: false, details: `Validation error: ${error.message}` };
+    } catch (error: unknown) {
+      return { passed: false, details: `Validation error: ${(error as Error).message}` };
     }
   }
 

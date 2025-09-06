@@ -136,7 +136,7 @@ export class ChannelManager {
 
       this.logger.info(`Channel created: ${config.id} (${config.name})`);
       return channel;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to create channel: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -169,7 +169,7 @@ export class ChannelManager {
 
       this.logger.info(`Channel deleted: ${channelId}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to delete channel: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -220,7 +220,7 @@ export class ChannelManager {
       this.validators.set(config.id, validator);
       this.logger.info(`Validator created: ${config.id} in channel ${channelId}`);
       return validator;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to create validator: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -299,7 +299,7 @@ export class ChannelManager {
 
       this.logger.info(`Validator started: ${validatorId}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to start validator: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -321,7 +321,7 @@ export class ChannelManager {
       validator.status = 'stopped';
       this.logger.info(`Validator stopped: ${validatorId}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to stop validator: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -353,7 +353,7 @@ export class ChannelManager {
       this.basicNodes.set(config.id, node);
       this.logger.info(`Basic node created: ${config.id} in channel ${channelId}`);
       return node;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to create basic node: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -430,7 +430,7 @@ export class ChannelManager {
 
       this.logger.info(`Basic node started: ${nodeId}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to start basic node: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -453,7 +453,7 @@ export class ChannelManager {
 
       this.logger.info(`Basic node stopped: ${nodeId}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to stop basic node: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -486,7 +486,7 @@ export class ChannelManager {
       channel.status = 'active';
       this.logger.info(`Channel activated: ${channelId}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to activate channel: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -504,7 +504,7 @@ export class ChannelManager {
 
       this.logger.info(`Channel deactivated: ${channelId}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to deactivate channel: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }

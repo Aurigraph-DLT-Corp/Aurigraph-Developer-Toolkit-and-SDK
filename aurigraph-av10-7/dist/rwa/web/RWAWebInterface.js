@@ -116,7 +116,7 @@ class RWAWebInterface {
                 document.getElementById('total-tokens').textContent = data.totalTokenizedAssets || '0';
                 document.getElementById('total-value').textContent = '$' + (data.totalValue || 0).toLocaleString();
                 document.getElementById('compliance-rate').textContent = (data.complianceRate || 0).toFixed(1) + '%';
-              } catch (error) {
+              } catch (error: unknown) {
                 console.error('Failed to update metrics:', error);
               }
             }
@@ -221,7 +221,7 @@ class RWAWebInterface {
                     <small>📍 \${asset.location}</small>
                   </div>
                 \`).join('');
-              } catch (error) {
+              } catch (error: unknown) {
                 console.error('Failed to load assets:', error);
               }
             }
@@ -254,7 +254,7 @@ class RWAWebInterface {
                 } else {
                   alert('Failed to register asset');
                 }
-              } catch (error) {
+              } catch (error: unknown) {
                 alert('Error: ' + error.message);
               }
             });
@@ -406,7 +406,7 @@ class RWAWebInterface {
                 } else {
                   alert('Failed to create tokenization: ' + result.error);
                 }
-              } catch (error) {
+              } catch (error: unknown) {
                 alert('Error: ' + error.message);
               }
             });
@@ -506,7 +506,7 @@ class RWAWebInterface {
                 } else {
                   alert('Failed to load portfolio: ' + portfolio.error);
                 }
-              } catch (error) {
+              } catch (error: unknown) {
                 alert('Error loading portfolio: ' + error.message);
               }
             }
@@ -590,7 +590,7 @@ class RWAWebInterface {
                     <p><strong>Last Check:</strong> \${new Date(data.lastCheck).toLocaleDateString()}</p>
                   </div>
                 \`).join('');
-              } catch (error) {
+              } catch (error: unknown) {
                 console.error('Failed to load compliance status:', error);
               }
             }
@@ -709,7 +709,7 @@ class RWAWebInterface {
                     </div>
                   </div>
                 \`;
-              } catch (error) {
+              } catch (error: unknown) {
                 console.error('Failed to load analytics:', error);
               }
             }

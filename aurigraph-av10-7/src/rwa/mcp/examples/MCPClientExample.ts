@@ -178,7 +178,7 @@ export class ExampleMCPIntegrations {
             const marketData = await this.client.getMarketAnalytics('monthly');
             console.log('📊 Market Data:', marketData.marketOverview);
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('❌ Portfolio Manager Integration Error:', error);
         }
     }
@@ -243,7 +243,7 @@ export class ExampleMCPIntegrations {
             const analytics = await this.client.getAssetAnalytics(newAsset.assetId);
             console.log('📊 Asset Analytics:', analytics);
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('❌ Real Estate Integration Error:', error);
         }
     }
@@ -292,7 +292,7 @@ export class ExampleMCPIntegrations {
                 console.log('🌿 Digital Twin Created:', digitalTwin.tokenizationId);
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('❌ Carbon Credit Integration Error:', error);
         }
     }
@@ -339,7 +339,7 @@ export class ExampleMCPIntegrations {
                 console.log('📦 Compound Token Created:', compoundToken.tokenizationId);
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('❌ DeFi Protocol Integration Error:', error);
         }
     }
@@ -368,7 +368,7 @@ export class ExampleMCPIntegrations {
                 console.log('🔍 System Metrics for Investigation:', systemMetrics.compliance);
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('❌ Compliance Monitoring Error:', error);
         }
     }
@@ -392,7 +392,7 @@ export class ExampleMCPIntegrations {
             // Check liquidity metrics
             console.log('💧 Liquidity Metrics:', marketData.liquidityMetrics);
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('❌ Market Data Integration Error:', error);
         }
     }
@@ -488,7 +488,7 @@ export async function runMCPExamples(): Promise<void> {
 
         console.log('✅ All MCP Integration Examples Completed Successfully');
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('❌ MCP Examples Error:', error);
     }
 }
@@ -560,7 +560,7 @@ export class MCPWebhookHandler {
             } else {
                 console.log('❌ Failed to notify internal systems:', response.statusText);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('❌ Webhook notification error:', error);
         }
     }
@@ -584,7 +584,7 @@ export class MCPErrorHandler {
         for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
             try {
                 return await this.client.makeRequest(method, params);
-            } catch (error) {
+            } catch (error: unknown) {
                 lastError = error as Error;
                 console.log(`❌ Request failed (attempt ${attempt}/${this.maxRetries}):`, error);
 

@@ -427,9 +427,9 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         }
       });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize Predictive Analytics Engine:', error);
-      throw new Error(`Analytics initialization failed: ${error.message}`);
+      throw new Error(`Analytics initialization failed: ${(error as Error).message}`);
     }
   }
   
@@ -1115,7 +1115,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         this.logger.warn(`⚠️ High latency detected: ${processingTime}ms`);
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Real-time processing error:', error);
     } finally {
       this.isProcessing = false;
@@ -1153,7 +1153,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         if (forecast) {
           insights.push(forecast);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Forecasting error for ${dataPoint.deviceId}:`, error);
       }
     }
@@ -1194,7 +1194,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         }
         
         prediction.dispose();
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Model prediction error (${modelId}):`, error);
       }
     }
@@ -1256,7 +1256,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
           insights.push(anomaly);
           this.metrics.anomaliesDetected++;
         }
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Anomaly detection error for ${dataPoint.deviceId}:`, error);
       }
     }
@@ -1291,7 +1291,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         }
         
         prediction.dispose();
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Anomaly model error (${modelId}):`, error);
       }
     }
@@ -1350,7 +1350,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
           assessments.push(assessment);
           this.metrics.riskAlertsGenerated++;
         }
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Risk assessment error for ${assetId}:`, error);
       }
     }
@@ -1408,7 +1408,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return assessment;
       
-    } catch (error) {
+    } catch (error: unknown) {
       inputTensor.dispose();
       throw error;
     }
@@ -1427,7 +1427,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
           predictions.push(prediction);
           this.metrics.maintenancePredicted++;
         }
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Maintenance prediction error for ${deviceId}:`, error);
       }
     }
@@ -1471,7 +1471,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         }
         
         prediction.dispose();
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Maintenance model error (${modelId}):`, error);
       }
     }
@@ -1531,7 +1531,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
         if (valuation) {
           valuations.push(valuation);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Value prediction error for ${assetId}:`, error);
       }
     }
@@ -1593,7 +1593,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       return valuation;
       
-    } catch (error) {
+    } catch (error: unknown) {
       inputTensor.dispose();
       throw error;
     }
@@ -1634,7 +1634,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       try {
         await this.retrainModel(model);
         this.metrics.modelRetrainingCount++;
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`❌ Model retraining failed for ${model.id}:`, error);
       }
     }
@@ -1688,7 +1688,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       inputs.dispose();
       outputs.dispose();
       
-    } catch (error) {
+    } catch (error: unknown) {
       model.status = 'error';
       throw error;
     }
@@ -1777,7 +1777,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
     return [
       asset.currentValue / 1000000, // Normalized asset value
       this.calculateVolatility(recentValues),
-      asset.sensors.filter(s => s.status === 'active').length / asset.sensors.length, // Utilization
+      asset.sensors.filter(s => s?.status === 'active').length / asset.sensors.length, // Utilization
       asset.anomalies.filter(a => !a.resolved).length, // Active anomalies
       (Date.now() - asset.lastUpdate) / (24 * 60 * 60 * 1000), // Days since update
       currentAvg,
@@ -1808,7 +1808,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
   
   private prepareValueFeatures(asset: DigitalTwinAsset, historical: IoTDataPoint[], current: IoTDataPoint[]): number[] {
     const recentValues = historical.slice(-24).map(d => d.value);
-    const utilization = asset.sensors.filter(s => s.status === 'active').length / asset.sensors.length;
+    const utilization = asset.sensors.filter(s => s?.status === 'active').length / asset.sensors.length;
     const conditionScore = 1 - (asset.anomalies.filter(a => !a.resolved).length / 10);
     
     return [
@@ -1933,7 +1933,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
     const factors: RiskFactor[] = [];
     
     // Operational risk factors
-    if (asset.sensors.filter(s => s.status !== 'active').length > 0) {
+    if (asset.sensors.filter(s => s?.status !== 'active').length > 0) {
       factors.push({
         factor: 'Sensor Failures',
         impact: 0.7,
@@ -2010,7 +2010,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       }
     }
     
-    return strategies.sort((a, b) => b.priority - a.priority);
+    return strategies.sort((a, b) => b?.priority - a.priority);
   }
   
   private determineMaintenanceType(timeToFailure: number, features: number[]): MaintenancePrediction['maintenanceType'] {
@@ -2533,15 +2533,15 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
     let insights = Array.from(this.insights.values());
     
     if (assetId) {
-      insights = insights.filter(i => i.assetId === assetId);
+      insights = insights.filter(i => i?.assetId === assetId);
     }
     
     if (type) {
-      insights = insights.filter(i => i.type === type);
+      insights = insights.filter(i => i?.type === type);
     }
     
     return insights
-      .sort((a, b) => b.timestamp - a.timestamp)
+      .sort((a, b) => b?.timestamp - a.timestamp)
       .slice(0, limit);
   }
   

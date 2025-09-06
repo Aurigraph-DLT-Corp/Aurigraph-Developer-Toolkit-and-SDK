@@ -129,7 +129,7 @@ export class DigitalTwinTokenizer extends EventEmitter {
       throw new Error('Digital twin already exists for this asset');
     }
 
-    const twinId = this.generateTwinId(asset);
+    const twinId = await this.generateTwinId(asset);
     const tokenId = `DT-${twinId}`;
 
     // Register IoT devices
@@ -628,9 +628,9 @@ export class DigitalTwinTokenizer extends EventEmitter {
     };
   }
 
-  private generateTwinId(asset: Asset): string {
+  private async generateTwinId(asset: Asset): Promise<string> {
     const timestamp = Date.now();
-    const hash = this.cryptoManager.hashData(asset.id);
+    const hash = await this.cryptoManager.hashData(asset.id);
     return `TWIN-${timestamp}-${hash.substring(0, 8)}`;
   }
 

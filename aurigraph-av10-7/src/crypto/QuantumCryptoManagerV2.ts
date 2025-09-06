@@ -516,7 +516,7 @@ export class QuantumCryptoManagerV2 {
       
       return verified;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Quantum signature verification failed:', error);
       return false;
     }
@@ -651,7 +651,7 @@ export class QuantumCryptoManagerV2 {
       
       return coherent;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Quantum consensus proof verification failed:', error);
       return false;
     }
@@ -820,7 +820,7 @@ export class QuantumCryptoManagerV2 {
   async generateChannelKey(): Promise<Buffer> {
     try {
       return Buffer.from(await this.generateQuantumRandom(32)); // 256-bit quantum-safe key
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate channel key:', error);
       throw error;
     }
@@ -829,7 +829,7 @@ export class QuantumCryptoManagerV2 {
   async generateEncryptionKey(): Promise<Buffer> {
     try {
       return Buffer.from(await this.generateQuantumRandom(32)); // 256-bit encryption key
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate encryption key:', error);
       throw error;
     }
@@ -845,7 +845,7 @@ export class QuantumCryptoManagerV2 {
       encrypted = Buffer.concat([encrypted, cipher.final()]);
       
       return Buffer.concat([iv, encrypted]);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to encrypt with channel key:', error);
       throw error;
     }
@@ -863,7 +863,7 @@ export class QuantumCryptoManagerV2 {
       decrypted = Buffer.concat([decrypted, decipher.final()]);
       
       return decrypted;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to decrypt with channel key:', error);
       throw error;
     }
@@ -933,7 +933,7 @@ export class QuantumCryptoManagerV2 {
         quantumLevel: 6,
         distributionKey: await this.generateDistributionKey()
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`NTRU key pair generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -948,7 +948,7 @@ export class QuantumCryptoManagerV2 {
       
       this.performanceMetrics.ntruEncryptionsPerSec++;
       return response.encryptedData;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`NTRU encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -963,7 +963,7 @@ export class QuantumCryptoManagerV2 {
       
       this.performanceMetrics.ntruDecryptionsPerSec++;
       return Buffer.from(response.decryptedData, 'base64').toString();
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`NTRU decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -977,7 +977,7 @@ export class QuantumCryptoManagerV2 {
       });
       
       return response.signature;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`NTRU signing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -992,7 +992,7 @@ export class QuantumCryptoManagerV2 {
       });
       
       return response.verified;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`NTRU verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
@@ -1007,7 +1007,7 @@ export class QuantumCryptoManagerV2 {
       
       this.performanceMetrics.ntruKeyExchangesPerSec++;
       return response.sharedSecret;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`NTRU key exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -1049,7 +1049,7 @@ export class QuantumCryptoManagerV2 {
         default:
           throw new Error(`Unknown NTRU endpoint: ${endpoint}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`NTRU service call failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }

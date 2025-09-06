@@ -177,7 +177,7 @@ export class DigitalTwinEngine extends EventEmitter {
         try {
           const message = JSON.parse(data.toString());
           await this.handleWebSocketMessage(ws, message);
-        } catch (error) {
+        } catch (error: unknown) {
           ws.send(JSON.stringify({ 
             type: 'error', 
             message: error instanceof Error ? error.message : 'Unknown error' 

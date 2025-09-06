@@ -443,7 +443,7 @@ export class PrometheusExporter {
         res.set('Content-Type', this.registry.contentType);
         const metrics = await this.registry.metrics();
         res.end(metrics);
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).end(error instanceof Error ? error.message : 'Unknown error');
       }
     });

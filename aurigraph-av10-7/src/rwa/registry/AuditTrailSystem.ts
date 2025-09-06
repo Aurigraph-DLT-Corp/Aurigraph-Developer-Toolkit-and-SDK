@@ -824,9 +824,9 @@ export class AuditTrailSystem extends EventEmitter {
 
       return entryId;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.emit('loggingError', {
-        error: error.message,
+        error: (error as Error).message,
         category,
         action,
         actor: actor.id,
@@ -1020,10 +1020,10 @@ export class AuditTrailSystem extends EventEmitter {
         },
         timestamp: Date.now()
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.emit('blockchainSubmissionError', {
         entryId: entry.id,
-        error: error.message
+        error: (error as Error).message
       });
     }
   }
@@ -1163,10 +1163,10 @@ export class AuditTrailSystem extends EventEmitter {
         fromCache: false
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.emit('searchError', {
         query,
-        error: error.message,
+        error: (error as Error).message,
         timestamp: new Date()
       });
       throw error;
@@ -1399,12 +1399,12 @@ export class AuditTrailSystem extends EventEmitter {
 
       return reportId;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.emit('reportGenerationError', {
         reportId,
         regulation,
         period,
-        error: error.message,
+        error: (error as Error).message,
         timestamp: generatedAt
       });
       throw error;
@@ -1685,9 +1685,9 @@ export class AuditTrailSystem extends EventEmitter {
 
       return true;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.emit('integrityVerificationError', {
-        error: error.message,
+        error: (error as Error).message,
         timestamp: new Date()
       });
       return false;

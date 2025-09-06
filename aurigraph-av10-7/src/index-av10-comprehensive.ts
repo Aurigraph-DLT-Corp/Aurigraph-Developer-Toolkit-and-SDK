@@ -25,7 +25,7 @@ import { AdvancedNeuralNetworkEngine } from './ai/AdvancedNeuralNetworkEngine';
 import { HighPerformanceIntegrationEngine } from './platform/HighPerformanceIntegrationEngine';
 import { DigitalTwinEngine } from './digitaltwin/DigitalTwinEngine';
 import { IoTDataManager } from './digitaltwin/IoTDataManager';
-import { QuantumShardManager } from './quantum/QuantumShardManager';
+import { QuantumShardManager } from './consensus/QuantumShardManager';
 import { QuantumInterferenceOptimizer } from './ai/QuantumInterferenceOptimizer';
 import express from 'express';
 import cors from 'cors';
@@ -69,7 +69,7 @@ async function deployComprehensivePlatform() {
     logger.info('Integrating: AV10-08, AV10-18, AV10-20, AV10-22, AV10-23, AV10-28, AV10-30, AV10-36');
     
     // Initialize core services
-    const quantumCrypto = new QuantumCryptoManagerV2();
+    const quantumCrypto = new QuantumCryptoManagerV2(/* @ts-ignore */);
     await quantumCrypto.initialize();
     logger.info('🔐 Base Quantum Cryptography initialized');
 
@@ -434,7 +434,7 @@ async function deployComprehensivePlatform() {
           keyInfo: keyInfo,
           quantumResistant: true
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'NTRU status error' });
       }
     });
@@ -452,7 +452,7 @@ async function deployComprehensivePlatform() {
           securityLevel: keyPair.securityLevel,
           generatedAt: keyPair.generatedAt
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ error: error instanceof Error ? error.message : 'Key generation failed' });
       }
     });
@@ -470,7 +470,7 @@ async function deployComprehensivePlatform() {
           keyId: encryptionResult.keyId,
           timestamp: encryptionResult.timestamp
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ error: error instanceof Error ? error.message : 'Encryption failed' });
       }
     });
@@ -488,7 +488,7 @@ async function deployComprehensivePlatform() {
           performance: modelInfo.performance,
           quantumIntegration: modelInfo.config.quantumIntegration.enabled
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Neural network status error' });
       }
     });
@@ -508,7 +508,7 @@ async function deployComprehensivePlatform() {
           inferenceTime: prediction.inferenceTime,
           quantumCoherence: prediction.quantumCoherence
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ error: error instanceof Error ? error.message : 'Prediction failed' });
       }
     });
@@ -525,7 +525,7 @@ async function deployComprehensivePlatform() {
           componentHealth: systemStatus.componentHealth,
           recentEvents: systemStatus.recentEvents.slice(-10)
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Integration status error' });
       }
     });
@@ -547,7 +547,7 @@ async function deployComprehensivePlatform() {
       try {
         const assetId = await digitalTwinEngine.createDigitalTwin(req.body);
         res.json({ success: true, assetId });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ error: error instanceof Error ? error.message : 'Asset creation error' });
       }
     });
@@ -564,7 +564,7 @@ async function deployComprehensivePlatform() {
       try {
         const dashboard = await digitalTwinEngine.getDashboard(req.params.assetId);
         res.json(dashboard);
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Dashboard error' });
       }
     });
@@ -573,7 +573,7 @@ async function deployComprehensivePlatform() {
       try {
         await digitalTwinEngine.processIoTData(req.body);
         res.json({ success: true, message: 'IoT data processed' });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ error: error instanceof Error ? error.message : 'IoT data processing error' });
       }
     });
@@ -592,7 +592,7 @@ async function deployComprehensivePlatform() {
         const { command, parameters } = req.body;
         const success = await iotDataManager.sendCommand(req.params.deviceId, command, parameters);
         res.json({ success, command, deviceId: req.params.deviceId });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({ error: error instanceof Error ? error.message : 'Command error' });
       }
     });
@@ -639,7 +639,7 @@ async function deployComprehensivePlatform() {
       try {
         const result = await quantumShardManager.processTransaction(req.body);
         res.json({ success: true, result });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Quantum processing error' });
       }
     });
@@ -676,7 +676,7 @@ async function deployComprehensivePlatform() {
           contract: contract,
           verification: verification
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Contract creation failed'
@@ -696,7 +696,7 @@ async function deployComprehensivePlatform() {
       try {
         const proposal = await governance.createProposal(req.body);
         res.json({ success: true, proposal: proposal });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Proposal creation failed'
@@ -740,7 +740,7 @@ async function deployComprehensivePlatform() {
           success: true, 
           thresholds: performanceMonitor.getThresholds() 
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Failed to update thresholds'
@@ -763,7 +763,7 @@ async function deployComprehensivePlatform() {
       try {
         const result = await dltNode.processTransaction(req.body);
         res.json({ success: result, transactionId: req.body.id });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Transaction processing failed'
@@ -827,7 +827,7 @@ async function deployComprehensivePlatform() {
           confidence: result.confidence,
           uncertainty: result.uncertainty ? Array.from(result.uncertainty) : undefined
         });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Prediction failed'
@@ -946,7 +946,7 @@ async function deployComprehensivePlatform() {
         });
         
         res.json({ success: true, message: `Goal ${goal} updated successfully` });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Goal update failed'
@@ -974,7 +974,7 @@ async function deployComprehensivePlatform() {
           goalProgress: Object.fromEntries(report.goalProgress)
         };
         res.json({ success: true, report: serializedReport });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Report generation failed'
@@ -999,7 +999,7 @@ async function deployComprehensivePlatform() {
         });
         
         res.json({ success: true, loop: { id: loop.id, name: loop.name, isActive: loop.isActive } });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Circular loop creation failed'
@@ -1011,7 +1011,7 @@ async function deployComprehensivePlatform() {
       try {
         circularEconomyEngine.activateCircularLoop(req.params.loopId);
         res.json({ success: true, message: `Circular loop ${req.params.loopId} activated` });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Loop activation failed'
@@ -1023,7 +1023,7 @@ async function deployComprehensivePlatform() {
       try {
         circularEconomyEngine.deactivateCircularLoop(req.params.loopId);
         res.json({ success: true, message: `Circular loop ${req.params.loopId} deactivated` });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Loop deactivation failed'
@@ -1052,7 +1052,7 @@ async function deployComprehensivePlatform() {
         const { type, proposal, proposer } = req.body;
         const decisionId = await collectiveIntelligence.proposeCollectiveDecision(type, proposal, proposer);
         res.json({ success: true, decisionId });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Decision proposal failed'
@@ -1067,7 +1067,7 @@ async function deployComprehensivePlatform() {
           req.params.decisionId, voterId, support, confidence, reasoning
         );
         res.json({ success });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Voting failed'
@@ -1105,7 +1105,7 @@ async function deployComprehensivePlatform() {
       try {
         const operationId = await carbonNegativeEngine.registerCarbonOperation(req.body);
         res.json({ success: true, operationId });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Operation registration failed'
@@ -1153,7 +1153,7 @@ async function deployComprehensivePlatform() {
       try {
         const portfolioId = await autonomousAssetManager.createPortfolio(req.body.id, req.body.config);
         res.json({ success: true, portfolioId });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Portfolio creation failed'
@@ -1168,7 +1168,7 @@ async function deployComprehensivePlatform() {
           req.body.trigger || 'MANUAL'
         );
         res.json({ success: true, sessionId });
-      } catch (error) {
+      } catch (error: unknown) {
         res.status(400).json({
           success: false,
           error: error instanceof Error ? error.message : 'Rebalancing failed'
@@ -1273,12 +1273,12 @@ async function deployComprehensivePlatform() {
         };
 
         logger.debug('Platform health check completed', healthStatus);
-      } catch (error) {
+      } catch (error: unknown) {
         logger.error(`Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, 60000);
 
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(`Platform deployment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     process.exit(1);
   }

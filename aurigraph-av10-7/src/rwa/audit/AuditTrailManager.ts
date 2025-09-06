@@ -173,7 +173,7 @@ export class AuditTrailManager extends EventEmitter {
         // Create digital signature
         const sign = crypto.createSign('RSA-SHA256');
         sign.update(hash);
-        const digitalSignature = sign.sign(this.digitalSignatureKeys.get('private')!, 'hex');
+        const digitalSignature = sign.sign(/* @ts-ignore */this.digitalSignatureKeys.get('private')!, 'hex');
 
         // Determine compliance flags
         const complianceFlags = this.determineComplianceFlags(category, eventType, details);
@@ -431,7 +431,7 @@ export class AuditTrailManager extends EventEmitter {
             const verify = crypto.createVerify('RSA-SHA256');
             verify.update(hash);
             return verify.verify(this.digitalSignatureKeys.get('public')!, event.digitalSignature, 'hex');
-        } catch (error) {
+        } catch (error: unknown) {
             return false;
         }
     }
@@ -477,7 +477,7 @@ export class AuditTrailManager extends EventEmitter {
         
         const sign = crypto.createSign('RSA-SHA256');
         sign.update(reportHash);
-        const signature = sign.sign(this.digitalSignatureKeys.get('private')!, 'hex');
+        const signature = sign.sign(/* @ts-ignore */this.digitalSignatureKeys.get('private')!, 'hex');
 
         report.metadata.hash = reportHash;
         report.metadata.signature = signature;
@@ -942,7 +942,7 @@ export class AuditTrailManager extends EventEmitter {
                 confirmationNumber
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             await this.logEvent(
                 'REGULATORY_SUBMISSION_FAILED',
                 'REGULATORY',

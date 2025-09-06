@@ -807,14 +807,17 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
     for (const [category, config] of Object.entries(algorithms)) {
       this.logger.debug(`Validating ${category} algorithms`);
       
+      // Type guard for config
+      const algoConfig = config as { primary: string; backup?: string[] };
+      
       // Validate primary algorithm
-      const primaryValid = await this.validateAlgorithm(config.primary);
+      const primaryValid = await this.validateAlgorithm(algoConfig.primary);
       if (!primaryValid) {
-        throw new Error(`Primary algorithm ${config.primary} validation failed`);
+        throw new Error(`Primary algorithm ${algoConfig.primary} validation failed`);
       }
 
       // Validate backup algorithms
-      for (const backup of config.backup || []) {
+      for (const backup of algoConfig.backup || []) {
         const backupValid = await this.validateAlgorithm(backup);
         if (!backupValid) {
           this.logger.warn(`Backup algorithm ${backup} validation failed`);
@@ -902,7 +905,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
     });
 
     this.verificationEngine.on('verificationCompleted', (event) => {
-      this.auditVerificationSecurity(event);
+      this.handleVerificationSecurity(event);
     });
 
     // Integrate with Legal Compliance Module
@@ -920,7 +923,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
     });
 
     this.dueDiligenceAutomation.on('profileFinalized', (event) => {
-      this.auditDueDiligenceSecurity(event);
+      this.handleDueDiligenceSecurity(event);
     });
 
     this.logger.info('AV10-21 component integration completed');
@@ -993,8 +996,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
         av10_21: true
       },
       {
-        nodeId: process.env.NODE_ID || 'quantum-security',
-        quantumSecurity: true
+        nodeId: process.env.NODE_ID || 'quantum-security'
       }
     );
 
@@ -1078,8 +1080,8 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
   private async storePrivateKeySecurely(privateKey: string, keyId: string): Promise<string> {
     if (this.keyManagementService.hsm.enabled) {
       // Store in HSM
-      const hsmModule = Array.from(this.keyManagementService.hsm.modules.values())[0];
-      return `hsm:${hsmModule.id}:${keyId}`;
+      const hsmModule = Array.from(this.keyManagementService.hsm.modules.values())[0] as any;
+      return `hsm:${hsmModule?.id || 'default'}:${keyId}`;
     } else {
       // Encrypt and store locally
       const encryptedKey = await this.cryptoManager.quantumHash(privateKey + keyId);
@@ -1109,7 +1111,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
   }
 
   private calculateKeyStrength(algorithm: string, securityLevel: number): number {
-    const baseStrength = {
+    const baseStrength: Record<string, number> = {
       'CRYSTALS-Dilithium': 256,
       'CRYSTALS-Kyber': 256,
       'Falcon': 256,
@@ -1121,7 +1123,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
   }
 
   private calculateQuantumResistance(algorithm: string): number {
-    const resistance = {
+    const resistance: Record<string, number> = {
       'CRYSTALS-Dilithium': 95,
       'CRYSTALS-Kyber': 95,
       'Falcon': 90,
@@ -1133,7 +1135,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
   }
 
   private getComplianceFrameworks(algorithm: string): string[] {
-    const frameworks = {
+    const frameworks: Record<string, string[]> = {
       'CRYSTALS-Dilithium': ['NIST-PQC', 'FIPS-203', 'NSA-CNSS'],
       'CRYSTALS-Kyber': ['NIST-PQC', 'FIPS-204', 'NSA-CNSS'],
       'Falcon': ['NIST-PQC-CANDIDATE', 'ISO-14888'],
@@ -1367,9 +1369,9 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
   private async distributeKeyShare(share: QuantumKeyShare, keyId: string): Promise<void> {
     // Find appropriate quantum channel
     const channel = Array.from(this.quantumKeyDistribution.channels.values())
-      .find(ch => ch.status === 'ESTABLISHED' && ch.from === 'qkd-node-1');
+      .find((ch: any) => ch.status === 'ESTABLISHED' && ch.from === 'qkd-node-1') as any;
 
-    if (channel) {
+    if (channel && channel.keyStore) {
       // Simulate key distribution
       channel.keyStore.set(keyId, {
         shareId: share.shareId,
@@ -1378,7 +1380,9 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
         distributed: true
       });
 
-      channel.metrics.throughput++;
+      if (channel.metrics) {
+        channel.metrics.throughput++;
+      }
     }
   }
 
@@ -1896,7 +1900,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
   }
 
   private async isolateSystem(): Promise<void> {
-    this.logger.critical('Isolating system due to critical security threat');
+    this.logger.error('CRITICAL: Isolating system due to critical security threat');
 
     // Disable external communications
     // Revoke all external keys
@@ -1963,9 +1967,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
         av10_21: true
       },
       {
-        nodeId: process.env.NODE_ID || 'quantum-security',
-        quantumSecurity: true,
-        postQuantum: true
+        nodeId: process.env.NODE_ID || 'quantum-security'
       }
     );
   }
@@ -1989,13 +1991,10 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
         description: event.description,
         mitigation: event.mitigation,
         details: event.details,
-        quantumSecurity: true,
         av10_21: true
       },
       {
-        nodeId: process.env.NODE_ID || 'quantum-security',
-        quantumSecurity: true,
-        threatResponse: true
+        nodeId: process.env.NODE_ID || 'quantum-security'
       }
     );
   }
@@ -2021,9 +2020,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
         av10_21: true
       },
       {
-        nodeId: process.env.NODE_ID || 'quantum-security',
-        quantumSecurity: true,
-        keyManagement: true
+        nodeId: process.env.NODE_ID || 'quantum-security'
       }
     );
   }
@@ -2066,9 +2063,7 @@ export class AV10_21_QuantumSecurityIntegration extends EventEmitter {
         av10_21: true
       },
       {
-        nodeId: process.env.NODE_ID || 'quantum-security',
-        quantumSecurity: true,
-        configurationChange: true
+        nodeId: process.env.NODE_ID || 'quantum-security'
       }
     );
   }

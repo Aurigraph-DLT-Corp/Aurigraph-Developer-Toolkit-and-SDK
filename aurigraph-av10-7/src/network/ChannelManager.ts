@@ -67,7 +67,7 @@ export class ChannelManager extends EventEmitter {
 
       this.logger.info('✅ Channel manager initialized with encrypted communication');
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to initialize channel manager:', error);
       throw error;
     }
@@ -94,7 +94,7 @@ export class ChannelManager extends EventEmitter {
         activeUsers: userNodeIds.length
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to create secure channel ${channelId}:`, error);
       throw error;
     }
@@ -132,7 +132,7 @@ export class ChannelManager extends EventEmitter {
         type: 'counter'
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to register user node ${userNodeId}:`, error);
       throw error;
     }
@@ -190,7 +190,7 @@ export class ChannelManager extends EventEmitter {
       this.emit('encrypted-transaction', channelTransaction);
       return channelTransaction;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to encrypt and route transaction:', error);
       throw error;
     }
@@ -218,7 +218,7 @@ export class ChannelManager extends EventEmitter {
       
       return transactionData;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to decrypt transaction ${transaction.id}:`, error);
       throw error;
     }
@@ -243,7 +243,7 @@ export class ChannelManager extends EventEmitter {
               
               this.emit('message-to-transaction', { message, transaction });
               
-            } catch (error) {
+            } catch (error: unknown) {
               this.logger.error(`Failed to process message ${message.messageId}:`, error);
             }
           }

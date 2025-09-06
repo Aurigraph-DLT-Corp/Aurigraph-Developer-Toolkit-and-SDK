@@ -230,7 +230,7 @@ export class FeatureStore extends EventEmitter {
       this.logger.info('✅ AV10-26 Feature Store initialized successfully');
       this.logger.info(`📊 Loaded: ${this.featureDefinitions.size} features, ${this.featureGroups.size} groups`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to initialize Feature Store:', error);
       throw new Error(`Feature Store initialization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -273,7 +273,7 @@ export class FeatureStore extends EventEmitter {
       this.logger.info(`✅ Feature registered: ${definition.name}`);
       this.emit('feature_registered', { feature: definition.name });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Feature registration failed for ${definition.name}:`, error);
       throw error;
     }
@@ -307,7 +307,7 @@ export class FeatureStore extends EventEmitter {
       
       this.logger.info(`✅ Feature group created: ${name} with ${features.length} features`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Feature group creation failed for ${name}:`, error);
       throw error;
     }
@@ -372,7 +372,7 @@ export class FeatureStore extends EventEmitter {
       
       return featureVector;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Feature computation failed for entity ${entityId}:`, error);
       throw error;
     }
@@ -415,7 +415,7 @@ export class FeatureStore extends EventEmitter {
       
       return results;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Batch feature computation failed:', error);
       throw error;
     }
@@ -457,7 +457,7 @@ export class FeatureStore extends EventEmitter {
       
       return response;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Feature serving failed:', error);
       throw error;
     }
@@ -478,7 +478,7 @@ export class FeatureStore extends EventEmitter {
         await this.processEventQueue();
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Real-time event processing failed:', error);
     }
   }
@@ -691,7 +691,7 @@ export class FeatureStore extends EventEmitter {
       
       return stats;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Feature statistics calculation failed for ${featureName}:`, error);
       throw error;
     }
@@ -739,7 +739,7 @@ export class FeatureStore extends EventEmitter {
       
       return driftMetrics;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Drift detection failed for ${featureName}:`, error);
       throw error;
     }
@@ -982,7 +982,7 @@ export class FeatureStore extends EventEmitter {
       try {
         await this.processEvent(eventWrapper.event);
         eventWrapper.processed = true;
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error('Event processing failed:', error);
       }
     }

@@ -40,7 +40,8 @@ export enum SequestrationMethod {
     DIRECT_AIR_CAPTURE = 'DIRECT_AIR_CAPTURE',
     ENHANCED_WEATHERING = 'ENHANCED_WEATHERING',
     BLUE_CARBON = 'BLUE_CARBON',
-    INDUSTRIAL_CAPTURE = 'INDUSTRIAL_CAPTURE'
+    INDUSTRIAL_CAPTURE = 'INDUSTRIAL_CAPTURE',
+    GEOLOGICAL_STORAGE = 'GEOLOGICAL_STORAGE'
 }
 
 export enum RenewableEnergyType {
@@ -555,7 +556,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
                 targetNetCarbon: this.config.targetNetCarbon
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to start Carbon Negative Operations Engine:', error);
             throw error;
         }
@@ -1084,7 +1085,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
         this.logger.info('🧠 Initializing AI models for carbon operations optimization...');
 
         // Carbon emissions prediction model
-        await this.neuralNetwork.createNetwork('carbon-emissions-predictor', {
+        this.neuralNetwork.createNetwork({
             id: 'carbon-emissions-predictor',
             name: 'Carbon Emissions Predictor',
             type: NetworkType.LSTM,
@@ -1098,7 +1099,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
         });
 
         // Carbon removal optimization model
-        await this.neuralNetwork.createNetwork('carbon-removal-optimizer', {
+        this.neuralNetwork.createNetwork({
             id: 'carbon-removal-optimizer',
             name: 'Carbon Removal Optimizer',
             type: NetworkType.TRANSFORMER,
@@ -1112,7 +1113,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
         });
 
         // Renewable energy forecasting model
-        await this.neuralNetwork.createNetwork('renewable-energy-forecaster', {
+        this.neuralNetwork.createNetwork({
             id: 'renewable-energy-forecaster',
             name: 'Renewable Energy Forecaster',
             type: NetworkType.GRU,
@@ -1126,7 +1127,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
         });
 
         // Carbon market prediction model
-        await this.neuralNetwork.createNetwork('carbon-market-predictor', {
+        this.neuralNetwork.createNetwork({
             id: 'carbon-market-predictor',
             name: 'Carbon Market Predictor',
             type: NetworkType.FEED_FORWARD,
@@ -1208,7 +1209,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
             // Update platform-wide metrics
             this.updatePlatformMetrics();
             
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error updating carbon budgets:', error);
         }
     }
@@ -1352,7 +1353,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
             // Monitor carbon sinks
             await this.monitorCarbonSinks();
             
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error monitoring carbon operations:', error);
         }
     }
@@ -1618,7 +1619,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
                 await this.performAIOptimization();
             }
             
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error optimizing carbon operations:', error);
         }
     }
@@ -1762,17 +1763,17 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
             
             // Make predictions and apply optimizations
             const emissionPredictions = await this.neuralNetwork.predict('carbon-emissions-predictor', 
-                new Float32Array([Date.now(), this.metrics.totalEmissions, this.metrics.energyEfficiency]));
+                [new Float32Array([Date.now(), this.metrics.totalEmissions, this.metrics.energyEfficiency])]);
             
             const removalOptimizations = await this.neuralNetwork.predict('carbon-removal-optimizer',
-                new Float32Array([this.metrics.totalRemovals, this.metrics.removalEfficiency, this.metrics.operationalCarbon]));
+                [new Float32Array([this.metrics.totalRemovals, this.metrics.removalEfficiency, this.metrics.operationalCarbon])]);
             
             // Apply AI recommendations
             this.applyAIRecommendations(emissionPredictions, removalOptimizations);
             
             this.logger.info('🤖 AI optimization completed');
             
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error in AI optimization:', error);
         }
     }
@@ -1961,7 +1962,7 @@ export class CarbonNegativeOperationsEngine extends EventEmitter {
             
             this.emit('performance-report-generated', report);
             
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error generating performance report:', error);
         }
     }

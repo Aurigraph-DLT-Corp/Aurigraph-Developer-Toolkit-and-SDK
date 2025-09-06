@@ -168,7 +168,7 @@ export class IoTDataManager extends EventEmitter {
         this.emit('mqtt_disconnected');
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ Failed to initialize MQTT:', error);
       this.emit('initialization_error', error);
     }
@@ -191,7 +191,7 @@ export class IoTDataManager extends EventEmitter {
         device.status = 'online';
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ Error parsing MQTT message:', error);
       this.metrics.errorCount++;
       this.emit('message_parse_error', { topic, error });
@@ -310,7 +310,7 @@ export class IoTDataManager extends EventEmitter {
       console.log(`📤 WebSocket command sent to ${deviceId}: ${message.payload.command}`);
       this.emit('command_sent', { deviceId, message });
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`❌ WebSocket command send error:`, error);
       this.metrics.errorCount++;
       throw error;

@@ -189,8 +189,8 @@ export class AssetVerifier extends EventEmitter {
 
       this.emit('verificationMethodCompleted', { verificationId, assetId, method, report });
       
-    } catch (error) {
-      this.emit('verificationError', { verificationId, assetId, error: error.message });
+    } catch (error: unknown) {
+      this.emit('verificationError', { verificationId, assetId, error: (error as Error).message });
     }
   }
 

@@ -51,7 +51,7 @@ class CompoundTokenizer extends events_1.EventEmitter {
         if (Math.abs(totalWeight - 100) > 0.01) {
             throw new Error('Asset weights must sum to 100%');
         }
-        const tokenId = this.generateCompoundTokenId(name);
+        const tokenId = await this.generateCompoundTokenId(name);
         const allocations = await Promise.all(assets.map(async (a) => {
             const currentPrice = await this.getAssetPrice(a.assetId);
             return {
@@ -446,9 +446,9 @@ class CompoundTokenizer extends events_1.EventEmitter {
             await this.rebalancePortfolio(tokenId, false);
         }, 60000); // Check every minute
     }
-    generateCompoundTokenId(name) {
+    async generateCompoundTokenId(name) {
         const timestamp = Date.now();
-        const hash = this.cryptoManager.hashData(name);
+        const hash = await this.cryptoManager.hashData(name);
         return `CT-${timestamp}-${hash.substring(0, 8)}`;
     }
     async getCompoundToken(tokenId) {

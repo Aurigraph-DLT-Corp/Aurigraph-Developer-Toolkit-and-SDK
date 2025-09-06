@@ -636,7 +636,7 @@ export class CircularEconomyEngine extends EventEmitter {
             this.logger.info(`✅ Optimization cycle completed. Applied ${selectedStrategies.length} strategies.`);
             this.emit('optimization-completed', { strategies: selectedStrategies, results });
             
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('❌ Optimization cycle failed:', error);
             this.emit('optimization-failed', error);
         }
@@ -890,7 +890,7 @@ export class CircularEconomyEngine extends EventEmitter {
                 
                 this.logger.info(`✅ Applied strategy: ${strategy.description}`);
                 
-            } catch (error) {
+            } catch (error: unknown) {
                 results.push({
                     strategy: strategy,
                     success: false,
@@ -1354,7 +1354,7 @@ export class CircularEconomyEngine extends EventEmitter {
     public updateSustainabilityGoal(goal: SustainabilityGoal, config: { target: number; deadline: Date; priority: number }): void {
         const existing = this.sustainabilityGoals.get(goal);
         this.sustainabilityGoals.set(goal, {
-            ...existing,
+            currentProgress: existing?.currentProgress || 0,
             ...config
         });
         

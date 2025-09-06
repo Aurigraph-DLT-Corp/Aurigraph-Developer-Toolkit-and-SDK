@@ -843,7 +843,7 @@ export class VerificationEngine extends EventEmitter {
       // Emit completion event
       this.emit('verificationCompleted', { request, result });
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Verification processing failed for ${request.id}:`, error);
       
       // Handle error case
@@ -939,7 +939,7 @@ export class VerificationEngine extends EventEmitter {
 
       return this.createSourceResult(source, 'SUCCESS', confidence, sourceData, [], [], startTime);
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Source ${source.id} execution failed:`, error);
       return this.createSourceResult(
         source, 
@@ -1366,7 +1366,7 @@ export class VerificationEngine extends EventEmitter {
         status = this.checkRuleCompliance(rule, request, result) ? 'MET' : 'NOT_MET';
         evidence.push(`Rule ${rule.id} evaluated: ${status}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       status = 'NOT_MET';
       evidence.push(`Rule evaluation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -1858,7 +1858,7 @@ export class VerificationEngine extends EventEmitter {
       try {
         const requestId = await this.verifyEntity(request);
         requestIds.push(requestId);
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error('Bulk verification request failed:', error);
       }
     }

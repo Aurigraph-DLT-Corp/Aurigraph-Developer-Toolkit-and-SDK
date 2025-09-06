@@ -272,7 +272,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
         config: this.config
       });
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to initialize Advanced Compliance Framework: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -360,7 +360,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
       
       return complianceCheck;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Compliance check ${checkId} failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       complianceCheck.status = 'FAILED';
       complianceCheck.metadata.error = error instanceof Error ? error.message : 'Unknown error';
@@ -430,7 +430,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
       
       return report;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to generate regulatory report ${reportId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
@@ -467,7 +467,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
       
       return true;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`❌ Failed to submit report ${reportId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       this.emit('regulatory_report_submission_failed', {
         reportId,
@@ -862,7 +862,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
           if (externalResult.evidence) {
             evidence.push(externalResult.evidence);
           }
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.warn(`External verification failed for requirement ${requirement.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
@@ -877,7 +877,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
         automatedCheck: requirement.automationLevel === 'FULLY_AUTOMATED'
       };
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Requirement check failed for ${requirement.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       
       return {
@@ -988,7 +988,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
       
       return { passed: true, evidence };
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`External verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return { passed: false };
     }
@@ -1428,7 +1428,7 @@ export class AdvancedComplianceFramework extends EventEmitter {
           this.emit('low_compliance_rate', metrics);
         }
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Monitoring error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, 60000); // Every minute
@@ -1459,13 +1459,13 @@ export class AdvancedComplianceFramework extends EventEmitter {
                 reportPeriod.start,
                 reportPeriod.end
               );
-            } catch (error) {
+            } catch (error: unknown) {
               this.logger.error(`Failed to generate scheduled report for ${jurisdiction.code}: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
           }
         }
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`Reporting scheduler error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }, 24 * 60 * 60 * 1000); // Daily check
