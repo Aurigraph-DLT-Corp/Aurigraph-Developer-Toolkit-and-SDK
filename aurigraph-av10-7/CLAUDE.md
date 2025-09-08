@@ -3,101 +3,134 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-**Aurigraph AV10-7 "Quantum Nexus"** - Revolutionary quantum-resilient DLT platform achieving 1M+ TPS with NIST Level 5 post-quantum cryptography, zero-knowledge privacy, and 50+ blockchain interoperability. Built with TypeScript/Node.js 20+ and Java 24/Quarkus/GraalVM for enterprise-grade blockchain infrastructure.
+**Aurigraph V11 "Java Nexus"** - Ultra-high-performance blockchain platform built exclusively on Java 24 + Quarkus 3.26.1 + GraalVM 24.0, achieving 15M+ TPS with native compilation, sub-30ms startup, and enterprise-grade architecture.
+
+**MANDATORY ARCHITECTURE**: 
+- ALL nodes must use Java/Quarkus/GraalVM ONLY
+- ALL communication uses HTTP/2, Protocol Buffers, and gRPC exclusively
+- NO TypeScript/Node.js/Python components allowed
+- Native compilation required for production deployment
 
 ## Build & Development Commands
 
-### Core Development
+### Core Development (Java/Quarkus/GraalVM)
 ```bash
-npm install                    # Install dependencies
-npm run build                  # Build TypeScript
-npm start                      # Start platform (builds first)
-npm run dev                    # Development with hot reload
-npm run lint                   # ESLint checking
-npm run typecheck             # TypeScript type checking
+# Maven build commands
+mvn clean install              # Build all modules
+mvn compile                    # Compile Java sources
+mvn package                    # Package JAR files
+mvn quarkus:dev               # Development mode with hot reload
+mvn test                      # Run all tests
+mvn verify                    # Run integration tests
+
+# GraalVM native compilation
+mvn package -Pnative          # Build native image
+mvn test -Pnative             # Test native image
 ```
 
-### Testing Suite
+### Testing Suite (Java/JUnit 5)
 ```bash
-npm test                       # All tests with coverage (95% required)
-npm run test:unit             # Unit tests only
-npm run test:integration      # Integration tests
-npm run test:performance      # Performance tests (180s timeout, validates 1M+ TPS)
-npm run test:security         # Security audit
-npm run test:smoke            # Quick smoke tests
+# Maven test commands
+mvn test                       # All tests with coverage (95% required)
+mvn test -Dtest=*UnitTest     # Unit tests only
+mvn verify                    # Integration tests
+mvn test -Pperformance        # Performance tests (validates 15M+ TPS)
+mvn compile -Dquarkus.package.type=native-sources # Security native compilation
 
 # Run specific test
-npx jest tests/unit/ai/AutonomousProtocolEvolutionEngine.test.ts --verbose
-npx jest <path-to-test> --verbose --no-coverage
+mvn test -Dtest=AurigraphPlatformServiceTest
+mvn test -Dtest=TransactionProcessorTest -Dquarkus.test.profile=dev
 ```
 
-### Deployment Commands
+### Deployment Commands (Container-based)
 ```bash
-# Dev4 environment deployment
-npm run deploy:dev4           # Deploy to dev4 environment
-npm run validate:dev4         # Validate dev4 deployment
-npm run dev4                  # Alias for validate:dev4
+# Native image container builds
+mvn package -Pnative -Dquarkus.container-image.build=true
 
-# Docker deployments
-docker-compose -f docker-compose.av10-7.yml up -d
-docker-compose -f docker-compose.dev4.yml up -d
+# Kubernetes deployments
+kubectl apply -f k8s/aurigraph-v11/
+helm install aurigraph-v11 ./helm/aurigraph-v11/
 
-# Scale for 1M+ TPS
-docker-compose -f docker-compose.av10-7.yml up -d --scale av10-validator=10
+# Docker deployments (GraalVM native)
+docker-compose -f docker-compose.v11.yml up -d
+
+# Scale for 15M+ TPS (all nodes are Java/Quarkus/GraalVM)
+kubectl scale deployment aurigraph-validator --replicas=20
+kubectl scale deployment aurigraph-full-node --replicas=10
 ```
 
-### Standalone Services
+### Standalone Services (Java/Quarkus gRPC)
 ```bash
-npx ts-node start-management-dashboard.ts    # Management API (port 3040)
-npx ts-node start-vizor-dashboard.ts        # Vizor monitoring (port 3052)
-npx ts-node src/api/MonitoringAPIServer.ts  # Monitoring API (port 3001)
-npm run ui:dev                               # UI development (port 3000)
+# All services are Java/Quarkus with gRPC/HTTP/2
+mvn quarkus:dev -f aurigraph-platform-service/pom.xml    # Platform gRPC service
+mvn quarkus:dev -f aurigraph-validator-node/pom.xml      # Validator node
+mvn quarkus:dev -f aurigraph-bridge-node/pom.xml         # Cross-chain bridge
+mvn quarkus:dev -f aurigraph-ai-node/pom.xml             # AI orchestration
+mvn quarkus:dev -f aurigraph-monitoring-node/pom.xml     # Monitoring/metrics
+
+# gRPC health checks
+grpcurl -plaintext localhost:9000 grpc.health.v1.Health/Check
 ```
 
-### AV10-24 Compliance Testing
+### V11 Architecture Validation
 ```bash
-npx ts-node test-av10-24-compliance.ts      # Run comprehensive compliance tests
+# Java/Quarkus architecture compliance tests
+mvn test -Dtest=*ArchitectureTest          # Validate Java-only architecture
+mvn verify -Parchitecture-compliance       # Full architecture compliance check
 ```
 
-## High-Level Architecture
+## V11 Architecture (Java/Quarkus/GraalVM)
 
-### Core Platform Structure
+### Core Platform Structure (100% Java)
 ```
-src/
-├── consensus/          # HyperRAFT++ achieving 1M+ TPS
-│   ├── HyperRAFTPlusPlus.ts / V2.ts
-│   ├── ValidatorOrchestrator.ts
-│   ├── ValidatorNode.ts
-│   └── QuantumShardManager.ts      # 256 parallel universes
-│
-├── crypto/            # NIST Level 5 post-quantum security
-│   ├── QuantumCryptoManager*.ts    # CRYSTALS-Kyber/Dilithium
-│   └── NTRUCryptoEngine.ts
-│
-├── compliance/        # AV10-24 Advanced Compliance Framework
-│   ├── AV10-24-AdvancedComplianceFramework.ts  # Main implementation
-│   ├── AdvancedComplianceFramework.ts
-│   ├── LegalComplianceModule.ts
-│   └── DueDiligenceAutomation.ts
-│
-├── ai/               # Collective Intelligence Network
-│   ├── CollectiveIntelligenceNetwork.ts  # 8-agent system
-│   ├── AutonomousProtocolEvolutionEngine.ts
-│   └── PredictiveAnalyticsEngine.ts
-│
-├── deployment/       # AV10-32 Node Density Management
-│   ├── AV10-32-EnhancedNodeDensityManager.ts
-│   └── OptimalNodeDensityManager.ts
-│
-├── crosschain/       # 50+ blockchain interoperability
-├── rwa/              # Real World Assets tokenization
-├── sustainability/   # Carbon-negative operations
-└── monitoring/       # Vizor real-time dashboards
+aurigraph-v11/
+├── aurigraph-core/                    # Shared Java components
+│   ├── Transaction.java               # Immutable transaction records
+│   ├── HashUtil.java                  # High-performance hashing
+│   └── TransactionType.java           # Optimized enums
+├── aurigraph-proto/                   # Protocol Buffer definitions
+│   └── aurigraph.proto                # gRPC service definitions
+├── aurigraph-platform-service/       # Main gRPC platform service
+│   ├── AurigraphPlatformService.java  # gRPC service implementation
+│   └── TransactionProcessor.java      # High-speed processing
+├── aurigraph-validator-node/          # Java consensus node
+├── aurigraph-bridge-node/             # Java cross-chain bridge
+├── aurigraph-ai-node/                 # Java AI orchestration
+├── aurigraph-quantum-service/         # Java quantum crypto
+└── aurigraph-native/                  # GraalVM native compilation
+```
 
-basicnode/            # Java 24 + Quarkus + GraalVM
-├── src/main/java/io/aurigraph/basicnode/
-│   ├── compliance/   # AV10-17 compliance validation
-│   └── crypto/       # Post-quantum crypto services
+### Communication Architecture (Mandatory)
+- **Protocol**: gRPC with HTTP/2 multiplexing ONLY
+- **Serialization**: Protocol Buffers ONLY
+- **Transport**: HTTP/2 with TLS 1.3
+- **Service Discovery**: Quarkus service discovery
+- **Load Balancing**: gRPC client-side load balancing
+
+### Performance Specifications
+- **Target TPS**: 15M+ transactions per second
+- **Latency**: <1ms median response time
+- **Startup**: <30ms cold start (GraalVM native)
+- **Memory**: <64MB heap per service
+- **Concurrency**: 1000+ concurrent gRPC streams
+
+### Node Types (All Java/Quarkus/GraalVM)
+1. **Validator Nodes**: Consensus and block validation
+2. **Full Nodes**: Complete blockchain state management
+3. **Light Nodes**: Lightweight client access
+4. **Bridge Nodes**: Cross-chain interoperability
+5. **AI Nodes**: Machine learning orchestration
+6. **Monitoring Nodes**: Metrics and observability
+7. **Gateway Nodes**: External API access
+
+### Service Communication Matrix
+```
+Service            | Protocol | Port | Transport
+Platform           | gRPC     | 9000 | HTTP/2 + TLS
+Quantum Security   | gRPC     | 9001 | HTTP/2 + TLS  
+AI Orchestration   | gRPC     | 9002 | HTTP/2 + TLS
+Cross-Chain Bridge | gRPC     | 9003 | HTTP/2 + TLS
+RWA Service        | gRPC     | 9004 | HTTP/2 + TLS
 ```
 
 ### Key Data Flows
