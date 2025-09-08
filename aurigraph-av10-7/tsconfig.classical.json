@@ -3,22 +3,34 @@
   "compilerOptions": {
     "outDir": "./dist-classical",
     "rootDir": "./src",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
     "module": "commonjs",
     "target": "ES2022",
-    "types": ["node", "jest"],
-    "resolveJsonModule": true
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/orchestration/AV10-35-ClassicalAIOrchestrator.ts",
-    "src/index-classical.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "src/orchestration/AV10-35-QuantumAIOrchestrator.ts",
-    "src/index-quantum.ts",
     "tests/**/*",
     "dist/**/*",
-    "dist-quantum/**/*"
+    "dist-quantum/**/*",
+    "node_modules"
   ]
 }

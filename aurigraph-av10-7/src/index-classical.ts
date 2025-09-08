@@ -156,7 +156,7 @@ app.post('/api/classical/gpu/execute', async (req, res) => {
     task.gpuRequired = true;
     const result = await classicalOrchestrator.executeGPUTask(task);
     
-    res.json({
+    return res.json({
       success: true,
       result,
       hardware: {
@@ -165,7 +165,7 @@ app.post('/api/classical/gpu/execute', async (req, res) => {
       }
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -186,13 +186,13 @@ app.post('/api/classical/consensus', async (req, res) => {
       participants
     );
     
-    res.json({
+    return res.json({
       success: true,
       consensus,
       method: 'classical-voting'
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -213,7 +213,7 @@ app.post('/api/classical/orchestrate', async (req, res) => {
       constraints
     );
     
-    res.json({
+    return res.json({
       success: true,
       results: Array.from(results.entries()),
       hardware: {
@@ -223,7 +223,7 @@ app.post('/api/classical/orchestrate', async (req, res) => {
       }
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -232,8 +232,8 @@ app.get('/api/classical/benchmark', async (req, res) => {
   try {
     const startTime = Date.now();
     
-    // Create benchmark tasks
-    const benchmarkTasks = Array(100).fill(null).map((_, i) => ({
+    // Create benchmark tasks with proper types
+    const benchmarkTasks: any[] = Array(100).fill(null).map((_, i) => ({
       id: `benchmark-${i}`,
       type: i % 2 === 0 ? 'OPTIMIZATION' : 'PREDICTION',
       priority: Math.random() * 100,
@@ -244,7 +244,7 @@ app.get('/api/classical/benchmark', async (req, res) => {
     const results = await classicalOrchestrator.orchestrateAICollaboration(benchmarkTasks);
     const executionTime = Date.now() - startTime;
     
-    res.json({
+    return res.json({
       success: true,
       benchmark: {
         tasksProcessed: benchmarkTasks.length,
@@ -255,7 +255,7 @@ app.get('/api/classical/benchmark', async (req, res) => {
       }
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
