@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist-classical",
+    "rootDir": "./src",
+    "lib": ["ES2023"],
+    "module": "commonjs",
+    "target": "ES2022",
+    "types": ["node", "jest"],
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/orchestration/AV10-35-ClassicalAIOrchestrator.ts",
+    "src/index-classical.ts"
+  ],
+  "exclude": [
+    "src/orchestration/AV10-35-QuantumAIOrchestrator.ts",
+    "src/index-quantum.ts",
+    "tests/**/*",
+    "dist/**/*",
+    "dist-quantum/**/*"
+  ]
+}
