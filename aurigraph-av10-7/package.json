@@ -5,7 +5,10 @@
   "main": "dist/index-simple.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index-simple.js",
+    "build:classical": "rimraf dist-classical && tsc -p tsconfig.classical.json",
+    "start": "npm run build:classical && node dist-classical/index-classical.js",
+    "start:default": "npm run start:classical",
+    "start:classical": "node dist-classical/index-classical.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "test": "jest --coverage",
     "test:unit": "jest --testPathPattern=unit --coverage",
@@ -37,6 +40,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.22.0",
+    "@tensorflow/tfjs-node-gpu": "^4.22.0",
     "@types/node": "^20.10.0",
     "@types/ws": "^8.18.1",
     "@wormhole-foundation/sdk": "^3.4.5",
