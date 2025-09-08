@@ -6,15 +6,17 @@
  */
 
 const axios = require('axios');
+require('dotenv').config();
 
-// JIRA Configuration
-const JIRA_BASE_URL = 'https://aurigraphdlt.atlassian.net';
+// JIRA Configuration from .env
+const JIRA_BASE_URL = process.env.JIRA_BASE_URL || 'https://aurigraphdlt.atlassian.net';
 const JIRA_API_URL = `${JIRA_BASE_URL}/rest/api/3`;
-const JIRA_AUTH_TOKEN = process.env.JIRA_AUTH_TOKEN || 'YOUR_JIRA_TOKEN';
+const JIRA_AUTH_TOKEN = process.env.JIRA_API_KEY;
+const JIRA_EMAIL = process.env.JIRA_EMAIL || 'subbu@aurigraph.io';
 
 // Ticket Details
 const TICKET_KEY = 'AV10-35';
-const PROJECT_KEY = 'AV10';
+const PROJECT_KEY = process.env.JIRA_PROJECT_KEY || 'AV10';
 
 const createTicket = async () => {
   console.log(`🔄 Creating JIRA ticket ${TICKET_KEY}...`);
@@ -517,7 +519,7 @@ Test Categories:
       },
       {
         headers: {
-          'Authorization': `Basic ${Buffer.from(`user:${JIRA_AUTH_TOKEN}`).toString('base64')}`,
+          'Authorization': `Basic ${Buffer.from(`${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}`).toString('base64')}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
@@ -640,7 +642,7 @@ Test Categories:
       },
       {
         headers: {
-          'Authorization': `Basic ${Buffer.from(`user:${JIRA_AUTH_TOKEN}`).toString('base64')}`,
+          'Authorization': `Basic ${Buffer.from(`${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}`).toString('base64')}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
