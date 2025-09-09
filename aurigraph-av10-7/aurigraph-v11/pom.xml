@@ -14,8 +14,8 @@
     <description>High-performance blockchain platform with 15M+ TPS capability</description>
 
     <properties>
-        <maven.compiler.source>24</maven.compiler.source>
-        <maven.compiler.target>24</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         
@@ -28,6 +28,9 @@
         <!-- Protocol Buffers -->
         <protobuf.version>3.25.1</protobuf.version>
         <grpc.version>1.60.0</grpc.version>
+        
+        <!-- Reactive -->
+        <mutiny.version>2.5.0</mutiny.version>
         
         <!-- Testing -->
         <junit.version>5.10.1</junit.version>
@@ -44,24 +47,11 @@
         <module>aurigraph-core</module>
         <module>aurigraph-proto</module>
         
-        <!-- Node implementations -->
-        <module>aurigraph-validator-node</module>
-        <module>aurigraph-full-node</module>
-        <module>aurigraph-light-node</module>
-        <module>aurigraph-bridge-node</module>
-        <module>aurigraph-ai-node</module>
-        <module>aurigraph-monitoring-node</module>
-        <module>aurigraph-gateway-node</module>
-        
         <!-- Service implementations -->
         <module>aurigraph-platform-service</module>
-        <module>aurigraph-quantum-service</module>
-        <module>aurigraph-ai-service</module>
-        <module>aurigraph-bridge-service</module>
-        <module>aurigraph-rwa-service</module>
         
-        <!-- Native image aggregator -->
-        <module>aurigraph-native</module>
+        <!-- Cross-chain bridge module -->
+        <module>crosschain-bridge</module>
     </modules>
 
     <dependencyManagement>
@@ -92,6 +82,13 @@
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-stub</artifactId>
                 <version>${grpc.version}</version>
+            </dependency>
+
+            <!-- Reactive Programming -->
+            <dependency>
+                <groupId>io.smallrye.reactive</groupId>
+                <artifactId>smallrye-mutiny</artifactId>
+                <version>${mutiny.version}</version>
             </dependency>
 
             <!-- GraalVM Native Image -->
@@ -127,11 +124,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <release>24</release>
+                        <release>21</release>
                         <parameters>true</parameters>
-                        <compilerArgs>
-                            <arg>--enable-preview</arg>
-                        </compilerArgs>
                     </configuration>
                 </plugin>
 

@@ -1,0 +1,65 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": ".*\\.proto$"
+      },
+      {
+        "pattern": ".*\\.json$"
+      },
+      {
+        "pattern": ".*\\.properties$"
+      },
+      {
+        "pattern": ".*\\.yml$"
+      },
+      {
+        "pattern": ".*\\.yaml$"
+      },
+      {
+        "pattern": ".*\\.xml$"
+      },
+      {
+        "pattern": "META-INF/.*"
+      },
+      {
+        "pattern": "application.*"
+      },
+      {
+        "pattern": "reflect-config\\.json$"
+      },
+      {
+        "pattern": "proxy-config\\.json$"
+      },
+      {
+        "pattern": "serialization-config\\.json$"
+      },
+      {
+        "pattern": "jni-config\\.json$"
+      },
+      {
+        "pattern": "native-image\\.properties$"
+      },
+      {
+        "pattern": "org/bouncycastle/.*"
+      },
+      {
+        "pattern": "io/grpc/.*"
+      },
+      {
+        "pattern": "io/netty/.*"
+      },
+      {
+        "pattern": "aurigraph-v11\\.proto$"
+      },
+      {
+        "pattern": "aurigraph-clean\\.proto$"
+      }
+    ]
+  },
+  "bundles": [
+    {
+      "name": "io.aurigraph.v11.Messages"
+    }
+  ]
+}

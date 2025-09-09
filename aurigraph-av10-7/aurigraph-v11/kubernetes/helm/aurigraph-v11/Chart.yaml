@@ -1,0 +1,29 @@
+apiVersion: v2
+name: aurigraph-v11
+description: Aurigraph V11 High-Performance Blockchain Platform
+type: application
+version: 11.0.0
+appVersion: "11.0.0"
+
+keywords:
+  - blockchain
+  - dlt
+  - quarkus
+  - graalvm
+  - high-performance
+
+maintainers:
+  - name: Aurigraph Team
+    email: devops@aurigraph.io
+    url: https://aurigraph.io
+
+sources:
+  - https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
+
+home: https://aurigraph.io
+
+icon: https://aurigraph.io/assets/logo.svg
+
+annotations:
+  category: Infrastructure
+  licenses: Apache-2.0

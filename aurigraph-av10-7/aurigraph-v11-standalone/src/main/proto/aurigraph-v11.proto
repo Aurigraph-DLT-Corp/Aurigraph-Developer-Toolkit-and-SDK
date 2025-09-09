@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package io.aurigraph.v11;
+
+option java_package = "io.aurigraph.v11.grpc";
+option java_outer_classname = "AurigraphV11Proto";
+
+// Aurigraph V11 gRPC Service Definition
+service AurigraphV11Service {
+  // Health and Status
+  rpc GetHealth(Empty) returns (HealthResponse);
+  rpc GetSystemInfo(Empty) returns (SystemInfoResponse);
+  
+  // Transaction Operations
+  rpc SubmitTransaction(TransactionRequest) returns (TransactionResponse);
+  rpc BatchSubmitTransactions(BatchTransactionRequest) returns (BatchTransactionResponse);
+  rpc GetTransaction(GetTransactionRequest) returns (TransactionResponse);
+  rpc GetTransactionStream(TransactionStreamRequest) returns (stream TransactionResponse);
+  
+  // Performance Operations
+  rpc GetPerformanceStats(Empty) returns (PerformanceStatsResponse);
+  rpc RunPerformanceTest(PerformanceTestRequest) returns (PerformanceTestResponse);
+  
+  // Consensus Operations (HyperRAFT++)
+  rpc InitiateConsensus(ConsensusRequest) returns (ConsensusResponse);
+  rpc ConsensusStream(stream ConsensusMessage) returns (stream ConsensusMessage);
+}
+
+// Common Types
+message Empty {}
+
+// Health and Status Messages
+message HealthResponse {
+  string status = 1;
+  string version = 2;
+  int64 uptime_seconds = 3;
+  int64 total_requests = 4;
+  string platform = 5;
+}
+
+message SystemInfoResponse {
+  string name = 1;
+  string version = 2;
+  string java_version = 3;
+  string framework = 4;
+  string os_name = 5;
+  string os_arch = 6;
+}
+
+// Transaction Messages
+message TransactionRequest {
+  string id = 1;
+  double amount = 2;
+  string from_address = 3;
+  string to_address = 4;
+  int64 timestamp = 5;
+  string signature = 6;
+}
+
+message BatchTransactionRequest {
+  repeated TransactionRequest transactions = 1;
+  bool atomic = 2;
+}
+
+message TransactionResponse {
+  string id = 1;
+  string hash = 2;
+  double amount = 3;
+  int64 timestamp = 4;
+  string status = 5;
+  string error = 6;
+}
+
+message BatchTransactionResponse {
+  repeated TransactionResponse transactions = 1;
+  int32 successful_count = 2;
+  int32 failed_count = 3;
+  double processing_time_ms = 4;
+}
+
+message GetTransactionRequest {
+  string transaction_id = 1;
+}
+
+message TransactionStreamRequest {
+  string filter = 1;
+  int64 from_timestamp = 2;
+  int64 to_timestamp = 3;
+}
+
+// Performance Messages
+message PerformanceStatsResponse {
+  int64 total_processed = 1;
+  int64 stored_transactions = 2;
+  int64 memory_used = 3;
+  int32 available_processors = 4;
+  int32 shard_count = 5;
+  bool consensus_enabled = 6;
+  string consensus_algorithm = 7;
+  double current_tps = 8;
+  double target_tps = 9;
+}
+
+message PerformanceTestRequest {
+  int32 transaction_count = 1;
+  int32 concurrent_threads = 2;
+  bool enable_consensus = 3;
+}
+
+message PerformanceTestResponse {
+  int32 iterations = 1;
+  double duration_ms = 2;
+  double transactions_per_second = 3;
+  double ns_per_transaction = 4;
+  string optimizations = 5;
+  bool target_achieved = 6;
+}
+
+// Consensus Messages (HyperRAFT++)
+message ConsensusRequest {
+  string node_id = 1;
+  int64 term = 2;
+  string data = 3;
+  ConsensusType type = 4;
+}
+
+message ConsensusResponse {
+  string node_id = 1;
+  int64 term = 2;
+  bool success = 3;
+  string result = 4;
+  ConsensusState state = 5;
+}
+
+message ConsensusMessage {
+  string node_id = 1;
+  int64 term = 2;
+  string data = 3;
+  ConsensusMessageType type = 4;
+  int64 timestamp = 5;
+}
+
+enum ConsensusType {
+  VOTE_REQUEST = 0;
+  APPEND_ENTRIES = 1;
+  LEADERSHIP_TRANSFER = 2;
+}
+
+enum ConsensusState {
+  FOLLOWER = 0;
+  CANDIDATE = 1;
+  LEADER = 2;
+}
+
+enum ConsensusMessageType {
+  HEARTBEAT = 0;
+  VOTE_REQUEST_MSG = 1;
+  VOTE_RESPONSE = 2;
+  APPEND_ENTRIES_MSG = 3;
+  APPEND_RESPONSE = 4;
+}
