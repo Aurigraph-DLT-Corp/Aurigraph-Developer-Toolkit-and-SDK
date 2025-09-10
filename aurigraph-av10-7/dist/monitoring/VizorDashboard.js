@@ -123,7 +123,7 @@ class VizorMonitoringService extends events_1.EventEmitter {
         // Main Platform Dashboard
         const platformDashboard = {
             id: 'platform-overview',
-            name: 'AV10-7 Platform Overview',
+            name: 'AV11-7 Platform Overview',
             refreshInterval: 5000,
             widgets: [
                 {

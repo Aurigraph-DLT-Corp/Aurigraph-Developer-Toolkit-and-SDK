@@ -366,7 +366,7 @@ let EnhancedDLTNode = class EnhancedDLTNode {
             this.logger.error(`Node shutdown failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
-    // Advanced DLT features for AV10-36
+    // Advanced DLT features for AV11-36
     async enableSharding(shardId) {
         this.config.enableSharding = true;
         this.config.shardId = shardId;

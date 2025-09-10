@@ -833,7 +833,7 @@ public class AnomalyDetectionService {
     /**
      * Manually trigger model retraining
      */
-    public Uni<String> retrainModels() {
+    public Uni<String> triggerModelRetraining() {
         return Uni.createFrom().item(() -> {
             if (!modelsInitialized) {
                 return "Models not initialized";

@@ -1,6 +1,9 @@
 package io.aurigraph.v11.bridge.adapters;
 
 import io.aurigraph.v11.bridge.models.*;
+import io.aurigraph.v11.bridge.TransactionRequest;
+import io.aurigraph.v11.bridge.TransactionResult;
+import io.aurigraph.v11.bridge.TransactionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

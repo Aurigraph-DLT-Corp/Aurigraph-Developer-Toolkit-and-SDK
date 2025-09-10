@@ -333,7 +333,7 @@ let QuantumCryptoManager = class QuantumCryptoManager {
             securityLevel: this.securityLevel
         };
     }
-    // AV10-18 compatibility methods
+    // AV11-18 compatibility methods
     async initializeQuantumConsensus() {
         this.logger.info('Initializing quantum consensus');
     }

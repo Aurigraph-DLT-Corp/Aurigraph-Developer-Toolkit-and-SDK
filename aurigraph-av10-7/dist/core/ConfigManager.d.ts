@@ -1,4 +1,4 @@
-export interface AV10Config {
+export interface AV11Config {
     node: NodeConfig;
     consensus: ConsensusConfig;
     network: NetworkConfig;
@@ -64,7 +64,7 @@ export declare class ConfigManager {
     private getDefaultConfig;
     private loadEnvironmentOverrides;
     private validateConfiguration;
-    getConfig(): AV10Config;
+    getConfig(): AV11Config;
     get(path: string, defaultValue?: any): any;
     getNodeConfig(): Promise<NodeConfig>;
     getConsensusConfig(): ConsensusConfig;

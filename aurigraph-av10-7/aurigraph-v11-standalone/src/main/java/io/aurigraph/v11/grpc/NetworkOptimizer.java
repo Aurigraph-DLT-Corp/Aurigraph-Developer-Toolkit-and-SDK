@@ -1,8 +1,5 @@
 package io.aurigraph.v11.grpc;
 
-import io.grpc.Channel;
-import io.grpc.ChannelCredentials;
-import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.channel.ChannelOption;
@@ -124,7 +121,6 @@ public class NetworkOptimizer {
             builder = builder
                 .eventLoopGroup(epollEventLoopGroup)
                 .channelType(EpollSocketChannel.class)
-                .withOption(ChannelOption.SO_REUSEPORT, true)
                 .withOption(ChannelOption.TCP_NODELAY, true)
                 .withOption(ChannelOption.SO_KEEPALIVE, true);
         } else if (nioEventLoopGroup != null) {
@@ -140,7 +136,7 @@ public class NetworkOptimizer {
             .withOption(ChannelOption.SO_RCVBUF, 1048576)     // 1MB receive buffer
             .withOption(ChannelOption.SO_SNDBUF, 1048576)     // 1MB send buffer
             .withOption(ChannelOption.WRITE_BUFFER_WATER_MARK, 
-                       io.netty.channel.WriteBufferWaterMark.of(524288, 1048576)) // 512KB - 1MB
+                       new io.netty.channel.WriteBufferWaterMark(524288, 1048576)) // 512KB - 1MB
             .maxInboundMetadataSize(16384);                    // 16KB metadata limit
 
         ManagedChannel channel = builder.build();

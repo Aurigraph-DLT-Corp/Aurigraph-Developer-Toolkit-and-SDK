@@ -187,7 +187,7 @@ public class PredictiveTransactionOrdering {
             // 1. Transaction Priority Neural Network
             MultiLayerConfiguration priorityConfig = new NeuralNetConfiguration.Builder()
                 .seed(12345)
-                .optimizationAlgo(OptimizationAlgorithm.ADAM)
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new org.nd4j.linalg.learning.config.Adam(learningRate))
                 .list()
                 .layer(0, new DenseLayer.Builder()
@@ -214,7 +214,7 @@ public class PredictiveTransactionOrdering {
             // 2. Dependency Analysis Neural Network
             MultiLayerConfiguration dependencyConfig = new NeuralNetConfiguration.Builder()
                 .seed(12345)
-                .optimizationAlgo(OptimizationAlgorithm.ADAM)
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new org.nd4j.linalg.learning.config.Adam(learningRate))
                 .list()
                 .layer(0, new DenseLayer.Builder()
@@ -241,7 +241,7 @@ public class PredictiveTransactionOrdering {
             if (mevOptimizationEnabled) {
                 MultiLayerConfiguration mevConfig = new NeuralNetConfiguration.Builder()
                     .seed(12345)
-                    .optimizationAlgo(OptimizationAlgorithm.ADAM)
+                    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                     .updater(new org.nd4j.linalg.learning.config.Adam(learningRate))
                     .list()
                     .layer(0, new DenseLayer.Builder()

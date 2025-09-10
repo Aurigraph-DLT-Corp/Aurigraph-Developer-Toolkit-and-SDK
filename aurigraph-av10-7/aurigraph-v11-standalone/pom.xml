@@ -55,6 +55,16 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
         </dependency>
+        <!-- MicroProfile Metrics for annotations -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-metrics</artifactId>
+        </dependency>
+        <!-- SLF4J logging compatibility -->
+        <dependency>
+            <groupId>org.jboss.slf4j</groupId>
+            <artifactId>slf4j-jboss-logmanager</artifactId>
+        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
@@ -160,6 +170,18 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcutil-jdk18on</artifactId>
+            <version>1.78</version>
+        </dependency>
+        <!-- BouncyCastle Post-Quantum Cryptography Provider -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-ext-jdk18on</artifactId>
+            <version>1.78</version>
+        </dependency>
+        <!-- BouncyCastle TLS for DTLS support -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bctls-jdk18on</artifactId>
             <version>1.78</version>
         </dependency>
         <!-- AI/ML Dependencies for AV11-2002 AI Optimization -->

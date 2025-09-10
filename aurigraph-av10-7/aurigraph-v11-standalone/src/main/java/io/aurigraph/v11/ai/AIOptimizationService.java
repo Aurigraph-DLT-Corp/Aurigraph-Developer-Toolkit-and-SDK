@@ -187,7 +187,7 @@ public class AIOptimizationService {
             // Performance optimization neural network
             MultiLayerConfiguration performanceConfig = new NeuralNetConfiguration.Builder()
                 .seed(12345)
-                .optimizationAlgo(OptimizationAlgorithm.ADAM)
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new org.nd4j.linalg.learning.config.Adam(learningRate))
                 .list()
                 .layer(0, new DenseLayer.Builder()

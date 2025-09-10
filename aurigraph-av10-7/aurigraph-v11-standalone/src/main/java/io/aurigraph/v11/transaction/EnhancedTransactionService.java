@@ -6,6 +6,7 @@ import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.aurigraph.v11.MemoryMappedTransactionPool;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -258,14 +259,14 @@ public class EnhancedTransactionService {
     /**
      * Health check for the transaction service
      */
-    public HealthStatus getHealthStatus() {
+    public TransactionHealthStatus getHealthStatus() {
         PerformanceStats stats = getPerformanceStats();
         
         boolean healthy = stats.getCurrentTPS() > 1000000 && // Above 1M TPS minimum
                          stats.getSuccessRate() > 99.0 &&     // Above 99% success
                          stats.getP99Latency() < 50_000_000;   // Under 50ms P99
         
-        return new HealthStatus(
+        return new TransactionHealthStatus(
             healthy, 
             stats.getCurrentTPS(),
             stats.getSuccessRate(),
@@ -412,7 +413,7 @@ class PerformanceStats {
     public int getActiveThreads() { return activeThreads; }
 }
 
-class HealthStatus {
+class TransactionHealthStatus {
     private final boolean healthy;
     private final double currentTPS;
     private final double successRate;
@@ -420,7 +421,7 @@ class HealthStatus {
     private final double memoryUtilization;
     private final String message;
     
-    public HealthStatus(boolean healthy, double currentTPS, double successRate,
+    public TransactionHealthStatus(boolean healthy, double currentTPS, double successRate,
                        double p99LatencyMs, double memoryUtilization, String message) {
         this.healthy = healthy;
         this.currentTPS = currentTPS;

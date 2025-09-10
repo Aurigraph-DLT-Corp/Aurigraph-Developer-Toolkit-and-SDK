@@ -24,7 +24,7 @@ let ConfigManager = class ConfigManager {
         await this.loadConfiguration();
     }
     async loadConfiguration() {
-        this.logger.info('Loading AV10-7 configuration...');
+        this.logger.info('Loading AV11-7 configuration...');
         // Try to load from file
         const configPath = process.env.CONFIG_PATH || './config/av10-7.json';
         if ((0, fs_1.existsSync)(configPath)) {

@@ -141,7 +141,7 @@ public class AIConsensusOptimizer {
 
     // Reinforcement Learning Q-Table for Strategy Selection
     private final Map<ConsensusState, Map<ConsensusAction, Double>> qTable = new ConcurrentHashMap<>();
-    private final AtomicDouble currentReward = new AtomicDouble(0.0);
+    private final AtomicReference<Double> currentReward = new AtomicReference<>(0.0);
 
     // Model performance tracking
     private volatile boolean modelsInitialized = false;
@@ -245,7 +245,7 @@ public class AIConsensusOptimizer {
             // 1. Deep Neural Network for Consensus Optimization
             MultiLayerConfiguration consensusConfig = new NeuralNetConfiguration.Builder()
                 .seed(12345)
-                .optimizationAlgo(OptimizationAlgorithm.ADAM)
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new org.nd4j.linalg.learning.config.Adam(learningRate))
                 .weightInit(WeightInit.XAVIER)
                 .list()
@@ -279,7 +279,7 @@ public class AIConsensusOptimizer {
             // 2. LSTM Network for Time-Series Consensus Pattern Recognition
             MultiLayerConfiguration lstmConfig = new NeuralNetConfiguration.Builder()
                 .seed(12345)
-                .optimizationAlgo(OptimizationAlgorithm.ADAM)
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new org.nd4j.linalg.learning.config.Adam(learningRate))
                 .weightInit(WeightInit.XAVIER)
                 .list()
@@ -306,7 +306,7 @@ public class AIConsensusOptimizer {
             // 3. Transaction Ordering Optimization Network
             MultiLayerConfiguration orderingConfig = new NeuralNetConfiguration.Builder()
                 .seed(12345)
-                .optimizationAlgo(OptimizationAlgorithm.ADAM)
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(new org.nd4j.linalg.learning.config.Adam(learningRate))
                 .weightInit(WeightInit.XAVIER)
                 .list()

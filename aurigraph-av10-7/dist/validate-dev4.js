@@ -45,7 +45,7 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 // Load dev4 specific environment configuration
 (0, dotenv_1.config)({ path: '.env.dev4' });
-const logger = new Logger_1.Logger('AV10-7-DEV4-Validator');
+const logger = new Logger_1.Logger('AV11-7-DEV4-Validator');
 async function validatePortAvailability() {
     const results = [];
     const requiredPorts = {
@@ -242,7 +242,7 @@ async function startValidationAPI() {
         res.json({
             status: 'healthy',
             version: '10.7.0',
-            platform: 'AV10-7 DLT Platform',
+            platform: 'AV11-7 DLT Platform',
             environment: 'dev4',
             nodeId: process.env.NODE_ID,
             timestamp: new Date().toISOString()
@@ -251,7 +251,7 @@ async function startValidationAPI() {
     // Platform status endpoint
     app.get('/api/v10/status', (req, res) => {
         res.json({
-            platform: 'AV10-7 DLT Platform',
+            platform: 'AV11-7 DLT Platform',
             version: '10.7.0',
             environment: 'dev4',
             status: 'validation-mode',
@@ -356,7 +356,7 @@ async function startValidationAPI() {
     });
     const port = parseInt(process.env.API_PORT || '4004');
     const server = app.listen(port, () => {
-        logger.info(`🌐 AV10-7 Validation API started on port ${port}`);
+        logger.info(`🌐 AV11-7 Validation API started on port ${port}`);
         logger.info(`🔍 Validation endpoint: http://localhost:${port}/api/v10/validation`);
         logger.info(`📊 Status endpoint: http://localhost:${port}/api/v10/status`);
         logger.info(`⚡ Performance endpoint: http://localhost:${port}/api/v10/performance`);
@@ -366,14 +366,14 @@ async function startValidationAPI() {
     process.on('SIGINT', () => {
         logger.info('\n⚠️  SIGINT received, shutting down validation API...');
         server.close(() => {
-            logger.info('👋 AV10-7 Validation API shutdown complete');
+            logger.info('👋 AV11-7 Validation API shutdown complete');
             process.exit(0);
         });
     });
 }
 async function runValidation() {
     try {
-        logger.info('🔍 Starting Aurigraph AV10-7 DLT Platform - Dev4 Validation...');
+        logger.info('🔍 Starting Aurigraph AV11-7 DLT Platform - Dev4 Validation...');
         logger.info('🎯 Version: 10.7.0 | Environment: dev4');
         logger.info('');
         // Run all validations
