@@ -295,6 +295,19 @@ public class MyGrpcService implements MyService {
 - **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
 - **Branch Strategy**: `feature/aurigraph-v11-*` for V11 migration work
 
+#### Build & Deploy Scripts for HMS
+Use these scripts to build and deploy HMS in future:
+
+**@remote_dev4.sh** - Remote development deployment script
+**@deploy_dev4_complete.sh** - Complete dev4 deployment automation
+**@docker-compose.yml** - Docker orchestration configuration
+
+**Quick Deploy Command:**
+```bash
+# Run remote dev4 deployment
+./remote_dev4.sh
+```
+
 #### Deployment & Infrastructure  
 - **Dev4 Environment**: AWS-based development cluster
 - **Container Strategy**: Docker-based native builds via GraalVM
