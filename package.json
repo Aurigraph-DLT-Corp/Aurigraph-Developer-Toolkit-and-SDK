@@ -31,17 +31,21 @@
   "dependencies": {
     "@modelcontextprotocol/server-github": "^2025.4.8",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "express": "^5.1.0",
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.19.13",
     "@types/react": "^18.0.0",
+    "@types/ws": "^8.18.1",
     "axios": "^1.11.0",
     "dotenv": "^17.2.2",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "ws": "^8.18.3"
   },
   "keywords": [
     "aurigraph",

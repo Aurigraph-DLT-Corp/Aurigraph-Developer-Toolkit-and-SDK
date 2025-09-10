@@ -1,3 +1,5 @@
+# Grafana Datasource Configuration for Aurigraph Dev4
+
 apiVersion: 1
 
 datasources:
@@ -8,22 +10,13 @@ datasources:
     isDefault: true
     editable: true
     jsonData:
-      timeInterval: "15s"
-      queryTimeout: "60s"
-      httpMethod: "POST"
-
-  - name: Loki
-    type: loki
-    access: proxy
-    url: http://loki:3100
-    editable: true
-    jsonData:
-      maxLines: 1000
-
-  - name: AlertManager
-    type: alertmanager
-    access: proxy
-    url: http://alertmanager:9093
-    editable: true
-    jsonData:
-      implementation: "prometheus"
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: 2.47.0
+      cacheLevel: 'High'
+      disableRecordingRules: false
+      incrementalQueryOverlapWindow: 10m
+      queryTimeout: 60s
+      timeInterval: 30s
+    secureJsonData: {}

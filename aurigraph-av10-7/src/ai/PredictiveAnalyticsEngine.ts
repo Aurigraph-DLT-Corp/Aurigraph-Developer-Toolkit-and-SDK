@@ -1481,7 +1481,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       'data_quality': 0.8
     };
     
-    return Math.min(1.0, baseScore * multipliers[type]);
+    return Math.min(1.0, baseScore * ((multipliers as any)[type]));
   }
 
   private async identifyRootCause(

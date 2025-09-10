@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { Logger } from './Logger';
 import { ConfigManager } from './ConfigManager';
 import { HyperRAFTPlusPlusV2 } from '../consensus/HyperRAFTPlusPlusV2';
-import { QuantumCryptoManager } from '../crypto/QuantumCryptoManager';
+import { QuantumCryptoManagerV2 } from '../crypto/QuantumCryptoManagerV2';
 import { ZKProofSystem } from '../zk/ZKProofSystem';
 import { AIOptimizer } from '../ai/AIOptimizer';
 import { CrossChainBridge } from '../crosschain/CrossChainBridge';
@@ -40,7 +40,7 @@ export class AV18Node extends EventEmitter {
   
   // Core systems
   private consensus: HyperRAFTPlusPlusV2;
-  private quantumCrypto: QuantumCryptoManager;
+  private quantumCrypto: QuantumCryptoManagerV2;
   private zkProofSystem: ZKProofSystem;
   private aiOptimizer: AIOptimizer;
   private crossChainBridge: CrossChainBridge;
@@ -59,7 +59,7 @@ export class AV18Node extends EventEmitter {
   
   constructor(
     configManager: ConfigManager,
-    quantumCrypto: QuantumCryptoManager,
+    quantumCrypto: QuantumCryptoManagerV2,
     zkProofSystem: ZKProofSystem,
     aiOptimizer: AIOptimizer,
     crossChainBridge: CrossChainBridge,

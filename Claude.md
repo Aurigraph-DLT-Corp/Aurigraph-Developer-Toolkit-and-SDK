@@ -2,6 +2,52 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 ENHANCED DEVELOPMENT TEAM AGENTS
+**NEW**: Aurigraph now uses an enhanced multi-agent development team for parallel development and deployment. See [AURIGRAPH-TEAM-AGENTS.md](./AURIGRAPH-TEAM-AGENTS.md) for full details.
+
+### Quick Agent Reference
+- **CAA (Chief Architect Agent)**: System architecture and strategic decisions
+- **BDA (Backend Development Agent)**: Core blockchain platform development
+- **FDA (Frontend Development Agent)**: User interfaces and dashboards
+- **SCA (Security & Cryptography Agent)**: Security implementation and auditing
+- **ADA (AI/ML Development Agent)**: AI-driven optimization and analytics
+- **IBA (Integration & Bridge Agent)**: Cross-chain and external integrations
+- **QAA (Quality Assurance Agent)**: Testing and quality control
+- **DDA (DevOps & Deployment Agent)**: CI/CD and infrastructure management
+- **DOA (Documentation Agent)**: Technical documentation and knowledge management
+- **PMA (Project Management Agent)**: Sprint planning and task coordination
+
+### Agent Invocation Examples
+```bash
+# Backend Development
+"Invoke BDA to implement HyperRAFT++ consensus"
+"Invoke BDA subagent Consensus Specialist for leader election"
+
+# Security Audit
+"Invoke SCA to audit quantum cryptography implementation"
+"Invoke SCA subagent Penetration Tester for security testing"
+
+# Performance Testing
+"Invoke QAA to run 2M TPS load test"
+"Invoke QAA subagent Performance Tester for stress testing"
+
+# Deployment
+"Invoke DDA to deploy to production"
+"Invoke DDA subagent Pipeline Manager for CI/CD optimization"
+
+# AI Optimization
+"Invoke ADA to optimize consensus with ML"
+"Invoke ADA subagent Anomaly Detector for transaction monitoring"
+```
+
+### Parallel Development Workflow
+Agents work in parallel across multiple workstreams:
+- **Stream 1**: BDA + QAA (Backend development and testing)
+- **Stream 2**: FDA + DOA (Frontend and documentation)
+- **Stream 3**: SCA + ADA (Security and AI optimization)
+- **Stream 4**: IBA + DDA (Integration and deployment)
+- **Coordination**: CAA + PMA (Architecture and project management)
+
 ## Project Overview
 **Aurigraph DLT V11** - High-performance blockchain platform migration from TypeScript (V10) to Java/Quarkus/GraalVM architecture targeting 2M+ TPS with quantum-resistant cryptography and AI-driven consensus.
 

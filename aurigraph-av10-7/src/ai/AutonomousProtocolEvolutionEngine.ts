@@ -832,6 +832,9 @@ export class AutonomousProtocolEvolutionEngine extends EventEmitter {
         
         try {
             // Step 1: Generate viable mutations using genetic algorithms
+            if (!this.geneticAlgorithm) {
+                throw new Error('Genetic algorithm not initialized');
+            }
             const mutations = await this.geneticAlgorithm.generateViableMutations(
                 Array.from(this.parameters.values()),
                 { 
@@ -846,12 +849,18 @@ export class AutonomousProtocolEvolutionEngine extends EventEmitter {
             this.logger.info(`[AV11-9] Generated ${mutations.length} viable mutations with ${mutations.filter(m => m.viability > 0.8).length} high-viability candidates`);
 
             // Step 2: Ethics validation - prevent harmful mutations
+            if (!this.ethicsValidator) {
+                throw new Error('Ethics validator not initialized');
+            }
             const ethicalMutations = await this.ethicsValidator.validateMutations(mutations);
             const ethicallyApproved = ethicalMutations.filter(m => m.ethicsApproval);
             
             this.logger.info(`[AV11-9] Ethics validation: ${ethicallyApproved.length}/${mutations.length} mutations approved (${(ethicallyApproved.length/mutations.length*100).toFixed(1)}% approval rate)`);
 
             // Step 3: Community consensus for protocol changes
+            if (!this.communityConsensus) {
+                throw new Error('Community consensus not initialized');
+            }
             const consensusResults = await this.communityConsensus.seekConsensus(ethicallyApproved, {
                 participationTarget: 0.6, // 60%+ participation required
                 approvalThreshold: 0.51, // 51%+ approval required

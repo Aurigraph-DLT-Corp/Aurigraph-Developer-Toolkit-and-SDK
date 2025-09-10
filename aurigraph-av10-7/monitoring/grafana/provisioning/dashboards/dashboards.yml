@@ -1,13 +1,14 @@
+# Grafana Dashboard Provisioning Configuration
+
 apiVersion: 1
 
 providers:
   - name: 'Aurigraph Dashboards'
     orgId: 1
-    folder: 'Aurigraph'
-    folderUid: 'aurigraph'
     type: file
     disableDeletion: false
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 30
     allowUiUpdates: true
     options:
-      path: /var/lib/grafana/dashboards
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true

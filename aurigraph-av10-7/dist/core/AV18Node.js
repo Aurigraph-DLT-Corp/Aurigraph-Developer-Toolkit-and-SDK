@@ -15,7 +15,7 @@ const events_1 = require("events");
 const Logger_1 = require("./Logger");
 const ConfigManager_1 = require("./ConfigManager");
 const HyperRAFTPlusPlusV2_1 = require("../consensus/HyperRAFTPlusPlusV2");
-const QuantumCryptoManager_1 = require("../crypto/QuantumCryptoManager");
+const QuantumCryptoManagerV2_1 = require("../crypto/QuantumCryptoManagerV2");
 const ZKProofSystem_1 = require("../zk/ZKProofSystem");
 const AIOptimizer_1 = require("../ai/AIOptimizer");
 const CrossChainBridge_1 = require("../crosschain/CrossChainBridge");
@@ -634,7 +634,7 @@ exports.AV18Node = AV18Node;
 exports.AV18Node = AV18Node = __decorate([
     (0, inversify_1.injectable)(),
     __metadata("design:paramtypes", [ConfigManager_1.ConfigManager,
-        QuantumCryptoManager_1.QuantumCryptoManager,
+        QuantumCryptoManagerV2_1.QuantumCryptoManagerV2,
         ZKProofSystem_1.ZKProofSystem,
         AIOptimizer_1.AIOptimizer,
         CrossChainBridge_1.CrossChainBridge,

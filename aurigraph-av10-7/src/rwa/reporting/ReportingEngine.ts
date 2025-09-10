@@ -92,6 +92,7 @@ export class ReportingEngine {
             jurisdiction: 'US',
             recipients: ['compliance@aurigraph.io', 'legal@aurigraph.io'],
             filters: { category: 'COMPLIANCE' },
+            isActive: true,
             autoSubmit: true,
             regulatoryAuthority: 'SEC'
         });
@@ -104,6 +105,7 @@ export class ReportingEngine {
             jurisdiction: 'EU',
             recipients: ['compliance@aurigraph.io'],
             filters: { category: 'TOKENIZATION' },
+            isActive: true,
             autoSubmit: true,
             regulatoryAuthority: 'ESMA'
         });
@@ -116,6 +118,7 @@ export class ReportingEngine {
             jurisdiction: 'GLOBAL',
             recipients: ['security@aurigraph.io', 'ops@aurigraph.io'],
             filters: { category: 'SYSTEM', severity: 'HIGH' },
+            isActive: true,
             autoSubmit: false
         });
 
@@ -127,6 +130,7 @@ export class ReportingEngine {
             jurisdiction: 'GLOBAL',
             recipients: ['audit@aurigraph.io'],
             filters: {},
+            isActive: true,
             autoSubmit: false
         });
     }

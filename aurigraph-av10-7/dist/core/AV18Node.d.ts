@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { ConfigManager } from './ConfigManager';
-import { QuantumCryptoManager } from '../crypto/QuantumCryptoManager';
+import { QuantumCryptoManagerV2 } from '../crypto/QuantumCryptoManagerV2';
 import { ZKProofSystem } from '../zk/ZKProofSystem';
 import { AIOptimizer } from '../ai/AIOptimizer';
 import { CrossChainBridge } from '../crosschain/CrossChainBridge';
@@ -44,7 +44,7 @@ export declare class AV18Node extends EventEmitter {
     private metrics;
     private startTime;
     private isRunning;
-    constructor(configManager: ConfigManager, quantumCrypto: QuantumCryptoManager, zkProofSystem: ZKProofSystem, aiOptimizer: AIOptimizer, crossChainBridge: CrossChainBridge, channelManager: ChannelManager, monitoring: VizorMonitoringService);
+    constructor(configManager: ConfigManager, quantumCrypto: QuantumCryptoManagerV2, zkProofSystem: ZKProofSystem, aiOptimizer: AIOptimizer, crossChainBridge: CrossChainBridge, channelManager: ChannelManager, monitoring: VizorMonitoringService);
     initialize(): Promise<void>;
     private initializeCoreSystem;
     private initializeEnhancements;

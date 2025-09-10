@@ -1889,11 +1889,6 @@ export class QuantumShardManager extends EventEmitter {
     }, 5000); // Optimize every 5 seconds
   }
 
-  private startQuantumCoherenceMonitoring(): void {
-    setInterval(() => {
-      this.monitorQuantumCoherence();
-    }, 100); // Monitor every 100ms
-  }
 
   private async monitorQuantumCoherence(): Promise<void> {
     let totalCoherence = 0;
