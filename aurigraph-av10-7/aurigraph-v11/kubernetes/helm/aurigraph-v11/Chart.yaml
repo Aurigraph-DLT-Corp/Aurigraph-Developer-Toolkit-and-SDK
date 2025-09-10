@@ -1,6 +1,6 @@
 apiVersion: v2
 name: aurigraph-v11
-description: Aurigraph V11 High-Performance Blockchain Platform
+description: Aurigraph DLT V11 - Production-Ready Kubernetes Helm Chart for 2M+ TPS
 type: application
 version: 11.0.0
 appVersion: "11.0.0"
@@ -11,9 +11,12 @@ keywords:
   - quarkus
   - graalvm
   - high-performance
+  - quantum-resistant
+  - grpc
+  - native
 
 maintainers:
-  - name: Aurigraph Team
+  - name: Aurigraph DevOps Team
     email: devops@aurigraph.io
     url: https://aurigraph.io
 
@@ -25,5 +28,26 @@ home: https://aurigraph.io
 icon: https://aurigraph.io/assets/logo.svg
 
 annotations:
-  category: Infrastructure
+  category: Blockchain
   licenses: Apache-2.0
+  images: |
+    - name: aurigraph-v11
+      image: docker.io/aurigraph/v11-native:11.0.0
+    - name: redis
+      image: redis:7.2-alpine
+    - name: postgresql
+      image: postgresql:15.3
+
+dependencies:
+  - name: postgresql
+    version: "12.8.2"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.15.2"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
+# Multi-region support
+kubeVersion: ">=1.25.0"
+deprecated: false

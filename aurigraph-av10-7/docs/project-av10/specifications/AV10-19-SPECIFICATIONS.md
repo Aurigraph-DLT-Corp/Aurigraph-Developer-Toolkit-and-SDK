@@ -1,4 +1,4 @@
-# AV10-19: Basic Node Implementation - Docker + Quarkus
+# AV11-19: Basic Node Implementation - Docker + Quarkus
 **AGV9-689 Technical Specifications**
 
 ## Project Overview
@@ -31,7 +31,7 @@ Network Latency: <100ms to validator nodes
 - **Docker Containerized Deployment**: One-command deployment
 - **User-Friendly Web Interface**: Simplified management portal
 - **Automatic Onboarding**: Guided setup wizard
-- **API Gateway Integration**: Direct connection to AV10-18 platform
+- **API Gateway Integration**: Direct connection to AV11-18 platform
 - **Resource Monitoring**: Real-time usage optimization
 - **Automatic Updates**: Self-updating container system
 
@@ -63,7 +63,7 @@ Network Latency: <100ms to validator nodes
 
 ### 4. API Integration
 ```java
-// AV10Platform integration
+// AV11Platform integration
 // Health check endpoints
 // Metrics collection API
 // Configuration management
@@ -157,7 +157,7 @@ basicnode/
    - Welcome and overview
    - Network selection (mainnet/testnet)
    - Basic configuration
-   - Connection to AV10-18 platform
+   - Connection to AV11-18 platform
    - Automatic validation and setup
 
 ### 2. Daily Operations
@@ -167,7 +167,7 @@ basicnode/
 4. **Updates**: Automatic background updates with notifications
 
 ### 3. API Gateway Integration
-- Automatic discovery of AV10-18 validators
+- Automatic discovery of AV11-18 validators
 - Secure API key management
 - Real-time sync with platform consensus
 - Transaction relay and validation
@@ -182,7 +182,7 @@ basicnode/
 
 ### Phase 2: Platform Integration (Week 3-4)
 - APIGatewayConnector implementation
-- Connection to AV10-18 validators
+- Connection to AV11-18 validators
 - Node registration and authentication
 - Real-time consensus participation
 
@@ -200,7 +200,7 @@ basicnode/
 
 ## Security Considerations
 - **Container Security**: Non-root user execution (UID 1001)
-- **API Security**: JWT-based authentication with AV10-18
+- **API Security**: JWT-based authentication with AV11-18
 - **Network Security**: TLS encryption for all communications
 - **Update Security**: Signed container image verification
 
@@ -225,11 +225,11 @@ Network Sync: <200ms with validators
 - **Reliability**: Achieve 99.9% uptime target
 - **Usability**: <5 minute setup time for new users
 
-## Integration with AV10-18
+## Integration with AV11-18
 - Connect to existing quantum consensus network
 - Leverage established validator infrastructure
 - Participate in 5M+ TPS transaction processing
 - Benefit from Quantum Level 6 security
 - Access autonomous compliance features
 
-This implementation will democratize access to the Aurigraph network while maintaining the high performance and security standards established in AV10-18.
+This implementation will democratize access to the Aurigraph network while maintaining the high performance and security standards established in AV11-18.

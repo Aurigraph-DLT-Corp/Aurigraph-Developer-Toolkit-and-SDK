@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * JIRA Update Script for AV10-35: Quantum-Enhanced AI Orchestration Platform
- * Creates new JIRA ticket since AV10-35 was not previously documented
+ * JIRA Update Script for AV11-35: Quantum-Enhanced AI Orchestration Platform
+ * Creates new JIRA ticket since AV11-35 was not previously documented
  */
 
 const axios = require('axios');
@@ -15,8 +15,8 @@ const JIRA_AUTH_TOKEN = process.env.JIRA_API_KEY;
 const JIRA_EMAIL = process.env.JIRA_EMAIL || 'subbu@aurigraph.io';
 
 // Ticket Details
-const TICKET_KEY = 'AV10-35';
-const PROJECT_KEY = process.env.JIRA_PROJECT_KEY || 'AV10';
+const TICKET_KEY = 'AV11-35';
+const PROJECT_KEY = process.env.JIRA_PROJECT_KEY || 'AV11';
 
 const createTicket = async () => {
   console.log(`🔄 Creating JIRA ticket ${TICKET_KEY}...`);
@@ -41,7 +41,7 @@ const createTicket = async () => {
                 content: [
                   {
                     type: 'text',
-                    text: 'AV10-35: Quantum-Enhanced AI Orchestration Platform'
+                    text: 'AV11-35: Quantum-Enhanced AI Orchestration Platform'
                   }
                 ]
               },
@@ -400,7 +400,7 @@ Test Categories:
                         type: 'paragraph',
                         content: [
                           { type: 'text', text: 'Main Implementation: ', marks: [{ type: 'strong' }] },
-                          { type: 'text', text: '/src/orchestration/AV10-35-QuantumAIOrchestrator.ts (1,200+ lines)' }
+                          { type: 'text', text: '/src/orchestration/AV11-35-QuantumAIOrchestrator.ts (1,200+ lines)' }
                         ]
                       }
                     ]
@@ -542,7 +542,7 @@ Test Categories:
               content: [
                 {
                   type: 'text',
-                  text: '✅ AV10-35 Implementation Complete',
+                  text: '✅ AV11-35 Implementation Complete',
                   marks: [{ type: 'strong' }]
                 }
               ]

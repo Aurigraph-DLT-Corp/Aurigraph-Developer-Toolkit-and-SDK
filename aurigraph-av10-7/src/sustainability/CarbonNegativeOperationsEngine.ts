@@ -3,7 +3,7 @@
  * Implements comprehensive carbon negativity operations including carbon capture,
  * sequestration, offset management, renewable energy integration, and net-negative targeting.
  * 
- * AV10-12: AGV9-714: Carbon Negative Operations Engine Implementation
+ * AV11-12: AGV9-714: Carbon Negative Operations Engine Implementation
  */
 
 import { EventEmitter } from 'events';

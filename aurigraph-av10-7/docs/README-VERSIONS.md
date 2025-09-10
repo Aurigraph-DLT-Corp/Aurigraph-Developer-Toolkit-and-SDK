@@ -1,8 +1,8 @@
-# Aurigraph V10 - Quantum vs Classical Versions
+# Aurigraph V11 - Quantum vs Classical Versions
 
 ## Overview
 
-Aurigraph V10 is now available in two distinct versions to meet different infrastructure requirements and budgets:
+Aurigraph V11 is now available in two distinct versions to meet different infrastructure requirements and budgets:
 
 1. **Quantum Version** - Leverages actual quantum computing hardware for revolutionary performance
 2. **Classical Version** - Uses traditional CPU/GPU computing for high performance without quantum requirements

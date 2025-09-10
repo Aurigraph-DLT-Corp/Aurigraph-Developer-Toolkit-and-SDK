@@ -1,5 +1,5 @@
 /**
- * AV10-21 Comprehensive Audit Trail and Logging System
+ * AV11-21 Comprehensive Audit Trail and Logging System
  * Enterprise-Grade Compliance and Security Auditing
  * 
  * Features:
@@ -655,7 +655,7 @@ export class AuditTrailSystem extends EventEmitter {
     const genesisData = {
       timestamp: new Date(),
       version: '1.0.0',
-      system: 'AurigraphAV10-AuditTrail'
+      system: 'AurigraphAV11-AuditTrail'
     };
     
     this.lastChainHash = createHash('sha256')

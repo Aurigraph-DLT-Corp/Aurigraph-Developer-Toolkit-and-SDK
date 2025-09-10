@@ -503,7 +503,7 @@ export class EnhancedDLTNode {
     }
   }
 
-  // Advanced DLT features for AV10-36
+  // Advanced DLT features for AV11-36
   async enableSharding(shardId: string): Promise<void> {
     this.config.enableSharding = true;
     this.config.shardId = shardId;

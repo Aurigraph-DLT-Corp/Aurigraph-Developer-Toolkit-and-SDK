@@ -46,7 +46,7 @@ check_git_repo() {
 install_husky() {
     log_header "Installing Husky Git Hooks"
     
-    # Check if husky is installed in AV10-7
+    # Check if husky is installed in AV11-7
     if [ -d "aurigraph-av10-7" ]; then
         cd aurigraph-av10-7
         
@@ -84,9 +84,9 @@ create_pre_commit_hook() {
 
 echo "🔍 Running pre-commit checks..."
 
-# Check if we're in the AV10-7 directory
+# Check if we're in the AV11-7 directory
 if [ ! -f "package.json" ]; then
-    echo "❌ Not in AV10-7 directory, skipping checks"
+    echo "❌ Not in AV11-7 directory, skipping checks"
     exit 0
 fi
 

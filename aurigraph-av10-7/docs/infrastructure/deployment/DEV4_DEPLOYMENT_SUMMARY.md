@@ -1,7 +1,7 @@
-# Aurigraph AV10-7 DLT Platform - DEV4 Environment Deployment Summary
+# Aurigraph AV11-7 DLT Platform - DEV4 Environment Deployment Summary
 
 ## Deployment Overview
-- **Platform**: Aurigraph AV10-7 DLT (Distributed Ledger Technology)
+- **Platform**: Aurigraph AV11-7 DLT (Distributed Ledger Technology)
 - **Version**: 10.7.0
 - **Environment**: dev4
 - **Deployment Date**: September 1, 2025

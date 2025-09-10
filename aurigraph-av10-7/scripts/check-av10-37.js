@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Check if AV10-37 ticket exists in JIRA
+ * Check if AV11-37 ticket exists in JIRA
  */
 
 const https = require('https');
@@ -10,14 +10,14 @@ const JIRA_BASE_URL = 'https://aurigraphdlt.atlassian.net';
 const JIRA_API_KEY = 'ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C';
 const JIRA_USER_EMAIL = 'subbu@aurigraph.io';
 
-async function checkAV1037() {
+async function checkAV1137() {
   return new Promise((resolve, reject) => {
     const auth = Buffer.from(`${JIRA_USER_EMAIL}:${JIRA_API_KEY}`).toString('base64');
     
     const options = {
       hostname: JIRA_BASE_URL.replace('https://', ''),
       port: 443,
-      path: '/rest/api/3/issue/AV10-37',
+      path: '/rest/api/3/issue/AV11-37',
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -82,8 +82,8 @@ async function checkAV1037() {
           
           resolve(ticket);
         } else if (res.statusCode === 404) {
-          console.log(`❌ AV10-37 not found: ${res.statusCode}`);
-          console.log('🔍 AV10-37 does not exist in JIRA.');
+          console.log(`❌ AV11-37 not found: ${res.statusCode}`);
+          console.log('🔍 AV11-37 does not exist in JIRA.');
           resolve(null);
         } else {
           console.log(`⚠️ Unexpected response: ${res.statusCode}`);
@@ -104,23 +104,23 @@ async function checkAV1037() {
 
 async function main() {
   try {
-    console.log('🔍 Checking if AV10-37 exists in JIRA...\n');
+    console.log('🔍 Checking if AV11-37 exists in JIRA...\n');
     
-    const ticket = await checkAV1037();
+    const ticket = await checkAV1137();
     
     if (!ticket) {
-      console.log('\n📋 SUMMARY: AV10-37 does not exist in the JIRA system.');
+      console.log('\n📋 SUMMARY: AV11-37 does not exist in the JIRA system.');
       console.log('💡 Available high-numbered tickets found:');
-      console.log('   - AV10-30: Post-Quantum Cryptography Implementation (Done)');
-      console.log('   - Check AV10-31 through AV10-36 if needed');
+      console.log('   - AV11-30: Post-Quantum Cryptography Implementation (Done)');
+      console.log('   - Check AV11-31 through AV11-36 if needed');
     } else {
-      console.log('\n✅ AV10-37 exists and needs implementation verification');
+      console.log('\n✅ AV11-37 exists and needs implementation verification');
     }
     
     console.log('\n═══════════════════════════════════════════════════════');
     
   } catch (error) {
-    console.error('Failed to check AV10-37:', error);
+    console.error('Failed to check AV11-37:', error);
     process.exit(1);
   }
 }

@@ -66,7 +66,7 @@ deploy_locally() {
     lsof -i :$PROXY_PORT | tail -n +2 | awk '{print $2}' | xargs kill -9 2>/dev/null
     
     # Build the project
-    print_info "Building Aurigraph V10..."
+    print_info "Building Aurigraph V11..."
     npm run build
     
     if [ $? -ne 0 ]; then

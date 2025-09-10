@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Get AV10-17 ticket details for compliance standards
+ * Get AV11-17 ticket details for compliance standards
  */
 
 const https = require('https');
@@ -10,14 +10,14 @@ const JIRA_BASE_URL = 'https://aurigraphdlt.atlassian.net';
 const JIRA_API_KEY = 'ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C';
 const JIRA_USER_EMAIL = 'subbu@aurigraph.io';
 
-async function getAV1017Details() {
+async function getAV1117Details() {
   return new Promise((resolve, reject) => {
     const auth = Buffer.from(`${JIRA_USER_EMAIL}:${JIRA_API_KEY}`).toString('base64');
     
     const options = {
       hostname: JIRA_BASE_URL.replace('https://', ''),
       port: 443,
-      path: '/rest/api/3/issue/AV10-17',
+      path: '/rest/api/3/issue/AV11-17',
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -43,7 +43,7 @@ async function getAV1017Details() {
           
           // Extract ADF description content
           if (ticket.fields.description && ticket.fields.description.content) {
-            console.log(`\n📝 AV10-17 COMPLIANCE REQUIREMENTS:`);
+            console.log(`\n📝 AV11-17 COMPLIANCE REQUIREMENTS:`);
             console.log('───────────────────────────────────────────────────────');
             
             let extractedText = '';
@@ -88,9 +88,9 @@ async function getAV1017Details() {
           
           resolve(ticket);
         } else {
-          console.log(`❌ AV10-17 not found: ${res.statusCode}`);
+          console.log(`❌ AV11-17 not found: ${res.statusCode}`);
           if (res.statusCode === 404) {
-            console.log('🔍 AV10-17 may not exist yet. Creating compliance framework based on AV10-18/19/20 requirements...');
+            console.log('🔍 AV11-17 may not exist yet. Creating compliance framework based on AV11-18/19/20 requirements...');
           }
           console.log('Response:', data);
           resolve(null);
@@ -108,14 +108,14 @@ async function getAV1017Details() {
 }
 
 async function main() {
-  console.log('🔍 Getting AV10-17 compliance details...\n');
+  console.log('🔍 Getting AV11-17 compliance details...\n');
   
   try {
-    const ticket = await getAV1017Details();
+    const ticket = await getAV1117Details();
     if (!ticket) {
-      console.log('\n📋 AV10-17 COMPLIANCE FRAMEWORK (Inferred from Platform Requirements)');
+      console.log('\n📋 AV11-17 COMPLIANCE FRAMEWORK (Inferred from Platform Requirements)');
       console.log('───────────────────────────────────────────────────────');
-      console.log('Based on AV10-18, AV10-19, and AV10-20 implementations:');
+      console.log('Based on AV11-18, AV11-19, and AV11-20 implementations:');
       console.log('• All nodes must implement Quantum Level 6 security');
       console.log('• HyperRAFT++ V2.0 consensus participation required');
       console.log('• Channel-based architecture for specialized processing');
@@ -124,11 +124,11 @@ async function main() {
       console.log('• Multi-jurisdiction compliance automation');
       console.log('• Real-time resource monitoring and optimization');
       console.log('• Docker containerization with auto-scaling');
-      console.log('• Integration with AV10-18 platform APIs');
+      console.log('• Integration with AV11-18 platform APIs');
       console.log('• Compliance with RWA tokenization standards');
     }
   } catch (error) {
-    console.error('Failed to get AV10-17 details:', error);
+    console.error('Failed to get AV11-17 details:', error);
   }
 }
 

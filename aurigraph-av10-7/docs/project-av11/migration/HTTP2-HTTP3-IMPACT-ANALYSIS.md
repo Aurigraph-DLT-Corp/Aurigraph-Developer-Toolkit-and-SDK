@@ -190,7 +190,7 @@ server.on('session', (session) => {
 
 ---
 
-## 🎯 Specific Aurigraph V10 Improvements
+## 🎯 Specific Aurigraph V11 Improvements
 
 ### 1M+ TPS Achievement
 - **Current**: ~100K TPS with HTTP/1.1

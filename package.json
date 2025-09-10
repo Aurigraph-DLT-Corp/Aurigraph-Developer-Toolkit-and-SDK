@@ -1,14 +1,8 @@
 {
-<<<<<<< HEAD
   "name": "aurigraph-dlt",
-  "version": "1.0.0",
-  "description": "Aurigraph-DLT Quantum Blockchain Platform with GitHub MCP integration",
-=======
-  "name": "aurigraph-av10-7-ui",
   "version": "10.7.0",
-  "description": "Management UI for Aurigraph AV10-7 Quantum Nexus Platform",
+  "description": "Aurigraph-DLT Quantum Blockchain Platform with GitHub MCP integration",
   "private": true,
->>>>>>> AV10-18-agv9-688-validator-node-implementation-java-24
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
@@ -26,7 +20,6 @@
     "jira-tickets": "node update-jira-tickets.js",
     "jira-info": "node update-jira-tickets.js info",
     "jira-instructions": "node update-jira-tickets.js instructions",
-<<<<<<< HEAD
     "jira-summary": "node update-jira-tickets.js summary",
     "mcp:github": "node ./node_modules/@modelcontextprotocol/server-github/dist/index.js",
     "mcp:test": "node scripts/test-github-mcp.js",

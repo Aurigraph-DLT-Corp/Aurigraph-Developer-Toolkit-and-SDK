@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Aurigraph V10 Classical - Simple Local Development
-echo "🚀 Starting Aurigraph V10 Classical (Development Mode)"
+# Aurigraph V11 Classical - Simple Local Development
+echo "🚀 Starting Aurigraph V11 Classical (Development Mode)"
 echo "====================================================="
 
 # Colors

@@ -71,6 +71,9 @@ public class TransactionService {
     @Inject
     AIOptimizationService aiOptimizationService;
     
+    // High-performance lock for concurrent operations
+    private final StampedLock performanceLock = new StampedLock();
+    
     private final ThreadLocal<MessageDigest> sha256 = ThreadLocal.withInitial(() -> {
         try {
             return MessageDigest.getInstance("SHA-256");
@@ -143,8 +146,7 @@ public class TransactionService {
         // AI-driven optimization trigger (async)
         if (count % 1000 == 0) {
             CompletableFuture.runAsync(() -> 
-                aiOptimizationService.optimizeTransactionFlow(getPerformanceSnapshot()), 
-                virtualThreadFactory.newThread(Runnable::run));
+                aiOptimizationService.optimizeTransactionFlow(getPerformanceSnapshot()));
         }
         
         return hash;
@@ -179,9 +181,7 @@ public class TransactionService {
     public Multi<String> batchProcessTransactions(List<TransactionRequest> requests) {
         return Multi.createFrom().iterable(requests)
             .onItem().transformToUniAndMerge(req -> 
-                processTransactionReactive(req.id(), req.amount()),
-                false, // Not collecting failures
-                Math.min(maxVirtualThreads, requests.size())) // Limit concurrency
+                processTransactionReactive(req.id(), req.amount()))
             .runSubscriptionOn(Executors.newVirtualThreadPerTaskExecutor());
     }
     
@@ -241,8 +241,7 @@ public class TransactionService {
                 // AI optimization trigger for performance tuning
                 if (currentTPS < 2_000_000) { // Below 2M TPS threshold
                     CompletableFuture.runAsync(() -> 
-                        aiOptimizationService.analyzePerformanceBottleneck(currentMetrics),
-                        virtualThreadFactory.newThread(Runnable::run));
+                        aiOptimizationService.analyzePerformanceBottleneck(currentMetrics));
                 }
             }
         }, 1, 1, TimeUnit.SECONDS);

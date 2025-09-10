@@ -686,7 +686,7 @@ app.get('/', (req: Request, res: Response) => {
     </div>
 
     <div class="footer">
-        <p>🚀 Aurigraph AV10-7 • Quantum-Resistant DLT Platform • Built with HyperRAFT++ Consensus</p>
+        <p>🚀 Aurigraph AV11-7 • Quantum-Resistant DLT Platform • Built with HyperRAFT++ Consensus</p>
         <p>Experience the future of blockchain technology with post-quantum cryptography</p>
     </div>
 

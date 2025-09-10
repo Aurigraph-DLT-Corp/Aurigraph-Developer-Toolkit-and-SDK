@@ -827,6 +827,141 @@ public class AIOptimizationService {
     }
 
     // Public API Methods
+    
+    /**
+     * Enable autonomous optimization mode for consensus integration
+     * 
+     * @param targetTps Target transactions per second
+     * @param maxLatencyMs Maximum acceptable latency in milliseconds
+     * @param minSuccessRate Minimum success rate (0.0 to 1.0)
+     * @param optimizationIntervalMs Optimization interval in milliseconds
+     */
+    public void enableAutonomousMode(long targetTps, long maxLatencyMs, double minSuccessRate, long optimizationIntervalMs) {
+        LOG.info("Enabling autonomous optimization mode - Target TPS: " + targetTps + ", Max Latency: " + maxLatencyMs + "ms");
+        
+        this.targetTps = targetTps;
+        this.optimizationEnabled = true;
+        
+        // Configure thresholds based on parameters
+        this.minConfidence = Math.max(0.1, minSuccessRate - 0.1); // Set confidence slightly below success rate threshold
+        
+        // Update model update interval
+        if (optimizationIntervalMs > 0 && optimizationIntervalMs != modelUpdateIntervalMs) {
+            this.modelUpdateIntervalMs = (int) optimizationIntervalMs;
+            
+            // Restart model update scheduler with new interval
+            if (modelUpdateExecutor != null && !modelUpdateExecutor.isShutdown()) {
+                modelUpdateExecutor.schedule(() -> {
+                    modelUpdateExecutor.scheduleAtFixedRate(
+                        this::updateModels,
+                        0,
+                        modelUpdateIntervalMs,
+                        TimeUnit.MILLISECONDS
+                    );
+                }, 0, TimeUnit.MILLISECONDS);
+            }
+        }
+        
+        LOG.info("Autonomous optimization mode enabled successfully");
+    }
+    
+    /**
+     * Enable leader mode optimizations for consensus leader
+     */
+    public void enableLeaderMode() {
+        LOG.info("Enabling AI optimization leader mode");
+        
+        try {
+            // Increase optimization frequency for leader
+            this.predictionWindowMs = Math.max(1000, predictionWindowMs / 2);
+            
+            // Increase confidence thresholds for leader decisions
+            this.minConfidence = Math.max(0.7, minConfidence);
+            
+            // Enable advanced optimizations for leader
+            if (modelsInitialized) {
+                // Trigger immediate optimization assessment
+                aiExecutor.submit(() -> {
+                    PerformanceDataPoint metrics = collectCurrentMetrics();
+                    if (metrics != null) {
+                        OptimizationRecommendation recommendation = predictOptimalConfiguration(metrics);
+                        if (recommendation.confidence >= minConfidence) {
+                            applyOptimization(recommendation);
+                        }
+                    }
+                });
+            }
+            
+            LOG.info("AI optimization leader mode enabled");
+        } catch (Exception e) {
+            LOG.error("Failed to enable leader mode", e);
+        }
+    }
+    
+    /**
+     * Perform autonomous optimization based on current metrics
+     * 
+     * @param metrics Current performance metrics
+     * @return AI optimization result
+     */
+    public AIOptimizationResult autonomousOptimize(Object metrics) {
+        try {
+            if (!optimizationEnabled || !modelsInitialized) {
+                return new AIOptimizationResult(false, "AI optimization not available", Collections.emptyMap());
+            }
+            
+            // Convert metrics to performance data point
+            PerformanceDataPoint dataPoint;
+            if (metrics instanceof io.aurigraph.v11.consensus.ConsensusModels.PerformanceMetrics) {
+                var perfMetrics = (io.aurigraph.v11.consensus.ConsensusModels.PerformanceMetrics) metrics;
+                dataPoint = new PerformanceDataPoint(
+                    Instant.now(),
+                    perfMetrics.getCurrentTps(),
+                    perfMetrics.getAvgLatency(),
+                    0.5, // Default CPU usage
+                    0.5, // Default memory usage
+                    100, // Default connection count
+                    perfMetrics.getSuccessRate(),
+                    Runtime.getRuntime().availableProcessors()
+                );
+            } else {
+                // Collect current metrics if not provided
+                dataPoint = collectCurrentMetrics();
+                if (dataPoint == null) {
+                    return new AIOptimizationResult(false, "Unable to collect metrics", Collections.emptyMap());
+                }
+            }
+            
+            // Get optimization recommendation
+            OptimizationRecommendation recommendation = predictOptimalConfiguration(dataPoint);
+            
+            if (recommendation.confidence >= minConfidence) {
+                // Apply optimization
+                OptimizationResult result = applyOptimization(recommendation);
+                
+                Map<String, Object> resultParams = new HashMap<>(recommendation.parameters);
+                resultParams.put("type", recommendation.type.toString());
+                resultParams.put("confidence", recommendation.confidence);
+                resultParams.put("durationMs", result.durationMs);
+                
+                return new AIOptimizationResult(
+                    result.success,
+                    result.details + " (confidence: " + String.format("%.2f", recommendation.confidence * 100) + "%)",
+                    resultParams
+                );
+            } else {
+                return new AIOptimizationResult(
+                    false,
+                    "Low confidence recommendation (" + String.format("%.2f", recommendation.confidence * 100) + "%) - not applied",
+                    Map.of("confidence", recommendation.confidence, "threshold", minConfidence)
+                );
+            }
+            
+        } catch (Exception e) {
+            LOG.error("Autonomous optimization failed", e);
+            return new AIOptimizationResult(false, "Optimization failed: " + e.getMessage(), Collections.emptyMap());
+        }
+    }
 
     /**
      * Get current AI optimization status and metrics
@@ -930,6 +1065,22 @@ public class AIOptimizationService {
         double resourceEfficiency,
         ModelPerformanceMetrics modelMetrics
     ) {}
+    
+    public static class AIOptimizationResult {
+        private final boolean applied;
+        private final String description;
+        private final Map<String, Object> parameters;
+        
+        public AIOptimizationResult(boolean applied, String description, Map<String, Object> parameters) {
+            this.applied = applied;
+            this.description = description;
+            this.parameters = parameters != null ? parameters : Collections.emptyMap();
+        }
+        
+        public boolean isApplied() { return applied; }
+        public String getDescription() { return description; }
+        public Map<String, Object> getParameters() { return parameters; }
+    }
 
     public enum OptimizationType {
         NO_CHANGE,
@@ -951,15 +1102,87 @@ public class AIOptimizationService {
     }
 
     // Event handling
-    public void onConsensusEvent(@Observes io.aurigraph.v11.consensus.ConsensusEvent event) {
+    public void onConsensusEvent(@Observes io.aurigraph.v11.consensus.ConsensusModels.ConsensusEvent event) {
         // React to consensus events for optimization
         if (optimizationEnabled && modelsInitialized) {
             aiExecutor.submit(() -> analyzeConsensusEvent(event));
         }
     }
 
-    private void analyzeConsensusEvent(io.aurigraph.v11.consensus.ConsensusEvent event) {
+    private void analyzeConsensusEvent(io.aurigraph.v11.consensus.ConsensusModels.ConsensusEvent event) {
         // Analyze consensus events to trigger optimizations
-        LOG.debugf("Analyzing consensus event for optimization: %s", event.type());
+        LOG.debugf("Analyzing consensus event for optimization: %s", event.getType());
+    }
+    
+    /**
+     * Optimize transaction flow based on performance metrics
+     * Called by TransactionService for AI-driven optimization
+     */
+    public void optimizeTransactionFlow(Object performanceMetrics) {
+        if (!optimizationEnabled || !modelsInitialized) {
+            return;
+        }
+        
+        try {
+            LOG.debug("Optimizing transaction flow based on performance metrics");
+            
+            // Trigger autonomous optimization
+            aiExecutor.submit(() -> {
+                AIOptimizationResult result = autonomousOptimize(performanceMetrics);
+                if (result.isApplied()) {
+                    LOG.info("Transaction flow optimization applied: " + result.getDescription());
+                }
+            });
+            
+        } catch (Exception e) {
+            LOG.error("Error optimizing transaction flow", e);
+        }
+    }
+    
+    /**
+     * Analyze performance bottleneck and suggest optimizations
+     * Called by TransactionService when TPS drops below threshold
+     */
+    public void analyzePerformanceBottleneck(Object performanceMetrics) {
+        if (!optimizationEnabled || !modelsInitialized) {
+            return;
+        }
+        
+        try {
+            LOG.info("Analyzing performance bottleneck");
+            
+            aiExecutor.submit(() -> {
+                // Trigger emergency optimization analysis
+                PerformanceDataPoint metrics = collectCurrentMetrics();
+                if (metrics != null) {
+                    
+                    // Check for critical performance issues
+                    if (metrics.tps < targetTps * 0.5) { // Below 50% of target
+                        LOG.warn("Critical TPS bottleneck detected - applying emergency optimizations");
+                        
+                        // Apply multiple optimization strategies
+                        Map<String, Object> emergencyParams = Map.of(
+                            "batchSizeMultiplier", 1.5,
+                            "threadCountMultiplier", 1.2,
+                            "emergencyMode", true
+                        );
+                        
+                        OptimizationRecommendation emergency = new OptimizationRecommendation(
+                            OptimizationType.RESOURCE_OPTIMIZATION, 
+                            0.95, 
+                            emergencyParams
+                        );
+                        
+                        OptimizationResult result = applyOptimization(emergency);
+                        if (result.success) {
+                            LOG.info("Emergency optimization applied successfully");
+                        }
+                    }
+                }
+            });
+            
+        } catch (Exception e) {
+            LOG.error("Error analyzing performance bottleneck", e);
+        }
     }
 }

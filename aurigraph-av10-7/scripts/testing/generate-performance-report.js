@@ -13,7 +13,7 @@ fs.mkdirSync(PERFORMANCE_DIR, { recursive: true });
 async function collectPerformanceMetrics() {
   const metrics = {
     timestamp: new Date().toISOString(),
-    platform: 'AV10-7 Quantum Nexus',
+    platform: 'AV11-7 Quantum Nexus',
     version: '10.7.0',
     tests: {},
     summary: {}
@@ -83,7 +83,7 @@ function generateHTMLReport(metrics) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AV10-7 Performance Report</title>
+    <title>AV11-7 Performance Report</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -161,8 +161,8 @@ function generateHTMLReport(metrics) {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Aurigraph AV10-7 Performance Report</h1>
-            <p><strong>Platform:</strong> ${metrics.platform || 'AV10-7 Quantum Nexus'}</p>
+            <h1>🚀 Aurigraph AV11-7 Performance Report</h1>
+            <p><strong>Platform:</strong> ${metrics.platform || 'AV11-7 Quantum Nexus'}</p>
             <p><strong>Version:</strong> ${metrics.version || '10.7.0'}</p>
             <p><strong>Generated:</strong> ${new Date(metrics.timestamp).toLocaleString()}</p>
         </div>
@@ -203,7 +203,7 @@ function generateHTMLReport(metrics) {
                 <div class="metric-value">${metrics.validators?.validators?.length || 0}</div>
                 <p>Active Validators</p>
                 <div class="target-comparison">
-                    <strong>Total Stake:</strong> ${(metrics.validators?.totalStake || 0).toLocaleString()} AV10<br>
+                    <strong>Total Stake:</strong> ${(metrics.validators?.totalStake || 0).toLocaleString()} AV11<br>
                     <strong>Channels:</strong> ${metrics.validators?.channels?.length || 0}
                 </div>
             </div>
@@ -301,7 +301,7 @@ function generateHTMLReport(metrics) {
         <div class="metric-card">
             <h3>📝 Test Summary</h3>
             <p>This report was generated as part of the automated performance testing suite.</p>
-            <p>All metrics are collected from the live AV10-7 platform running on localhost.</p>
+            <p>All metrics are collected from the live AV11-7 platform running on localhost.</p>
             ${metrics.error ? `<p class="error"><strong>Note:</strong> ${metrics.error}</p>` : ''}
         </div>
     </div>
@@ -316,7 +316,7 @@ async function generateJSONReport(metrics) {
   const jsonReport = {
     ...metrics,
     reportType: 'performance',
-    generatedBy: 'AV10-7 Test Automation',
+    generatedBy: 'AV11-7 Test Automation',
     environment: process.env.NODE_ENV || 'test'
   };
 
@@ -324,7 +324,7 @@ async function generateJSONReport(metrics) {
 }
 
 async function main() {
-  console.log('🚀 Generating AV10-7 Performance Report...');
+  console.log('🚀 Generating AV11-7 Performance Report...');
 
   try {
     // Collect performance metrics

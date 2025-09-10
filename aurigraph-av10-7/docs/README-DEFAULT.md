@@ -1,8 +1,8 @@
-# Aurigraph V10 - Default Configuration
+# Aurigraph V11 - Default Configuration
 
 ## 🎯 Classical Version is Now Default
 
-The Aurigraph V10 platform now uses the **Classical (CPU/GPU) version** as the default configuration. This provides high performance without requiring quantum computing hardware.
+The Aurigraph V11 platform now uses the **Classical (CPU/GPU) version** as the default configuration. This provides high performance without requiring quantum computing hardware.
 
 ## Why Classical as Default?
 

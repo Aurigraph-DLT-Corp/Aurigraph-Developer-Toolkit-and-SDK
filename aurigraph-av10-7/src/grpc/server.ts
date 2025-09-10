@@ -1,5 +1,5 @@
 /**
- * Aurigraph V10 - gRPC Server with HTTP/2
+ * Aurigraph V11 - gRPC Server with HTTP/2
  * High-performance internal communication using Protocol Buffers
  */
 

@@ -1,7 +1,7 @@
 # Aurigraph Node Development Setup - Java 24 + Quarkus 3.26.1 + GraalVM
 
 ## Overview
-Complete setup guide for building Aurigraph V10 nodes using the latest Java 24, Quarkus 3.26.1, and GraalVM for high-performance, cloud-native blockchain infrastructure.
+Complete setup guide for building Aurigraph V11 nodes using the latest Java 24, Quarkus 3.26.1, and GraalVM for high-performance, cloud-native blockchain infrastructure.
 
 ---
 
@@ -331,4 +331,4 @@ curl -X GET http://localhost:8080/health/ready
 
 ---
 
-**Aurigraph V10 nodes are now ready for high-performance blockchain operations! 🚀**
+**Aurigraph V11 nodes are now ready for high-performance blockchain operations! 🚀**

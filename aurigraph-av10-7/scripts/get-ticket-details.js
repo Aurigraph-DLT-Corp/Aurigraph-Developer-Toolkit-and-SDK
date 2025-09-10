@@ -72,7 +72,7 @@ async function getTicketDetails(ticketKey) {
 }
 
 async function main() {
-  const ticketKey = process.argv[2] || 'AV10-19';
+  const ticketKey = process.argv[2] || 'AV11-19';
   console.log(`🔍 Getting details for ticket: ${ticketKey}\n`);
   
   try {

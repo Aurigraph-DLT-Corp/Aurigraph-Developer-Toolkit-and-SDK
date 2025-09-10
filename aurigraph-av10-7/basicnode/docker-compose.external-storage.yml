@@ -1,6 +1,6 @@
 version: '3.8'
 
-# AV10-17 External Storage Configuration
+# AV11-17 External Storage Configuration
 # User data and logs stored on bare-metal server outside containers
 
 services:
@@ -29,7 +29,7 @@ services:
       retries: 5
     labels:
       - "aurigraph.service=database"
-      - "aurigraph.compliance=AV10-17"
+      - "aurigraph.compliance=AV11-17"
 
   # Redis for session management and caching
   aurigraph-redis:
@@ -52,9 +52,9 @@ services:
       retries: 3
     labels:
       - "aurigraph.service=cache"
-      - "aurigraph.compliance=AV10-17"
+      - "aurigraph.compliance=AV11-17"
 
-  # AV10-17 Compliant Basic Node with External Storage
+  # AV11-17 Compliant Basic Node with External Storage
   aurigraph-basicnode-external:
     build:
       context: .
@@ -76,9 +76,9 @@ services:
       
       # Node configuration
       AURIGRAPH_NODE_ID: "basic-node-external-${HOSTNAME}"
-      AURIGRAPH_NODE_COMPLIANCE: "AV10-17"
+      AURIGRAPH_NODE_COMPLIANCE: "AV11-17"
       
-      # AV10-17 Performance settings
+      # AV11-17 Performance settings
       QUARKUS_HTTP_HOST: "0.0.0.0"
       QUARKUS_HTTP_PORT: "8080"
       JAVA_OPTS_APPEND: "-Xmx256m -Xms128m -XX:+UseG1GC"
@@ -110,7 +110,7 @@ services:
     
     restart: unless-stopped
     
-    # AV10-17 Resource constraints
+    # AV11-17 Resource constraints
     deploy:
       resources:
         limits:
@@ -129,7 +129,7 @@ services:
     
     labels:
       - "aurigraph.service=basicnode"
-      - "aurigraph.compliance=AV10-17"
+      - "aurigraph.compliance=AV11-17"
       - "aurigraph.storage=external"
 
   # File System Monitor for external storage health
@@ -153,7 +153,7 @@ services:
     restart: unless-stopped
     labels:
       - "aurigraph.service=storage-monitor"
-      - "aurigraph.compliance=AV10-17"
+      - "aurigraph.compliance=AV11-17"
 
   # Backup Service for external data
   backup-service:
@@ -178,7 +178,7 @@ services:
     restart: unless-stopped
     labels:
       - "aurigraph.service=backup"
-      - "aurigraph.compliance=AV10-17"
+      - "aurigraph.compliance=AV11-17"
 
 networks:
   aurigraph-external:
@@ -186,7 +186,7 @@ networks:
     name: aurigraph-external
     labels:
       - "aurigraph.network=external"
-      - "aurigraph.compliance=AV10-17"
+      - "aurigraph.compliance=AV11-17"
   
   aurigraph-internal:
     driver: bridge
@@ -194,7 +194,7 @@ networks:
     internal: true
     labels:
       - "aurigraph.network=internal"
-      - "aurigraph.compliance=AV10-17"
+      - "aurigraph.compliance=AV11-17"
 
 volumes:
   # Named volumes for backup and redundancy

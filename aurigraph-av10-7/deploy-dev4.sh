@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Aurigraph V10 - Dev4 Deployment to dlt.aurigraph.io
+# Aurigraph V11 - Dev4 Deployment to dlt.aurigraph.io
 # ====================================================
 
 # Colors for output
@@ -34,7 +34,7 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-echo "🚀 Aurigraph V10 - Dev4 Deployment to dlt.aurigraph.io"
+echo "🚀 Aurigraph V11 - Dev4 Deployment to dlt.aurigraph.io"
 echo "======================================================"
 
 # Parse command line arguments
@@ -81,7 +81,7 @@ EOF
         # Create systemd service file
         cat > dist-dev4/aurigraph-dev4.service << EOF
 [Unit]
-Description=Aurigraph V10 Dev4 - dlt.aurigraph.io
+Description=Aurigraph V11 Dev4 - dlt.aurigraph.io
 After=network.target
 
 [Service]
@@ -172,7 +172,7 @@ EOF
 DEPLOYMENT_PATH="/var/www/dlt.aurigraph.io"
 SERVICE_NAME="aurigraph-dev4"
 
-echo "🔧 Deploying Aurigraph V10 to dlt.aurigraph.io"
+echo "🔧 Deploying Aurigraph V11 to dlt.aurigraph.io"
 
 # Create deployment directory
 sudo mkdir -p $DEPLOYMENT_PATH

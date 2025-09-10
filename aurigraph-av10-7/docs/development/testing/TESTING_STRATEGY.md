@@ -1,7 +1,7 @@
 # Aurigraph Testing Strategy
 
 ## Overview
-Comprehensive testing approach for the Aurigraph V10/V11 platform ensuring reliability, security, and performance.
+Comprehensive testing approach for the Aurigraph V11/V11 platform ensuring reliability, security, and performance.
 
 ## Testing Philosophy
 

@@ -10,7 +10,7 @@ services:
     ports:
       - "3100:3100"
     environment:
-      - PLATFORM_NAME=Aurigraph AV10-7
+      - PLATFORM_NAME=Aurigraph AV11-7
       - TARGET_TPS=1000000
       - QUANTUM_LEVEL=5
     networks:

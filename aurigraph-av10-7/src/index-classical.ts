@@ -1,9 +1,9 @@
 /**
- * Aurigraph V10 - Classical CPU/GPU Version
+ * Aurigraph V11 - Classical CPU/GPU Version
  * Main entry point for high-performance blockchain platform without quantum computing
  */
 
-import { AV10_35_ClassicalAIOrchestrator } from './orchestration/AV10-35-ClassicalAIOrchestrator';
+import { AV11_35_ClassicalAIOrchestrator } from './orchestration/AV11-35-ClassicalAIOrchestrator';
 import { QuantumCryptoManagerV2 } from './crypto/QuantumCryptoManagerV2';
 import { HyperRAFTPlusPlusV2 } from './consensus/HyperRAFTPlusPlusV2';
 import { Logger } from './core/Logger';
@@ -19,7 +19,7 @@ const app = express();
 app.use(express.json());
 
 // Global classical orchestrator instance
-let classicalOrchestrator: AV10_35_ClassicalAIOrchestrator;
+let classicalOrchestrator: AV11_35_ClassicalAIOrchestrator;
 let cryptoManager: QuantumCryptoManagerV2;
 let consensus: HyperRAFTPlusPlusV2;
 
@@ -55,7 +55,7 @@ function checkGPUAvailability(): { available: boolean; count: number; type: stri
  * Initialize Classical Platform
  */
 async function initializeClassicalPlatform(): Promise<void> {
-  logger.info('🚀 Initializing Aurigraph V10 Classical Platform...');
+  logger.info('🚀 Initializing Aurigraph V11 Classical Platform...');
   
   try {
     // Check hardware capabilities
@@ -84,7 +84,7 @@ async function initializeClassicalPlatform(): Promise<void> {
     
     // Initialize classical AI orchestrator
     logger.info('Initializing classical AI orchestrator...');
-    classicalOrchestrator = new AV10_35_ClassicalAIOrchestrator({
+    classicalOrchestrator = new AV11_35_ClassicalAIOrchestrator({
       maxAgents: 100,
       gpuCount: gpuInfo.count || 0,
       cpuCores: cpuCores,

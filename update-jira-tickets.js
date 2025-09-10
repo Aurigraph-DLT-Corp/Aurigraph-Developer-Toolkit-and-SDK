@@ -32,49 +32,49 @@ const log = {
 // JIRA ticket information
 const tickets = [
   {
-    key: 'AV10-38',
+    key: 'AV11-38',
     title: 'RWAT-COMPOUND-001: Core Compound Token Engine',
     priority: 'Critical',
     storyPoints: 8,
     component: 'Compound-Tokens'
   },
   {
-    key: 'AV10-39',
+    key: 'AV11-39',
     title: 'RWAT-COMPOUND-002: AI-Powered Portfolio Optimization Engine',
     priority: 'Critical',
     storyPoints: 13,
     component: 'Compound-Tokens'
   },
   {
-    key: 'AV10-40',
+    key: 'AV11-40',
     title: 'RWAT-COMPOUND-003: Consciousness-Aware Asset Selection System',
     priority: 'High',
     storyPoints: 8,
     component: 'Compound-Tokens'
   },
   {
-    key: 'AV10-41',
+    key: 'AV11-41',
     title: 'RWAT-COMPOUND-004: Automated Rebalancing with Quantum Analytics',
     priority: 'High',
     storyPoints: 8,
     component: 'Compound-Tokens'
   },
   {
-    key: 'AV10-42',
+    key: 'AV11-42',
     title: 'RWAT-COMPOUND-005: Cross-Chain Portfolio Integration',
     priority: 'Medium',
     storyPoints: 5,
     component: 'Compound-Tokens'
   },
   {
-    key: 'AV10-43',
+    key: 'AV11-43',
     title: 'RWAT-COMPOUND-006: Portfolio Performance Analytics Dashboard',
     priority: 'Medium',
     storyPoints: 5,
     component: 'Compound-Tokens'
   },
   {
-    key: 'AV10-44',
+    key: 'AV11-44',
     title: 'RWAT-COMPOUND-007: Quantum-Secured Portfolio Management',
     priority: 'High',
     storyPoints: 3,
@@ -82,13 +82,13 @@ const tickets = [
   }
 ];
 
-// JIRA configuration from environment
+// JIRA configuration from environment - Updated to AV11
 const jiraConfig = {
   baseUrl: process.env.JIRA_BASE_URL || 'https://aurigraphdlt.atlassian.net',
-  projectKey: process.env.JIRA_PROJECT_KEY || 'AV10',
+  projectKey: process.env.JIRA_PROJECT_KEY || 'AV11',
   email: process.env.JIRA_EMAIL || 'subbu@aurigraph.io',
   apiKey: process.env.JIRA_API_KEY,
-  boardUrl: process.env.JIRA_BOARD_URL || 'https://aurigraphdlt.atlassian.net/jira/software/projects/AV10/boards/657'
+  boardUrl: process.env.JIRA_BOARD_URL || 'https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789'
 };
 
 class JiraTicketUpdater {
@@ -100,7 +100,7 @@ class JiraTicketUpdater {
   displayTicketInfo() {
     log.header('RWAT-COMPOUND Tickets Overview');
     
-    console.log(`${colors.cyan}Epic:${colors.reset} AV10-37 - RWAT-COMPOUND: Quantum-Enhanced Compound Token Portfolio System`);
+    console.log(`${colors.cyan}Epic:${colors.reset} AV11-37 - RWAT-COMPOUND: Quantum-Enhanced Compound Token Portfolio System`);
     console.log(`${colors.cyan}Board:${colors.reset} ${jiraConfig.boardUrl}\n`);
     
     console.log(`${colors.bright}Implementation Tickets:${colors.reset}`);
@@ -122,7 +122,7 @@ ${colors.bright}Step 1: Access JIRA Board${colors.reset}
    Open: ${colors.cyan}${jiraConfig.boardUrl}${colors.reset}
 
 ${colors.bright}Step 2: Update Each Ticket${colors.reset}
-   For each ticket (AV10-38 through AV10-44):
+   For each ticket (AV11-38 through AV11-44):
    1. Click on the ticket in JIRA
    2. Click "Edit" or the description field
    3. Copy the detailed description from: ${colors.yellow}RWAT-COMPOUND-Detailed-Descriptions.md${colors.reset}
@@ -134,7 +134,7 @@ ${colors.bright}Step 3: Set Additional Properties${colors.reset}
    • Priority: Set as specified in the description
    • Story Points: Add the estimated story points
    • Labels: Add "rwa", "av10-7", "quantum-blockchain", "compound-tokens", "consciousness-aware"
-   • Epic Link: Link to AV10-37 if not already linked
+   • Epic Link: Link to AV11-37 if not already linked
 
 ${colors.bright}Step 4: Verify Updates${colors.reset}
    • Ensure all tickets have comprehensive descriptions
@@ -210,7 +210,7 @@ ${colors.bright}Files:${colors.reset}
 
 ${colors.bright}Environment Variables:${colors.reset}
   JIRA_BASE_URL    - JIRA instance URL
-  JIRA_PROJECT_KEY - Project key (AV10)
+  JIRA_PROJECT_KEY - Project key (AV11)
   JIRA_EMAIL       - Your JIRA email
   JIRA_API_KEY     - Your JIRA API key
     `);

@@ -1,7 +1,7 @@
 {
   "name": "aurigraph-av10-classical",
   "version": "10.35.0-classical",
-  "description": "Aurigraph V10 Blockchain Platform - Classical CPU/GPU Version",
+  "description": "Aurigraph V11 Blockchain Platform - Classical CPU/GPU Version",
   "main": "dist/index-classical.js",
   "scripts": {
     "build": "npm run clean && npm run compile:classical",

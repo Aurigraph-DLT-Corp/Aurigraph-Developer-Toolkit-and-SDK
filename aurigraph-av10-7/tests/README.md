@@ -1,7 +1,7 @@
-# Aurigraph AV10-7 Testing Framework
+# Aurigraph AV11-7 Testing Framework
 
 ## Overview
-Comprehensive automated testing suite for the AV10-7 Quantum Nexus blockchain platform, covering unit, functional, smoke, regression, performance, and security testing.
+Comprehensive automated testing suite for the AV11-7 Quantum Nexus blockchain platform, covering unit, functional, smoke, regression, performance, and security testing.
 
 ## Quick Start
 
@@ -265,4 +265,4 @@ npm test -- --updateSnapshot
 - Monitor resource usage during tests
 - Document performance baselines
 
-This testing framework ensures the AV10-7 platform maintains its quantum-resilient, high-performance, and secure operation through comprehensive automated validation.
+This testing framework ensures the AV11-7 platform maintains its quantum-resilient, high-performance, and secure operation through comprehensive automated validation.

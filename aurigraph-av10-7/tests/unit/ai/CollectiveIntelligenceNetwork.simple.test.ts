@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { CollectiveIntelligenceNetwork } from '../../../src/ai/CollectiveIntelligenceNetwork';
 import { Logger } from '../../../src/core/Logger';
 
-describe('CollectiveIntelligenceNetwork - AV10-14 Core Features', () => {
+describe('CollectiveIntelligenceNetwork - AV11-14 Core Features', () => {
     let network: CollectiveIntelligenceNetwork;
 
     beforeEach(() => {
@@ -19,7 +19,7 @@ describe('CollectiveIntelligenceNetwork - AV10-14 Core Features', () => {
         jest.clearAllMocks();
     });
 
-    describe('AV10-14: Basic Network Operations', () => {
+    describe('AV11-14: Basic Network Operations', () => {
         it('should initialize without errors', async () => {
             expect(network).toBeDefined();
             expect(typeof network.start).toBe('function');
@@ -46,7 +46,7 @@ describe('CollectiveIntelligenceNetwork - AV10-14 Core Features', () => {
         });
     });
 
-    describe('AV10-14: Intelligence Network Features', () => {
+    describe('AV11-14: Intelligence Network Features', () => {
         beforeEach(async () => {
             await network.start();
         });
@@ -102,7 +102,7 @@ describe('CollectiveIntelligenceNetwork - AV10-14 Core Features', () => {
         });
     });
 
-    describe('AV10-14: Collaborative Intelligence', () => {
+    describe('AV11-14: Collaborative Intelligence', () => {
         beforeEach(async () => {
             await network.start();
         });
@@ -158,7 +158,7 @@ describe('CollectiveIntelligenceNetwork - AV10-14 Core Features', () => {
         });
     });
 
-    describe('AV10-14: Learning and Adaptation', () => {
+    describe('AV11-14: Learning and Adaptation', () => {
         beforeEach(async () => {
             await network.start();
         });
@@ -217,7 +217,7 @@ describe('CollectiveIntelligenceNetwork - AV10-14 Core Features', () => {
         });
     });
 
-    describe('AV10-14: Performance and Scalability', () => {
+    describe('AV11-14: Performance and Scalability', () => {
         beforeEach(async () => {
             await network.start();
         });
@@ -278,7 +278,7 @@ describe('CollectiveIntelligenceNetwork - AV10-14 Core Features', () => {
         });
     });
 
-    describe('AV10-14: Error Handling and Resilience', () => {
+    describe('AV11-14: Error Handling and Resilience', () => {
         beforeEach(async () => {
             await network.start();
         });

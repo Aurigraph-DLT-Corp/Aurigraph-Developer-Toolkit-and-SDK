@@ -1,7 +1,7 @@
 {
   "environment": "dev4",
   "deployment": {
-    "version": "AV10-7",
+    "version": "AV11-7",
     "target_tps": 800000,
     "deployment_date": "2025-09-03T12:00:00Z",
     "agent_coordinated": true

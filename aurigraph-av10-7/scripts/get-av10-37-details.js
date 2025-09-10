@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Get AV10-37 ticket details
+ * Get AV11-37 ticket details
  */
 
 const https = require('https');
@@ -11,14 +11,14 @@ const JIRA_BASE_URL = 'https://aurigraphdlt.atlassian.net';
 const JIRA_API_KEY = 'ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C';
 const JIRA_USER_EMAIL = 'subbu@aurigraph.io';
 
-async function getAV1037Details() {
+async function getAV1137Details() {
   return new Promise((resolve, reject) => {
     const auth = Buffer.from(`${JIRA_USER_EMAIL}:${JIRA_API_KEY}`).toString('base64');
     
     const options = {
       hostname: JIRA_BASE_URL.replace('https://', ''),
       port: 443,
-      path: '/rest/api/3/issue/AV10-37?expand=description,subtasks,issuelinks',
+      path: '/rest/api/3/issue/AV11-37?expand=description,subtasks,issuelinks',
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -33,7 +33,7 @@ async function getAV1037Details() {
         if (res.statusCode === 200) {
           const ticket = JSON.parse(data);
           
-          console.log('🔍 Getting comprehensive details for ticket: AV10-37\n');
+          console.log('🔍 Getting comprehensive details for ticket: AV11-37\n');
           console.log('═══════════════════════════════════════════════════════');
           console.log(`📋 TICKET: ${ticket.key}`);
           console.log('═══════════════════════════════════════════════════════');
@@ -113,8 +113,8 @@ async function getAV1037Details() {
           }
           
           // Save full ticket details
-          fs.writeFileSync('AV10-37-DETAILS.json', JSON.stringify(ticket, null, 2));
-          console.log('\n💾 Full ticket details saved to AV10-37-DETAILS.json');
+          fs.writeFileSync('AV11-37-DETAILS.json', JSON.stringify(ticket, null, 2));
+          console.log('\n💾 Full ticket details saved to AV11-37-DETAILS.json');
           
           resolve(ticket);
         } else {
@@ -136,14 +136,14 @@ async function getAV1037Details() {
 
 async function main() {
   try {
-    const ticket = await getAV1037Details();
+    const ticket = await getAV1137Details();
     
     if (ticket) {
       console.log('\n═══════════════════════════════════════════════════════');
     }
     
   } catch (error) {
-    console.error('Failed to get AV10-37 details:', error);
+    console.error('Failed to get AV11-37 details:', error);
     process.exit(1);
   }
 }

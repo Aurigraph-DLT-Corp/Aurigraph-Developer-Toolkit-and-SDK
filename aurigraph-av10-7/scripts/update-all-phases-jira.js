@@ -14,7 +14,7 @@ const JIRA_CONFIG = {
     baseURL: process.env.JIRA_BASE_URL || 'https://aurigraphdlt.atlassian.net',
     email: process.env.JIRA_EMAIL || 'subbu@aurigraph.io',
     apiToken: process.env.JIRA_API_KEY,
-    projectKeyV10: 'AV10',
+    projectKeyV10: 'AV11',
     projectKeyV11: 'AV11'
 };
 
@@ -725,7 +725,7 @@ async function main() {
         console.log(`✅ Phases Covered: 4 phases (Foundation → Production Launch)`);
         console.log(`✅ Project Status: 100% Complete`);
         console.log('\n🌐 JIRA Boards:');
-        console.log(`   AV10: ${JIRA_CONFIG.baseURL}/jira/software/projects/${JIRA_CONFIG.projectKeyV10}/boards/657`);
+        console.log(`   AV11: ${JIRA_CONFIG.baseURL}/jira/software/projects/${JIRA_CONFIG.projectKeyV10}/boards/789`);
         console.log(`   AV11: ${JIRA_CONFIG.baseURL}/jira/software/projects/${JIRA_CONFIG.projectKeyV11}/boards/789`);
         console.log('\n🎊 All phases synchronized with JIRA successfully!');
 

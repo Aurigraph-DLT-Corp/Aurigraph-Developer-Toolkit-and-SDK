@@ -1,4 +1,4 @@
-// Aurigraph AV10-7 Quantum Nexus Platform JavaScript
+// Aurigraph AV11-7 Quantum Nexus Platform JavaScript
 
 function aurigraphApp() {
     return {

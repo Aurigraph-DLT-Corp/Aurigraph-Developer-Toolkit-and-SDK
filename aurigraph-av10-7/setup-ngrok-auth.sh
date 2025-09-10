@@ -11,7 +11,7 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m'
 
-echo "🔐 Ngrok Authentication Setup for Aurigraph V10"
+echo "🔐 Ngrok Authentication Setup for Aurigraph V11"
 echo "==============================================="
 echo ""
 

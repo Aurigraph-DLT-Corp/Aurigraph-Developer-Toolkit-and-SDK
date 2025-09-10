@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
 /**
- * Test JIRA Connection for Aurigraph V10
+ * Test JIRA Connection for Aurigraph V11
  * Tests connection to JIRA instance and retrieves project information
  */
 
 const https = require('https');
 
-// JIRA Configuration
+// JIRA Configuration - Updated to AV11
 const JIRA_CONFIG = {
     host: 'aurigraphdlt.atlassian.net',
-    projectKey: 'AV10',
+    projectKey: 'AV11',
     email: 'subbu@aurigraph.io', // Update with actual email
     apiToken: process.env.JIRA_API_TOKEN || '', // Set your API token
-    boardId: '657'
+    boardId: '789'
 };
 
 // Base64 encode credentials
@@ -65,7 +65,7 @@ async function makeJiraRequest(path, method = 'GET') {
 }
 
 async function testJiraConnection() {
-    console.log('🔧 Testing JIRA Connection for Aurigraph V10');
+    console.log('🔧 Testing JIRA Connection for Aurigraph V11');
     console.log('═══════════════════════════════════════════════════════\n');
 
     // Test 1: Check authentication
@@ -111,26 +111,31 @@ async function testJiraConnection() {
         console.log(`   Error: ${error.message}\n`);
     }
 
-    // Test 4: Get epic AV10-7
-    console.log('4️⃣ Checking Epic AV10-7...');
+    // Test 4: Get epic AV11-1 (or first available epic)
+    console.log('4️⃣ Checking AV11 Epics...');
     try {
-        const epic = await makeJiraRequest('/rest/api/3/issue/AV10-7');
-        console.log(`✅ Epic found!`);
-        console.log(`   Summary: ${epic.fields.summary}`);
-        console.log(`   Status: ${epic.fields.status.name}`);
-        console.log(`   Progress: ${epic.fields.progress?.percent || 0}%\n`);
+        const search = await makeJiraRequest(`/rest/api/3/search?jql=project=${JIRA_CONFIG.projectKey} AND issuetype=Epic&maxResults=1`);
+        if (search.issues && search.issues.length > 0) {
+            const epic = search.issues[0];
+            console.log(`✅ Epic found!`);
+            console.log(`   Key: ${epic.key}`);
+            console.log(`   Summary: ${epic.fields.summary}`);
+            console.log(`   Status: ${epic.fields.status.name}\n`);
+        } else {
+            console.log(`ℹ️  No epics found in AV11 project\n`);
+        }
     } catch (error) {
-        console.log(`❌ Cannot retrieve epic AV10-7`);
+        console.log(`❌ Cannot retrieve AV11 epics`);
         console.log(`   Error: ${error.message}\n`);
     }
 
-    // Test 5: Search for V10 issues
-    console.log('5️⃣ Searching for V10 Issues...');
+    // Test 5: Search for V11 issues
+    console.log('5️⃣ Searching for V11 Issues...');
     try {
-        const jql = `project = ${JIRA_CONFIG.projectKey} AND text ~ "V10" ORDER BY created DESC`;
+        const jql = `project = ${JIRA_CONFIG.projectKey} ORDER BY created DESC`;
         const search = await makeJiraRequest(`/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=5`);
-        
-        console.log(`✅ Found ${search.total} V10-related issues`);
+
+        console.log(`✅ Found ${search.total} AV11 issues`);
         if (search.issues && search.issues.length > 0) {
             console.log('   Recent issues:');
             search.issues.forEach(issue => {
@@ -167,8 +172,8 @@ async function testJiraConnection() {
     console.log('═══════════════════════════════════════════════════════');
     console.log('📊 Connection Test Summary:');
     console.log('   JIRA URL: https://aurigraphdlt.atlassian.net');
-    console.log('   Project: AV10');
-    console.log('   Board ID: 657');
+    console.log('   Project: AV11');
+    console.log('   Board ID: 789');
     console.log('\n✅ JIRA connection test completed!');
     console.log('\nℹ️  To create or update issues programmatically:');
     console.log('   1. Ensure JIRA_API_TOKEN environment variable is set');

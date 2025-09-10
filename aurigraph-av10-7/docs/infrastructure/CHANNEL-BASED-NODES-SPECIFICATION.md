@@ -42,7 +42,7 @@ channels:
 Handles channel discovery, joining, and management for each node.
 
 ### 2. Channel Discovery Service
-Discovers available channels from AV10-18 platform and provides joining mechanisms.
+Discovers available channels from AV11-18 platform and provides joining mechanisms.
 
 ### 3. Channel Load Balancer
 Routes requests to appropriate nodes based on channel specialization.

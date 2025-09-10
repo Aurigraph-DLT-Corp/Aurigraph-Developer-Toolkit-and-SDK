@@ -66,8 +66,8 @@ async function getTicketDetails(ticketKey) {
                     
                     // Save to file for reference
                     const fs = require('fs');
-                    fs.writeFileSync(`AV10-30-DETAILS.json`, JSON.stringify(issue, null, 2));
-                    console.log('💾 Full ticket details saved to AV10-30-DETAILS.json');
+                    fs.writeFileSync(`AV11-30-DETAILS.json`, JSON.stringify(issue, null, 2));
+                    console.log('💾 Full ticket details saved to AV11-30-DETAILS.json');
                     
                     resolve(issue);
                 } catch (error) {
@@ -168,7 +168,7 @@ function parseADFContent(content, indent = 0) {
 
 // Run if called directly
 if (require.main === module) {
-    const ticketKey = process.argv[2] || 'AV10-30';
+    const ticketKey = process.argv[2] || 'AV11-30';
     getTicketDetails(ticketKey).catch(error => {
         console.error('Failed to get ticket details:', error);
         process.exit(1);

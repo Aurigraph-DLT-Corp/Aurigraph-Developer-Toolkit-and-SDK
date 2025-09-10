@@ -1,7 +1,7 @@
 # TypeScript to Java Migration Guide - Aurigraph V11
 
 ## Executive Summary
-Complete migration guide for transitioning Aurigraph V10 (TypeScript/Node.js) to V11 (Java/Quarkus/GraalVM).
+Complete migration guide for transitioning Aurigraph V11 (TypeScript/Node.js) to V11 (Java/Quarkus/GraalVM).
 
 ---
 

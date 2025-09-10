@@ -1,5 +1,5 @@
 /**
- * Aurigraph V10 - gRPC Client for Testing
+ * Aurigraph V11 - gRPC Client for Testing
  */
 
 import * as grpc from '@grpc/grpc-js';

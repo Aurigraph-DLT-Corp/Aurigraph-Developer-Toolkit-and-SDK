@@ -387,7 +387,7 @@ async function startQuantumNexusAPI() {
   
   app.get('/api/v10/quantum/docs', (req, res) => {
     res.json({
-      name: 'Aurigraph V10 Quantum Nexus API',
+      name: 'Aurigraph V11 Quantum Nexus API',
       version: '10.0.0',
       description: 'Revolutionary quantum blockchain platform with consciousness interface and autonomous evolution',
       endpoints: {
@@ -410,7 +410,7 @@ async function startQuantumNexusAPI() {
   
   // Start server
   app.listen(port, () => {
-    console.log(`\n🚀 Aurigraph V10 Quantum Nexus API Server started successfully!`);
+    console.log(`\n🚀 Aurigraph V11 Quantum Nexus API Server started successfully!`);
     console.log(`🌐 Server running at: http://localhost:${port}`);
     console.log(`📚 API Documentation: http://localhost:${port}/api/v10/quantum/docs`);
     console.log(`🌌 Quantum Status: http://localhost:${port}/api/v10/quantum/status`);

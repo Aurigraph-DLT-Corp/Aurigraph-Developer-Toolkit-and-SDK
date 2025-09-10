@@ -1,11 +1,11 @@
 /**
- * AV10-21 Asset Registration and Verification System Test
+ * AV11-21 Asset Registration and Verification System Test
  * Simple validation of the completed implementation
  */
 
 const path = require('path');
 
-console.log('🔍 AV10-21 System Validation Test');
+console.log('🔍 AV11-21 System Validation Test');
 console.log('================================');
 
 // Check if all required files exist
@@ -13,7 +13,7 @@ const requiredFiles = [
   'src/verification/VerificationEngine.ts',
   'src/compliance/LegalComplianceModule.ts', 
   'src/compliance/DueDiligenceAutomation.ts',
-  'src/av10-21/AV10-21QuantumSecurityIntegration.ts',
+  'src/av10-21/AV11-21QuantumSecurityIntegration.ts',
   'src/av10-21/index.ts'
 ];
 
@@ -71,16 +71,16 @@ console.log(`   - Risk scoring: ${dueDiligence.includes('riskRating') ? '✓' : 
 console.log(`   - ML risk models: ${dueDiligence.includes('riskModel') ? '✓' : '✗'}`);
 
 // Read and analyze QuantumSecurityIntegration.ts
-const quantumSecurity = fs.readFileSync(path.join(__dirname, 'src/av10-21/AV10-21QuantumSecurityIntegration.ts'), 'utf8');
-console.log('✅ AV10-21QuantumSecurityIntegration.ts:');
+const quantumSecurity = fs.readFileSync(path.join(__dirname, 'src/av10-21/AV11-21QuantumSecurityIntegration.ts'), 'utf8');
+console.log('✅ AV11-21QuantumSecurityIntegration.ts:');
 console.log(`   - Post-quantum crypto: ${quantumSecurity.includes('CRYSTALS') && quantumSecurity.includes('NTRU') ? '✓' : '✗'}`);
 console.log(`   - QKD implementation: ${quantumSecurity.includes('quantumKeyDistribution') ? '✓' : '✗'}`);
 console.log(`   - Intrusion detection: ${quantumSecurity.includes('intrusionDetection') ? '✓' : '✗'}`);
 
 // Read and analyze main integration
 const mainSystem = fs.readFileSync(path.join(__dirname, 'src/av10-21/index.ts'), 'utf8');
-console.log('✅ AV10-21 Main System (index.ts):');
-console.log(`   - System orchestration: ${mainSystem.includes('AV10_21_AssetRegistrationVerificationSystem') ? '✓' : '✗'}`);
+console.log('✅ AV11-21 Main System (index.ts):');
+console.log(`   - System orchestration: ${mainSystem.includes('AV11_21_AssetRegistrationVerificationSystem') ? '✓' : '✗'}`);
 console.log(`   - Dashboard integration: ${mainSystem.includes('getDashboardData') ? '✓' : '✗'}`);
 console.log(`   - Performance metrics: ${mainSystem.includes('updatePerformanceMetrics') ? '✓' : '✗'}`);
 console.log(`   - Real-time monitoring: ${mainSystem.includes('startMonitoring') ? '✓' : '✗'}`);
@@ -112,7 +112,7 @@ console.log(`   - Event-driven architecture: ${mainSystem.includes('EventEmitter
 console.log('\n🏁 Implementation Summary:');
 console.log('=========================');
 if (allFilesExist && totalLines > 8000) {
-  console.log('✅ AV10-21 Asset Registration and Verification System');
+  console.log('✅ AV11-21 Asset Registration and Verification System');
   console.log('   STATUS: IMPLEMENTATION COMPLETE');
   console.log('   ✓ All required components implemented');
   console.log('   ✓ Multi-source verification with >99.5% accuracy target');

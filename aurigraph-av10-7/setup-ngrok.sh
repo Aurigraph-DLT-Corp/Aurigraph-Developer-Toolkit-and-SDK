@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Aurigraph V10 - Ngrok Public Access Setup
+# Aurigraph V11 - Ngrok Public Access Setup
 # ==========================================
 
 # Colors
@@ -31,7 +31,7 @@ print_success() {
     echo -e "${GREEN}✅ $1${NC}"
 }
 
-echo "🌐 Aurigraph V10 - Ngrok Public Access Setup"
+echo "🌐 Aurigraph V11 - Ngrok Public Access Setup"
 echo "============================================="
 
 COMMAND=${1:-start}
@@ -48,7 +48,7 @@ case $COMMAND in
         fi
         
         # Start the platform
-        print_info "Starting Aurigraph V10 on port 8080..."
+        print_info "Starting Aurigraph V11 on port 8080..."
         
         if [ -f dist-dev4-simple/index.js ]; then
             cd dist-dev4-simple
@@ -106,7 +106,7 @@ case $COMMAND in
         else
             echo ""
             echo "=========================================="
-            echo -e "${GREEN}🎉 SUCCESS! Aurigraph V10 is now publicly accessible!${NC}"
+            echo -e "${GREEN}🎉 SUCCESS! Aurigraph V11 is now publicly accessible!${NC}"
             echo "=========================================="
             echo ""
             echo -e "${PURPLE}Public URL:${NC} ${NGROK_URL}"

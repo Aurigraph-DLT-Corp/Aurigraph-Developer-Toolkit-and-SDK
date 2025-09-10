@@ -1,7 +1,7 @@
-# Aurigraph AV10-7 Infrastructure Documentation
+# Aurigraph AV11-7 Infrastructure Documentation
 
 ## Overview
-This document provides comprehensive infrastructure details for the Aurigraph AV10-7 "Quantum Nexus" blockchain platform, including deployment configurations, containerization, monitoring, and operational requirements.
+This document provides comprehensive infrastructure details for the Aurigraph AV11-7 "Quantum Nexus" blockchain platform, including deployment configurations, containerization, monitoring, and operational requirements.
 
 ## Infrastructure Requirements
 
@@ -365,7 +365,7 @@ rule_files:
 ```json
 {
   "dashboard": {
-    "title": "Aurigraph AV10-7 Platform Overview",
+    "title": "Aurigraph AV11-7 Platform Overview",
     "panels": [
       {
         "title": "Real-time TPS",

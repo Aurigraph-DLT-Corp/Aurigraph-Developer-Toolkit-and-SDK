@@ -79,6 +79,11 @@
             <artifactId>quarkus-junit5-mockito</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- Virtual Threads (Java 21) -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -273,6 +278,146 @@
             <properties>
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
+                <!-- Optimized Native Image Settings for <1s startup, <100MB binary -->
+                <quarkus.native.container-build>true</quarkus.native.container-build>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
+                <quarkus.native.container-runtime>docker</quarkus.native.container-runtime>
+                
+                <!-- Performance Optimization Flags -->
+                <quarkus.native.additional-build-args>
+                    <!-- Memory and GC Optimizations -->
+                    -H:+UnlockExperimentalVMOptions,
+                    -H:+UseG1GC,
+                    -H:MaxGCPauseMillis=1,
+                    -H:G1HeapRegionSize=32m,
+                    -H:+UseStringDeduplication,
+                    -H:+OptimizeStringConcat,
+                    
+                    <!-- Startup Time Optimizations -->
+                    -H:+ReportExceptionStackTraces,
+                    -H:+AllowVMInspection,
+                    -H:-SpawnIsolates,
+                    -H:+StaticExecutableWithDynamicLibC,
+                    
+                    <!-- Binary Size Optimizations -->
+                    -H:+RemoveSaturatedTypeFlows,
+                    -H:+ReportUnsupportedElementsAtRuntime,
+                    -H:+AllowIncompleteClasspath,
+                    -H:-UseServiceLoaderFeature,
+                    -H:+PrintClassInitialization,
+                    
+                    <!-- Runtime Initialization for Network Libraries -->
+                    --initialize-at-run-time=io.netty.channel.unix.Socket,
+                    --initialize-at-run-time=io.netty.channel.unix.IovArray,
+                    --initialize-at-run-time=io.netty.channel.unix.Limits,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.channel.unix.Socket,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.channel.unix.IovArray,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.channel.unix.Limits,
+                    
+                    <!-- gRPC Optimizations -->
+                    --initialize-at-run-time=io.grpc.internal.DnsNameResolver,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.codec.http2.Http2CodecUtil,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.codec.http2.DefaultHttp2FrameWriter,
+                    
+                    <!-- Crypto and Security -->
+                    --initialize-at-run-time=org.bouncycastle,
+                    --initialize-at-run-time=java.security.SecureRandom,
+                    
+                    <!-- AI/ML Libraries -->
+                    --initialize-at-run-time=org.deeplearning4j,
+                    --initialize-at-run-time=org.nd4j,
+                    --initialize-at-run-time=com.github.haifengl.smile,
+                    
+                    <!-- Performance Profiling -->
+                    -H:+PrintAnalysisCallTree,
+                    -H:+PrintFeatures,
+                    -H:+VerboseGC,
+                    
+                    <!-- Native Image Heap Settings -->
+                    -H:NativeImageHeapSize=8g,
+                    -H:MaxJavaStackTraceDepth=20
+                </quarkus.native.additional-build-args>
+                
+                <!-- Resource Configuration -->
+                <quarkus.native.resources.includes>*.proto,application*.properties,META-INF/resources/**,META-INF/native-image/**</quarkus.native.resources.includes>
+                
+                <!-- Compression and Optimization -->
+                <quarkus.native.compression.level>10</quarkus.native.compression.level>
+                <quarkus.native.compression.additional-args>--strip-debug</quarkus.native.compression.additional-args>
+            </properties>
+        </profile>
+        
+        <!-- Fast Native Profile for Development -->
+        <profile>
+            <id>native-fast</id>
+            <activation>
+                <property>
+                    <name>native-fast</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+                <quarkus.native.container-build>true</quarkus.native.container-build>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
+                <quarkus.native.additional-build-args>
+                    -O1,
+                    --initialize-at-run-time=io.netty,
+                    --initialize-at-run-time=io.grpc,
+                    -H:-SpawnIsolates,
+                    -H:+ReportUnsupportedElementsAtRuntime
+                </quarkus.native.additional-build-args>
+            </properties>
+        </profile>
+        
+        <!-- Ultra-Optimized Production Profile -->
+        <profile>
+            <id>native-ultra</id>
+            <activation>
+                <property>
+                    <name>native-ultra</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+                <quarkus.native.container-build>true</quarkus.native.container-build>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
+                <quarkus.native.additional-build-args>
+                    <!-- Ultra Performance Settings -->
+                    -march=native,
+                    -O3,
+                    -H:+UnlockExperimentalVMOptions,
+                    -H:+UseG1GC,
+                    -H:MaxGCPauseMillis=1,
+                    -H:G1HeapRegionSize=64m,
+                    -H:+AggressiveOpts,
+                    -H:+UseFastAccessorMethods,
+                    -H:+OptimizeStringConcat,
+                    -H:+UseCompressedOops,
+                    -H:+UseCompressedClassPointers,
+                    -H:+EliminateAllocations,
+                    -H:+OptimizeBulkTransfer,
+                    
+                    <!-- Startup Optimizations -->
+                    -H:-SpawnIsolates,
+                    -H:+StaticExecutableWithDynamicLibC,
+                    -H:+AllowIncompleteClasspath,
+                    
+                    <!-- All runtime initializations -->
+                    --initialize-at-run-time=io.netty,
+                    --initialize-at-run-time=io.grpc,
+                    --initialize-at-run-time=org.bouncycastle,
+                    --initialize-at-run-time=org.deeplearning4j,
+                    --initialize-at-run-time=org.nd4j,
+                    --initialize-at-run-time=com.github.haifengl.smile,
+                    --initialize-at-run-time=java.security,
+                    
+                    <!-- Memory Settings -->
+                    -H:NativeImageHeapSize=12g,
+                    -H:MaxDirectMemorySize=4g,
+                    -H:ReservedCodeCacheSize=256m
+                </quarkus.native.additional-build-args>
             </properties>
         </profile>
     </profiles>

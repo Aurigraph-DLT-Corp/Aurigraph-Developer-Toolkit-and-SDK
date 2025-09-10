@@ -154,7 +154,7 @@ export class NTRUCryptoEngine {
       return;
     }
 
-    this.logger.info('🔐 Initializing AV10-30 NTRU Cryptography Engine...');
+    this.logger.info('🔐 Initializing AV11-30 NTRU Cryptography Engine...');
     
     try {
       // Initialize hardware acceleration if available
@@ -176,7 +176,7 @@ export class NTRUCryptoEngine {
 
       this.isInitialized = true;
       
-      this.logger.info('✅ AV10-30 NTRU Cryptography Engine initialized successfully');
+      this.logger.info('✅ AV11-30 NTRU Cryptography Engine initialized successfully');
       this.logger.info(`🔒 Security Level: ${this.config.securityLevel}-bit equivalent`);
       this.logger.info(`🗝️ Key Size: ${this.config.keySize}-bit NTRU keys`);
       this.logger.info(`⚡ Hardware Acceleration: ${this.config.hardwareAcceleration ? 'Enabled' : 'Disabled'}`);

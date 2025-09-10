@@ -62,7 +62,7 @@ class BasicNodeDashboard {
         
         // Update platform connection
         const platformText = status.platformConnected ? 
-            `✅ Connected (${status.platformVersion || 'AV10-18'})` : 
+            `✅ Connected (${status.platformVersion || 'AV11-18'})` : 
             '❌ Disconnected';
         document.getElementById('platformConnection').textContent = platformText;
         

@@ -2,7 +2,7 @@
   "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
   "id": "19234",
   "self": "https://aurigraphdlt.atlassian.net/rest/api/3/issue/19234",
-  "key": "AV10-37",
+  "key": "AV11-37",
   "fields": {
     "statuscategorychangedate": "2025-09-02T12:26:09.441+0530",
     "issuetype": {
@@ -20,8 +20,8 @@
     "project": {
       "self": "https://aurigraphdlt.atlassian.net/rest/api/3/project/11194",
       "id": "11194",
-      "key": "AV10",
-      "name": "Aurigraph V10",
+      "key": "AV11",
+      "name": "Aurigraph V11",
       "projectTypeKey": "software",
       "simplified": true,
       "avatarUrls": {
@@ -48,7 +48,7 @@
       "shouldDisplay": true
     },
     "watches": {
-      "self": "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV10-37/watchers",
+      "self": "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV11-37/watchers",
       "watchCount": 1,
       "isWatching": true
     },
@@ -139,7 +139,7 @@
       "total": 0
     },
     "votes": {
-      "self": "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV10-37/votes",
+      "self": "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV11-37/votes",
       "votes": 0,
       "hasVoted": false
     },

@@ -1,4 +1,4 @@
-# AV10-17 Compliance Configuration
+# AV11-17 Compliance Configuration
 # Java 24 + Quarkus 3.26.1 + GraalVM Settings
 
 quarkus:
@@ -6,7 +6,7 @@ quarkus:
     name: aurigraph-basicnode
     version: 10.19.0
 
-  # AV10-17 Performance Requirements
+  # AV11-17 Performance Requirements
   http:
     port: 8080
     host: 0.0.0.0
@@ -28,7 +28,7 @@ quarkus:
       - "-H:+PrintGCDetails"
       - "-H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy$BySpaceAndTime"
 
-  # AV10-17 Memory Constraints (<512MB)
+  # AV11-17 Memory Constraints (<512MB)
   container-image:
     name: "aurigraph/basicnode"
     tag: "10.19.0-av10-17"
@@ -41,7 +41,7 @@ quarkus:
       dockerfile-jvm-path: src/main/docker/Dockerfile.jvm
       dockerfile-native-path: src/main/docker/Dockerfile.native
 
-  # Health Monitoring (AV10-17 99.99% uptime requirement)
+  # Health Monitoring (AV11-17 99.99% uptime requirement)
   smallrye-health:
     root-path: /health
     extensions:
@@ -50,7 +50,7 @@ quarkus:
       enable: true
       root-path: /health-ui
 
-  # Metrics for AV10-17 Performance Monitoring
+  # Metrics for AV11-17 Performance Monitoring
   micrometer:
     enabled: true
     export:
@@ -70,7 +70,7 @@ quarkus:
         maximum-size: 1000
         expire-after-write: PT300S
 
-  # REST Client for AV10-18 Platform Integration
+  # REST Client for AV11-18 Platform Integration
   rest-client:
     "av10-platform":
       url: "http://localhost:3018"
@@ -82,14 +82,14 @@ quarkus:
     always-include: true
     path: /api-docs
 
-# AV10-17 Node Configuration
+# AV11-17 Node Configuration
 aurigraph:
   node:
     id: "${NODE_ID:basic-node-${random.uuid}}"
     type: "BASIC"
     version: "10.19.0"
     
-    # AV10-17 Performance Targets
+    # AV11-17 Performance Targets
     performance:
       target-tps: 50000
       max-memory-mb: 512
@@ -105,14 +105,14 @@ aurigraph:
         - "PROCESSING" 
         - "GEOGRAPHIC"
       
-    # AV10-18 Platform Integration
+    # AV11-18 Platform Integration
     platform:
       endpoint: "http://localhost:3018"
       api-version: "v10"
       quantum-security: true
       consensus-participation: true
       
-    # Security Configuration (AV10-17 Quantum Level 6)
+    # Security Configuration (AV11-17 Quantum Level 6)
     security:
       quantum-level: 6
       encryption: "POST_QUANTUM"

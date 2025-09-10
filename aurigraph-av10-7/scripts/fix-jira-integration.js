@@ -16,7 +16,7 @@ const JIRA_CONFIG = {
     baseURL: process.env.JIRA_BASE_URL || 'https://aurigraphdlt.atlassian.net',
     email: process.env.JIRA_EMAIL || 'subbu@aurigraph.io',
     apiToken: process.env.JIRA_API_KEY,
-    projectKeyV10: 'AV10',
+    projectKeyV10: 'AV11',
     projectKeyV11: 'AV11'
 };
 
@@ -359,8 +359,8 @@ async function main() {
         process.exit(1);
     }
 
-    // Check AV10 project
-    await getProjectInfo('AV10');
+    // Check AV11 project
+    await getProjectInfo('AV11');
 
     // Create/check AV11 project  
     const av11Project = await createAV11Project();

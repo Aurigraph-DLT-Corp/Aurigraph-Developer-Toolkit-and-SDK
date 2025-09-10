@@ -1,7 +1,7 @@
-# Aurigraph AV10-7 Development Agent Team Framework
+# Aurigraph AV11-7 Development Agent Team Framework
 
 ## Overview
-This document defines the agent-based development team structure for the Aurigraph AV10-7 platform. All development work MUST be coordinated through this agent framework to ensure consistency, quality, and proper integration.
+This document defines the agent-based development team structure for the Aurigraph AV11-7 platform. All development work MUST be coordinated through this agent framework to ensure consistency, quality, and proper integration.
 
 ## ⚠️ MANDATORY REQUIREMENT
 **ALL development tasks MUST employ the appropriate agents defined in this framework. Direct implementation without agent coordination is NOT permitted.**

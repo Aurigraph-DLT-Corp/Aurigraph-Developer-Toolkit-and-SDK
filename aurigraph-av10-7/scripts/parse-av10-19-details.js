@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Parse AV10-19 ticket details with proper ADF parsing
+ * Parse AV11-19 ticket details with proper ADF parsing
  */
 
 const https = require('https');
@@ -139,10 +139,10 @@ async function getTicketDetails(ticketKey) {
 }
 
 async function main() {
-  console.log('🔍 Getting AV10-19 ticket details...\n');
+  console.log('🔍 Getting AV11-19 ticket details...\n');
   
   try {
-    const ticket = await getTicketDetails('AV10-19');
+    const ticket = await getTicketDetails('AV11-19');
     
     // Save details for implementation
     const fs = require('fs');
@@ -158,7 +158,7 @@ async function main() {
       updated: ticket.fields.updated
     };
     
-    const outputFile = path.join(__dirname, '..', 'AV10-19-DETAILS.json');
+    const outputFile = path.join(__dirname, '..', 'AV11-19-DETAILS.json');
     fs.writeFileSync(outputFile, JSON.stringify(ticketData, null, 2));
     console.log(`\n💾 Ticket details saved to: ${outputFile}`);
     

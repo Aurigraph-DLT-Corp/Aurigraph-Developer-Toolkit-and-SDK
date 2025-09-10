@@ -1,4 +1,4 @@
-# Aurigraph V10 - gRPC/HTTP/2 Migration Guide
+# Aurigraph V11 - gRPC/HTTP/2 Migration Guide
 
 ## Overview
 Complete migration from REST/HTTP/1.1 to gRPC with Protocol Buffers over HTTP/2, with future upgrade path to HTTP/3.
@@ -232,16 +232,16 @@ response = stub.SubmitTransaction(
 
 ## 📋 JIRA Tickets Created
 
-1. **AV10-GRPC-01**: gRPC Infrastructure Setup (2 weeks)
-2. **AV10-GRPC-02**: Protocol Buffer Schema Design (1 week)
-3. **AV10-GRPC-03**: gRPC Server Implementation (2 weeks)
-4. **AV10-GRPC-04**: REST to gRPC Migration (3 weeks)
-5. **AV10-GRPC-05**: Client Library Implementation (2 weeks)
-6. **AV10-GRPC-06**: Performance Testing (1 week)
-7. **AV10-GRPC-07**: HTTP/3 Planning (2 weeks)
-8. **AV10-GRPC-08**: Monitoring & Observability (1 week)
-9. **AV10-GRPC-09**: Security Implementation (2 weeks)
-10. **AV10-GRPC-10**: Documentation & Training (1 week)
+1. **AV11-GRPC-01**: gRPC Infrastructure Setup (2 weeks)
+2. **AV11-GRPC-02**: Protocol Buffer Schema Design (1 week)
+3. **AV11-GRPC-03**: gRPC Server Implementation (2 weeks)
+4. **AV11-GRPC-04**: REST to gRPC Migration (3 weeks)
+5. **AV11-GRPC-05**: Client Library Implementation (2 weeks)
+6. **AV11-GRPC-06**: Performance Testing (1 week)
+7. **AV11-GRPC-07**: HTTP/3 Planning (2 weeks)
+8. **AV11-GRPC-08**: Monitoring & Observability (1 week)
+9. **AV11-GRPC-09**: Security Implementation (2 weeks)
+10. **AV11-GRPC-10**: Documentation & Training (1 week)
 
 **Total Timeline**: 15 weeks (Q1 2025 completion)
 

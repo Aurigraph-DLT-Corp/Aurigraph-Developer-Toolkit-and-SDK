@@ -411,7 +411,7 @@ async function main() {
     }
     
     console.log('\n🔗 View JIRA Board:');
-    console.log(`   ${JIRA_BASE_URL}/jira/software/projects/${PROJECT_KEY}/boards/657`);
+    console.log(`   ${JIRA_BASE_URL}/jira/software/projects/${PROJECT_KEY}/boards/789`);
 }
 
 // Run the script

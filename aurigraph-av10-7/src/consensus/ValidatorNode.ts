@@ -72,7 +72,7 @@ export class ValidatorNode extends EventEmitter {
       // Begin monitoring
       this.startMetricsCollection();
       
-      this.logger.info(`✅ Validator ${this.nodeId} initialized with stake: ${this.stake} AV10`);
+      this.logger.info(`✅ Validator ${this.nodeId} initialized with stake: ${this.stake} AV11`);
       
     } catch (error: unknown) {
       this.logger.error('Failed to initialize validator node:', error);

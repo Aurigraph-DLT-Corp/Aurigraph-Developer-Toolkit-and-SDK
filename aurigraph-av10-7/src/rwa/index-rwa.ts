@@ -32,7 +32,7 @@ export class AurigraphRWAPlatform {
     }
 
     private initializeComponents(): void {
-        console.log('🔧 Initializing AV10-20 RWA Platform Components...');
+        console.log('🔧 Initializing AV11-20 RWA Platform Components...');
         
         this.auditManager = new AuditTrailManager();
         this.assetRegistry = new AssetRegistry(/* @ts-ignore *//* @ts-ignore *//* @ts-ignore */{} as any, {} as any);
@@ -74,7 +74,7 @@ export class AurigraphRWAPlatform {
         this.app.get('/health', (req, res) => {
             res.json({
                 status: 'healthy',
-                platform: 'AV10-20 RWA',
+                platform: 'AV11-20 RWA',
                 version: '20.0.0',
                 timestamp: Date.now(),
                 components: {
@@ -97,7 +97,7 @@ export class AurigraphRWAPlatform {
                     platform: {
                         name: 'Aurigraph RWA Tokenization Platform',
                         version: '20.0.0',
-                        compliance: 'AV10-17',
+                        compliance: 'AV11-17',
                         uptime: process.uptime(),
                         status: 'OPERATIONAL'
                     },
@@ -357,7 +357,7 @@ export class AurigraphRWAPlatform {
     async start(): Promise<void> {
         return new Promise((resolve) => {
             this.app.listen(this.port, async () => {
-                console.log('🚀 Aurigraph AV10-20 RWA Platform Started');
+                console.log('🚀 Aurigraph AV11-20 RWA Platform Started');
                 console.log('=========================================');
                 console.log(`🌐 Platform API: http://localhost:${this.port}`);
                 console.log(`🏥 Health Check: http://localhost:${this.port}/health`);
@@ -433,7 +433,7 @@ if (require.main === module) {
     const platform = new AurigraphRWAPlatform();
     
     platform.start().then(() => {
-        console.log('🎉 AV10-20 RWA Platform is ready for integration!');
+        console.log('🎉 AV11-20 RWA Platform is ready for integration!');
         console.log('');
         console.log('🔗 Integration Examples:');
         console.log('  - Portfolio managers can use /api/rwa/v2/portfolio endpoints');

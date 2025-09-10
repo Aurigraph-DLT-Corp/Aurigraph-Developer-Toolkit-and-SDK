@@ -61,7 +61,7 @@ async function getProject() {
     const options = {
       hostname: JIRA_BASE_URL.replace('https://', ''),
       port: 443,
-      path: '/rest/api/3/project/AV10',
+      path: '/rest/api/3/project/AV11',
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,

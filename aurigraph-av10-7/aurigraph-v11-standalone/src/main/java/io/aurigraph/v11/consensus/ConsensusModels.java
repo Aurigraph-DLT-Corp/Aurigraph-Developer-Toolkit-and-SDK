@@ -1,7 +1,9 @@
 package io.aurigraph.v11.consensus;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data models and enums for HyperRAFT++ Consensus
@@ -26,7 +28,12 @@ public class ConsensusModels {
         BECAME_FOLLOWER,
         HEARTBEAT_SENT,
         BLOCK_FINALIZED,
-        ELECTION_STARTED
+        ELECTION_STARTED,
+        BLOCK_CREATED_V2,
+        ENHANCED_METRICS_UPDATED,
+        QUANTUM_CONSENSUS_ENABLED,
+        AI_OPTIMIZATION_APPLIED,
+        SHARD_REBALANCED
     }
     
     public enum ElectionEventType {
@@ -129,6 +136,12 @@ public class ConsensusModels {
         private final String validator;
         private final ConsensusProof consensusProof;
         
+        // Enhanced V2 properties
+        private ZKAggregateProof zkAggregateProof;
+        private QuantumConsensusProof quantumConsensusProof;
+        private int shardId;
+        private List<ValidationResult> validationResults;
+        
         public Block(long height, String hash, String previousHash, 
                     List<Transaction> transactions, Instant timestamp,
                     String validator, ConsensusProof consensusProof) {
@@ -139,6 +152,8 @@ public class ConsensusModels {
             this.timestamp = timestamp;
             this.validator = validator;
             this.consensusProof = consensusProof;
+            this.shardId = 0;
+            this.validationResults = List.of();
         }
         
         // Getters
@@ -149,19 +164,42 @@ public class ConsensusModels {
         public Instant getTimestamp() { return timestamp; }
         public String getValidator() { return validator; }
         public ConsensusProof getConsensusProof() { return consensusProof; }
+        
+        // Enhanced V2 getters and setters
+        public ZKAggregateProof getZkAggregateProof() { return zkAggregateProof; }
+        public void setZkAggregateProof(ZKAggregateProof zkAggregateProof) { this.zkAggregateProof = zkAggregateProof; }
+        
+        public QuantumConsensusProof getQuantumConsensusProof() { return quantumConsensusProof; }
+        public void setQuantumConsensusProof(QuantumConsensusProof quantumConsensusProof) { this.quantumConsensusProof = quantumConsensusProof; }
+        
+        public int getShardId() { return shardId; }
+        public void setShardId(int shardId) { this.shardId = shardId; }
+        
+        public List<ValidationResult> getValidationResults() { return validationResults; }
+        public void setValidationResults(List<ValidationResult> validationResults) { this.validationResults = validationResults; }
     }
     
     public static class ConsensusProof {
         private final int term;
         private final String signature;
+        private final String stateRoot;
         
         public ConsensusProof(int term, String signature) {
             this.term = term;
+            this.signature = signature;
+            this.stateRoot = null;
+        }
+        
+        // Enhanced constructor with state root
+        public ConsensusProof(int term, String stateRoot, String signature) {
+            this.term = term;
+            this.stateRoot = stateRoot;
             this.signature = signature;
         }
         
         public int getTerm() { return term; }
         public String getSignature() { return signature; }
+        public String getStateRoot() { return stateRoot; }
     }
     
     public static class ZKProof {
@@ -177,6 +215,14 @@ public class ConsensusModels {
             this.verified = verified;
         }
         
+        // Simplified constructor for quick proof creation
+        public ZKProof(String id, String proofData) {
+            this.id = id;
+            this.proofData = proofData;
+            this.timestamp = System.currentTimeMillis();
+            this.verified = true;
+        }
+        
         public String getId() { return id; }
         public String getProofData() { return proofData; }
         public long getTimestamp() { return timestamp; }
@@ -188,34 +234,70 @@ public class ConsensusModels {
         private final boolean success;
         private final long gasUsed;
         private final String message;
+        private final Transaction transaction;
+        private final String status;
+        private final long executionTime;
         
         public ExecutionResult(String transactionHash, boolean success, long gasUsed, String message) {
             this.transactionHash = transactionHash;
             this.success = success;
             this.gasUsed = gasUsed;
             this.message = message;
+            this.transaction = null;
+            this.status = success ? "success" : "failed";
+            this.executionTime = 0L;
+        }
+        
+        // Enhanced constructor for V2 features
+        public ExecutionResult(boolean success, Transaction transaction, String transactionHash, 
+                              long gasUsed, String status, long executionTime) {
+            this.success = success;
+            this.transaction = transaction;
+            this.transactionHash = transactionHash;
+            this.gasUsed = gasUsed;
+            this.status = status;
+            this.executionTime = executionTime;
+            this.message = status;
         }
         
         public String getTransactionHash() { return transactionHash; }
         public boolean isSuccess() { return success; }
         public long getGasUsed() { return gasUsed; }
         public String getMessage() { return message; }
+        public Transaction getTransaction() { return transaction; }
+        public String getStatus() { return status; }
+        public long getExecutionTime() { return executionTime; }
     }
     
     public static class ValidationResult {
         private final boolean valid;
         private final String message;
         private final long timestamp;
+        private final String pipeline;
+        private final List<ValidationEntry> results;
         
         public ValidationResult(boolean valid, String message) {
             this.valid = valid;
             this.message = message;
+            this.timestamp = System.currentTimeMillis();
+            this.pipeline = "default";
+            this.results = List.of();
+        }
+        
+        // Enhanced constructor for multi-dimensional validation
+        public ValidationResult(String pipeline, List<ValidationEntry> results) {
+            this.pipeline = pipeline;
+            this.results = results;
+            this.valid = results.stream().allMatch(ValidationEntry::isValid);
+            this.message = pipeline + " validation";
             this.timestamp = System.currentTimeMillis();
         }
         
         public boolean isValid() { return valid; }
         public String getMessage() { return message; }
         public long getTimestamp() { return timestamp; }
+        public String getPipeline() { return pipeline; }
+        public List<ValidationEntry> getResults() { return results; }
         
         public boolean isRecent() {
             return (System.currentTimeMillis() - timestamp) < 60000; // 1 minute
@@ -268,6 +350,12 @@ public class ConsensusModels {
         public long getLastApplied() { return lastApplied; }
         public String getNodeId() { return nodeId; }
         public int getValidatorCount() { return validatorCount; }
+        
+        // Alias methods for backward compatibility with AI components
+        public ConsensusState state() { return state; }
+        public int term() { return term; }
+        public long commitIndex() { return commitIndex; }
+        public int validatorCount() { return validatorCount; }
     }
     
     public static class PerformanceMetrics {
@@ -295,6 +383,10 @@ public class ConsensusModels {
         public double getSuccessRate() { return successRate; }
         public long getTotalProcessed() { return totalProcessed; }
         public long getTotalSuccessful() { return totalSuccessful; }
+        
+        // Alias methods for backward compatibility with AI components
+        public long getProcessedTransactions() { return totalProcessed; }
+        public long getSuccessfulTransactions() { return totalSuccessful; }
     }
     
     public static class ValidationMetrics {
@@ -545,5 +637,148 @@ public class ConsensusModels {
                 this.failureCount++;
             }
         }
+    }
+    
+    // Enhanced V2 model classes for quantum consensus, AI optimization, and adaptive sharding
+    
+    public static class ValidationEntry {
+        private final boolean valid;
+        private final String type;
+        private final String error;
+        
+        public ValidationEntry(boolean valid, String type, String error) {
+            this.valid = valid;
+            this.type = type;
+            this.error = error;
+        }
+        
+        public boolean isValid() { return valid; }
+        public String getType() { return type; }
+        public String getError() { return error; }
+    }
+    
+    public static class ValidationResults {
+        private List<Transaction> validTransactions;
+        private List<ZKProof> zkProofs;
+        private List<ValidationResult> pipelineResults;
+        
+        public ValidationResults() {
+            this.validTransactions = new ArrayList<>();
+            this.zkProofs = new ArrayList<>();
+            this.pipelineResults = new ArrayList<>();
+        }
+        
+        public List<Transaction> getValidTransactions() { return validTransactions; }
+        public void setValidTransactions(List<Transaction> validTransactions) { this.validTransactions = validTransactions; }
+        
+        public List<ZKProof> getZkProofs() { return zkProofs; }
+        public void setZkProofs(List<ZKProof> zkProofs) { this.zkProofs = zkProofs; }
+        
+        public List<ValidationResult> getPipelineResults() { return pipelineResults; }
+        public void setPipelineResults(List<ValidationResult> pipelineResults) { this.pipelineResults = pipelineResults; }
+    }
+    
+    public static class QuantumConsensusProof {
+        private final String signature;
+        private final boolean valid;
+        private final Instant timestamp;
+        
+        public QuantumConsensusProof(String signature, boolean valid, Instant timestamp) {
+            this.signature = signature;
+            this.valid = valid;
+            this.timestamp = timestamp;
+        }
+        
+        public String getSignature() { return signature; }
+        public boolean isValid() { return valid; }
+        public Instant getTimestamp() { return timestamp; }
+    }
+    
+    public static class ZKAggregateProof {
+        private final String type;
+        private final int count;
+        private final int size;
+        private final double compressionRatio;
+        private final long verificationTime;
+        
+        public ZKAggregateProof(String type, int count, int size, double compressionRatio, long verificationTime) {
+            this.type = type;
+            this.count = count;
+            this.size = size;
+            this.compressionRatio = compressionRatio;
+            this.verificationTime = verificationTime;
+        }
+        
+        public String getType() { return type; }
+        public int getCount() { return count; }
+        public int getSize() { return size; }
+        public double getCompressionRatio() { return compressionRatio; }
+        public long getVerificationTime() { return verificationTime; }
+    }
+    
+    public static class ShardManager {
+        private final int id;
+        private final List<String> validators;
+        private double load;
+        private double efficiency;
+        private final double rebalanceThreshold;
+        
+        public ShardManager(int id, List<String> validators, double load, double efficiency, double rebalanceThreshold) {
+            this.id = id;
+            this.validators = validators;
+            this.load = load;
+            this.efficiency = efficiency;
+            this.rebalanceThreshold = rebalanceThreshold;
+        }
+        
+        public int getId() { return id; }
+        public List<String> getValidators() { return validators; }
+        public double getLoad() { return load; }
+        public void setLoad(double load) { this.load = load; }
+        public double getEfficiency() { return efficiency; }
+        public void setEfficiency(double efficiency) { this.efficiency = efficiency; }
+        public double getRebalanceThreshold() { return rebalanceThreshold; }
+    }
+    
+    public static class ValidationDimension {
+        private final String type;
+        private boolean active;
+        private long throughput;
+        private long processed;
+        private int parallelWorkers;
+        
+        public ValidationDimension(String type, boolean active, long throughput, long processed) {
+            this.type = type;
+            this.active = active;
+            this.throughput = throughput;
+            this.processed = processed;
+            this.parallelWorkers = 32; // Default worker count
+        }
+        
+        public String getType() { return type; }
+        public boolean isActive() { return active; }
+        public void setActive(boolean active) { this.active = active; }
+        public long getThroughput() { return throughput; }
+        public void setThroughput(long throughput) { this.throughput = throughput; }
+        public long getProcessed() { return processed; }
+        public void setProcessed(long processed) { this.processed = processed; }
+        public int getParallelWorkers() { return parallelWorkers; }
+        public void setParallelWorkers(int parallelWorkers) { this.parallelWorkers = parallelWorkers; }
+    }
+    
+    public static class AIOptimizationResult {
+        private final boolean applied;
+        private final String description;
+        private final Map<String, Object> parameters;
+        
+        public AIOptimizationResult(boolean applied, String description, Map<String, Object> parameters) {
+            this.applied = applied;
+            this.description = description;
+            this.parameters = parameters;
+        }
+        
+        public boolean isApplied() { return applied; }
+        public String getDescription() { return description; }
+        public Map<String, Object> getParameters() { return parameters; }
     }
 }

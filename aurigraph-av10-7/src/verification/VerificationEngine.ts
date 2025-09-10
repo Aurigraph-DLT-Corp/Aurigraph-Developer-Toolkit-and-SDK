@@ -249,7 +249,7 @@ export class VerificationEngine extends EventEmitter {
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('Initializing AV10-21 Verification Engine...');
+    this.logger.info('Initializing AV11-21 Verification Engine...');
     
     // Initialize verification sources
     await this.initializeVerificationSources();

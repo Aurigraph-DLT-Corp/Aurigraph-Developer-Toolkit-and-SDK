@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Aurigraph AV10-7 Comprehensive Test Suite Runner
+# Aurigraph AV11-7 Comprehensive Test Suite Runner
 # Usage: ./scripts/testing/run-test-suite.sh [test-type] [options]
 
 set -e
@@ -204,7 +204,7 @@ generate_test_report() {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Aurigraph AV10-7 Test Report</title>
+    <title>Aurigraph AV11-7 Test Report</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
         .header { background: #f4f4f4; padding: 20px; border-radius: 5px; }
@@ -216,7 +216,7 @@ generate_test_report() {
 </head>
 <body>
     <div class="header">
-        <h1>Aurigraph AV10-7 Test Report</h1>
+        <h1>Aurigraph AV11-7 Test Report</h1>
         <p>Generated: $(date)</p>
         <p>Platform Version: 10.7.0</p>
     </div>
@@ -248,7 +248,7 @@ main() {
     local test_type="${1:-all}"
     local exit_code=0
     
-    log_info "Starting Aurigraph AV10-7 Test Suite"
+    log_info "Starting Aurigraph AV11-7 Test Suite"
     log_info "Test type: $test_type"
     
     # Setup
@@ -319,7 +319,7 @@ main() {
 # Help function
 show_help() {
     cat << EOF
-Aurigraph AV10-7 Test Suite Runner
+Aurigraph AV11-7 Test Suite Runner
 
 Usage: $0 [test-type] [options]
 

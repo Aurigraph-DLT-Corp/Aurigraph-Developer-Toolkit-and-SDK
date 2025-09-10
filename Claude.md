@@ -3,250 +3,304 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-**Aurigraph DLT** - A revolutionary blockchain platform implementing quantum-resistant cryptography, AI-driven consensus, and cross-chain interoperability. The project consists of:
-- **V10**: TypeScript/Node.js implementation achieving 1M+ TPS (production-ready)
-- **V11**: Java/Quarkus/GraalVM migration for 2M+ TPS (in progress, ~20% complete)
+**Aurigraph DLT V11** - High-performance blockchain platform migration from TypeScript (V10) to Java/Quarkus/GraalVM architecture targeting 2M+ TPS with quantum-resistant cryptography and AI-driven consensus.
+
+**Current Migration Status**: ~30% complete
+- ✅ Core Java/Quarkus structure 
+- ✅ REST API and health endpoints
+- ✅ Native compilation with optimized profiles
+- ✅ AI optimization services (ML-based consensus)
+- ✅ HMS integration for real-world asset tokenization
+- 🚧 gRPC service implementation 
+- 🚧 Performance optimization (currently 776K TPS)
+- 📋 Full consensus migration from TypeScript
 
 ## Essential Commands
 
-### V10 TypeScript Development
-```bash
-# From aurigraph-av10-7/ directory
-npm install                      # Install dependencies
-npm run build                    # Build TypeScript to dist/
-npm run build:classical          # Build classical version only
-
-# Development & Testing
-npm start                        # Start main platform (port 8080)
-npm run dev                      # Hot reload development mode
-npm run test:unit               # Unit tests with coverage
-npm run test:all                # Full test suite via shell script
-npm run test:performance        # Performance tests (180s timeout)
-npm run lint                    # ESLint check
-npm run typecheck               # TypeScript type checking
-
-# Deployment
-npm run deploy:dev4             # Deploy to dev4 environment
-npm run validate:dev4           # Validate dev4 deployment
-docker-compose -f docker-compose.av10-7.yml up -d
-
-# Single test execution
-npx jest tests/unit/consensus/HyperRAFTPlusPlus.test.ts --verbose
-```
-
 ### V11 Java/Quarkus Development
 ```bash
-# From aurigraph-av10-7/aurigraph-v11-standalone/
-./mvnw clean package            # Build JAR
-./mvnw quarkus:dev             # Dev mode with hot reload (port 9003)
-./mvnw test                    # Run all tests
-./mvnw test -Dtest=TransactionServiceTest#testHighThroughput
+# Navigate to V11 standalone project
+cd aurigraph-av10-7/aurigraph-v11-standalone/
 
-# Native compilation
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-./target/aurigraph-v11-standalone-11.0.0-runner  # Run native
+# Development
+./mvnw quarkus:dev              # Hot reload dev mode (port 9003)
+./mvnw compile quarkus:dev      # Compile and start dev mode
+
+# Build and Package
+./mvnw clean package            # Standard JAR build
+./mvnw package -Dquarkus.package.jar.type=uber-jar  # Uber JAR
+
+# Testing
+./mvnw test                     # All tests
+./mvnw test -Dtest=AurigraphResourceTest  # Specific test
+./mvnw test -Dtest=TransactionServiceTest#testHighThroughput  # Specific method
+
+# Native Compilation (3 profiles available)
+./mvnw package -Pnative-fast    # Fast development native build
+./mvnw package -Pnative         # Standard optimized native build  
+./mvnw package -Pnative-ultra   # Ultra-optimized production build
+
+# Run native executable
+./target/aurigraph-v11-standalone-11.0.0-runner
+
+# Performance testing scripts
+./performance-benchmark.sh      # Comprehensive performance test
+./run-performance-tests.sh     # JMeter-based load testing
+
+# Quick native build (development)
+./quick-native-build.sh        # Uses native-fast profile
+```
+
+### V10 TypeScript Development (Legacy Support)
+```bash
+# From aurigraph-av10-7/ directory  
+npm install && npm run build   # Install and build
+npm start                      # Start V10 platform (port 8080)
+npm run test:all              # Full test suite
+npm run deploy:dev4           # Deploy to dev4 environment
 ```
 
 ## High-Level Architecture
 
-### Core Components Architecture
+### V11 Java/Quarkus Architecture (Primary Focus)
 
-#### V10 TypeScript Structure
 ```
-aurigraph-av10-7/src/
-├── consensus/                  # HyperRAFT++ with AI optimization
-│   ├── HyperRAFTPlusPlusV2.ts # Main consensus engine (1M+ TPS)
-│   └── validators/             # Validator node management
-├── crypto/                     # NIST Level 5 quantum-resistant
-│   ├── QuantumCrypto.ts       # CRYSTALS-Kyber/Dilithium
-│   └── zk/                    # Zero-knowledge proofs
-├── ai/                        # AI-driven optimization
-│   ├── AIOptimizer.ts         # Performance optimization
-│   └── PredictiveConsensus.ts # Predictive transaction ordering
-├── crosschain/                # Multi-chain bridge
-│   ├── CrossChainBridge.ts   # Universal bridge protocol
-│   └── adapters/              # Chain-specific adapters
-├── network/                   # P2P networking
-│   └── P2PNetwork.ts          # Encrypted channel management
-└── monitoring/                # Real-time monitoring
-    └── VizorDashboard.ts      # Performance visualization
+aurigraph-v11-standalone/
+├── src/main/
+│   ├── java/io/aurigraph/v11/
+│   │   ├── AurigraphResource.java         # REST API endpoints
+│   │   ├── TransactionService.java        # Core transaction processing
+│   │   ├── ai/                           # AI optimization components
+│   │   │   ├── AIOptimizationService.java # ML-based consensus optimization  
+│   │   │   ├── PredictiveTransactionOrdering.java
+│   │   │   └── AnomalyDetectionService.java
+│   │   ├── consensus/                    # HyperRAFT++ consensus 
+│   │   │   ├── HyperRAFTConsensusService.java
+│   │   │   └── ConsensusModels.java
+│   │   ├── crypto/                       # Quantum-resistant crypto
+│   │   │   ├── QuantumCryptoService.java # CRYSTALS-Kyber/Dilithium
+│   │   │   └── DilithiumSignatureService.java
+│   │   ├── grpc/                        # gRPC services
+│   │   │   ├── AurigraphV11GrpcService.java  
+│   │   │   └── HighPerformanceGrpcService.java
+│   │   ├── bridge/                      # Cross-chain bridge
+│   │   │   ├── CrossChainBridgeService.java
+│   │   │   └── adapters/                # Chain-specific adapters
+│   │   └── hms/                        # HMS integration
+│   │       └── HMSIntegrationService.java # Real-world asset tokenization
+│   ├── proto/
+│   │   ├── aurigraph-v11.proto          # V11 protocol definitions
+│   │   └── hms-integration.proto        # HMS protocol definitions
+│   └── resources/
+│       ├── application.properties        # Quarkus configuration
+│       └── META-INF/native-image/       # Native compilation configs
+└── pom.xml                              # Maven configuration with 3 native profiles
 ```
 
-#### V11 Java Migration Structure
+### Key Technology Stack
+- **Framework**: Quarkus 3.26.2 with reactive programming (Mutiny)
+- **Runtime**: Java 21 with Virtual Threads
+- **Native**: GraalVM native compilation with 3 optimization profiles
+- **Protocol**: gRPC with Protocol Buffers + HTTP/2 REST
+- **Testing**: JUnit 5, Mockito, JMeter integration
+- **AI/ML**: DeepLearning4J, Apache Commons Math, SMILE ML library
+- **Crypto**: BouncyCastle for post-quantum cryptography
+
+## Service Endpoints & Configuration
+
+### V11 Primary Services (Port 9003)
+```bash
+# REST API endpoints
+curl http://localhost:9003/api/v11/health         # Health status
+curl http://localhost:9003/api/v11/info           # System information  
+curl http://localhost:9003/api/v11/performance    # Performance testing
+curl http://localhost:9003/api/v11/stats          # Transaction statistics
+
+# Quarkus built-in endpoints
+curl http://localhost:9003/q/health               # Quarkus health checks
+curl http://localhost:9003/q/metrics              # Prometheus metrics
+curl http://localhost:9003/q/dev/                 # Dev UI (dev mode only)
+
+# gRPC service (planned)
+grpcurl -plaintext localhost:9004 list            # List gRPC services
 ```
-aurigraph-v11-standalone/src/main/
-├── java/io/aurigraph/v11/
-│   ├── AurigraphResource.java    # REST endpoints
-│   ├── TransactionService.java   # Core transaction processing
-│   └── grpc/                      # gRPC service definitions
-├── proto/
-│   └── aurigraph.proto           # Protocol Buffer definitions
-└── resources/
-    └── application.properties    # Quarkus configuration
-```
 
-### Key Technical Specifications
-
-#### Performance Requirements
-- **V10**: 1M+ TPS achieved, <500ms finality
-- **V11**: 2M+ TPS target (currently 776K), <100ms finality
-- **Parallel Processing**: 256 threads, 5-layer pipeline
-- **Batch Size**: 50,000 transactions per batch
-
-#### Security Architecture
-- **Quantum Resistance**: CRYSTALS-Kyber/Dilithium (NIST Level 5)
-- **Zero-Knowledge**: zk-SNARKs for privacy
-- **Consensus**: HyperRAFT++ with AI optimization
-- **Network**: TLS 1.3 encrypted channels
-
-#### Cross-Chain Support
-- Ethereum, Polygon, BSC, Avalanche, Solana
-- Polkadot, Cosmos, NEAR, Algorand
-- 21 bridge validators for security
-
-### Configuration & Ports
-
-#### V10 Services
+### V10 Legacy Services (Reference)
 - Main Platform: `http://localhost:8080`
-- Management API: `http://localhost:3040`
+- Management API: `http://localhost:3040` 
 - Monitoring API: `http://localhost:3001`
-- Vizor Dashboard: `http://localhost:3052`
-- Validator API: `http://localhost:8181`
 
-#### V11 Services
-- REST API: `http://localhost:9003/api/v11/`
-- gRPC: `localhost:9004`
-- Health: `http://localhost:9003/q/health`
-- Metrics: `http://localhost:9003/q/metrics`
+## Performance & Requirements
 
-### TypeScript Configuration
-- **Target**: ES2023, CommonJS modules
-- **Strict Mode**: All strict checks enabled
-- **Path Aliases**: `@core/*`, `@consensus/*`, `@crypto/*`, etc.
-- **Source Maps**: Enabled for debugging
+### Current V11 Performance
+- **Achieved TPS**: ~776K (optimization ongoing)
+- **Target TPS**: 2M+ (production goal)
+- **Startup Time**: <1s native, ~3s JVM
+- **Memory Usage**: <256MB native, ~512MB JVM
+- **Transport**: HTTP/2 with TLS 1.3, gRPC ready
 
-### Testing Strategy
+### V11 Native Compilation Profiles
+1. **`-Pnative-fast`**: Development builds (~2 min, -O1 optimization)
+2. **`-Pnative`**: Standard production (~15 min, optimized)  
+3. **`-Pnative-ultra`**: Ultra-optimized production (~30 min, -march=native)
 
-#### Coverage Requirements
-- **Global**: 95% line coverage, 90% function coverage
-- **Critical Modules**: 
-  - `crypto/`: 98% coverage required
-  - `consensus/`: 95% coverage required
-- **Performance**: Must validate 1M+ TPS
+## Testing Strategy & Quality Requirements
 
-#### Test Categories
-- `unit/`: Fast unit tests
-- `integration/`: Service integration tests
-- `performance/`: TPS and latency validation
-- `smoke/`: Quick health checks
-- `regression/`: Backward compatibility
-
-### Environment Variables
+### V11 Testing Framework
 ```bash
-# Core Configuration
-NODE_ENV=development/production
-TARGET_TPS=1000000
-PARALLEL_THREADS=256
-QUANTUM_LEVEL=5
+# Unit tests - JUnit 5 with Mockito
+./mvnw test                                    # All tests
+./mvnw test -Dtest=AurigraphResourceTest      # Specific class
+./mvnw test -Dtest=*Test#testPerformance*     # Pattern matching
 
-# AI/ML Settings
-AI_ENABLED=true
-PREDICTIVE_CONSENSUS=true
+# Integration tests with TestContainers
+./mvnw test -Dtest=*IT                        # Integration tests only
 
-# Cross-Chain
-CROSS_CHAIN_ENABLED=true
-BRIDGE_VALIDATORS=21
+# Performance tests with JMeter integration
+./performance-benchmark.sh                    # Comprehensive benchmark
+./run-performance-tests.sh                   # JMeter load tests
+
+# Native image tests
+./mvnw test -Dnative                          # Test native executable
 ```
 
-## Migration Notes (V10 → V11)
+### Coverage Requirements  
+- **Target Coverage**: 95% line, 90% function
+- **Critical Modules**: crypto (98%), consensus (95%), grpc (90%)
+- **Current Status**: ~15% coverage (migration in progress)
 
-### Critical Requirements
-1. **100% Java/Quarkus/GraalVM** - No TypeScript in V11
-2. **gRPC/Protocol Buffers** - All internal communication
-3. **HTTP/2 with TLS 1.3** - Transport layer
-4. **Native Compilation** - Required for production
-5. **Virtual Threads** - Java 21+ for concurrency
+### Environment Configuration
 
-### Current Migration Status
-- ✅ Project structure setup
-- ✅ Basic REST endpoints
-- ✅ Native compilation working
-- 🚧 gRPC service implementation (20%)
-- 🚧 Performance optimization (776K/2M TPS)
-- 📋 Consensus service migration
-- 📋 Crypto service migration
-- 📋 Full test suite migration
-
-## Debugging Quick Reference
-
-### Common Issues & Solutions
-
-#### V10 TypeScript
+#### V11 Configuration Properties
 ```bash
-# Build errors - check TypeScript version
-npx tsc --version  # Should be 5.3+
+# Core settings in application.properties
+quarkus.http.port=9003                        # Changed from 9000 due to conflicts
+quarkus.grpc.server.port=9004                 # gRPC service port
+quarkus.virtual-threads.enabled=true          # Java 21 virtual threads
 
-# Test failures - run specific test
-npx jest path/to/test.ts --verbose --no-coverage
+# Performance tuning
+consensus.target.tps=2000000                  # Production TPS target
+consensus.batch.size=10000                    # Transaction batch size
+consensus.parallel.threads=256                # Processing threads
+
+# AI/ML optimization
+ai.optimization.enabled=true                  # Enable ML optimization
+ai.optimization.target.tps=3000000           # AI TPS target
+
+# HMS integration  
+hms.performance.target.tps=100000            # HMS TPS target
+hms.grpc.port=9005                           # HMS gRPC port
+```
+
+## Migration Status & Critical Requirements
+
+### V11 Migration Requirements
+1. **100% Java/Quarkus/GraalVM** - No TypeScript dependencies
+2. **gRPC + Protocol Buffers** - All internal service communication  
+3. **HTTP/2 with TLS 1.3** - High-performance transport layer
+4. **Native Compilation** - Sub-second startup required for production
+5. **Java 21 Virtual Threads** - Concurrency without OS thread limits
+
+### Component Migration Progress
+- ✅ Core Quarkus application structure
+- ✅ REST API with reactive endpoints (`AurigraphResource.java`)
+- ✅ Transaction processing service (`TransactionService.java`)
+- ✅ AI optimization framework (ML-based consensus tuning)
+- ✅ Native compilation with 3 optimization profiles
+- ✅ HMS integration for real-world asset tokenization
+- 🚧 gRPC service implementation (`HighPerformanceGrpcService.java`)
+- 🚧 HyperRAFT++ consensus migration (`HyperRAFTConsensusService.java`)
+- 🚧 Performance optimization (776K → 2M+ TPS target)
+- 📋 Quantum cryptography service migration
+- 📋 Cross-chain bridge service migration
+- 📋 Complete test suite migration (currently ~15% coverage)
+
+## Debugging & Troubleshooting
+
+### V11 Java/Quarkus Issues
+```bash
+# Java version check (requires 21+)
+java --version
+echo $JAVA_HOME
+
+# Docker for native builds
+docker --version
+docker info | grep "Server Version"
 
 # Port conflicts
-lsof -i :8080 && kill -9 <PID>
+lsof -i :9003 && sudo kill -9 <PID>         # Main HTTP port
+lsof -i :9004 && sudo kill -9 <PID>         # gRPC port
 
-# Memory issues
-NODE_OPTIONS="--max-old-space-size=4096" npm start
+# Native build troubleshooting  
+./validate-native-setup.sh                   # Validate native setup
+./mvnw clean                                 # Clean before retry
+docker system prune -f                      # Clean Docker cache
+
+# Performance debugging
+./mvnw quarkus:dev -Dquarkus.profile=dev    # Debug profile
+./mvnw quarkus:dev -Dquarkus.log.category."io.aurigraph".level=DEBUG
+
+# JVM options for development
+export MAVEN_OPTS="-Xmx4g -XX:+UseG1GC"
 ```
 
-#### V11 Java/Quarkus
+### Common V11 Development Patterns
 ```bash
-# Check Java version (requires 21+)
-java --version
+# Rapid development cycle
+./mvnw quarkus:dev                           # Start dev mode (hot reload)
+# Make Java changes -> automatic reload
+curl localhost:9003/api/v11/health          # Test endpoint
 
-# Native build failures
-docker --version  # Docker required for container builds
-./mvnw clean  # Clean before rebuild
-
-# Port 9003 conflict
-lsof -i :9003 && kill -9 <PID>
-
-# Performance issues
-./mvnw quarkus:dev -Dquarkus.profile=perf
+# Performance testing cycle  
+./mvnw clean package -Pnative-fast          # Quick native build
+./target/*-runner                            # Run native
+./performance-benchmark.sh                  # Benchmark TPS
 ```
 
-## Project Integration Points
+## Development Workflow & Integration
 
-### GitHub & JIRA
+### V11 Development Workflow
+1. **Navigate to V11 project**: `cd aurigraph-av10-7/aurigraph-v11-standalone/`
+2. **Start development**: `./mvnw quarkus:dev` (hot reload enabled)
+3. **Implement feature**: Follow reactive programming patterns (Uni/Multi)
+4. **Add tests**: JUnit 5 with 95% coverage requirement
+5. **Validate performance**: Use `/api/v11/performance` endpoint
+6. **Build native**: `./mvnw package -Pnative-fast` for quick validation
+
+### V11 Code Patterns
+```java
+// Reactive endpoint pattern
+@GET
+@Path("/endpoint")
+public Uni<ResponseType> reactiveEndpoint() {
+    return Uni.createFrom().item(() -> {
+        // Processing logic
+        return result;
+    }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+}
+
+// gRPC service pattern (when implemented)
+@GrpcService
+public class MyGrpcService implements MyService {
+    public Uni<Response> processRequest(Request request) {
+        // Reactive gRPC processing
+    }
+}
+```
+
+### Integration Points
+
+#### GitHub & JIRA
 - **Repository**: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
-- **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV10/boards/657
-- **Branch Pattern**: `feature/aurigraph-v11-*` for V11 work
+- **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
+- **Branch Strategy**: `feature/aurigraph-v11-*` for V11 migration work
 
-### Docker & Deployment
+#### Deployment & Infrastructure  
 - **Dev4 Environment**: AWS-based development cluster
-- **Docker Compose**: Multi-validator setup available
-- **Native Images**: Built via container for consistency
+- **Container Strategy**: Docker-based native builds via GraalVM
+- **Kubernetes**: Configs in `k8s/` directory with HPA/VPA scaling
 
-### CI/CD Scripts
-- `scripts/testing/run-test-suite.sh`: Comprehensive test runner
-- `scripts/deploy-av10-7.sh`: Deployment automation
-- `scripts/performance-test.sh`: Performance validation
-
-## Development Workflow
-
-### For New Features
-1. Check existing implementation patterns in `src/`
-2. Follow TypeScript strict mode requirements
-3. Use established path aliases (`@core/`, `@consensus/`, etc.)
-4. Ensure 95%+ test coverage for new code
-5. Run `npm run lint` and `npm run typecheck` before commit
-
-### For V11 Migration
-1. Port TypeScript logic to Java maintaining exact behavior
-2. Use Quarkus reactive patterns (Uni/Multi)
-3. Implement gRPC service alongside REST
-4. Create comprehensive JUnit tests
-5. Validate performance meets or exceeds V10
-
-### For Bug Fixes
-1. Add regression test first
-2. Fix the issue
-3. Validate all existing tests still pass
-4. Update documentation if behavior changes
+#### Performance Validation
+- **Local Testing**: `./performance-benchmark.sh` (comprehensive)
+- **Load Testing**: `./run-performance-tests.sh` (JMeter integration)
+- **Target Metrics**: 2M+ TPS, <1s startup, <256MB memory

@@ -14,7 +14,7 @@ const JIRA_USER_EMAIL = 'subbu@aurigraph.io';
 const ticketData = {
   fields: {
     project: {
-      key: "AV10"
+      key: "AV11"
     },
     summary: "Optimal Node Density in Docker Containers - Resource-Based Auto-Scaling",
     description: `Implement optimal node density calculation for Docker containers to run maximum number of Aurigraph nodes based on available system resources.
@@ -120,11 +120,11 @@ if (memoryUsage > 85%) {
 ## Timeline
 - Duration: 4 weeks
 - Priority: High - Infrastructure optimization
-- Dependencies: AV10-19 basic node implementation
+- Dependencies: AV11-19 basic node implementation
 
 ## Related Tickets
-- AV10-19: Basic Node Implementation (completed)
-- AV10-18: Platform implementation (completed)`,
+- AV11-19: Basic Node Implementation (completed)
+- AV11-18: Platform implementation (completed)`,
     issuetype: {
       name: "Task"
     },
@@ -189,7 +189,7 @@ async function main() {
   console.log('═══════════════════════════════════════════════════════');
   console.log('🎫 Creating JIRA Ticket for Optimal Node Density');
   console.log('═══════════════════════════════════════════════════════');
-  console.log('📋 Project: AV10');
+  console.log('📋 Project: AV11');
   console.log('📌 Summary: Optimal Node Density in Docker Containers');
   console.log('🎯 Type: Task');
   console.log('⚡ Priority: High');

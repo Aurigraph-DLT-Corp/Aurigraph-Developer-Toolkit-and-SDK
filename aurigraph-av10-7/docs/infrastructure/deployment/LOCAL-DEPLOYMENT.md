@@ -1,6 +1,6 @@
-# 🚀 Aurigraph V10 Classical - Local Deployment Guide
+# 🚀 Aurigraph V11 Classical - Local Deployment Guide
 
-This guide provides multiple methods to deploy Aurigraph V10 Classical platform locally for development, testing, and production use.
+This guide provides multiple methods to deploy Aurigraph V11 Classical platform locally for development, testing, and production use.
 
 ## 📋 Prerequisites
 
@@ -365,6 +365,6 @@ curl -s http://localhost:3100/health | jq -r '.status + " - " + .version'
 
 ---
 
-**🚀 Aurigraph V10 Classical is ready for local deployment!**
+**🚀 Aurigraph V11 Classical is ready for local deployment!**
 
 Choose your deployment method and start building the future of blockchain technology.

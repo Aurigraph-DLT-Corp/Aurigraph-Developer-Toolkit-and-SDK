@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-**Aurigraph V10/V11 Hybrid Platform** - A blockchain platform in transition from TypeScript/Node.js (V10) to Java/Quarkus/GraalVM (V11), targeting 2M+ TPS with quantum-resistant security and cross-chain interoperability.
+**Aurigraph V11/V11 Hybrid Platform** - A blockchain platform in transition from TypeScript/Node.js (V10) to Java/Quarkus/GraalVM (V11), targeting 2M+ TPS with quantum-resistant security and cross-chain interoperability.
 
 **Current State**: 
 - V10 (TypeScript) is the primary implementation with 1M+ TPS capability
@@ -274,7 +274,7 @@ docs/
 ## GitHub & JIRA Integration
 
 - **Repository**: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
-- **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV10/boards/657
+- **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
 - **Branch Strategy**: feature/AV11-XXX for V11 work
 - **Issue Templates**: Available in `.github/ISSUE_TEMPLATE/`
 

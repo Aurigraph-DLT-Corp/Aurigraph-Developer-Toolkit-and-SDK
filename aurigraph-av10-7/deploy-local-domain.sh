@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Aurigraph V10 - Local Domain Setup & Deployment
+# Aurigraph V11 - Local Domain Setup & Deployment
 # ================================================
 
 # Colors
@@ -26,7 +26,7 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-echo "🌐 Aurigraph V10 - Domain Setup & Local Deployment"
+echo "🌐 Aurigraph V11 - Domain Setup & Local Deployment"
 echo "=================================================="
 
 COMMAND=${1:-status}
@@ -96,7 +96,7 @@ case $COMMAND in
         # Kill any existing instance on port 8080
         lsof -ti:8080 | xargs kill -9 2>/dev/null
         
-        print_info "Starting Aurigraph V10 on port 8080..."
+        print_info "Starting Aurigraph V11 on port 8080..."
         print_info "Domain: dlt.aurigraph.io"
         print_info "Local: http://localhost:8080"
         

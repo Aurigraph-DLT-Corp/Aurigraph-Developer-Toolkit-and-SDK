@@ -1,5 +1,5 @@
 /**
- * AV10-37: Quantum Portfolio Optimizer
+ * AV11-37: Quantum Portfolio Optimizer
  * Advanced quantum computing algorithms for portfolio optimization
  * 
  * Features:

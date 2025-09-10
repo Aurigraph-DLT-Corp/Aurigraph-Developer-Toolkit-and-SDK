@@ -54,6 +54,48 @@
       },
       {
         "pattern": "aurigraph-clean\\.proto$"
+      },
+      {
+        "pattern": "hms-integration\\.proto$"
+      },
+      {
+        "pattern": "org/deeplearning4j/.*"
+      },
+      {
+        "pattern": "org/nd4j/.*"
+      },
+      {
+        "pattern": "smile/.*"
+      },
+      {
+        "pattern": "weka/.*"
+      },
+      {
+        "pattern": "org/apache/commons/math3/.*"
+      },
+      {
+        "pattern": "performance-test\\.properties$"
+      },
+      {
+        "pattern": "native-image\\.properties$"
+      },
+      {
+        "pattern": "keystore\\.p12$"
+      },
+      {
+        "pattern": "truststore\\.p12$"
+      },
+      {
+        "pattern": "logging\\.properties$"
+      },
+      {
+        "pattern": "certificates/.*"
+      },
+      {
+        "pattern": "keys/.*"
+      },
+      {
+        "pattern": "ai-models/.*"
       }
     ]
   },

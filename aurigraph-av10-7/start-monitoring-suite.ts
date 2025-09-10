@@ -57,11 +57,11 @@ async function startMonitoringSuite() {
     logger.info('');
     
     logger.info('🔧 Features Active:');
-    logger.info('   • AV10-22: Digital Twins monitoring');
-    logger.info('   • AV10-24: Compliance framework integration');
-    logger.info('   • AV10-26: AI analytics and predictions');
-    logger.info('   • AV10-32: Node density optimization');
-    logger.info('   • AV10-36: Comprehensive platform monitoring');
+    logger.info('   • AV11-22: Digital Twins monitoring');
+    logger.info('   • AV11-24: Compliance framework integration');
+    logger.info('   • AV11-26: AI analytics and predictions');
+    logger.info('   • AV11-32: Node density optimization');
+    logger.info('   • AV11-36: Comprehensive platform monitoring');
     logger.info('   • Quantum security metrics (Level 6)');
     logger.info('   • Cross-chain bridge monitoring');
     logger.info('   • RWA asset tracking');
