@@ -331,8 +331,7 @@ public class HighPerformanceGrpcService implements AurigraphV11Service, Monitori
                         .build();
                     
                     return submitTransaction(individualRequest);
-                });
-        }
+                })
             .onFailure().recoverWithItem(throwable -> {
                 LOG.error("Batch transaction processing failed", throwable);
                 return TransactionResponse.newBuilder()
