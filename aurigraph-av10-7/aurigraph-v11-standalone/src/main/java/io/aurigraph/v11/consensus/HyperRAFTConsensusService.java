@@ -1267,6 +1267,15 @@ public class HyperRAFTConsensusService {
     }
 
     /**
+     * Check if consensus service is healthy
+     */
+    public boolean isHealthy() {
+        return isRunning.get() && 
+               validators.size() >= minValidators && 
+               consensusErrors.get() < totalConsensusRounds.get() * 0.05;
+    }
+
+    /**
      * Get consensus service health status
      */
     public String getHealthStatus() {

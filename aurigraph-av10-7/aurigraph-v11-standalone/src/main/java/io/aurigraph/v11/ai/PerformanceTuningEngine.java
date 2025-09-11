@@ -49,13 +49,13 @@ public class PerformanceTuningEngine {
     @ConfigProperty(name = "performance.tuning.enabled", defaultValue = "true")
     boolean tuningEnabled;
 
-    @ConfigProperty(name = "performance.tuning.interval.ms", defaultValue = "5000")
+    @ConfigProperty(name = "performance.tuning.interval.ms", defaultValue = "2000")
     int tuningIntervalMs;
 
-    @ConfigProperty(name = "performance.tuning.sensitivity", defaultValue = "0.05")
+    @ConfigProperty(name = "performance.tuning.sensitivity", defaultValue = "0.03")
     double tuningSensitivity;
 
-    @ConfigProperty(name = "performance.tuning.regression.threshold", defaultValue = "0.15")
+    @ConfigProperty(name = "performance.tuning.regression.threshold", defaultValue = "0.10")
     double regressionThreshold;
 
     @ConfigProperty(name = "performance.tuning.max.adjustments.per.minute", defaultValue = "12")

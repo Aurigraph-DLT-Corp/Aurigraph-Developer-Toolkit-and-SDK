@@ -614,4 +614,189 @@ public class ValidationPipeline {
         
         LOG.info("ValidationPipeline shutdown complete");
     }
+    
+    // Inner classes for pipeline operations
+    
+    /**
+     * Validation result with caching support
+     */
+    public static class ValidationResult {
+        private final boolean valid;
+        private final String message;
+        private final long timestamp;
+        private final String type;
+        private final List<ValidationEntry> results;
+        
+        public ValidationResult(boolean valid, String message) {
+            this.valid = valid;
+            this.message = message;
+            this.timestamp = System.currentTimeMillis();
+            this.type = "basic";
+            this.results = new ArrayList<>();
+        }
+        
+        public ValidationResult(String type, List<ValidationEntry> results) {
+            this.type = type;
+            this.results = results;
+            this.valid = results.stream().allMatch(ValidationEntry::isValid);
+            this.message = valid ? "All validations passed" : "Some validations failed";
+            this.timestamp = System.currentTimeMillis();
+        }
+        
+        public boolean isValid() { return valid; }
+        public String getMessage() { return message; }
+        public String getType() { return type; }
+        public List<ValidationEntry> getResults() { return results; }
+        
+        public boolean isRecent() {
+            return (System.currentTimeMillis() - timestamp) < 60000; // 1 minute
+        }
+    }
+    
+    /**
+     * ZK Proof result
+     */
+    public static class ZKProofResult {
+        private final boolean success;
+        private final ZKProof zkProof;
+        private final String message;
+        
+        public ZKProofResult(boolean success, ZKProof zkProof, String message) {
+            this.success = success;
+            this.zkProof = zkProof;
+            this.message = message;
+        }
+        
+        public boolean isSuccess() { return success; }
+        public ZKProof getZkProof() { return zkProof; }
+        public String getMessage() { return message; }
+    }
+    
+    /**
+     * ZK Proof implementation
+     */
+    public static class ZKProof {
+        private final String proofId;
+        private final String proofData;
+        private final long timestamp;
+        private final boolean valid;
+        
+        public ZKProof(String proofId, String proofData, long timestamp, boolean valid) {
+            this.proofId = proofId;
+            this.proofData = proofData;
+            this.timestamp = timestamp;
+            this.valid = valid;
+        }
+        
+        public String getProofId() { return proofId; }
+        public String getProofData() { return proofData; }
+        public long getTimestamp() { return timestamp; }
+        public boolean isValid() { return valid; }
+    }
+    
+    /**
+     * Enhanced Transaction model for validation pipeline
+     */
+    public static class Transaction {
+        private final String id;
+        private final String hash;
+        private final Object data;
+        private final long timestamp;
+        private final String from;
+        private final String to;
+        private final Double amount;
+        private final ZKProof zkProof;
+        private final String signature;
+        
+        public Transaction(String id, String hash, Object data, long timestamp, 
+                          String from, String to, Double amount, ZKProof zkProof, String signature) {
+            this.id = id;
+            this.hash = hash;
+            this.data = data;
+            this.timestamp = timestamp;
+            this.from = from;
+            this.to = to;
+            this.amount = amount;
+            this.zkProof = zkProof;
+            this.signature = signature;
+        }
+        
+        public String getId() { return id; }
+        public String getHash() { return hash; }
+        public Object getData() { return data; }
+        public long getTimestamp() { return timestamp; }
+        public String getFrom() { return from; }
+        public String getTo() { return to; }
+        public Double getAmount() { return amount; }
+        public ZKProof getZkProof() { return zkProof; }
+        public String getSignature() { return signature; }
+    }
+    
+    /**
+     * Execution result for transaction execution
+     */
+    public static class ExecutionResult {
+        private final String transactionHash;
+        private final boolean success;
+        private final long gasUsed;
+        private final String message;
+        
+        public ExecutionResult(String transactionHash, boolean success, long gasUsed, String message) {
+            this.transactionHash = transactionHash;
+            this.success = success;
+            this.gasUsed = gasUsed;
+            this.message = message;
+        }
+        
+        public String getTransactionHash() { return transactionHash; }
+        public boolean isSuccess() { return success; }
+        public long getGasUsed() { return gasUsed; }
+        public String getMessage() { return message; }
+    }
+    
+    /**
+     * Validation metrics
+     */
+    public static class ValidationMetrics {
+        private final long totalValidations;
+        private final long successfulValidations;
+        private final long totalZKProofs;
+        private final long successfulZKProofs;
+        private final long totalExecutions;
+        private final long successfulExecutions;
+        private final int cacheSize;
+        
+        public ValidationMetrics(long totalValidations, long successfulValidations,
+                               long totalZKProofs, long successfulZKProofs,
+                               long totalExecutions, long successfulExecutions,
+                               int cacheSize) {
+            this.totalValidations = totalValidations;
+            this.successfulValidations = successfulValidations;
+            this.totalZKProofs = totalZKProofs;
+            this.successfulZKProofs = successfulZKProofs;
+            this.totalExecutions = totalExecutions;
+            this.successfulExecutions = successfulExecutions;
+            this.cacheSize = cacheSize;
+        }
+        
+        public long getTotalValidations() { return totalValidations; }
+        public long getSuccessfulValidations() { return successfulValidations; }
+        public long getTotalZKProofs() { return totalZKProofs; }
+        public long getSuccessfulZKProofs() { return successfulZKProofs; }
+        public long getTotalExecutions() { return totalExecutions; }
+        public long getSuccessfulExecutions() { return successfulExecutions; }
+        public int getCacheSize() { return cacheSize; }
+        
+        public double getValidationSuccessRate() {
+            return totalValidations > 0 ? (double) successfulValidations / totalValidations * 100 : 100.0;
+        }
+        
+        public double getZKProofSuccessRate() {
+            return totalZKProofs > 0 ? (double) successfulZKProofs / totalZKProofs * 100 : 100.0;
+        }
+        
+        public double getExecutionSuccessRate() {
+            return totalExecutions > 0 ? (double) successfulExecutions / totalExecutions * 100 : 100.0;
+        }
+    }
 }

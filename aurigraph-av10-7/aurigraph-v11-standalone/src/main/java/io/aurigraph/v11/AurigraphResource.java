@@ -159,8 +159,92 @@ public class AurigraphResource {
     @GET
     @Path("/stats")
     @Produces(MediaType.APPLICATION_JSON)
-    public TransactionService.ProcessingStats getTransactionStats() {
+    public TransactionService.EnhancedProcessingStats getTransactionStats() {
         return transactionService.getStats();
+    }
+    
+    /**
+     * Ultra-High-Throughput Performance Test - Targeting 3M+ TPS
+     * Advanced performance test with optimized batch processing
+     */
+    @POST
+    @Path("/performance/ultra-throughput")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<UltraHighThroughputStats> runUltraHighThroughputTest(UltraHighThroughputRequest request) {
+        return Uni.createFrom().item(() -> {
+            long startTime = System.nanoTime();
+            int iterations = Math.max(1000, Math.min(1_000_000, request.iterations()));
+            
+            LOG.infof("🚀 Starting Ultra-High-Throughput Test: %d transactions (Target: 3M+ TPS)", iterations);
+            
+            try {
+                // Create test transaction requests
+                List<TransactionService.TransactionRequest> testRequests = new ArrayList<>(iterations);
+                for (int i = 0; i < iterations; i++) {
+                    testRequests.add(new TransactionService.TransactionRequest(
+                        "ultra-test-" + i, 
+                        100.0 + (i * 0.01)
+                    ));
+                }
+                
+                // Execute ultra-high-throughput batch processing
+                var batchResult = transactionService.processUltraHighThroughputBatch(testRequests).get();
+                
+                long endTime = System.nanoTime();
+                double durationMs = (endTime - startTime) / 1_000_000.0;
+                double tps = iterations / (durationMs / 1000.0);
+                double nsPerTransaction = (double) (endTime - startTime) / iterations;
+                
+                // Performance achievement check
+                boolean ultraHighTarget = tps >= 3_000_000; // 3M+ TPS
+                boolean highTarget = tps >= 2_000_000;      // 2M+ TPS
+                boolean baseTarget = tps >= 1_000_000;      // 1M+ TPS
+                
+                String performanceGrade;
+                if (ultraHighTarget) {
+                    performanceGrade = "EXCEPTIONAL (3M+ TPS)";
+                } else if (highTarget) {
+                    performanceGrade = "EXCELLENT (2M+ TPS)";
+                } else if (baseTarget) {
+                    performanceGrade = "VERY GOOD (1M+ TPS)";
+                } else {
+                    performanceGrade = "BASELINE (" + Math.round(tps) + " TPS)";
+                }
+                
+                // Get current system stats for context
+                var currentStats = transactionService.getStats();
+                
+                LOG.infof("🏆 Ultra-High-Throughput Test Complete: %.0f TPS - %s", tps, performanceGrade);
+                
+                return new UltraHighThroughputStats(
+                    iterations,
+                    durationMs,
+                    tps,
+                    nsPerTransaction,
+                    performanceGrade,
+                    ultraHighTarget,
+                    highTarget,
+                    baseTarget,
+                    "Virtual Threads + Lock-Free + Cache-Optimized + Adaptive Batching",
+                    batchResult.size(),
+                    currentStats.currentThroughputMeasurement(),
+                    currentStats.adaptiveBatchSizeMultiplier(),
+                    currentStats.getThroughputEfficiency(),
+                    System.currentTimeMillis()
+                );
+                
+            } catch (Exception e) {
+                LOG.errorf(e, "Ultra-high-throughput test failed");
+                return new UltraHighThroughputStats(
+                    0, 0.0, 0.0, 0.0,
+                    "FAILED: " + e.getMessage(),
+                    false, false, false,
+                    "Test failed", 0, 0.0, 0.0, 0.0,
+                    System.currentTimeMillis()
+                );
+            }
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     // Health Check for Quarkus
@@ -201,4 +285,41 @@ public class AurigraphResource {
         long targetTPS,
         boolean targetAchieved
     ) {}
+    
+    /**
+     * Request for ultra-high-throughput performance test
+     */
+    public record UltraHighThroughputRequest(
+        int iterations
+    ) {}
+    
+    /**
+     * Ultra-high-throughput performance test results
+     */
+    public record UltraHighThroughputStats(
+        int iterations,
+        double durationMs,
+        double transactionsPerSecond,
+        double nsPerTransaction,
+        String performanceGrade,
+        boolean ultraHighTarget,      // 3M+ TPS
+        boolean highTarget,           // 2M+ TPS 
+        boolean baseTarget,           // 1M+ TPS
+        String optimizations,
+        int processedTransactions,
+        double currentSystemThroughput,
+        double adaptiveBatchMultiplier,
+        double throughputEfficiency,
+        long timestamp
+    ) {
+        
+        public String getPerformanceSummary() {
+            return String.format("%.0f TPS - %s (Efficiency: %.1f%%)", 
+                               transactionsPerSecond, performanceGrade, throughputEfficiency * 100);
+        }
+        
+        public boolean isExceptionalPerformance() {
+            return ultraHighTarget;
+        }
+    }
 }

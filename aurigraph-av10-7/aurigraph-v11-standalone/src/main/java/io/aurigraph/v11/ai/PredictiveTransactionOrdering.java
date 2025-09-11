@@ -72,13 +72,13 @@ public class PredictiveTransactionOrdering {
     @ConfigProperty(name = "ai.transaction.ordering.enabled", defaultValue = "true")
     boolean orderingEnabled;
 
-    @ConfigProperty(name = "ai.transaction.ordering.model.update.interval.ms", defaultValue = "10000")
+    @ConfigProperty(name = "ai.transaction.ordering.model.update.interval.ms", defaultValue = "5000")
     int modelUpdateIntervalMs;
 
-    @ConfigProperty(name = "ai.transaction.ordering.batch.size", defaultValue = "1000")
+    @ConfigProperty(name = "ai.transaction.ordering.batch.size", defaultValue = "5000")
     int orderingBatchSize;
 
-    @ConfigProperty(name = "ai.transaction.ordering.max.dependencies", defaultValue = "100")
+    @ConfigProperty(name = "ai.transaction.ordering.max.dependencies", defaultValue = "50")
     int maxDependencyAnalysis;
 
     @ConfigProperty(name = "ai.transaction.ordering.mev.enabled", defaultValue = "true")
@@ -121,7 +121,7 @@ public class PredictiveTransactionOrdering {
     private final Queue<TransactionOrderingDataPoint> orderingHistory = new ConcurrentLinkedQueue<>();
     private final Map<String, TransactionDependency> dependencyGraph = new ConcurrentHashMap<>();
     private final Map<String, Double> transactionPriorities = new ConcurrentHashMap<>();
-    private final int MAX_HISTORY_SIZE = 10000;
+    private final int MAX_HISTORY_SIZE = 5000; // REDUCED FOR MEMORY OPTIMIZATION
 
     // Executors
     private ExecutorService orderingExecutor;

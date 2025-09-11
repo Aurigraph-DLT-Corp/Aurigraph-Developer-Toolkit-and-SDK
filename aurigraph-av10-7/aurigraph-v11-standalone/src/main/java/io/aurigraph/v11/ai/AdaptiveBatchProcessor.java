@@ -58,13 +58,13 @@ public class AdaptiveBatchProcessor {
     @ConfigProperty(name = "batch.processor.max.size", defaultValue = "50000")
     int maxBatchSize;
 
-    @ConfigProperty(name = "batch.processor.default.size", defaultValue = "10000")
+    @ConfigProperty(name = "batch.processor.default.size", defaultValue = "25000")
     int defaultBatchSize;
 
-    @ConfigProperty(name = "batch.processor.timeout.ms", defaultValue = "5000")
+    @ConfigProperty(name = "batch.processor.timeout.ms", defaultValue = "2000")
     int defaultTimeoutMs;
 
-    @ConfigProperty(name = "batch.processor.adaptation.interval.ms", defaultValue = "2000")
+    @ConfigProperty(name = "batch.processor.adaptation.interval.ms", defaultValue = "1000")
     int adaptationIntervalMs;
 
     @ConfigProperty(name = "batch.processor.parallel.workers", defaultValue = "8")

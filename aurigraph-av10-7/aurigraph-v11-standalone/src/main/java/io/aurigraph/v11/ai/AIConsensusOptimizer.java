@@ -14,34 +14,42 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-// DeepLearning4J imports for neural networks
+// DeepLearning4J imports for enhanced neural networks
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.conf.layers.LSTM;
+import org.deeplearning4j.nn.conf.layers.Attention;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.learning.config.AdaDelta;
 
 // Smile ML library imports for ensemble models
 import smile.classification.RandomForest;
 import smile.regression.GradientTreeBoost;
+import smile.regression.ElasticNet;
 import smile.data.DataFrame;
 import smile.data.formula.Formula;
 import smile.data.type.DataTypes;
 import smile.data.type.StructType;
 import smile.data.type.StructField;
 import smile.data.Tuple;
+import smile.feature.selection.SumSquares;
 
-// Reinforcement Learning imports
+// Advanced Reinforcement Learning imports
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import java.time.Instant;
 import java.time.Duration;
@@ -78,14 +86,14 @@ public class AIConsensusOptimizer {
 
     private static final Logger LOG = Logger.getLogger(AIConsensusOptimizer.class);
 
-    // Configuration
+    // Configuration - PERFORMANCE OPTIMIZED
     @ConfigProperty(name = "ai.consensus.optimizer.enabled", defaultValue = "true")
     boolean optimizerEnabled;
 
-    @ConfigProperty(name = "ai.consensus.learning.rate", defaultValue = "0.001")
+    @ConfigProperty(name = "ai.consensus.learning.rate", defaultValue = "0.0001")
     double learningRate;
 
-    @ConfigProperty(name = "ai.consensus.model.update.interval.ms", defaultValue = "60000")
+    @ConfigProperty(name = "ai.consensus.model.update.interval.ms", defaultValue = "30000")
     int modelUpdateIntervalMs;
 
     @ConfigProperty(name = "ai.consensus.prediction.window.size", defaultValue = "100")
@@ -156,7 +164,7 @@ public class AIConsensusOptimizer {
     private final Queue<ConsensusDataPoint> consensusHistory = new ConcurrentLinkedQueue<>();
     private final Queue<OptimizationOutcome> optimizationHistory = new ConcurrentLinkedQueue<>();
     private final Queue<AnomalyInstance> anomalyHistory = new ConcurrentLinkedQueue<>();
-    private final int MAX_HISTORY_SIZE = 50000;
+    private final int MAX_HISTORY_SIZE = 25000; // REDUCED FOR MEMORY OPTIMIZATION
 
     // Multi-objective optimization state
     private final AtomicReference<OptimizationObjectives> currentObjectives = new AtomicReference<>();
@@ -470,11 +478,11 @@ public class AIConsensusOptimizer {
     }
 
     private void startOptimizationProcesses() {
-        // Start real-time consensus optimization
+        // Start real-time consensus optimization - PERFORMANCE OPTIMIZED
         optimizationExecutor.scheduleAtFixedRate(
             this::performConsensusOptimization,
-            5000,  // Initial delay
-            1000,  // Every 1 second
+            2000,  // Reduced initial delay
+            500,   // Every 500ms for faster optimization
             TimeUnit.MILLISECONDS
         );
 
