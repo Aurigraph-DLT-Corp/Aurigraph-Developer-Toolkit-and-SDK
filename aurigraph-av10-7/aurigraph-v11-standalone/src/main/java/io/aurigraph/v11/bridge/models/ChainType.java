@@ -11,5 +11,7 @@ public enum ChainType {
     SOLANA,
     NEAR,
     ALGORAND,
+    L2_SCALING,
+    SIDECHAIN,
     OTHER
 }

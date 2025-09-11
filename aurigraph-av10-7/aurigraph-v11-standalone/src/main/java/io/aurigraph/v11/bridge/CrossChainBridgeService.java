@@ -146,11 +146,17 @@ public class CrossChainBridgeService {
             "https://polygon-rpc.com", 128, true));
         addChainAdapter("bsc", new BscAdapter(
             "https://bsc-dataseed.binance.org", 15, true));
+            
+        // Layer 2 scaling solutions
+        addChainAdapter("arbitrum", new ArbitrumAdapter(
+            "https://arb1.arbitrum.io/rpc", 3, true));
+            
+        // Additional EVM chains
+        addChainAdapter("avalanche", new AvalancheAdapter(
+            "https://api.avax.network/ext/bc/C/rpc", 5, true));
         
-        // Note: Additional chain adapters can be added as needed
-        // This implementation focuses on the core 3 major EVM chains for production readiness
-        
-        logger.info("Initialized {} chain adapters", chainAdapters.size());
+        logger.info("Initialized {} chain adapters (5 major blockchains)", chainAdapters.size());
+        logger.info("Supported chain types: Ethereum L1, Polygon PoS, BSC, Arbitrum L2, Avalanche C-Chain");
     }
 
     private void addChainAdapter(String chainId, ChainAdapter adapter) {
