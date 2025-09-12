@@ -1,7 +1,0 @@
-[2025-08-31 15:28:48.004] INFO [ValidatorNode]: Initializing Validator Node...
-[2025-08-31 15:28:48.007] INFO [ValidatorNode]: Validator Node initialized
-[2025-08-31 15:28:48.007] INFO [ValidatorNode]: Starting Validator Node...
-[2025-08-31 15:28:48.007] INFO [ValidatorNode]: Node is follower
-[2025-08-31 15:28:48.008] INFO [ValidatorNode]: Joined validator set
-[2025-08-31 15:28:48.008] INFO [ValidatorNode]: Validator Node started
-[2025-08-31 15:28:48.458] INFO [ValidatorNode]: Node elected as leader

@@ -1,1 +1,0 @@
-{"version":3,"file":"index-rwa-simple.d.ts","sourceRoot":"","sources":["../../src/rwa/index-rwa-simple.ts"],"names":[],"mappings":"AAIA,qBAAa,oBAAoB;IAC7B,OAAO,CAAC,GAAG,CAAsB;IACjC,OAAO,CAAC,IAAI,CAAS;gBAET,IAAI,GAAE,MAAa;IAO/B,OAAO,CAAC,eAAe;IAsBvB,OAAO,CAAC,WAAW;IAoUb,KAAK,IAAI,OAAO,CAAC,IAAI,CAAC;IAyBtB,IAAI,IAAI,OAAO,CAAC,IAAI,CAAC;CAG9B"}

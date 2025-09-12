@@ -1,1 +1,0 @@
-# Aurigraph AV10-7 FastAPI Platform
