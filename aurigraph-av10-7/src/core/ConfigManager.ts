@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { readFileSync, existsSync } from 'fs';
 import { Logger } from './Logger';
 
-export interface AV10Config {
+export interface AV11Config {
   node: NodeConfig;
   consensus: ConsensusConfig;
   network: NetworkConfig;
@@ -70,7 +70,7 @@ export interface AIConfig {
 @injectable()
 export class ConfigManager {
   private logger: Logger;
-  private config: AV10Config;
+  private config: AV11Config;
   
   constructor() {
     this.logger = new Logger('ConfigManager');
@@ -82,7 +82,7 @@ export class ConfigManager {
   }
 
   async loadConfiguration(): Promise<void> {
-    this.logger.info('Loading AV10-7 configuration...');
+    this.logger.info('Loading AV11-7 configuration...');
     
     // Try to load from file
     const configPath = process.env.CONFIG_PATH || './config/av10-7.json';
@@ -106,7 +106,7 @@ export class ConfigManager {
     this.logger.info('Configuration loaded successfully');
   }
   
-  private getDefaultConfig(): AV10Config {
+  private getDefaultConfig(): AV11Config {
     return {
       node: {
         nodeType: 'validator',
@@ -201,7 +201,7 @@ export class ConfigManager {
     }
   }
   
-  getConfig(): AV10Config {
+  getConfig(): AV11Config {
     return this.config;
   }
   

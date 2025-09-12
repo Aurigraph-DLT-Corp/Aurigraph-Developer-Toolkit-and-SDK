@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Get AV10-20 Epic details with proper ADF parsing
+ * Get AV11-20 Epic details with proper ADF parsing
  */
 
 const https = require('https');
@@ -17,7 +17,7 @@ async function getTicketDetails() {
     const options = {
       hostname: JIRA_BASE_URL.replace('https://', ''),
       port: 443,
-      path: '/rest/api/3/issue/AV10-20',
+      path: '/rest/api/3/issue/AV11-20',
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -105,7 +105,7 @@ async function getTicketDetails() {
 }
 
 async function main() {
-  console.log('🔍 Getting AV10-20 Epic details...\n');
+  console.log('🔍 Getting AV11-20 Epic details...\n');
   
   try {
     await getTicketDetails();

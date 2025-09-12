@@ -3,7 +3,7 @@ import { injectable } from 'inversify';
 import { Logger } from '../core/Logger';
 import * as tf from '@tensorflow/tfjs-node';
 
-// Core interfaces for AV10-26 Feature Store
+// Core interfaces for AV11-26 Feature Store
 export interface FeatureDefinition {
   name: string;
   type: 'numerical' | 'categorical' | 'text' | 'timestamp' | 'boolean';
@@ -195,7 +195,7 @@ export class FeatureStore extends EventEmitter {
 
   constructor() {
     super();
-    this.logger = new Logger('FeatureStore-AV10-26');
+    this.logger = new Logger('FeatureStore-AV11-26');
   }
 
   async initialize(): Promise<void> {
@@ -204,7 +204,7 @@ export class FeatureStore extends EventEmitter {
       return;
     }
 
-    this.logger.info('🏪 Initializing AV10-26 Feature Store...');
+    this.logger.info('🏪 Initializing AV11-26 Feature Store...');
     
     try {
       // Initialize storage backend
@@ -227,7 +227,7 @@ export class FeatureStore extends EventEmitter {
       
       this.isInitialized = true;
       
-      this.logger.info('✅ AV10-26 Feature Store initialized successfully');
+      this.logger.info('✅ AV11-26 Feature Store initialized successfully');
       this.logger.info(`📊 Loaded: ${this.featureDefinitions.size} features, ${this.featureGroups.size} groups`);
       
     } catch (error: unknown) {

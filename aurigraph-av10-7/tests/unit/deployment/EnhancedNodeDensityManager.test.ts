@@ -1,5 +1,5 @@
 /**
- * Unit Tests for AV10-32 Enhanced Node Density Manager
+ * Unit Tests for AV11-32 Enhanced Node Density Manager
  * 
  * Tests comprehensive node density optimization including:
  * - Dynamic resource-based auto-scaling
@@ -10,7 +10,7 @@
  * - Real-time topology adjustments
  */
 
-import { EnhancedNodeDensityManager } from '../../../src/deployment/AV10-32-EnhancedNodeDensityManager';
+import { EnhancedNodeDensityManager } from '../../../src/deployment/AV11-32-EnhancedNodeDensityManager';
 import { EventEmitter } from 'events';
 
 // Mock Logger
@@ -23,7 +23,7 @@ jest.mock('../../../src/core/Logger', () => ({
   }))
 }));
 
-describe('EnhancedNodeDensityManager - AV10-32', () => {
+describe('EnhancedNodeDensityManager - AV11-32', () => {
   let manager: EnhancedNodeDensityManager;
 
   beforeEach(() => {

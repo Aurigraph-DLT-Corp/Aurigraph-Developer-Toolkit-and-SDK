@@ -53,12 +53,12 @@ let QuantumCryptoManagerV2 = class QuantumCryptoManagerV2 {
     distributionKeys = new Map();
     quantumRandomPool = [];
     consensusProofs = new Map();
-    // AV10-18 quantum enhancements
+    // AV11-18 quantum enhancements
     quantumEntanglementRegistry = new Map();
     quantumStateChannels = new Map();
     hardwareQuantumAccelerator;
     quantumRandomGenerator;
-    // Enhanced algorithms for AV10-18 + AV10-30 NTRU
+    // Enhanced algorithms for AV11-18 + AV11-30 NTRU
     algorithmsV2 = {
         keyEncapsulation: 'CRYSTALS-Kyber',
         digitalSignature: 'CRYSTALS-Dilithium',
@@ -761,7 +761,7 @@ let QuantumCryptoManagerV2 = class QuantumCryptoManagerV2 {
             algorithm: 'SPHINCS+'
         };
     }
-    // AV10-30 NTRU Integration Methods
+    // AV11-30 NTRU Integration Methods
     async generateNTRUKeyPair() {
         try {
             // Bridge to Java NTRU service running on basicnode

@@ -106,29 +106,10 @@ check_prerequisites() {
 # Install development dependencies
 install_dev_dependencies() {
     log_header "Installing Development Dependencies"
-    
-    # Install global npm packages
-    log_info "Installing global npm packages..."
-    npm install -g \
-        typescript \
-        ts-node \
-        nodemon \
-        prettier \
-        eslint \
-        @typescript-eslint/cli \
-        hardhat-shorthand \
-        solhint \
-        mythril \
-        slither-analyzer \
-        @commitlint/cli \
-        husky \
-        lint-staged \
-        concurrently \
-        cross-env \
-        rimraf \
-        npm-run-all
-    
-    log_success "Global npm packages installed"
+
+    # Skip global npm packages due to permission issues
+    log_info "Skipping global npm packages (will install locally in projects)"
+    log_success "Global npm packages skipped"
     
     # Install project dependencies
     log_info "Installing project dependencies..."
@@ -139,9 +120,9 @@ install_dev_dependencies() {
         npm install
     fi
     
-    # AV10-7 dependencies
+    # AV11-7 dependencies
     if [ -d "aurigraph-av10-7" ]; then
-        log_info "Installing AV10-7 dependencies..."
+        log_info "Installing AV11-7 dependencies..."
         cd aurigraph-av10-7
         npm install
         cd ..
@@ -227,11 +208,11 @@ EOF
         log_success "Root .env file created"
     fi
     
-    # AV10-7 environment
+    # AV11-7 environment
     if [ -d "aurigraph-av10-7" ] && [ ! -f "aurigraph-av10-7/.env" ]; then
-        log_info "Creating AV10-7 .env file..."
+        log_info "Creating AV11-7 .env file..."
         cat > aurigraph-av10-7/.env << EOF
-# AV10-7 Quantum Nexus Development Configuration
+# AV11-7 Quantum Nexus Development Configuration
 NODE_ENV=development
 PORT=8081
 HOST=localhost
@@ -270,7 +251,7 @@ VERBOSE_LOGS=true
 HOT_RELOAD=true
 AUTO_RESTART=true
 EOF
-        log_success "AV10-7 .env file created"
+        log_success "AV11-7 .env file created"
     fi
     
     log_success "Environment configuration completed"

@@ -36,14 +36,14 @@ describe('Platform Regression Tests', () => {
         expect(healthResponse.data).toMatchObject({
           status: 'healthy',
           timestamp: expect.any(String),
-          service: 'AV10-7 Monitoring API',
+          service: 'AV11-7 Monitoring API',
           version: '10.7.0'
         });
         
         // Status endpoint schema
         const statusResponse = await axios.get(`${API_BASE_URL}/api/v10/status`);
         expect(statusResponse.data).toMatchObject({
-          platform: 'AV10-7 Quantum Nexus',
+          platform: 'AV11-7 Quantum Nexus',
           version: '10.7.0',
           status: 'operational',
           features: {
@@ -281,7 +281,7 @@ describe('Platform Regression Tests', () => {
         // Verify key dashboards exist
         const dashboardNames = response.data.dashboards.map((d: any) => d.name);
         expect(dashboardNames).toEqual(expect.arrayContaining([
-          'AV10-7 Platform Overview',
+          'AV11-7 Platform Overview',
           'HyperRAFT Consensus Monitoring'
         ]));
         

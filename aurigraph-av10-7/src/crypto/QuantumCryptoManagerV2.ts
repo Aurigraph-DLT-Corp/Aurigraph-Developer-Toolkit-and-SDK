@@ -27,7 +27,7 @@ export interface QuantumConsensusProof {
 }
 
 export interface QuantumSecurityConfig {
-  securityLevel: number; // NIST Level 6 for AV10-18
+  securityLevel: number; // NIST Level 6 for AV11-18
   quantumKeyDistribution: boolean;
   quantumRandomGeneration: boolean;
   quantumStateChannels: boolean;
@@ -45,13 +45,13 @@ export class QuantumCryptoManagerV2 {
   private quantumRandomPool: Buffer[] = [];
   private consensusProofs: Map<string, QuantumConsensusProof> = new Map();
   
-  // AV10-18 quantum enhancements
+  // AV11-18 quantum enhancements
   private quantumEntanglementRegistry: Map<string, any> = new Map();
   private quantumStateChannels: Map<string, any> = new Map();
   private hardwareQuantumAccelerator: any;
   private quantumRandomGenerator: any;
   
-  // Enhanced algorithms for AV10-18 + AV10-30 NTRU
+  // Enhanced algorithms for AV11-18 + AV11-30 NTRU
   private readonly algorithmsV2 = {
     keyEncapsulation: 'CRYSTALS-Kyber',
     digitalSignature: 'CRYSTALS-Dilithium',
@@ -918,7 +918,7 @@ export class QuantumCryptoManagerV2 {
     };
   }
 
-  // AV10-30 NTRU Integration Methods
+  // AV11-30 NTRU Integration Methods
   async generateNTRUKeyPair(): Promise<QuantumKeyPairV2> {
     try {
       // Bridge to Java NTRU service running on basicnode

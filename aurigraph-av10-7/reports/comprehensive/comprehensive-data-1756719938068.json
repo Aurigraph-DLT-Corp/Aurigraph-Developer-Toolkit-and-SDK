@@ -1,6 +1,6 @@
 {
   "timestamp": "2025-09-01T09:45:37.258Z",
-  "platform": "AV10-7 Quantum Nexus",
+  "platform": "AV11-7 Quantum Nexus",
   "version": "10.7.0",
   "testSuite": "Comprehensive",
   "results": {},
@@ -193,7 +193,7 @@
         "pct": 0
       }
     },
-    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/core/AV10Node.ts": {
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/core/AV11Node.ts": {
       "lines": {
         "total": 121,
         "covered": 0,
@@ -458,9 +458,9 @@
   "git": {
     "commit": "a783add4dc1ab862f882b1c49a0bae538483de8b",
     "shortCommit": "a783add",
-    "branch": "AV10-7-v10-revolutionary-platform-implementation-core-i",
+    "branch": "AV11-7-v10-revolutionary-platform-implementation-core-i",
     "author": "Subramanya Jois",
-    "message": "Implement comprehensive automated testing framework for AV10-7 platform",
+    "message": "Implement comprehensive automated testing framework for AV11-7 platform",
     "timestamp": "2025-09-01 14:52:47 +0530"
   },
   "dependencies": {

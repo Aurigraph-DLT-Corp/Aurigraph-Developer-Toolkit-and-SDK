@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Aurigraph V10 - Simplified Dev4 Deployment to dlt.aurigraph.io
+# Aurigraph V11 - Simplified Dev4 Deployment to dlt.aurigraph.io
 # ================================================================
 
 # Colors for output
@@ -34,7 +34,7 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-echo "🚀 Aurigraph V10 - Simplified Dev4 Deployment"
+echo "🚀 Aurigraph V11 - Simplified Dev4 Deployment"
 echo "=============================================="
 
 # Parse command line arguments
@@ -65,7 +65,7 @@ case $COMMAND in
 {
   "name": "aurigraph-av10-dev4",
   "version": "10.35.0-classical-simple",
-  "description": "Aurigraph V10 Classical - Dev4 Deployment",
+  "description": "Aurigraph V11 Classical - Dev4 Deployment",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -243,7 +243,7 @@ app.get('/', (req, res) => {
         res.sendFile(indexPath);
     } else {
         res.json({
-            message: 'Aurigraph V10 Classical - Dev4',
+            message: 'Aurigraph V11 Classical - Dev4',
             version: platformInfo.version,
             endpoints: {
                 health: '/health',
@@ -258,7 +258,7 @@ app.get('/', (req, res) => {
 // Start server
 app.listen(PORT, HOST, () => {
     console.log('========================================');
-    console.log('🚀 Aurigraph V10 Classical - Dev4');
+    console.log('🚀 Aurigraph V11 Classical - Dev4');
     console.log('========================================');
     console.log(`Version: ${platformInfo.version}`);
     console.log(`Domain: ${platformInfo.domain}`);
@@ -283,7 +283,7 @@ EOF
         # Create systemd service file
         cat > dist-dev4-simple/aurigraph-dev4.service << EOF
 [Unit]
-Description=Aurigraph V10 Dev4 - dlt.aurigraph.io
+Description=Aurigraph V11 Dev4 - dlt.aurigraph.io
 After=network.target
 
 [Service]
@@ -388,7 +388,7 @@ EOF
 DEPLOYMENT_PATH="/var/www/dlt.aurigraph.io"
 SERVICE_NAME="aurigraph-dev4"
 
-echo "🔧 Deploying Aurigraph V10 to dlt.aurigraph.io"
+echo "🔧 Deploying Aurigraph V11 to dlt.aurigraph.io"
 
 # Create directories
 sudo mkdir -p $DEPLOYMENT_PATH

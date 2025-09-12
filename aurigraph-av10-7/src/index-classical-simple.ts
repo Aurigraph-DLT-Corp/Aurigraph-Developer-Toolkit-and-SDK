@@ -1,5 +1,5 @@
 /**
- * Aurigraph V10 - Classical CPU/GPU Version (Simplified)
+ * Aurigraph V11 - Classical CPU/GPU Version (Simplified)
  * Main entry point for high-performance blockchain platform without quantum computing
  */
 
@@ -75,7 +75,7 @@ function checkGPUAvailability(): { available: boolean; count: number; type: stri
  * Initialize Classical Platform (Simplified)
  */
 async function initializeClassicalPlatform(): Promise<void> {
-  console.log('🚀 Initializing Aurigraph V10 Classical Platform (Simplified)...');
+  console.log('🚀 Initializing Aurigraph V11 Classical Platform (Simplified)...');
   
   try {
     // Check hardware capabilities
@@ -123,7 +123,7 @@ app.get('/simple', (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurigraph V10 Classical Platform</title>
+    <title>Aurigraph V11 Classical Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -247,7 +247,7 @@ app.get('/simple', (req, res) => {
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Aurigraph V10 Classical</h1>
+        <h1>🚀 Aurigraph V11 Classical</h1>
         <div class="version">High-Performance Blockchain Platform</div>
         
         <div class="status">

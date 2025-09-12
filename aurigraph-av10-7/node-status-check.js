@@ -67,7 +67,7 @@ async function checkNodeHealth(node) {
 }
 
 async function checkAllNodes() {
-    console.log('🚀 Aurigraph AV10-7 Node Status Check');
+    console.log('🚀 Aurigraph AV11-7 Node Status Check');
     console.log('=====================================');
     
     const results = await Promise.all(nodes.map(checkNodeHealth));

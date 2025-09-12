@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AV10-17 External Storage Setup Script
+# AV11-17 External Storage Setup Script
 # Configures bare-metal server storage for Aurigraph nodes
 
 set -euo pipefail
@@ -11,7 +11,7 @@ AURIGRAPH_USER="aurigraph"
 AURIGRAPH_GROUP="aurigraph"
 STORAGE_SIZE_CHECK_GB=10
 
-echo "🔧 AV10-17 External Storage Setup"
+echo "🔧 AV11-17 External Storage Setup"
 echo "=================================="
 
 # Check if running as root
@@ -81,14 +81,14 @@ else
 fi
 
 # Create configuration files
-echo "⚙️ Creating AV10-17 configuration files..."
+echo "⚙️ Creating AV11-17 configuration files..."
 
 # Node configuration
 cat > "$AURIGRAPH_BASE_PATH/config/node.yml" << EOF
-# AV10-17 Node Configuration
+# AV11-17 Node Configuration
 aurigraph:
   node:
-    compliance: AV10-17
+    compliance: AV11-17
     external-storage:
       enabled: true
       base-path: $AURIGRAPH_BASE_PATH/data
@@ -109,7 +109,7 @@ EOF
 
 # Database initialization script
 cat > "$AURIGRAPH_BASE_PATH/config/init-database.sql" << EOF
--- AV10-17 Database Initialization
+-- AV11-17 Database Initialization
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- User management
@@ -176,7 +176,7 @@ EOF
 # Systemd service for automatic database backup
 cat > "/etc/systemd/system/aurigraph-backup.service" << EOF
 [Unit]
-Description=Aurigraph AV10-17 Data Backup Service
+Description=Aurigraph AV11-17 Data Backup Service
 After=network.target
 
 [Service]
@@ -214,7 +214,7 @@ echo "⏰ Daily backup service configured and started"
 cat > "$AURIGRAPH_BASE_PATH/scripts/monitor-storage.sh" << 'EOF'
 #!/bin/bash
 
-# AV10-17 Storage Monitoring Script
+# AV11-17 Storage Monitoring Script
 
 AURIGRAPH_BASE="/opt/aurigraph"
 LOG_FILE="$AURIGRAPH_BASE/logs/monitor/storage-monitor.log"
@@ -224,7 +224,7 @@ log_entry() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
 }
 
-log_entry "=== AV10-17 Storage Health Check ==="
+log_entry "=== AV11-17 Storage Health Check ==="
 
 # Check disk usage
 disk_usage=$(df --output=pcent "$AURIGRAPH_BASE" | tail -n1 | tr -d '% ')
@@ -283,9 +283,9 @@ echo "📊 Storage monitoring configured"
 cat > "$AURIGRAPH_BASE/scripts/graceful-shutdown.sh" << 'EOF'
 #!/bin/bash
 
-# AV10-17 Graceful Shutdown Script
+# AV11-17 Graceful Shutdown Script
 
-echo "🔄 Initiating AV10-17 graceful shutdown..."
+echo "🔄 Initiating AV11-17 graceful shutdown..."
 
 # Signal all Aurigraph containers to shutdown gracefully
 echo "📤 Sending graceful shutdown signal to containers..."
@@ -306,7 +306,7 @@ docker-compose -f docker-compose.external-storage.yml stop aurigraph-database
 echo "💾 Syncing external storage..."
 sync
 
-echo "✅ AV10-17 graceful shutdown completed"
+echo "✅ AV11-17 graceful shutdown completed"
 EOF
 
 chmod +x "$AURIGRAPH_BASE/scripts/graceful-shutdown.sh"
@@ -316,9 +316,9 @@ chown $AURIGRAPH_USER:$AURIGRAPH_GROUP "$AURIGRAPH_BASE/scripts/graceful-shutdow
 cat > "$AURIGRAPH_BASE/scripts/startup-with-recovery.sh" << 'EOF'
 #!/bin/bash
 
-# AV10-17 Startup with Transaction Recovery
+# AV11-17 Startup with Transaction Recovery
 
-echo "🚀 Starting AV10-17 node with transaction recovery..."
+echo "🚀 Starting AV11-17 node with transaction recovery..."
 
 # Start external storage services
 echo "💾 Starting external storage services..."
@@ -346,7 +346,7 @@ done
 echo "✅ Redis ready"
 
 # Start the main node with recovery
-echo "🏗️ Starting AV10-17 compliant basic node..."
+echo "🏗️ Starting AV11-17 compliant basic node..."
 docker-compose -f docker-compose.external-storage.yml up -d aurigraph-basicnode-external
 
 # Wait for node startup
@@ -360,7 +360,7 @@ while ! curl -f http://localhost:8080/health/ready >/dev/null 2>&1; do
     sleep 3
 done
 
-echo "✅ AV10-17 node startup with recovery completed successfully"
+echo "✅ AV11-17 node startup with recovery completed successfully"
 echo "🌐 Node available at: http://localhost:8080"
 echo "📊 Metrics available at: http://localhost:8080/metrics"
 echo "🏥 Health status: http://localhost:8080/health"
@@ -407,7 +407,7 @@ echo "📋 Log rotation configured"
 
 # Final summary
 echo ""
-echo "✅ AV10-17 External Storage Setup Complete!"
+echo "✅ AV11-17 External Storage Setup Complete!"
 echo "==========================================="
 echo "📁 Base path: $AURIGRAPH_BASE_PATH"
 echo "👤 User/Group: $AURIGRAPH_USER:$AURIGRAPH_GROUP"

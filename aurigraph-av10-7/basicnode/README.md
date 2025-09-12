@@ -59,7 +59,7 @@ docker run -d \
 - **Monitoring**: Real-time resource optimization
 
 ### ✅ Platform Integration
-- **AV10-18 Connectivity**: Automatic connection to main platform
+- **AV11-18 Connectivity**: Automatic connection to main platform
 - **API Gateway**: RESTful integration
 - **Real-time Sync**: Continuous platform synchronization
 - **Automatic Registration**: Self-registering with platform
@@ -74,7 +74,7 @@ docker run -d \
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Browser   │    │  Basic Node     │    │  AV10-18        │
+│   Web Browser   │    │  Basic Node     │    │  AV11-18        │
 │                 │    │  (Port 8080)    │    │  Platform       │
 │  • Dashboard    │◄──►│  • NodeManager  │◄──►│  (Port 3018)    │
 │  • Monitoring   │    │  • API Gateway  │    │  • Validators   │
@@ -102,7 +102,7 @@ docker run -d \
 ## Configuration
 
 ### Environment Variables
-- `AURIGRAPH_PLATFORM_URL` - AV10-18 platform URL (default: http://localhost:3018)
+- `AURIGRAPH_PLATFORM_URL` - AV11-18 platform URL (default: http://localhost:3018)
 - `AURIGRAPH_NODE_ID` - Unique node identifier
 - `QUARKUS_PROFILE` - Quarkus profile (dev/test/prod)
 
@@ -126,9 +126,9 @@ docker run -d \
 - Resource constraint validation
 - Automatic alerts and notifications
 
-## Integration with AV10-18
+## Integration with AV11-18
 
-The basic node integrates with the AV10-18 platform to:
+The basic node integrates with the AV11-18 platform to:
 - Participate in quantum consensus network
 - Process transactions with 5M+ TPS capability
 - Leverage Quantum Level 6 security
@@ -139,7 +139,7 @@ The basic node integrates with the AV10-18 platform to:
 
 ### Common Issues
 1. **Container won't start**: Check Docker daemon and port 8080 availability
-2. **Platform connection failed**: Verify AV10-18 platform is running on port 3018
+2. **Platform connection failed**: Verify AV11-18 platform is running on port 3018
 3. **High memory usage**: Restart container to clear memory
 4. **Performance issues**: Check system resources and Docker limits
 

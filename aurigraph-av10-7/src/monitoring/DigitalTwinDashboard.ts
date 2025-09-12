@@ -361,7 +361,7 @@ export class DigitalTwinDashboard {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurigraph AV10-22 - Digital Twin Dashboard</title>
+    <title>Aurigraph AV11-22 - Digital Twin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
@@ -1165,7 +1165,7 @@ export class DigitalTwinDashboard {
     <div class="header">
         <div class="header-content">
             <div>
-                <h1>🌐 AV10-22 Digital Twin Platform</h1>
+                <h1>🌐 AV11-22 Digital Twin Platform</h1>
                 <div class="subtitle">Real-time Asset Monitoring & Predictive Analytics | <span class="real-time-indicator"><span class="live-dot"></span>Live</span></div>
             </div>
             <div class="header-stats">

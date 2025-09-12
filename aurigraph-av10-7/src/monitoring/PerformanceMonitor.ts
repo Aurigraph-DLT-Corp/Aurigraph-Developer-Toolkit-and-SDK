@@ -1,6 +1,6 @@
 /**
- * AV10-16 Performance Monitor - TypeScript Implementation
- * Monitors node performance metrics for AV10-17 compliance validation
+ * AV11-16 Performance Monitor - TypeScript Implementation
+ * Monitors node performance metrics for AV11-17 compliance validation
  * Based on Java implementation: basicnode/src/main/java/io/aurigraph/basicnode/compliance/PerformanceMonitor.java
  */
 
@@ -24,7 +24,7 @@ export interface ComplianceMetric {
     threshold?: number;
 }
 
-export interface AV1017PerformanceReport {
+export interface AV1117PerformanceReport {
     nodeId: string;
     reportTime: Date;
     startTime: Date;
@@ -64,7 +64,7 @@ export class PerformanceMonitor extends EventEmitter {
     private metrics: Map<string, ComplianceMetric> = new Map();
     private monitoringInterval?: NodeJS.Timeout;
     
-    // AV10-17 Compliance Thresholds
+    // AV11-17 Compliance Thresholds
     private readonly thresholds: PerformanceThresholds = {
         maxMemoryMB: 4096,        // 4GB memory limit
         targetTPS: 1000000,       // 1M+ TPS target
@@ -87,14 +87,14 @@ export class PerformanceMonitor extends EventEmitter {
     }
     
     private initializeMetrics(): void {
-        console.log(`[${this.nodeId}] Initializing AV10-17 performance metrics...`);
+        console.log(`[${this.nodeId}] Initializing AV11-17 performance metrics...`);
         
         // Start monitoring interval (every 5 seconds)
         this.monitoringInterval = setInterval(() => {
             this.collectMetrics();
         }, 5000);
         
-        console.log(`[${this.nodeId}] AV10-17 performance metrics initialized successfully`);
+        console.log(`[${this.nodeId}] AV11-17 performance metrics initialized successfully`);
         this.emit('metrics-initialized');
     }
     
@@ -126,7 +126,7 @@ export class PerformanceMonitor extends EventEmitter {
             this.thresholds.uptimeTargetPercent
         );
         
-        // CPU monitoring (not part of AV10-17 but useful)
+        // CPU monitoring (not part of AV11-17 but useful)
         const cpuStatus = report.cpuUsagePercent >= this.thresholds.cpuCriticalThreshold 
             ? ComplianceStatus.NON_COMPLIANT
             : report.cpuUsagePercent >= this.thresholds.cpuWarningThreshold
@@ -210,13 +210,13 @@ export class PerformanceMonitor extends EventEmitter {
         }
     }
     
-    public generatePerformanceReport(): AV1017PerformanceReport {
+    public generatePerformanceReport(): AV1117PerformanceReport {
         const memoryUsage = this.getCurrentMemoryUsageMB();
         const cpuUsage = this.getCurrentCpuUsage();
         const currentTPS = this.getCurrentTPS();
         const uptimePercent = this.calculateUptimePercent();
         
-        const report: AV1017PerformanceReport = {
+        const report: AV1117PerformanceReport = {
             nodeId: this.nodeId,
             reportTime: new Date(),
             startTime: this.startTime,
@@ -248,11 +248,11 @@ export class PerformanceMonitor extends EventEmitter {
         return report;
     }
     
-    public validateAV1017Compliance(): boolean {
+    public validateAV1117Compliance(): boolean {
         const report = this.generatePerformanceReport();
         
         if (!report.av1017Compliant) {
-            console.error(`[${this.nodeId}] AV10-17 COMPLIANCE VIOLATION:`);
+            console.error(`[${this.nodeId}] AV11-17 COMPLIANCE VIOLATION:`);
             console.error(`- Memory: ${report.memoryUsageMB}MB (limit: ${this.thresholds.maxMemoryMB}MB) - ${report.memoryCompliant ? 'PASS' : 'FAIL'}`);
             console.error(`- Performance: ${report.currentTPS} TPS (target: ${this.thresholds.targetTPS}+) - ${report.performanceCompliant ? 'PASS' : 'FAIL'}`);
             console.error(`- Uptime: ${this.calculateUptimePercent().toFixed(4)}% (target: ${this.thresholds.uptimeTargetPercent}%) - ${report.uptimeCompliant ? 'PASS' : 'FAIL'}`);
@@ -261,7 +261,7 @@ export class PerformanceMonitor extends EventEmitter {
             return false;
         }
         
-        console.log(`[${this.nodeId}] AV10-17 COMPLIANCE: ALL REQUIREMENTS SATISFIED`);
+        console.log(`[${this.nodeId}] AV11-17 COMPLIANCE: ALL REQUIREMENTS SATISFIED`);
         this.emit('compliance-validated', report);
         return true;
     }

@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { Logger } from './Logger';
 import { ConfigManager } from './ConfigManager';
 import { HyperRAFTPlusPlusV2 } from '../consensus/HyperRAFTPlusPlusV2';
-import { QuantumCryptoManager } from '../crypto/QuantumCryptoManager';
+import { QuantumCryptoManagerV2 } from '../crypto/QuantumCryptoManagerV2';
 import { ZKProofSystem } from '../zk/ZKProofSystem';
 import { AIOptimizer } from '../ai/AIOptimizer';
 import { CrossChainBridge } from '../crosschain/CrossChainBridge';
@@ -40,14 +40,14 @@ export class AV18Node extends EventEmitter {
   
   // Core systems
   private consensus: HyperRAFTPlusPlusV2;
-  private quantumCrypto: QuantumCryptoManager;
+  private quantumCrypto: QuantumCryptoManagerV2;
   private zkProofSystem: ZKProofSystem;
   private aiOptimizer: AIOptimizer;
   private crossChainBridge: CrossChainBridge;
   private channelManager: ChannelManager;
   private monitoring: VizorMonitoringService;
   
-  // AV10-18 enhancements
+  // AV11-18 enhancements
   private autonomousEngine: any;
   private complianceEngine: any;
   private quantumNativeFeatures: any;
@@ -59,7 +59,7 @@ export class AV18Node extends EventEmitter {
   
   constructor(
     configManager: ConfigManager,
-    quantumCrypto: QuantumCryptoManager,
+    quantumCrypto: QuantumCryptoManagerV2,
     zkProofSystem: ZKProofSystem,
     aiOptimizer: AIOptimizer,
     crossChainBridge: CrossChainBridge,
@@ -120,13 +120,13 @@ export class AV18Node extends EventEmitter {
   }
   
   async initialize(): Promise<void> {
-    this.logger.info('Initializing AV10-18 Node...');
+    this.logger.info('Initializing AV11-18 Node...');
     
     try {
       // Initialize core systems
       await this.initializeCoreSystem();
       
-      // Initialize AV10-18 enhancements
+      // Initialize AV11-18 enhancements
       await this.initializeEnhancements();
       
       // Setup ultra-high throughput processing
@@ -145,16 +145,16 @@ export class AV18Node extends EventEmitter {
       // Start monitoring and metrics
       this.startEnhancedMonitoring();
       
-      this.logger.info('AV10-18 Node initialized successfully');
+      this.logger.info('AV11-18 Node initialized successfully');
       
     } catch (error: unknown) {
-      this.logger.error('Failed to initialize AV10-18 Node:', error);
+      this.logger.error('Failed to initialize AV11-18 Node:', error);
       throw error;
     }
   }
   
   private async initializeCoreSystem(): Promise<void> {
-    // Initialize enhanced consensus with AV10-18 features
+    // Initialize enhanced consensus with AV11-18 features
     this.consensus = new HyperRAFTPlusPlusV2(
       {
         nodeId: this.config.nodeId,
@@ -181,7 +181,7 @@ export class AV18Node extends EventEmitter {
   }
   
   private async initializeEnhancements(): Promise<void> {
-    this.logger.info('Initializing AV10-18 enhancements...');
+    this.logger.info('Initializing AV11-18 enhancements...');
     
     // Initialize quantum-native features
     this.quantumNativeFeatures = {
@@ -295,7 +295,7 @@ export class AV18Node extends EventEmitter {
   }
   
   private updateThroughputMetrics(): void {
-    // Simulate high-performance metrics for AV10-18
+    // Simulate high-performance metrics for AV11-18
     const baseTPS = 4500000; // Base 4.5M TPS
     const variance = 500000; // ±500K variance
     
@@ -561,7 +561,7 @@ export class AV18Node extends EventEmitter {
   
   private logEnhancedStatus(): void {
     this.logger.info('═════════════════════════════════════════════════════════');
-    this.logger.info('📊 AV10-18 Real-time Performance');
+    this.logger.info('📊 AV11-18 Real-time Performance');
     this.logger.info(`⚡ TPS: ${this.metrics.tps.toLocaleString()} | Latency: ${this.metrics.latency.toFixed(0)}ms`);
     this.logger.info(`🎭 ZK Proofs: ${this.metrics.zkProofs.toLocaleString()}/sec | 🔮 Quantum Ops: ${this.metrics.quantumOps.toLocaleString()}/sec`);
     this.logger.info(`🌉 Cross-chain: ${this.metrics.crossChainTxs}/sec | 🤖 Auto-Optimizations: ${this.metrics.autonomousOptimizations}`);
@@ -581,7 +581,7 @@ export class AV18Node extends EventEmitter {
   }
   
   private async optimizeNetworkConfiguration(): Promise<void> {
-    this.logger.info('Optimizing network configuration for AV10-18');
+    this.logger.info('Optimizing network configuration for AV11-18');
     // Autonomous network optimization
   }
   
@@ -670,7 +670,7 @@ export class AV18Node extends EventEmitter {
   }
   
   async start(): Promise<void> {
-    this.logger.info('Starting AV10-18 Node...');
+    this.logger.info('Starting AV11-18 Node...');
     
     try {
       await this.initialize();
@@ -678,7 +678,7 @@ export class AV18Node extends EventEmitter {
       
       this.isRunning = true;
       
-      this.logger.info('🚀 AV10-18 Node started successfully');
+      this.logger.info('🚀 AV11-18 Node started successfully');
       this.logger.info(`📈 Target Performance: ${this.config.maxTPS.toLocaleString()} TPS, <${this.config.maxLatency}ms latency`);
       this.logger.info(`🔮 Quantum Level: ${this.config.quantumLevel} | 🤖 Autonomous: ${this.config.autonomousMode}`);
       this.logger.info(`📋 Compliance: ${this.config.complianceMode} | 🌐 Network: ${this.config.networkType}`);
@@ -690,13 +690,13 @@ export class AV18Node extends EventEmitter {
       });
       
     } catch (error: unknown) {
-      this.logger.error('Failed to start AV10-18 Node:', error);
+      this.logger.error('Failed to start AV11-18 Node:', error);
       throw error;
     }
   }
   
   async stop(): Promise<void> {
-    this.logger.info('Stopping AV10-18 Node...');
+    this.logger.info('Stopping AV11-18 Node...');
     
     this.isRunning = false;
     
@@ -706,7 +706,7 @@ export class AV18Node extends EventEmitter {
     // Cleanup resources
     this.removeAllListeners();
     
-    this.logger.info('🛑 AV10-18 Node stopped');
+    this.logger.info('🛑 AV11-18 Node stopped');
     
     this.emit('node-stopped', {
       nodeId: this.config.nodeId,

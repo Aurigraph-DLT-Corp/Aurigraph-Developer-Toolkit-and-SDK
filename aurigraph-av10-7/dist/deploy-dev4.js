@@ -51,7 +51,7 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 // Load dev4 specific environment configuration
 (0, dotenv_1.config)({ path: '.env.dev4' });
-const logger = new Logger_1.Logger('AV10-7-DEV4-Deploy');
+const logger = new Logger_1.Logger('AV11-7-DEV4-Deploy');
 async function validateEnvironment() {
     logger.info('🔍 Validating dev4 environment...');
     // Check port availability
@@ -98,7 +98,7 @@ async function validateEnvironment() {
     return true;
 }
 async function initializeServices() {
-    logger.info('🚀 Initializing AV10-7 DLT services for dev4...');
+    logger.info('🚀 Initializing AV11-7 DLT services for dev4...');
     // Initialize core configuration
     const configManager = new ConfigManager_1.ConfigManager();
     await configManager.initialize();
@@ -212,11 +212,11 @@ async function generateDeploymentReport(metrics) {
     fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
     logger.info(`📋 Deployment report generated: ${reportFile}`);
 }
-async function deployAV10Dev4() {
+async function deployAV11Dev4() {
     const deploymentId = `dev4-${Date.now()}`;
     const startTime = Date.now();
     try {
-        logger.info('🚀 Starting Aurigraph AV10-7 DLT Platform deployment on dev4...');
+        logger.info('🚀 Starting Aurigraph AV11-7 DLT Platform deployment on dev4...');
         logger.info(`📋 Deployment ID: ${deploymentId}`);
         logger.info('🎯 Version: 10.7.0 | Focus: Distributed Ledger Technology');
         logger.info('🏷️ Environment: dev4 | Target: 1M+ TPS, <500ms finality');
@@ -271,7 +271,7 @@ async function deployAV10Dev4() {
             resourceAllocation,
             performanceTargets
         };
-        logger.info('✅ AV10-7 DLT Platform deployed successfully on dev4!');
+        logger.info('✅ AV11-7 DLT Platform deployed successfully on dev4!');
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('🎯 DEPLOYMENT SUMMARY - DEV4 ENVIRONMENT');
@@ -319,7 +319,7 @@ async function deployAV10Dev4() {
         setupGracefulShutdown(services);
     }
     catch (error) {
-        logger.error(`❌ Failed to deploy AV10-7 DLT Platform on dev4:`, error);
+        logger.error(`❌ Failed to deploy AV11-7 DLT Platform on dev4:`, error);
         process.exit(1);
     }
 }
@@ -333,7 +333,7 @@ function startPerformanceMonitoring(services) {
             const networkStatus = services.validatorOrchestrator.getNetworkStatus();
             const channelStatus = services.channelManager.getAllChannelStatuses();
             logger.info('═══════════════════════════════════════════════════════');
-            logger.info(`📊 AV10-7 DLT Performance - DEV4 Environment`);
+            logger.info(`📊 AV11-7 DLT Performance - DEV4 Environment`);
             logger.info(`⚡ TPS: ${consensusMetrics.tps.toLocaleString()} | Latency: ${consensusMetrics.avgLatency}ms`);
             logger.info(`🎭 ZK Proofs: ${Math.floor(Math.random() * 1000)}/s | 🌉 Bridge TXs: ${bridgeMetrics.totalTransactions}`);
             logger.info(`🔐 Quantum Security: Level ${cryptoMetrics.securityLevel} ✅ | 🤖 AI Optimization: Active ✅`);
@@ -348,7 +348,7 @@ function startPerformanceMonitoring(services) {
 }
 function setupGracefulShutdown(services) {
     process.on('SIGINT', async () => {
-        logger.info('\n⚠️  SIGINT received, shutting down AV10-7 DLT Platform (dev4)...');
+        logger.info('\n⚠️  SIGINT received, shutting down AV11-7 DLT Platform (dev4)...');
         try {
             await services.consensus.stop();
             await services.crossChainBridge.stop();
@@ -358,7 +358,7 @@ function setupGracefulShutdown(services) {
             await services.channelManager.stop();
             await services.monitoringAPI.stop();
             services.vizorMonitoring.stop();
-            logger.info('👋 AV10-7 DLT Platform (dev4) shutdown complete');
+            logger.info('👋 AV11-7 DLT Platform (dev4) shutdown complete');
             process.exit(0);
         }
         catch (error) {
@@ -367,12 +367,12 @@ function setupGracefulShutdown(services) {
         }
     });
     process.on('SIGTERM', async () => {
-        logger.info('\n⚠️  SIGTERM received, shutting down AV10-7 DLT Platform (dev4)...');
+        logger.info('\n⚠️  SIGTERM received, shutting down AV11-7 DLT Platform (dev4)...');
         process.exit(0);
     });
 }
 // Start deployment
-deployAV10Dev4().catch((error) => {
+deployAV11Dev4().catch((error) => {
     console.error('Deployment failed:', error);
     process.exit(1);
 });

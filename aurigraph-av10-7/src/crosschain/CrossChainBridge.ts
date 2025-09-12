@@ -215,7 +215,7 @@ export class CrossChainBridge extends EventEmitter {
         ['USDC', BigInt(1000000000)], // $1B
         ['ETH', BigInt(500000)],
         ['BTC', BigInt(10000)],
-        ['AV10', BigInt(100000000)]
+        ['AV11', BigInt(100000000)]
       ]),
       totalValueLocked: BigInt(2000000000),
       apr: 8.5
@@ -230,7 +230,7 @@ export class CrossChainBridge extends EventEmitter {
         chains: [chainId, 'aurigraph'],
         assets: new Map([
           ['native', BigInt(1000000)],
-          ['AV10', BigInt(10000000)]
+          ['AV11', BigInt(10000000)]
         ]),
         totalValueLocked: BigInt(50000000),
         apr: 12.0

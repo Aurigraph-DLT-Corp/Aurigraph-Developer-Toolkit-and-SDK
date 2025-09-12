@@ -35,24 +35,24 @@ const QuantumInterferenceOptimizer_1 = require("./ai/QuantumInterferenceOptimize
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 (0, dotenv_1.config)();
-const logger = new Logger_1.Logger('AV10-Comprehensive');
+const logger = new Logger_1.Logger('AV11-Comprehensive');
 async function deployComprehensivePlatform() {
     try {
-        logger.info('🚀 Deploying Comprehensive Aurigraph AV10 Platform...');
-        logger.info('Integrating: AV10-08, AV10-18, AV10-20, AV10-22, AV10-23, AV10-28, AV10-30, AV10-36');
+        logger.info('🚀 Deploying Comprehensive Aurigraph AV11 Platform...');
+        logger.info('Integrating: AV11-08, AV11-18, AV11-20, AV11-22, AV11-23, AV11-28, AV11-30, AV11-36');
         // Initialize core services
         const quantumCrypto = new QuantumCryptoManagerV2_1.QuantumCryptoManagerV2( /* @ts-ignore */);
         await quantumCrypto.initialize();
         logger.info('🔐 Base Quantum Cryptography initialized');
-        // AV10-30: NTRU Post-Quantum Cryptography
+        // AV11-30: NTRU Post-Quantum Cryptography
         const ntruCrypto = new NTRUCryptoEngine_1.NTRUCryptoEngine();
         await ntruCrypto.initialize();
-        logger.info('🔐 AV10-30: NTRU Post-Quantum Cryptography initialized');
-        // AV10-28: Advanced Neural Network Engine  
+        logger.info('🔐 AV11-30: NTRU Post-Quantum Cryptography initialized');
+        // AV11-28: Advanced Neural Network Engine  
         const advancedNeuralNetwork = new AdvancedNeuralNetworkEngine_1.AdvancedNeuralNetworkEngine();
         await advancedNeuralNetwork.initialize();
-        logger.info('🧠 AV10-28: Advanced Neural Network Engine initialized');
-        // AV10-22: Digital Twin Integration and Real-time Monitoring
+        logger.info('🧠 AV11-28: Advanced Neural Network Engine initialized');
+        // AV11-22: Digital Twin Integration and Real-time Monitoring
         const digitalTwinConfig = {
             maxDevicesPerAsset: 50,
             dataRetentionDays: 90,
@@ -110,8 +110,8 @@ async function deployComprehensivePlatform() {
         iotDataManager.on('iot_data_point', async (dataPoint) => {
             await digitalTwinEngine.processIoTData(dataPoint);
         });
-        logger.info('🔗 AV10-22: Digital Twin Integration and IoT Data Management initialized');
-        // AV10-08: Quantum Sharding Manager with Parallel Universe Processing
+        logger.info('🔗 AV11-22: Digital Twin Integration and IoT Data Management initialized');
+        // AV11-08: Quantum Sharding Manager with Parallel Universe Processing
         const quantumShardManager = new QuantumShardManager_1.QuantumShardManager({
             universeCount: 5,
             shardsPerUniverse: 10,
@@ -132,10 +132,10 @@ async function deployComprehensivePlatform() {
             const optimized = await quantumInterferenceOptimizer.optimizeInterferencePattern(pattern);
             quantumShardManager.applyOptimization(optimized);
         });
-        logger.info('🌌 AV10-08: Quantum Sharding Manager with Parallel Universe Processing initialized');
+        logger.info('🌌 AV11-08: Quantum Sharding Manager with Parallel Universe Processing initialized');
         const consensus = new HyperRAFTPlusPlusV2_1.HyperRAFTPlusPlusV2();
         await consensus.initialize();
-        logger.info('🔄 AV10-18: HyperRAFT++ V2 Consensus initialized');
+        logger.info('🔄 AV11-18: HyperRAFT++ V2 Consensus initialized');
         const aiOptimizer = new AIOptimizer_1.AIOptimizer();
         await aiOptimizer.start();
         logger.info('🤖 AI Optimizer started');
@@ -143,17 +143,17 @@ async function deployComprehensivePlatform() {
         const prometheusExporter = new PrometheusExporter_1.PrometheusExporter();
         await prometheusExporter.start(9090);
         logger.info('📊 Prometheus metrics exporter started on port 9090');
-        // AV10-23: Smart Contract Platform
+        // AV11-23: Smart Contract Platform
         const smartContracts = new SmartContractPlatform_1.SmartContractPlatform(quantumCrypto);
         await smartContracts.initialize();
-        logger.info('📜 AV10-23: Smart Contract Platform with Ricardian Contracts initialized');
+        logger.info('📜 AV11-23: Smart Contract Platform with Ricardian Contracts initialized');
         const formalVerification = new FormalVerification_1.FormalVerification();
-        logger.info('✅ AV10-23: Formal Verification system initialized');
+        logger.info('✅ AV11-23: Formal Verification system initialized');
         const governance = new GovernanceIntegration_1.GovernanceIntegration();
-        logger.info('🏛️ AV10-23: Governance Integration with DAO support initialized');
-        // AV10-36: Enhanced DLT Node
+        logger.info('🏛️ AV11-23: Governance Integration with DAO support initialized');
+        // AV11-36: Enhanced DLT Node
         const dltNodeConfig = {
-            nodeId: 'AV10-NODE-001',
+            nodeId: 'AV11-NODE-001',
             nodeType: 'VALIDATOR',
             networkId: 'aurigraph-mainnet',
             port: 8080,
@@ -173,14 +173,14 @@ async function deployComprehensivePlatform() {
         };
         const dltNode = new EnhancedDLTNode_1.EnhancedDLTNode(dltNodeConfig, quantumCrypto, consensus);
         await dltNode.initialize();
-        logger.info('🏗️ AV10-36: Enhanced DLT Node initialized');
-        // AV10-20: RWA Platform
+        logger.info('🏗️ AV11-36: Enhanced DLT Node initialized');
+        // AV11-20: RWA Platform
         const rwaRegistry = new AssetRegistry_1.AssetRegistry(quantumCrypto);
         const mcpInterface = new MCPInterface_1.MCPInterface(rwaRegistry, quantumCrypto);
         const rwaWebInterface = new RWAWebInterface_1.RWAWebInterface(rwaRegistry, mcpInterface);
-        logger.info('🏛️ AV10-20: RWA Tokenization Platform initialized');
-        // AV10-16: Performance Monitoring System
-        const performanceMonitor = new PerformanceMonitor_1.PerformanceMonitor(process.env.NODE_ID || 'AV10-PLATFORM', {
+        logger.info('🏛️ AV11-20: RWA Tokenization Platform initialized');
+        // AV11-16: Performance Monitoring System
+        const performanceMonitor = new PerformanceMonitor_1.PerformanceMonitor(process.env.NODE_ID || 'AV11-PLATFORM', {
             maxMemoryMB: 4096,
             targetTPS: 1000000,
             uptimeTargetPercent: 99.9,
@@ -189,10 +189,10 @@ async function deployComprehensivePlatform() {
         });
         // Set up performance monitoring event handlers
         performanceMonitor.on('compliance-violation', (report) => {
-            logger.error('🚨 AV10-17 COMPLIANCE VIOLATION:', report);
+            logger.error('🚨 AV11-17 COMPLIANCE VIOLATION:', report);
         });
         performanceMonitor.on('compliance-validated', (report) => {
-            logger.info('✅ AV10-17 COMPLIANCE VALIDATED:', {
+            logger.info('✅ AV11-17 COMPLIANCE VALIDATED:', {
                 nodeId: report.nodeId,
                 tps: report.currentTPS,
                 memory: report.memoryUsageMB,
@@ -200,8 +200,8 @@ async function deployComprehensivePlatform() {
             });
         });
         performanceMonitor.startMonitoring();
-        logger.info('📈 AV10-16: Performance Monitoring System initialized');
-        // AV10-9: Autonomous Protocol Evolution Engine
+        logger.info('📈 AV11-16: Performance Monitoring System initialized');
+        // AV11-9: Autonomous Protocol Evolution Engine
         const protocolEvolution = new AutonomousProtocolEvolutionEngine_1.AutonomousProtocolEvolutionEngine(aiOptimizer, quantumCrypto, consensus, {
             evolutionInterval: 30000, // 30 seconds
             learningRate: 0.01,
@@ -211,11 +211,11 @@ async function deployComprehensivePlatform() {
             quantumEvolution: true
         });
         await protocolEvolution.startEvolution();
-        logger.info('🧬 AV10-9: Autonomous Protocol Evolution Engine initialized');
+        logger.info('🧬 AV11-9: Autonomous Protocol Evolution Engine initialized');
         // Enhanced Neural Network Engine
         const neuralNetwork = new NeuralNetworkEngine_1.NeuralNetworkEngine(quantumCrypto, true);
         logger.info('🧠 Enhanced Neural Network Engine initialized');
-        // AV10-10: Cross-Dimensional Tokenizer
+        // AV11-10: Cross-Dimensional Tokenizer
         const crossDimensionalTokenizer = new CrossDimensionalTokenizer_1.CrossDimensionalTokenizer(quantumCrypto, rwaRegistry, {
             enableQuantumSuperposition: true,
             enableTemporalProjection: true,
@@ -224,8 +224,8 @@ async function deployComprehensivePlatform() {
             decoherenceProtection: true,
             quantumErrorCorrection: true
         });
-        logger.info('🌌 AV10-10: Cross-Dimensional Tokenizer initialized');
-        // AV10-13: Circular Economy Engine
+        logger.info('🌌 AV11-10: Cross-Dimensional Tokenizer initialized');
+        // AV11-13: Circular Economy Engine
         const circularEconomyEngine = new CircularEconomyEngine_1.CircularEconomyEngine(quantumCrypto, rwaRegistry, performanceMonitor, {
             optimizationInterval: 60000, // 1 minute
             targetCircularityIndex: 0.8, // 80% circular
@@ -236,24 +236,24 @@ async function deployComprehensivePlatform() {
             sustainabilityReportingFrequency: 86400000, // 24 hours
             stakeholderNotifications: true
         });
-        logger.info('🌱 AV10-13: Circular Economy Engine initialized');
-        // AV10-14: Collective Intelligence Network
+        logger.info('🌱 AV11-13: Circular Economy Engine initialized');
+        // AV11-14: Collective Intelligence Network
         const collectiveIntelligence = new CollectiveIntelligenceNetwork_1.CollectiveIntelligenceNetwork(quantumCrypto, neuralNetwork, protocolEvolution);
         await collectiveIntelligence.start();
-        logger.info('🧠 AV10-14: Collective Intelligence Network initialized');
-        // AV10-12: Carbon Negative Operations Engine
+        logger.info('🧠 AV11-14: Collective Intelligence Network initialized');
+        // AV11-12: Carbon Negative Operations Engine
         const carbonNegativeEngine = new CarbonNegativeOperationsEngine_1.CarbonNegativeOperationsEngine(quantumCrypto, circularEconomyEngine, neuralNetwork);
         await carbonNegativeEngine.start();
-        logger.info('🌱 AV10-12: Carbon Negative Operations Engine initialized');
-        // AV10-15: Autonomous Asset Manager
+        logger.info('🌱 AV11-12: Carbon Negative Operations Engine initialized');
+        // AV11-15: Autonomous Asset Manager
         const autonomousAssetManager = new AutonomousAssetManager_1.AutonomousAssetManager(quantumCrypto, rwaRegistry, neuralNetwork, collectiveIntelligence);
         await autonomousAssetManager.start();
-        logger.info('💼 AV10-15: Autonomous Asset Manager initialized');
-        // AV10-28: High-Performance Integration Engine
+        logger.info('💼 AV11-15: Autonomous Asset Manager initialized');
+        // AV11-28: High-Performance Integration Engine
         const integrationEngine = new HighPerformanceIntegrationEngine_1.HighPerformanceIntegrationEngine();
         await integrationEngine.initialize();
         await integrationEngine.start();
-        logger.info('🚀 AV10-28: High-Performance Integration Engine initialized');
+        logger.info('🚀 AV11-28: High-Performance Integration Engine initialized');
         const services = {
             quantumCrypto,
             smartContracts,
@@ -291,16 +291,16 @@ async function deployComprehensivePlatform() {
             res.json({
                 status: 'healthy',
                 version: '10.36.0',
-                platform: 'Comprehensive Aurigraph AV10 Platform',
+                platform: 'Comprehensive Aurigraph AV11 Platform',
                 implementations: {
-                    'AV10-08': 'Quantum Sharding Manager with Parallel Universe Processing',
-                    'AV10-18': 'HyperRAFT++ V2 Consensus',
-                    'AV10-20': 'RWA Tokenization Platform',
-                    'AV10-22': 'Digital Twin Integration and Real-time Monitoring',
-                    'AV10-23': 'Smart Contract Platform with Ricardian Contracts',
-                    'AV10-28': 'Advanced Neural Network Engine with Quantum Integration',
-                    'AV10-30': 'Post-Quantum Cryptography with NTRU Encryption',
-                    'AV10-36': 'Enhanced DLT Nodes'
+                    'AV11-08': 'Quantum Sharding Manager with Parallel Universe Processing',
+                    'AV11-18': 'HyperRAFT++ V2 Consensus',
+                    'AV11-20': 'RWA Tokenization Platform',
+                    'AV11-22': 'Digital Twin Integration and Real-time Monitoring',
+                    'AV11-23': 'Smart Contract Platform with Ricardian Contracts',
+                    'AV11-28': 'Advanced Neural Network Engine with Quantum Integration',
+                    'AV11-30': 'Post-Quantum Cryptography with NTRU Encryption',
+                    'AV11-36': 'Enhanced DLT Nodes'
                 },
                 services: {
                     quantumCrypto: 'active',
@@ -320,7 +320,7 @@ async function deployComprehensivePlatform() {
                 timestamp: new Date().toISOString()
             });
         });
-        // AV10-30: NTRU Crypto APIs
+        // AV11-30: NTRU Crypto APIs
         app.get('/api/crypto/ntru/status', async (req, res) => {
             try {
                 const ntruMetrics = ntruCrypto.getPerformanceMetrics();
@@ -372,7 +372,7 @@ async function deployComprehensivePlatform() {
                 res.status(400).json({ error: error instanceof Error ? error.message : 'Encryption failed' });
             }
         });
-        // AV10-28: Advanced Neural Network APIs
+        // AV11-28: Advanced Neural Network APIs
         app.get('/api/ai/neural/status', async (req, res) => {
             try {
                 const modelInfo = advancedNeuralNetwork.getModelInfo();
@@ -412,7 +412,7 @@ async function deployComprehensivePlatform() {
             try {
                 const systemStatus = await integrationEngine.getSystemStatus();
                 res.json({
-                    platform: 'AV10-28 High-Performance Integration Engine',
+                    platform: 'AV11-28 High-Performance Integration Engine',
                     status: systemStatus.status,
                     uptime: systemStatus.uptime,
                     metrics: systemStatus.metrics,
@@ -424,11 +424,11 @@ async function deployComprehensivePlatform() {
                 res.status(500).json({ error: error instanceof Error ? error.message : 'Integration status error' });
             }
         });
-        // AV10-22: Digital Twin APIs
+        // AV11-22: Digital Twin APIs
         app.get('/api/digitaltwin/status', (req, res) => {
             const metrics = digitalTwinEngine.getMetrics();
             res.json({
-                platform: 'AV10-22 Digital Twin Integration',
+                platform: 'AV11-22 Digital Twin Integration',
                 status: 'active',
                 assets: digitalTwinEngine.getAllAssets().length,
                 metrics,
@@ -473,7 +473,7 @@ async function deployComprehensivePlatform() {
         app.get('/api/iot/devices', (req, res) => {
             const metrics = iotDataManager.getSystemMetrics();
             res.json({
-                platform: 'AV10-22 IoT Data Management',
+                platform: 'AV11-22 IoT Data Management',
                 connectedDevices: metrics.connectedDevices,
                 systemMetrics: metrics
             });
@@ -488,11 +488,11 @@ async function deployComprehensivePlatform() {
                 res.status(400).json({ error: error instanceof Error ? error.message : 'Command error' });
             }
         });
-        // AV10-08: Quantum Sharding APIs
+        // AV11-08: Quantum Sharding APIs
         app.get('/api/quantum/sharding/status', (req, res) => {
             const metrics = quantumShardManager.getMetrics();
             res.json({
-                platform: 'AV10-08 Quantum Sharding Manager',
+                platform: 'AV11-08 Quantum Sharding Manager',
                 status: 'active',
                 universeCount: 5,
                 totalShards: 50,
@@ -516,7 +516,7 @@ async function deployComprehensivePlatform() {
         app.get('/api/quantum/interference/optimization', (req, res) => {
             const analytics = quantumInterferenceOptimizer.getAnalytics();
             res.json({
-                platform: 'AV10-08 Quantum Interference Optimizer',
+                platform: 'AV11-08 Quantum Interference Optimizer',
                 analytics,
                 aiModels: 5,
                 optimizationsPerSecond: analytics.optimizationsPerSecond,
@@ -543,7 +543,7 @@ async function deployComprehensivePlatform() {
                 quantumReady: true
             });
         });
-        // AV10-23: Smart contract APIs
+        // AV11-23: Smart contract APIs
         app.get('/api/contracts', (req, res) => {
             res.json({
                 contracts: smartContracts.getAllContracts(),
@@ -568,7 +568,7 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-23: Governance APIs
+        // AV11-23: Governance APIs
         app.get('/api/governance/proposals', (req, res) => {
             res.json({
                 proposals: governance.getAllProposals(),
@@ -587,13 +587,13 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-16: Performance Monitoring APIs
+        // AV11-16: Performance Monitoring APIs
         app.get('/api/performance/report', (req, res) => {
             const report = performanceMonitor.generatePerformanceReport();
             res.json(report);
         });
         app.get('/api/performance/compliance', (req, res) => {
-            const isCompliant = performanceMonitor.validateAV1017Compliance();
+            const isCompliant = performanceMonitor.validateAV1117Compliance();
             const metrics = performanceMonitor.getComplianceMetrics();
             res.json({
                 av1017Compliant: isCompliant,
@@ -627,7 +627,7 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-36: DLT node APIs
+        // AV11-36: DLT node APIs
         app.get('/api/node/status', (req, res) => {
             res.json({
                 status: dltNode.getStatus(),
@@ -649,13 +649,13 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-20: RWA APIs (delegated to MCP interface)
+        // AV11-20: RWA APIs (delegated to MCP interface)
         app.use('/api/rwa', (req, res, next) => {
             // Delegate RWA requests to the MCP interface
             req.url = req.url.replace('/api/rwa', '');
             mcpInterface.getApp()(req, res, next);
         });
-        // AV10-9: Autonomous Protocol Evolution APIs
+        // AV11-9: Autonomous Protocol Evolution APIs
         app.get('/api/evolution/status', (req, res) => {
             const status = protocolEvolution.getEvolutionStatus();
             res.json(status);
@@ -705,7 +705,7 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-10: Cross-Dimensional Tokenizer APIs
+        // AV11-10: Cross-Dimensional Tokenizer APIs
         app.get('/api/xd-tokenizer/statistics', (req, res) => {
             const stats = crossDimensionalTokenizer.getDimensionalStatistics();
             // Convert Maps to Objects for JSON serialization
@@ -728,7 +728,7 @@ async function deployComprehensivePlatform() {
                 }))
             });
         });
-        // AV10-13: Circular Economy Engine APIs
+        // AV11-13: Circular Economy Engine APIs
         app.get('/api/sustainability/metrics', (req, res) => {
             const metrics = circularEconomyEngine.getCurrentMetrics();
             const metricsObj = Object.fromEntries(metrics);
@@ -878,7 +878,7 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-14: Collective Intelligence Network APIs
+        // AV11-14: Collective Intelligence Network APIs
         app.get('/api/collective-intelligence/status', (req, res) => {
             const status = collectiveIntelligence.getNetworkStatus();
             res.json(status);
@@ -917,7 +917,7 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-12: Carbon Negative Operations APIs
+        // AV11-12: Carbon Negative Operations APIs
         app.get('/api/carbon-negative/status', (req, res) => {
             const status = carbonNegativeEngine.getEngineStatus();
             res.json(status);
@@ -950,7 +950,7 @@ async function deployComprehensivePlatform() {
                 });
             }
         });
-        // AV10-15: Autonomous Asset Manager APIs
+        // AV11-15: Autonomous Asset Manager APIs
         app.get('/api/asset-manager/status', (req, res) => {
             const status = autonomousAssetManager.getManagerStatus();
             res.json(status);
@@ -1007,9 +1007,9 @@ async function deployComprehensivePlatform() {
             }
         });
         // Start comprehensive platform
-        const PORT = process.env.AV10_COMPREHENSIVE_PORT || 3036;
+        const PORT = process.env.AV11_COMPREHENSIVE_PORT || 3036;
         app.listen(PORT, () => {
-            logger.info('🌟 Comprehensive Aurigraph AV10 Platform deployed successfully!');
+            logger.info('🌟 Comprehensive Aurigraph AV11 Platform deployed successfully!');
             logger.info('');
             logger.info('🔗 Platform Endpoints:');
             logger.info(`   Main Health: http://localhost:${PORT}/health`);
@@ -1028,19 +1028,19 @@ async function deployComprehensivePlatform() {
             logger.info(`   Autonomous Asset Manager: http://localhost:${PORT}/api/asset-manager/status`);
             logger.info('');
             logger.info('🏛️ Implementation Status:');
-            logger.info('   ✅ AV10-18: HyperRAFT++ V2 Consensus');
-            logger.info('   ✅ AV10-20: RWA Tokenization Platform');
-            logger.info('   ✅ AV10-23: Smart Contract Platform');
-            logger.info('   ✅ AV10-28: Advanced Neural Network Engine with Quantum Integration');
-            logger.info('   ✅ AV10-30: Post-Quantum NTRU Cryptography');
-            logger.info('   ✅ AV10-36: Enhanced DLT Nodes');
-            logger.info('   ✅ AV10-16: Performance Monitoring System');
-            logger.info('   ✅ AV10-9: Autonomous Protocol Evolution Engine');
-            logger.info('   ✅ AV10-10: Cross-Dimensional Tokenizer');
-            logger.info('   ✅ AV10-12: Carbon Negative Operations Engine');
-            logger.info('   ✅ AV10-13: Circular Economy Engine');
-            logger.info('   ✅ AV10-14: Collective Intelligence Network');
-            logger.info('   ✅ AV10-15: Autonomous Asset Manager');
+            logger.info('   ✅ AV11-18: HyperRAFT++ V2 Consensus');
+            logger.info('   ✅ AV11-20: RWA Tokenization Platform');
+            logger.info('   ✅ AV11-23: Smart Contract Platform');
+            logger.info('   ✅ AV11-28: Advanced Neural Network Engine with Quantum Integration');
+            logger.info('   ✅ AV11-30: Post-Quantum NTRU Cryptography');
+            logger.info('   ✅ AV11-36: Enhanced DLT Nodes');
+            logger.info('   ✅ AV11-16: Performance Monitoring System');
+            logger.info('   ✅ AV11-9: Autonomous Protocol Evolution Engine');
+            logger.info('   ✅ AV11-10: Cross-Dimensional Tokenizer');
+            logger.info('   ✅ AV11-12: Carbon Negative Operations Engine');
+            logger.info('   ✅ AV11-13: Circular Economy Engine');
+            logger.info('   ✅ AV11-14: Collective Intelligence Network');
+            logger.info('   ✅ AV11-15: Autonomous Asset Manager');
             logger.info('   ✅ Enhanced Neural Network AI Engine');
             logger.info('');
             logger.info('📈 Platform Capabilities:');
@@ -1068,14 +1068,14 @@ async function deployComprehensivePlatform() {
             prometheusExporter.updateQuantumSecurityLevel(6);
             prometheusExporter.updateNTRUEncryptions(cryptoMetrics.ntru.ntruEncryptionsPerSec);
             prometheusExporter.updateGovernanceProposals('active', governanceMetrics.activeProposals);
-            prometheusExporter.updateNodeStatus('AV10-NODE-001', 'VALIDATOR', nodeStatus.status === 'running');
-            prometheusExporter.updatePeerConnections('AV10-NODE-001', nodeStatus.peerCount);
+            prometheusExporter.updateNodeStatus('AV11-NODE-001', 'VALIDATOR', nodeStatus.status === 'running');
+            prometheusExporter.updatePeerConnections('AV11-NODE-001', nodeStatus.peerCount);
             prometheusExporter.updateSupportedChains(50);
             // Update resource usage
             if (nodeStatus.resourceUsage) {
-                prometheusExporter.updateResourceUsage('AV10-NODE-001', 'memory', nodeStatus.resourceUsage.memoryMB / 2048 * 100);
-                prometheusExporter.updateResourceUsage('AV10-NODE-001', 'cpu', nodeStatus.resourceUsage.cpuPercent);
-                prometheusExporter.updateResourceUsage('AV10-NODE-001', 'disk', nodeStatus.resourceUsage.diskGB / 100 * 100);
+                prometheusExporter.updateResourceUsage('AV11-NODE-001', 'memory', nodeStatus.resourceUsage.memoryMB / 2048 * 100);
+                prometheusExporter.updateResourceUsage('AV11-NODE-001', 'cpu', nodeStatus.resourceUsage.cpuPercent);
+                prometheusExporter.updateResourceUsage('AV11-NODE-001', 'disk', nodeStatus.resourceUsage.diskGB / 100 * 100);
             }
             logger.info(`📊 Comprehensive Metrics: ` +
                 `Node TPS: ${nodeMetrics.performance.tps} | ` +

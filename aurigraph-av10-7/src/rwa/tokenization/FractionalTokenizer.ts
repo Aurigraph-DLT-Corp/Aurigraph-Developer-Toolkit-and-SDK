@@ -90,12 +90,12 @@ export class FractionalTokenizer extends EventEmitter {
     // Create tokenization record for asset
     const tokenizationRecord: TokenizationRecord = {
       tokenId,
-      tokenStandard: 'AV10-RWA-FRACTIONAL',
+      tokenStandard: 'AV11-RWA-FRACTIONAL',
       totalSupply: request.totalShares,
       fractionalParts: request.totalShares,
       tokenizationType: 'FRACTIONAL',
       smartContractAddress: await this.deploySmartContract(token),
-      blockchain: 'AURIGRAPH-AV10-18',
+      blockchain: 'AURIGRAPH-AV11-18',
       created: new Date()
     };
 
@@ -324,7 +324,7 @@ export class FractionalTokenizer extends EventEmitter {
     // Simulate smart contract deployment
     const contractCode = this.generateContractCode(token);
     const hash = await this.cryptoManager.hashData(contractCode);
-    return `0xAV10${hash.substring(0, 32)}`;
+    return `0xAV11${hash.substring(0, 32)}`;
   }
 
   private generateContractCode(token: FractionalToken): string {

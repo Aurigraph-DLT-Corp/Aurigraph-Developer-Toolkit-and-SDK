@@ -14,7 +14,7 @@ describe('Platform Smoke Tests', () => {
         expect(response.status).toBe(200);
         expect(response.data).toMatchObject({
           status: 'healthy',
-          service: 'AV10-7 Monitoring API',
+          service: 'AV11-7 Monitoring API',
           version: '10.7.0'
         });
       } catch (error) {
@@ -30,7 +30,7 @@ describe('Platform Smoke Tests', () => {
         
         expect(response.status).toBe(200);
         expect(response.data).toMatchObject({
-          platform: 'AV10-7 Quantum Nexus',
+          platform: 'AV11-7 Quantum Nexus',
           version: '10.7.0',
           status: 'operational',
           features: {

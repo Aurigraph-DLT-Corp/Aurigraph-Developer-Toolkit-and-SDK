@@ -1,0 +1,326 @@
+{{/*
+Persistent Volume Claims for Aurigraph V11
+High-performance storage configuration for blockchain data, logs, and state
+*/}}
+
+{{/*
+Storage Class for high-performance blockchain data
+*/}}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: aurigraph-fast-ssd
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp3
+  iops: "16000"
+  throughput: "1000"
+  encrypted: "true"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+{{/*
+Storage Class for backup and archival data
+*/}}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: aurigraph-backup-storage
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: sc1  # Cold HDD for backups
+  encrypted: "true"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+{{/*
+Blockchain Data Persistent Volume Claim
+High-performance storage for blockchain state and blocks
+*/}}
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-blockchain-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    storage-type: blockchain-data
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  storageClassName: {{ .Values.global.storageClass | default "aurigraph-fast-ssd" }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.blockchain.size }}
+  volumeMode: Filesystem
+
+---
+{{/*
+Transaction Logs Persistent Volume Claim
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-logs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    storage-type: transaction-logs
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  storageClassName: {{ .Values.global.storageClass | default "aurigraph-fast-ssd" }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.logs.size }}
+  volumeMode: Filesystem
+
+---
+{{/*
+Consensus Data Persistent Volume Claim
+Separate storage for consensus state and logs
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-consensus-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: consensus-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    storage-type: consensus-data
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  storageClassName: {{ .Values.global.storageClass | default "aurigraph-fast-ssd" }}
+  resources:
+    requests:
+      storage: 100Gi
+  volumeMode: Filesystem
+
+---
+{{/*
+Network Data Persistent Volume Claim
+P2P network state and peer information
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-network-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: network-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    storage-type: network-data
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  storageClassName: {{ .Values.global.storageClass | default "aurigraph-fast-ssd" }}
+  resources:
+    requests:
+      storage: 50Gi
+  volumeMode: Filesystem
+
+---
+{{/*
+AI Models Persistent Volume Claim
+Machine learning models and training data
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-ai-models
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: ai-optimization
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    storage-type: ai-models
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  storageClassName: {{ .Values.global.storageClass | default "aurigraph-fast-ssd" }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.models.size }}
+  volumeMode: Filesystem
+
+---
+{{/*
+Cross-Chain Bridge State Persistent Volume Claim
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-crosschain-state
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: crosschain-bridge
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    storage-type: crosschain-state
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  storageClassName: {{ .Values.global.storageClass | default "aurigraph-fast-ssd" }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.crosschain.size }}
+  volumeMode: Filesystem
+
+---
+{{/*
+VolumeSnapshot Class for backup operations
+*/}}
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: aurigraph-snapshot-class
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+driver: ebs.csi.aws.com
+deletionPolicy: Retain
+parameters:
+  encrypted: "true"
+
+---
+{{/*
+Backup CronJob for blockchain data
+*/}}
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.app.name }}-blockchain-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  schedule: "{{ .Values.backup.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ .Values.app.name }}
+            app.kubernetes.io/component: backup
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+          - name: blockchain-backup
+            image: registry.k8s.io/sig-storage/snapshot-controller:v6.2.1
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Creating blockchain data snapshot..."
+              kubectl create volumesnapshot blockchain-data-snapshot-$(date +%Y%m%d-%H%M%S) \
+                --from-pvc={{ .Values.app.name }}-blockchain-data \
+                --volume-snapshot-class=aurigraph-snapshot-class \
+                --namespace={{ .Release.Namespace }}
+              
+              echo "Creating consensus data snapshot..."
+              kubectl create volumesnapshot consensus-data-snapshot-$(date +%Y%m%d-%H%M%S) \
+                --from-pvc={{ .Values.app.name }}-consensus-data \
+                --volume-snapshot-class=aurigraph-snapshot-class \
+                --namespace={{ .Release.Namespace }}
+              
+              echo "Cleaning up old snapshots..."
+              kubectl get volumesnapshots -n {{ .Release.Namespace }} --sort-by=.metadata.creationTimestamp \
+                | head -n -5 \
+                | awk '{print $1}' \
+                | xargs -I {} kubectl delete volumesnapshot {} -n {{ .Release.Namespace }} || true
+            env:
+            - name: KUBECTL_VERSION
+              value: "v1.28.0"
+            volumeMounts:
+            - name: kube-config
+              mountPath: /root/.kube
+              readOnly: true
+          volumes:
+          - name: kube-config
+            secret:
+              secretName: backup-kubeconfig
+          restartPolicy: OnFailure
+          serviceAccountName: {{ .Values.app.name }}-backup
+
+---
+{{/*
+Service Account for backup operations
+*/}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.app.name }}-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/version: {{ .Values.app.version }}
+
+---
+{{/*
+ClusterRole for backup operations
+*/}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.app.name }}-backup-role
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/version: {{ .Values.app.version }}
+rules:
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshots"]
+  verbs: ["create", "get", "list", "delete"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list"]
+
+---
+{{/*
+ClusterRoleBinding for backup operations
+*/}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.app.name }}-backup-binding
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/version: {{ .Values.app.version }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.app.name }}-backup-role
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.app.name }}-backup
+  namespace: {{ .Release.Namespace }}
+{{- end }}
+
+{{- end }}

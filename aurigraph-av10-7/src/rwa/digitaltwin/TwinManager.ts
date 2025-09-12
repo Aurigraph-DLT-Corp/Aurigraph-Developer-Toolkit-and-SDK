@@ -251,7 +251,7 @@ export class TwinManager extends EventEmitter {
         autoScaling: true,
         anomalyResponse: 'AUTO_CORRECT',
         learningEnabled: true,
-        aiModelVersion: 'AV10-ML-2024.1'
+        aiModelVersion: 'AV11-ML-2024.1'
       },
       integration: {
         iotPlatforms: await this.setupIoTPlatforms(twinToken.iotDevices),

@@ -14,7 +14,7 @@ const JIRA_USER_EMAIL = 'subbu@aurigraph.io';
 const ticketData = {
   fields: {
     project: {
-      key: "AV10"
+      key: "AV11"
     },
     summary: "Optimal Node Density in Docker Containers - Resource-Based Auto-Scaling",
     description: {
@@ -177,7 +177,7 @@ const ticketData = {
           content: [
             {
               type: "text",
-              text: "Timeline: 4 weeks | Dependencies: AV10-19 basic node implementation"
+              text: "Timeline: 4 weeks | Dependencies: AV11-19 basic node implementation"
             }
           ]
         }
@@ -247,7 +247,7 @@ async function main() {
   console.log('═══════════════════════════════════════════════════════');
   console.log('🎫 Creating JIRA Ticket for Optimal Node Density');
   console.log('═══════════════════════════════════════════════════════');
-  console.log('📋 Project: AV10');
+  console.log('📋 Project: AV11');
   console.log('📌 Summary: Optimal Node Density in Docker Containers');
   console.log('🎯 Type: Task');
   console.log('🔧 Focus: Resource-based auto-scaling');

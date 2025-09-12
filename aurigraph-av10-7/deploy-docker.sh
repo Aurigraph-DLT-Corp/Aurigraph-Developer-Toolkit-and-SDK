@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Aurigraph AV10-7 Docker Deployment Script
+# Aurigraph AV11-7 Docker Deployment Script
 
 echo "═══════════════════════════════════════════════════════"
-echo "🚀 Aurigraph AV10-7 Docker Deployment"
+echo "🚀 Aurigraph AV11-7 Docker Deployment"
 echo "═══════════════════════════════════════════════════════"
 echo ""
 
@@ -152,7 +152,7 @@ echo ""
 docker-compose build --parallel
 
 echo ""
-echo "🚀 Starting Aurigraph AV10-7 containers..."
+echo "🚀 Starting Aurigraph AV11-7 containers..."
 echo ""
 
 # Start containers
@@ -168,7 +168,7 @@ docker-compose ps
 
 echo ""
 echo "═══════════════════════════════════════════════════════"
-echo "✅ Aurigraph AV10-7 Docker Deployment Complete!"
+echo "✅ Aurigraph AV11-7 Docker Deployment Complete!"
 echo "═══════════════════════════════════════════════════════"
 echo ""
 echo "🌐 Access Points:"

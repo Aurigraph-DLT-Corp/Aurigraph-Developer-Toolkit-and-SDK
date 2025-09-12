@@ -1,15 +1,15 @@
 /**
- * Unit Tests for AV10-11 Living Asset Tokenizer with Consciousness Interface
+ * Unit Tests for AV11-11 Living Asset Tokenizer with Consciousness Interface
  */
 
 import { 
-  AV10_11_LivingAssetTokenizer,
+  AV11_11_LivingAssetTokenizer,
   SpeciesType,
   ConsentType,
   ConsentMethod,
   CapabilityType,
   TokenizationRequest
-} from '../../../src/consciousness/AV10-11-LivingAssetTokenizer';
+} from '../../../src/consciousness/AV11-11-LivingAssetTokenizer';
 import { EventEmitter } from 'events';
 
 // Mock dependencies
@@ -48,12 +48,12 @@ jest.mock('@tensorflow/tfjs-node', () => ({
   }))
 }));
 
-describe('AV10-11 Living Asset Tokenizer', () => {
-  let tokenizer: AV10_11_LivingAssetTokenizer;
+describe('AV11-11 Living Asset Tokenizer', () => {
+  let tokenizer: AV11_11_LivingAssetTokenizer;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    tokenizer = new AV10_11_LivingAssetTokenizer();
+    tokenizer = new AV11_11_LivingAssetTokenizer();
   });
 
   afterEach(async () => {

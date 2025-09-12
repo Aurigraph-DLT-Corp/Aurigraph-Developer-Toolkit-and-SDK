@@ -27,7 +27,7 @@
     "src/**/*.ts"
   ],
   "exclude": [
-    "src/orchestration/AV10-35-QuantumAIOrchestrator.ts",
+    "src/orchestration/AV11-35-QuantumAIOrchestrator.ts",
     "tests/**/*",
     "dist/**/*",
     "dist-quantum/**/*",

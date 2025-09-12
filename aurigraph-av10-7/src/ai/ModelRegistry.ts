@@ -4,7 +4,7 @@ import { Logger } from '../core/Logger';
 import * as tf from '@tensorflow/tfjs-node';
 import { ModelPerformance } from './AdvancedNeuralNetworkEngine';
 
-// Core interfaces for AV10-26 Model Registry
+// Core interfaces for AV11-26 Model Registry
 export interface ModelMetadata {
   id: string;
   name: string;
@@ -243,7 +243,7 @@ export class ModelRegistry extends EventEmitter {
 
   constructor() {
     super();
-    this.logger = new Logger('ModelRegistry-AV10-26');
+    this.logger = new Logger('ModelRegistry-AV11-26');
   }
 
   async initialize(): Promise<void> {
@@ -252,7 +252,7 @@ export class ModelRegistry extends EventEmitter {
       return;
     }
 
-    this.logger.info('📚 Initializing AV10-26 Model Registry...');
+    this.logger.info('📚 Initializing AV11-26 Model Registry...');
     
     try {
       // Initialize storage systems
@@ -272,7 +272,7 @@ export class ModelRegistry extends EventEmitter {
       
       this.isInitialized = true;
       
-      this.logger.info('✅ AV10-26 Model Registry initialized successfully');
+      this.logger.info('✅ AV11-26 Model Registry initialized successfully');
       this.logger.info(`📊 Loaded: ${this.models.size} models, ${this.experiments.size} experiments`);
       
     } catch (error: unknown) {

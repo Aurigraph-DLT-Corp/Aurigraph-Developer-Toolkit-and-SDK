@@ -249,7 +249,7 @@ export class MetricsCollector extends EventEmitter {
 
   constructor() {
     super();
-    this.logger = new Logger('MetricsCollector-AV10-26');
+    this.logger = new Logger('MetricsCollector-AV11-26');
     this.initializeDefaultAlertRules();
   }
 
@@ -259,7 +259,7 @@ export class MetricsCollector extends EventEmitter {
       return;
     }
 
-    this.logger.info('🚀 Starting AV10-26 Metrics Collector...');
+    this.logger.info('🚀 Starting AV11-26 Metrics Collector...');
 
     try {
       // Initialize TensorFlow backend for drift detection
@@ -273,7 +273,7 @@ export class MetricsCollector extends EventEmitter {
       
       this.isStarted = true;
       
-      this.logger.info('✅ AV10-26 Metrics Collector started successfully');
+      this.logger.info('✅ AV11-26 Metrics Collector started successfully');
       this.logger.info(`📊 Collection interval: ${this.config.collectionInterval}ms`);
       this.logger.info(`🔍 Drift detection: ${this.config.driftDetection.enabled ? 'enabled' : 'disabled'}`);
       this.logger.info(`🚨 Alerting: ${this.config.alerting.enabled ? 'enabled' : 'disabled'}`);
@@ -1635,7 +1635,7 @@ export class MetricsCollector extends EventEmitter {
   }
 
   async stop(): Promise<void> {
-    this.logger.info('🛑 Stopping AV10-26 Metrics Collector...');
+    this.logger.info('🛑 Stopping AV11-26 Metrics Collector...');
     
     // Clear all intervals
     if (this.metricsCollectionInterval) clearInterval(this.metricsCollectionInterval);
@@ -1649,6 +1649,6 @@ export class MetricsCollector extends EventEmitter {
     
     this.isStarted = false;
     
-    this.logger.info('✅ AV10-26 Metrics Collector stopped successfully');
+    this.logger.info('✅ AV11-26 Metrics Collector stopped successfully');
   }
 }

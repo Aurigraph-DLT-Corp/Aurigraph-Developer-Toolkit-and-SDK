@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { QuantumShardManager } from '../../../src/consensus/QuantumShardManager';
 import { QuantumCryptoManagerV2 } from '../../../src/crypto/QuantumCryptoManagerV2';
 
-describe('QuantumShardManager - AV10-8 Core Features', () => {
+describe('QuantumShardManager - AV11-8 Core Features', () => {
     let manager: QuantumShardManager;
     let mockQuantumCrypto: QuantumCryptoManagerV2;
 
@@ -20,7 +20,7 @@ describe('QuantumShardManager - AV10-8 Core Features', () => {
         jest.clearAllMocks();
     });
 
-    describe('AV10-8: Basic Quantum Shard Operations', () => {
+    describe('AV11-8: Basic Quantum Shard Operations', () => {
         it('should initialize without errors', async () => {
             expect(manager).toBeDefined();
             expect(typeof manager.start).toBe('function');
@@ -64,7 +64,7 @@ describe('QuantumShardManager - AV10-8 Core Features', () => {
         });
     });
 
-    describe('AV10-8: Quantum Enhancement Features', () => {
+    describe('AV11-8: Quantum Enhancement Features', () => {
         beforeEach(async () => {
             await manager.start();
         });
@@ -132,7 +132,7 @@ describe('QuantumShardManager - AV10-8 Core Features', () => {
         });
     });
 
-    describe('AV10-8: Performance and Scalability', () => {
+    describe('AV11-8: Performance and Scalability', () => {
         beforeEach(async () => {
             await manager.start();
         });
@@ -223,7 +223,7 @@ describe('QuantumShardManager - AV10-8 Core Features', () => {
         });
     });
 
-    describe('AV10-8: Error Handling and Recovery', () => {
+    describe('AV11-8: Error Handling and Recovery', () => {
         beforeEach(async () => {
             await manager.start();
         });

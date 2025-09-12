@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Aurigraph V10 Classical - Local Deployment Script
-echo "🚀 Aurigraph V10 Classical Local Deployment"
+# Aurigraph V11 Classical - Local Deployment Script
+echo "🚀 Aurigraph V11 Classical Local Deployment"
 echo "============================================"
 
 # Colors for output
@@ -123,7 +123,7 @@ check_health() {
 }
 
 # Start the platform
-print_header "Starting Aurigraph V10 Classical Platform"
+print_header "Starting Aurigraph V11 Classical Platform"
 
 # Option to start in background or foreground
 if [ "$1" = "--background" ] || [ "$1" = "-d" ]; then

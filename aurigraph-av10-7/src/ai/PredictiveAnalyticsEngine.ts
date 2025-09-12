@@ -4,7 +4,7 @@ import { Logger } from '../core/Logger';
 import * as tf from '@tensorflow/tfjs-node';
 import { AdvancedNeuralNetworkEngine, PredictionResult, ModelPerformance } from './AdvancedNeuralNetworkEngine';
 
-// Core interfaces for AV10-26 Predictive Analytics Engine
+// Core interfaces for AV11-26 Predictive Analytics Engine
 export interface AssetValuationModel {
   id: string;
   assetClass: string;
@@ -208,7 +208,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
 
   constructor(neuralEngine: AdvancedNeuralNetworkEngine) {
     super();
-    this.logger = new Logger('PredictiveAnalyticsEngine-AV10-26');
+    this.logger = new Logger('PredictiveAnalyticsEngine-AV11-26');
     this.neuralEngine = neuralEngine;
   }
 
@@ -218,7 +218,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       return;
     }
 
-    this.logger.info('🧠 Initializing AV10-26 Predictive Analytics Engine...');
+    this.logger.info('🧠 Initializing AV11-26 Predictive Analytics Engine...');
     
     try {
       // Initialize TensorFlow backend
@@ -251,7 +251,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       
       this.isInitialized = true;
       
-      this.logger.info('✅ AV10-26 Predictive Analytics Engine initialized successfully');
+      this.logger.info('✅ AV11-26 Predictive Analytics Engine initialized successfully');
       this.logger.info(`📊 Models loaded: Asset(${this.assetValuationModels.size}) Market(${this.marketTrendModels.size}) Risk(${this.riskAssessmentModels.size})`);
       this.logger.info(`⚡ Target latency: ${this.config.predictionLatency}ms, Accuracy: ${this.config.accuracy * 100}%`);
       
@@ -1481,7 +1481,7 @@ export class PredictiveAnalyticsEngine extends EventEmitter {
       'data_quality': 0.8
     };
     
-    return Math.min(1.0, baseScore * multipliers[type]);
+    return Math.min(1.0, baseScore * ((multipliers as any)[type]));
   }
 
   private async identifyRootCause(

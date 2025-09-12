@@ -7,8 +7,8 @@ echo "🎫 Creating JIRA Tickets for gRPC/HTTP/2 Migration"
 echo "=================================================="
 
 # Configuration
-PROJECT="AV10"
-EPIC_KEY="AV10-7"
+PROJECT="AV11"
+EPIC_KEY="AV11-7"
 
 # Color codes
 GREEN='\033[0;32m'
@@ -33,7 +33,7 @@ print_info "Creating ticket: gRPC Infrastructure Setup"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-01] Implement gRPC Infrastructure with Protocol Buffers" \
+    --summary="[AV11-GRPC-01] Implement gRPC Infrastructure with Protocol Buffers" \
     --description="## Objective
 Implement gRPC infrastructure with Protocol Buffers for internal service communication using HTTP/2
 
@@ -70,7 +70,7 @@ print_info "Creating ticket: Protocol Buffer Schema Design"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-02] Design and Implement Protocol Buffer Schemas" \
+    --summary="[AV11-GRPC-02] Design and Implement Protocol Buffer Schemas" \
     --description="## Objective
 Design comprehensive Protocol Buffer schemas for all Aurigraph services
 
@@ -109,7 +109,7 @@ print_info "Creating ticket: gRPC Server Implementation"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-03] Implement gRPC Server with HTTP/2 Support" \
+    --summary="[AV11-GRPC-03] Implement gRPC Server with HTTP/2 Support" \
     --description="## Objective
 Implement high-performance gRPC server with native HTTP/2 support
 
@@ -152,7 +152,7 @@ print_info "Creating ticket: REST to gRPC Service Migration"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-04] Migrate REST Endpoints to gRPC Services" \
+    --summary="[AV11-GRPC-04] Migrate REST Endpoints to gRPC Services" \
     --description="## Objective
 Migrate existing REST endpoints to gRPC while maintaining backward compatibility
 
@@ -198,7 +198,7 @@ print_info "Creating ticket: gRPC Client Library Implementation"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-05] Implement gRPC Client Libraries and SDKs" \
+    --summary="[AV11-GRPC-05] Implement gRPC Client Libraries and SDKs" \
     --description="## Objective
 Create comprehensive gRPC client libraries for all supported platforms
 
@@ -248,7 +248,7 @@ print_info "Creating ticket: gRPC Performance Testing"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-06] Performance Testing and Benchmarking for gRPC/HTTP2" \
+    --summary="[AV11-GRPC-06] Performance Testing and Benchmarking for gRPC/HTTP2" \
     --description="## Objective
 Comprehensive performance testing and benchmarking of gRPC implementation
 
@@ -301,7 +301,7 @@ print_info "Creating ticket: HTTP/3 (QUIC) Upgrade Planning"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-07] Plan HTTP/3 (QUIC) Upgrade Path" \
+    --summary="[AV11-GRPC-07] Plan HTTP/3 (QUIC) Upgrade Path" \
     --description="## Objective
 Design upgrade path from HTTP/2 to HTTP/3 with QUIC protocol
 
@@ -354,7 +354,7 @@ print_info "Creating ticket: gRPC Monitoring & Observability"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-08] Implement gRPC Monitoring and Observability" \
+    --summary="[AV11-GRPC-08] Implement gRPC Monitoring and Observability" \
     --description="## Objective
 Comprehensive monitoring and observability for gRPC services
 
@@ -407,7 +407,7 @@ print_info "Creating ticket: gRPC Security Implementation"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-09] Implement gRPC Security and Authentication" \
+    --summary="[AV11-GRPC-09] Implement gRPC Security and Authentication" \
     --description="## Objective
 Implement comprehensive security for gRPC services
 
@@ -474,7 +474,7 @@ print_info "Creating ticket: gRPC Documentation and Training"
 jira issue create \
     --project="$PROJECT" \
     --type="Task" \
-    --summary="[AV10-GRPC-10] Create gRPC Documentation and Training Materials" \
+    --summary="[AV11-GRPC-10] Create gRPC Documentation and Training Materials" \
     --description="## Objective
 Comprehensive documentation and training for gRPC implementation
 
@@ -527,16 +527,16 @@ echo ""
 print_success "JIRA ticket creation complete!"
 echo ""
 echo "Summary of tickets created:"
-echo "1. AV10-GRPC-01: gRPC Infrastructure Setup"
-echo "2. AV10-GRPC-02: Protocol Buffer Schema Design"
-echo "3. AV10-GRPC-03: gRPC Server Implementation"
-echo "4. AV10-GRPC-04: REST to gRPC Migration"
-echo "5. AV10-GRPC-05: Client Library Implementation"
-echo "6. AV10-GRPC-06: Performance Testing"
-echo "7. AV10-GRPC-07: HTTP/3 Upgrade Planning"
-echo "8. AV10-GRPC-08: Monitoring & Observability"
-echo "9. AV10-GRPC-09: Security Implementation"
-echo "10. AV10-GRPC-10: Documentation & Training"
+echo "1. AV11-GRPC-01: gRPC Infrastructure Setup"
+echo "2. AV11-GRPC-02: Protocol Buffer Schema Design"
+echo "3. AV11-GRPC-03: gRPC Server Implementation"
+echo "4. AV11-GRPC-04: REST to gRPC Migration"
+echo "5. AV11-GRPC-05: Client Library Implementation"
+echo "6. AV11-GRPC-06: Performance Testing"
+echo "7. AV11-GRPC-07: HTTP/3 Upgrade Planning"
+echo "8. AV11-GRPC-08: Monitoring & Observability"
+echo "9. AV11-GRPC-09: Security Implementation"
+echo "10. AV11-GRPC-10: Documentation & Training"
 echo ""
 echo "Total estimated effort: 15 weeks"
 echo "Priority: High (8 tickets), Medium (2 tickets)"

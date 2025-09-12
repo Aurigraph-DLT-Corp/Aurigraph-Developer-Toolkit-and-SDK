@@ -1,7 +1,7 @@
 {
   "name": "aurigraph-av10-7-ui",
   "version": "10.7.0",
-  "description": "Management UI for Aurigraph AV10-7 Quantum Nexus Platform",
+  "description": "Management UI for Aurigraph AV11-7 Quantum Nexus Platform",
   "private": true,
   "scripts": {
     "dev": "next dev -p 8080",

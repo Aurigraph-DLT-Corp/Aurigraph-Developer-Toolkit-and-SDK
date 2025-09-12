@@ -2,269 +2,302 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## IAM Credentials (SENSITIVE - DEVELOPMENT ONLY)
+
+### IAM2 Server Configuration
+- **Server URL**: https://iam2.aurigraph.io/
+- **Admin Username**: Awdadmin
+- **Admin Password**: Awd!adminUSR$2025 (MUST BE ENCRYPTED IN PRODUCTION)
+- **Supported Realms**: 
+  - AWD (Primary)
+  - AurCarbonTrace (Carbon tracking)
+  - AurHydroPulse (Hydro monitoring)
+
+**⚠️ SECURITY WARNING**: 
+- These credentials are for development/testing environments only
+- In production, use secure vault solutions (HashiCorp Vault, AWS Secrets Manager)
+- Implement proper key rotation policies
+- Never commit plaintext credentials to version control
+- Use environment variables or encrypted configuration files
+
 ## Project Overview
-**Aurigraph AV10-7 "Quantum Nexus"** - Revolutionary quantum-resilient DLT platform achieving 1M+ TPS with NIST Level 5 post-quantum cryptography, zero-knowledge privacy, and 50+ blockchain interoperability. Built with TypeScript/Node.js 20+ and Java 24/Quarkus/GraalVM for enterprise-grade blockchain infrastructure.
+**Aurigraph V11/V11 Hybrid Platform** - A blockchain platform in transition from TypeScript/Node.js (V10) to Java/Quarkus/GraalVM (V11), targeting 2M+ TPS with quantum-resistant security and cross-chain interoperability.
+
+**Current State**: 
+- V10 (TypeScript) is the primary implementation with 1M+ TPS capability
+- V11 (Java/Quarkus) migration is in progress (~20% complete)
+- Both versions coexist during migration period
 
 ## Build & Development Commands
 
-### Core Development
+### V10 TypeScript/Node.js Commands
 ```bash
-npm install                    # Install dependencies
-npm run build                  # Build TypeScript
-npm start                      # Start platform (builds first)
-npm run dev                    # Development with hot reload
-npm run lint                   # ESLint checking
-npm run typecheck             # TypeScript type checking
-```
+# Install and build
+npm install
+npm run build
 
-### Testing Suite
-```bash
-npm test                       # All tests with coverage (95% required)
+# Development
+npm run dev                    # Hot reload development
+npm start                      # Start platform (port 8080)
+npm run start:classical        # Simplified classical mode
+
+# Testing
+npm test                       # All tests with coverage
 npm run test:unit             # Unit tests only
 npm run test:integration      # Integration tests
-npm run test:performance      # Performance tests (180s timeout, validates 1M+ TPS)
-npm run test:security         # Security audit
-npm run test:smoke            # Quick smoke tests
+npm run test:performance      # Performance tests (180s timeout)
 
-# Run specific test
-npx jest tests/unit/ai/AutonomousProtocolEvolutionEngine.test.ts --verbose
-npx jest <path-to-test> --verbose --no-coverage
-```
-
-### Deployment Commands
-```bash
-# Dev4 environment deployment
+# Deployment
 npm run deploy:dev4           # Deploy to dev4 environment
 npm run validate:dev4         # Validate dev4 deployment
-npm run dev4                  # Alias for validate:dev4
 
-# Docker deployments
+# Docker
 docker-compose -f docker-compose.av10-7.yml up -d
-docker-compose -f docker-compose.dev4.yml up -d
-
-# Scale for 1M+ TPS
 docker-compose -f docker-compose.av10-7.yml up -d --scale av10-validator=10
 ```
 
-### Standalone Services
+### V11 Java/Quarkus Commands
 ```bash
-npx ts-node start-management-dashboard.ts    # Management API (port 3040)
-npx ts-node start-vizor-dashboard.ts        # Vizor monitoring (port 3052)
-npx ts-node src/api/MonitoringAPIServer.ts  # Monitoring API (port 3001)
-npm run ui:dev                               # UI development (port 3000)
-```
+# Navigate to V11 directory
+cd aurigraph-v11-standalone
 
-### AV10-24 Compliance Testing
-```bash
-npx ts-node test-av10-24-compliance.ts      # Run comprehensive compliance tests
+# Build and run
+./mvnw clean package          # Build JAR
+./mvnw quarkus:dev           # Dev mode with hot reload
+java -jar target/quarkus-app/quarkus-run.jar  # Run JAR (port 9003)
+
+# Native compilation
+./mvnw package -Pnative      # Build native image
+./target/*-runner            # Run native executable
+
+# Testing
+./mvnw test                  # Run all tests
+./mvnw test -Dtest=AurigraphResourceTest  # Run specific test
 ```
 
 ## High-Level Architecture
 
-### Core Platform Structure
-```
-src/
-├── consensus/          # HyperRAFT++ achieving 1M+ TPS
-│   ├── HyperRAFTPlusPlus.ts / V2.ts
-│   ├── ValidatorOrchestrator.ts
-│   ├── ValidatorNode.ts
-│   └── QuantumShardManager.ts      # 256 parallel universes
-│
-├── crypto/            # NIST Level 5 post-quantum security
-│   ├── QuantumCryptoManager*.ts    # CRYSTALS-Kyber/Dilithium
-│   └── NTRUCryptoEngine.ts
-│
-├── compliance/        # AV10-24 Advanced Compliance Framework
-│   ├── AV10-24-AdvancedComplianceFramework.ts  # Main implementation
-│   ├── AdvancedComplianceFramework.ts
-│   ├── LegalComplianceModule.ts
-│   └── DueDiligenceAutomation.ts
-│
-├── ai/               # Collective Intelligence Network
-│   ├── CollectiveIntelligenceNetwork.ts  # 8-agent system
-│   ├── AutonomousProtocolEvolutionEngine.ts
-│   └── PredictiveAnalyticsEngine.ts
-│
-├── deployment/       # AV10-32 Node Density Management
-│   ├── AV10-32-EnhancedNodeDensityManager.ts
-│   └── OptimalNodeDensityManager.ts
-│
-├── crosschain/       # 50+ blockchain interoperability
-├── rwa/              # Real World Assets tokenization
-├── sustainability/   # Carbon-negative operations
-└── monitoring/       # Vizor real-time dashboards
+### Dual Architecture During Migration
 
-basicnode/            # Java 24 + Quarkus + GraalVM
-├── src/main/java/io/aurigraph/basicnode/
-│   ├── compliance/   # AV10-17 compliance validation
-│   └── crypto/       # Post-quantum crypto services
+```
+aurigraph-av10-7/                    # Root directory
+├── src/                             # V10 TypeScript implementation
+│   ├── consensus/                   # HyperRAFT++ consensus
+│   ├── crypto/                      # Quantum cryptography
+│   ├── ai/                          # AI optimization
+│   ├── crosschain/                  # Cross-chain bridge
+│   └── rwa/                         # Real-world assets
+│
+├── aurigraph-v11-standalone/        # V11 Java implementation
+│   ├── src/main/java/io/aurigraph/v11/
+│   │   ├── AurigraphResource.java  # REST endpoints
+│   │   └── TransactionService.java # Transaction processing
+│   └── pom.xml                     # Maven configuration
+│
+└── aurigraph-v11/                   # V11 planning documents
+    ├── PROJECT_STRUCTURE.md
+    └── JIRA_TICKET_STRUCTURE.md
 ```
 
-### Key Data Flows
-1. **Transaction Flow**: Client → ValidatorNode → HyperRAFT++ → QuantumShardManager → State commit
-2. **Compliance Flow**: Transaction → AV10-24 Framework → Multi-jurisdiction checks → Audit trail
-3. **AI Optimization**: Metrics → CollectiveIntelligenceNetwork → Protocol evolution
+### Key Architecture Components
 
-### Critical Dependencies
-- All consensus messages encrypted via QuantumCryptoManager (NIST Level 5)
-- AV10-24 AdvancedComplianceFramework enforces multi-jurisdiction regulations
-- AV10-32 EnhancedNodeDensityManager optimizes global node distribution
+**V10 TypeScript Stack**:
+- **Consensus**: HyperRAFT++ with AI optimization
+- **Crypto**: CRYSTALS-Kyber/Dilithium (NIST Level 5)
+- **Performance**: 1M+ TPS with 256 parallel threads
+- **Network**: P2P with encrypted channels
+- **Testing**: Jest with 95% coverage requirement
 
-## AV10-24 Advanced Compliance Framework
+**V11 Java Stack** (Target):
+- **Framework**: Quarkus 3.26.2 with reactive streams
+- **Runtime**: GraalVM native compilation
+- **Protocol**: gRPC with Protocol Buffers
+- **Transport**: HTTP/2 with TLS 1.3
+- **Performance**: 2M+ TPS target
 
-### Implementation Details
-- **Location**: `src/compliance/AV10-24-AdvancedComplianceFramework.ts` (1,391 lines)
-- **Test Script**: `test-av10-24-compliance.ts`
-
-### Supported Jurisdictions
-- **US**: SEC, FinCEN, CFTC regulations
-- **EU**: MiCA, GDPR compliance
-- **UK**: FCA regulations
-- **JP**: FSA requirements
-- **SG**: MAS guidelines
-- **CH**: FINMA regulations
-- **AE**: DFSA rules
-- **HK**: SFC requirements
-
-### Compliance Categories
-- KYC/AML with enhanced due diligence
-- Data privacy (GDPR/CCPA)
-- Securities regulations
-- Crypto asset regulations
-- Tax compliance
-- Environmental compliance
-- Consumer protection
-
-### Key Features
-- Real-time transaction monitoring
-- Automated violation detection
-- Risk-based compliance scoring
-- Multi-jurisdiction reporting
-- Quantum-secured audit trails
-- ML-enhanced compliance checks
+### Critical Migration Notes
+- V11 must be 100% Java/Quarkus/GraalVM (no TypeScript)
+- All internal communication must use gRPC/HTTP2/Protobuf
+- Native compilation is required for production
+- Current V11 achieves ~776K TPS (optimization ongoing)
 
 ## Service Endpoints
 
-### Development Services
+### V10 Services
 - Management API: http://localhost:3040
 - Monitoring API: http://localhost:3001
 - Vizor Dashboard: http://localhost:3052
 - Validator API: http://localhost:8181
-- Full Node API: http://localhost:8201
-- Light Node API: http://localhost:8202
-- UI Development: http://localhost:3000
 
-### Docker Container Services
-- Management Dashboard: http://localhost:3140
-- Validator Node: http://localhost:8181
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000
+### V11 Services
+- REST API: http://localhost:9003/api/v11/
+- Health: http://localhost:9003/q/health
+- Metrics: http://localhost:9003/q/metrics
+- gRPC: localhost:9004 (planned)
 
 ## Configuration & Environment
 
-### Core Configuration Files
-- `src/core/ConfigManager.ts` - Central configuration
-- `config/testnet.json` - Network topology
-- `config/dev4/` - Dev4 environment settings
-- `tsconfig.json` - TypeScript strict mode with path aliases
+### V10 Configuration
+- **Config**: `src/core/ConfigManager.ts`
+- **Network**: `config/testnet.json`
+- **Dev4**: `config/dev4/`
+- **TypeScript**: Strict mode with path aliases (@core/*, @consensus/*)
+
+### V11 Configuration
+- **Properties**: `aurigraph-v11-standalone/src/main/resources/application.properties`
+- **Port**: 9003 (changed from 9000 due to conflicts)
+- **Native**: Container-based build with Docker
 
 ### Key Environment Variables
 ```bash
-TARGET_TPS=1000000           # Performance target
-PARALLEL_THREADS=256         # Quantum sharding threads
-QUANTUM_LEVEL=5             # NIST security level
-AI_ENABLED=true             # AI optimization
-ZK_PROOFS_ENABLED=true      # Zero-knowledge proofs
-CROSS_CHAIN_ENABLED=true    # Multi-chain support
-VIZOR_ENABLED=true          # Monitoring dashboard
+# V10 Performance
+TARGET_TPS=1000000
+PARALLEL_THREADS=256
+QUANTUM_LEVEL=5
+
+# V11 Configuration
+JAVA_HOME=/opt/homebrew/opt/openjdk@21  # macOS
+quarkus.http.port=9003
+quarkus.native.container-build=true
 ```
 
-### TypeScript Path Aliases
-Configured in `tsconfig.json`:
-- `@core/*`, `@consensus/*`, `@crypto/*`, `@compliance/*`, `@ai/*`, etc.
-
 ## Testing Requirements
-- **Global Coverage**: 95% lines, 90% functions
-- **Critical Modules**: 
-  - `crypto/`: 98% lines, 95% functions
-  - `consensus/`: 95% lines, 95% functions
-  - `compliance/`: 95% lines, 90% functions
-- **Performance Tests**: 180s timeout, must validate 1M+ TPS
-- **Test Setup**: `tests/setup.ts`
+
+### V10 Testing
+- **Coverage**: 95% lines, 90% functions globally
+- **Critical modules**: crypto/ (98%), consensus/ (95%)
+- **Performance**: Must validate 1M+ TPS
+- **Timeout**: 180s for performance tests
+
+### V11 Testing
+- **Framework**: JUnit 5 with REST Assured
+- **Coverage Target**: 95% (currently ~15%)
+- **Performance**: Validates 776K TPS currently
 
 ## Agent-Based Development Framework
 
-**MANDATORY**: All development follows the agent-based model in [Agent_Team.md](./Agent_Team.md):
+All development must follow the agent framework in `docs/development/guides/Agent_Team.md`:
 
-1. **Quantum Security Agent** (`crypto/`)
-2. **Consensus Protocol Agent** (`consensus/`)
-3. **Compliance Agent** (`compliance/`) - Owns AV10-24
-4. **AI Optimization Agent** (`ai/`)
-5. **Cross-Chain Agent** (`crosschain/`)
-6. **Node Density Agent** (`deployment/`) - Owns AV10-32
-7. **Monitoring Agent** (`monitoring/`)
-8. **Network Infrastructure Agent** (`network/`)
-9. **Testing Agent** (`tests/`)
-10. **DevOps Agent** (`docker/`, `terraform/`)
+1. **Platform Architect**: Overall coordination
+2. **Consensus Protocol Agent**: HyperRAFT++ implementation
+3. **Quantum Security Agent**: Cryptography (NIST Level 5)
+4. **Network Infrastructure Agent**: gRPC/HTTP2 implementation
+5. **AI Optimization Agent**: Performance tuning
+6. **Cross-Chain Agent**: Bridge implementation
+7. **Monitoring Agent**: Vizor dashboard
+8. **DevOps Agent**: Container/native builds
+9. **Testing Agent**: Test coverage and quality
 
-## Performance & Hardware Requirements
+## Common Development Tasks
 
-### Development Environment
-- Node.js 20+ (enforced in package.json)
-- 32GB+ RAM minimum
-- NVMe SSD storage
-- 10+ Gbps network for full testing
+### Running a single test (V10)
+```bash
+npx jest tests/unit/consensus/HyperRAFTPlusPlus.test.ts --verbose
+```
 
-### Production Requirements (1M+ TPS)
-- 256GB+ RAM
-- 256 parallel processing threads
-- <500ms consensus finality
-- 99.99% uptime SLA
+### Running a single test (V11)
+```bash
+./mvnw test -Dtest=TransactionServiceTest#testHighThroughput
+```
 
-## GitHub Integration & MCP
+### Checking TypeScript compilation
+```bash
+npm run typecheck
+```
 
-The parent directory contains MCP (Model Context Protocol) configuration:
-- **Config**: `.mcp/config.json`
-- **GitHub Token**: Configured for SUBBUAURIGRAPH
-- **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV10/boards/657
-- See parent [CLAUDE.md](../CLAUDE.md) for MCP details
+### Building native image (V11)
+```bash
+./mvnw package -Pnative -Dquarkus.native.container-build=true
+```
+
+## Performance Requirements
+
+### V10 Current Performance
+- **TPS**: 1M+ achieved
+- **Finality**: <500ms
+- **Memory**: 512MB minimum
+- **Startup**: ~3s
+
+### V11 Target Performance
+- **TPS**: 2M+ (currently 776K)
+- **Finality**: <100ms
+- **Memory**: <256MB
+- **Startup**: <1s (native)
+
+## Migration Status
+
+### Completed
+- ✅ V11 project structure
+- ✅ Basic REST endpoints
+- ✅ Performance testing framework
+- ✅ Native compilation setup
+
+### In Progress
+- 🚧 gRPC service implementation
+- 🚧 Protocol Buffer definitions
+- 🚧 Consensus service migration
+- 🚧 Performance optimization to 2M+ TPS
+
+### Pending
+- 📋 Crypto service migration
+- 📋 AI optimization migration
+- 📋 Cross-chain bridge migration
+- 📋 Full test suite migration
 
 ## Quick Debugging
 
+### V10 Issues
 ```bash
-# Service health check
-curl http://localhost:8181/health
+# Check Node version (requires 20+)
+node --version
 
-# View Docker logs
+# View logs
 docker-compose -f docker-compose.av10-7.yml logs -f av10-validator-1
 
-# Common issues:
-# - Node.js version: Requires 20+
-# - Port conflicts: Check 3000-3100, 8000-8300, 9000-9100
-# - Memory issues: Minimum 32GB RAM required
-# - TypeScript errors: Run npm run typecheck
+# Port conflicts
+lsof -i :8080  # Main port
+lsof -i :3040  # Management
 ```
 
-## JIRA Ticket Implementation Status
+### V11 Issues
+```bash
+# Check Java version (requires 21)
+java --version
 
-### Completed Features
-- **AV10-24**: Advanced Compliance Framework ✅
-- **AV10-32**: Enhanced Node Density Manager ✅
-- **AV10-8**: Quantum Sharding Manager ✅
-- **AV10-16**: Performance Monitoring System ✅
+# View Quarkus logs
+./mvnw quarkus:dev
 
-### Implementation Approach
-When implementing JIRA tickets:
-1. Review ticket requirements in JIRA board
-2. Check existing implementation in relevant module
-3. Follow agent-based development pattern
-4. Ensure 95%+ test coverage
-5. Validate performance targets
-6. Update this documentation
+# Port conflicts
+lsof -i :9003  # Main port
+lsof -i :9004  # gRPC port
+
+# Native build issues
+docker --version  # Requires Docker for container builds
+```
+
+## Documentation Structure
+
+```
+docs/
+├── project-av10/           # V10 documentation
+├── project-av11/           # V11 migration docs
+│   ├── migration/          # TypeScript to Java guides
+│   └── jira/              # JIRA ticket structure
+├── infrastructure/         # Deployment guides
+├── architecture/          # System design
+└── development/           # Development guides
+    └── testing/           # Test strategies
+```
+
+## GitHub & JIRA Integration
+
+- **Repository**: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
+- **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
+- **Branch Strategy**: feature/AV11-XXX for V11 work
+- **Issue Templates**: Available in `.github/ISSUE_TEMPLATE/`
 
 ## Related Documentation
-- [Agent_Team.md](./Agent_Team.md) - Agent-based development framework
-- [Aurigraph_Infrastructure.md](./Aurigraph_Infrastructure.md) - Infrastructure details
-- [README.md](./README.md) - Project overview
-- [PRD_V10_UPDATED.md](./PRD_V10_UPDATED.md) - Product requirements
 - Parent [CLAUDE.md](../CLAUDE.md) - MCP configuration
+- [Agent_Team.md](docs/development/guides/Agent_Team.md) - Development framework
+- [PROJECT_STRUCTURE.md](aurigraph-v11/PROJECT_STRUCTURE.md) - V11 architecture
+- [JIRA_TICKET_STRUCTURE.md](aurigraph-v11/JIRA_TICKET_STRUCTURE.md) - Sprint planning

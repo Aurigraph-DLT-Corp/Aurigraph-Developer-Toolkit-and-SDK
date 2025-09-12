@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * List existing JIRA tickets in AV10 project
+ * List existing JIRA tickets in AV11 project
  */
 
 const https = require('https');
@@ -17,7 +17,7 @@ async function listTickets() {
     const options = {
       hostname: JIRA_BASE_URL.replace('https://', ''),
       port: 443,
-      path: '/rest/api/3/search?jql=project=AV10&maxResults=100',
+      path: '/rest/api/3/search?jql=project=AV11&maxResults=100',
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -31,7 +31,7 @@ async function listTickets() {
       res.on('end', () => {
         if (res.statusCode === 200) {
           const result = JSON.parse(data);
-          console.log(`✅ Found ${result.total} tickets in AV10 project:\n`);
+          console.log(`✅ Found ${result.total} tickets in AV11 project:\n`);
           
           result.issues.forEach(issue => {
             console.log(`📋 ${issue.key}: ${issue.fields.summary}`);
@@ -59,7 +59,7 @@ async function listTickets() {
 }
 
 async function main() {
-  console.log('📋 Listing JIRA Tickets in AV10 Project...\n');
+  console.log('📋 Listing JIRA Tickets in AV11 Project...\n');
   
   try {
     await listTickets();

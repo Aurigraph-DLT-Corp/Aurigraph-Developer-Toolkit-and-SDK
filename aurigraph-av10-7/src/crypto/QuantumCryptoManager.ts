@@ -377,7 +377,7 @@ export class QuantumCryptoManager {
     };
   }
 
-  // AV10-18 compatibility methods
+  // AV11-18 compatibility methods
   async initializeQuantumConsensus(): Promise<void> {
     this.logger.info('Initializing quantum consensus');
   }

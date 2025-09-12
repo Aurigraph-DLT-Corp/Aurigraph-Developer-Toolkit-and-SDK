@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * JIRA Update Script for AV10-11: Living Asset Tokenizer with Consciousness Interface
+ * JIRA Update Script for AV11-11: Living Asset Tokenizer with Consciousness Interface
  * Updates JIRA ticket with implementation completion details
  */
 
@@ -15,7 +15,7 @@ const JIRA_AUTH_TOKEN = process.env.JIRA_API_KEY;
 const JIRA_EMAIL = process.env.JIRA_EMAIL || 'subbu@aurigraph.io';
 
 // Ticket Details
-const TICKET_KEY = 'AV10-11';
+const TICKET_KEY = 'AV11-11';
 
 const updateTicket = async () => {
   console.log(`🔄 Updating JIRA ticket ${TICKET_KEY}...`);
@@ -36,7 +36,7 @@ const updateTicket = async () => {
                 content: [
                   {
                     type: 'text',
-                    text: 'AV10-11: Living Asset Tokenizer with Consciousness Interface'
+                    text: 'AV11-11: Living Asset Tokenizer with Consciousness Interface'
                   }
                 ]
               },
@@ -321,7 +321,7 @@ Test Categories:
                       {
                         type: 'paragraph',
                         content: [
-                          { type: 'text', text: '/src/consciousness/AV10-11-LivingAssetTokenizer.ts', marks: [{ type: 'code' }] },
+                          { type: 'text', text: '/src/consciousness/AV11-11-LivingAssetTokenizer.ts', marks: [{ type: 'code' }] },
                           { type: 'text', text: ' - Main implementation (1,800+ lines)' }
                         ]
                       }
@@ -389,7 +389,7 @@ Test Categories:
               content: [
                 {
                   type: 'text',
-                  text: '✅ AV10-11 Implementation Complete',
+                  text: '✅ AV11-11 Implementation Complete',
                   marks: [{ type: 'strong' }]
                 }
               ]

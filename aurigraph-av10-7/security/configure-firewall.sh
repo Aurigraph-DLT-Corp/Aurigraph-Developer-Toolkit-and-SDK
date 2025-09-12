@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Aurigraph AV10-7 Production Firewall Configuration
+# Aurigraph AV11-7 Production Firewall Configuration
 # Comprehensive security hardening for dev4 server deployment
 # Production-grade firewall rules for 1M+ TPS performance
 
@@ -36,7 +36,7 @@ if [ "$EUID" -ne 0 ]; then
     error "This script must be run as root for firewall configuration"
 fi
 
-log "Starting Aurigraph AV10-7 security hardening..."
+log "Starting Aurigraph AV11-7 security hardening..."
 
 # Step 1: UFW Firewall Configuration
 log "Configuring UFW firewall..."
@@ -177,7 +177,7 @@ log "Applying system security hardening..."
 # Kernel parameter tuning for security and performance
 cat >> /etc/sysctl.conf << 'EOF'
 
-# Aurigraph AV10-7 Security and Performance Tuning
+# Aurigraph AV11-7 Security and Performance Tuning
 # Network security
 net.ipv4.conf.default.rp_filter = 1
 net.ipv4.conf.all.rp_filter = 1
@@ -417,7 +417,7 @@ log "Generating security configuration report..."
 SECURITY_REPORT="/var/log/aurigraph/security/security-config-$(date +%Y%m%d-%H%M%S).txt"
 
 cat > "$SECURITY_REPORT" << EOF
-AURIGRAPH AV10-7 SECURITY CONFIGURATION REPORT
+AURIGRAPH AV11-7 SECURITY CONFIGURATION REPORT
 ===============================================
 Generated: $(date)
 Server: $(hostname)
@@ -467,7 +467,7 @@ success "Security configuration completed successfully!"
 echo -e "${GREEN}"
 cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                    🔒 AURIGRAPH AV10-7 SECURITY HARDENING COMPLETE          ║
+║                    🔒 AURIGRAPH AV11-7 SECURITY HARDENING COMPLETE          ║
 ║                           Production-Ready Security                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 EOF

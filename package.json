@@ -1,14 +1,8 @@
 {
-<<<<<<< HEAD
   "name": "aurigraph-dlt",
-  "version": "1.0.0",
-  "description": "Aurigraph-DLT Quantum Blockchain Platform with GitHub MCP integration",
-=======
-  "name": "aurigraph-av10-7-ui",
   "version": "10.7.0",
-  "description": "Management UI for Aurigraph AV10-7 Quantum Nexus Platform",
+  "description": "Aurigraph-DLT Quantum Blockchain Platform with GitHub MCP integration",
   "private": true,
->>>>>>> AV10-18-agv9-688-validator-node-implementation-java-24
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
@@ -26,7 +20,6 @@
     "jira-tickets": "node update-jira-tickets.js",
     "jira-info": "node update-jira-tickets.js info",
     "jira-instructions": "node update-jira-tickets.js instructions",
-<<<<<<< HEAD
     "jira-summary": "node update-jira-tickets.js summary",
     "mcp:github": "node ./node_modules/@modelcontextprotocol/server-github/dist/index.js",
     "mcp:test": "node scripts/test-github-mcp.js",
@@ -38,15 +31,21 @@
   "dependencies": {
     "@modelcontextprotocol/server-github": "^2025.4.8",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "express": "^5.1.0",
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.19.13",
     "@types/react": "^18.0.0",
-    "typescript": "^5.0.0"
+    "@types/ws": "^8.18.1",
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.2",
+    "typescript": "^5.0.0",
+    "ws": "^8.18.3"
   },
   "keywords": [
     "aurigraph",

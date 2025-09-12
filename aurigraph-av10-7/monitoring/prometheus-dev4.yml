@@ -1,4 +1,4 @@
-# Prometheus Configuration for Aurigraph AV10-7 Dev4 Environment
+# Prometheus Configuration for Aurigraph AV11-7 Dev4 Environment
 # Agent-coordinated monitoring for 800K+ TPS platform
 
 global:
@@ -9,7 +9,7 @@ global:
     platform: 'aurigraph-av10-7'
     agent_coordinated: 'true'
 
-# Scrape configurations for all AV10 components
+# Scrape configurations for all AV11 components
 scrape_configs:
   # Validator Node Metrics
   - job_name: 'aurigraph-validator-dev4'
@@ -54,7 +54,7 @@ scrape_configs:
       - targets: ['host.docker.internal:9100']
     scrape_interval: 10s
 
-  # AV10 Component-Specific Metrics
+  # AV11 Component-Specific Metrics
   - job_name: 'av10-quantum-sharding'
     static_configs:
       - targets: 

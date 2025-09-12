@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  # AV10-7 Validator Nodes (Quantum-Secure, 1M+ TPS)
+  # AV11-7 Validator Nodes (Quantum-Secure, 1M+ TPS)
   av10-validator-1:
     build:
       context: .
