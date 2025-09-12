@@ -55,11 +55,15 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
         </dependency>
-        <!-- MicroProfile Metrics for annotations -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-metrics</artifactId>
+            <artifactId>quarkus-scheduler</artifactId>
         </dependency>
+        <!-- MicroProfile Metrics removed - conflicts with Micrometer -->
+        <!-- <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-metrics</artifactId>
+        </dependency> -->
         <!-- SLF4J logging compatibility -->
         <dependency>
             <groupId>org.jboss.slf4j</groupId>
@@ -472,7 +476,7 @@
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
                 <quarkus.native.additional-build-args>
-                    <!-- Ultra Performance Settings -->
+                    <!-- Ultra Performance Settings for 2M+ TPS -->
                     -march=native,
                     -O3,
                     -H:+UnlockExperimentalVMOptions,
@@ -486,13 +490,40 @@
                     -H:+UseCompressedClassPointers,
                     -H:+EliminateAllocations,
                     -H:+OptimizeBulkTransfer,
+                    -H:+UseSuperWord,
+                    -H:+OptimizeMemoryAccess,
                     
-                    <!-- Startup Optimizations -->
+                    <!-- Advanced CPU-specific optimizations -->
+                    -H:+UseVectorizedMismatch,
+                    -H:+UseVectorizedHashCode,
+                    -H:+OptimizeSpinLocks,
+                    -H:+EnableTruffleInlining,
+                    -H:+InlineAccessors,
+                    -H:+InlineMonomorphicCalls,
+                    -H:+OptimizeTrivialMethods,
+                    
+                    <!-- Memory and GC Ultra-Optimizations -->
+                    -H:+UseStringDeduplication,
+                    -H:+UseG1MixedGCLiveThresholdPercent=90,
+                    -H:+ParallelRefProcEnabled,
+                    -H:+UseNUMA,
+                    -H:+OptimizeMemoryLayout,
+                    -H:+ReduceInitialCardMarks,
+                    
+                    <!-- Startup Time Ultra-Optimizations -->
                     -H:-SpawnIsolates,
                     -H:+StaticExecutableWithDynamicLibC,
                     -H:+AllowIncompleteClasspath,
+                    -H:+EagerlyInitializeNativeImageState,
+                    -H:+ReduceImplicitExceptions,
                     
-                    <!-- All runtime initializations -->
+                    <!-- Parallel Processing Optimizations -->
+                    -H:+UseParallelOldGC,
+                    -H:ParallelGCThreads=0,
+                    -H:ConcGCThreads=0,
+                    -H:+UseTransparentHugePages,
+                    
+                    <!-- All runtime initializations for performance -->
                     --initialize-at-run-time=io.netty,
                     --initialize-at-run-time=io.grpc,
                     --initialize-at-run-time=org.bouncycastle,
@@ -500,11 +531,31 @@
                     --initialize-at-run-time=org.nd4j,
                     --initialize-at-run-time=com.github.haifengl.smile,
                     --initialize-at-run-time=java.security,
+                    --initialize-at-run-time=java.util.concurrent,
+                    --initialize-at-run-time=java.util.concurrent.atomic,
+                    --initialize-at-run-time=java.util.concurrent.locks,
                     
-                    <!-- Memory Settings -->
-                    -H:NativeImageHeapSize=12g,
-                    -H:MaxDirectMemorySize=4g,
-                    -H:ReservedCodeCacheSize=256m
+                    <!-- Ultra Memory Settings for 2M+ TPS -->
+                    -H:NativeImageHeapSize=16g,
+                    -H:MaxDirectMemorySize=8g,
+                    -H:ReservedCodeCacheSize=512m,
+                    -H:InitialCodeCacheSize=256m,
+                    -H:MaxMetaspaceSize=512m,
+                    
+                    <!-- Performance Profiling and Monitoring -->
+                    -H:+PrintGCDetails,
+                    -H:+PrintGCTimeStamps,
+                    -H:+TraceClassInitialization,
+                    -H:+VerboseGC,
+                    -H:+PrintCompilation,
+                    -H:+UnlockDiagnosticVMOptions,
+                    -H:+LogVMOutput,
+                    
+                    <!-- Native Image Compilation Optimizations -->
+                    -H:MaxJavaStackTraceDepth=50,
+                    -H:MaxRuntimeCompileMethods=15000,
+                    -H:+DumpTargetInfo,
+                    -H:+ReportExceptionStackTraces
                 </quarkus.native.additional-build-args>
             </properties>
         </profile>

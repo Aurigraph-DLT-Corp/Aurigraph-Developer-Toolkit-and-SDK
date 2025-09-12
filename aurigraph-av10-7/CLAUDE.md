@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## IAM Credentials (SENSITIVE - DEVELOPMENT ONLY)
+
+### IAM2 Server Configuration
+- **Server URL**: https://iam2.aurigraph.io/
+- **Admin Username**: Awdadmin
+- **Admin Password**: Awd!adminUSR$2025 (MUST BE ENCRYPTED IN PRODUCTION)
+- **Supported Realms**: 
+  - AWD (Primary)
+  - AurCarbonTrace (Carbon tracking)
+  - AurHydroPulse (Hydro monitoring)
+
+**⚠️ SECURITY WARNING**: 
+- These credentials are for development/testing environments only
+- In production, use secure vault solutions (HashiCorp Vault, AWS Secrets Manager)
+- Implement proper key rotation policies
+- Never commit plaintext credentials to version control
+- Use environment variables or encrypted configuration files
+
 ## Project Overview
 **Aurigraph V11/V11 Hybrid Platform** - A blockchain platform in transition from TypeScript/Node.js (V10) to Java/Quarkus/GraalVM (V11), targeting 2M+ TPS with quantum-resistant security and cross-chain interoperability.
 

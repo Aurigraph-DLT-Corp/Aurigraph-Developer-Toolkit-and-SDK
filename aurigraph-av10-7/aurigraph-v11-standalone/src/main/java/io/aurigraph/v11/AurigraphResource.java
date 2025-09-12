@@ -287,6 +287,113 @@ public class AurigraphResource {
     ) {}
     
     /**
+     * SIMD-Optimized Bulk Processing Test for 2M+ TPS
+     */
+    @POST
+    @Path("/performance/simd-batch")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<SIMDBatchStats> runSIMDOptimizedBatchTest(SIMDBatchRequest request) {
+        return Uni.createFrom().item(() -> {
+            long startTime = System.nanoTime();
+            int batchSize = Math.max(1000, Math.min(500_000, request.batchSize()));
+            
+            LOG.infof("⚡ Starting SIMD-Optimized Batch Test: %d transactions", batchSize);
+            
+            // Create test batch
+            List<TransactionService.TransactionRequest> batch = new ArrayList<>(batchSize);
+            for (int i = 0; i < batchSize; i++) {
+                batch.add(new TransactionService.TransactionRequest(
+                    "simd-" + System.nanoTime() + "-" + i,
+                    Math.random() * 1000
+                ));
+            }
+            
+            try {
+                // Execute SIMD-optimized processing
+                List<String> results = transactionService.processSIMDOptimizedBatch(batch)
+                    .collect().asList()
+                    .await().atMost(java.time.Duration.ofMinutes(5));
+                
+                long endTime = System.nanoTime();
+                double durationMs = (endTime - startTime) / 1_000_000.0;
+                double tps = batchSize / (durationMs / 1000.0);
+                
+                String grade = tps >= 2_500_000 ? "EXCELLENT (2.5M+ TPS)" :
+                              tps >= 2_000_000 ? "OUTSTANDING (2M+ TPS)" :
+                              tps >= 1_000_000 ? "VERY GOOD (1M+ TPS)" :
+                              "OPTIMIZING (" + Math.round(tps) + " TPS)";
+                
+                LOG.infof("⚡ SIMD Batch Complete: %.0f TPS - %s", tps, grade);
+                
+                return new SIMDBatchStats(
+                    batchSize,
+                    results.size(),
+                    durationMs,
+                    tps,
+                    grade,
+                    tps >= 2_000_000,
+                    System.currentTimeMillis()
+                );
+            } catch (Exception e) {
+                LOG.error("SIMD batch test failed: " + e.getMessage());
+                return new SIMDBatchStats(0, 0, 0.0, 0.0, "FAILED", false, System.currentTimeMillis());
+            }
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+    
+    /**
+     * Adaptive Batch Processing Test with Performance Feedback
+     */
+    @POST
+    @Path("/performance/adaptive-batch")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<AdaptiveBatchStats> runAdaptiveBatchTest(AdaptiveBatchRequest request) {
+        return Uni.createFrom().item(() -> {
+            long startTime = System.nanoTime();
+            int requestCount = Math.max(1000, Math.min(1_000_000, request.requestCount()));
+            
+            LOG.infof("🎯 Starting Adaptive Batch Test: %d requests", requestCount);
+            
+            // Create requests
+            List<TransactionService.TransactionRequest> requests = new ArrayList<>(requestCount);
+            for (int i = 0; i < requestCount; i++) {
+                requests.add(new TransactionService.TransactionRequest(
+                    "adaptive-" + System.nanoTime() + "-" + i,
+                    10.0 + (i * 0.001)
+                ));
+            }
+            
+            try {
+                // Execute adaptive batch processing
+                var result = transactionService.processAdaptiveBatch(requests).get();
+                
+                long endTime = System.nanoTime();
+                double totalDuration = (endTime - startTime) / 1_000_000.0;
+                
+                LOG.infof("🎯 Adaptive Batch Complete: %.0f TPS - %s", 
+                         result.achievedTPS(), result.getPerformanceStatus());
+                
+                return new AdaptiveBatchStats(
+                    requestCount,
+                    result.results().size(),
+                    totalDuration,
+                    result.achievedTPS(),
+                    result.getPerformanceStatus(),
+                    result.chunkSize(),
+                    result.batchMultiplier(),
+                    result.ultraHighPerformanceAchieved(),
+                    System.currentTimeMillis()
+                );
+            } catch (Exception e) {
+                LOG.error("Adaptive batch test failed: " + e.getMessage());
+                return new AdaptiveBatchStats(0, 0, 0.0, 0.0, "FAILED", 0, 0.0, false, System.currentTimeMillis());
+            }
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
      * Request for ultra-high-throughput performance test
      */
     public record UltraHighThroughputRequest(
@@ -322,4 +429,32 @@ public class AurigraphResource {
             return ultraHighTarget;
         }
     }
+    
+    // SIMD Batch Testing Records
+    public record SIMDBatchRequest(int batchSize) {}
+    
+    public record SIMDBatchStats(
+        int requestedBatch,
+        int processedCount,
+        double durationMs,
+        double transactionsPerSecond,
+        String performanceGrade,
+        boolean achievedTarget,
+        long timestamp
+    ) {}
+    
+    // Adaptive Batch Testing Records
+    public record AdaptiveBatchRequest(int requestCount) {}
+    
+    public record AdaptiveBatchStats(
+        int requestCount,
+        int processedCount,
+        double durationMs,
+        double transactionsPerSecond,
+        String performanceGrade,
+        int optimalChunkSize,
+        double batchMultiplier,
+        boolean ultraHighPerformanceAchieved,
+        long timestamp
+    ) {}
 }
