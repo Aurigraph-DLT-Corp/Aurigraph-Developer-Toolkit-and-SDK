@@ -504,17 +504,13 @@ Test Categories:
           issuetype: {
             name: 'Task'
           },
-          priority: {
-            name: 'High'
-          },
           labels: [
             'av10-35',
             'quantum-ai',
             'orchestration',
             'performance',
             'implemented'
-          ],
-          customfield_10016: 13 // Story points
+          ]
         }
       },
       {
