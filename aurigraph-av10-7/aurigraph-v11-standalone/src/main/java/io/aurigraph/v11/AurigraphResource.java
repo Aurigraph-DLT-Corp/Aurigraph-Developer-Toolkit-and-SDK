@@ -36,6 +36,22 @@ public class AurigraphResource {
 
     @Inject
     TransactionService transactionService;
+    
+    // Phase 3 Service Integrations
+    @Inject
+    io.aurigraph.v11.consensus.HyperRAFTConsensusService consensusService;
+    
+    @Inject
+    io.aurigraph.v11.crypto.QuantumCryptoService quantumCryptoService;
+    
+    @Inject
+    io.aurigraph.v11.bridge.CrossChainBridgeService bridgeService;
+    
+    @Inject
+    io.aurigraph.v11.hms.HMSIntegrationService hmsService;
+    
+    @Inject
+    io.aurigraph.v11.ai.AIOptimizationServiceStub aiOptimizationService;
 
     @GET
     @Path("/health")
@@ -161,6 +177,36 @@ public class AurigraphResource {
     @Produces(MediaType.APPLICATION_JSON)
     public TransactionService.EnhancedProcessingStats getTransactionStats() {
         return transactionService.getStats();
+    }
+    
+    /**
+     * Comprehensive system status including all V11 services
+     */
+    @GET
+    @Path("/system/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SystemStatus getSystemStatus() {
+        // Collect status from all services
+        var txStats = transactionService.getStats();
+        var consensusStatus = consensusService.getStatus();
+        var cryptoStatus = quantumCryptoService.getStatus();
+        var bridgeStats = bridgeService.getBridgeStats();
+        var hmsStats = hmsService.getHMSStats();
+        var aiStats = aiOptimizationService.getOptimizationStats();
+        
+        return new SystemStatus(
+            "Aurigraph V11 Platform",
+            "11.0.0",
+            System.currentTimeMillis() - startupTime.getEpochSecond() * 1000,
+            true, // Overall health
+            txStats,
+            consensusStatus,
+            cryptoStatus,
+            bridgeStats,
+            hmsStats,
+            aiStats,
+            System.currentTimeMillis()
+        );
     }
     
     /**
@@ -455,6 +501,23 @@ public class AurigraphResource {
         int optimalChunkSize,
         double batchMultiplier,
         boolean ultraHighPerformanceAchieved,
+        long timestamp
+    ) {}
+    
+    /**
+     * Comprehensive system status for all V11 services
+     */
+    public record SystemStatus(
+        String platformName,
+        String version,
+        long uptimeMs,
+        boolean healthy,
+        TransactionService.EnhancedProcessingStats transactionStats,
+        io.aurigraph.v11.consensus.HyperRAFTConsensusService.ConsensusStatus consensusStatus,
+        io.aurigraph.v11.crypto.QuantumCryptoService.CryptoStatus cryptoStatus,
+        io.aurigraph.v11.bridge.CrossChainBridgeService.BridgeStats bridgeStats,
+        io.aurigraph.v11.hms.HMSIntegrationService.HMSStats hmsStats,
+        io.aurigraph.v11.ai.AIOptimizationServiceStub.AIOptimizationStats aiStats,
         long timestamp
     ) {}
 }
