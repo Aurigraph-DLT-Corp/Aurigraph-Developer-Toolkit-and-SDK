@@ -10,6 +10,10 @@ The integration provides:
 - ✅ **Pull Request lifecycle management** with JIRA status transitions
 - ✅ **Review tracking** and comment synchronization
 - ✅ **Branch-based status transitions** (main = Done, develop = In Review, etc.)
+- ✅ **Bulk operations** for creating and updating all JIRA tickets
+- ✅ **Project synchronization** between GitHub and JIRA
+- ✅ **Data-driven ticket creation** from JSON/CSV files
+- ✅ **Template-based ticket management**
 
 ## 🔧 Setup Instructions
 
@@ -38,9 +42,15 @@ Ensure these workflow files are present in your repository:
 ├── workflows/
 │   ├── jira-integration.yml          # Main JIRA integration workflow
 │   ├── jira-commit-sync.yml          # Commit-based synchronization
-│   └── jira-pr-workflow.yml          # Pull request lifecycle management
-└── scripts/
-    └── jira-utils.js                 # Utility functions for JIRA operations
+│   ├── jira-pr-workflow.yml          # Pull request lifecycle management
+│   ├── jira-bulk-operations.yml      # Bulk ticket operations
+│   ├── jira-project-sync.yml         # Complete project synchronization
+│   └── setup-jira-secrets.yml        # Setup and testing workflow
+├── scripts/
+│   ├── jira-utils.js                 # Utility functions for JIRA operations
+│   └── jira-bulk-manager.js          # Advanced bulk operations manager
+└── data/
+    └── tickets-data.json              # Sample ticket data for bulk creation
 ```
 
 ### Step 3: Test the Integration
@@ -72,6 +82,18 @@ When you push commits that reference JIRA issues (format: `AV11-XXX`):
    - `develop` → **In Review**
    - `feature/*` → **In Progress**
    - `hotfix/*` → **In Progress**
+
+### Bulk Operations
+The system supports comprehensive bulk operations for managing all JIRA tickets:
+
+#### Available Bulk Operations
+- **create-from-data**: Create tickets from JSON/CSV data files
+- **update-all-tickets**: Update all existing tickets in the project
+- **sync-github-issues**: Sync all GitHub issues to JIRA
+- **bulk-transition**: Transition multiple tickets to a new status
+- **create-from-template**: Create tickets using predefined templates
+- **project-cleanup**: Clean up and organize project tickets
+- **export-tickets**: Export all tickets to JSON/CSV format
 
 ### Pull Request Lifecycle
 When you create/update pull requests:
