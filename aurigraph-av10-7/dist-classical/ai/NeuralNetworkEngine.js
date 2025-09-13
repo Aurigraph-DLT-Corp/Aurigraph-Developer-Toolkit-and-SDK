@@ -1,0 +1,954 @@
+"use strict";
+/**
+ * Advanced Neural Network Engine for Aurigraph DLT Platform
+ * Provides deep learning capabilities for consensus optimization, performance prediction,
+ * asset valuation, and autonomous decision making.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NeuralNetworkEngine = exports.OptimizerType = exports.LossFunction = exports.ActivationFunction = exports.NetworkType = void 0;
+const events_1 = require("events");
+const Logger_1 = require("../core/Logger");
+var NetworkType;
+(function (NetworkType) {
+    NetworkType["FEED_FORWARD"] = "FEED_FORWARD";
+    NetworkType["CONVOLUTIONAL"] = "CONVOLUTIONAL";
+    NetworkType["RECURRENT"] = "RECURRENT";
+    NetworkType["LSTM"] = "LSTM";
+    NetworkType["GRU"] = "GRU";
+    NetworkType["TRANSFORMER"] = "TRANSFORMER";
+    NetworkType["GAN"] = "GAN";
+    NetworkType["AUTOENCODER"] = "AUTOENCODER";
+    NetworkType["QUANTUM_NEURAL"] = "QUANTUM_NEURAL";
+})(NetworkType || (exports.NetworkType = NetworkType = {}));
+var ActivationFunction;
+(function (ActivationFunction) {
+    ActivationFunction["RELU"] = "RELU";
+    ActivationFunction["LEAKY_RELU"] = "LEAKY_RELU";
+    ActivationFunction["SIGMOID"] = "SIGMOID";
+    ActivationFunction["TANH"] = "TANH";
+    ActivationFunction["SOFTMAX"] = "SOFTMAX";
+    ActivationFunction["SWISH"] = "SWISH";
+    ActivationFunction["GELU"] = "GELU";
+    ActivationFunction["QUANTUM_ACTIVATION"] = "QUANTUM_ACTIVATION";
+})(ActivationFunction || (exports.ActivationFunction = ActivationFunction = {}));
+var LossFunction;
+(function (LossFunction) {
+    LossFunction["MEAN_SQUARED_ERROR"] = "MEAN_SQUARED_ERROR";
+    LossFunction["CROSS_ENTROPY"] = "CROSS_ENTROPY";
+    LossFunction["BINARY_CROSS_ENTROPY"] = "BINARY_CROSS_ENTROPY";
+    LossFunction["HUBER_LOSS"] = "HUBER_LOSS";
+    LossFunction["QUANTUM_LOSS"] = "QUANTUM_LOSS";
+})(LossFunction || (exports.LossFunction = LossFunction = {}));
+var OptimizerType;
+(function (OptimizerType) {
+    OptimizerType["SGD"] = "SGD";
+    OptimizerType["ADAM"] = "ADAM";
+    OptimizerType["ADAMW"] = "ADAMW";
+    OptimizerType["RMSprop"] = "RMSprop";
+    OptimizerType["ADAGRAD"] = "ADAGRAD";
+    OptimizerType["QUANTUM_OPTIMIZER"] = "QUANTUM_OPTIMIZER";
+})(OptimizerType || (exports.OptimizerType = OptimizerType = {}));
+class NeuralNetworkEngine extends events_1.EventEmitter {
+    logger;
+    quantumCrypto;
+    networks = new Map();
+    trainingHistory = new Map();
+    activeTraining = new Map();
+    // Neural network computation
+    computeContext;
+    // Advanced features
+    transferLearning = new Map();
+    ensembleModels = new Map();
+    continualLearning = new Map();
+    constructor(quantumCrypto, useGPU = true) {
+        super();
+        this.logger = new Logger_1.Logger('NeuralNetworkEngine');
+        this.quantumCrypto = quantumCrypto;
+        this.computeContext = {
+            useGPU,
+            tensorCache: new Map(),
+            webGLContext: this.initializeWebGL(),
+            quantumProcessor: quantumCrypto ? this.initializeQuantumProcessor() : undefined
+        };
+        this.initializeBuiltInNetworks();
+    }
+    initializeWebGL() {
+        if (!this.computeContext.useGPU)
+            return undefined;
+        try {
+            // Create a canvas for WebGL context (headless)
+            const canvas = {
+                getContext: () => null,
+                width: 1,
+                height: 1
+            };
+            // In a real implementation, this would initialize WebGL for GPU compute
+            this.logger.info('🖥️ GPU compute context initialized (simulated)');
+            return undefined; // Simplified for this implementation
+        }
+        catch (error) {
+            this.logger.warn('Failed to initialize WebGL, falling back to CPU:', error);
+            return undefined;
+        }
+    }
+    initializeQuantumProcessor() {
+        if (!this.quantumCrypto)
+            return undefined;
+        // Initialize quantum-enhanced neural processing
+        this.logger.info('⚛️ Quantum neural processor initialized');
+        return {
+            quantumGates: ['hadamard', 'cnot', 'rotation'],
+            qubits: 16,
+            coherenceTime: 100000 // 100ms
+        };
+    }
+    initializeBuiltInNetworks() {
+        // Consensus Optimization Network
+        this.createNetwork({
+            id: 'consensus-optimizer',
+            name: 'Consensus Parameter Optimizer',
+            type: NetworkType.FEED_FORWARD,
+            layers: [
+                this.createLayer('input', 'dense', 15, 64, ActivationFunction.RELU),
+                this.createLayer('hidden1', 'dense', 64, 128, ActivationFunction.SWISH),
+                this.createLayer('hidden2', 'dense', 128, 64, ActivationFunction.SWISH),
+                this.createLayer('output', 'dense', 64, 10, ActivationFunction.SIGMOID)
+            ],
+            optimizer: OptimizerType.ADAMW,
+            lossFunction: LossFunction.MEAN_SQUARED_ERROR,
+            learningRate: 0.001,
+            batchSize: 32,
+            epochs: 100,
+            quantumEnhanced: !!this.quantumCrypto
+        });
+        // Performance Prediction Network
+        this.createNetwork({
+            id: 'performance-predictor',
+            name: 'DLT Performance Predictor',
+            type: NetworkType.LSTM,
+            layers: [
+                this.createLayer('input', 'dense', 20, 128, ActivationFunction.TANH),
+                this.createLayer('lstm1', 'lstm', 128, 256, ActivationFunction.TANH),
+                this.createLayer('lstm2', 'lstm', 256, 128, ActivationFunction.TANH),
+                this.createLayer('dense', 'dense', 128, 64, ActivationFunction.RELU),
+                this.createLayer('output', 'dense', 64, 5, ActivationFunction.SIGMOID)
+            ],
+            optimizer: OptimizerType.ADAM,
+            lossFunction: LossFunction.MEAN_SQUARED_ERROR,
+            learningRate: 0.0005,
+            batchSize: 64,
+            epochs: 200,
+            quantumEnhanced: !!this.quantumCrypto
+        });
+        // Asset Valuation Network
+        this.createNetwork({
+            id: 'asset-valuator',
+            name: 'Cross-Dimensional Asset Valuator',
+            type: NetworkType.TRANSFORMER,
+            layers: [
+                this.createLayer('embedding', 'dense', 50, 256, ActivationFunction.GELU),
+                this.createLayer('attention1', 'attention', 256, 256, ActivationFunction.SOFTMAX),
+                this.createLayer('attention2', 'attention', 256, 256, ActivationFunction.SOFTMAX),
+                this.createLayer('dense1', 'dense', 256, 128, ActivationFunction.GELU),
+                this.createLayer('output', 'dense', 128, 1, ActivationFunction.SIGMOID)
+            ],
+            optimizer: OptimizerType.ADAMW,
+            lossFunction: LossFunction.HUBER_LOSS,
+            learningRate: 0.0001,
+            batchSize: 16,
+            epochs: 300,
+            quantumEnhanced: !!this.quantumCrypto
+        });
+        // Quantum Risk Assessment Network
+        if (this.quantumCrypto) {
+            this.createNetwork({
+                id: 'quantum-risk-assessor',
+                name: 'Quantum Risk Assessment Neural Network',
+                type: NetworkType.QUANTUM_NEURAL,
+                layers: [
+                    this.createLayer('quantum-input', 'quantum', 16, 32, ActivationFunction.QUANTUM_ACTIVATION),
+                    this.createLayer('entangled-hidden', 'quantum', 32, 64, ActivationFunction.QUANTUM_ACTIVATION),
+                    this.createLayer('measurement', 'dense', 64, 32, ActivationFunction.TANH),
+                    this.createLayer('output', 'dense', 32, 3, ActivationFunction.SOFTMAX)
+                ],
+                optimizer: OptimizerType.QUANTUM_OPTIMIZER,
+                lossFunction: LossFunction.QUANTUM_LOSS,
+                learningRate: 0.01,
+                batchSize: 8,
+                epochs: 150,
+                quantumEnhanced: true
+            });
+        }
+        this.logger.info('🧠 Built-in neural networks initialized');
+    }
+    createLayer(id, type, inputSize, outputSize, activation) {
+        const weightsSize = inputSize * outputSize;
+        const weights = new Float32Array(weightsSize);
+        const biases = new Float32Array(outputSize);
+        // Xavier/Glorot initialization
+        const limit = Math.sqrt(6.0 / (inputSize + outputSize));
+        for (let i = 0; i < weightsSize; i++) {
+            weights[i] = (Math.random() * 2 - 1) * limit;
+        }
+        // Initialize biases to small random values
+        for (let i = 0; i < outputSize; i++) {
+            biases[i] = (Math.random() * 2 - 1) * 0.01;
+        }
+        return {
+            id,
+            type,
+            inputSize,
+            outputSize,
+            activation,
+            weights,
+            biases,
+            quantumEntanglement: type === 'quantum' && !!this.quantumCrypto
+        };
+    }
+    createNetwork(architecture) {
+        // Validate architecture
+        if (this.networks.has(architecture.id)) {
+            throw new Error(`Network with ID ${architecture.id} already exists`);
+        }
+        // Initialize gradients for all layers
+        for (const layer of architecture.layers) {
+            layer.gradients = {
+                weights: new Float32Array(layer.weights.length),
+                biases: new Float32Array(layer.biases.length)
+            };
+        }
+        this.networks.set(architecture.id, architecture);
+        this.trainingHistory.set(architecture.id, []);
+        this.logger.info(`🔗 Neural network created: ${architecture.name} (${architecture.type})`);
+        this.emit('network-created', architecture);
+    }
+    async trainNetwork(networkId, trainingData, validationData, callbacks) {
+        const network = this.networks.get(networkId);
+        if (!network) {
+            throw new Error(`Network not found: ${networkId}`);
+        }
+        this.logger.info(`🏋️ Starting training for network: ${network.name}`);
+        const abortController = new AbortController();
+        this.activeTraining.set(networkId, abortController);
+        const history = [];
+        try {
+            for (let epoch = 0; epoch < network.epochs; epoch++) {
+                if (abortController.signal.aborted) {
+                    this.logger.info(`Training aborted for network: ${networkId}`);
+                    break;
+                }
+                const epochMetrics = await this.trainEpoch(network, trainingData, validationData, epoch, callbacks?.onBatchComplete);
+                history.push(epochMetrics);
+                // Call epoch callback
+                if (callbacks?.onEpochComplete) {
+                    callbacks.onEpochComplete(epoch, epochMetrics);
+                }
+                // Early stopping based on convergence
+                if (this.shouldEarlyStop(history)) {
+                    this.logger.info(`Early stopping triggered at epoch ${epoch}`);
+                    break;
+                }
+                // Learning rate decay
+                if (epoch % 50 === 0 && epoch > 0) {
+                    network.learningRate *= 0.95;
+                }
+                // Emit progress
+                this.emit('training-progress', {
+                    networkId,
+                    epoch,
+                    metrics: epochMetrics,
+                    progress: (epoch + 1) / network.epochs
+                });
+            }
+            // Store training history
+            this.trainingHistory.set(networkId, history);
+            // Call completion callback
+            if (callbacks?.onTrainingComplete) {
+                callbacks.onTrainingComplete(history);
+            }
+            this.logger.info(`✅ Training completed for network: ${network.name}`);
+            this.emit('training-completed', { networkId, history });
+            return history;
+        }
+        catch (error) {
+            this.logger.error(`Training failed for network ${networkId}:`, error);
+            this.emit('training-failed', { networkId, error });
+            throw error;
+        }
+        finally {
+            this.activeTraining.delete(networkId);
+        }
+    }
+    async trainEpoch(network, trainingData, validationData, epoch = 0, batchCallback) {
+        let totalLoss = 0;
+        let correctPredictions = 0;
+        const totalSamples = trainingData.inputs.length;
+        const numBatches = Math.ceil(totalSamples / network.batchSize);
+        // Shuffle training data
+        const shuffledIndices = this.shuffleIndices(totalSamples);
+        for (let batchIndex = 0; batchIndex < numBatches; batchIndex++) {
+            const batchStart = batchIndex * network.batchSize;
+            const batchEnd = Math.min(batchStart + network.batchSize, totalSamples);
+            const batchSize = batchEnd - batchStart;
+            // Extract batch data
+            const batchInputs = shuffledIndices.slice(batchStart, batchEnd).map(i => trainingData.inputs[i]);
+            const batchTargets = shuffledIndices.slice(batchStart, batchEnd).map(i => trainingData.targets[i]);
+            // Forward pass
+            const predictions = await this.forwardPass(network, batchInputs);
+            // Calculate loss
+            const batchLoss = this.calculateLoss(network.lossFunction, predictions, batchTargets);
+            totalLoss += batchLoss * batchSize;
+            // Calculate accuracy
+            correctPredictions += this.calculateAccuracy(predictions, batchTargets);
+            // Backward pass
+            await this.backwardPass(network, batchInputs, batchTargets, predictions);
+            // Update weights
+            this.updateWeights(network, batchSize);
+            // Call batch callback
+            if (batchCallback) {
+                batchCallback(batchIndex, batchLoss);
+            }
+        }
+        const avgLoss = totalLoss / totalSamples;
+        const accuracy = correctPredictions / totalSamples;
+        // Validation metrics
+        let valLoss;
+        let valAccuracy;
+        if (validationData) {
+            const valPredictions = await this.predict(network.id, validationData.inputs);
+            valLoss = this.calculateLoss(network.lossFunction, [valPredictions.predictions], validationData.targets);
+            valAccuracy = this.calculateAccuracy([valPredictions.predictions], validationData.targets);
+        }
+        return {
+            epoch,
+            loss: avgLoss,
+            accuracy,
+            valLoss,
+            valAccuracy,
+            learningRate: network.learningRate,
+            timestamp: new Date(),
+            convergence: this.calculateConvergence(network.id)
+        };
+    }
+    shuffleIndices(length) {
+        const indices = Array.from({ length }, (_, i) => i);
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        return indices;
+    }
+    async forwardPass(network, inputs) {
+        const predictions = [];
+        for (const input of inputs) {
+            let activation = input;
+            // Pass through each layer
+            for (let layerIndex = 0; layerIndex < network.layers.length; layerIndex++) {
+                const layer = network.layers[layerIndex];
+                activation = await this.computeLayerActivation(layer, activation, network.quantumEnhanced);
+            }
+            predictions.push(activation);
+        }
+        return predictions;
+    }
+    async computeLayerActivation(layer, input, quantumEnhanced = false) {
+        const output = new Float32Array(layer.outputSize);
+        switch (layer.type) {
+            case 'dense':
+                return this.computeDenseLayer(layer, input);
+            case 'conv2d':
+                return this.computeConvolutionalLayer(layer, input);
+            case 'lstm':
+                return this.computeLSTMLayer(layer, input);
+            case 'gru':
+                return this.computeGRULayer(layer, input);
+            case 'attention':
+                return this.computeAttentionLayer(layer, input);
+            case 'quantum':
+                if (quantumEnhanced && this.quantumCrypto) {
+                    return this.computeQuantumLayer(layer, input);
+                }
+                else {
+                    // Fallback to dense computation
+                    return this.computeDenseLayer(layer, input);
+                }
+            default:
+                return this.computeDenseLayer(layer, input);
+        }
+    }
+    computeDenseLayer(layer, input) {
+        const output = new Float32Array(layer.outputSize);
+        // Matrix multiplication: output = input * weights + bias
+        for (let i = 0; i < layer.outputSize; i++) {
+            let sum = layer.biases[i];
+            for (let j = 0; j < layer.inputSize; j++) {
+                sum += input[j] * layer.weights[i * layer.inputSize + j];
+            }
+            output[i] = this.applyActivation(sum, layer.activation);
+        }
+        return output;
+    }
+    computeConvolutionalLayer(layer, input) {
+        // Simplified 1D convolution for this implementation
+        const output = new Float32Array(layer.outputSize);
+        const kernelSize = 3; // Fixed kernel size for simplicity
+        for (let i = 0; i < layer.outputSize; i++) {
+            let sum = layer.biases[i];
+            for (let j = 0; j < kernelSize && i + j < input.length; j++) {
+                sum += input[i + j] * layer.weights[i * kernelSize + j];
+            }
+            output[i] = this.applyActivation(sum, layer.activation);
+        }
+        return output;
+    }
+    computeLSTMLayer(layer, input) {
+        // Simplified LSTM implementation
+        const hiddenSize = layer.outputSize;
+        const output = new Float32Array(hiddenSize);
+        const cellState = new Float32Array(hiddenSize);
+        const hiddenState = new Float32Array(hiddenSize);
+        // LSTM gates (simplified)
+        for (let i = 0; i < hiddenSize; i++) {
+            // Forget gate
+            let forgetGate = 0;
+            for (let j = 0; j < layer.inputSize; j++) {
+                forgetGate += input[j] * layer.weights[i * layer.inputSize + j];
+            }
+            forgetGate = this.sigmoid(forgetGate + layer.biases[i]);
+            // Input gate and candidate values (simplified)
+            let inputGate = this.sigmoid(forgetGate);
+            let candidateValues = this.tanh(forgetGate);
+            // Update cell state and hidden state
+            cellState[i] = forgetGate * cellState[i] + inputGate * candidateValues;
+            hiddenState[i] = inputGate * this.tanh(cellState[i]);
+            output[i] = hiddenState[i];
+        }
+        return output;
+    }
+    computeGRULayer(layer, input) {
+        // Simplified GRU implementation
+        const hiddenSize = layer.outputSize;
+        const output = new Float32Array(hiddenSize);
+        const hiddenState = new Float32Array(hiddenSize);
+        for (let i = 0; i < hiddenSize; i++) {
+            // Reset and update gates (simplified)
+            let resetGate = 0;
+            let updateGate = 0;
+            for (let j = 0; j < layer.inputSize; j++) {
+                const weight = layer.weights[i * layer.inputSize + j];
+                resetGate += input[j] * weight;
+                updateGate += input[j] * weight;
+            }
+            resetGate = this.sigmoid(resetGate + layer.biases[i]);
+            updateGate = this.sigmoid(updateGate + layer.biases[i]);
+            // New gate and hidden state
+            let newGate = this.tanh(resetGate * hiddenState[i]);
+            hiddenState[i] = (1 - updateGate) * hiddenState[i] + updateGate * newGate;
+            output[i] = hiddenState[i];
+        }
+        return output;
+    }
+    computeAttentionLayer(layer, input) {
+        // Simplified self-attention mechanism
+        const output = new Float32Array(layer.outputSize);
+        const attentionWeights = new Float32Array(layer.inputSize);
+        // Calculate attention weights
+        let weightSum = 0;
+        for (let i = 0; i < layer.inputSize; i++) {
+            attentionWeights[i] = Math.exp(input[i]);
+            weightSum += attentionWeights[i];
+        }
+        // Normalize attention weights
+        for (let i = 0; i < layer.inputSize; i++) {
+            attentionWeights[i] /= weightSum;
+        }
+        // Apply attention
+        for (let i = 0; i < layer.outputSize; i++) {
+            let sum = layer.biases[i];
+            for (let j = 0; j < layer.inputSize; j++) {
+                sum += input[j] * attentionWeights[j] * layer.weights[i * layer.inputSize + j];
+            }
+            output[i] = this.applyActivation(sum, layer.activation);
+        }
+        return output;
+    }
+    async computeQuantumLayer(layer, input) {
+        if (!this.quantumCrypto || !this.computeContext.quantumProcessor) {
+            // Fallback to classical computation
+            return this.computeDenseLayer(layer, input);
+        }
+        // Quantum neural computation simulation
+        const output = new Float32Array(layer.outputSize);
+        const qubits = Math.min(16, layer.inputSize); // Limited by quantum processor
+        // Prepare quantum state from classical input
+        const quantumState = new Float32Array(qubits);
+        for (let i = 0; i < qubits; i++) {
+            quantumState[i] = i < input.length ? input[i] : 0;
+        }
+        // Apply quantum gates (simplified simulation)
+        for (let i = 0; i < qubits; i++) {
+            // Hadamard gate simulation
+            quantumState[i] = quantumState[i] / Math.sqrt(2);
+            // Rotation gate
+            const angle = layer.weights[i] || 0;
+            quantumState[i] = quantumState[i] * Math.cos(angle) + Math.sin(angle);
+        }
+        // Quantum entanglement effects
+        if (layer.quantumEntanglement) {
+            for (let i = 0; i < qubits - 1; i += 2) {
+                const entangled = (quantumState[i] + quantumState[i + 1]) / Math.sqrt(2);
+                quantumState[i] = entangled;
+                quantumState[i + 1] = entangled;
+            }
+        }
+        // Measurement and classical output
+        for (let i = 0; i < layer.outputSize; i++) {
+            let sum = layer.biases[i];
+            for (let j = 0; j < qubits; j++) {
+                // Quantum measurement probability
+                const probability = quantumState[j] * quantumState[j];
+                sum += probability * (layer.weights[i * qubits + j] || 0);
+            }
+            output[i] = this.applyActivation(sum, layer.activation);
+        }
+        return output;
+    }
+    applyActivation(value, activation) {
+        switch (activation) {
+            case ActivationFunction.RELU:
+                return Math.max(0, value);
+            case ActivationFunction.LEAKY_RELU:
+                return value > 0 ? value : 0.01 * value;
+            case ActivationFunction.SIGMOID:
+                return this.sigmoid(value);
+            case ActivationFunction.TANH:
+                return this.tanh(value);
+            case ActivationFunction.SOFTMAX:
+                // Softmax is typically applied to layer output, not individual neurons
+                return value; // Will be normalized later
+            case ActivationFunction.SWISH:
+                return value * this.sigmoid(value);
+            case ActivationFunction.GELU:
+                return 0.5 * value * (1 + this.tanh(Math.sqrt(2 / Math.PI) * (value + 0.044715 * Math.pow(value, 3))));
+            case ActivationFunction.QUANTUM_ACTIVATION:
+                // Quantum activation function
+                return Math.sin(value * Math.PI / 2);
+            default:
+                return value;
+        }
+    }
+    sigmoid(x) {
+        return 1 / (1 + Math.exp(-x));
+    }
+    tanh(x) {
+        return Math.tanh(x);
+    }
+    calculateLoss(lossFunction, predictions, targets) {
+        let totalLoss = 0;
+        for (let i = 0; i < predictions.length; i++) {
+            const prediction = predictions[i];
+            const target = targets[i];
+            switch (lossFunction) {
+                case LossFunction.MEAN_SQUARED_ERROR:
+                    for (let j = 0; j < prediction.length; j++) {
+                        const error = prediction[j] - target[j];
+                        totalLoss += error * error;
+                    }
+                    break;
+                case LossFunction.CROSS_ENTROPY:
+                    for (let j = 0; j < prediction.length; j++) {
+                        totalLoss += -target[j] * Math.log(Math.max(prediction[j], 1e-15));
+                    }
+                    break;
+                case LossFunction.BINARY_CROSS_ENTROPY:
+                    for (let j = 0; j < prediction.length; j++) {
+                        totalLoss += -(target[j] * Math.log(Math.max(prediction[j], 1e-15)) +
+                            (1 - target[j]) * Math.log(Math.max(1 - prediction[j], 1e-15)));
+                    }
+                    break;
+                case LossFunction.HUBER_LOSS:
+                    const delta = 1.0;
+                    for (let j = 0; j < prediction.length; j++) {
+                        const error = Math.abs(prediction[j] - target[j]);
+                        totalLoss += error < delta ? 0.5 * error * error : delta * (error - 0.5 * delta);
+                    }
+                    break;
+                case LossFunction.QUANTUM_LOSS:
+                    // Quantum fidelity-based loss
+                    for (let j = 0; j < prediction.length; j++) {
+                        const fidelity = Math.sqrt(prediction[j] * target[j]);
+                        totalLoss += 1 - fidelity;
+                    }
+                    break;
+            }
+        }
+        return totalLoss / predictions.length;
+    }
+    calculateAccuracy(predictions, targets) {
+        let correct = 0;
+        for (let i = 0; i < predictions.length; i++) {
+            const prediction = predictions[i];
+            const target = targets[i];
+            // For classification: find argmax
+            let predClass = 0;
+            let targetClass = 0;
+            let maxPred = prediction[0];
+            let maxTarget = target[0];
+            for (let j = 1; j < prediction.length; j++) {
+                if (prediction[j] > maxPred) {
+                    maxPred = prediction[j];
+                    predClass = j;
+                }
+                if (target[j] > maxTarget) {
+                    maxTarget = target[j];
+                    targetClass = j;
+                }
+            }
+            if (predClass === targetClass) {
+                correct++;
+            }
+        }
+        return correct;
+    }
+    async backwardPass(network, inputs, targets, predictions) {
+        // Simplified backpropagation implementation
+        // In a real implementation, this would compute gradients through all layers
+        const batchSize = inputs.length;
+        // Calculate output layer gradients
+        const outputLayer = network.layers[network.layers.length - 1];
+        const outputGradients = new Float32Array(outputLayer.outputSize);
+        // Clear existing gradients
+        outputLayer.gradients.weights.fill(0);
+        outputLayer.gradients.biases.fill(0);
+        for (let sampleIndex = 0; sampleIndex < batchSize; sampleIndex++) {
+            const prediction = predictions[sampleIndex];
+            const target = targets[sampleIndex];
+            // Calculate loss gradients
+            for (let i = 0; i < outputLayer.outputSize; i++) {
+                const error = prediction[i] - target[i];
+                outputGradients[i] = error;
+                // Accumulate bias gradients
+                outputLayer.gradients.biases[i] += error / batchSize;
+                // Accumulate weight gradients (would need previous layer activations)
+                for (let j = 0; j < outputLayer.inputSize; j++) {
+                    outputLayer.gradients.weights[i * outputLayer.inputSize + j] +=
+                        error * 1.0 / batchSize; // Simplified - would use actual activations
+                }
+            }
+        }
+        // Backpropagate through hidden layers (simplified)
+        for (let layerIndex = network.layers.length - 2; layerIndex >= 0; layerIndex--) {
+            const layer = network.layers[layerIndex];
+            // Clear gradients
+            layer.gradients.weights.fill(0);
+            layer.gradients.biases.fill(0);
+            // Simplified gradient calculation
+            for (let i = 0; i < layer.outputSize; i++) {
+                layer.gradients.biases[i] = 0.01; // Simplified
+                for (let j = 0; j < layer.inputSize; j++) {
+                    layer.gradients.weights[i * layer.inputSize + j] = 0.001; // Simplified
+                }
+            }
+        }
+    }
+    updateWeights(network, batchSize) {
+        for (const layer of network.layers) {
+            if (!layer.gradients)
+                continue;
+            // Update weights using optimizer
+            switch (network.optimizer) {
+                case OptimizerType.SGD:
+                    this.updateWeightsSGD(layer, network.learningRate);
+                    break;
+                case OptimizerType.ADAM:
+                case OptimizerType.ADAMW:
+                    this.updateWeightsAdam(layer, network.learningRate);
+                    break;
+                case OptimizerType.RMSprop:
+                    this.updateWeightsRMSprop(layer, network.learningRate);
+                    break;
+                case OptimizerType.QUANTUM_OPTIMIZER:
+                    if (network.quantumEnhanced) {
+                        this.updateWeightsQuantum(layer, network.learningRate);
+                    }
+                    else {
+                        this.updateWeightsSGD(layer, network.learningRate);
+                    }
+                    break;
+                default:
+                    this.updateWeightsSGD(layer, network.learningRate);
+            }
+        }
+    }
+    updateWeightsSGD(layer, learningRate) {
+        // Simple gradient descent
+        for (let i = 0; i < layer.weights.length; i++) {
+            layer.weights[i] -= learningRate * layer.gradients.weights[i];
+        }
+        for (let i = 0; i < layer.biases.length; i++) {
+            layer.biases[i] -= learningRate * layer.gradients.biases[i];
+        }
+    }
+    updateWeightsAdam(layer, learningRate) {
+        // Simplified Adam optimizer
+        const beta1 = 0.9;
+        const beta2 = 0.999;
+        const epsilon = 1e-8;
+        // Initialize momentum and velocity if not exists
+        const gradientsWithExtras = layer.gradients.weights;
+        if (!gradientsWithExtras.momentum) {
+            gradientsWithExtras.momentum = new Float32Array(layer.weights.length);
+            gradientsWithExtras.velocity = new Float32Array(layer.weights.length);
+        }
+        const momentum = gradientsWithExtras.momentum;
+        const velocity = gradientsWithExtras.velocity;
+        for (let i = 0; i < layer.weights.length; i++) {
+            const gradient = layer.gradients.weights[i];
+            momentum[i] = beta1 * momentum[i] + (1 - beta1) * gradient;
+            velocity[i] = beta2 * velocity[i] + (1 - beta2) * gradient * gradient;
+            const mHat = momentum[i] / (1 - beta1);
+            const vHat = velocity[i] / (1 - beta2);
+            layer.weights[i] -= learningRate * mHat / (Math.sqrt(vHat) + epsilon);
+        }
+        // Similar for biases (simplified)
+        for (let i = 0; i < layer.biases.length; i++) {
+            layer.biases[i] -= learningRate * layer.gradients.biases[i];
+        }
+    }
+    updateWeightsRMSprop(layer, learningRate) {
+        // Simplified RMSprop optimizer
+        const decay = 0.9;
+        const epsilon = 1e-8;
+        const gradientsWithRms = layer.gradients.weights;
+        if (!gradientsWithRms.rms) {
+            gradientsWithRms.rms = new Float32Array(layer.weights.length);
+        }
+        const rms = gradientsWithRms.rms;
+        for (let i = 0; i < layer.weights.length; i++) {
+            const gradient = layer.gradients.weights[i];
+            rms[i] = decay * rms[i] + (1 - decay) * gradient * gradient;
+            layer.weights[i] -= learningRate * gradient / (Math.sqrt(rms[i]) + epsilon);
+        }
+        for (let i = 0; i < layer.biases.length; i++) {
+            layer.biases[i] -= learningRate * layer.gradients.biases[i];
+        }
+    }
+    updateWeightsQuantum(layer, learningRate) {
+        if (!this.quantumCrypto) {
+            this.updateWeightsSGD(layer, learningRate);
+            return;
+        }
+        // Quantum-enhanced weight updates
+        for (let i = 0; i < layer.weights.length; i++) {
+            const gradient = layer.gradients.weights[i];
+            // Apply quantum noise for regularization
+            const quantumNoise = (Math.random() - 0.5) * 0.001;
+            // Quantum tunneling effect for escaping local minima
+            const tunnelingProbability = Math.exp(-Math.abs(gradient) * 10);
+            const tunneling = Math.random() < tunnelingProbability ? (Math.random() - 0.5) * 0.01 : 0;
+            layer.weights[i] -= learningRate * (gradient + quantumNoise + tunneling);
+        }
+        for (let i = 0; i < layer.biases.length; i++) {
+            const gradient = layer.gradients.biases[i];
+            const quantumNoise = (Math.random() - 0.5) * 0.0001;
+            layer.biases[i] -= learningRate * (gradient + quantumNoise);
+        }
+    }
+    shouldEarlyStop(history) {
+        if (history.length < 10)
+            return false;
+        // Check for convergence
+        const recent = history.slice(-5);
+        const lossVariation = recent.reduce((sum, metrics) => sum + metrics.loss, 0) / recent.length;
+        const variation = recent.reduce((sum, metrics) => sum + Math.abs(metrics.loss - lossVariation), 0) / recent.length;
+        return variation < 0.001; // Very small variation indicates convergence
+    }
+    calculateConvergence(networkId) {
+        const history = this.trainingHistory.get(networkId);
+        if (!history || history.length < 5)
+            return 0;
+        const recent = history.slice(-5);
+        const avgLoss = recent.reduce((sum, m) => sum + m.loss, 0) / recent.length;
+        const lossStd = Math.sqrt(recent.reduce((sum, m) => sum + Math.pow(m.loss - avgLoss, 2), 0) / recent.length);
+        return Math.max(0, 1 - lossStd); // Higher value = more converged
+    }
+    async predict(networkId, inputs) {
+        const network = this.networks.get(networkId);
+        if (!network) {
+            throw new Error(`Network not found: ${networkId}`);
+        }
+        // Forward pass for prediction
+        const predictions = await this.forwardPass(network, inputs);
+        // Calculate average prediction
+        const avgPrediction = new Float32Array(predictions[0].length);
+        for (let i = 0; i < avgPrediction.length; i++) {
+            for (const pred of predictions) {
+                avgPrediction[i] += pred[i];
+            }
+            avgPrediction[i] /= predictions.length;
+        }
+        // Calculate confidence (simplified)
+        let confidence = 0;
+        for (const pred of predictions) {
+            let similarity = 0;
+            for (let i = 0; i < pred.length; i++) {
+                similarity += 1 - Math.abs(pred[i] - avgPrediction[i]);
+            }
+            confidence += similarity / pred.length;
+        }
+        confidence /= predictions.length;
+        // Calculate uncertainty (variance of predictions)
+        const uncertainty = new Float32Array(avgPrediction.length);
+        for (let i = 0; i < uncertainty.length; i++) {
+            let variance = 0;
+            for (const pred of predictions) {
+                variance += Math.pow(pred[i] - avgPrediction[i], 2);
+            }
+            uncertainty[i] = Math.sqrt(variance / predictions.length);
+        }
+        return {
+            predictions: avgPrediction,
+            confidence,
+            uncertainty,
+            quantumProbabilities: network.quantumEnhanced ? this.calculateQuantumProbabilities(avgPrediction) : undefined,
+            metadata: new Map([
+                ['networkId', networkId],
+                ['inputCount', inputs.length.toString()],
+                ['timestamp', new Date().toISOString()]
+            ])
+        };
+    }
+    calculateQuantumProbabilities(predictions) {
+        const quantumProbs = new Float32Array(predictions.length);
+        // Convert classical probabilities to quantum probabilities
+        let sum = 0;
+        for (let i = 0; i < predictions.length; i++) {
+            quantumProbs[i] = Math.sqrt(Math.abs(predictions[i]));
+            sum += quantumProbs[i] * quantumProbs[i];
+        }
+        // Normalize
+        if (sum > 0) {
+            for (let i = 0; i < quantumProbs.length; i++) {
+                quantumProbs[i] /= Math.sqrt(sum);
+            }
+        }
+        return quantumProbs;
+    }
+    // Public API methods
+    getNetwork(networkId) {
+        return this.networks.get(networkId);
+    }
+    getAllNetworks() {
+        return Array.from(this.networks.values());
+    }
+    getTrainingHistory(networkId) {
+        return this.trainingHistory.get(networkId) || [];
+    }
+    stopTraining(networkId) {
+        const abortController = this.activeTraining.get(networkId);
+        if (abortController) {
+            abortController.abort();
+            this.logger.info(`Training stopped for network: ${networkId}`);
+        }
+    }
+    async exportModel(networkId) {
+        const network = this.networks.get(networkId);
+        if (!network) {
+            throw new Error(`Network not found: ${networkId}`);
+        }
+        const weightsData = network.layers.map(layer => ({
+            layerId: layer.id,
+            weights: Array.from(layer.weights),
+            biases: Array.from(layer.biases)
+        }));
+        const exportData = {
+            architecture: { ...network },
+            weights: weightsData,
+            trainingHistory: this.getTrainingHistory(networkId),
+            version: '1.0.0',
+            checksum: await this.calculateModelChecksum(network)
+        };
+        if (this.quantumCrypto) {
+            exportData.quantumSignature = await this.quantumCrypto.sign(exportData.checksum);
+        }
+        return exportData;
+    }
+    async calculateModelChecksum(network) {
+        const data = {
+            architecture: network,
+            weightsHash: this.hashWeights(network.layers)
+        };
+        if (this.quantumCrypto) {
+            return await this.quantumCrypto.hash(JSON.stringify(data));
+        }
+        else {
+            // Simple hash function for non-quantum mode
+            return Buffer.from(JSON.stringify(data)).toString('base64').substring(0, 32);
+        }
+    }
+    hashWeights(layers) {
+        let hash = 0;
+        for (const layer of layers) {
+            for (const weight of layer.weights) {
+                hash += weight * 31;
+            }
+            for (const bias of layer.biases) {
+                hash += bias * 37;
+            }
+        }
+        return hash.toString(16);
+    }
+    async importModel(modelData) {
+        // Verify model integrity
+        const expectedChecksum = await this.calculateModelChecksum(modelData.architecture);
+        if (expectedChecksum !== modelData.checksum) {
+            throw new Error('Model checksum verification failed');
+        }
+        // Verify quantum signature if available
+        if (modelData.quantumSignature && this.quantumCrypto) {
+            const isValid = await this.quantumCrypto.verify(modelData.checksum, modelData.quantumSignature, 'default-public-key');
+            if (!isValid) {
+                throw new Error('Quantum signature verification failed');
+            }
+        }
+        // Restore weights
+        for (const layerWeights of modelData.weights) {
+            const layer = modelData.architecture.layers.find(l => l.id === layerWeights.layerId);
+            if (layer) {
+                layer.weights = new Float32Array(layerWeights.weights);
+                layer.biases = new Float32Array(layerWeights.biases);
+            }
+        }
+        // Import network
+        this.networks.set(modelData.architecture.id, modelData.architecture);
+        this.trainingHistory.set(modelData.architecture.id, modelData.trainingHistory);
+        this.logger.info(`🔄 Model imported: ${modelData.architecture.name}`);
+        this.emit('model-imported', modelData.architecture);
+    }
+    getSystemStatus() {
+        return {
+            totalNetworks: this.networks.size,
+            activeTraining: this.activeTraining.size,
+            gpuEnabled: this.computeContext.useGPU,
+            quantumEnabled: !!this.quantumCrypto,
+            memoryUsage: {
+                tensorCache: this.computeContext.tensorCache.size,
+                networks: this.networks.size,
+                trainingHistory: Array.from(this.trainingHistory.values()).reduce((sum, h) => sum + h.length, 0)
+            },
+            uptime: process.uptime()
+        };
+    }
+    cleanup() {
+        // Stop all active training
+        for (const [networkId, controller] of this.activeTraining) {
+            controller.abort();
+        }
+        // Clear caches
+        this.computeContext.tensorCache.clear();
+        this.logger.info('🧠 Neural Network Engine cleanup completed');
+        this.emit('cleanup-completed');
+    }
+}
+exports.NeuralNetworkEngine = NeuralNetworkEngine;
+//# sourceMappingURL=NeuralNetworkEngine.js.map

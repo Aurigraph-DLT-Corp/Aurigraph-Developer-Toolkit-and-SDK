@@ -1,0 +1,320 @@
+{{/*
+Ingress Configuration for Aurigraph V11
+HTTPS/TLS ingress with automatic certificate management
+*/}}
+
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    # Additional ingress annotations for production
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $.Values.app.name }}-platform-service
+                port:
+                  number: {{ $.Values.service.ports.http }}
+          {{- end }}
+    {{- end }}
+
+---
+{{/*
+gRPC Ingress Configuration
+*/}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-grpc-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: grpc-ingress
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    nginx.ingress.kubernetes.io/grpc-backend: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: "64k"
+    nginx.ingress.kubernetes.io/http2-push-off: "true"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+  - hosts:
+    - grpc.aurigraph.io
+    secretName: aurigraph-grpc-tls
+  rules:
+  - host: grpc.aurigraph.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.name }}-platform-service
+            port:
+              number: {{ .Values.service.ports.grpc }}
+
+---
+{{/*
+WebSocket Ingress for Real-time Connections
+*/}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-websocket-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: websocket-ingress
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "{{ .Values.app.name }}-platform-service"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_cache_bypass $http_upgrade;
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+  - hosts:
+    - ws.aurigraph.io
+    secretName: aurigraph-ws-tls
+  rules:
+  - host: ws.aurigraph.io
+    http:
+      paths:
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.name }}-platform-service
+            port:
+              number: {{ .Values.service.ports.http }}
+
+---
+{{/*
+Monitoring Ingress (Grafana)
+*/}}
+{{- if .Values.monitoring.grafana.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-monitoring-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: monitoring-ingress
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: grafana-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Aurigraph Monitoring - Authentication Required"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+  - hosts:
+    - grafana.aurigraph.io
+    secretName: aurigraph-grafana-tls
+  rules:
+  - host: grafana.aurigraph.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.name }}-grafana
+            port:
+              number: 3000
+{{- end }}
+
+---
+{{/*
+Prometheus Ingress (Internal Access)
+*/}}
+{{- if .Values.monitoring.prometheus.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-prometheus-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: prometheus-ingress
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: prometheus-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Aurigraph Prometheus - Authentication Required"
+    # Restrict access to internal networks only
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+  - hosts:
+    - prometheus.aurigraph.io
+    secretName: aurigraph-prometheus-tls
+  rules:
+  - host: prometheus.aurigraph.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.name }}-prometheus
+            port:
+              number: 9090
+{{- end }}
+
+---
+{{/*
+Jaeger Ingress (Tracing UI)
+*/}}
+{{- if .Values.monitoring.jaeger.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-jaeger-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: jaeger-ingress
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: jaeger-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Aurigraph Jaeger - Authentication Required"
+    # Restrict access to internal networks only
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+  - hosts:
+    - jaeger.aurigraph.io
+    secretName: aurigraph-jaeger-tls
+  rules:
+  - host: jaeger.aurigraph.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.name }}-jaeger-query
+            port:
+              number: 16686
+{{- end }}
+
+---
+{{/*
+Cross-Chain Bridge API Ingress
+*/}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-bridge-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: bridge-ingress
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+  - hosts:
+    - bridge.aurigraph.io
+    secretName: aurigraph-bridge-tls
+  rules:
+  - host: bridge.aurigraph.io
+    http:
+      paths:
+      - path: /api/v1/bridge
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.name }}-crosschain-service
+            port:
+              number: {{ .Values.service.ports.http }}
+
+{{- end }}

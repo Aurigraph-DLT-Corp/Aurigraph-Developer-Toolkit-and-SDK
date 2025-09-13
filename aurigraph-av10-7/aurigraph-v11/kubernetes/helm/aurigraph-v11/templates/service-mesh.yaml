@@ -1,0 +1,436 @@
+{{/*
+Istio Service Mesh Configuration for Aurigraph V11
+Comprehensive service mesh setup with traffic management, security, and observability
+*/}}
+{{- if .Values.istio.enabled }}
+
+{{/*
+Gateway Configuration - Entry point for external traffic
+*/}}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ .Values.app.name }}-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  # HTTPS API Traffic
+  - port:
+      number: 443
+      name: https-api
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: aurigraph-tls
+    hosts:
+    {{- range .Values.istio.gateway.hosts }}
+    - {{ . }}
+    {{- end }}
+  # gRPC Traffic
+  - port:
+      number: 443
+      name: https-grpc
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: aurigraph-tls
+    hosts:
+    - grpc.aurigraph.io
+  # HTTP Redirect to HTTPS
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+    tls:
+      httpsRedirect: true
+
+---
+{{/*
+Virtual Service - Traffic routing rules
+*/}}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ .Values.app.name }}-vs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  hosts:
+  {{- range .Values.istio.gateway.hosts }}
+  - {{ . }}
+  {{- end }}
+  gateways:
+  - {{ .Values.app.name }}-gateway
+  http:
+  # Health Check Routes (no authentication)
+  - match:
+    - uri:
+        prefix: /health
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-platform-service
+        port:
+          number: {{ .Values.service.ports.http }}
+    timeout: 10s
+    
+  # Metrics Routes (internal only)
+  - match:
+    - uri:
+        prefix: /metrics
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-platform-service
+        port:
+          number: {{ .Values.service.ports.metrics }}
+    timeout: 30s
+    
+  # API Routes with load balancing
+  - match:
+    - uri:
+        prefix: /api/v1/transactions
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-platform-service
+        port:
+          number: {{ .Values.service.ports.http }}
+      weight: 100
+    fault:
+      delay:
+        percentage:
+          value: 0.1
+        fixedDelay: 5s
+    retries:
+      attempts: {{ .Values.istio.virtualService.retries.attempts }}
+      perTryTimeout: {{ .Values.istio.virtualService.retries.perTryTimeout }}
+      retryOn: 5xx,reset,connect-failure,refused-stream
+    timeout: {{ .Values.istio.virtualService.timeout }}
+    
+  # Consensus API Routes (direct to consensus service)
+  - match:
+    - uri:
+        prefix: /api/v1/consensus
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-consensus-service
+        port:
+          number: {{ .Values.service.ports.grpc }}
+    timeout: 5s
+    
+  # Cross-chain Bridge Routes
+  - match:
+    - uri:
+        prefix: /api/v1/bridge
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-crosschain-service
+        port:
+          number: {{ .Values.service.ports.http }}
+    timeout: 60s  # Longer timeout for cross-chain operations
+    
+  # Default catch-all route
+  - route:
+    - destination:
+        host: {{ .Values.app.name }}-platform-service
+        port:
+          number: {{ .Values.service.ports.http }}
+
+---
+{{/*
+gRPC Virtual Service for high-performance RPC
+*/}}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ .Values.app.name }}-grpc-vs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  hosts:
+  - grpc.aurigraph.io
+  gateways:
+  - {{ .Values.app.name }}-gateway
+  http:
+  # gRPC Platform Service
+  - match:
+    - headers:
+        grpc:
+          exact: "1"
+      uri:
+        prefix: /aurigraph.platform.v1
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-platform-service
+        port:
+          number: {{ .Values.service.ports.grpc }}
+    timeout: 30s
+    
+  # gRPC Consensus Service
+  - match:
+    - headers:
+        grpc:
+          exact: "1"
+      uri:
+        prefix: /aurigraph.consensus.v1
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-consensus-service
+        port:
+          number: {{ .Values.service.ports.grpc }}
+    timeout: 10s
+    
+  # gRPC Network Service
+  - match:
+    - headers:
+        grpc:
+          exact: "1"
+      uri:
+        prefix: /aurigraph.network.v1
+    route:
+    - destination:
+        host: {{ .Values.app.name }}-network-service
+        port:
+          number: {{ .Values.service.ports.grpc }}
+    timeout: 15s
+
+---
+{{/*
+Destination Rule - Traffic policies and load balancing
+*/}}
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ .Values.app.name }}-platform-dr
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  host: {{ .Values.app.name }}-platform-service
+  trafficPolicy:
+    {{- toYaml .Values.istio.destinationRule.trafficPolicy | nindent 4 }}
+  subsets:
+  - name: v11
+    labels:
+      app.kubernetes.io/version: {{ .Values.app.version }}
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 2000
+        http:
+          http1MaxPendingRequests: 200
+          maxRequestsPerConnection: 20
+          h2UpgradePolicy: UPGRADE
+
+---
+{{/*
+Consensus Service Destination Rule - Conservative settings
+*/}}
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ .Values.app.name }}-consensus-dr
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  host: {{ .Values.app.name }}-consensus-service
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: "x-consensus-shard"
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        maxRequestsPerConnection: 5
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+
+---
+{{/*
+Network Service Destination Rule
+*/}}
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ .Values.app.name }}-network-dr
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  host: {{ .Values.app.name }}-network-service
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+    connectionPool:
+      tcp:
+        maxConnections: 500
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s
+
+---
+{{/*
+Service Entry for external blockchain networks
+*/}}
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-ethereum
+  namespace: {{ .Release.Namespace }}
+spec:
+  hosts:
+  - ethereum-mainnet.infura.io
+  - ethereum-goerli.infura.io
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-bitcoin
+  namespace: {{ .Release.Namespace }}
+spec:
+  hosts:
+  - bitcoin.org
+  - btc.com
+  ports:
+  - number: 8333
+    name: bitcoin-p2p
+    protocol: TCP
+  - number: 443
+    name: https
+    protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+{{/*
+Peer Authentication - mTLS configuration
+*/}}
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: {{ .Values.app.name }}-mtls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+  mtls:
+    mode: STRICT
+
+---
+{{/*
+Authorization Policy - Service-to-service access control
+*/}}
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Values.app.name }}-authz
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+  rules:
+  # Allow health checks from anywhere
+  - to:
+    - operation:
+        paths: ["/health/*"]
+  # Allow metrics from monitoring namespace
+  - from:
+    - source:
+        namespaces: ["monitoring"]
+    to:
+    - operation:
+        paths: ["/metrics"]
+  # Allow platform service to call consensus
+  - from:
+    - source:
+        principals: ["cluster.local/ns/{{ .Release.Namespace }}/sa/{{ .Values.app.name }}"]
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+        paths: ["/api/v1/consensus/*"]
+  # Allow inter-service communication
+  - from:
+    - source:
+        principals: ["cluster.local/ns/{{ .Release.Namespace }}/sa/{{ .Values.app.name }}"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+
+---
+{{/*
+Telemetry v2 configuration for enhanced observability
+*/}}
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: {{ .Values.app.name }}-telemetry
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+        mode: CLIENT
+      tagOverrides:
+        destination_service_name:
+          operation: UPSERT
+          value: "%{DESTINATION_SERVICE_NAME | 'unknown'}"
+    - match:
+        metric: ALL_METRICS
+        mode: SERVER
+      tagOverrides:
+        source_app:
+          operation: UPSERT
+          value: "%{SOURCE_APP | 'unknown'}"
+  tracing:
+  - providers:
+    - name: jaeger
+  accessLogging:
+  - providers:
+    - name: otel
+
+{{- end }}

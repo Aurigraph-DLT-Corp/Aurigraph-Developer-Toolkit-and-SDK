@@ -1,0 +1,253 @@
+# Aurigraph Mock Service Dockerfile
+# Ultimate fallback if both V10 and V11 fail to compile
+# Provides basic API endpoints for deployment validation
+
+FROM node:20.10-alpine
+LABEL maintainer="Aurigraph DevOps Team"
+LABEL description="Aurigraph Mock Service - Ultimate Fallback"
+
+WORKDIR /app
+
+# Install basic dependencies
+RUN npm init -y && \
+    npm install express cors && \
+    mkdir -p /app/logs
+
+# Create the mock service
+RUN cat > /app/server.js << 'EOF'
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+const DOMAIN = process.env.DOMAIN || 'aurigraphdlt.dev4.aurex.in';
+
+app.use(cors());
+app.use(express.json());
+
+let startTime = Date.now();
+let requestCount = 0;
+
+// Middleware to count requests
+app.use((req, res, next) => {
+    requestCount++;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - Request #${requestCount}`);
+    next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        service: 'aurigraph-mock-service',
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor((Date.now() - startTime) / 1000),
+        domain: DOMAIN,
+        mode: 'mock',
+        requests_served: requestCount
+    });
+});
+
+// V10 API Mock Endpoints
+app.get('/api/classical/metrics', (req, res) => {
+    res.json({
+        success: true,
+        platform: 'Aurigraph Mock',
+        tps_current: Math.floor(Math.random() * 50000) + 25000,
+        tps_target: 100000,
+        nodes_active: 3,
+        consensus_algorithm: 'HyperRAFT++ (Simulated)',
+        quantum_ready: true,
+        rwa_platform: true,
+        compliance_enabled: true,
+        network_health: 'excellent',
+        mode: 'simulation'
+    });
+});
+
+app.post('/api/classical/consensus', (req, res) => {
+    const { decision, participants } = req.body;
+    res.json({
+        success: true,
+        decision: decision || 'approved',
+        consensus_time: Math.floor(Math.random() * 100) + 50,
+        participants: participants || ['mock-node-1', 'mock-node-2', 'mock-node-3'],
+        timestamp: Date.now(),
+        block_height: Math.floor(Math.random() * 1000000),
+        mode: 'simulated'
+    });
+});
+
+// V11 API Mock Endpoints
+app.get('/api/v11/info', (req, res) => {
+    res.json({
+        platform: 'Aurigraph V11 Mock',
+        version: '11.0.0',
+        java_version: '21',
+        quarkus_version: '3.26.2',
+        tps_current: Math.floor(Math.random() * 776000) + 200000,
+        tps_target: 2000000,
+        native_compiled: false,
+        grpc_enabled: true,
+        ai_optimization: true,
+        quantum_crypto: true,
+        consensus: 'HyperRAFT++',
+        mode: 'mock'
+    });
+});
+
+app.get('/api/v11/performance', (req, res) => {
+    res.json({
+        tps_current: Math.floor(Math.random() * 776000) + 400000,
+        latency_avg: Math.random() * 10 + 1,
+        memory_usage: Math.floor(Math.random() * 512) + 256,
+        cpu_usage: Math.random() * 50 + 20,
+        timestamp: Date.now(),
+        mode: 'simulated'
+    });
+});
+
+// Management Dashboard Mock
+app.get('/management/status', (req, res) => {
+    res.json({
+        platform_status: 'operational',
+        services: {
+            'aurigraph-v10': 'unavailable',
+            'aurigraph-v11': 'unavailable',
+            'aurigraph-mock': 'running'
+        },
+        deployment: {
+            domain: DOMAIN,
+            environment: 'dev4',
+            mode: 'fallback'
+        },
+        metrics: {
+            total_requests: requestCount,
+            uptime_seconds: Math.floor((Date.now() - startTime) / 1000)
+        }
+    });
+});
+
+// Prometheus metrics endpoint
+app.get('/metrics', (req, res) => {
+    const uptime = Math.floor((Date.now() - startTime) / 1000);
+    const metrics = `
+# HELP aurigraph_mock_requests_total Total number of requests served
+# TYPE aurigraph_mock_requests_total counter
+aurigraph_mock_requests_total ${requestCount}
+
+# HELP aurigraph_mock_uptime_seconds Uptime in seconds
+# TYPE aurigraph_mock_uptime_seconds gauge
+aurigraph_mock_uptime_seconds ${uptime}
+
+# HELP aurigraph_mock_tps_simulated Simulated TPS
+# TYPE aurigraph_mock_tps_simulated gauge
+aurigraph_mock_tps_simulated ${Math.floor(Math.random() * 50000) + 25000}
+`;
+    res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    res.send(metrics);
+});
+
+// Root endpoint with dashboard
+app.get('/', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aurigraph Mock Service - ${DOMAIN}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007acc; padding-bottom: 10px; }
+        .status { background: #e7f5e7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .warning { background: #fff3cd; padding: 15px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #ffc107; }
+        .endpoint { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; }
+        a { color: #007acc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Aurigraph Mock Service</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Fallback Mode Active</strong><br>
+            This is a mock service providing simulated API responses. 
+            Both V10 TypeScript and V11 Quarkus services are unavailable.
+        </div>
+
+        <div class="status">
+            <strong>✅ Service Status:</strong> Running<br>
+            <strong>📍 Domain:</strong> ${DOMAIN}<br>
+            <strong>🕒 Uptime:</strong> ${Math.floor((Date.now() - startTime) / 1000)} seconds<br>
+            <strong>📊 Requests Served:</strong> ${requestCount}
+        </div>
+
+        <h2>Available Endpoints</h2>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>Health & Status</h3>
+                <div class="endpoint"><a href="/health">/health</a></div>
+                <div class="endpoint"><a href="/management/status">/management/status</a></div>
+                <div class="endpoint"><a href="/metrics">/metrics</a></div>
+            </div>
+            
+            <div class="card">
+                <h3>V10 Mock APIs</h3>
+                <div class="endpoint"><a href="/api/classical/metrics">/api/classical/metrics</a></div>
+                <div class="endpoint">[POST] /api/classical/consensus</div>
+            </div>
+            
+            <div class="card">
+                <h3>V11 Mock APIs</h3>
+                <div class="endpoint"><a href="/api/v11/info">/api/v11/info</a></div>
+                <div class="endpoint"><a href="/api/v11/performance">/api/v11/performance</a></div>
+            </div>
+        </div>
+
+        <h2>Deployment Information</h2>
+        <p><strong>Purpose:</strong> This mock service ensures the deployment infrastructure is functional even when the main applications fail to compile or start.</p>
+        <p><strong>Next Steps:</strong> Fix compilation issues in V10 TypeScript or V11 Quarkus services to restore full functionality.</p>
+        
+        <p style="margin-top: 30px; color: #666; font-size: 0.9em;">
+            Generated at: ${new Date().toISOString()}<br>
+            Aurigraph DevOps Team
+        </p>
+    </div>
+</body>
+</html>
+    `);
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({
+        error: 'Not Found',
+        message: 'This is a mock service. The requested endpoint is not available.',
+        available_endpoints: ['/health', '/api/classical/metrics', '/api/v11/info', '/management/status'],
+        mode: 'mock'
+    });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🔧 Aurigraph Mock Service started on port ${PORT}`);
+    console.log(`📍 Domain: ${DOMAIN}`);
+    console.log(`🕒 Started at: ${new Date().toISOString()}`);
+    console.log('🎯 Providing fallback API responses for deployment validation');
+});
+EOF
+
+USER node
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["node", "server.js"]

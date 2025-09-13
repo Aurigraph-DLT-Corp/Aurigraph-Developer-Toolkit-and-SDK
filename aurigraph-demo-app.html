@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph DLT V11 - Throughput Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .control-group input[type="number"],
+        .control-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .metric-card.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .metric-unit {
+            font-size: 0.7em;
+            opacity: 0.7;
+        }
+
+        .chart-container {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            height: 300px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        #throughputChart {
+            width: 100%;
+            height: 250px;
+        }
+
+        .node-visualization {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .node {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8em;
+            transition: all 0.3s;
+        }
+
+        .node.validator {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .node.business {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .node.active {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .status-bar {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #9ca3af;
+        }
+
+        .status-indicator.running {
+            background: #10b981;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .log-container {
+            background: #1f2937;
+            color: #10b981;
+            border-radius: 10px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Aurigraph DLT V11</h1>
+            <p>High-Performance Blockchain Throughput Demonstration</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="control-section">
+                    <h3>📡 Network Configuration</h3>
+                    
+                    <div class="control-group">
+                        <label for="channel">Channel Name</label>
+                        <input type="text" id="channel" value="main-channel" placeholder="Enter channel name">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="validators">Number of Validators</label>
+                        <div class="slider-container">
+                            <input type="range" id="validators" class="slider" min="1" max="20" value="4">
+                            <span class="slider-value" id="validatorCount">4</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="businessNodes">Number of Business Nodes</label>
+                        <div class="slider-container">
+                            <input type="range" id="businessNodes" class="slider" min="1" max="50" value="10">
+                            <span class="slider-value" id="businessNodeCount">10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>⚡ Performance Settings</h3>
+                    
+                    <div class="control-group">
+                        <label for="tps">Target TPS</label>
+                        <select id="tps">
+                            <option value="1000">1,000 TPS</option>
+                            <option value="10000">10,000 TPS</option>
+                            <option value="100000" selected>100,000 TPS</option>
+                            <option value="500000">500,000 TPS</option>
+                            <option value="1000000">1,000,000 TPS</option>
+                            <option value="2000000">2,000,000 TPS</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="batchSize">Batch Size</label>
+                        <input type="number" id="batchSize" value="1000" min="100" max="10000" step="100">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="consensusType">Consensus Algorithm</label>
+                        <select id="consensusType">
+                            <option value="hyperraft">HyperRAFT++</option>
+                            <option value="pbft">PBFT</option>
+                            <option value="raft">Standard RAFT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="startBtn" class="btn btn-primary">▶️ Start Test</button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>⏹️ Stop</button>
+                </div>
+
+                <div class="status-bar">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span class="status-text" id="statusText">Ready to start</span>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="dashboard">
+                <div class="metrics-grid">
+                    <div class="metric-card primary">
+                        <div class="metric-label">Current TPS</div>
+                        <div class="metric-value">
+                            <span id="currentTps">0</span>
+                            <span class="metric-unit">tx/s</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Transactions</div>
+                        <div class="metric-value">
+                            <span id="totalTx">0</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Avg Latency</div>
+                        <div class="metric-value">
+                            <span id="avgLatency">0</span>
+                            <span class="metric-unit">ms</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Success Rate</div>
+                        <div class="metric-value">
+                            <span id="successRate">100</span>
+                            <span class="metric-unit">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">📊 Real-time Throughput</div>
+                    <canvas id="throughputChart"></canvas>
+                </div>
+
+                <div class="node-visualization">
+                    <div class="chart-title">🖥️ Network Topology</div>
+                    <div id="nodeGrid" class="node-grid"></div>
+                </div>
+
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry">System initialized. Ready to start testing...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Initialize Chart.js
+        const ctx = document.getElementById('throughputChart').getContext('2d');
+        const throughputChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Transactions Per Second',
+                    data: [],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        display: true
+                    }
+                }
+            }
+        });
+
+        // WebSocket connection
+        let ws = null;
+        let isRunning = false;
+
+        // UI Elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const logContainer = document.getElementById('logContainer');
+
+        // Sliders
+        const validatorSlider = document.getElementById('validators');
+        const businessNodeSlider = document.getElementById('businessNodes');
+        const validatorCount = document.getElementById('validatorCount');
+        const businessNodeCount = document.getElementById('businessNodeCount');
+
+        // Update slider values
+        validatorSlider.addEventListener('input', (e) => {
+            validatorCount.textContent = e.target.value;
+            updateNodeVisualization();
+        });
+
+        businessNodeSlider.addEventListener('input', (e) => {
+            businessNodeCount.textContent = e.target.value;
+            updateNodeVisualization();
+        });
+
+        // Update node visualization
+        function updateNodeVisualization() {
+            const nodeGrid = document.getElementById('nodeGrid');
+            nodeGrid.innerHTML = '';
+
+            const validators = parseInt(validatorSlider.value);
+            const businessNodes = parseInt(businessNodeSlider.value);
+
+            // Add validators
+            for (let i = 0; i < validators; i++) {
+                const node = document.createElement('div');
+                node.className = 'node validator';
+                node.innerHTML = `V${i + 1}`;
+                nodeGrid.appendChild(node);
+            }
+
+            // Add business nodes
+            for (let i = 0; i < businessNodes; i++) {
+                const node = document.createElement('div');
+                node.className = 'node business';
+                node.innerHTML = `B${i + 1}`;
+                nodeGrid.appendChild(node);
+            }
+        }
+
+        // Add log entry
+        function addLog(message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+
+            // Limit log entries
+            if (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        // Connect to WebSocket
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.hostname}:3088/ws`);
+
+            ws.onopen = () => {
+                addLog('Connected to Aurigraph platform');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                updateMetrics(data);
+            };
+
+            ws.onerror = (error) => {
+                addLog(`Connection error: ${error.message || 'Unknown error'}`);
+            };
+
+            ws.onclose = () => {
+                addLog('Disconnected from platform');
+                if (isRunning) {
+                    setTimeout(connectWebSocket, 2000);
+                }
+            };
+        }
+
+        // Update metrics
+        function updateMetrics(data) {
+            // Update metric cards
+            document.getElementById('currentTps').textContent = data.tps?.toLocaleString() || '0';
+            document.getElementById('totalTx').textContent = data.totalTransactions?.toLocaleString() || '0';
+            document.getElementById('avgLatency').textContent = data.latency?.toFixed(2) || '0';
+            document.getElementById('successRate').textContent = data.successRate?.toFixed(1) || '100';
+
+            // Update chart
+            if (throughputChart.data.labels.length > 30) {
+                throughputChart.data.labels.shift();
+                throughputChart.data.datasets[0].data.shift();
+            }
+            
+            throughputChart.data.labels.push(new Date().toLocaleTimeString());
+            throughputChart.data.datasets[0].data.push(data.tps || 0);
+            throughputChart.update('none');
+
+            // Animate active nodes
+            if (data.activeNodes) {
+                const nodes = document.querySelectorAll('.node');
+                nodes.forEach((node, index) => {
+                    if (index < data.activeNodes) {
+                        node.classList.add('active');
+                    } else {
+                        node.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+        // Start test
+        startBtn.addEventListener('click', () => {
+            isRunning = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            statusIndicator.classList.add('running');
+            statusText.textContent = 'Test running...';
+
+            const config = {
+                channel: document.getElementById('channel').value,
+                validators: parseInt(validatorSlider.value),
+                businessNodes: parseInt(businessNodeSlider.value),
+                targetTps: parseInt(document.getElementById('tps').value),
+                batchSize: parseInt(document.getElementById('batchSize').value),
+                consensusType: document.getElementById('consensusType').value
+            };
+
+            addLog(`Starting test with ${config.validators} validators and ${config.businessNodes} business nodes`);
+            addLog(`Target TPS: ${config.targetTps.toLocaleString()}, Batch size: ${config.batchSize}`);
+            
+            // Connect WebSocket if not connected
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                connectWebSocket();
+            }
+
+            // Send configuration to server
+            setTimeout(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'start', config }));
+                }
+            }, 1000);
+        });
+
+        // Stop test
+        stopBtn.addEventListener('click', () => {
+            isRunning = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            statusIndicator.classList.remove('running');
+            statusText.textContent = 'Test stopped';
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'stop' }));
+                ws.close();
+            }
+
+            addLog('Test stopped by user');
+        });
+
+        // Initialize
+        updateNodeVisualization();
+    </script>
+</body>
+</html>

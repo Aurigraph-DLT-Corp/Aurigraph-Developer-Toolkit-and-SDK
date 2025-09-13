@@ -341,6 +341,18 @@ public class MyGrpcService implements MyService {
 - **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
 - **Branch Strategy**: `feature/aurigraph-v11-*` for V11 migration work
 
+#### JIRA API Configuration
+- **JIRA API Token**: `ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C`
+- **JIRA Base URL**: `https://aurigraphdlt.atlassian.net`
+- **Project Key**: `AV11`
+
+**Usage in Scripts:**
+```bash
+export JIRA_API_TOKEN="ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C"
+export JIRA_BASE_URL="https://aurigraphdlt.atlassian.net"
+export JIRA_PROJECT_KEY="AV11"
+```
+
 #### Build & Deploy Scripts for HMS
 Use these scripts to build and deploy HMS in future:
 

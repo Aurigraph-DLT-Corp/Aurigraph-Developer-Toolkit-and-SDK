@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aurigraph DLT - Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status-box {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #gray;
+        }
+        .connected { background: #10b981; }
+        .disconnected { background: #ef4444; }
+        .connecting { background: #f59e0b; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .metric-label {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        #log {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Aurigraph DLT V11 - Connection Test</h1>
+        
+        <div class="status-box">
+            <h3>Connection Status</h3>
+            <div class="status-item">
+                <span>FastAPI Server (Port 3088)</span>
+                <div class="status-indicator" id="api-status"></div>
+            </div>
+            <div class="status-item">
+                <span>WebSocket Connection</span>
+                <div class="status-indicator" id="ws-status"></div>
+            </div>
+            <div class="status-item">
+                <span>Dashboard (Port 8050)</span>
+                <div class="status-indicator" id="dash-status"></div>
+            </div>
+        </div>
+
+        <div class="metrics" id="metrics">
+            <div class="metric-card">
+                <div class="metric-value" id="tps">0</div>
+                <div class="metric-label">TPS</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="transactions">0</div>
+                <div class="metric-label">Transactions</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="latency">0</div>
+                <div class="metric-label">Latency (ms)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="blocks">0</div>
+                <div class="metric-label">Block Height</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="testAPI()">Test API</button>
+            <button class="btn-primary" onclick="connectWebSocket()">Connect WebSocket</button>
+            <button class="btn-success" onclick="startSimulation()">Start Simulation</button>
+            <button class="btn-danger" onclick="stopSimulation()">Stop Simulation</button>
+        </div>
+
+        <div>
+            <h3>Connection Log</h3>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        const API_URL = 'http://localhost:3088';
+        const WS_URL = 'ws://localhost:3088/ws';
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function setStatus(elementId, status) {
+            const element = document.getElementById(elementId);
+            element.className = 'status-indicator ' + status;
+        }
+
+        // Test API connection
+        async function testAPI() {
+            setStatus('api-status', 'connecting');
+            log('Testing API connection...');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/status`);
+                const data = await response.json();
+                setStatus('api-status', 'connected');
+                log(`✅ API Connected - Running: ${data.is_running}`);
+                
+                // Update metrics
+                if (data.metrics) {
+                    updateMetrics(data.metrics);
+                }
+            } catch (error) {
+                setStatus('api-status', 'disconnected');
+                log(`❌ API Error: ${error.message}`);
+            }
+        }
+
+        // Test Dashboard connection
+        async function testDashboard() {
+            setStatus('dash-status', 'connecting');
+            
+            try {
+                const response = await fetch('http://localhost:8050', { mode: 'no-cors' });
+                setStatus('dash-status', 'connected');
+                log('✅ Dashboard is accessible');
+            } catch (error) {
+                setStatus('dash-status', 'disconnected');
+                log(`⚠️ Dashboard may not be running`);
+            }
+        }
+
+        // Connect WebSocket
+        function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('WebSocket already connected');
+                return;
+            }
+
+            setStatus('ws-status', 'connecting');
+            log('Connecting to WebSocket...');
+
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                setStatus('ws-status', 'connected');
+                log('✅ WebSocket Connected');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === 'metrics') {
+                        updateMetrics(data);
+                    } else if (data.type === 'connected') {
+                        log('✅ Received initial state from server');
+                    }
+                } catch (error) {
+                    log(`Error parsing message: ${error.message}`);
+                }
+            };
+
+            ws.onerror = (error) => {
+                setStatus('ws-status', 'disconnected');
+                log(`❌ WebSocket Error: ${error.message || 'Connection failed'}`);
+            };
+
+            ws.onclose = () => {
+                setStatus('ws-status', 'disconnected');
+                log('WebSocket disconnected');
+            };
+        }
+
+        // Update metrics display
+        function updateMetrics(metrics) {
+            document.getElementById('tps').textContent = Math.round(metrics.tps || 0).toLocaleString();
+            document.getElementById('transactions').textContent = (metrics.totalTransactions || metrics.total_transactions || 0).toLocaleString();
+            document.getElementById('latency').textContent = (metrics.latency || 0).toFixed(2);
+            document.getElementById('blocks').textContent = metrics.blockHeight || metrics.block_height || 0;
+        }
+
+        // Start simulation
+        async function startSimulation() {
+            log('Starting simulation...');
+            
+            const config = {
+                channel: "test-channel",
+                validators: 4,
+                businessNodes: 10,
+                targetTps: 100000,
+                batchSize: 1000,
+                consensusType: "hyperraft"
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Simulation started: ${data.message}`);
+                    
+                    // Send start message via WebSocket if connected
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: 'start', config }));
+                    }
+                } else {
+                    log(`⚠️ ${data.detail || data.message}`);
+                }
+            } catch (error) {
+                log(`❌ Failed to start: ${error.message}`);
+            }
+        }
+
+        // Stop simulation
+        async function stopSimulation() {
+            log('Stopping simulation...');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/stop`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Simulation stopped: ${data.message}`);
+                    
+                    // Send stop message via WebSocket if connected
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: 'stop' }));
+                    }
+                } else {
+                    log(`⚠️ ${data.detail || data.message}`);
+                }
+            } catch (error) {
+                log(`❌ Failed to stop: ${error.message}`);
+            }
+        }
+
+        // Auto-test on load
+        window.onload = () => {
+            log('Initializing connection tests...');
+            testAPI();
+            testDashboard();
+            
+            // Auto-connect WebSocket after 1 second
+            setTimeout(() => {
+                connectWebSocket();
+            }, 1000);
+
+            // Poll API status every 5 seconds
+            setInterval(() => {
+                testAPI();
+            }, 5000);
+        };
+    </script>
+</body>
+</html>

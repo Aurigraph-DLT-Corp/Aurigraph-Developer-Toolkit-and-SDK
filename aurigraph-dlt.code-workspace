@@ -1,0 +1,313 @@
+{
+  "folders": [
+    {
+      "name": "🌌 Aurigraph-DLT Root",
+      "path": "."
+    },
+    {
+      "name": "🚀 AV10-7 Quantum Nexus",
+      "path": "./aurigraph-av10-7"
+    },
+    {
+      "name": "🎨 AV10-7 UI Dashboard",
+      "path": "./aurigraph-av10-7/ui"
+    },
+    {
+      "name": "⚡ Aurigraph V9",
+      "path": "./aurigraph-v9"
+    },
+    {
+      "name": "📋 RWAT Documentation",
+      "path": ".",
+      "settings": {
+        "files.include": {
+          "RWAT-*.md": true,
+          "*.md": true
+        }
+      }
+    }
+  ],
+  "settings": {
+    "typescript.preferences.includePackageJsonAutoImports": "auto",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/coverage": true,
+      "**/.git": true,
+      "**/logs": true,
+      "**/data": true
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/build/**": true,
+      "**/coverage/**": true,
+      "**/logs/**": true,
+      "**/data/**": true
+    },
+    "eslint.workingDirectories": [
+      "aurigraph-av10-7",
+      "aurigraph-av10-7/ui",
+      "aurigraph-v9"
+    ],
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "git.ignoreLimitWarning": true,
+    "terminal.integrated.env.osx": {
+      "NODE_ENV": "development"
+    },
+    "terminal.integrated.env.linux": {
+      "NODE_ENV": "development"
+    },
+    "debug.allowBreakpointsEverywhere": true,
+    "debug.inlineValues": "auto",
+    "debug.showBreakpointsInOverviewRuler": true,
+    "emmet.includeLanguages": {
+      "typescript": "html",
+      "typescriptreact": "html"
+    },
+    "markdown.preview.fontSize": 14,
+    "markdown.preview.lineHeight": 1.6,
+    "json.schemas": [
+      {
+        "fileMatch": ["**/package.json"],
+        "url": "https://json.schemastore.org/package.json"
+      },
+      {
+        "fileMatch": ["**/tsconfig.json", "**/tsconfig.*.json"],
+        "url": "https://json.schemastore.org/tsconfig.json"
+      },
+      {
+        "fileMatch": ["**/.eslintrc.json", "**/.eslintrc"],
+        "url": "https://json.schemastore.org/eslintrc.json"
+      }
+    ],
+    "files.associations": {
+      "*.env.*": "dotenv",
+      "Dockerfile.*": "dockerfile",
+      "docker-compose.*.yml": "dockercompose",
+      "*.sol": "solidity"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-json",
+      "redhat.vscode-yaml",
+      "ms-vscode.vscode-docker",
+      "ms-vscode.vscode-docker-compose",
+      "ms-dotnettools.vscode-dotnet-runtime",
+      "juanblanco.solidity",
+      "tintinweb.solidity-visual-auditor",
+      "ms-vscode.vscode-github-pullrequest",
+      "eamodio.gitlens",
+      "ms-vscode.vscode-github-issue-notebooks",
+      "github.copilot",
+      "github.copilot-chat",
+      "ms-vscode.vscode-jest",
+      "orta.vscode-jest",
+      "ms-vscode.test-adapter-converter",
+      "hbenl.vscode-test-explorer",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense",
+      "visualstudioexptteam.vscodeintellicode",
+      "ms-vscode.vscode-markdown",
+      "yzhang.markdown-all-in-one",
+      "davidanson.vscode-markdownlint",
+      "ms-vscode.vscode-env-file",
+      "mikestead.dotenv",
+      "ms-vscode.vscode-thunder-client",
+      "humao.rest-client",
+      "ms-vscode.vscode-npm-script",
+      "christian-kohler.npm-intellisense"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🚀 Debug AV10-7 Quantum Nexus",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/aurigraph-av10-7/src/index.ts",
+        "cwd": "${workspaceFolder}/aurigraph-av10-7",
+        "runtimeArgs": ["-r", "ts-node/register"],
+        "env": {
+          "NODE_ENV": "development",
+          "DEBUG": "aurigraph:*"
+        },
+        "console": "integratedTerminal",
+        "restart": true,
+        "protocol": "inspector",
+        "sourceMaps": true,
+        "outFiles": ["${workspaceFolder}/aurigraph-av10-7/dist/**/*.js"]
+      },
+      {
+        "name": "🎨 Debug UI Development Server",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/aurigraph-av10-7/ui/node_modules/.bin/next",
+        "args": ["dev", "-p", "3000"],
+        "cwd": "${workspaceFolder}/aurigraph-av10-7/ui",
+        "env": {
+          "NODE_ENV": "development"
+        },
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "🧪 Debug Jest Tests",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/aurigraph-av10-7/node_modules/.bin/jest",
+        "args": ["--runInBand", "--no-cache"],
+        "cwd": "${workspaceFolder}/aurigraph-av10-7",
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      },
+      {
+        "name": "🔧 Debug Hardhat Script",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/aurigraph-av10-7/node_modules/.bin/hardhat",
+        "args": ["run", "${input:scriptPath}"],
+        "cwd": "${workspaceFolder}/aurigraph-av10-7",
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "⚡ Debug V9 Node",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/aurigraph-v9/src/index.ts",
+        "cwd": "${workspaceFolder}/aurigraph-v9",
+        "runtimeArgs": ["-r", "ts-node/register"],
+        "env": {
+          "NODE_ENV": "development"
+        },
+        "console": "integratedTerminal"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "scriptPath",
+        "description": "Path to Hardhat script",
+        "default": "scripts/deploy.ts",
+        "type": "promptString"
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🚀 Start AV10-7 Development",
+        "type": "shell",
+        "command": "npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}/aurigraph-av10-7"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new",
+          "showReuseMessage": true,
+          "clear": false
+        },
+        "problemMatcher": ["$tsc"]
+      },
+      {
+        "label": "🎨 Start UI Development",
+        "type": "shell",
+        "command": "npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}/aurigraph-av10-7/ui"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        }
+      },
+      {
+        "label": "🧪 Run All Tests",
+        "type": "shell",
+        "command": "npm run test",
+        "options": {
+          "cwd": "${workspaceFolder}/aurigraph-av10-7"
+        },
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        }
+      },
+      {
+        "label": "🔍 Lint All Code",
+        "type": "shell",
+        "command": "npm run lint",
+        "options": {
+          "cwd": "${workspaceFolder}/aurigraph-av10-7"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        }
+      },
+      {
+        "label": "🏗️ Build All Projects",
+        "type": "shell",
+        "command": "npm run build",
+        "options": {
+          "cwd": "${workspaceFolder}/aurigraph-av10-7"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        }
+      },
+      {
+        "label": "🐳 Start Docker Services",
+        "type": "shell",
+        "command": "docker-compose -f docker-compose.av10-7.yml up -d",
+        "options": {
+          "cwd": "${workspaceFolder}/aurigraph-av10-7"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        }
+      }
+    ]
+  }
+}
