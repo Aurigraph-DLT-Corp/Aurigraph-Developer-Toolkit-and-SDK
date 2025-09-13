@@ -1,0 +1,204 @@
+name: JIRA Integration - Main Workflow
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened]
+  issue_comment:
+    types: [created]
+  push:
+    branches: [ main, develop, 'feature/**', 'hotfix/**' ]
+  pull_request:
+    types: [opened, edited, closed, synchronize, reopened]
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+  JIRA_EMAIL: subbu@aurigraph.io
+
+jobs:
+  jira-sync:
+    name: Sync with JIRA AV11
+    runs-on: ubuntu-latest
+    if: github.repository == 'Aurigraph-DLT-Corp/Aurigraph-DLT'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Login to JIRA
+      uses: atlassian/gajira-login@v3
+      env:
+        JIRA_BASE_URL: ${{ env.JIRA_BASE_URL }}
+        JIRA_USER_EMAIL: ${{ env.JIRA_EMAIL }}
+        JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+    # Handle GitHub Issues -> JIRA Issues
+    - name: Create JIRA Issue from GitHub Issue
+      if: github.event_name == 'issues' && github.event.action == 'opened'
+      uses: atlassian/gajira-create@v3
+      with:
+        project: ${{ env.JIRA_PROJECT_KEY }}
+        issuetype: Task
+        summary: "[GitHub] ${{ github.event.issue.title }}"
+        description: |
+          **GitHub Issue**: ${{ github.event.issue.html_url }}
+          **Created by**: ${{ github.event.issue.user.login }}
+          **Labels**: ${{ join(github.event.issue.labels.*.name, ', ') }}
+          
+          **Description**:
+          ${{ github.event.issue.body }}
+          
+          ---
+          *Auto-created from GitHub Issue #${{ github.event.issue.number }}*
+        fields: |
+          {
+            "labels": ["github-sync", "auto-created"],
+            "priority": {"name": "Medium"},
+            "components": [{"name": "Platform"}]
+          }
+
+    # Handle Commit Messages with JIRA References
+    - name: Extract JIRA Issues from Commits
+      if: github.event_name == 'push'
+      id: extract-issues
+      run: |
+        echo "Extracting JIRA issue references from commits..."
+        
+        # Get commit messages from the push
+        COMMITS=$(git log --pretty=format:"%H|%s|%an|%ae" ${{ github.event.before }}..${{ github.event.after }})
+        
+        # Extract AV11-XXX patterns
+        JIRA_ISSUES=$(echo "$COMMITS" | grep -oE 'AV11-[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')
+        
+        echo "Found JIRA issues: $JIRA_ISSUES"
+        echo "jira_issues=$JIRA_ISSUES" >> $GITHUB_OUTPUT
+        
+        # Prepare commit details for JIRA comments
+        echo "$COMMITS" > /tmp/commit_details.txt
+        echo "commit_details<<EOF" >> $GITHUB_OUTPUT
+        cat /tmp/commit_details.txt >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Update JIRA Issues with Commit Info
+      if: github.event_name == 'push' && steps.extract-issues.outputs.jira_issues != ''
+      run: |
+        IFS=',' read -ra ISSUES <<< "${{ steps.extract-issues.outputs.jira_issues }}"
+        
+        for issue in "${ISSUES[@]}"; do
+          if [ ! -z "$issue" ]; then
+            echo "Updating JIRA issue: $issue"
+            
+            # Create comment with commit information
+            COMMENT_BODY="🔄 **GitHub Commit Update**
+        
+        **Repository**: ${{ github.repository }}
+        **Branch**: ${{ github.ref_name }}
+        **Commit**: [${{ github.sha }}](${{ github.event.head_commit.url }})
+        **Author**: ${{ github.event.head_commit.author.name }}
+        **Message**: ${{ github.event.head_commit.message }}
+        
+        **Files Changed**: ${{ github.event.head_commit.modified }} modified, ${{ github.event.head_commit.added }} added, ${{ github.event.head_commit.removed }} removed
+        
+        ---
+        *Auto-updated from GitHub Actions*"
+            
+            # Add comment to JIRA issue
+            curl -X POST \
+              -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"body\": \"$COMMENT_BODY\"
+              }" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/comment"
+          fi
+        done
+
+    # Handle Pull Request Events
+    - name: Update JIRA on PR Events
+      if: github.event_name == 'pull_request'
+      run: |
+        # Extract JIRA issues from PR title and description
+        PR_TEXT="${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}"
+        JIRA_ISSUES=$(echo "$PR_TEXT" | grep -oE 'AV11-[0-9]+' | sort -u)
+        
+        if [ ! -z "$JIRA_ISSUES" ]; then
+          for issue in $JIRA_ISSUES; do
+            echo "Updating JIRA issue $issue for PR event: ${{ github.event.action }}"
+            
+            # Determine transition based on PR action
+            case "${{ github.event.action }}" in
+              "opened")
+                STATUS_UPDATE="In Review"
+                COMMENT="🔍 **Pull Request Opened**\n\n**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})\n**Author**: ${{ github.event.pull_request.user.login }}\n**Branch**: ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}"
+                ;;
+              "closed")
+                if [ "${{ github.event.pull_request.merged }}" == "true" ]; then
+                  STATUS_UPDATE="Done"
+                  COMMENT="✅ **Pull Request Merged**\n\n**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})\n**Merged by**: ${{ github.event.pull_request.merged_by.login }}\n**Merge commit**: ${{ github.event.pull_request.merge_commit_sha }}"
+                else
+                  STATUS_UPDATE="To Do"
+                  COMMENT="❌ **Pull Request Closed**\n\n**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})\n**Closed by**: ${{ github.actor }}"
+                fi
+                ;;
+              "reopened")
+                STATUS_UPDATE="In Progress"
+                COMMENT="🔄 **Pull Request Reopened**\n\n**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})\n**Reopened by**: ${{ github.actor }}"
+                ;;
+            esac
+            
+            # Add comment to JIRA
+            curl -X POST \
+              -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"body\": \"$COMMENT\"
+              }" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/comment"
+          done
+        fi
+
+    # Handle GitHub Issue Events
+    - name: Update JIRA on GitHub Issue Events
+      if: github.event_name == 'issues'
+      run: |
+        # Look for existing JIRA issues linked to this GitHub issue
+        ISSUE_BODY="${{ github.event.issue.body }}"
+        JIRA_ISSUES=$(echo "$ISSUE_BODY" | grep -oE 'AV11-[0-9]+' | sort -u)
+        
+        if [ ! -z "$JIRA_ISSUES" ]; then
+          for issue in $JIRA_ISSUES; do
+            echo "Updating JIRA issue $issue for GitHub issue event: ${{ github.event.action }}"
+            
+            COMMENT="🐛 **GitHub Issue Update**\n\n**Issue**: [${{ github.event.issue.title }}](${{ github.event.issue.html_url }})\n**Action**: ${{ github.event.action }}\n**Author**: ${{ github.event.issue.user.login }}\n**State**: ${{ github.event.issue.state }}"
+            
+            # Add comment to JIRA
+            curl -X POST \
+              -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"body\": \"$COMMENT\"
+              }" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/comment"
+          done
+        fi
+
+    - name: Workflow Summary
+      if: always()
+      run: |
+        echo "## 🎯 JIRA Integration Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Action**: ${{ github.event.action }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**JIRA Project**: ${{ env.JIRA_PROJECT_KEY }}" >> $GITHUB_STEP_SUMMARY
+        echo "**JIRA URL**: ${{ env.JIRA_BASE_URL }}/projects/${{ env.JIRA_PROJECT_KEY }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ JIRA integration completed successfully!" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,289 @@
+name: JIRA Pull Request Workflow
+
+on:
+  pull_request:
+    types: [opened, edited, closed, reopened, synchronize, ready_for_review, converted_to_draft]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+  JIRA_EMAIL: subbu@aurigraph.io
+
+jobs:
+  jira-pr-sync:
+    name: Sync PR with JIRA
+    runs-on: ubuntu-latest
+    if: github.repository == 'Aurigraph-DLT-Corp/Aurigraph-DLT'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Extract JIRA Issues from PR
+      id: extract-issues
+      run: |
+        echo "Extracting JIRA issues from PR..."
+        
+        # Extract from PR title and body
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        PR_BODY="${{ github.event.pull_request.body }}"
+        PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+        
+        # Combine all text sources
+        ALL_TEXT="$PR_TITLE $PR_BODY $PR_BRANCH"
+        
+        # Extract AV11-XXX patterns
+        JIRA_ISSUES=$(echo "$ALL_TEXT" | grep -oE 'AV11-[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')
+        
+        echo "Found JIRA issues: $JIRA_ISSUES"
+        echo "jira_issues=$JIRA_ISSUES" >> $GITHUB_OUTPUT
+        
+        # Count issues
+        if [ ! -z "$JIRA_ISSUES" ]; then
+          ISSUE_COUNT=$(echo "$JIRA_ISSUES" | tr ',' '\n' | wc -l)
+        else
+          ISSUE_COUNT=0
+        fi
+        echo "issue_count=$ISSUE_COUNT" >> $GITHUB_OUTPUT
+
+    - name: Update JIRA Issues - PR Opened
+      if: github.event.action == 'opened' && steps.extract-issues.outputs.issue_count > 0
+      run: |
+        echo "Processing PR opened event..."
+        IFS=',' read -ra ISSUES <<< "${{ steps.extract-issues.outputs.jira_issues }}"
+        
+        for issue in "${ISSUES[@]}"; do
+          if [ ! -z "$issue" ]; then
+            echo "Updating JIRA issue $issue for PR opened"
+            
+            # Create detailed comment
+            COMMENT_BODY="🔍 **Pull Request Opened**
+
+**PR Title**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
+**Author**: ${{ github.event.pull_request.user.login }}
+**Branch**: \`${{ github.event.pull_request.head.ref }}\` → \`${{ github.event.pull_request.base.ref }}\`
+**Status**: ${{ github.event.pull_request.state }}
+**Draft**: ${{ github.event.pull_request.draft }}
+
+**Description**:
+${{ github.event.pull_request.body }}
+
+**Files Changed**: ${{ github.event.pull_request.changed_files }}
+**Additions**: +${{ github.event.pull_request.additions }}
+**Deletions**: -${{ github.event.pull_request.deletions }}
+
+---
+*Auto-updated from GitHub Actions*"
+            
+            # Add comment to JIRA
+            curl -X POST \
+              -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"body\": \"$COMMENT_BODY\"
+              }" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/comment"
+            
+            # Transition to "In Review" if not draft
+            if [ "${{ github.event.pull_request.draft }}" != "true" ]; then
+              echo "Transitioning $issue to In Review"
+              
+              # Get available transitions
+              TRANSITIONS=$(curl -s \
+                -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+                "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/transitions")
+              
+              # Find "In Review" transition
+              TRANSITION_ID=$(echo "$TRANSITIONS" | grep -A 5 '"name":"In Review"' | grep '"id"' | cut -d'"' -f4 | head -1)
+              
+              if [ ! -z "$TRANSITION_ID" ]; then
+                curl -X POST \
+                  -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+                  -H "Content-Type: application/json" \
+                  -d "{
+                    \"transition\": {\"id\": \"$TRANSITION_ID\"}
+                  }" \
+                  "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/transitions"
+              fi
+            fi
+          fi
+        done
+
+    - name: Update JIRA Issues - PR Merged
+      if: github.event.action == 'closed' && github.event.pull_request.merged == true && steps.extract-issues.outputs.issue_count > 0
+      run: |
+        echo "Processing PR merged event..."
+        IFS=',' read -ra ISSUES <<< "${{ steps.extract-issues.outputs.jira_issues }}"
+        
+        for issue in "${ISSUES[@]}"; do
+          if [ ! -z "$issue" ]; then
+            echo "Updating JIRA issue $issue for PR merged"
+            
+            COMMENT_BODY="✅ **Pull Request Merged Successfully**
+
+**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
+**Merged by**: ${{ github.event.pull_request.merged_by.login }}
+**Merge commit**: [\`${{ github.event.pull_request.merge_commit_sha }}\`](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.merge_commit_sha }})
+**Target branch**: \`${{ github.event.pull_request.base.ref }}\`
+
+**Final Statistics**:
+- 📁 Files changed: ${{ github.event.pull_request.changed_files }}
+- ➕ Additions: ${{ github.event.pull_request.additions }}
+- ➖ Deletions: ${{ github.event.pull_request.deletions }}
+- 💬 Comments: ${{ github.event.pull_request.comments }}
+- 🔍 Review comments: ${{ github.event.pull_request.review_comments }}
+
+---
+*Code successfully integrated into ${{ github.event.pull_request.base.ref }} branch*"
+            
+            # Add comment
+            curl -X POST \
+              -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"body\": \"$COMMENT_BODY\"
+              }" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/comment"
+            
+            # Transition to "Done" if merged to main/master
+            if [[ "${{ github.event.pull_request.base.ref }}" == "main" || "${{ github.event.pull_request.base.ref }}" == "master" ]]; then
+              echo "Transitioning $issue to Done (merged to main)"
+              
+              TRANSITIONS=$(curl -s \
+                -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+                "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/transitions")
+              
+              TRANSITION_ID=$(echo "$TRANSITIONS" | grep -A 5 '"name":"Done"' | grep '"id"' | cut -d'"' -f4 | head -1)
+              
+              if [ ! -z "$TRANSITION_ID" ]; then
+                curl -X POST \
+                  -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+                  -H "Content-Type: application/json" \
+                  -d "{
+                    \"transition\": {\"id\": \"$TRANSITION_ID\"},
+                    \"update\": {
+                      \"comment\": [{
+                        \"add\": {
+                          \"body\": \"🎉 Issue completed - code merged to main branch!\"
+                        }
+                      }]
+                    }
+                  }" \
+                  "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/transitions"
+              fi
+            fi
+          fi
+        done
+
+    - name: Update JIRA Issues - PR Closed (Not Merged)
+      if: github.event.action == 'closed' && github.event.pull_request.merged == false && steps.extract-issues.outputs.issue_count > 0
+      run: |
+        echo "Processing PR closed (not merged) event..."
+        IFS=',' read -ra ISSUES <<< "${{ steps.extract-issues.outputs.jira_issues }}"
+        
+        for issue in "${ISSUES[@]}"; do
+          if [ ! -z "$issue" ]; then
+            echo "Updating JIRA issue $issue for PR closed without merge"
+            
+            COMMENT_BODY="❌ **Pull Request Closed Without Merge**
+
+**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
+**Closed by**: ${{ github.actor }}
+**Reason**: Pull request was closed without merging
+
+**Note**: This may require additional work or a new approach.
+
+---
+*PR closed - issue may need to be reopened or reassigned*"
+            
+            curl -X POST \
+              -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"body\": \"$COMMENT_BODY\"
+              }" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/comment"
+          fi
+        done
+
+    - name: Update JIRA Issues - PR Review Events
+      if: github.event_name == 'pull_request_review' && steps.extract-issues.outputs.issue_count > 0
+      run: |
+        echo "Processing PR review event..."
+        IFS=',' read -ra ISSUES <<< "${{ steps.extract-issues.outputs.jira_issues }}"
+        
+        # Determine review status emoji and message
+        case "${{ github.event.review.state }}" in
+          "approved")
+            EMOJI="✅"
+            STATUS="Approved"
+            ;;
+          "changes_requested")
+            EMOJI="🔄"
+            STATUS="Changes Requested"
+            ;;
+          "commented")
+            EMOJI="💬"
+            STATUS="Commented"
+            ;;
+          *)
+            EMOJI="🔍"
+            STATUS="${{ github.event.review.state }}"
+            ;;
+        esac
+        
+        for issue in "${ISSUES[@]}"; do
+          if [ ! -z "$issue" ]; then
+            echo "Updating JIRA issue $issue for PR review"
+            
+            COMMENT_BODY="$EMOJI **Pull Request Review: $STATUS**
+
+**Reviewer**: ${{ github.event.review.user.login }}
+**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
+**Review**: [View Review](${{ github.event.review.html_url }})
+
+**Review Comment**:
+${{ github.event.review.body }}
+
+---
+*Review submitted via GitHub*"
+            
+            curl -X POST \
+              -H "Authorization: Basic $(echo -n '${{ env.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"body\": \"$COMMENT_BODY\"
+              }" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$issue/comment"
+          fi
+        done
+
+    - name: Generate PR Summary
+      if: always()
+      run: |
+        echo "## 🔄 JIRA PR Workflow Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Action**: ${{ github.event.action }}" >> $GITHUB_STEP_SUMMARY
+        echo "**PR**: [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})" >> $GITHUB_STEP_SUMMARY
+        echo "**Author**: ${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch**: \`${{ github.event.pull_request.head.ref }}\` → \`${{ github.event.pull_request.base.ref }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**JIRA Issues Found**: ${{ steps.extract-issues.outputs.issue_count }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.extract-issues.outputs.issue_count }}" -gt 0 ]; then
+          echo "### 🎯 Updated JIRA Issues" >> $GITHUB_STEP_SUMMARY
+          IFS=',' read -ra ISSUES <<< "${{ steps.extract-issues.outputs.jira_issues }}"
+          for issue in "${ISSUES[@]}"; do
+            if [ ! -z "$issue" ]; then
+              echo "- [$issue](${{ env.JIRA_BASE_URL }}/browse/$issue)" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🔗 **JIRA Board**: [${{ env.JIRA_PROJECT_KEY }}](${{ env.JIRA_BASE_URL }}/projects/${{ env.JIRA_PROJECT_KEY }})" >> $GITHUB_STEP_SUMMARY
