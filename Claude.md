@@ -375,3 +375,18 @@ Use these scripts to build and deploy HMS in future:
 - **Local Testing**: `./performance-benchmark.sh` (comprehensive)
 - **Load Testing**: `./run-performance-tests.sh` (JMeter integration)
 - **Target Metrics**: 2M+ TPS, <1s startup, <256MB memory
+- memorize remote server for Aurigraph DLT :#AURDLT
+   Domain Name: dlt.aurigraph.io
+   SSH:-  ssh -p2235 subbu@dlt.aurigraph.io
+   UID: subbu
+   pwd: subbuFuture@2025
+
+--- System Info ---
+System OS: Linux
+OS Version: Ubuntu 24.04.3 LTS
+RAM: 49Gi
+VCPU: 16
+CPU Model: Intel Xeon Processor (Skylake, IBRS) pc-i440fx-8.2 CPU @ 2.0GHz
+Total Disk Space: 133G
+--- Docker Info ---
+Installed Docker Version: 28.4.0
