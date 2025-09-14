@@ -283,7 +283,7 @@ public class AssetDigitalTwin {
         if (oldValue.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
-        return newValue.subtract(oldValue).divide(oldValue, 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100));
+        return newValue.subtract(oldValue).divide(oldValue, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100));
     }
     
     private Map<String, Long> calculateOwnershipDurations() {
@@ -321,7 +321,7 @@ public class AssetDigitalTwin {
             count++;
         }
         
-        return sum.divide(new BigDecimal(count), 2, BigDecimal.ROUND_HALF_UP);
+        return sum.divide(new BigDecimal(count), 2, java.math.RoundingMode.HALF_UP);
     }
     
     private BigDecimal getMaxValue() {

@@ -1,6 +1,7 @@
 package io.aurigraph.v11.contracts;
 
 import io.aurigraph.v11.crypto.QuantumCryptoService;
+import io.aurigraph.v11.contracts.models.*;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.Multi;

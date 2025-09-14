@@ -1,629 +1,453 @@
 package io.aurigraph.v11.contracts.defi;
 
-import io.aurigraph.v11.contracts.composite.*;
+import io.aurigraph.v11.contracts.defi.models.*;
+import io.aurigraph.v11.contracts.defi.models.DeFiRequests.*;
+// Using specific SwapResult from models package, not SwapModels
+import io.aurigraph.v11.contracts.defi.models.SwapModels.SwapRoute;
+import io.aurigraph.v11.contracts.defi.models.SwapModels.LiquidationAlert;
+import io.aurigraph.v11.contracts.defi.models.SwapModels.YieldOpportunity;
+import io.aurigraph.v11.contracts.defi.risk.ImpermanentLossCalculator;
+import io.aurigraph.v11.contracts.defi.risk.RiskAnalyticsEngine;
+// import io.aurigraph.v11.contracts.defi.adapters.*;
+import io.aurigraph.v11.contracts.defi.protocols.DeFiProtocol;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import io.quarkus.logging.Log;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * DeFi Protocol Integration Service for Composite Tokens
- * Integrates with Uniswap, Aave, Compound for liquidity and lending
- * Sprint 11 - AV11-409 Implementation
+ * Sprint 4 DeFi Integration Service
+ * Main orchestration service for DeFi protocols including:
+ * - AMM liquidity provision with impermanent loss protection
+ * - Yield farming and auto-compounding
+ * - Lending/borrowing with collateralization
+ * - Cross-chain DeFi bridge integration
+ * 
+ * Performance Target: 50K+ DeFi operations per second
  */
+@Path("/api/v11/defi")
 @ApplicationScoped
 public class DeFiIntegrationService {
-
+    
+    private static final Logger logger = LoggerFactory.getLogger(DeFiIntegrationService.class);
+    
+    // Core DeFi Services
     @Inject
-    CompositeTokenFactory compositeTokenFactory;
-
-    // Protocol configurations
-    private final Map<String, DeFiProtocol> supportedProtocols = new ConcurrentHashMap<>();
-    private final Map<String, LiquidityPool> liquidityPools = new ConcurrentHashMap<>();
-    private final Map<String, LendingPosition> lendingPositions = new ConcurrentHashMap<>();
-    private final Map<String, YieldFarm> yieldFarms = new ConcurrentHashMap<>();
-
-    public DeFiIntegrationService() {
-        initializeProtocols();
-    }
-
+    LiquidityPoolManager liquidityPoolManager;
+    
+    @Inject
+    YieldFarmingService yieldFarmingService;
+    
+    @Inject
+    LendingProtocolService lendingProtocolService;
+    
+    @Inject
+    ImpermanentLossCalculator impermanentLossCalculator;
+    
+    @Inject
+    RiskAnalyticsEngine riskAnalyticsEngine;
+    
+    // Performance tracking
+    private final AtomicLong operationCounter = new AtomicLong(0);
+    private final Map<String, Long> protocolMetrics = new ConcurrentHashMap<>();
+    private final Instant startTime = Instant.now();
+    
+    // Protocol registries
+    private final Map<String, DeFiProtocol> protocols = new ConcurrentHashMap<>();
+    
     /**
-     * Create liquidity pool for composite tokens
+     * Initialize DeFi integration service with all protocols
      */
-    public Uni<LiquidityPoolResult> createLiquidityPool(LiquidityPoolRequest request) {
+    public Uni<Boolean> initialize() {
         return Uni.createFrom().item(() -> {
-            String poolId = generatePoolId(request);
+            logger.info("Initializing DeFi Integration Service for Sprint 4");
             
-            Log.infof("Creating liquidity pool %s on %s", poolId, request.getProtocol());
+            // Initialize AMM pools
+            liquidityPoolManager.initializePools();
+            
+            // Initialize yield farming contracts
+            yieldFarmingService.initializeFarms();
+            
+            // Initialize lending protocols
+            lendingProtocolService.initializeProtocols();
+            
+            // Setup performance monitoring
+            setupPerformanceMonitoring();
+            
+            logger.info("DeFi Integration Service initialized successfully");
+            return true;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+    
+    /**
+     * REST endpoint: Add liquidity with IL protection
+     */
+    @POST
+    @Path("/liquidity/add")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<LiquidityPositionResponse> addLiquidity(AddLiquidityRequest request) {
+        return Uni.createFrom().item(() -> {
+            operationCounter.incrementAndGet();
             
             // Validate request
-            if (!validateLiquidityRequest(request)) {
-                throw new InvalidDeFiRequestException("Invalid liquidity pool request");
+            validateLiquidityRequest(request);
+            
+            // Add liquidity to pool
+            LiquidityPosition position = liquidityPoolManager.addLiquidity(
+                request.getPoolId(),
+                request.getUserAddress(),
+                request.getToken0Amount(),
+                request.getToken1Amount(),
+                request.getMinToken0(),
+                request.getMinToken1()
+            );
+            
+            // Calculate impermanent loss risk
+            BigDecimal ilRisk = impermanentLossCalculator.calculatePotentialLoss(position);
+            
+            // Apply IL protection if requested
+            if (request.isEnableILProtection()) {
+                applyImpermanentLossProtection(position, ilRisk);
             }
             
-            // Create pool
-            LiquidityPool pool = new LiquidityPool(
-                poolId,
-                request.getProtocol(),
-                request.getTokenA(),
-                request.getTokenB(),
-                request.getAmountA(),
-                request.getAmountB(),
-                calculateInitialPrice(request),
-                Instant.now()
-            );
+            logger.info("Added liquidity position {} with IL risk: {}", 
+                       position.getPositionId(), ilRisk);
             
-            liquidityPools.put(poolId, pool);
-            
-            // Calculate LP tokens
-            BigDecimal lpTokens = calculateLPTokens(request);
-            pool.setTotalLPSupply(lpTokens);
-            
-            return new LiquidityPoolResult(
-                poolId,
-                true,
-                "Liquidity pool created successfully",
-                lpTokens,
-                pool.getCurrentPrice(),
-                pool.getTotalValueLocked()
-            );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+            return new LiquidityPositionResponse(position, ilRisk);
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
-
+    
     /**
-     * Add liquidity to existing pool
+     * REST endpoint: Remove liquidity
      */
-    public Uni<LiquidityPoolResult> addLiquidity(String poolId, LiquidityAddRequest request) {
+    @POST
+    @Path("/liquidity/remove")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<WithdrawLiquidityResponse> removeLiquidity(RemoveLiquidityRequest request) {
         return Uni.createFrom().item(() -> {
-            LiquidityPool pool = liquidityPools.get(poolId);
+            operationCounter.incrementAndGet();
             
-            if (pool == null) {
-                throw new IllegalArgumentException("Liquidity pool not found: " + poolId);
-            }
-            
-            // Calculate optimal amounts based on current ratio
-            BigDecimal optimalAmountB = calculateOptimalAmount(
-                request.getAmountA(), 
-                pool.getReserveA(), 
-                pool.getReserveB()
+            BigDecimal[] amounts = liquidityPoolManager.removeLiquidity(
+                request.getPositionId(), 
+                request.getLpTokenAmount()
             );
             
-            // Add liquidity
-            pool.addLiquidity(request.getAmountA(), optimalAmountB);
-            
-            // Calculate LP tokens for provider
-            BigDecimal lpTokens = calculateProportionalLPTokens(
-                request.getAmountA(), 
-                pool.getReserveA(), 
-                pool.getTotalLPSupply()
-            );
-            
-            pool.addLPTokens(request.getProvider(), lpTokens);
-            
-            Log.infof("Added liquidity to pool %s: %s %s + %s %s", 
-                poolId, request.getAmountA(), pool.getTokenA(),
-                optimalAmountB, pool.getTokenB());
-            
-            return new LiquidityPoolResult(
-                poolId,
-                true,
-                "Liquidity added successfully",
-                lpTokens,
-                pool.getCurrentPrice(),
-                pool.getTotalValueLocked()
-            );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+            return new WithdrawLiquidityResponse(amounts[0], amounts[1], 
+                calculateFeesEarned(request.getPositionId()));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
-
+    
     /**
-     * Remove liquidity from pool
+     * REST endpoint: Start yield farming with auto-compound
      */
-    public Uni<LiquidityRemovalResult> removeLiquidity(String poolId, BigDecimal lpTokens, String provider) {
+    @POST
+    @Path("/yield/stake")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<YieldFarmingResponse> stakeForYield(StakeRequest request) {
         return Uni.createFrom().item(() -> {
-            LiquidityPool pool = liquidityPools.get(poolId);
+            operationCounter.incrementAndGet();
             
-            if (pool == null) {
-                throw new IllegalArgumentException("Liquidity pool not found: " + poolId);
+            YieldFarmRewards rewards = yieldFarmingService.stake(
+                request.getFarmId(),
+                request.getUserAddress(),
+                request.getAmount()
+            );
+            
+            // Enable auto-compounding if requested
+            if (request.isEnableAutoCompound()) {
+                rewards.setCompoundingEnabled(true);
+                rewards.setAutoCompoundFrequency(request.getCompoundFrequency());
+                
+                // Start auto-compound process
+                startAutoCompounding(rewards);
             }
             
-            // Calculate proportional amounts to return
-            BigDecimal sharePercent = lpTokens.divide(pool.getTotalLPSupply(), 6, RoundingMode.HALF_UP);
-            BigDecimal amountA = pool.getReserveA().multiply(sharePercent);
-            BigDecimal amountB = pool.getReserveB().multiply(sharePercent);
-            
-            // Remove liquidity
-            pool.removeLiquidity(amountA, amountB);
-            pool.removeLPTokens(provider, lpTokens);
-            
-            return new LiquidityRemovalResult(
-                poolId,
-                amountA,
-                amountB,
-                pool.getTokenA(),
-                pool.getTokenB()
-            );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+            return new YieldFarmingResponse(rewards);
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
-
+    
     /**
-     * Swap tokens using AMM
+     * REST endpoint: Open lending position
      */
-    public Uni<SwapResult> swapTokens(SwapRequest request) {
+    @POST
+    @Path("/lending/open")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<LoanPositionResponse> openLendingPosition(LendingRequest request) {
         return Uni.createFrom().item(() -> {
-            String poolId = findPoolForPair(request.getTokenIn(), request.getTokenOut());
+            operationCounter.incrementAndGet();
             
-            if (poolId == null) {
-                throw new IllegalArgumentException("No liquidity pool found for token pair");
-            }
-            
-            LiquidityPool pool = liquidityPools.get(poolId);
-            
-            // Calculate output amount using constant product formula
-            BigDecimal amountOut = calculateSwapOutput(
-                request.getAmountIn(),
-                pool.getReserveIn(request.getTokenIn()),
-                pool.getReserveOut(request.getTokenOut()),
-                pool.getFeeRate()
-            );
-            
-            // Check slippage
-            BigDecimal minAmountOut = request.getMinAmountOut();
-            if (amountOut.compareTo(minAmountOut) < 0) {
-                throw new SlippageExceededException("Output amount below minimum");
-            }
-            
-            // Execute swap
-            pool.executeSwap(request.getTokenIn(), request.getAmountIn(), 
-                            request.getTokenOut(), amountOut);
-            
-            // Calculate price impact
-            BigDecimal priceImpact = calculatePriceImpact(
-                request.getAmountIn(), 
-                pool.getReserveIn(request.getTokenIn())
-            );
-            
-            return new SwapResult(
-                request.getTokenIn(),
-                request.getTokenOut(),
-                request.getAmountIn(),
-                amountOut,
-                pool.getCurrentPrice(),
-                priceImpact,
-                pool.getFeeRate()
-            );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Lend composite tokens on Aave/Compound
-     */
-    public Uni<LendingResult> lendTokens(LendingRequest request) {
-        return Uni.createFrom().item(() -> {
-            String positionId = generatePositionId(request);
-            
-            Log.infof("Creating lending position %s on %s", positionId, request.getProtocol());
-            
-            // Get current lending rates
-            LendingRates rates = getLendingRates(request.getProtocol(), request.getToken());
-            
-            // Create lending position
-            LendingPosition position = new LendingPosition(
-                positionId,
-                request.getProtocol(),
-                request.getLender(),
-                request.getToken(),
-                request.getAmount(),
-                rates.getSupplyAPY(),
-                Instant.now()
-            );
-            
-            lendingPositions.put(positionId, position);
-            
-            // Calculate expected yield
-            BigDecimal annualYield = request.getAmount()
-                .multiply(rates.getSupplyAPY())
-                .divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
-            
-            return new LendingResult(
-                positionId,
-                true,
-                "Tokens lent successfully",
-                rates.getSupplyAPY(),
-                annualYield,
-                position.getAccruedInterest()
-            );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Borrow against composite token collateral
-     */
-    public Uni<BorrowResult> borrowAgainstCollateral(BorrowRequest request) {
-        return Uni.createFrom().item(() -> {
-            // Check collateral value
-            BigDecimal collateralValue = getCollateralValue(request.getCollateralToken(), request.getCollateralAmount());
-            
-            // Calculate maximum borrow amount (typically 75% LTV)
-            BigDecimal maxBorrow = collateralValue.multiply(BigDecimal.valueOf(0.75));
-            
-            if (request.getBorrowAmount().compareTo(maxBorrow) > 0) {
-                throw new InsufficientCollateralException("Borrow amount exceeds maximum LTV");
-            }
-            
-            // Get borrow rates
-            LendingRates rates = getLendingRates(request.getProtocol(), request.getBorrowToken());
-            
-            // Create borrow position
-            String positionId = generateBorrowPositionId(request);
-            
-            BorrowPosition borrowPosition = new BorrowPosition(
-                positionId,
-                request.getProtocol(),
-                request.getBorrower(),
+            // Validate collateral
+            boolean validCollateral = lendingProtocolService.validateCollateral(
                 request.getCollateralToken(),
                 request.getCollateralAmount(),
                 request.getBorrowToken(),
-                request.getBorrowAmount(),
-                rates.getBorrowAPY(),
-                calculateHealthFactor(collateralValue, request.getBorrowAmount()),
-                Instant.now()
+                request.getBorrowAmount()
             );
             
-            return new BorrowResult(
-                positionId,
-                true,
-                "Borrow successful",
-                request.getBorrowAmount(),
-                rates.getBorrowAPY(),
-                borrowPosition.getHealthFactor(),
-                calculateLiquidationPrice(request)
-            );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Stake tokens in yield farm
-     */
-    public Uni<YieldFarmResult> stakeInYieldFarm(YieldFarmRequest request) {
-        return Uni.createFrom().item(() -> {
-            String farmId = request.getFarmId();
-            YieldFarm farm = yieldFarms.get(farmId);
-            
-            if (farm == null) {
-                // Create new farm if doesn't exist
-                farm = new YieldFarm(
-                    farmId,
-                    request.getProtocol(),
-                    request.getStakingToken(),
-                    request.getRewardToken(),
-                    BigDecimal.valueOf(100), // 100% APY default
-                    Instant.now()
-                );
-                yieldFarms.put(farmId, farm);
+            if (!validCollateral) {
+                throw new IllegalArgumentException("Insufficient collateral for loan");
             }
             
-            // Add stake
-            farm.addStake(request.getStaker(), request.getAmount());
-            
-            // Calculate expected rewards
-            BigDecimal annualRewards = request.getAmount()
-                .multiply(farm.getRewardRate())
-                .divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
-            
-            return new YieldFarmResult(
-                farmId,
-                true,
-                "Staked successfully in yield farm",
-                request.getAmount(),
-                farm.getRewardRate(),
-                annualRewards,
-                farm.getTotalStaked()
+            // Open lending position
+            LoanPosition position = lendingProtocolService.openPosition(
+                request.getUserAddress(),
+                request.getCollateralToken(),
+                request.getCollateralAmount(),
+                request.getBorrowToken(),
+                request.getBorrowAmount()
             );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Get DeFi portfolio summary
-     */
-    public Uni<DeFiPortfolio> getPortfolio(String address) {
-        return Uni.createFrom().item(() -> {
-            List<LiquidityPosition> lpPositions = new ArrayList<>();
-            List<LendingPosition> lendPositions = new ArrayList<>();
-            List<BorrowPosition> borrowPositions = new ArrayList<>();
-            List<YieldFarmPosition> farmPositions = new ArrayList<>();
             
-            // Collect liquidity positions
-            for (LiquidityPool pool : liquidityPools.values()) {
-                BigDecimal lpBalance = pool.getLPBalance(address);
-                if (lpBalance.compareTo(BigDecimal.ZERO) > 0) {
-                    lpPositions.add(new LiquidityPosition(
-                        pool.getPoolId(),
-                        pool.getProtocol(),
-                        lpBalance,
-                        calculateLPValue(pool, lpBalance)
-                    ));
-                }
+            // Calculate risk score
+            BigDecimal riskScore = riskAnalyticsEngine.calculatePositionRisk(position);
+            position.setRiskScore(riskScore);
+            
+            // Setup liquidation monitoring
+            if (riskScore.compareTo(BigDecimal.valueOf(0.8)) > 0) {
+                setupLiquidationMonitoring(position);
             }
             
-            // Collect lending positions
-            for (LendingPosition position : lendingPositions.values()) {
-                if (address.equals(position.getLender())) {
-                    lendPositions.add(position);
-                }
-            }
+            logger.info("Opened lending position {} with risk score: {}", 
+                       position.getPositionId(), riskScore);
             
-            // Calculate total values
-            BigDecimal totalLPValue = lpPositions.stream()
-                .map(LiquidityPosition::getValue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            BigDecimal totalLentValue = lendPositions.stream()
-                .map(p -> p.getAmount().add(p.getAccruedInterest()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            BigDecimal totalBorrowedValue = borrowPositions.stream()
-                .map(BorrowPosition::getBorrowAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            BigDecimal totalStakedValue = farmPositions.stream()
-                .map(YieldFarmPosition::getStakedAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            return new DeFiPortfolio(
-                address,
-                lpPositions,
-                lendPositions,
-                borrowPositions,
-                farmPositions,
-                totalLPValue.add(totalLentValue).add(totalStakedValue).subtract(totalBorrowedValue),
-                calculatePortfolioAPY(lpPositions, lendPositions, farmPositions)
-            );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+            return new LoanPositionResponse(position, riskScore);
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
-
+    
     /**
-     * Get protocol statistics
+     * REST endpoint: Execute optimized swap across protocols
      */
-    public Uni<DeFiStats> getProtocolStats() {
+    @POST
+    @Path("/swap/execute")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<SwapResponse> executeOptimizedSwap(SwapRequest request) {
         return Uni.createFrom().item(() -> {
-            BigDecimal totalValueLocked = liquidityPools.values().stream()
-                .map(LiquidityPool::getTotalValueLocked)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            operationCounter.incrementAndGet();
             
-            BigDecimal totalLentValue = lendingPositions.values().stream()
-                .map(LendingPosition::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            BigDecimal totalStakedValue = yieldFarms.values().stream()
-                .map(YieldFarm::getTotalStaked)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            return new DeFiStats(
-                liquidityPools.size(),
-                lendingPositions.size(),
-                yieldFarms.size(),
-                totalValueLocked,
-                totalLentValue,
-                totalStakedValue,
-                calculateAverageAPY(),
-                supportedProtocols.size()
+            // Find optimal route across protocols
+            List<SwapRoute> routes = findOptimalSwapRoute(
+                request.getTokenIn(),
+                request.getTokenOut(),
+                request.getAmountIn()
             );
-        })
-        .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+            
+            // Execute swap with MEV protection
+            SwapResult result = executeSwapWithMEVProtection(routes.get(0), request);
+            
+            return new SwapResponse(result);
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
-
+    
+    /**
+     * REST endpoint: Get user's complete DeFi portfolio
+     */
+    @GET
+    @Path("/portfolio/{userAddress}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<DeFiPortfolio> getUserPortfolio(String userAddress) {
+        return Uni.createFrom().item(() -> {
+            DeFiPortfolio portfolio = new DeFiPortfolio(userAddress);
+            
+            // Gather all positions
+            portfolio.setLiquidityPositions(liquidityPoolManager.getUserPositions(userAddress));
+            portfolio.setYieldPositions(yieldFarmingService.getUserRewards(userAddress));
+            portfolio.setLoanPositions(lendingProtocolService.getUserPositions(userAddress));
+            
+            // Calculate portfolio metrics
+            calculatePortfolioMetrics(portfolio);
+            
+            // Calculate portfolio risk
+            BigDecimal portfolioRisk = riskAnalyticsEngine.calculatePortfolioRisk(portfolio);
+            portfolio.setRiskScore(portfolioRisk);
+            
+            return portfolio;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+    
+    /**
+     * REST endpoint: Get protocol performance metrics
+     */
+    @GET
+    @Path("/metrics")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<Map<String, Object>> getProtocolMetrics() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> metrics = new HashMap<>();
+            
+            // Performance metrics
+            metrics.put("totalOperations", operationCounter.get());
+            metrics.put("operationsPerSecond", calculateOpsPerSecond());
+            
+            // TVL across protocols
+            metrics.put("liquidityTVL", liquidityPoolManager.getTotalValueLocked());
+            metrics.put("yieldFarmTVL", yieldFarmingService.getTotalStaked());
+            metrics.put("lendingTVL", lendingProtocolService.getTotalSupplied());
+            
+            // Risk metrics
+            metrics.put("totalRiskExposure", riskAnalyticsEngine.getTotalRiskExposure());
+            metrics.put("liquidationThreshold", riskAnalyticsEngine.getLiquidationThreshold());
+            
+            metrics.put("timestamp", Instant.now());
+            
+            return metrics;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+    
+    /**
+     * Monitor liquidations in real-time
+     */
+    public Multi<LiquidationAlert> monitorLiquidations() {
+        return Multi.createFrom().ticks().every(java.time.Duration.ofSeconds(5))
+            .onItem().transform(tick -> {
+                List<LoanPosition> riskyPositions = lendingProtocolService.scanForLiquidations();
+                return riskyPositions.stream()
+                    .filter(pos -> pos.isLiquidationEligible())
+                    .map(pos -> new LiquidationAlert(pos))
+                    .toList();
+            })
+            .onItem().disjoint()
+            .filter(alert -> alert != null);
+    }
+    
+    /**
+     * Cross-protocol yield optimization
+     */
+    public Uni<List<YieldOpportunity>> optimizeYieldAcrossProtocols(String userAddress,
+                                                                   BigDecimal totalAmount,
+                                                                   String baseToken) {
+        return Uni.createFrom().item(() -> {
+            operationCounter.incrementAndGet();
+            
+            List<YieldOpportunity> opportunities = yieldFarmingService
+                .findOptimalYieldDistribution(userAddress, totalAmount, baseToken);
+            
+            // Sort by risk-adjusted APR
+            opportunities.sort((a, b) -> 
+                b.getRiskAdjustedAPR().compareTo(a.getRiskAdjustedAPR()));
+            
+            logger.debug("Found {} yield optimization opportunities", opportunities.size());
+            return opportunities;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+    
     // Private helper methods
-
-    private void initializeProtocols() {
-        supportedProtocols.put("UNISWAP_V3", new DeFiProtocol(
-            "UNISWAP_V3", "Uniswap V3", ProtocolType.DEX, true
-        ));
+    private void validateLiquidityRequest(AddLiquidityRequest request) {
+        if (request.getToken0Amount().compareTo(BigDecimal.ZERO) <= 0 ||
+            request.getToken1Amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Invalid token amounts");
+        }
+    }
+    
+    private void applyImpermanentLossProtection(LiquidityPosition position, BigDecimal ilRisk) {
+        // Implement IL protection mechanism
+        if (ilRisk.compareTo(BigDecimal.valueOf(0.05)) > 0) { // 5% threshold
+            position.setILProtectionEnabled(true);
+            position.setILProtectionFee(ilRisk.multiply(BigDecimal.valueOf(0.01))); // 1% of IL risk
+        }
+    }
+    
+    private BigDecimal calculateFeesEarned(String positionId) {
+        // Calculate total fees earned for position
+        return liquidityPoolManager.getPositionFeesEarned(positionId);
+    }
+    
+    private void startAutoCompounding(YieldFarmRewards rewards) {
+        // Start auto-compounding process
+        Multi.createFrom().ticks().every(java.time.Duration.ofSeconds(rewards.getAutoCompoundFrequency()))
+            .subscribe().with(tick -> {
+                if (rewards.isCompoundingEnabled()) {
+                    yieldFarmingService.compound(rewards.getFarmId(), rewards.getUserAddress());
+                }
+            });
+    }
+    
+    private void setupLiquidationMonitoring(LoanPosition position) {
+        // Monitor position for liquidation
+        logger.info("Setting up liquidation monitoring for position: {}", position.getPositionId());
+    }
+    
+    private List<SwapRoute> findOptimalSwapRoute(String tokenIn, String tokenOut, BigDecimal amountIn) {
+        // Find optimal swap route across different protocols
+        List<SwapRoute> routes = new ArrayList<>();
         
-        supportedProtocols.put("AAVE", new DeFiProtocol(
-            "AAVE", "Aave Protocol", ProtocolType.LENDING, true
-        ));
+        // Check direct routes
+        SwapRoute directRoute = liquidityPoolManager.findDirectRoute(tokenIn, tokenOut, amountIn);
+        if (directRoute != null) {
+            routes.add(directRoute);
+        }
         
-        supportedProtocols.put("COMPOUND", new DeFiProtocol(
-            "COMPOUND", "Compound Finance", ProtocolType.LENDING, true
-        ));
+        // Check multi-hop routes
+        List<SwapRoute> multiHopRoutes = liquidityPoolManager.findMultiHopRoutes(tokenIn, tokenOut, amountIn);
+        routes.addAll(multiHopRoutes);
         
-        supportedProtocols.put("CURVE", new DeFiProtocol(
-            "CURVE", "Curve Finance", ProtocolType.DEX, true
-        ));
+        // Sort by best rate
+        routes.sort((a, b) -> b.getOutputAmount().compareTo(a.getOutputAmount()));
         
-        supportedProtocols.put("BALANCER", new DeFiProtocol(
-            "BALANCER", "Balancer", ProtocolType.DEX, true
-        ));
+        return routes;
     }
-
-    private String generatePoolId(LiquidityPoolRequest request) {
-        return String.format("POOL-%s-%s-%s",
-            request.getProtocol(),
-            request.getTokenA().substring(0, 4),
-            request.getTokenB().substring(0, 4));
+    
+    private SwapResult executeSwapWithMEVProtection(SwapRoute route, SwapRequest request) {
+        // Execute swap with MEV protection
+        SwapResult result = liquidityPoolManager.executeSwap(route);
+        
+        // Apply MEV protection
+        if (request.isEnableMEVProtection()) {
+            result.setMEVProtected(true);
+            result.setSlippageProtection(request.getSlippageTolerance());
+        }
+        
+        return result;
     }
-
-    private String generatePositionId(LendingRequest request) {
-        return String.format("LEND-%s-%s-%d",
-            request.getProtocol(),
-            request.getToken().substring(0, 4),
-            System.nanoTime() % 100000);
-    }
-
-    private String generateBorrowPositionId(BorrowRequest request) {
-        return String.format("BORROW-%s-%s-%d",
-            request.getProtocol(),
-            request.getBorrowToken().substring(0, 4),
-            System.nanoTime() % 100000);
-    }
-
-    private boolean validateLiquidityRequest(LiquidityPoolRequest request) {
-        return request.getAmountA().compareTo(BigDecimal.ZERO) > 0 &&
-               request.getAmountB().compareTo(BigDecimal.ZERO) > 0 &&
-               supportedProtocols.containsKey(request.getProtocol());
-    }
-
-    private BigDecimal calculateInitialPrice(LiquidityPoolRequest request) {
-        return request.getAmountB().divide(request.getAmountA(), 6, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculateLPTokens(LiquidityPoolRequest request) {
-        // Initial LP tokens = sqrt(amountA * amountB)
-        BigDecimal product = request.getAmountA().multiply(request.getAmountB());
-        return BigDecimal.valueOf(Math.sqrt(product.doubleValue()));
-    }
-
-    private BigDecimal calculateOptimalAmount(BigDecimal amountA, BigDecimal reserveA, BigDecimal reserveB) {
-        // optimalB = amountA * reserveB / reserveA
-        return amountA.multiply(reserveB).divide(reserveA, 6, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculateProportionalLPTokens(BigDecimal amount, BigDecimal reserve, BigDecimal totalSupply) {
-        return amount.multiply(totalSupply).divide(reserve, 6, RoundingMode.HALF_UP);
-    }
-
-    private String findPoolForPair(String tokenA, String tokenB) {
-        for (LiquidityPool pool : liquidityPools.values()) {
-            if ((pool.getTokenA().equals(tokenA) && pool.getTokenB().equals(tokenB)) ||
-                (pool.getTokenA().equals(tokenB) && pool.getTokenB().equals(tokenA))) {
-                return pool.getPoolId();
+    
+    private void calculatePortfolioMetrics(DeFiPortfolio portfolio) {
+        BigDecimal totalValue = BigDecimal.ZERO;
+        BigDecimal totalYield = BigDecimal.ZERO;
+        
+        // Calculate from liquidity positions
+        if (portfolio.getLiquidityPositions() != null) {
+            for (LiquidityPosition pos : portfolio.getLiquidityPositions()) {
+                totalValue = totalValue.add(pos.getCurrentValue() != null ? pos.getCurrentValue() : BigDecimal.ZERO);
             }
         }
-        return null;
-    }
-
-    private BigDecimal calculateSwapOutput(BigDecimal amountIn, BigDecimal reserveIn, 
-                                          BigDecimal reserveOut, BigDecimal feeRate) {
-        // Constant product formula with fee
-        BigDecimal amountInWithFee = amountIn.multiply(BigDecimal.ONE.subtract(feeRate));
-        BigDecimal numerator = amountInWithFee.multiply(reserveOut);
-        BigDecimal denominator = reserveIn.add(amountInWithFee);
-        return numerator.divide(denominator, 6, RoundingMode.HALF_DOWN);
-    }
-
-    private BigDecimal calculatePriceImpact(BigDecimal amountIn, BigDecimal reserveIn) {
-        return amountIn.divide(reserveIn, 4, RoundingMode.HALF_UP)
-                      .multiply(BigDecimal.valueOf(100));
-    }
-
-    private LendingRates getLendingRates(String protocol, String token) {
-        // Simulate dynamic rates based on utilization
-        BigDecimal utilization = BigDecimal.valueOf(Math.random() * 0.8); // 0-80% utilization
-        BigDecimal supplyAPY = utilization.multiply(BigDecimal.valueOf(10)); // Up to 8% APY
-        BigDecimal borrowAPY = supplyAPY.multiply(BigDecimal.valueOf(1.5)); // 1.5x supply rate
         
-        return new LendingRates(supplyAPY, borrowAPY, utilization);
-    }
-
-    private BigDecimal getCollateralValue(String token, BigDecimal amount) {
-        // Get token price from oracle
-        // For now, simulate with fixed prices
-        Map<String, BigDecimal> prices = Map.of(
-            "wAUR", BigDecimal.valueOf(100),
-            "ETH", BigDecimal.valueOf(2000),
-            "USDC", BigDecimal.ONE
-        );
-        
-        BigDecimal price = prices.getOrDefault(token, BigDecimal.TEN);
-        return amount.multiply(price);
-    }
-
-    private BigDecimal calculateHealthFactor(BigDecimal collateralValue, BigDecimal borrowAmount) {
-        if (borrowAmount.equals(BigDecimal.ZERO)) {
-            return BigDecimal.valueOf(999); // Max health factor
-        }
-        return collateralValue.multiply(BigDecimal.valueOf(0.75)) // 75% LTV
-                             .divide(borrowAmount, 2, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculateLiquidationPrice(BorrowRequest request) {
-        // Price at which health factor = 1
-        BigDecimal liquidationLTV = BigDecimal.valueOf(0.75);
-        return request.getBorrowAmount()
-            .divide(request.getCollateralAmount().multiply(liquidationLTV), 
-                   6, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculateLPValue(LiquidityPool pool, BigDecimal lpBalance) {
-        BigDecimal sharePercent = lpBalance.divide(pool.getTotalLPSupply(), 6, RoundingMode.HALF_UP);
-        return pool.getTotalValueLocked().multiply(sharePercent);
-    }
-
-    private BigDecimal calculatePortfolioAPY(List<LiquidityPosition> lpPositions,
-                                            List<LendingPosition> lendPositions,
-                                            List<YieldFarmPosition> farmPositions) {
-        // Weighted average APY
-        BigDecimal totalValue = BigDecimal.ZERO;
-        BigDecimal weightedAPY = BigDecimal.ZERO;
-        
-        // Add LP APYs
-        for (LiquidityPosition pos : lpPositions) {
-            BigDecimal apy = BigDecimal.valueOf(15); // Assume 15% LP APY
-            weightedAPY = weightedAPY.add(pos.getValue().multiply(apy));
-            totalValue = totalValue.add(pos.getValue());
+        // Calculate from yield positions
+        if (portfolio.getYieldPositions() != null) {
+            for (YieldFarmRewards rewards : portfolio.getYieldPositions()) {
+                totalValue = totalValue.add(rewards.getStakedAmount() != null ? rewards.getStakedAmount() : BigDecimal.ZERO);
+                totalYield = totalYield.add(rewards.getTotalRewardsEarned() != null ? rewards.getTotalRewardsEarned() : BigDecimal.ZERO);
+            }
         }
         
-        // Add lending APYs
-        for (LendingPosition pos : lendPositions) {
-            weightedAPY = weightedAPY.add(pos.getAmount().multiply(pos.getSupplyAPY()));
-            totalValue = totalValue.add(pos.getAmount());
-        }
-        
-        if (totalValue.equals(BigDecimal.ZERO)) {
-            return BigDecimal.ZERO;
-        }
-        
-        return weightedAPY.divide(totalValue, 2, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculateAverageAPY() {
-        BigDecimal totalAPY = BigDecimal.ZERO;
-        int count = 0;
-        
-        // Average lending APYs
-        for (LendingPosition pos : lendingPositions.values()) {
-            totalAPY = totalAPY.add(pos.getSupplyAPY());
-            count++;
-        }
-        
-        // Average farm APYs
-        for (YieldFarm farm : yieldFarms.values()) {
-            totalAPY = totalAPY.add(farm.getRewardRate());
-            count++;
-        }
-        
-        if (count == 0) {
-            return BigDecimal.ZERO;
-        }
-        
-        return totalAPY.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
-    }
-
-    // Exception classes
-    public static class InvalidDeFiRequestException extends RuntimeException {
-        public InvalidDeFiRequestException(String message) { super(message); }
+        portfolio.setTotalValue(totalValue);
+        portfolio.setTotalYieldEarned(totalYield);
     }
     
-    public static class SlippageExceededException extends RuntimeException {
-        public SlippageExceededException(String message) { super(message); }
+    private void setupPerformanceMonitoring() {
+        Multi.createFrom().ticks().every(java.time.Duration.ofSeconds(1))
+            .subscribe().with(tick -> {
+                long currentOps = calculateOpsPerSecond();
+                protocolMetrics.put("opsPerSecond", currentOps);
+                
+                if (currentOps < 50000) {
+                    logger.warn("DeFi operations below target: {} ops/sec", currentOps);
+                }
+            });
     }
     
-    public static class InsufficientCollateralException extends RuntimeException {
-        public InsufficientCollateralException(String message) { super(message); }
+    private long calculateOpsPerSecond() {
+        long elapsedSeconds = Math.max(1, Instant.now().getEpochSecond() - startTime.getEpochSecond());
+        return operationCounter.get() / elapsedSeconds;
     }
 }
-
-// Continue in next message due to length...

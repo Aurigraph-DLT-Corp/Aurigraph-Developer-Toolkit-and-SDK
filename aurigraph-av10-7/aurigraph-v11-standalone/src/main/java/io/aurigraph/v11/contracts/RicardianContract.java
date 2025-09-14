@@ -1,5 +1,6 @@
 package io.aurigraph.v11.contracts;
 
+import io.aurigraph.v11.contracts.models.*;
 import java.time.Instant;
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,6 +14,12 @@ public class RicardianContract {
     @JsonProperty("contractId")
     private String contractId;
     
+    @JsonProperty("name")
+    private String name;
+    
+    @JsonProperty("version")
+    private String version = "1.0.0";
+    
     @JsonProperty("legalText")
     private String legalText; // Human-readable legal prose
     
@@ -22,8 +29,20 @@ public class RicardianContract {
     @JsonProperty("contractType")
     private String contractType; // RWA, Carbon, RealEstate, etc.
     
+    @JsonProperty("assetType")
+    private String assetType;
+    
+    @JsonProperty("jurisdiction")
+    private String jurisdiction;
+    
     @JsonProperty("parties")
-    private List<String> parties; // Contract parties/signers
+    private List<ContractParty> parties = new ArrayList<>(); // Changed to ContractParty
+    
+    @JsonProperty("terms")
+    private List<ContractTerm> terms = new ArrayList<>();
+    
+    @JsonProperty("triggers")
+    private List<ContractTrigger> triggers = new ArrayList<>();
     
     @JsonProperty("signatures")
     private List<ContractSignature> signatures;
@@ -33,6 +52,9 @@ public class RicardianContract {
     
     @JsonProperty("createdAt")
     private Instant createdAt;
+    
+    @JsonProperty("updatedAt")
+    private Instant updatedAt;
     
     @JsonProperty("activatedAt")
     private Instant activatedAt;
@@ -49,8 +71,17 @@ public class RicardianContract {
     @JsonProperty("metadata")
     private Map<String, String> metadata;
     
-    @JsonProperty("version")
-    private int version = 1;
+    @JsonProperty("enforceabilityScore")
+    private double enforceabilityScore;
+    
+    @JsonProperty("riskAssessment")
+    private String riskAssessment;
+    
+    @JsonProperty("auditTrail")
+    private List<String> auditTrail = new ArrayList<>();
+    
+    @JsonProperty("executions")
+    private List<ExecutionResult> executions = new ArrayList<>();
     
     @JsonProperty("quantumSafe")
     private boolean quantumSafe = true; // All contracts use quantum-safe crypto
@@ -71,6 +102,12 @@ public class RicardianContract {
     public String getContractId() { return contractId; }
     public void setContractId(String contractId) { this.contractId = contractId; }
     
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public String getVersion() { return version; }
+    public void setVersion(String version) { this.version = version; }
+    
     public String getLegalText() { return legalText; }
     public void setLegalText(String legalText) { this.legalText = legalText; }
     
@@ -80,8 +117,20 @@ public class RicardianContract {
     public String getContractType() { return contractType; }
     public void setContractType(String contractType) { this.contractType = contractType; }
     
-    public List<String> getParties() { return parties; }
-    public void setParties(List<String> parties) { this.parties = parties; }
+    public String getAssetType() { return assetType; }
+    public void setAssetType(String assetType) { this.assetType = assetType; }
+    
+    public String getJurisdiction() { return jurisdiction; }
+    public void setJurisdiction(String jurisdiction) { this.jurisdiction = jurisdiction; }
+    
+    public List<ContractParty> getParties() { return parties; }
+    public void setParties(List<ContractParty> parties) { this.parties = parties; }
+    
+    public List<ContractTerm> getTerms() { return terms; }
+    public void setTerms(List<ContractTerm> terms) { this.terms = terms; }
+    
+    public List<ContractTrigger> getTriggers() { return triggers; }
+    public void setTriggers(List<ContractTrigger> triggers) { this.triggers = triggers; }
     
     public List<ContractSignature> getSignatures() { return signatures; }
     public void setSignatures(List<ContractSignature> signatures) { this.signatures = signatures; }
@@ -91,6 +140,9 @@ public class RicardianContract {
     
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    
+    public Instant getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
     
     public Instant getActivatedAt() { return activatedAt; }
     public void setActivatedAt(Instant activatedAt) { this.activatedAt = activatedAt; }
@@ -107,8 +159,17 @@ public class RicardianContract {
     public Map<String, String> getMetadata() { return metadata; }
     public void setMetadata(Map<String, String> metadata) { this.metadata = metadata; }
     
-    public int getVersion() { return version; }
-    public void setVersion(int version) { this.version = version; }
+    public double getEnforceabilityScore() { return enforceabilityScore; }
+    public void setEnforceabilityScore(double enforceabilityScore) { this.enforceabilityScore = enforceabilityScore; }
+    
+    public String getRiskAssessment() { return riskAssessment; }
+    public void setRiskAssessment(String riskAssessment) { this.riskAssessment = riskAssessment; }
+    
+    public List<String> getAuditTrail() { return auditTrail; }
+    public void setAuditTrail(List<String> auditTrail) { this.auditTrail = auditTrail; }
+    
+    public List<ExecutionResult> getExecutions() { return executions; }
+    public void setExecutions(List<ExecutionResult> executions) { this.executions = executions; }
     
     public boolean isQuantumSafe() { return quantumSafe; }
     public void setQuantumSafe(boolean quantumSafe) { this.quantumSafe = quantumSafe; }
@@ -119,9 +180,14 @@ public class RicardianContract {
     }
 
     public boolean isFullySigned() {
-        Set<String> requiredSigners = new HashSet<>(parties);
-        Set<String> actualSigners = new HashSet<>();
+        Set<String> requiredSigners = new HashSet<>();
+        for (ContractParty party : parties) {
+            if (party.isSignatureRequired()) {
+                requiredSigners.add(party.getAddress());
+            }
+        }
         
+        Set<String> actualSigners = new HashSet<>();
         for (ContractSignature signature : signatures) {
             actualSigners.add(signature.getSignerAddress());
         }
@@ -141,6 +207,58 @@ public class RicardianContract {
             metadata = new HashMap<>();
         }
         metadata.put(key, value);
+    }
+    
+    // Additional methods needed by SmartContractService
+    public void addParty(ContractParty party) {
+        if (parties == null) {
+            parties = new ArrayList<>();
+        }
+        parties.add(party);
+    }
+    
+    public void addTerm(ContractTerm term) {
+        if (terms == null) {
+            terms = new ArrayList<>();
+        }
+        terms.add(term);
+    }
+    
+    public void addSignature(ContractSignature signature) {
+        if (signatures == null) {
+            signatures = new ArrayList<>();
+        }
+        signatures.add(signature);
+    }
+    
+    public void addExecution(ExecutionResult execution) {
+        if (executions == null) {
+            executions = new ArrayList<>();
+        }
+        executions.add(execution);
+    }
+    
+    public void addAuditEntry(String entry) {
+        if (auditTrail == null) {
+            auditTrail = new ArrayList<>();
+        }
+        auditTrail.add(entry);
+    }
+    
+    public ContractParty getPartyById(String partyId) {
+        if (parties == null) return null;
+        return parties.stream()
+            .filter(party -> partyId.equals(party.getPartyId()))
+            .findFirst()
+            .orElse(null);
+    }
+    
+    public ContractTrigger getTriggerById(String triggerId) {
+        if (triggers == null) return null;
+        return triggers.stream()
+            .filter(trigger -> triggerId.equals(trigger.getTriggerId()))
+            .findFirst()
+            .orElse(null);
     }
 
     @Override
@@ -186,7 +304,7 @@ public class RicardianContract {
             return this;
         }
         
-        public RicardianContractBuilder parties(List<String> parties) {
+        public RicardianContractBuilder parties(List<ContractParty> parties) {
             contract.parties = parties;
             return this;
         }
@@ -221,7 +339,7 @@ public class RicardianContract {
             return this;
         }
         
-        public RicardianContractBuilder version(int version) {
+        public RicardianContractBuilder version(String version) {
             contract.version = version;
             return this;
         }
@@ -264,6 +382,9 @@ public class RicardianContract {
  * Contract signature with quantum-safe cryptography
  */
 class ContractSignature {
+    @JsonProperty("partyId")
+    private String partyId;
+    
     @JsonProperty("signerAddress")
     private String signerAddress;
     
@@ -276,8 +397,17 @@ class ContractSignature {
     @JsonProperty("signedAt")
     private Instant signedAt;
     
+    @JsonProperty("timestamp")
+    private Instant timestamp;
+    
+    @JsonProperty("signatureType")
+    private String signatureType = "CRYSTALS-Dilithium";
+    
     @JsonProperty("algorithm")
     private String algorithm = "CRYSTALS-Dilithium"; // Default quantum-safe algorithm
+    
+    @JsonProperty("witnessedBy")
+    private List<String> witnessedBy = new ArrayList<>();
     
     @JsonProperty("metadata")
     private Map<String, String> metadata;
@@ -296,6 +426,9 @@ class ContractSignature {
     }
 
     // Getters and setters
+    public String getPartyId() { return partyId; }
+    public void setPartyId(String partyId) { this.partyId = partyId; }
+    
     public String getSignerAddress() { return signerAddress; }
     public void setSignerAddress(String signerAddress) { this.signerAddress = signerAddress; }
     
@@ -308,8 +441,17 @@ class ContractSignature {
     public Instant getSignedAt() { return signedAt; }
     public void setSignedAt(Instant signedAt) { this.signedAt = signedAt; }
     
+    public Instant getTimestamp() { return timestamp; }
+    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+    
+    public String getSignatureType() { return signatureType; }
+    public void setSignatureType(String signatureType) { this.signatureType = signatureType; }
+    
     public String getAlgorithm() { return algorithm; }
     public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
+    
+    public List<String> getWitnessedBy() { return witnessedBy; }
+    public void setWitnessedBy(List<String> witnessedBy) { this.witnessedBy = witnessedBy; }
     
     public Map<String, String> getMetadata() { return metadata; }
     public void setMetadata(Map<String, String> metadata) { this.metadata = metadata; }

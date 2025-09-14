@@ -247,12 +247,12 @@
             <artifactId>crypto</artifactId>
             <version>4.12.1</version>
         </dependency>
-        <!-- Solana Web3 Java SDK -->
-        <dependency>
+        <!-- Solana Web3 Java SDK - Temporarily commented due to repository issues -->
+        <!-- <dependency>
             <groupId>com.github.skynetcap</groupId>
             <artifactId>solanaj</artifactId>
             <version>1.18.1</version>
-        </dependency>
+        </dependency> -->
         <!-- OkHttp for HTTP clients -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -298,6 +298,76 @@
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.8</version>
             <scope>test</scope>
+        </dependency>
+        
+        <!-- Missing Dependencies for V11 Features -->
+        
+        <!-- Hibernate ORM with Panache for JPA -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
+        
+        <!-- Lombok for code generation -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- Jakarta Persistence API -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        
+        <!-- Jakarta Transaction API -->
+        <dependency>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
+        </dependency>
+        
+        <!-- Jakarta Bean Validation -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-validator</artifactId>
+        </dependency>
+        
+        <!-- Kafka for enterprise messaging -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-kafka-client</artifactId>
+        </dependency>
+        
+        
+        
+        <!-- Jakarta CDI API for annotations -->
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        
+        <!-- Javax compatibility -->
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <version>2.0</version>
+        </dependency>
+        
+        <!-- Redis for caching -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-redis-client</artifactId>
         </dependency>
     </dependencies>
 

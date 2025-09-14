@@ -282,7 +282,7 @@ public class RWATokenizer {
         if (fractionSize == null || fractionSize.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ONE; // Single token for entire asset
         }
-        return assetValue.divide(fractionSize, BigDecimal.ROUND_UP);
+        return assetValue.divide(fractionSize, java.math.RoundingMode.UP);
     }
 
     // Exception classes
@@ -386,22 +386,4 @@ class TokenizerStats {
     public int getDigitalTwins() { return digitalTwins; }
     public long getTotalTokensCreated() { return totalTokensCreated; }
     public long getTotalValueTokenized() { return totalValueTokenized; }
-}
-
-enum TokenStatus {
-    PENDING, ACTIVE, SUSPENDED, BURNED
-}
-
-// Service interfaces (to be implemented in separate classes)
-interface AssetValuationService {
-    BigDecimal getAssetValuation(String assetType, String assetId, Map<String, Object> metadata);
-}
-
-interface OracleService {
-    BigDecimal getPrice(String assetId, String source);
-    void subscribeToUpdates(String assetId, String callbackUrl);
-}
-
-interface DigitalTwinService {
-    AssetDigitalTwin createDigitalTwin(String assetId, String assetType, Map<String, Object> metadata);
 }

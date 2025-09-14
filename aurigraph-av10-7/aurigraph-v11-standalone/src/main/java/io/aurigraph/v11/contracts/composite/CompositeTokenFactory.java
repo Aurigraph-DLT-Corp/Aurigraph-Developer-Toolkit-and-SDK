@@ -45,7 +45,7 @@ public class CompositeTokenFactory {
     /**
      * Create a complete composite token package for a real-world asset
      */
-    public Uni<CompositeTokenResult> createCompositeToken(CompositeTokenRequest request) {
+    public Uni<CompositeTokenResult> createCompositeToken(CompositeTokenCreationRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
             String compositeId = generateCompositeTokenId(request);
@@ -289,7 +289,7 @@ public class CompositeTokenFactory {
 
     // Private helper methods
 
-    private String generateCompositeTokenId(CompositeTokenRequest request) {
+    private String generateCompositeTokenId(CompositeTokenCreationRequest request) {
         SHA3Digest digest = new SHA3Digest(256);
         String input = request.getAssetId() + request.getAssetType() + 
                       System.nanoTime() + compositeTokenCounter.incrementAndGet();
@@ -300,7 +300,7 @@ public class CompositeTokenFactory {
         return "wAUR-COMPOSITE-" + Hex.toHexString(hash).substring(0, 16).toUpperCase();
     }
 
-    private PrimaryToken createPrimaryToken(String compositeId, CompositeTokenRequest request) {
+    private PrimaryToken createPrimaryToken(String compositeId, CompositeTokenCreationRequest request) {
         String primaryTokenId = compositeId.replace("COMPOSITE", "ASSET");
         
         return PrimaryToken.builder()
@@ -317,7 +317,7 @@ public class CompositeTokenFactory {
             .build();
     }
 
-    private List<SecondaryToken> createSecondaryTokens(String compositeId, CompositeTokenRequest request) {
+    private List<SecondaryToken> createSecondaryTokens(String compositeId, CompositeTokenCreationRequest request) {
         List<SecondaryToken> tokens = new ArrayList<>();
         
         // 1. Owner Token (ERC-721)
@@ -376,7 +376,7 @@ public class CompositeTokenFactory {
         return tokens;
     }
 
-    private void initiateVerificationProcess(CompositeToken compositeToken, CompositeTokenRequest request) {
+    private void initiateVerificationProcess(CompositeToken compositeToken, CompositeTokenCreationRequest request) {
         // Request verification from appropriate tier verifiers
         VerificationLevel requiredLevel = request.getRequiredVerificationLevel();
         
@@ -417,92 +417,4 @@ public class CompositeTokenFactory {
     public static class VerificationRequiredException extends RuntimeException {
         public VerificationRequiredException(String message) { super(message); }
     }
-}
-
-// Supporting data structures
-
-class CompositeTokenRequest {
-    private String assetId;
-    private String assetType;
-    private String ownerAddress;
-    private String legalTitle;
-    private String jurisdiction;
-    private String coordinates;
-    private boolean fractionalizable;
-    private VerificationLevel requiredVerificationLevel;
-    private Map<String, Object> metadata;
-
-    // Getters and setters
-    public String getAssetId() { return assetId; }
-    public void setAssetId(String assetId) { this.assetId = assetId; }
-    
-    public String getAssetType() { return assetType; }
-    public void setAssetType(String assetType) { this.assetType = assetType; }
-    
-    public String getOwnerAddress() { return ownerAddress; }
-    public void setOwnerAddress(String ownerAddress) { this.ownerAddress = ownerAddress; }
-    
-    public String getLegalTitle() { return legalTitle; }
-    public void setLegalTitle(String legalTitle) { this.legalTitle = legalTitle; }
-    
-    public String getJurisdiction() { return jurisdiction; }
-    public void setJurisdiction(String jurisdiction) { this.jurisdiction = jurisdiction; }
-    
-    public String getCoordinates() { return coordinates; }
-    public void setCoordinates(String coordinates) { this.coordinates = coordinates; }
-    
-    public boolean isFractionalizable() { return fractionalizable; }
-    public void setFractionalizable(boolean fractionalizable) { this.fractionalizable = fractionalizable; }
-    
-    public VerificationLevel getRequiredVerificationLevel() { return requiredVerificationLevel; }
-    public void setRequiredVerificationLevel(VerificationLevel requiredVerificationLevel) { 
-        this.requiredVerificationLevel = requiredVerificationLevel; 
-    }
-    
-    public Map<String, Object> getMetadata() { return metadata; }
-    public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
-}
-
-class CompositeTokenResult {
-    private final CompositeToken compositeToken;
-    private final boolean success;
-    private final String message;
-    private final long processingTime;
-
-    public CompositeTokenResult(CompositeToken compositeToken, boolean success, 
-                               String message, long processingTime) {
-        this.compositeToken = compositeToken;
-        this.success = success;
-        this.message = message;
-        this.processingTime = processingTime;
-    }
-
-    public CompositeToken getCompositeToken() { return compositeToken; }
-    public boolean isSuccess() { return success; }
-    public String getMessage() { return message; }
-    public long getProcessingTime() { return processingTime; }
-}
-
-class CompositeTokenStats {
-    private final int totalCompositeTokens;
-    private final Map<String, Long> typeDistribution;
-    private final Map<CompositeTokenStatus, Long> statusDistribution;
-    private final long totalTokensCreated;
-    private final BigDecimal totalValue;
-
-    public CompositeTokenStats(int totalCompositeTokens, Map<String, Long> typeDistribution,
-                              Map<CompositeTokenStatus, Long> statusDistribution,
-                              long totalTokensCreated, BigDecimal totalValue) {
-        this.totalCompositeTokens = totalCompositeTokens;
-        this.typeDistribution = new HashMap<>(typeDistribution);
-        this.statusDistribution = new HashMap<>(statusDistribution);
-        this.totalTokensCreated = totalTokensCreated;
-        this.totalValue = totalValue;
-    }
-
-    public int getTotalCompositeTokens() { return totalCompositeTokens; }
-    public Map<String, Long> getTypeDistribution() { return typeDistribution; }
-    public Map<CompositeTokenStatus, Long> getStatusDistribution() { return statusDistribution; }
-    public long getTotalTokensCreated() { return totalTokensCreated; }
-    public BigDecimal getTotalValue() { return totalValue; }
 }

@@ -1,5 +1,6 @@
 package io.aurigraph.v11.contracts;
 
+import io.aurigraph.v11.contracts.models.*;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.*;
@@ -41,6 +42,51 @@ public class ContractRepository {
             return contract;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
+    
+    /**
+     * Persist a contract (alias for save)
+     */
+    public void persist(RicardianContract contract) {
+        save(contract).await().indefinitely();
+    }
+    
+    /**
+     * Find contract by contractId (alias for findById)
+     */
+    public RicardianContract findByContractId(String contractId) {
+        return contracts.get(contractId);
+    }
+    
+    /**
+     * Find contract by address (alias for findByContractId for executor compatibility)
+     */
+    public RicardianContract findByAddress(String contractAddress) {
+        return findByContractId(contractAddress);
+    }
+    
+    /**
+     * Search contracts with criteria
+     */
+    public List<RicardianContract> search(ContractSearchCriteria criteria) {
+        return contracts.values().stream()
+            .filter(contract -> matchesCriteria(contract, criteria))
+            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+    }
+    
+    private boolean matchesCriteria(RicardianContract contract, ContractSearchCriteria criteria) {
+        if (criteria.getContractType() != null && !criteria.getContractType().equals(contract.getContractType())) {
+            return false;
+        }
+        if (criteria.getStatus() != null && !criteria.getStatus().equals(contract.getStatus())) {
+            return false;
+        }
+        if (criteria.getPartyAddress() != null) {
+            boolean hasParty = contract.getParties().stream()
+                .anyMatch(party -> criteria.getPartyAddress().equals(party.getAddress()));
+            if (!hasParty) return false;
+        }
+        return true;
+    }
 
     /**
      * Find contract by ID
@@ -68,10 +114,11 @@ public class ContractRepository {
                 return new ArrayList<>();
             }
             
-            return contractIds.stream()
+            List<RicardianContract> result = contractIds.stream()
                 .map(contracts::get)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            return result;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
@@ -85,10 +132,11 @@ public class ContractRepository {
                 return new ArrayList<>();
             }
             
-            return contractIds.stream()
+            List<RicardianContract> result = contractIds.stream()
                 .map(contracts::get)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            return result;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
@@ -102,10 +150,11 @@ public class ContractRepository {
                 return new ArrayList<>();
             }
             
-            return contractIds.stream()
+            List<RicardianContract> result = contractIds.stream()
                 .map(contracts::get)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            return result;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
@@ -121,10 +170,11 @@ public class ContractRepository {
      */
     public Uni<List<RicardianContract>> findCreatedAfter(Instant after) {
         return Uni.createFrom().item(() -> {
-            return contracts.values().stream()
+            List<RicardianContract> result = contracts.values().stream()
                 .filter(contract -> contract.getCreatedAt() != null && 
                                   contract.getCreatedAt().isAfter(after))
-                .collect(Collectors.toList());
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            return result;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
@@ -227,7 +277,9 @@ public class ContractRepository {
             return contracts.values().stream()
                 .filter(contract -> {
                     // Contract has the party in parties list
-                    if (!contract.getParties().contains(partyAddress)) {
+                    boolean hasParty = contract.getParties().stream()
+                        .anyMatch(party -> partyAddress.equals(party.getAddress()));
+                    if (!hasParty) {
                         return false;
                     }
                     
@@ -257,8 +309,8 @@ public class ContractRepository {
         
         // Update party indexes
         if (contract.getParties() != null) {
-            for (String party : contract.getParties()) {
-                contractsByParty.computeIfAbsent(party, 
+            for (ContractParty party : contract.getParties()) {
+                contractsByParty.computeIfAbsent(party.getAddress(), 
                     k -> ConcurrentHashMap.newKeySet()).add(contractId);
             }
         }
@@ -282,8 +334,8 @@ public class ContractRepository {
         
         // Remove from party indexes
         if (contract.getParties() != null) {
-            for (String party : contract.getParties()) {
-                Set<String> partyContracts = contractsByParty.get(party);
+            for (ContractParty party : contract.getParties()) {
+                Set<String> partyContracts = contractsByParty.get(party.getAddress());
                 if (partyContracts != null) {
                     partyContracts.remove(contractId);
                 }

@@ -104,7 +104,7 @@ public class RWAToken {
         if (tokenSupply.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
-        return assetValue.divide(tokenSupply, 8, BigDecimal.ROUND_HALF_UP);
+        return assetValue.divide(tokenSupply, 8, java.math.RoundingMode.HALF_UP);
     }
 
     /**
@@ -128,7 +128,7 @@ public class RWAToken {
         if (totalFractions == 0) {
             return BigDecimal.ZERO;
         }
-        return tokenSupply.divide(new BigDecimal(totalFractions), 4, BigDecimal.ROUND_HALF_UP)
+        return tokenSupply.divide(new BigDecimal(totalFractions), 4, java.math.RoundingMode.HALF_UP)
                          .multiply(new BigDecimal(100));
     }
 
@@ -381,7 +381,7 @@ public class RWAToken {
             if (token.totalFractions == 0 && token.fractionSize != null && 
                 token.assetValue != null && token.fractionSize.compareTo(BigDecimal.ZERO) > 0) {
                 token.totalFractions = token.assetValue.divide(token.fractionSize, 
-                    BigDecimal.ROUND_UP).longValue();
+                    java.math.RoundingMode.UP).longValue();
             }
             
             token.availableFractions = token.totalFractions;
@@ -392,6 +392,10 @@ public class RWAToken {
 }
 
 // Supporting enums and classes
+
+enum TokenStatus {
+    PENDING, ACTIVE, SUSPENDED, BURNED
+}
 
 enum VerificationLevel {
     NONE,       // No verification

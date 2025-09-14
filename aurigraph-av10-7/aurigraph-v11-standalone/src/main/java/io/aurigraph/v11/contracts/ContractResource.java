@@ -1,5 +1,6 @@
 package io.aurigraph.v11.contracts;
 
+import io.aurigraph.v11.contracts.models.*;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;

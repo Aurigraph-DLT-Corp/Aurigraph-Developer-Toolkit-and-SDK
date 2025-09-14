@@ -23,8 +23,9 @@ public class CompositeTokenResource {
     @Inject
     CompositeTokenFactory compositeTokenFactory;
 
-    @Inject
-    VerificationService verificationService;
+    // TODO: Fix - VerificationService should be a proper service class, not model
+    // @Inject
+    // VerificationService verificationService;
 
     @Inject
     VerifierRegistry verifierRegistry;
@@ -177,20 +178,12 @@ public class CompositeTokenResource {
             request.verifierCount != null ? request.verifierCount : 5
         );
         
-        return verificationService.initiateVerification(compositeId, verificationRequest)
-            .map(workflow -> Response.ok(Map.of(
-                "success", true,
-                "workflowId", workflow.getWorkflowId(),
-                "status", workflow.getStatus(),
-                "requiredVerifiers", workflow.getRequiredVerifierCount(),
-                "verificationFee", workflow.getVerificationFee()
-            )).build())
-            .onFailure().recoverWithItem(error -> {
-                Log.errorf("Failed to initiate verification: %s", error.getMessage());
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", error.getMessage()))
-                    .build();
-            });
+        // TODO: Fix verification service implementation
+        return Uni.createFrom().item(
+            Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity(Map.of("error", "Verification service not implemented"))
+                .build()
+        );
     }
 
     /**
@@ -211,24 +204,14 @@ public class CompositeTokenResource {
             );
         }
         
-        return verificationService.submitVerificationResult(workflowId, verifierId, submission)
-            .map(success -> {
-                if (success) {
-                    return Response.ok(Map.of(
-                        "success", true,
-                        "message", "Verification result submitted successfully"
-                    )).build();
-                } else {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Failed to submit verification result"))
-                        .build();
-                }
-            })
-            .onFailure().recoverWithItem(error -> 
-                Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", error.getMessage()))
-                    .build()
-            );
+        // TODO: Fix verification service implementation
+        return Uni.createFrom().item(
+            Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity(Map.of("error", "Verification service not implemented"))
+                .build()
+        );
+        // TODO: Uncomment and fix when verification service is implemented
+        // return verificationService.submitVerificationResult(workflowId, verifierId, submission);
     }
 
     /**
@@ -237,16 +220,14 @@ public class CompositeTokenResource {
     @GET
     @Path("/verification/{workflowId}")
     public Uni<Response> getVerificationStatus(@PathParam("workflowId") String workflowId) {
-        return verificationService.getWorkflowStatus(workflowId)
-            .map(workflow -> {
-                if (workflow != null) {
-                    return Response.ok(workflow).build();
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND)
-                        .entity(Map.of("error", "Workflow not found"))
-                        .build();
-                }
-            });
+        // TODO: Fix verification service implementation
+        return Uni.createFrom().item(
+            Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity(Map.of("error", "Verification service not implemented"))
+                .build()
+        );
+        // TODO: Uncomment and fix when verification service is implemented
+        // return verificationService.getWorkflowStatus(workflowId);
     }
 
     /**
@@ -255,12 +236,19 @@ public class CompositeTokenResource {
     @GET
     @Path("/{compositeId}/verification-history")
     public Uni<Response> getVerificationHistory(@PathParam("compositeId") String compositeId) {
-        return verificationService.getVerificationHistory(compositeId)
-            .map(workflows -> Response.ok(Map.of(
-                "compositeId", compositeId,
-                "verificationWorkflows", workflows,
-                "count", workflows.size()
-            )).build());
+        // TODO: Fix verification service implementation
+        return Uni.createFrom().item(
+            Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity(Map.of("error", "Verification service not implemented"))
+                .build()
+        );
+        // TODO: Implement when verification service is available
+        // return verificationService.getVerificationHistory(compositeId)
+        //     .map(workflows -> Response.ok(Map.of(
+        //         "compositeId", compositeId,
+        //         "verificationWorkflows", workflows,
+        //         "count", workflows.size()
+        //     )).build());
     }
 
     /**
@@ -269,12 +257,14 @@ public class CompositeTokenResource {
     @GET
     @Path("/verification/{workflowId}/audit")
     public Uni<Response> getVerificationAudit(@PathParam("workflowId") String workflowId) {
-        return verificationService.getAuditTrail(workflowId)
-            .map(events -> Response.ok(Map.of(
-                "workflowId", workflowId,
-                "auditEvents", events,
-                "eventCount", events.size()
-            )).build());
+        // TODO: Fix verification service implementation
+        return Uni.createFrom().item(
+            Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity(Map.of("error", "Verification service not implemented"))
+                .build()
+        );
+        // TODO: Uncomment and fix when verification service is implemented
+        // return verificationService.getAuditTrail(workflowId);
     }
 
     /**

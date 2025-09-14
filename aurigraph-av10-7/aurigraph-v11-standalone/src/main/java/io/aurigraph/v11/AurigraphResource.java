@@ -515,7 +515,7 @@ public class AurigraphResource {
         TransactionService.EnhancedProcessingStats transactionStats,
         io.aurigraph.v11.consensus.HyperRAFTConsensusService.ConsensusStatus consensusStatus,
         io.aurigraph.v11.crypto.QuantumCryptoService.CryptoStatus cryptoStatus,
-        io.aurigraph.v11.bridge.CrossChainBridgeService.BridgeStats bridgeStats,
+        io.aurigraph.v11.bridge.models.BridgeStats bridgeStats,
         io.aurigraph.v11.hms.HMSIntegrationService.HMSStats hmsStats,
         io.aurigraph.v11.ai.AIOptimizationServiceStub.AIOptimizationStats aiStats,
         long timestamp
