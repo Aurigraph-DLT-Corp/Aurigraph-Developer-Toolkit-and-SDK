@@ -1,6 +1,1 @@
-/**
- * Aurigraph V10 - Classical CPU/GPU Version (Simplified)
- * Main entry point for high-performance blockchain platform without quantum computing
- */
-export {};
-//# sourceMappingURL=index-classical-simple.d.ts.map
+{"version":3,"file":"index-classical-simple.d.ts","sourceRoot":"","sources":["../src/index-classical-simple.ts"],"names":[],"mappings":"AAAA;;;GAGG"}
