@@ -12,18 +12,20 @@ import java.security.MessageDigest;
 import io.quarkus.logging.Log;
 
 /**
- * Mandatory Verification Service for RWA Token Changes
+ * Configurable Verification Service for RWA Token Changes
  * 
- * CRITICAL REQUIREMENT: All RWA token changes MUST be verified digitally 
- * by third-party verifiers and digitally signed before any token modification.
+ * FLEXIBLE REQUIREMENT: RWA token verification can be configured as:
+ * - MANDATORY: All RWA token changes require third-party verification
+ * - OPTIONAL: RWA token changes can be verified for enhanced security
+ * - DISABLED: No verification required (for testing/development)
  * 
- * This service enforces:
- * 1. Mandatory third-party verification for ALL RWA token changes
+ * This service provides:
+ * 1. Configurable third-party verification for RWA token changes
  * 2. Digital signatures from verified third-party verifiers
  * 3. Multi-verifier consensus for high-value assets
  * 4. Quantum-safe cryptographic verification
  * 5. Complete audit trail of all verification activities
- * 6. Automatic rejection of unverified changes
+ * 6. Flexible enforcement based on configuration
  */
 @ApplicationScoped
 public class MandatoryVerificationService {
@@ -33,6 +35,16 @@ public class MandatoryVerificationService {
     
     @Inject
     QuantumCryptoService cryptoService;
+    
+    // Configuration for verification requirements
+    public enum VerificationMode {
+        DISABLED,    // No verification required (development/testing)
+        OPTIONAL,    // Verification available but not required
+        MANDATORY    // Verification required for all changes
+    }
+    
+    // Default to OPTIONAL for flexibility
+    private VerificationMode verificationMode = VerificationMode.OPTIONAL;
     
     // Registry of pending verifications
     private final Map<String, PendingVerification> pendingVerifications = new HashMap<>();
@@ -169,62 +181,137 @@ public class MandatoryVerificationService {
     }
     
     /**
-     * CRITICAL: Check if RWA token changes are allowed (verification complete)
-     * This method MUST return true before any token modification is permitted
+     * Check if RWA token changes are allowed based on verification configuration
+     * Authorization depends on the verification mode setting
      */
     public Uni<TokenChangeAuthorizationResult> authorizeTokenChange(
         String compositeTokenId,
         Object tokenType // SecondaryTokenType
     ) {
         return Uni.createFrom().item(() -> {
-            // Find verification for this token change
-            String verificationId = findVerificationForToken(compositeTokenId, tokenType);
-            
-            if (verificationId == null) {
-                Log.errorf("UNAUTHORIZED TOKEN CHANGE ATTEMPT: No verification found for token %s type %s",
-                    compositeTokenId, tokenType);
-                return new TokenChangeAuthorizationResult(
-                    false,
-                    "BLOCKED: All RWA token changes require mandatory third-party verification",
-                    null,
-                    null
-                );
+            // Check verification mode configuration
+            switch (verificationMode) {
+                case DISABLED:
+                    Log.infof("TOKEN CHANGE AUTHORIZED: Verification disabled for token %s", compositeTokenId);
+                    return new TokenChangeAuthorizationResult(
+                        true,
+                        "AUTHORIZED: Verification disabled - token changes allowed",
+                        null,
+                        null
+                    );
+                    
+                case OPTIONAL:
+                    // For optional mode, check if verification exists but don't require it
+                    String verificationId = findVerificationForToken(compositeTokenId, tokenType);
+                    if (verificationId != null) {
+                        // Verification exists, check if it's approved
+                        List<DigitallySignedVerification> verifications = completedVerifications.get(verificationId);
+                        if (verifications != null && !verifications.isEmpty()) {
+                            VerificationConsensus consensus = calculateConsensus(verifications);
+                            if (consensus.getDecision() == VerificationDecision.APPROVED) {
+                                Log.infof("TOKEN CHANGE AUTHORIZED: Optional verification completed and approved for token %s", compositeTokenId);
+                                return new TokenChangeAuthorizationResult(
+                                    true,
+                                    "AUTHORIZED: Optional verification completed and approved",
+                                    verificationId,
+                                    consensus
+                                );
+                            }
+                        }
+                    }
+                    // No verification or pending verification - allow in optional mode
+                    Log.infof("TOKEN CHANGE AUTHORIZED: Optional verification mode - no verification required for token %s", compositeTokenId);
+                    return new TokenChangeAuthorizationResult(
+                        true,
+                        "AUTHORIZED: Optional verification mode - changes allowed without verification",
+                        verificationId,
+                        null
+                    );
+                    
+                case MANDATORY:
+                    // Original mandatory logic
+                    String mandatoryVerificationId = findVerificationForToken(compositeTokenId, tokenType);
+                    if (mandatoryVerificationId == null) {
+                        Log.errorf("UNAUTHORIZED TOKEN CHANGE ATTEMPT: No verification found for token %s type %s",
+                            compositeTokenId, tokenType);
+                        return new TokenChangeAuthorizationResult(
+                            false,
+                            "BLOCKED: All RWA token changes require mandatory third-party verification",
+                            null,
+                            null
+                        );
+                    }
+                    
+                    List<DigitallySignedVerification> mandatoryVerifications = completedVerifications.get(mandatoryVerificationId);
+                    if (mandatoryVerifications == null || mandatoryVerifications.isEmpty()) {
+                        return new TokenChangeAuthorizationResult(
+                            false,
+                            "BLOCKED: Verification in progress - token changes not yet authorized",
+                            mandatoryVerificationId,
+                            null
+                        );
+                    }
+                    
+                    VerificationConsensus mandatoryConsensus = calculateConsensus(mandatoryVerifications);
+                    if (mandatoryConsensus.getDecision() != VerificationDecision.APPROVED) {
+                        Log.errorf("TOKEN CHANGE REJECTED: Verification consensus is %s for token %s",
+                            mandatoryConsensus.getDecision(), compositeTokenId);
+                        return new TokenChangeAuthorizationResult(
+                            false,
+                            "REJECTED: Third-party verifiers rejected the proposed token changes",
+                            mandatoryVerificationId,
+                            mandatoryConsensus
+                        );
+                    }
+                    
+                    Log.infof("TOKEN CHANGE AUTHORIZED: Mandatory verification complete for token %s with %d signatures",
+                        compositeTokenId, mandatoryVerifications.size());
+                    return new TokenChangeAuthorizationResult(
+                        true,
+                        "AUTHORIZED: Token changes approved by verified third-party verifiers",
+                        mandatoryVerificationId,
+                        mandatoryConsensus
+                    );
             }
             
-            List<DigitallySignedVerification> verifications = completedVerifications.get(verificationId);
-            if (verifications == null || verifications.isEmpty()) {
-                return new TokenChangeAuthorizationResult(
-                    false,
-                    "BLOCKED: Verification in progress - token changes not yet authorized",
-                    verificationId,
-                    null
-                );
-            }
-            
-            VerificationConsensus consensus = calculateConsensus(verifications);
-            
-            if (consensus.getDecision() != VerificationDecision.APPROVED) {
-                Log.errorf("TOKEN CHANGE REJECTED: Verification consensus is %s for token %s",
-                    consensus.getDecision(), compositeTokenId);
-                return new TokenChangeAuthorizationResult(
-                    false,
-                    "REJECTED: Third-party verifiers rejected the proposed token changes",
-                    verificationId,
-                    consensus
-                );
-            }
-            
-            Log.infof("TOKEN CHANGE AUTHORIZED: Verification complete for token %s with %d signatures",
-                compositeTokenId, verifications.size());
-            
+            // This should never be reached due to the switch statement
             return new TokenChangeAuthorizationResult(
-                true,
-                "AUTHORIZED: Token changes approved by verified third-party verifiers",
-                verificationId,
-                consensus
+                false,
+                "ERROR: Invalid verification mode configuration",
+                null,
+                null
             );
             
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+    
+    /**
+     * Configure the verification mode for RWA token changes
+     */
+    public void setVerificationMode(VerificationMode mode) {
+        this.verificationMode = mode;
+        Log.infof("VERIFICATION MODE CHANGED: Set to %s", mode);
+    }
+    
+    /**
+     * Get current verification mode
+     */
+    public VerificationMode getVerificationMode() {
+        return verificationMode;
+    }
+    
+    /**
+     * Check if verification is required based on current mode
+     */
+    public boolean isVerificationRequired() {
+        return verificationMode == VerificationMode.MANDATORY;
+    }
+    
+    /**
+     * Check if verification is available (enabled)
+     */
+    public boolean isVerificationEnabled() {
+        return verificationMode != VerificationMode.DISABLED;
     }
     
     /**

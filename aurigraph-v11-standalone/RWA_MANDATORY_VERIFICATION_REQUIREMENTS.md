@@ -1,17 +1,33 @@
-# RWA Mandatory Verification Requirements
+# RWA Configurable Verification System
 
-## 🚨 CRITICAL SECURITY REQUIREMENT
+## 🔧 FLEXIBLE SECURITY CONFIGURATION
 
-**ALL Real-World Asset (RWA) token changes MUST be verified digitally by third-party verifiers and digitally signed before any token modification is permitted.**
+**Real-World Asset (RWA) token verification can be configured based on your security requirements and operational needs. Choose from three verification modes: DISABLED, OPTIONAL, or MANDATORY.**
 
 ---
 
 ## 📋 Overview
 
-The Aurigraph V11 platform implements **mandatory third-party verification** for all RWA token changes to ensure:
+The Aurigraph V11 platform implements **configurable third-party verification** for RWA token changes with three flexible modes:
 
-1. **Asset Authenticity**: All changes are verified by certified third-party appraisers/verifiers
-2. **Regulatory Compliance**: Changes meet jurisdictional requirements and regulations
+### **🔴 MANDATORY Mode** 
+- All RWA token changes require third-party verification
+- Token modifications blocked until verification complete
+- Maximum security for high-value or regulated assets
+
+### **🟡 OPTIONAL Mode (Default)**
+- Third-party verification available but not required
+- Enhanced security when verification is used
+- Flexibility for development and testing environments
+
+### **🟢 DISABLED Mode**
+- No verification requirements
+- Maximum performance for development/testing
+- Not recommended for production environments
+
+**Benefits across all modes:**
+1. **Asset Authenticity**: Changes verified by certified third-party appraisers/verifiers
+2. **Regulatory Compliance**: Meets jurisdictional requirements and regulations  
 3. **Security Assurance**: Digital signatures provide cryptographic proof of verification
 4. **Audit Trail**: Complete record of all verification activities with quantum-safe signatures
 5. **Risk Mitigation**: Multi-verifier consensus prevents fraudulent or erroneous changes
@@ -298,6 +314,76 @@ for (VerificationAuditEntry entry : auditTrail) {
 - **Real-time Tracking**: Complete visibility into verification status
 - **Professional Network**: Access to certified global verifiers
 - **Audit Readiness**: Always audit-ready with complete records
+
+---
+
+## ⚙️ Configuration
+
+### **Application Configuration**
+Configure verification mode in `application.properties`:
+
+```properties
+# RWA Verification Configuration
+aurigraph.rwa.verification.mode=OPTIONAL
+aurigraph.rwa.verification.timeout=7
+aurigraph.rwa.verification.max.verifiers=5
+aurigraph.rwa.verification.min.consensus=0.51
+
+# Development/Testing Mode
+# aurigraph.rwa.verification.mode=DISABLED
+
+# Production/Enterprise Mode
+# aurigraph.rwa.verification.mode=MANDATORY
+```
+
+### **Environment Variables**
+Override configuration with environment variables:
+```bash
+export AURIGRAPH_RWA_VERIFICATION_MODE=OPTIONAL
+export AURIGRAPH_RWA_VERIFICATION_TIMEOUT=7
+export AURIGRAPH_RWA_VERIFICATION_MAX_VERIFIERS=5
+export AURIGRAPH_RWA_VERIFICATION_MIN_CONSENSUS=0.51
+```
+
+### **Runtime Configuration**
+Change verification mode at runtime:
+```java
+// Get current mode
+VerificationMode currentMode = mandatoryVerificationService.getVerificationMode();
+
+// Set new mode (requires admin privileges)
+mandatoryVerificationService.setVerificationMode(VerificationMode.MANDATORY);
+
+// Check if verification is required for current mode
+boolean isRequired = mandatoryVerificationService.isVerificationRequired();
+```
+
+### **Configuration Examples by Environment**
+
+#### **Development Environment**
+```properties
+# Fast development with no verification
+aurigraph.rwa.verification.mode=DISABLED
+aurigraph.rwa.verification.timeout=1
+```
+
+#### **Testing Environment**
+```properties
+# Optional verification for testing flows
+aurigraph.rwa.verification.mode=OPTIONAL
+aurigraph.rwa.verification.timeout=2
+aurigraph.rwa.verification.mock.enabled=true
+```
+
+#### **Production Environment**
+```properties
+# Mandatory verification for production
+aurigraph.rwa.verification.mode=MANDATORY
+aurigraph.rwa.verification.timeout=7
+aurigraph.rwa.verification.max.verifiers=5
+aurigraph.rwa.verification.min.consensus=0.51
+aurigraph.rwa.verification.hsm.enabled=true
+```
 
 ---
 

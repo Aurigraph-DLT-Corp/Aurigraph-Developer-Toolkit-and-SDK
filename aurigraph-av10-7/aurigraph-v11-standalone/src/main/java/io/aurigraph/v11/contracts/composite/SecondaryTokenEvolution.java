@@ -212,11 +212,11 @@ public class SecondaryTokenEvolution {
         EvolutionReason reason,
         String authorizedBy
     ) {
-        // MANDATORY VERIFICATION CHECK: All RWA token changes must be verified
-        if (!isTokenChangeVerified(compositeTokenId, tokenType, newTokenData)) {
+        // CONFIGURABLE VERIFICATION CHECK: Check if RWA token changes require verification
+        if (!isTokenChangeAuthorized(compositeTokenId, tokenType, newTokenData)) {
             return new TokenUpdateResult(
                 false,
-                "BLOCKED: All RWA token changes require mandatory third-party verification with digital signatures",
+                "BLOCKED: RWA token changes require verification based on current configuration",
                 null
             );
         }
@@ -453,21 +453,52 @@ public class SecondaryTokenEvolution {
     }
     
     /**
-     * CRITICAL: Check if token change has been verified by third-party verifiers
-     * ALL RWA token changes MUST pass this verification
+     * Check if token change is authorized based on verification configuration
+     * Authorization depends on verification mode (DISABLED, OPTIONAL, MANDATORY)
      */
-    private boolean isTokenChangeVerified(String compositeTokenId, Object tokenType, Map<String, Object> newTokenData) {
-        // For now, implement basic verification check
-        // In production, this would integrate with MandatoryVerificationService
-        
-        // Check if this is an RWA token (requires verification)
-        if (isRWAToken(compositeTokenId)) {
-            // RWA tokens require mandatory third-party verification
-            return hasValidThirdPartyVerification(compositeTokenId, tokenType, newTokenData);
+    private boolean isTokenChangeAuthorized(String compositeTokenId, Object tokenType, Map<String, Object> newTokenData) {
+        // Check if this is an RWA token
+        if (!isRWAToken(compositeTokenId)) {
+            // Non-RWA tokens are always authorized
+            return true;
         }
         
-        // Non-RWA tokens may have different verification requirements
-        return true;
+        // For RWA tokens, check verification configuration
+        // In production, this would integrate with MandatoryVerificationService
+        // For now, implement configurable verification check
+        
+        // Get verification mode from configuration (would be injected in production)
+        String verificationMode = System.getProperty("aurigraph.rwa.verification.mode", "OPTIONAL");
+        
+        switch (verificationMode.toUpperCase()) {
+            case "DISABLED":
+                System.out.println("RWA VERIFICATION: Disabled - token changes allowed for " + compositeTokenId);
+                return true;
+                
+            case "OPTIONAL":
+                // Check if verification exists, but don't require it
+                boolean hasVerification = hasValidThirdPartyVerification(compositeTokenId, tokenType, newTokenData);
+                if (hasVerification) {
+                    System.out.println("RWA VERIFICATION: Optional verification found and approved for " + compositeTokenId);
+                } else {
+                    System.out.println("RWA VERIFICATION: Optional mode - no verification required for " + compositeTokenId);
+                }
+                return true; // Always allow in optional mode
+                
+            case "MANDATORY":
+                // Require verification
+                boolean hasValidVerification = hasValidThirdPartyVerification(compositeTokenId, tokenType, newTokenData);
+                if (!hasValidVerification) {
+                    System.out.println("RWA VERIFICATION: Mandatory verification required but not found for " + compositeTokenId);
+                    return false;
+                }
+                System.out.println("RWA VERIFICATION: Mandatory verification satisfied for " + compositeTokenId);
+                return true;
+                
+            default:
+                System.out.println("RWA VERIFICATION: Unknown mode '" + verificationMode + "', defaulting to OPTIONAL");
+                return true;
+        }
     }
     
     /**
@@ -509,10 +540,10 @@ public class SecondaryTokenEvolution {
     }
     
     /**
-     * Request mandatory verification for RWA token changes
-     * This method should be called BEFORE attempting any token changes
+     * Request verification for RWA token changes (configurable requirement)
+     * This method can be called to add verification for enhanced security
      */
-    public String requestMandatoryVerification(
+    public String requestVerification(
         String compositeTokenId,
         Object tokenType,
         Map<String, Object> proposedChanges,
@@ -521,21 +552,30 @@ public class SecondaryTokenEvolution {
         String requestedBy
     ) {
         if (!isRWAToken(compositeTokenId)) {
-            return "Verification not required for non-RWA tokens";
+            return "Verification not applicable for non-RWA tokens";
         }
         
-        // In production, this would integrate with MandatoryVerificationService:
-        // return mandatoryVerificationService.requestMandatoryVerification(
+        // Check verification mode
+        String verificationMode = System.getProperty("aurigraph.rwa.verification.mode", "OPTIONAL");
+        
+        if ("DISABLED".equalsIgnoreCase(verificationMode)) {
+            return "Verification disabled by configuration";
+        }
+        
+        // In production, this would integrate with ConfigurableVerificationService:
+        // return configurableVerificationService.requestVerification(
         //     compositeTokenId, tokenType, proposedChanges, assetValue, changeReason, requestedBy
         // ).await().indefinitely().getVerificationRequestId();
         
         String verificationId = "VERIFY-" + compositeTokenId.substring(compositeTokenId.length() - 6) + 
                                "-" + System.nanoTime() % 1000000;
         
+        String modeDescription = "MANDATORY".equalsIgnoreCase(verificationMode) ? "REQUIRED" : "OPTIONAL";
+        
         System.out.println("VERIFICATION REQUESTED: " + verificationId + 
                           " for RWA token " + compositeTokenId + 
                           " value $" + assetValue + 
-                          " - AWAITING THIRD-PARTY VERIFICATION WITH DIGITAL SIGNATURES");
+                          " - Mode: " + modeDescription + " - AWAITING THIRD-PARTY VERIFICATION WITH DIGITAL SIGNATURES");
         
         return verificationId;
     }
