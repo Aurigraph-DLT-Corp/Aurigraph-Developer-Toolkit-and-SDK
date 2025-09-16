@@ -234,6 +234,20 @@ public class SwapRequest {
     }
     
     /**
+     * Check if MEV protection is enabled
+     */
+    public boolean isEnableMEVProtection() {
+        return Boolean.TRUE.equals(mevProtection);
+    }
+    
+    /**
+     * Get slippage tolerance (alias for maxSlippage)
+     */
+    public BigDecimal getSlippageTolerance() {
+        return maxSlippage;
+    }
+    
+    /**
      * Calculate minimum amount out based on slippage
      */
     public BigDecimal calculateMinimumAmountOut(BigDecimal expectedAmountOut) {

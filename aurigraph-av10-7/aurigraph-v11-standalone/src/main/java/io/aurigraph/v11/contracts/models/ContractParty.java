@@ -1,6 +1,7 @@
 package io.aurigraph.v11.contracts.models;
 
 import lombok.Data;
+import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.HashMap;
  * Represents a party in a Ricardian contract
  */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractParty {
@@ -21,12 +23,15 @@ public class ContractParty {
     private String address;
     private String role; // e.g., "BUYER", "SELLER", "VALIDATOR", "WITNESS"
     private String publicKey;
+    @Builder.Default
     private boolean kycVerified = false;
+    @Builder.Default
     private boolean signatureRequired = true;
     private String jurisdiction;
     private String email;
     private String phone;
     private Instant createdAt;
+    @Builder.Default
     private Map<String, String> metadata = new HashMap<>();
     
     // Constructor for quick creation

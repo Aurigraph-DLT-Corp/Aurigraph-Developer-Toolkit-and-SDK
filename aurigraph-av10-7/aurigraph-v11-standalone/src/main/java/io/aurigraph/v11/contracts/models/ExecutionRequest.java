@@ -2,12 +2,14 @@ package io.aurigraph.v11.contracts.models;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExecutionRequest {
@@ -24,8 +26,11 @@ public class ExecutionRequest {
     private String contractId;
     private Map<String, Object> executionParameters;
     private String transactionHash;
+    @Builder.Default
     private long gasLimit = 1000000L;
+    @Builder.Default
     private long gasPrice = 1000000000L; // 1 Gwei
+    @Builder.Default
     private boolean simulate = false;
     
     // New fields for contract execution

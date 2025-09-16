@@ -63,8 +63,14 @@ Agents work in parallel across multiple workstreams:
 
 ## Essential Commands
 
-### V11 Java/Quarkus Development
+### Default: V11 Java/Quarkus Development
 ```bash
+# Quick start V11 (now default)
+npm start                        # Starts V11 in dev mode
+npm run start:v11:dev           # V11 development with hot reload
+npm run start:v11:native        # V11 native executable
+npm run start:v10               # Legacy V10 TypeScript platform
+
 # Navigate to V11 standalone project
 cd aurigraph-av10-7/aurigraph-v11-standalone/
 

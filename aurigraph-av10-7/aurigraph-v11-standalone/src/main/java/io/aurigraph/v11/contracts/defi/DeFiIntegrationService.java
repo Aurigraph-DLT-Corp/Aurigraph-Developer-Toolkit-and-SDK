@@ -310,15 +310,14 @@ public class DeFiIntegrationService {
      */
     public Multi<LiquidationAlert> monitorLiquidations() {
         return Multi.createFrom().ticks().every(java.time.Duration.ofSeconds(5))
-            .onItem().transform(tick -> {
+            .onItem().transformToMultiAndConcatenate(tick -> {
                 List<LoanPosition> riskyPositions = lendingProtocolService.scanForLiquidations();
-                return riskyPositions.stream()
+                List<LiquidationAlert> alerts = riskyPositions.stream()
                     .filter(pos -> pos.isLiquidationEligible())
                     .map(pos -> new LiquidationAlert(pos))
-                    .toList();
-            })
-            .onItem().disjoint()
-            .filter(alert -> alert != null);
+                    .collect(java.util.stream.Collectors.toList());
+                return Multi.createFrom().iterable(alerts);
+            });
     }
     
     /**

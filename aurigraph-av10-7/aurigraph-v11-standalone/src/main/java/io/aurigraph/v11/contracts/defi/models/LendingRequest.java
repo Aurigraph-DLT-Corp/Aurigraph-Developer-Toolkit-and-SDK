@@ -280,6 +280,27 @@ public class LendingRequest {
     }
     
     /**
+     * Get collateral token (alias for collateralAsset)
+     */
+    public String getCollateralToken() {
+        return collateralAsset;
+    }
+    
+    /**
+     * Get borrow token (alias for asset)
+     */
+    public String getBorrowToken() {
+        return asset;
+    }
+    
+    /**
+     * Get borrow amount (alias for amount)
+     */
+    public BigDecimal getBorrowAmount() {
+        return amount;
+    }
+    
+    /**
      * Calculate loan-to-value ratio if this is a borrowing operation
      */
     public BigDecimal calculateLTV() {

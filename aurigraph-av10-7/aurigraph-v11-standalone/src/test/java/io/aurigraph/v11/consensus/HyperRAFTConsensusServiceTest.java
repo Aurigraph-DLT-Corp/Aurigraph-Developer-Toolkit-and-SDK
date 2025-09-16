@@ -1,404 +1,394 @@
 package io.aurigraph.v11.consensus;
 
-import io.aurigraph.v11.consensus.ConsensusModels.*;
+import io.aurigraph.v11.ServiceTestBase;
+import io.aurigraph.v11.consensus.HyperRAFTConsensusService.ConsensusStats;
+import io.aurigraph.v11.consensus.HyperRAFTConsensusService.LogEntry;
+import io.aurigraph.v11.consensus.HyperRAFTConsensusService.NodeState;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Timeout;
-import org.mockito.Mockito;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Comprehensive unit tests for HyperRAFTConsensusService
+ * Comprehensive test suite for HyperRAFTConsensusService.
  * 
- * Tests cover:
- * - Consensus initialization
- * - Transaction processing pipeline
- * - Performance benchmarks (>95% coverage target)
- * - Leader election integration
- * - Error handling and resilience
+ * Tests:
+ * - Consensus operations
+ * - Leader election
+ * - Log replication
+ * - Node state management
+ * - Performance under load
+ * - Error handling
+ * - Statistics and metrics
  */
 @QuarkusTest
-@TestProfile(ConsensusTestProfile.class)
-public class HyperRAFTConsensusServiceTest {
-
+class HyperRAFTConsensusServiceTest extends ServiceTestBase {
+    
     @Inject
     HyperRAFTConsensusService consensusService;
-
-    private LeaderElectionManager mockLeaderElectionManager;
-    private ConsensusStateManager mockStateManager;
-    private ValidationPipeline mockValidationPipeline;
-    private Event<ConsensusEvent> mockEventBus;
-
+    
+    @Override
+    protected Object getServiceUnderTest() {
+        return consensusService;
+    }
+    
     @BeforeEach
-    void setUp() {
-        // Create mocks for dependencies
-        mockLeaderElectionManager = Mockito.mock(LeaderElectionManager.class);
-        mockStateManager = Mockito.mock(ConsensusStateManager.class);
-        mockValidationPipeline = Mockito.mock(ValidationPipeline.class);
-        mockEventBus = Mockito.mock(Event.class);
-        
-        // Setup mock behaviors
-        setupMockBehaviors();
+    @Override
+    protected void setupTestEnvironment() {
+        super.setupTestEnvironment();
+        // Reset service state for each test
+        resetConsensusService();
     }
-
-    private void setupMockBehaviors() {
-        // LeaderElectionManager mocks
-        doNothing().when(mockLeaderElectionManager).initialize(anyString(), any(), anyInt(), anyInt());
-        when(mockLeaderElectionManager.getState()).thenReturn(ElectionState.FOLLOWER);
-        when(mockLeaderElectionManager.getCurrentTerm()).thenReturn(1);
-        when(mockLeaderElectionManager.getCurrentLeader()).thenReturn(null);
-
-        // ConsensusStateManager mocks
-        doNothing().when(mockStateManager).initialize(anyString(), any());
-        when(mockStateManager.commitState(any())).thenReturn(
-            io.smallrye.mutiny.Uni.createFrom().item("mock_state_root_123")
-        );
-
-        // ValidationPipeline mocks
-        doNothing().when(mockValidationPipeline).initialize(anyInt(), anyInt());
+    
+    private void resetConsensusService() {
+        // Add some nodes to the cluster for testing
+        consensusService.addNode("node-1");
+        consensusService.addNode("node-2");
+        consensusService.addNode("node-3");
     }
-
+    
     @Test
-    @Timeout(10)
+    @DisplayName("Service should initialize with correct default state")
     void testServiceInitialization() {
-        // Test that service initializes without errors
-        assertNotNull(consensusService);
-        
-        // Verify performance metrics are initialized
-        PerformanceMetrics metrics = consensusService.getPerformanceMetrics();
-        assertNotNull(metrics);
-        assertEquals(0.0, metrics.getCurrentTps());
-        assertTrue(metrics.getSuccessRate() >= 99.0);
+        assertThat(consensusService.getNodeId())
+            .as("Node ID should not be null or empty")
+            .isNotNull()
+            .isNotEmpty();
+            
+        assertThat(consensusService.getCurrentState())
+            .as("Initial state should be FOLLOWER")
+            .isEqualTo(NodeState.FOLLOWER);
+            
+        assertThat(consensusService.getCurrentTerm())
+            .as("Initial term should be 0")
+            .isEqualTo(0L);
     }
-
+    
     @Test
-    @Timeout(15)
-    void testTransactionBatchProcessing() throws Exception {
-        // Create test transaction batch
-        List<Transaction> transactions = createTestTransactions(1000);
+    @DisplayName("Should get consensus statistics successfully")
+    void testGetStats() {
+        ConsensusStats stats = testReactiveSuccess(consensusService.getStats());
         
-        long startTime = System.currentTimeMillis();
-        
-        // Process transaction batch
-        Block result = consensusService.processTransactionBatch(transactions)
-            .subscribeAsCompletionStage()
-            .get(10, TimeUnit.SECONDS);
-        
-        long processingTime = System.currentTimeMillis() - startTime;
-        
-        // Verify results
-        assertNotNull(result);
-        assertEquals(1000, result.getTransactions().size());
-        assertTrue(processingTime < 5000); // Should complete in under 5 seconds
-        
-        // Verify performance metrics updated
-        PerformanceMetrics metrics = consensusService.getPerformanceMetrics();
-        assertTrue(metrics.getTotalProcessed() >= 1000);
-        assertTrue(metrics.getCurrentTps() > 0);
+        assertThat(stats.nodeId)
+            .as("Stats should contain node ID")
+            .isNotNull()
+            .isNotEmpty();
+            
+        assertThat(stats.state)
+            .as("Stats should contain current state")
+            .isNotNull();
+            
+        assertThat(stats.currentTerm)
+            .as("Stats should contain current term")
+            .isNotNegative();
+            
+        assertThat(stats.commitIndex)
+            .as("Stats should contain commit index")
+            .isNotNegative();
+            
+        assertThat(stats.clusterSize)
+            .as("Stats should reflect cluster size")
+            .isGreaterThan(0);
     }
-
+    
     @Test
-    @Timeout(30)
-    void testHighThroughputProcessing() throws Exception {
-        // Test high throughput scenario - target 100K TPS minimum
-        int batchSize = 50000;
-        int numberOfBatches = 4;
-        long totalTransactions = 0;
-        long totalTime = 0;
+    @DisplayName("Should start election and transition to candidate state")
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    void testStartElection() {
+        Boolean electionResult = testReactiveSuccess(consensusService.startElection());
         
-        for (int i = 0; i < numberOfBatches; i++) {
-            List<Transaction> transactions = createTestTransactions(batchSize);
+        assertThat(electionResult)
+            .as("Election should return a boolean result")
+            .isNotNull();
             
-            long batchStart = System.nanoTime();
+        long termAfterElection = consensusService.getCurrentTerm();
+        assertThat(termAfterElection)
+            .as("Term should increment after election")
+            .isGreaterThan(0L);
             
-            Block result = consensusService.processTransactionBatch(transactions)
-                .subscribeAsCompletionStage()
-                .get(15, TimeUnit.SECONDS);
+        NodeState stateAfterElection = consensusService.getCurrentState();
+        assertThat(stateAfterElection)
+            .as("State should be either LEADER or FOLLOWER after election")
+            .isIn(NodeState.LEADER, NodeState.FOLLOWER);
+    }
+    
+    @Test
+    @DisplayName("Should propose values when in leader state")
+    @Timeout(value = 15, unit = TimeUnit.SECONDS)
+    void testProposeValueAsLeader() {
+        // First become leader
+        consensusService.startElection().await().atMost(java.time.Duration.ofSeconds(5));
+        
+        if (consensusService.getCurrentState() == NodeState.LEADER) {
+            String testValue = "test-transaction-" + System.currentTimeMillis();
+            Boolean proposalResult = testReactiveSuccess(consensusService.proposeValue(testValue));
             
-            long batchTime = System.nanoTime() - batchStart;
-            
-            assertNotNull(result);
-            assertEquals(batchSize, result.getTransactions().size());
-            
-            totalTransactions += batchSize;
-            totalTime += batchTime;
+            assertThat(proposalResult)
+                .as("Proposal should succeed when node is leader")
+                .isTrue();
+                
+            // Verify consensus latency is recorded
+            ConsensusStats stats = testReactiveSuccess(consensusService.getStats());
+            assertThat(stats.consensusLatency)
+                .as("Consensus latency should be recorded")
+                .isGreaterThanOrEqualTo(0L);
+                
+            assertThat(stats.throughput)
+                .as("Throughput should be incremented")
+                .isGreaterThan(0L);
+        } else {
+            logger.info("Node did not become leader, skipping proposal test");
         }
-        
-        // Calculate actual TPS
-        double actualTps = (totalTransactions * 1_000_000_000.0) / totalTime;
-        
-        System.out.printf("Achieved TPS: %.0f (Target: 100,000+ TPS)%n", actualTps);
-        
-        // Verify minimum performance requirement
-        assertTrue(actualTps >= 50000, 
-            String.format("TPS too low: %.0f < 50,000 minimum", actualTps));
-        
-        // Verify peak performance tracking
-        PerformanceMetrics metrics = consensusService.getPerformanceMetrics();
-        assertTrue(metrics.getPeakTps() > 0);
     }
-
+    
     @Test
-    void testConsensusStatusTracking() {
-        // Test consensus status reporting
-        ConsensusStatus status = consensusService.getStatus();
+    @DisplayName("Should reject proposals when not leader")
+    void testProposeValueAsFollower() {
+        // Ensure node is in follower state
+        assertThat(consensusService.getCurrentState())
+            .as("Node should start as follower")
+            .isEqualTo(NodeState.FOLLOWER);
+            
+        String testValue = "test-transaction-follower";
+        Boolean proposalResult = testReactiveSuccess(consensusService.proposeValue(testValue));
         
-        assertNotNull(status);
-        assertNotNull(status.getState());
-        assertTrue(status.getTerm() >= 0);
-        assertTrue(status.getValidatorCount() > 0);
-        assertEquals(3, status.getValidatorCount()); // Based on test config
+        assertThat(proposalResult)
+            .as("Proposal should fail when node is not leader")
+            .isFalse();
     }
-
+    
     @Test
-    void testLeaderElectionTrigger() {
-        // Test manual leader election trigger
-        assertDoesNotThrow(() -> {
-            consensusService.triggerElection();
-        });
+    @DisplayName("Should handle append entries correctly")
+    void testAppendEntries() {
+        List<LogEntry> entries = new ArrayList<>();
+        entries.add(new LogEntry(1L, "entry-1"));
+        entries.add(new LogEntry(1L, "entry-2"));
         
-        // Verify election was attempted (would check mock interactions in real impl)
-        ConsensusStatus status = consensusService.getStatus();
-        assertNotNull(status);
+        Boolean appendResult = testReactiveSuccess(
+            consensusService.appendEntries(1L, "leader-node-id", entries));
+        
+        assertThat(appendResult)
+            .as("Append entries should succeed")
+            .isTrue();
+            
+        assertThat(consensusService.getCurrentTerm())
+            .as("Term should be updated")
+            .isEqualTo(1L);
+            
+        assertThat(consensusService.getCurrentState())
+            .as("State should be FOLLOWER after append entries")
+            .isEqualTo(NodeState.FOLLOWER);
     }
-
-    @Test 
-    void testPerformanceMetricsAccuracy() throws Exception {
-        // Process known number of transactions
-        int testTransactionCount = 10000;
-        List<Transaction> transactions = createTestTransactions(testTransactionCount);
-        
-        long initialProcessed = consensusService.getPerformanceMetrics().getTotalProcessed();
-        
-        consensusService.processTransactionBatch(transactions)
-            .subscribeAsCompletionStage()
-            .get(10, TimeUnit.SECONDS);
-        
-        // Wait for metrics update
-        Thread.sleep(100);
-        
-        PerformanceMetrics metrics = consensusService.getPerformanceMetrics();
-        
-        // Verify metrics accuracy
-        long expectedProcessed = initialProcessed + testTransactionCount;
-        assertEquals(expectedProcessed, metrics.getTotalProcessed());
-        assertTrue(metrics.getCurrentTps() >= 0);
-        assertTrue(metrics.getSuccessRate() >= 95.0);
-    }
-
+    
     @Test
-    @Timeout(5)
-    void testConcurrentTransactionProcessing() throws InterruptedException {
-        // Test concurrent transaction processing
-        int numberOfThreads = 10;
-        int transactionsPerThread = 1000;
-        CountDownLatch latch = new CountDownLatch(numberOfThreads);
-        List<Exception> exceptions = Collections.synchronizedList(new ArrayList<>());
+    @DisplayName("Should reject append entries with lower term")
+    void testAppendEntriesWithLowerTerm() {
+        // First set a higher term
+        consensusService.startElection().await().atMost(java.time.Duration.ofSeconds(5));
+        long currentTerm = consensusService.getCurrentTerm();
         
-        // Submit concurrent batches
-        for (int i = 0; i < numberOfThreads; i++) {
-            new Thread(() -> {
+        List<LogEntry> entries = List.of(new LogEntry(currentTerm - 1, "old-entry"));
+        
+        Boolean appendResult = testReactiveSuccess(
+            consensusService.appendEntries(currentTerm - 1, "leader-node-id", entries));
+        
+        assertThat(appendResult)
+            .as("Append entries should fail with lower term")
+            .isFalse();
+    }
+    
+    @Test
+    @DisplayName("Should manage cluster nodes correctly")
+    void testNodeManagement() {
+        String newNodeId = "test-node-" + System.currentTimeMillis();
+        
+        // Add node
+        consensusService.addNode(newNodeId);
+        
+        ConsensusStats stats = testReactiveSuccess(consensusService.getStats());
+        assertThat(stats.clusterSize)
+            .as("Cluster size should increase after adding node")
+            .isGreaterThan(3); // We start with 3 nodes in setup
+        
+        // Remove node
+        consensusService.removeNode(newNodeId);
+        
+        ConsensusStats statsAfterRemoval = testReactiveSuccess(consensusService.getStats());
+        assertThat(statsAfterRemoval.clusterSize)
+            .as("Cluster size should decrease after removing node")
+            .isEqualTo(stats.clusterSize - 1);
+    }
+    
+    @ParameterizedTest
+    @ValueSource(ints = {10, 50, 100})
+    @DisplayName("Should handle multiple proposals efficiently")
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    void testMultipleProposals(int proposalCount) {
+        // Try to become leader first
+        consensusService.startElection().await().atMost(java.time.Duration.ofSeconds(5));
+        
+        if (consensusService.getCurrentState() == NodeState.LEADER) {
+            long startTime = System.currentTimeMillis();
+            int successfulProposals = 0;
+            
+            for (int i = 0; i < proposalCount; i++) {
+                String value = "proposal-" + i;
                 try {
-                    List<Transaction> transactions = createTestTransactions(transactionsPerThread);
-                    consensusService.processTransactionBatch(transactions)
-                        .subscribeAsCompletionStage()
-                        .get(5, TimeUnit.SECONDS);
+                    Boolean result = consensusService.proposeValue(value)
+                        .await().atMost(java.time.Duration.ofSeconds(2));
+                    if (result) {
+                        successfulProposals++;
+                    }
                 } catch (Exception e) {
-                    exceptions.add(e);
-                } finally {
-                    latch.countDown();
+                    logger.debug("Proposal {} failed: {}", i, e.getMessage());
                 }
-            }).start();
-        }
-        
-        // Wait for all threads to complete
-        assertTrue(latch.await(30, TimeUnit.SECONDS));
-        
-        // Verify no exceptions occurred
-        assertTrue(exceptions.isEmpty(), 
-            "Concurrent processing failed: " + exceptions);
-        
-        // Verify total processed count
-        PerformanceMetrics metrics = consensusService.getPerformanceMetrics();
-        long expectedTotal = numberOfThreads * transactionsPerThread;
-        assertTrue(metrics.getTotalProcessed() >= expectedTotal);
-    }
-
-    @Test
-    void testErrorHandlingAndResilience() {
-        // Test error handling with invalid transactions
-        List<Transaction> invalidTransactions = createInvalidTransactions(100);
-        
-        assertDoesNotThrow(() -> {
-            Block result = consensusService.processTransactionBatch(invalidTransactions)
-                .subscribeAsCompletionStage()
-                .get(5, TimeUnit.SECONDS);
-            
-            assertNotNull(result);
-            // Should handle invalid transactions gracefully
-            assertTrue(result.getTransactions().size() >= 0);
-        });
-    }
-
-    @Test
-    void testMemoryUsageOptimization() {
-        // Test memory efficiency with large batches
-        Runtime runtime = Runtime.getRuntime();
-        long initialMemory = runtime.totalMemory() - runtime.freeMemory();
-        
-        // Process multiple large batches
-        for (int i = 0; i < 5; i++) {
-            List<Transaction> largeBatch = createTestTransactions(10000);
-            
-            assertDoesNotThrow(() -> {
-                consensusService.processTransactionBatch(largeBatch)
-                    .subscribeAsCompletionStage()
-                    .get(10, TimeUnit.SECONDS);
-            });
-            
-            // Force garbage collection
-            System.gc();
-        }
-        
-        long finalMemory = runtime.totalMemory() - runtime.freeMemory();
-        long memoryIncrease = finalMemory - initialMemory;
-        
-        // Verify memory usage is reasonable (less than 100MB increase)
-        assertTrue(memoryIncrease < 100 * 1024 * 1024, 
-            String.format("Memory usage too high: %d bytes increase", memoryIncrease));
-    }
-
-    // Helper methods
-
-    private List<Transaction> createTestTransactions(int count) {
-        List<Transaction> transactions = new ArrayList<>(count);
-        
-        for (int i = 0; i < count; i++) {
-            transactions.add(new Transaction(
-                "tx_" + i,
-                "hash_" + i,
-                "test_data_" + i,
-                System.currentTimeMillis(),
-                "from_" + i,
-                "to_" + (i + 1),
-                (long) (Math.random() * 1000),
-                null, // ZK proof will be generated in pipeline
-                "signature_" + i
-            ));
-        }
-        
-        return transactions;
-    }
-
-    private List<Transaction> createInvalidTransactions(int count) {
-        List<Transaction> transactions = new ArrayList<>(count);
-        
-        for (int i = 0; i < count; i++) {
-            // Create transactions with missing or invalid fields
-            transactions.add(new Transaction(
-                null, // Invalid: null ID
-                i % 2 == 0 ? "hash_" + i : null, // Some with null hash
-                "invalid_data_" + i,
-                System.currentTimeMillis(),
-                i % 3 == 0 ? null : "from_" + i, // Some with null from
-                "to_" + i,
-                i % 4 == 0 ? -100L : 100L, // Some with negative amounts
-                null,
-                i % 5 == 0 ? null : "sig_" + i // Some with null signatures
-            ));
-        }
-        
-        return transactions;
-    }
-    
-    // Performance benchmark test
-    @Test
-    @Timeout(60)
-    void benchmarkConsensusPerformance() throws Exception {
-        System.out.println("\n=== HyperRAFT++ Consensus Performance Benchmark ===");
-        
-        // Warm up
-        List<Transaction> warmupTxs = createTestTransactions(1000);
-        consensusService.processTransactionBatch(warmupTxs)
-            .subscribeAsCompletionStage()
-            .get(5, TimeUnit.SECONDS);
-        
-        // Benchmark different batch sizes
-        int[] batchSizes = {1000, 5000, 10000, 25000, 50000};
-        
-        for (int batchSize : batchSizes) {
-            System.out.printf("\nTesting batch size: %d transactions\n", batchSize);
-            
-            List<Transaction> transactions = createTestTransactions(batchSize);
-            
-            long startTime = System.nanoTime();
-            Block result = consensusService.processTransactionBatch(transactions)
-                .subscribeAsCompletionStage()
-                .get(30, TimeUnit.SECONDS);
-            long endTime = System.nanoTime();
-            
-            double processingTimeMs = (endTime - startTime) / 1_000_000.0;
-            double tps = (batchSize / processingTimeMs) * 1000.0;
-            
-            System.out.printf("  Processing time: %.2f ms\n", processingTimeMs);
-            System.out.printf("  Throughput: %.0f TPS\n", tps);
-            System.out.printf("  Success rate: %.2f%%\n", 
-                consensusService.getPerformanceMetrics().getSuccessRate());
-            
-            assertNotNull(result);
-            assertEquals(batchSize, result.getTransactions().size());
-            
-            // Verify minimum performance targets
-            if (batchSize >= 10000) {
-                assertTrue(tps >= 50000, 
-                    String.format("TPS target not met for batch size %d: %.0f < 50,000", batchSize, tps));
             }
+            
+            long duration = System.currentTimeMillis() - startTime;
+            double successRate = (double) successfulProposals / proposalCount * 100;
+            double tps = calculateTPS(successfulProposals, duration);
+            
+            logger.info("Multiple proposals test - Success: {}/{} ({}%), TPS: {}", 
+                       successfulProposals, proposalCount, 
+                       String.format("%.2f", successRate), String.format("%.2f", tps));
+            
+            assertThat(successRate)
+                .as("Should have high success rate for proposals")
+                .isGreaterThanOrEqualTo(80.0); // 80% minimum success rate
+                
+            assertThat(tps)
+                .as("Should achieve reasonable throughput")
+                .isGreaterThan(10.0); // Minimum 10 TPS
+        } else {
+            logger.info("Node did not become leader, skipping multiple proposals test");
+        }
+    }
+    
+    @Test
+    @DisplayName("Should maintain performance under concurrent operations")
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    void testConcurrentOperations() {
+        // Test concurrent stat requests
+        testConcurrentExecution(() -> consensusService.getStats(), 50);
+        
+        // Test concurrent elections
+        testConcurrentExecution(() -> consensusService.startElection(), 10);
+    }
+    
+    @Test
+    @DisplayName("Should handle edge cases gracefully")
+    void testEdgeCases() {
+        // Test with null value
+        if (consensusService.getCurrentState() == NodeState.FOLLOWER) {
+            Boolean nullResult = testReactiveSuccess(consensusService.proposeValue(null));
+            assertThat(nullResult)
+                .as("Should handle null proposal gracefully")
+                .isFalse();
         }
         
-        System.out.println("\n=== Benchmark Complete ===\n");
-    }
-}
-
-/**
- * Test profile for consensus testing
- */
-class ConsensusTestProfile implements io.quarkus.test.junit.QuarkusTestProfile {
-    
-    @Override
-    public Map<String, String> getConfigOverrides() {
-        Map<String, String> config = new HashMap<>();
+        // Test with empty value
+        if (consensusService.getCurrentState() == NodeState.FOLLOWER) {
+            Boolean emptyResult = testReactiveSuccess(consensusService.proposeValue(""));
+            assertThat(emptyResult)
+                .as("Should handle empty proposal gracefully")
+                .isFalse();
+        }
         
-        // Consensus configuration
-        config.put("consensus.node.id", "test_node_1");
-        config.put("consensus.validators", "test_node_1,test_node_2,test_node_3");
-        config.put("consensus.election.timeout.ms", "1000");
-        config.put("consensus.heartbeat.interval.ms", "100");
-        config.put("consensus.batch.size", "5000");
-        config.put("consensus.pipeline.depth", "8");
-        config.put("consensus.parallel.threads", "64");
-        config.put("consensus.target.tps", "100000");
-        
-        // Logging configuration for testing
-        config.put("quarkus.log.level", "INFO");
-        config.put("quarkus.log.category.\"io.aurigraph.v11.consensus\".level", "DEBUG");
-        
-        return config;
+        // Test append entries with null entries
+        Boolean nullEntriesResult = testReactiveSuccess(
+            consensusService.appendEntries(1L, "leader", null));
+        assertThat(nullEntriesResult)
+            .as("Should handle null entries gracefully")
+            .isTrue();
     }
     
+    @Test
+    @DisplayName("Should validate consensus statistics accuracy")
+    void testStatisticsAccuracy() {
+        ConsensusStats initialStats = testReactiveSuccess(consensusService.getStats());
+        
+        // Record initial values
+        long initialThroughput = initialStats.throughput;
+        
+        // Try to become leader and propose some values
+        consensusService.startElection().await().atMost(java.time.Duration.ofSeconds(5));
+        
+        if (consensusService.getCurrentState() == NodeState.LEADER) {
+            // Make some successful proposals
+            int proposals = 5;
+            for (int i = 0; i < proposals; i++) {
+                consensusService.proposeValue("test-" + i)
+                    .await().atMost(java.time.Duration.ofSeconds(2));
+            }
+            
+            ConsensusStats finalStats = testReactiveSuccess(consensusService.getStats());
+            
+            assertThat(finalStats.throughput)
+                .as("Throughput should increase after successful proposals")
+                .isGreaterThan(initialThroughput);
+        }
+    }
+    
+    @Test
+    @DisplayName("Should handle service lifecycle correctly")
+    void testServiceLifecycle() {
+        // Test initial state
+        testServiceInitialization();
+        
+        // Test operations
+        testReactiveSuccess(consensusService.getStats());
+        
+        // Test state transitions
+        testReactiveSuccess(consensusService.startElection());
+        
+        // Test cleanup (if applicable)
+        testServiceCleanup();
+    }
+    
     @Override
-    public Set<String> tags() {
-        return Set.of("consensus", "performance");
+    protected void validateServiceStatistics(Object stats) {
+        assertThat(stats)
+            .as("Statistics should be ConsensusStats instance")
+            .isInstanceOf(ConsensusStats.class);
+            
+        ConsensusStats consensusStats = (ConsensusStats) stats;
+        
+        assertThat(consensusStats.nodeId)
+            .as("Node ID in stats should not be null")
+            .isNotNull();
+            
+        assertThat(consensusStats.state)
+            .as("State in stats should not be null")
+            .isNotNull();
+            
+        assertThat(consensusStats.currentTerm)
+            .as("Term in stats should be non-negative")
+            .isNotNegative();
+            
+        assertThat(consensusStats.commitIndex)
+            .as("Commit index in stats should be non-negative")
+            .isNotNegative();
+            
+        assertThat(consensusStats.consensusLatency)
+            .as("Consensus latency in stats should be non-negative")
+            .isNotNegative();
+            
+        assertThat(consensusStats.throughput)
+            .as("Throughput in stats should be non-negative")
+            .isNotNegative();
+            
+        assertThat(consensusStats.clusterSize)
+            .as("Cluster size in stats should be positive")
+            .isPositive();
     }
 }

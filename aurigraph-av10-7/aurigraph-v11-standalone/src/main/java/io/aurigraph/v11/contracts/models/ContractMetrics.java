@@ -1,6 +1,7 @@
 package io.aurigraph.v11.contracts.models;
 
 import lombok.Data;
+import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractMetrics {

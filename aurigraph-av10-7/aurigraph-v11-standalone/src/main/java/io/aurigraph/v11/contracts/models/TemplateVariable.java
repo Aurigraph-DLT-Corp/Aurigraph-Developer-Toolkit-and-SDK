@@ -1,6 +1,7 @@
 package io.aurigraph.v11.contracts.models;
 
 import lombok.Data;
+import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
  * Represents a variable in a contract template
  */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class TemplateVariable {
@@ -15,6 +17,7 @@ public class TemplateVariable {
     private String name;
     private String type; // STRING, NUMBER, BOOLEAN, DATE, ADDRESS
     private String description;
+    @Builder.Default
     private boolean required = true;
     private Object defaultValue;
     private String validationPattern; // Regex pattern for validation

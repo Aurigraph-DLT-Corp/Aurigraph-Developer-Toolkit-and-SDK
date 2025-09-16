@@ -188,10 +188,10 @@ public class AurigraphResource {
     public SystemStatus getSystemStatus() {
         // Collect status from all services
         var txStats = transactionService.getStats();
-        var consensusStatus = consensusService.getStatus();
+        var consensusStatus = consensusService.getStats().await().indefinitely();
         var cryptoStatus = quantumCryptoService.getStatus();
-        var bridgeStats = bridgeService.getBridgeStats();
-        var hmsStats = hmsService.getHMSStats();
+        var bridgeStats = bridgeService.getBridgeStats().await().indefinitely();
+        var hmsStats = hmsService.getStats().await().indefinitely();
         var aiStats = aiOptimizationService.getOptimizationStats();
         
         return new SystemStatus(
@@ -513,7 +513,7 @@ public class AurigraphResource {
         long uptimeMs,
         boolean healthy,
         TransactionService.EnhancedProcessingStats transactionStats,
-        io.aurigraph.v11.consensus.HyperRAFTConsensusService.ConsensusStatus consensusStatus,
+        io.aurigraph.v11.consensus.HyperRAFTConsensusService.ConsensusStats consensusStatus,
         io.aurigraph.v11.crypto.QuantumCryptoService.CryptoStatus cryptoStatus,
         io.aurigraph.v11.bridge.models.BridgeStats bridgeStats,
         io.aurigraph.v11.hms.HMSIntegrationService.HMSStats hmsStats,

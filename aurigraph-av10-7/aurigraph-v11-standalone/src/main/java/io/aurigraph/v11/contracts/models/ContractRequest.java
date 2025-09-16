@@ -2,6 +2,7 @@ package io.aurigraph.v11.contracts.models;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractRequest {

@@ -1,0 +1,481 @@
+name: Ricardian Contract Framework - JIRA Sync
+
+on:
+  push:
+    branches: [ main, develop, 'feature/ricardian-*' ]
+    paths:
+      - 'src/main/java/io/aurigraph/v11/contracts/ricardian/**'
+      - 'src/test/java/io/aurigraph/v11/contracts/ricardian/**'
+      - '.github/workflows/ricardian-jira-sync.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/main/java/io/aurigraph/v11/contracts/ricardian/**'
+      - 'src/test/java/io/aurigraph/v11/contracts/ricardian/**'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of JIRA update'
+        required: true
+        default: 'progress'
+        type: choice
+        options:
+          - progress
+          - milestone
+          - release
+          - critical_bug
+
+env:
+  # JIRA Configuration
+  JIRA_BASE_URL: "https://aurigraphdlt.atlassian.net"
+  JIRA_PROJECT_KEY: "AV11"
+  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+  JIRA_USER_EMAIL: "dev-team@aurigraph.io"
+  
+  # Ricardian Contract Framework Specific Configuration
+  RICARDIAN_EPIC_KEY: "AV11-500"
+  FRAMEWORK_VERSION: "1.0.0"
+  COMPONENT_NAME: "Ricardian Contract Framework"
+
+jobs:
+  analyze-changes:
+    name: Analyze Ricardian Framework Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_ricardian_changes: ${{ steps.check_changes.outputs.has_changes }}
+      change_type: ${{ steps.classify_changes.outputs.change_type }}
+      affected_components: ${{ steps.classify_changes.outputs.components }}
+      test_coverage: ${{ steps.analyze_tests.outputs.coverage }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check for Ricardian Framework changes
+      id: check_changes
+      run: |
+        if git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD | grep -E "src/.*/contracts/ricardian/"; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          echo "✅ Ricardian Contract Framework changes detected"
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+          echo "ℹ️ No Ricardian Contract Framework changes"
+        fi
+
+    - name: Classify changes
+      id: classify_changes
+      if: steps.check_changes.outputs.has_changes == 'true'
+      run: |
+        # Analyze changed files to determine change type and affected components
+        changed_files=$(git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD | grep -E "src/.*/contracts/ricardian/" || true)
+        
+        change_type="enhancement"
+        components=""
+        
+        if echo "$changed_files" | grep -q "RicardianContractFramework"; then
+          components="${components}framework,"
+        fi
+        if echo "$changed_files" | grep -q "PDFContractParser"; then
+          components="${components}pdf-parser,"
+        fi
+        if echo "$changed_files" | grep -q "ContractRegistry"; then
+          components="${components}registry,"
+        fi
+        if echo "$changed_files" | grep -q "StakeholderManager"; then
+          components="${components}stakeholder-mgmt,"
+        fi
+        if echo "$changed_files" | grep -q "models/"; then
+          components="${components}models,"
+        fi
+        
+        # Determine change type based on commit messages
+        if git log --oneline ${{ github.event.before || 'HEAD~1' }}..HEAD | grep -iE "(fix|bug|critical)"; then
+          change_type="bugfix"
+        elif git log --oneline ${{ github.event.before || 'HEAD~1' }}..HEAD | grep -iE "(feat|feature|new)"; then
+          change_type="feature"
+        elif git log --oneline ${{ github.event.before || 'HEAD~1' }}..HEAD | grep -iE "(refactor|improve|optimize)"; then
+          change_type="improvement"
+        fi
+        
+        echo "change_type=$change_type" >> $GITHUB_OUTPUT
+        echo "components=${components%,}" >> $GITHUB_OUTPUT
+        
+        echo "📊 Change Analysis:"
+        echo "  Type: $change_type"
+        echo "  Components: ${components%,}"
+
+    - name: Analyze test coverage
+      id: analyze_tests
+      if: steps.check_changes.outputs.has_changes == 'true'
+      run: |
+        test_files=$(find src/test -name "*Ricardian*Test.java" -o -name "*Contract*Test.java" | wc -l)
+        src_files=$(find src/main/java/io/aurigraph/v11/contracts/ricardian -name "*.java" | wc -l)
+        
+        if [ $src_files -gt 0 ]; then
+          coverage_ratio=$(echo "scale=2; $test_files / $src_files * 100" | bc -l)
+        else
+          coverage_ratio=0
+        fi
+        
+        echo "coverage=$coverage_ratio" >> $GITHUB_OUTPUT
+        echo "🧪 Test Coverage Analysis: $coverage_ratio% ($test_files tests for $src_files source files)"
+
+  update-jira-tickets:
+    name: Update JIRA Tickets
+    needs: analyze-changes
+    if: needs.analyze-changes.outputs.has_ricardian_changes == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js for JIRA API calls
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install JIRA CLI dependencies
+      run: |
+        npm install -g jira-cli node-fetch@2
+
+    - name: Update Epic Progress
+      env:
+        CHANGE_TYPE: ${{ needs.analyze-changes.outputs.change_type }}
+        COMPONENTS: ${{ needs.analyze-changes.outputs.affected_components }}
+        TEST_COVERAGE: ${{ needs.analyze-changes.outputs.test_coverage }}
+      run: |
+        # Create progress update comment for Ricardian Contract Epic
+        cat > jira_comment.json << EOF
+        {
+          "body": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "🔄 Ricardian Contract Framework Update - $(date '+%Y-%m-%d %H:%M:%S')",
+                    "marks": [{"type": "strong"}]
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "📋 Change Details:"
+                  }
+                ]
+              },
+              {
+                "type": "bulletList",
+                "content": [
+                  {
+                    "type": "listItem",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Type: ${CHANGE_TYPE}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "listItem",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Components: ${COMPONENTS}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "listItem",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Test Coverage: ${TEST_COVERAGE}%"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "listItem",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Commit: ${GITHUB_SHA:0:8}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "listItem",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Branch: ${GITHUB_REF_NAME}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "🔗 GitHub Action: ",
+                    "marks": [{"type": "strong"}]
+                  },
+                  {
+                    "type": "text",
+                    "text": "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
+                    "marks": [{"type": "link", "attrs": {"href": "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"}}]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        EOF
+
+        # Post comment to JIRA Epic
+        curl -X POST \
+          -H "Authorization: Basic $(echo -n $JIRA_USER_EMAIL:$JIRA_API_TOKEN | base64)" \
+          -H "Content-Type: application/json" \
+          -H "Accept: application/json" \
+          -d @jira_comment.json \
+          "$JIRA_BASE_URL/rest/api/3/issue/$RICARDIAN_EPIC_KEY/comment"
+
+    - name: Create feature-specific tickets
+      if: needs.analyze-changes.outputs.change_type == 'feature'
+      run: |
+        # Create specific tickets for major feature additions
+        components="${{ needs.analyze-changes.outputs.affected_components }}"
+        
+        for component in $(echo $components | tr ',' ' '); do
+          case $component in
+            "framework")
+              ticket_summary="Ricardian Framework Core Enhancement - $(date '+%Y-%m-%d')"
+              ticket_description="Core framework enhancements detected in commit ${GITHUB_SHA:0:8}"
+              ;;
+            "pdf-parser")
+              ticket_summary="PDF Contract Parser Enhancement - $(date '+%Y-%m-%d')"
+              ticket_description="PDF parsing capabilities enhanced in commit ${GITHUB_SHA:0:8}"
+              ;;
+            "registry")
+              ticket_summary="Contract Registry Enhancement - $(date '+%Y-%m-%d')"
+              ticket_description="Contract registry functionality enhanced in commit ${GITHUB_SHA:0:8}"
+              ;;
+            "stakeholder-mgmt")
+              ticket_summary="Stakeholder Management Enhancement - $(date '+%Y-%m-%d')"
+              ticket_description="Stakeholder management capabilities enhanced in commit ${GITHUB_SHA:0:8}"
+              ;;
+            *)
+              ticket_summary="Ricardian Contract $component Enhancement - $(date '+%Y-%m-%d')"
+              ticket_description="$component functionality enhanced in commit ${GITHUB_SHA:0:8}"
+              ;;
+          esac
+          
+          # Create JIRA ticket
+          cat > ticket.json << EOF
+          {
+            "fields": {
+              "project": {
+                "key": "$JIRA_PROJECT_KEY"
+              },
+              "summary": "$ticket_summary",
+              "description": {
+                "type": "doc",
+                "version": 1,
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$ticket_description"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "GitHub Action: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
+                        "marks": [{"type": "link", "attrs": {"href": "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"}}]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "issuetype": {
+                "name": "Story"
+              },
+              "parent": {
+                "key": "$RICARDIAN_EPIC_KEY"
+              },
+              "components": [
+                {
+                  "name": "$COMPONENT_NAME"
+                }
+              ],
+              "labels": [
+                "ricardian-contracts",
+                "auto-generated",
+                "framework-enhancement"
+              ]
+            }
+          }
+        EOF
+          
+          echo "Creating JIRA ticket for component: $component"
+          curl -X POST \
+            -H "Authorization: Basic $(echo -n $JIRA_USER_EMAIL:$JIRA_API_TOKEN | base64)" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d @ticket.json \
+            "$JIRA_BASE_URL/rest/api/3/issue"
+        done
+
+    - name: Update Sprint Progress
+      run: |
+        # Get current sprint information
+        current_sprint=$(curl -X GET \
+          -H "Authorization: Basic $(echo -n $JIRA_USER_EMAIL:$JIRA_API_TOKEN | base64)" \
+          -H "Accept: application/json" \
+          "$JIRA_BASE_URL/rest/agile/1.0/board/789/sprint?state=active" | \
+          jq -r '.values[0].id // empty')
+        
+        if [ ! -z "$current_sprint" ]; then
+          echo "📊 Updating progress for active sprint: $current_sprint"
+          
+          # Add work log entry to epic
+          cat > worklog.json << EOF
+          {
+            "comment": {
+              "type": "doc",
+              "version": 1,
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Ricardian Contract Framework development progress - automated update from GitHub Actions"
+                    }
+                  ]
+                }
+              ]
+            },
+            "started": "$(date -u +%Y-%m-%dT%H:%M:%S.000+0000)",
+            "timeSpentSeconds": 3600
+          }
+        EOF
+          
+          curl -X POST \
+            -H "Authorization: Basic $(echo -n $JIRA_USER_EMAIL:$JIRA_API_TOKEN | base64)" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d @worklog.json \
+            "$JIRA_BASE_URL/rest/api/3/issue/$RICARDIAN_EPIC_KEY/worklog"
+        fi
+
+  notify-team:
+    name: Notify Development Team
+    needs: [analyze-changes, update-jira-tickets]
+    if: always() && needs.analyze-changes.outputs.has_ricardian_changes == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Send notification summary
+      run: |
+        echo "🚀 Ricardian Contract Framework Update Summary"
+        echo "================================================"
+        echo "Change Type: ${{ needs.analyze-changes.outputs.change_type }}"
+        echo "Components: ${{ needs.analyze-changes.outputs.affected_components }}"
+        echo "Test Coverage: ${{ needs.analyze-changes.outputs.test_coverage }}%"
+        echo "JIRA Epic: $JIRA_BASE_URL/browse/$RICARDIAN_EPIC_KEY"
+        echo "GitHub Action: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        echo ""
+        echo "✅ JIRA tickets have been automatically updated"
+        echo "📋 Sprint progress tracked in JIRA Board 789"
+
+  validate-framework:
+    name: Validate Ricardian Framework
+    needs: analyze-changes
+    if: needs.analyze-changes.outputs.has_ricardian_changes == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Validate compilation
+      run: |
+        cd aurigraph-v11-standalone
+        ./mvnw clean compile -DskipTests
+
+    - name: Run Ricardian Framework tests
+      run: |
+        cd aurigraph-v11-standalone
+        ./mvnw test -Dtest="*Ricardian*Test" -DfailIfNoTests=false
+
+    - name: Validate dependencies
+      run: |
+        cd aurigraph-v11-standalone
+        ./mvnw dependency:analyze-only
+
+    - name: Check for security vulnerabilities
+      run: |
+        cd aurigraph-v11-standalone
+        ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
+
+    - name: Report validation results
+      if: always()
+      run: |
+        echo "🔍 Ricardian Contract Framework Validation Complete"
+        echo "Check job status above for detailed results"

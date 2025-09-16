@@ -1,6 +1,7 @@
 package io.aurigraph.v11.contracts.composite;
 
 import java.util.*;
+import java.math.BigDecimal;
 
 /**
  * Request model for creating composite tokens
@@ -15,6 +16,7 @@ public class CompositeTokenCreationRequest {
     private boolean fractionalizable;
     private VerificationLevel requiredVerificationLevel;
     private Map<String, Object> metadata;
+    private BigDecimal assetValue;
 
     // Getters and setters
     public String getAssetId() { return assetId; }
@@ -45,4 +47,7 @@ public class CompositeTokenCreationRequest {
     
     public Map<String, Object> getMetadata() { return metadata; }
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
+    
+    public BigDecimal getAssetValue() { return assetValue; }
+    public void setAssetValue(BigDecimal assetValue) { this.assetValue = assetValue; }
 }

@@ -1,434 +1,460 @@
 package io.aurigraph.v11.hms;
 
+import io.aurigraph.v11.ServiceTestBase;
+import io.aurigraph.v11.hms.HMSIntegrationService.HMSStats;
+import io.aurigraph.v11.hms.HMSIntegrationService.RealWorldAsset;
+import io.aurigraph.v11.hms.HMSIntegrationService.TokenizationRequest;
+import io.aurigraph.v11.hms.HMSIntegrationService.TokenizationResponse;
 import io.quarkus.test.junit.QuarkusTest;
-import io.smallrye.mutiny.Uni;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import jakarta.inject.Inject;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.time.Instant;
+import jakarta.inject.Inject;
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Comprehensive test suite for HMS Integration Service
+ * Comprehensive test suite for HMSIntegrationService.
  * 
  * Tests:
- * - Account connection and data retrieval
- * - Order placement and tracking
- * - High-performance tokenization (<10ms)
- * - Batch processing (100K+ TPS)
- * - Error handling and failover
- * - Quantum security integration
- * - Cross-chain deployment
- * - Performance metrics
+ * - Asset tokenization
+ * - Asset management operations
+ * - Asset transfer and ownership
+ * - Performance under load
+ * - Error handling
+ * - Statistics and metrics
+ * - Real-world asset validation
  */
 @QuarkusTest
-class HMSIntegrationServiceTest {
-
+class HMSIntegrationServiceTest extends ServiceTestBase {
+    
     @Inject
-    HMSIntegrationService hmsIntegrationService;
-
-    private HMSIntegrationService.HMSAccount mockAccount;
-    private HMSIntegrationService.HMSOrder mockOrder;
-
+    HMSIntegrationService hmsService;
+    
+    @Override
+    protected Object getServiceUnderTest() {
+        return hmsService;
+    }
+    
     @BeforeEach
-    void setUp() {
-        // Setup mock HMS account
-        mockAccount = new HMSIntegrationService.HMSAccount(
-            "HMS123456",
-            "ACTIVE",
-            "USD",
-            "50000.00",
-            "25000.00",
-            "75000.00",
-            "75000.00",
-            "74000.00",
-            "1",
-            false,
-            "2024-01-01T00:00:00Z"
+    @Override
+    protected void setupTestEnvironment() {
+        super.setupTestEnvironment();
+        // Service starts clean for each test
+    }
+    
+    @Test
+    @DisplayName("Service should initialize correctly")
+    void testServiceInitialization() {
+        assertThat(hmsService)
+            .as("HMS Service should not be null")
+            .isNotNull();
+        
+        // Check initial statistics
+        HMSStats stats = testReactiveSuccess(hmsService.getStats());
+        assertThat(stats.totalAssets)
+            .as("Initial asset count should be 0")
+            .isEqualTo(0L);
+        
+        assertThat(stats.totalTransactions)
+            .as("Initial transaction count should be 0")
+            .isEqualTo(0L);
+    }
+    
+    @Test
+    @DisplayName("Should tokenize real-world assets successfully")
+    void testAssetTokenization() {
+        // Create tokenization request
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("propertyType", "residential");
+        metadata.put("location", "San Francisco, CA");
+        metadata.put("sqft", 2500);
+        
+        TokenizationRequest request = new TokenizationRequest(
+            "real-estate",
+            "owner123",
+            BigDecimal.valueOf(500000),
+            metadata
         );
-
-        // Setup mock HMS order
-        mockOrder = new HMSIntegrationService.HMSOrder(
-            "ORD_123456",
-            "CLIENT_123",
-            "2024-09-09T10:00:00Z",
-            "2024-09-09T10:00:01Z",
-            "2024-09-09T10:00:00Z",
-            "2024-09-09T10:00:02Z",
-            "ASSET_AAPL",
-            "AAPL",
-            "us_equity",
-            "100",
-            "100",
-            150.50,
-            "market",
-            "market",
-            "buy",
-            "day",
-            null,
-            null,
-            "filled",
-            false
+        
+        // Tokenize the asset
+        TokenizationResponse response = testReactiveSuccess(hmsService.tokenizeAsset(request));
+        
+        // Verify response
+        assertThat(response.assetId)
+            .as("Asset ID should not be null or empty")
+            .isNotNull()
+            .isNotEmpty()
+            .startsWith("HMS-");
+            
+        assertThat(response.tokenId)
+            .as("Token ID should not be null or empty")
+            .isNotNull()
+            .isNotEmpty()
+            .startsWith("TOKEN-");
+            
+        assertThat(response.status)
+            .as("Status should be SUCCESS")
+            .isEqualTo("SUCCESS");
+            
+        assertThat(response.timestamp)
+            .as("Timestamp should not be null")
+            .isNotNull();
+    }
+    
+    @Test
+    @DisplayName("Should retrieve tokenized assets correctly")
+    void testAssetRetrieval() {
+        // First tokenize an asset
+        TokenizationRequest request = createSampleTokenizationRequest();
+        TokenizationResponse response = testReactiveSuccess(hmsService.tokenizeAsset(request));
+        
+        // Retrieve the asset
+        RealWorldAsset asset = testReactiveSuccess(hmsService.getAsset(response.assetId));
+        
+        // Verify asset properties
+        assertThat(asset.assetId)
+            .as("Asset ID should match")
+            .isEqualTo(response.assetId);
+            
+        assertThat(asset.assetType)
+            .as("Asset type should match")
+            .isEqualTo(request.assetType);
+            
+        assertThat(asset.owner)
+            .as("Owner should match")
+            .isEqualTo(request.owner);
+            
+        assertThat(asset.value)
+            .as("Value should match")
+            .isEqualTo(request.value);
+            
+        assertThat(asset.status)
+            .as("Status should be ACTIVE")
+            .isEqualTo("ACTIVE");
+            
+        assertThat(asset.createdAt)
+            .as("Created timestamp should not be null")
+            .isNotNull();
+    }
+    
+    @Test
+    @DisplayName("Should handle asset not found scenario")
+    void testAssetNotFound() {
+        String nonExistentAssetId = "HMS-nonexistent";
+        
+        testReactiveFailure(
+            hmsService.getAsset(nonExistentAssetId),
+            java.util.NoSuchElementException.class
         );
-
-        // Test setup complete
     }
-
-    @Nested
-    @DisplayName("HMS Account Operations")
-    class AccountOperations {
-
-        @Test
-        @DisplayName("Should retrieve HMS account successfully")
-        void testGetHMSAccount() {
-            // This test would require mocking the HTTP client
-            // For now, we test the service structure
-            assertNotNull(hmsIntegrationService);
-            
-            // Test would verify account retrieval
-            HMSIntegrationService.HMSIntegrationStats stats = hmsIntegrationService.getIntegrationStats();
-            assertNotNull(stats);
-            assertTrue(stats.currentBlockHeight() > 0);
-        }
-    }
-
-    @Nested
-    @DisplayName("Order Placement and Processing")
-    class OrderProcessing {
-
-        @Test
-        @DisplayName("Should place HMS order with valid parameters")
-        void testPlaceHMSOrder() {
-            HMSIntegrationService.HMSOrderRequest request = new HMSIntegrationService.HMSOrderRequest(
-                "AAPL",
-                100.0,
-                "buy",
-                "market",
-                "day"
+    
+    @Test
+    @DisplayName("Should list all assets correctly")
+    void testListAssets() {
+        // Initially should be empty
+        List<RealWorldAsset> initialAssets = testReactiveSuccess(hmsService.listAssets());
+        int initialCount = initialAssets.size();
+        
+        // Tokenize several assets
+        int assetsToCreate = 3;
+        for (int i = 0; i < assetsToCreate; i++) {
+            TokenizationRequest request = new TokenizationRequest(
+                "asset-type-" + i,
+                "owner-" + i,
+                BigDecimal.valueOf(100000 + i * 10000),
+                Map.of("index", i)
             );
-
-            // Test would verify order placement logic
-            assertNotNull(request);
-            assertEquals("AAPL", request.symbol());
-            assertEquals(100.0, request.quantity());
-            assertEquals("buy", request.side());
+            testReactiveSuccess(hmsService.tokenizeAsset(request));
         }
-
-        @Test
-        @DisplayName("Should validate order parameters")
-        void testOrderValidation() {
-            // Test invalid symbol
-            assertThrows(Exception.class, () -> {
-                new HMSIntegrationService.HMSOrderRequest(
-                    null, // Invalid null symbol
-                    100.0,
-                    "buy",
-                    "market",
-                    "day"
-                );
-            });
-
-            // Test invalid quantity
-            assertThrows(Exception.class, () -> {
-                new HMSIntegrationService.HMSOrderRequest(
-                    "AAPL",
-                    -100.0, // Invalid negative quantity
-                    "buy",
-                    "market",
-                    "day"
-                );
-            });
-        }
+        
+        // List assets again
+        List<RealWorldAsset> assets = testReactiveSuccess(hmsService.listAssets());
+        
+        assertThat(assets)
+            .as("Assets list should contain created assets")
+            .hasSize(initialCount + assetsToCreate);
     }
-
-    @Nested
-    @DisplayName("High-Performance Tokenization")
-    class TokenizationPerformance {
-
-        @Test
-        @DisplayName("Should tokenize HMS transaction within 10ms target")
-        void testTokenizationLatency() throws InterruptedException, ExecutionException {
-            long startTime = System.nanoTime();
-            
-            // Simulate tokenization process
-            Uni<HMSIntegrationService.TokenizedHMSTransaction> tokenizationResult = 
-                hmsIntegrationService.tokenizeHMSTransaction(mockOrder);
-            
-            // Test the structure and timing
-            assertNotNull(tokenizationResult);
-            
-            // In a real test, we would measure actual latency
-            long endTime = System.nanoTime();
-            double latencyMs = (endTime - startTime) / 1_000_000.0;
-            
-            // The tokenization itself should be very fast (structure creation)
-            assertTrue(latencyMs < 50.0, "Tokenization took " + latencyMs + "ms, should be < 50ms");
-        }
-
-        @Test
-        @DisplayName("Should handle batch tokenization for high throughput")
-        void testBatchTokenization() {
-            List<HMSIntegrationService.HMSOrder> orders = List.of(mockOrder, mockOrder, mockOrder);
-            
-            long startTime = System.currentTimeMillis();
-            
-            var batchResult = hmsIntegrationService.batchTokenizeTransactions(orders);
-            
-            assertNotNull(batchResult);
-            
-            long endTime = System.currentTimeMillis();
-            double processingTimeMs = endTime - startTime;
-            
-            // Batch processing should be efficient
-            assertTrue(processingTimeMs < 100, "Batch processing took " + processingTimeMs + "ms");
-        }
-
-        @Test
-        @DisplayName("Should generate quantum security signatures")
-        void testQuantumSecurity() {
-            // Test quantum security structure
-            HMSIntegrationService.HMSQuantumSecurity quantumSecurity = 
-                new HMSIntegrationService.HMSQuantumSecurity(
-                    "DILITHIUM_HMS_12345",
-                    "FALCON_HMS_67890",
-                    "hash_chain_abc123",
-                    5
-                );
-
-            assertNotNull(quantumSecurity);
-            assertTrue(quantumSecurity.dilithiumSignature().startsWith("DILITHIUM_HMS_"));
-            assertTrue(quantumSecurity.falconSignature().startsWith("FALCON_HMS_"));
-            assertEquals(5, quantumSecurity.encryptionLevel());
-        }
-
-        @Test
-        @DisplayName("Should create asset tokens for symbols")
-        void testAssetTokenCreation() {
-            HMSIntegrationService.HMSAssetToken assetToken = 
-                new HMSIntegrationService.HMSAssetToken(
-                    "HMS_AST_AAPL_12345",
-                    "0xabc123def456",
-                    "AAPL",
-                    10_000_000L,
-                    2000001L,
-                    Instant.now()
-                );
-
-            assertNotNull(assetToken);
-            assertEquals("AAPL", assetToken.symbol());
-            assertEquals(10_000_000L, assetToken.totalSupply());
-            assertTrue(assetToken.tokenId().startsWith("HMS_AST_AAPL_"));
-        }
+    
+    @Test
+    @DisplayName("Should transfer asset ownership successfully")
+    void testAssetTransfer() {
+        // Create and tokenize an asset
+        TokenizationRequest request = createSampleTokenizationRequest();
+        TokenizationResponse response = testReactiveSuccess(hmsService.tokenizeAsset(request));
+        
+        // Transfer to new owner
+        String newOwner = "new-owner-123";
+        Boolean transferResult = testReactiveSuccess(
+            hmsService.transferAsset(response.assetId, newOwner));
+        
+        assertThat(transferResult)
+            .as("Transfer should succeed")
+            .isTrue();
+        
+        // Verify ownership change
+        RealWorldAsset updatedAsset = testReactiveSuccess(hmsService.getAsset(response.assetId));
+        assertThat(updatedAsset.owner)
+            .as("Owner should be updated")
+            .isEqualTo(newOwner);
     }
-
-    @Nested
-    @DisplayName("Performance Metrics and Monitoring")
-    class PerformanceMonitoring {
-
-        @Test
-        @DisplayName("Should track integration statistics")
-        void testIntegrationStats() {
-            HMSIntegrationService.HMSIntegrationStats stats = 
-                hmsIntegrationService.getIntegrationStats();
-
-            assertNotNull(stats);
-            assertTrue(stats.currentBlockHeight() > 0);
-            assertTrue(stats.lastUpdateTime() > 0);
-            assertEquals(0, stats.totalTokenizedTransactions()); // Initial state
-        }
-
-        @Test
-        @DisplayName("Should monitor TPS performance")
-        void testTPSMonitoring() {
-            HMSIntegrationService.HMSIntegrationStats stats = 
-                hmsIntegrationService.getIntegrationStats();
-
-            // Initial TPS should be 0 or low
-            assertTrue(stats.currentTPS() >= 0.0);
-            
-            // Average latency should be reasonable
-            assertTrue(stats.avgLatencyMs() >= 0.0);
-        }
+    
+    @Test
+    @DisplayName("Should handle transfer of non-existent asset")
+    void testTransferNonExistentAsset() {
+        String nonExistentAssetId = "HMS-nonexistent";
+        String newOwner = "new-owner";
+        
+        Boolean transferResult = testReactiveSuccess(
+            hmsService.transferAsset(nonExistentAssetId, newOwner));
+        
+        assertThat(transferResult)
+            .as("Transfer of non-existent asset should fail")
+            .isFalse();
     }
-
-    @Nested
-    @DisplayName("Error Handling and Resilience")
-    class ErrorHandling {
-
-        @Test
-        @DisplayName("Should handle API connection failures gracefully")
-        void testAPIConnectionFailure() {
-            // Test error handling structure
-            assertNotNull(hmsIntegrationService);
-            
-            // In real implementation, would test:
-            // - Circuit breaker activation
-            // - Retry mechanisms
-            // - Fallback responses
-            // - Error logging
-        }
-
-        @Test
-        @DisplayName("Should handle tokenization failures")
-        void testTokenizationFailure() {
-            // Test that service handles errors without crashing
-            assertNotNull(hmsIntegrationService);
-            
-            // Test would verify:
-            // - Graceful error handling
-            // - Appropriate error messages
-            // - System stability under failure
-        }
-
-        @Test
-        @DisplayName("Should implement circuit breaker pattern")
-        void testCircuitBreaker() {
-            // Test circuit breaker behavior
-            // Would test:
-            // - Circuit opening on failures
-            // - Half-open state recovery
-            // - Closed state normal operation
-            assertTrue(true, "Circuit breaker test structure");
-        }
+    
+    @Test
+    @DisplayName("Should validate assets correctly")
+    void testAssetValidation() {
+        // Create valid asset
+        TokenizationRequest request = createSampleTokenizationRequest();
+        TokenizationResponse response = testReactiveSuccess(hmsService.tokenizeAsset(request));
+        
+        // Validate the asset
+        Boolean validationResult = testReactiveSuccess(hmsService.validateAsset(response.assetId));
+        
+        assertThat(validationResult)
+            .as("Valid asset should pass validation")
+            .isTrue();
     }
-
-    @Nested
-    @DisplayName("Cross-Chain Integration")
-    class CrossChainIntegration {
-
-        @Test
-        @DisplayName("Should deploy tokens across multiple chains")
-        void testCrossChainDeployment() {
-            HMSIntegrationService.CrossChainDeployment deployment = 
-                new HMSIntegrationService.CrossChainDeployment(
-                    "confirmed",
-                    "0xabc123",
-                    "0xdef456",
-                    15000000L
-                );
-
-            assertNotNull(deployment);
-            assertEquals("confirmed", deployment.status());
-            assertNotNull(deployment.contractAddress());
-            assertNotNull(deployment.txHash());
-        }
-
-        @Test
-        @DisplayName("Should track deployment status across chains")
-        void testDeploymentTracking() {
-            Map<String, HMSIntegrationService.CrossChainDeployment> deployments = Map.of(
-                "ethereum", new HMSIntegrationService.CrossChainDeployment("confirmed", "0x123", "0x456", 1000L),
-                "polygon", new HMSIntegrationService.CrossChainDeployment("deployed", "0x789", "0xabc", 2000L),
-                "bsc", new HMSIntegrationService.CrossChainDeployment("pending", null, null, null)
+    
+    @Test
+    @DisplayName("Should handle validation of non-existent asset")
+    void testValidateNonExistentAsset() {
+        String nonExistentAssetId = "HMS-nonexistent";
+        
+        Boolean validationResult = testReactiveSuccess(hmsService.validateAsset(nonExistentAssetId));
+        
+        assertThat(validationResult)
+            .as("Non-existent asset should fail validation")
+            .isFalse();
+    }
+    
+    @Test
+    @DisplayName("Should provide accurate statistics")
+    void testStatistics() {
+        // Get initial stats
+        HMSStats initialStats = testReactiveSuccess(hmsService.getStats());
+        
+        // Create some assets
+        int assetsToCreate = 5;
+        BigDecimal totalValue = BigDecimal.ZERO;
+        
+        for (int i = 0; i < assetsToCreate; i++) {
+            BigDecimal assetValue = BigDecimal.valueOf(50000 + i * 10000);
+            totalValue = totalValue.add(assetValue);
+            
+            TokenizationRequest request = new TokenizationRequest(
+                "asset-" + i,
+                "owner-" + i,
+                assetValue,
+                Map.of("index", i)
             );
-
-            assertEquals(3, deployments.size());
-            assertEquals("confirmed", deployments.get("ethereum").status());
-            assertEquals("pending", deployments.get("bsc").status());
+            testReactiveSuccess(hmsService.tokenizeAsset(request));
         }
+        
+        // Get updated stats
+        HMSStats updatedStats = testReactiveSuccess(hmsService.getStats());
+        
+        assertThat(updatedStats.totalAssets)
+            .as("Total assets should reflect created assets")
+            .isEqualTo(initialStats.totalAssets + assetsToCreate);
+            
+        assertThat(updatedStats.totalTransactions)
+            .as("Total transactions should reflect tokenization operations")
+            .isEqualTo(initialStats.totalTransactions + assetsToCreate);
+            
+        assertThat(updatedStats.successfulTransactions)
+            .as("All transactions should be successful")
+            .isEqualTo(initialStats.successfulTransactions + assetsToCreate);
+            
+        assertThat(updatedStats.failedTransactions)
+            .as("No transactions should fail")
+            .isEqualTo(initialStats.failedTransactions);
+            
+        assertThat(updatedStats.averageLatency)
+            .as("Average latency should be recorded")
+            .isGreaterThanOrEqualTo(0L);
+            
+        // Verify total value calculation
+        BigDecimal expectedTotalValue = initialStats.totalValue.add(totalValue);
+        assertThat(updatedStats.totalValue)
+            .as("Total value should match expected")
+            .isEqualTo(expectedTotalValue);
     }
-
-    @Nested
-    @DisplayName("Compliance and Audit")
-    class ComplianceAudit {
-
-        @Test
-        @DisplayName("Should generate compliance records")
-        void testComplianceRecord() {
-            HMSIntegrationService.HMSAuditTrailEntry auditEntry = 
-                new HMSIntegrationService.HMSAuditTrailEntry(
-                    Instant.now(),
-                    "HMS_ORDER_RECEIVED",
-                    Map.of("orderId", "123", "symbol", "AAPL")
+    
+    @ParameterizedTest
+    @ValueSource(ints = {10, 50, 100})
+    @DisplayName("Should handle multiple tokenizations efficiently")
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    void testMultipleTokenizations(int tokenizationCount) {
+        long startTime = System.currentTimeMillis();
+        int successfulTokenizations = 0;
+        
+        for (int i = 0; i < tokenizationCount; i++) {
+            try {
+                TokenizationRequest request = new TokenizationRequest(
+                    "batch-asset-" + i,
+                    "batch-owner-" + i,
+                    BigDecimal.valueOf(10000 + i),
+                    Map.of("batchIndex", i)
                 );
-
-            assertNotNull(auditEntry);
-            assertEquals("HMS_ORDER_RECEIVED", auditEntry.action());
-            assertTrue(auditEntry.details().containsKey("orderId"));
-        }
-
-        @Test
-        @DisplayName("Should maintain audit trail")
-        void testAuditTrail() {
-            List<HMSIntegrationService.HMSAuditTrailEntry> auditTrail = List.of(
-                new HMSIntegrationService.HMSAuditTrailEntry(
-                    Instant.now(), 
-                    "HMS_ORDER_RECEIVED", 
-                    Map.of("orderId", "123")
-                ),
-                new HMSIntegrationService.HMSAuditTrailEntry(
-                    Instant.now(), 
-                    "AURIGRAPH_TOKENIZATION_INITIATED", 
-                    Map.of("blockHeight", 2000001L)
-                )
-            );
-
-            assertEquals(2, auditTrail.size());
-            assertEquals("HMS_ORDER_RECEIVED", auditTrail.get(0).action());
-            assertEquals("AURIGRAPH_TOKENIZATION_INITIATED", auditTrail.get(1).action());
-        }
-    }
-
-    @Nested
-    @DisplayName("Integration Tests")
-    class IntegrationTests {
-
-        @Test
-        @DisplayName("Should complete full order-to-tokenization flow")
-        void testFullOrderFlow() {
-            // Test the complete flow:
-            // 1. Order placement
-            // 2. Order execution
-            // 3. Tokenization
-            // 4. Cross-chain deployment
-            // 5. Compliance recording
-            
-            HMSIntegrationService.HMSOrderRequest request = 
-                new HMSIntegrationService.HMSOrderRequest(
-                    "AAPL", 100.0, "buy", "market", "day"
-                );
-
-            assertNotNull(request);
-            
-            // In full integration test, would verify:
-            // - End-to-end latency < 100ms
-            // - All components working together
-            // - Data consistency across services
-            // - Error recovery at each step
-        }
-
-        @Test
-        @DisplayName("Should handle concurrent high-frequency trading")
-        void testHighFrequencyTrading() {
-            // Test concurrent processing
-            List<CompletableFuture<Void>> futures = new java.util.ArrayList<>();
-            
-            for (int i = 0; i < 10; i++) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    // Simulate concurrent order processing
-                    HMSIntegrationService.HMSOrderRequest request = 
-                        new HMSIntegrationService.HMSOrderRequest(
-                            "AAPL", 10.0, "buy", "market", "day"
-                        );
-                    assertNotNull(request);
-                }));
+                
+                TokenizationResponse response = hmsService.tokenizeAsset(request)
+                    .await().atMost(java.time.Duration.ofSeconds(5));
+                    
+                if ("SUCCESS".equals(response.status)) {
+                    successfulTokenizations++;
+                }
+            } catch (Exception e) {
+                logger.debug("Tokenization {} failed: {}", i, e.getMessage());
             }
-
-            // Wait for all futures to complete
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .orTimeout(5, TimeUnit.SECONDS)
-                .join();
-
-            assertTrue(true, "Concurrent processing completed");
         }
+        
+        long duration = System.currentTimeMillis() - startTime;
+        double successRate = (double) successfulTokenizations / tokenizationCount * 100;
+        double tps = calculateTPS(successfulTokenizations, duration);
+        
+        logger.info("Multiple tokenizations test - Success: {}/{} ({}%), TPS: {}", 
+                   successfulTokenizations, tokenizationCount, 
+                   String.format("%.2f", successRate), String.format("%.2f", tps));
+        
+        assertThat(successRate)
+            .as("Should have high success rate for tokenizations")
+            .isGreaterThanOrEqualTo(95.0); // 95% minimum success rate
+            
+        assertThat(tps)
+            .as("Should achieve reasonable throughput")
+            .isGreaterThan(100.0); // Minimum 100 TPS for HMS operations
+    }
+    
+    @Test
+    @DisplayName("Should maintain performance under concurrent operations")
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    void testConcurrentOperations() {
+        // Test concurrent tokenizations
+        testConcurrentExecution(() -> 
+            hmsService.tokenizeAsset(createSampleTokenizationRequest()), 25);
+        
+        // Test concurrent stat requests
+        testConcurrentExecution(() -> hmsService.getStats(), 50);
+        
+        // Test concurrent asset listings
+        testConcurrentExecution(() -> hmsService.listAssets(), 25);
+    }
+    
+    @Test
+    @DisplayName("Should handle edge cases gracefully")
+    void testEdgeCases() {
+        // Test with null metadata
+        TokenizationRequest requestWithNullMetadata = new TokenizationRequest(
+            "test-asset",
+            "test-owner",
+            BigDecimal.valueOf(100000),
+            null
+        );
+        
+        assertThatCode(() -> {
+            testReactiveSuccess(hmsService.tokenizeAsset(requestWithNullMetadata));
+        }).as("Should handle null metadata gracefully")
+          .doesNotThrowAnyException();
+        
+        // Test with zero value
+        TokenizationRequest requestWithZeroValue = new TokenizationRequest(
+            "zero-asset",
+            "zero-owner",
+            BigDecimal.ZERO,
+            Map.of("type", "test")
+        );
+        
+        assertThatCode(() -> {
+            testReactiveSuccess(hmsService.tokenizeAsset(requestWithZeroValue));
+        }).as("Should handle zero value gracefully")
+          .doesNotThrowAnyException();
+    }
+    
+    @Test
+    @DisplayName("Should handle service lifecycle correctly")
+    void testServiceLifecycle() {
+        // Test initial state
+        testServiceInitialization();
+        
+        // Test operations
+        testReactiveSuccess(hmsService.getStats());
+        testReactiveSuccess(hmsService.listAssets());
+        
+        // Test cleanup (if applicable)
+        testServiceCleanup();
+    }
+    
+    @Override
+    protected void validateServiceStatistics(Object stats) {
+        assertThat(stats)
+            .as("Statistics should be HMSStats instance")
+            .isInstanceOf(HMSStats.class);
+            
+        HMSStats hmsStats = (HMSStats) stats;
+        
+        assertThat(hmsStats.totalAssets)
+            .as("Total assets should be non-negative")
+            .isNotNegative();
+            
+        assertThat(hmsStats.totalTransactions)
+            .as("Total transactions should be non-negative")
+            .isNotNegative();
+            
+        assertThat(hmsStats.successfulTransactions)
+            .as("Successful transactions should be non-negative")
+            .isNotNegative();
+            
+        assertThat(hmsStats.failedTransactions)
+            .as("Failed transactions should be non-negative")
+            .isNotNegative();
+            
+        assertThat(hmsStats.averageLatency)
+            .as("Average latency should be non-negative")
+            .isNotNegative();
+            
+        assertThat(hmsStats.totalValue)
+            .as("Total value should not be null")
+            .isNotNull()
+            .as("Total value should be non-negative")
+            .isGreaterThanOrEqualTo(BigDecimal.ZERO);
+    }
+    
+    /**
+     * Helper method to create a sample tokenization request
+     */
+    private TokenizationRequest createSampleTokenizationRequest() {
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("type", "real-estate");
+        metadata.put("location", "Test Location");
+        metadata.put("description", "Sample asset for testing");
+        
+        return new TokenizationRequest(
+            "sample-asset",
+            "sample-owner",
+            BigDecimal.valueOf(250000),
+            metadata
+        );
     }
 }

@@ -33,6 +33,43 @@ public class ExecutionContext {
     public GasTracker getGasTracker() { return gasTracker; }
     public long getStartTime() { return startTime; }
     
+    /**
+     * Get input data from the execution request
+     */
+    public java.util.Map<String, Object> getInputData() {
+        if (request == null) {
+            return new java.util.HashMap<>();
+        }
+        
+        // First try to get inputData map
+        if (request.getInputData() != null) {
+            return request.getInputData();
+        }
+        
+        // If inputData is null, try executionParameters
+        if (request.getExecutionParameters() != null) {
+            return request.getExecutionParameters();
+        }
+        
+        // If both are null, convert parameters array to map
+        Object[] params = request.getParameters();
+        java.util.Map<String, Object> paramMap = new java.util.HashMap<>();
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                paramMap.put("param" + i, params[i]);
+            }
+        }
+        
+        return paramMap;
+    }
+    
+    /**
+     * Get execution ID
+     */
+    public String getExecutionId() {
+        return "EX_" + System.currentTimeMillis() + "_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+    }
+    
     // Builder pattern
     public static class Builder {
         private RicardianContract contract;

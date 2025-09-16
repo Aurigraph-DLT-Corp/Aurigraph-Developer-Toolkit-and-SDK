@@ -1,6 +1,7 @@
 package io.aurigraph.v11.contracts.models;
 
 import lombok.Data;
+import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.util.HashMap;
  * Represents a specific term or condition in a Ricardian contract
  */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractTerm {
@@ -25,9 +27,11 @@ public class ContractTerm {
     private String currency;
     private Instant effectiveDate;
     private Instant expirationDate;
+    @Builder.Default
     private boolean mandatory = true;
     private String condition; // Condition that triggers this term
     private String penaltyClause;
+    @Builder.Default
     private Map<String, Object> parameters = new HashMap<>();
     
     // Constructor for simple terms

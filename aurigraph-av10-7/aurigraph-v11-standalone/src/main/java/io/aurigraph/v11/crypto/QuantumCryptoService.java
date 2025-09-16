@@ -260,6 +260,21 @@ public class QuantumCryptoService {
     }
 
     /**
+     * Generate digital signature using CRYSTALS-Dilithium for byte array data
+     */
+    public String sign(byte[] data) {
+        try {
+            // Use the default key pair or create a temporary one for signing
+            // In production, this would use a specific key ID or default signing key
+            QuantumKeyPair defaultKeyPair = generateRealKeyPair("CRYSTALS-Dilithium", dilithiumSecurityLevel);
+            return generateDilithiumSignature(new String(data, StandardCharsets.UTF_8), defaultKeyPair.privateKey());
+        } catch (Exception e) {
+            LOG.error("Failed to sign byte array: " + e.getMessage(), e);
+            throw new RuntimeException("Signature generation failed", e);
+        }
+    }
+
+    /**
      * Generate digital signature using CRYSTALS-Dilithium
      */
     @POST

@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3000",
+    "start": "./start-v11.sh",
+    "start:v10": "next start -p 3000",
+    "start:v11": "./start-v11.sh",
+    "start:v11:dev": "./start-v11.sh dev",
+    "start:v11:native": "./start-v11.sh native",
     "lint": "next lint",
     "export": "next export",
     "dev-setup": "./dev-setup.sh",

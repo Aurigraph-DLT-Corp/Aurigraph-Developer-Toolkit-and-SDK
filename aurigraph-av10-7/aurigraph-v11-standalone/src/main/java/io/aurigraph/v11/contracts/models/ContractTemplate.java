@@ -1,6 +1,7 @@
 package io.aurigraph.v11.contracts.models;
 
 import lombok.Data;
+import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractTemplate {
@@ -33,5 +35,6 @@ public class ContractTemplate {
     private Instant updatedAt;
     private boolean verified;
     private String verificationHash;
+    @Builder.Default
     private List<TemplateVariable> variables = new ArrayList<>();
 }

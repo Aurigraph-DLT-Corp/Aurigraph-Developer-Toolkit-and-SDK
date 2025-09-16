@@ -389,7 +389,7 @@ public class MemoryMappedTransactionLog {
             // Map entire file into memory
             this.buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, maxSize);
             
-            LOG.debugf("Created segment %d: %s, size: %d MB", (long)index, filePath, (long)(maxSize / 1024 / 1024));
+            LOG.debugf("Created segment %d: %s, size: %d MB", Long.valueOf(index), filePath, Long.valueOf(maxSize / (1024L * 1024L)));
         }
         
         /**

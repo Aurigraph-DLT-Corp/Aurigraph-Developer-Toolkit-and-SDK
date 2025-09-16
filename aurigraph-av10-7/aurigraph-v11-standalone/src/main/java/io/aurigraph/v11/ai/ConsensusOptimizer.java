@@ -361,7 +361,7 @@ public class ConsensusOptimizer {
                     analysis.optimizationSuggestions = generatePatternBasedSuggestions(analysis);
                     
                     LOG.debugf("Analyzed %d transactions - Avg size: %.1f, Peak rate: %.1f TPS", 
-                              (long)transactions.size(), analysis.averageTransactionSize, analysis.peakTransactionRate);
+                              Integer.valueOf(transactions.size()), Double.valueOf(analysis.averageTransactionSize), Double.valueOf(analysis.peakTransactionRate));
                     
                     return analysis;
                     

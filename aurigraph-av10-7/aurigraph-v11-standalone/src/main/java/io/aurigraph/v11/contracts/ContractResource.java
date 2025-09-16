@@ -275,8 +275,7 @@ public class ContractResource {
         }
         
         return Uni.combine().all().unis(contractCreations)
-            .collectFailures()
-            .map(contracts -> {
+            .with(contracts -> {
                 long endTime = System.nanoTime();
                 long totalTime = endTime - startTime;
                 

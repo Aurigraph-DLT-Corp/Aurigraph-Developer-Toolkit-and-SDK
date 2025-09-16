@@ -41,7 +41,7 @@ public class ContractRepository {
             updateIndexes(contract);
             
             return contract;
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
     
     /**
@@ -109,7 +109,7 @@ public class ContractRepository {
      * Find contracts by type (RWA, Carbon, RealEstate, etc.)
      */
     public Uni<List<RicardianContract>> findByType(String contractType) {
-        return Uni.createFrom().item(() -> {
+        return Uni.createFrom().<List<RicardianContract>>item(() -> {
             Set<String> contractIds = contractsByType.get(contractType);
             if (contractIds == null) {
                 return new ArrayList<>();
@@ -118,16 +118,16 @@ public class ContractRepository {
             List<RicardianContract> result = contractIds.stream()
                 .map(contracts::get)
                 .filter(Objects::nonNull)
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                .collect(Collectors.toList());
             return result;
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
      * Find contracts by party address
      */
     public Uni<List<RicardianContract>> findByParty(String partyAddress) {
-        return Uni.createFrom().item(() -> {
+        return Uni.createFrom().<List<RicardianContract>>item(() -> {
             Set<String> contractIds = contractsByParty.get(partyAddress);
             if (contractIds == null) {
                 return new ArrayList<>();
@@ -136,16 +136,16 @@ public class ContractRepository {
             List<RicardianContract> result = contractIds.stream()
                 .map(contracts::get)
                 .filter(Objects::nonNull)
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                .collect(Collectors.toList());
             return result;
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
      * Find contracts by status
      */
     public Uni<List<RicardianContract>> findByStatus(ContractStatus status) {
-        return Uni.createFrom().item(() -> {
+        return Uni.createFrom().<List<RicardianContract>>item(() -> {
             Set<String> contractIds = contractsByStatus.get(status);
             if (contractIds == null) {
                 return new ArrayList<>();
@@ -154,9 +154,9 @@ public class ContractRepository {
             List<RicardianContract> result = contractIds.stream()
                 .map(contracts::get)
                 .filter(Objects::nonNull)
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                .collect(Collectors.toList());
             return result;
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
@@ -174,9 +174,9 @@ public class ContractRepository {
             List<RicardianContract> result = contracts.values().stream()
                 .filter(contract -> contract.getCreatedAt() != null && 
                                   contract.getCreatedAt().isAfter(after))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                .collect(Collectors.toList());
             return result;
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
@@ -187,7 +187,7 @@ public class ContractRepository {
             return contracts.values().stream()
                 .filter(contract -> templateId.equals(contract.getTemplateId()))
                 .collect(Collectors.toList());
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
@@ -197,7 +197,7 @@ public class ContractRepository {
         return Uni.createFrom().item(() -> {
             Set<String> contractIds = contractsByStatus.get(status);
             return contractIds != null ? (long) contractIds.size() : 0L;
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
@@ -219,7 +219,7 @@ public class ContractRepository {
                 return true;
             }
             return false;
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
@@ -253,7 +253,7 @@ public class ContractRepository {
                 typeCounts,
                 contractsByParty.size()
             );
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
@@ -267,7 +267,7 @@ public class ContractRepository {
                     return metadata != null && value.equals(metadata.get(key));
                 })
                 .collect(Collectors.toList());
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     /**
@@ -294,7 +294,7 @@ public class ContractRepository {
                             contract.getStatus() == ContractStatus.PENDING_SIGNATURES);
                 })
                 .collect(Collectors.toList());
-        }).<List<RicardianContract>>runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     // Private helper methods

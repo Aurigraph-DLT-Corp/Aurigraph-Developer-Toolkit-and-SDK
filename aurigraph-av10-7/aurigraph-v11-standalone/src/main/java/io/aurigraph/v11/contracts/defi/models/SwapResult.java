@@ -326,6 +326,21 @@ public class SwapResult {
     }
     
     /**
+     * Set MEV protection status
+     */
+    public void setMEVProtected(boolean mevProtected) {
+        this.mevProtected = mevProtected;
+        this.mevProtection = mevProtected;
+    }
+    
+    /**
+     * Set slippage protection
+     */
+    public void setSlippageProtection(BigDecimal slippageProtection) {
+        this.maxSlippage = slippageProtection;
+    }
+    
+    /**
      * Add warning
      */
     public void addWarning(String warning) {
