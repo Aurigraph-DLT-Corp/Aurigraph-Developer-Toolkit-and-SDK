@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class CompositeTokenRequest {
     private String tokenId;
+    private String assetId;
     private String name;
     private String symbol;
     private List<String> components;
@@ -17,6 +18,14 @@ public class CompositeTokenRequest {
     
     public void setTokenId(String tokenId) {
         this.tokenId = tokenId;
+    }
+    
+    public String getAssetId() {
+        return assetId != null ? assetId : tokenId;
+    }
+    
+    public void setAssetId(String assetId) {
+        this.assetId = assetId;
     }
     
     public String getName() {

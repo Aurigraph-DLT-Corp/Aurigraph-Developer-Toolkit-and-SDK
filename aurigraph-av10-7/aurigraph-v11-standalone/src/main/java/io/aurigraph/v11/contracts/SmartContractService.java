@@ -194,12 +194,13 @@ public class SmartContractService {
             }
             
             // Create execution context
-            ExecutionContext context = new ExecutionContext();
-            context.setContractId(contractId);
-            context.setTriggerId(request.getTriggerId());
-            context.setExecutionId(generateExecutionId());
-            context.setTimestamp(Instant.now());
-            context.setInputData(request.getInputData());
+            ExecutionContext context = ExecutionContext.builder()
+                .contractId(contractId)
+                .triggerId(trigger != null ? trigger.getTriggerId() : null)
+                .executionId(generateExecutionId())
+                .timestamp(Instant.now())
+                .inputData(request.getParameters())
+                .build();
             
             // Execute based on trigger type
             ExecutionResult result = switch (trigger.getType()) {

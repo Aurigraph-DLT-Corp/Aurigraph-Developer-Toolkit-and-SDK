@@ -38,7 +38,15 @@ public class CompositeTokenResource {
     public Uni<Response> createCompositeToken(CompositeTokenRequest request) {
         Log.infof("Creating composite token for asset: %s", request.getAssetId());
         
-        return compositeTokenFactory.createCompositeToken(request)
+        // Convert to CompositeTokenCreationRequest
+        CompositeTokenCreationRequest creationRequest = new CompositeTokenCreationRequest();
+        creationRequest.setAssetId(request.getAssetId());
+        creationRequest.setAssetType("GENERIC");
+        creationRequest.setAssetValue(java.math.BigDecimal.valueOf(request.getTotalSupply()));
+        creationRequest.setOwnerAddress("system");
+        creationRequest.setMetadata(request.getMetadata());
+        
+        return compositeTokenFactory.createCompositeToken(creationRequest)
             .map(result -> {
                 if (result.isSuccess()) {
                     return Response.ok(Map.of(
@@ -171,11 +179,12 @@ public class CompositeTokenResource {
         Log.infof("Initiating verification for composite token: %s", compositeId);
         
         VerificationRequest verificationRequest = new VerificationRequest(
-            request.assetType,
-            VerificationLevel.valueOf(request.requiredLevel),
-            new BigDecimal(request.assetValue),
-            request.payerAddress,
-            request.verifierCount != null ? request.verifierCount : 5
+            java.util.UUID.randomUUID().toString(),  // requestId
+            compositeId,                             // compositeId
+            request.assetType,                       // assetType
+            VerificationLevel.valueOf(request.requiredLevel),  // requiredLevel
+            java.util.Collections.emptyList(),       // assignedVerifiers (will be populated later)
+            java.time.Instant.now()                  // requestedAt
         );
         
         // TODO: Fix verification service implementation
