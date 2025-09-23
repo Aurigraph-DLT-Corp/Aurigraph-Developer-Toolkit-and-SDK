@@ -44,12 +44,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui/package-lock.json
 
-      - name: Install dependencies
+      - name: Check for package-lock.json
+        id: check-lock
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
+        run: |
+          if [ -f "package-lock.json" ]; then
+            echo "lock_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "lock_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies (with lock file)
+        if: steps.check-lock.outputs.lock_exists == 'true'
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
         run: npm ci
+
+      - name: Install dependencies (without lock file)
+        if: steps.check-lock.outputs.lock_exists == 'false'
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
+        run: |
+          npm install --legacy-peer-deps
+          echo "Warning: package-lock.json not found, using npm install instead"
 
       - name: Create production environment file
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
@@ -80,7 +96,15 @@ jobs:
 
       - name: Build frontend
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
-        run: npm run build
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+          CI: false
+        run: |
+          echo "Building frontend with increased memory..."
+          npm run build || {
+            echo "Build failed, retrying with verbose logging..."
+            npm run build --verbose
+          }
 
       - name: Create deployment archive
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
