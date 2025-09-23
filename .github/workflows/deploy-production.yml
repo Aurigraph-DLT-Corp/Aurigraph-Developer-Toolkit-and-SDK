@@ -1,0 +1,462 @@
+name: Deploy to Production Server
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy backend service'
+        required: false
+        type: boolean
+        default: false
+      deploy_frontend:
+        description: 'Deploy frontend application'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  NODE_VERSION: '20.x'
+  JAVA_VERSION: '21'
+  DOCKER_BUILDKIT: 1
+  DOMAIN_NAME: dlt.aurigraph.io
+  SSL_CERT_PATH: /etc/letsencrypt/live/aurcrt/fullchain.pem
+  SSL_KEY_PATH: /etc/letsencrypt/live/aurcrt/privkey.pem
+
+jobs:
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deploy_frontend != 'false'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
+        run: npm ci
+
+      - name: Create production environment file
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
+        run: |
+          cat > .env.production << EOF
+          REACT_APP_API_URL=https://${{ env.DOMAIN_NAME }}/api
+          REACT_APP_WS_URL=wss://${{ env.DOMAIN_NAME }}/ws
+          REACT_APP_GRPC_URL=${{ env.DOMAIN_NAME }}:9004
+          
+          # IAM2 Authentication
+          REACT_APP_AUTH_API_URL=https://iam2.aurigraph.io/realms/AurigraphDLT
+          REACT_APP_IAM2_URL=https://iam2.aurigraph.io
+          REACT_APP_IAM2_REALM=AurigraphDLT
+          REACT_APP_IAM2_CLIENT_ID=aurigraph-portal
+          REACT_APP_IAM2_REDIRECT_URI=https://${{ env.DOMAIN_NAME }}/auth/callback
+          
+          # SSO Configuration
+          REACT_APP_SSO_ENABLED=true
+          REACT_APP_SSO_PROVIDER=oidc
+          REACT_APP_SSO_ENDPOINT=https://iam2.aurigraph.io/realms/AurigraphDLT/protocol/openid-connect/auth
+          REACT_APP_SSO_TOKEN_ENDPOINT=https://iam2.aurigraph.io/realms/AurigraphDLT/protocol/openid-connect/token
+          REACT_APP_SSO_LOGOUT_ENDPOINT=https://iam2.aurigraph.io/realms/AurigraphDLT/protocol/openid-connect/logout
+          
+          REACT_APP_ENV=production
+          REACT_APP_ENABLE_WEBSOCKET=true
+          REACT_APP_ENABLE_MOCK_DATA=false
+          EOF
+
+      - name: Build frontend
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
+        run: npm run build
+
+      - name: Create deployment archive
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui
+        run: tar -czf frontend-build.tar.gz build/
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal-ui/frontend-build.tar.gz
+          retention-days: 7
+
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deploy_backend == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build backend JAR
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw clean package -DskipTests -Dquarkus.package.jar.type=uber-jar
+          mv target/*-runner.jar target/aurigraph-backend.jar
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-jar
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/aurigraph-backend.jar
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    needs: [build-frontend]
+    if: always() && (needs.build-frontend.result == 'success' || needs.build-backend.result == 'success')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download frontend artifact
+        if: github.event.inputs.deploy_frontend != 'false'
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-build
+          path: ./artifacts
+
+      - name: Download backend artifact
+        if: github.event.inputs.deploy_backend == 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: backend-jar
+          path: ./artifacts
+        continue-on-error: true
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create nginx configuration
+        run: |
+          cat > nginx-production.conf << 'EOF'
+          # HTTP to HTTPS redirect
+          server {
+              listen 80;
+              server_name ${{ env.DOMAIN_NAME }};
+              
+              # ACME challenge for Let's Encrypt
+              location /.well-known/acme-challenge/ {
+                  root /var/www/certbot;
+              }
+              
+              # Redirect all other traffic to HTTPS
+              location / {
+                  return 301 https://$server_name$request_uri;
+              }
+          }
+
+          # HTTPS server
+          server {
+              listen 443 ssl;
+              http2 on;
+              server_name ${{ env.DOMAIN_NAME }};
+
+              # SSL Configuration
+              ssl_certificate ${{ env.SSL_CERT_PATH }};
+              ssl_certificate_key ${{ env.SSL_KEY_PATH }};
+              
+              # SSL Security Settings
+              ssl_protocols TLSv1.2 TLSv1.3;
+              ssl_ciphers HIGH:!aNULL:!MD5;
+              ssl_prefer_server_ciphers on;
+              ssl_session_cache shared:SSL:10m;
+              ssl_session_timeout 10m;
+              ssl_stapling on;
+              ssl_stapling_verify on;
+              
+              # Security Headers
+              add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+              add_header X-Frame-Options "SAMEORIGIN" always;
+              add_header X-Content-Type-Options "nosniff" always;
+              add_header X-XSS-Protection "1; mode=block" always;
+              add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+              
+              root /usr/share/nginx/html;
+              index index.html;
+              
+              # Gzip compression
+              gzip on;
+              gzip_vary on;
+              gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+              
+              # API proxy to backend
+              location /api/ {
+                  proxy_pass http://aurigraph-backend:9003/api/;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_connect_timeout 60s;
+                  proxy_send_timeout 60s;
+                  proxy_read_timeout 60s;
+              }
+              
+              # WebSocket proxy
+              location /ws {
+                  proxy_pass http://aurigraph-backend:9003/ws;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+              
+              # SSO Configuration endpoint
+              location = /api/auth/sso/config {
+                  default_type application/json;
+                  return 200 '{
+                      "enabled": true,
+                      "provider": "oidc",
+                      "endpoint": "https://iam2.aurigraph.io/realms/AurigraphDLT/protocol/openid-connect/auth",
+                      "clientId": "aurigraph-portal",
+                      "redirectUri": "https://${{ env.DOMAIN_NAME }}/auth/callback",
+                      "scopes": ["openid", "profile", "email"]
+                  }';
+              }
+              
+              # Static assets with long cache
+              location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+                  expires 1y;
+                  add_header Cache-Control "public, immutable";
+              }
+              
+              # React app - all other routes
+              location / {
+                  try_files $uri /index.html;
+              }
+          }
+          EOF
+
+      - name: Create Docker Compose configuration
+        run: |
+          cat > docker-compose-production.yml << 'EOF'
+          version: '3.8'
+
+          services:
+            postgres:
+              image: postgres:15
+              container_name: aurigraph-postgres
+              environment:
+                POSTGRES_DB: aurigraph
+                POSTGRES_USER: aurigraph
+                POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD || 'AurigraphSecure2025!' }}
+              volumes:
+                - postgres-data:/var/lib/postgresql/data
+              restart: always
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U aurigraph"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+
+            redis:
+              image: redis:7-alpine
+              container_name: aurigraph-redis
+              command: redis-server --requirepass ${{ secrets.REDIS_PASSWORD || 'AurigraphRedis2025!' }}
+              volumes:
+                - redis-data:/data
+              restart: always
+              healthcheck:
+                test: ["CMD", "redis-cli", "ping"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+
+            backend:
+              image: openjdk:21-slim
+              container_name: aurigraph-backend
+              working_dir: /app
+              volumes:
+                - ./aurigraph-backend.jar:/app/aurigraph-backend.jar
+              command: java -jar aurigraph-backend.jar
+              environment:
+                - QUARKUS_HTTP_PORT=9003
+                - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph
+                - QUARKUS_DATASOURCE_USERNAME=aurigraph
+                - QUARKUS_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD || 'AurigraphSecure2025!' }}
+                - QUARKUS_REDIS_HOSTS=redis://redis:6379
+                - QUARKUS_REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD || 'AurigraphRedis2025!' }}
+              depends_on:
+                postgres:
+                  condition: service_healthy
+                redis:
+                  condition: service_healthy
+              restart: always
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:9003/q/health"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+
+            nginx:
+              image: nginx:alpine
+              container_name: aurigraph-nginx
+              ports:
+                - "80:80"
+                - "443:443"
+              volumes:
+                - /var/www/html:/usr/share/nginx/html:ro
+                - ./nginx-production.conf:/etc/nginx/conf.d/default.conf:ro
+                - ${{ env.SSL_CERT_PATH }}:/etc/nginx/ssl/fullchain.pem:ro
+                - ${{ env.SSL_KEY_PATH }}:/etc/nginx/ssl/privkey.pem:ro
+              depends_on:
+                - backend
+              restart: always
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost/health"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+
+          volumes:
+            postgres-data:
+            redis-data:
+
+          networks:
+            default:
+              name: aurigraph-network
+          EOF
+
+      - name: Deploy to server
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USERNAME }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+        run: |
+          # Copy configurations
+          scp -P $SERVER_PORT -i ~/.ssh/deploy_key \
+            nginx-production.conf \
+            docker-compose-production.yml \
+            $SERVER_USER@$SERVER_HOST:/tmp/
+          
+          # Copy artifacts if they exist
+          if [ -f artifacts/frontend-build.tar.gz ]; then
+            scp -P $SERVER_PORT -i ~/.ssh/deploy_key \
+              artifacts/frontend-build.tar.gz \
+              $SERVER_USER@$SERVER_HOST:/tmp/
+          fi
+          
+          if [ -f artifacts/aurigraph-backend.jar ]; then
+            scp -P $SERVER_PORT -i ~/.ssh/deploy_key \
+              artifacts/aurigraph-backend.jar \
+              $SERVER_USER@$SERVER_HOST:/tmp/
+          fi
+          
+          # Execute deployment
+          ssh -p $SERVER_PORT -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+            set -e
+            
+            # Create deployment directory
+            mkdir -p ~/aurigraph-deployment
+            cd ~/aurigraph-deployment
+            
+            # Move configurations
+            mv /tmp/nginx-production.conf ./
+            mv /tmp/docker-compose-production.yml ./docker-compose.yml
+            
+            # Deploy frontend if available
+            if [ -f /tmp/frontend-build.tar.gz ]; then
+              echo "Deploying frontend..."
+              tar -xzf /tmp/frontend-build.tar.gz -C /tmp/
+              sudo rm -rf /var/www/html/*
+              sudo cp -r /tmp/build/* /var/www/html/
+              sudo chown -R www-data:www-data /var/www/html
+              rm -rf /tmp/build /tmp/frontend-build.tar.gz
+            fi
+            
+            # Deploy backend if available
+            if [ -f /tmp/aurigraph-backend.jar ]; then
+              echo "Deploying backend..."
+              mv /tmp/aurigraph-backend.jar ./aurigraph-backend.jar
+            fi
+            
+            # Stop existing containers
+            docker-compose down || true
+            
+            # Start services
+            docker-compose up -d
+            
+            # Wait for services to be ready
+            echo "Waiting for services to start..."
+            sleep 10
+            
+            # Check service health
+            docker-compose ps
+            
+            # Test HTTPS
+            echo "Testing HTTPS endpoint..."
+            curl -k -I https://${{ env.DOMAIN_NAME }} || true
+          ENDSSH
+
+      - name: Verify deployment
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USERNAME }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+        run: |
+          ssh -p $SERVER_PORT -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+            echo "=== Deployment Verification ==="
+            echo "Checking container status:"
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            
+            echo -e "\nChecking nginx logs:"
+            docker logs --tail 10 aurigraph-nginx 2>&1 || true
+            
+            echo -e "\nChecking HTTPS connectivity:"
+            curl -k -s -o /dev/null -w "HTTPS Status: %{http_code}\n" https://${{ env.DOMAIN_NAME }}
+            
+            echo -e "\nChecking API endpoint:"
+            curl -k -s https://${{ env.DOMAIN_NAME }}/api/auth/sso/config | jq '.' || true
+          ENDSSH
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key
+          rm -rf artifacts/
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: always()
+    
+    steps:
+      - name: Send deployment notification
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ Deployment successful to https://${{ env.DOMAIN_NAME }}"
+          else
+            echo "❌ Deployment failed. Check logs for details."
+          fi
