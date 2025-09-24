@@ -1,0 +1,61 @@
+<svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E0F2FE"/>
+      <stop offset="1" stop-color="#F0F9FF"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Sky background -->
+  <rect width="400" height="200" fill="url(#skyGradient)"/>
+  
+  <!-- Mountains in background -->
+  <path d="M0 120 L80 80 L160 100 L240 70 L320 90 L400 60 L400 200 L0 200 Z" fill="#E5E7EB" opacity="0.6"/>
+  
+  <!-- Forest layers -->
+  <!-- Back layer trees -->
+  <ellipse cx="50" cy="140" rx="25" ry="35" fill="#059669" opacity="0.7"/>
+  <ellipse cx="100" cy="135" rx="30" ry="40" fill="#047857" opacity="0.7"/>
+  <ellipse cx="150" cy="145" rx="20" ry="30" fill="#065F46" opacity="0.7"/>
+  <ellipse cx="200" cy="130" rx="35" ry="45" fill="#059669" opacity="0.7"/>
+  <ellipse cx="250" cy="140" rx="25" ry="35" fill="#047857" opacity="0.7"/>
+  <ellipse cx="300" cy="135" rx="30" ry="40" fill="#065F46" opacity="0.7"/>
+  <ellipse cx="350" cy="145" rx="20" ry="30" fill="#059669" opacity="0.7"/>
+  
+  <!-- Middle layer trees -->
+  <ellipse cx="25" cy="155" rx="20" ry="30" fill="#10B981"/>
+  <ellipse cx="75" cy="150" rx="25" ry="35" fill="#059669"/>
+  <ellipse cx="125" cy="160" rx="18" ry="28" fill="#047857"/>
+  <ellipse cx="175" cy="145" rx="28" ry="38" fill="#10B981"/>
+  <ellipse cx="225" cy="155" rx="22" ry="32" fill="#059669"/>
+  <ellipse cx="275" cy="150" rx="25" ry="35" fill="#047857"/>
+  <ellipse cx="325" cy="160" rx="18" ry="28" fill="#10B981"/>
+  <ellipse cx="375" cy="155" rx="20" ry="30" fill="#059669"/>
+  
+  <!-- Front layer trees -->
+  <ellipse cx="40" cy="170" rx="15" ry="25" fill="#34D399"/>
+  <ellipse cx="90" cy="165" rx="18" ry="28" fill="#10B981"/>
+  <ellipse cx="140" cy="175" rx="12" ry="20" fill="#059669"/>
+  <ellipse cx="190" cy="160" rx="20" ry="30" fill="#34D399"/>
+  <ellipse cx="240" cy="170" rx="15" ry="25" fill="#10B981"/>
+  <ellipse cx="290" cy="165" rx="18" ry="28" fill="#059669"/>
+  <ellipse cx="340" cy="175" rx="12" ry="20" fill="#34D399"/>
+  
+  <!-- Tree trunks -->
+  <rect x="48" y="165" width="4" height="35" fill="#92400E"/>
+  <rect x="98" y="160" width="4" height="40" fill="#92400E"/>
+  <rect x="148" y="170" width="3" height="30" fill="#92400E"/>
+  <rect x="198" y="155" width="4" height="45" fill="#92400E"/>
+  <rect x="248" y="165" width="4" height="35" fill="#92400E"/>
+  <rect x="298" y="160" width="4" height="40" fill="#92400E"/>
+  <rect x="348" y="170" width="3" height="30" fill="#92400E"/>
+  
+  <!-- Ground -->
+  <path d="M0 180 Q100 175 200 180 T400 180 L400 200 L0 200 Z" fill="#22C55E" opacity="0.8"/>
+  
+  <!-- Subtle details -->
+  <circle cx="80" cy="90" r="8" fill="white" opacity="0.6"/>
+  <circle cx="85" cy="85" r="6" fill="white" opacity="0.4"/>
+  <circle cx="320" cy="95" r="10" fill="white" opacity="0.5"/>
+  <circle cx="325" cy="90" r="7" fill="white" opacity="0.3"/>
+</svg>

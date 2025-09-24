@@ -1,0 +1,307 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for frontend/src/components/sections/ProductShowcase.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../../index.html">All files</a> / <a href="index.html">frontend/src/components/sections</a> ProductShowcase.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/74</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/74</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";</span></span></span>
+<span class="cstat-no" title="statement not covered" >import React, { useState } from 'react';</span>
+<span class="cstat-no" title="statement not covered" >import { motion, AnimatePresence } from 'framer-motion';</span>
+<span class="cstat-no" title="statement not covered" >import { RocketLaunchIcon, ChartBarIcon, EyeIcon, CurrencyDollarIcon, PlayIcon, ArrowRightIcon, SparklesIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';</span>
+<span class="cstat-no" title="statement not covered" >// Data</span>
+<span class="cstat-no" title="statement not covered" >import { products } from '../../data/content';</span>
+<span class="cstat-no" title="statement not covered" >// Utils</span>
+<span class="cstat-no" title="statement not covered" >import { trackCTAClick, trackDemoRequest } from '../../utils/analytics';</span>
+<span class="cstat-no" title="statement not covered" >// URL Configuration</span>
+<span class="cstat-no" title="statement not covered" >import { getAppUrl } from '../../config/urls';</span>
+<span class="cstat-no" title="statement not covered" >// Product icon mapping</span>
+<span class="cstat-no" title="statement not covered" >const productIcons = {</span>
+<span class="cstat-no" title="statement not covered" >    rocket: RocketLaunchIcon,</span>
+<span class="cstat-no" title="statement not covered" >    water: ChartBarIcon,</span>
+<span class="cstat-no" title="statement not covered" >    tree: EyeIcon,</span>
+<span class="cstat-no" title="statement not covered" >    leaf: CurrencyDollarIcon,</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+<span class="cstat-no" title="statement not covered" >const InteractiveDemo = ({ product, isActive }) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    const [demoStep, setDemoStep] = useState(0);</span>
+<span class="cstat-no" title="statement not covered" >    const demoSteps = [</span>
+<span class="cstat-no" title="statement not covered" >        'Data Collection',</span>
+<span class="cstat-no" title="statement not covered" >        'AI Analysis',</span>
+<span class="cstat-no" title="statement not covered" >        'Report Generation',</span>
+<span class="cstat-no" title="statement not covered" >        'Compliance Check'</span>
+<span class="cstat-no" title="statement not covered" >    ];</span>
+<span class="cstat-no" title="statement not covered" >    React.useEffect(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        if (isActive) {</span>
+<span class="cstat-no" title="statement not covered" >            const interval = setInterval(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                setDemoStep((prev) =&gt; (prev + 1) % demoSteps.length);</span>
+<span class="cstat-no" title="statement not covered" >            }, 2000);</span>
+<span class="cstat-no" title="statement not covered" >            return () =&gt; clearInterval(interval);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }, [isActive, demoSteps.length]);</span>
+<span class="cstat-no" title="statement not covered" >    return (_jsx("div", { className: "relative bg-gray-50 rounded-xl p-6 h-64 overflow-hidden", children: _jsxs(AnimatePresence, { mode: "wait", children: [product.id === 'launchpad' &amp;&amp; (_jsxs(motion.div, { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.9 }, className: "space-y-4", children: [_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("h4", { className: "font-semibold text-gray-900", children: "ESG Assessment Demo" }), _jsxs("div", { className: "flex items-center gap-2 text-xs text-primary-600", children: [_jsx(SparklesIcon, { className: "w-4 h-4" }), "AI-Powered"] })] }), _jsx("div", { className: "space-y-3", children: ['Energy Management', 'Water Usage', 'Waste Reduction', 'Carbon Emissions'].map((item, index) =&gt; (_jsxs(motion.div, { initial: { opacity: 0, x: -20 }, animate: { opacity: 1, x: 0 }, transition: { delay: index * 0.2 }, className: "flex items-center gap-3", children: [_jsx("div", { className: `w-6 h-6 rounded-full flex items-center justify-center ${index &lt;= demoStep ? 'bg-accent-500' : 'bg-gray-300'}`, children: index &lt;= demoStep &amp;&amp; _jsx(CheckCircleIcon, { className: "w-4 h-4 text-white" }) }), _jsx("span", { className: `text-sm ${index &lt;= demoStep ? 'text-gray-900' : 'text-gray-500'}`, children: item })] }, item))) }), _jsxs("div", { className: "mt-4", children: [_jsxs("div", { className: "flex justify-between text-xs text-gray-500 mb-2", children: [_jsx("span", { children: "Assessment Progress" }), _jsxs("span", { children: [Math.round(((demoStep + 1) / 4) * 100), "%"] })] }), _jsx("div", { className: "w-full bg-gray-200 rounded-full h-2", children: _jsx(motion.div, { className: "bg-primary-500 h-2 rounded-full", initial: { width: '0%' }, animate: { width: `${((demoStep + 1) / 4) * 100}%` }, transition: { duration: 0.5 } }) })] })] }, "launchpad")), product.id === 'hydropulse' &amp;&amp; (_jsxs(motion.div, { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.9 }, className: "space-y-4", children: [_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("h4", { className: "font-semibold text-gray-900", children: "Water Monitoring Dashboard" }), _jsxs("div", { className: "flex items-center gap-1 text-xs text-green-600", children: [_jsx("div", { className: "w-2 h-2 bg-green-400 rounded-full animate-pulse" }), "Live Data"] })] }), _jsx("div", { className: "grid grid-cols-2 gap-3", children: [</span>
+<span class="cstat-no" title="statement not covered" >                                { label: 'Soil Moisture', value: '68%', trend: '+5%' },</span>
+<span class="cstat-no" title="statement not covered" >                                { label: 'Water Flow', value: '24L/min', trend: '-12%' },</span>
+<span class="cstat-no" title="statement not covered" >                                { label: 'pH Level', value: '6.8', trend: 'stable' },</span>
+<span class="cstat-no" title="statement not covered" >                                { label: 'Temperature', value: '22°C', trend: '+2°C' }</span>
+<span class="cstat-no" title="statement not covered" >                            ].map((metric, index) =&gt; (_jsxs(motion.div, { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { delay: index * 0.1 }, className: "bg-white rounded-lg p-3 border", children: [_jsx("div", { className: "text-xs text-gray-500", children: metric.label }), _jsx("div", { className: "text-lg font-bold text-gray-900", children: metric.value }), _jsx("div", { className: `text-xs ${metric.trend.startsWith('+') ? 'text-red-500' :</span>
+<span class="cstat-no" title="statement not covered" >                                            metric.trend.startsWith('-') ? 'text-green-500' : 'text-gray-500'}`, children: metric.trend })] }, metric.label))) }), _jsxs("div", { className: "bg-white rounded-lg p-3 border", children: [_jsx("div", { className: "text-xs text-gray-500 mb-2", children: "Weekly Water Usage" }), _jsx("div", { className: "flex items-end justify-between h-16", children: [30, 45, 25, 60, 35, 50, 40].map((height, index) =&gt; (_jsx(motion.div, { className: "bg-blue-400 rounded-sm", style: { width: '8px' }, initial: { height: 0 }, animate: { height: `${(height / 60) * 100}%` }, transition: { delay: index * 0.1 } }, index))) })] })] }, "hydropulse")), product.id === 'sylvagraph' &amp;&amp; (_jsxs(motion.div, { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.9 }, className: "space-y-4", children: [_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("h4", { className: "font-semibold text-gray-900", children: "Satellite Forest Analysis" }), _jsxs("div", { className: "flex items-center gap-1 text-xs text-primary-600", children: [_jsx(EyeIcon, { className: "w-4 h-4" }), "Computer Vision"] })] }), _jsxs("div", { className: "relative bg-green-100 rounded-lg h-32 overflow-hidden", children: [_jsx("div", { className: "absolute inset-0 bg-gradient-to-br from-green-200 to-green-400 opacity-50" }), [</span>
+<span class="cstat-no" title="statement not covered" >                                    { x: '20%', y: '30%', size: 'w-4 h-4', color: 'bg-green-600' },</span>
+<span class="cstat-no" title="statement not covered" >                                    { x: '60%', y: '20%', size: 'w-6 h-6', color: 'bg-green-700' },</span>
+<span class="cstat-no" title="statement not covered" >                                    { x: '40%', y: '60%', size: 'w-3 h-3', color: 'bg-yellow-500' },</span>
+<span class="cstat-no" title="statement not covered" >                                    { x: '80%', y: '70%', size: 'w-5 h-5', color: 'bg-green-600' }</span>
+<span class="cstat-no" title="statement not covered" >                                ].map((dot, index) =&gt; (_jsx(motion.div, { className: `absolute ${dot.size} ${dot.color} rounded-full`, style: { left: dot.x, top: dot.y }, initial: { scale: 0 }, animate: { scale: 1 }, transition: { delay: index * 0.2 } }, index))), _jsxs(motion.div, { initial: { opacity: 0, scale: 0 }, animate: { opacity: 1, scale: 1 }, transition: { delay: 1 }, className: "absolute bottom-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1", children: [_jsx("div", { className: "w-2 h-2 bg-white rounded-full animate-pulse" }), "Change Detected"] })] }), _jsx("div", { className: "grid grid-cols-3 gap-2", children: [</span>
+<span class="cstat-no" title="statement not covered" >                                { label: 'Coverage', value: '94.2%' },</span>
+<span class="cstat-no" title="statement not covered" >                                { label: 'Change', value: '-0.3%' },</span>
+<span class="cstat-no" title="statement not covered" >                                { label: 'Health', value: 'Good' }</span>
+<span class="cstat-no" title="statement not covered" >                            ].map((metric, index) =&gt; (_jsxs(motion.div, { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: index * 0.1 }, className: "text-center", children: [_jsx("div", { className: "text-sm font-bold text-gray-900", children: metric.value }), _jsx("div", { className: "text-xs text-gray-500", children: metric.label })] }, metric.label))) })] }, "sylvagraph")), product.id === 'carbontrace' &amp;&amp; (_jsxs(motion.div, { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.9 }, className: "space-y-4", children: [_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("h4", { className: "font-semibold text-gray-900", children: "Carbon Credit Marketplace" }), _jsxs("div", { className: "flex items-center gap-1 text-xs text-green-600", children: [_jsx(CurrencyDollarIcon, { className: "w-4 h-4" }), "Live Prices"] })] }), _jsx("div", { className: "bg-white rounded-lg p-4 border", children: _jsxs("div", { className: "flex items-center justify-between", children: [_jsxs("div", { children: [_jsx("div", { className: "text-xs text-gray-500", children: "Carbon Credit Price" }), _jsx("div", { className: "text-2xl font-bold text-gray-900", children: "$125.50" }), _jsx("div", { className: "text-sm text-green-600", children: "+$8.20 (+7.0%)" })] }), _jsx(motion.div, { animate: { rotate: [0, 10, -10, 0] }, transition: { duration: 2, repeat: Infinity }, className: "text-green-500", children: "\uD83D\uDCC8" })] }) }), _jsxs("div", { className: "space-y-2", children: [_jsx("div", { className: "text-xs text-gray-500", children: "Recent Transactions" }), [</span>
+<span class="cstat-no" title="statement not covered" >                                    { type: 'SELL', amount: '50 credits', price: '$125.50', time: '2m ago' },</span>
+<span class="cstat-no" title="statement not covered" >                                    { type: 'BUY', amount: '25 credits', price: '$124.80', time: '5m ago' },</span>
+<span class="cstat-no" title="statement not covered" >                                    { type: 'BUY', amount: '100 credits', price: '$124.20', time: '8m ago' }</span>
+<span class="cstat-no" title="statement not covered" >                                ].map((trade, index) =&gt; (_jsxs(motion.div, { initial: { opacity: 0, x: -20 }, animate: { opacity: 1, x: 0 }, transition: { delay: index * 0.2 }, className: "flex items-center justify-between text-xs bg-white rounded p-2 border", children: [_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("span", { className: `px-2 py-1 rounded text-xs font-medium ${trade.type === 'BUY' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`, children: trade.type }), _jsx("span", { children: trade.amount })] }), _jsxs("div", { className: "text-right", children: [_jsx("div", { className: "font-medium", children: trade.price }), _jsx("div", { className: "text-gray-500", children: trade.time })] })] }, index)))] })] }, "carbontrace"))] }) }));</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+<span class="cstat-no" title="statement not covered" >const ProductShowcase = () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    const [activeProduct, setActiveProduct] = useState(0);</span>
+<span class="cstat-no" title="statement not covered" >    const handleTryDemo = (productId) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        trackDemoRequest(`${productId}_demo`);</span>
+<span class="cstat-no" title="statement not covered" >        trackCTAClick('explore_app', 'product_showcase');</span>
+<span class="cstat-no" title="statement not covered" >        // Get URL based on current environment (localhost vs production)</span>
+<span class="cstat-no" title="statement not covered" >        const appUrl = getAppUrl(productId);</span>
+<span class="cstat-no" title="statement not covered" >        window.open(appUrl, '_blank');</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >    return (_jsx("section", { className: "section-padding bg-gray-50", children: _jsxs("div", { className: "max-w-7xl mx-auto container-padding", children: [_jsxs(motion.div, { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.6 }, viewport: { once: true }, className: "text-center mb-16", children: [_jsxs("div", { className: "inline-flex items-center px-4 py-2 rounded-full bg-primary-100 text-primary-700 font-medium text-sm mb-6", children: [_jsx(SparklesIcon, { className: "w-4 h-4 mr-2" }), "AI-Powered DMRV Suite"] }), _jsxs("h2", { className: "text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6", children: ["Aurex", _jsxs("span", { className: "bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent", children: [' ', "Offerings"] })] }), _jsx("p", { className: "text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto", children: "Experience our comprehensive DMRV platform with interactive demos. See how AI-powered precision transforms environmental monitoring and reporting." })] }), _jsx(motion.div, { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.2 }, viewport: { once: true }, className: "flex flex-wrap justify-center gap-2 md:gap-4 mb-8 md:mb-12", children: products.map((product, index) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                        const IconComponent = productIcons[product.icon];</span>
+<span class="cstat-no" title="statement not covered" >                        return (_jsxs("button", { onClick: () =&gt; setActiveProduct(index), className: `flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-3 rounded-xl text-sm md:text-base font-medium transition-all duration-300 ${activeProduct === index</span>
+<span class="cstat-no" title="statement not covered" >                                ? 'bg-white shadow-lg text-primary-600 border-2 border-primary-200'</span>
+<span class="cstat-no" title="statement not covered" >                                : 'bg-white/50 text-gray-600 hover:bg-white hover:shadow-md border-2 border-transparent'}`, children: [_jsx(IconComponent, { className: "w-4 h-4 md:w-5 md:h-5" }), _jsx("span", { children: product.name }), activeProduct === index &amp;&amp; (_jsx(motion.div, { layoutId: "activeIndicator", className: "w-2 h-2 bg-primary-500 rounded-full" }))] }, product.id));</span>
+<span class="cstat-no" title="statement not covered" >                    }) }), _jsx(AnimatePresence, { mode: "wait", children: _jsxs(motion.div, { initial: { opacity: 0, y: 50 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -50 }, transition: { duration: 0.5 }, className: "grid lg:grid-cols-2 gap-8 md:gap-12 items-center", children: [_jsxs("div", { className: "space-y-8", children: [_jsxs("div", { children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [React.createElement(productIcons[products[activeProduct].icon], {</span>
+<span class="cstat-no" title="statement not covered" >                                                        className: "w-8 h-8 text-primary-600"</span>
+<span class="cstat-no" title="statement not covered" >                                                    }), _jsx("h3", { className: "text-3xl font-bold text-gray-900", children: products[activeProduct].title })] }), _jsx("p", { className: "text-xl text-gray-600 mb-6", children: products[activeProduct].description })] }), _jsxs("div", { children: [_jsx("h4", { className: "text-lg font-semibold text-gray-900 mb-4", children: "Key Features" }), _jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3", children: products[activeProduct].keyFeatures.map((feature, index) =&gt; (_jsxs(motion.div, { initial: { opacity: 0, x: -20 }, animate: { opacity: 1, x: 0 }, transition: { delay: index * 0.1 }, className: "flex items-center gap-3", children: [_jsx(CheckCircleIcon, { className: "w-5 h-5 text-accent-500 flex-shrink-0" }), _jsx("span", { className: "text-gray-700", children: feature })] }, feature))) })] }), products[activeProduct].metrics &amp;&amp; (_jsxs("div", { children: [_jsx("h4", { className: "text-lg font-semibold text-gray-900 mb-4", children: "Performance Metrics" }), _jsx("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4", children: products[activeProduct].metrics?.map((metric, index) =&gt; (_jsxs(motion.div, { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { delay: index * 0.1 }, className: "text-center p-4 bg-white rounded-lg border", children: [_jsx("div", { className: "text-2xl font-bold text-primary-600 mb-1", children: metric.value }), _jsx("div", { className: "text-sm text-gray-900 font-medium mb-1", children: metric.label }), _jsx("div", { className: "text-xs text-gray-500", children: metric.description })] }, metric.label))) })] })), _jsx("div", { className: "flex flex-col sm:flex-row gap-4", children: _jsxs("button", { onClick: () =&gt; handleTryDemo(products[activeProduct].id), className: "btn-primary group", children: [_jsx(PlayIcon, { className: "w-5 h-5 mr-2 group-hover:scale-110 transition-transform" }), "Explore ", products[activeProduct].name, _jsx(ArrowRightIcon, { className: "w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" })] }) })] }), _jsxs("div", { className: "space-y-6", children: [_jsxs("div", { className: "flex items-center gap-2 text-sm text-gray-600", children: [_jsx(ClockIcon, { className: "w-4 h-4" }), "Live Demo Preview"] }), _jsx(InteractiveDemo, { product: products[activeProduct], isActive: true }), _jsxs("div", { className: "text-center", children: [_jsxs("p", { className: "text-sm text-gray-500 mb-4", children: ["This is a preview. Click \"Explore ", products[activeProduct].name, "\" for the full experience."] }), _jsx("div", { className: "flex justify-center gap-2", children: [...Array(4)].map((_, index) =&gt; (_jsx("div", { className: `w-2 h-2 rounded-full ${index === activeProduct ? 'bg-primary-500' : 'bg-gray-300'}` }, index))) })] })] })] }, activeProduct) }), _jsx(motion.div, { initial: { opacity: 0 }, whileInView: { opacity: 1 }, transition: { duration: 0.6, delay: 0.8 }, viewport: { once: true }, className: "text-center mt-12", children: _jsx("p", { className: "text-sm text-gray-500", children: "\uD83D\uDD04 Auto-advancing every 10 seconds \u2022 Click any product to explore" }) })] }) }));</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+<span class="cstat-no" title="statement not covered" >// Note: Auto-advance functionality available but not currently implemented</span>
+<span class="cstat-no" title="statement not covered" >export default ProductShowcase;</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2025-08-14T10:08:55.322Z
+            </div>
+        <script src="../../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../../sorter.js"></script>
+        <script src="../../../../block-navigation.js"></script>
+    </body>
+</html>
+    

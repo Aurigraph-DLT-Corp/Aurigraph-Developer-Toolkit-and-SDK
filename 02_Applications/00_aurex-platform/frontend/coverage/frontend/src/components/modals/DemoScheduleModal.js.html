@@ -1,0 +1,382 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for frontend/src/components/modals/DemoScheduleModal.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../../index.html">All files</a> / <a href="index.html">frontend/src/components/modals</a> DemoScheduleModal.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/99</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/99</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { useState } from 'react';</span>
+<span class="cstat-no" title="statement not covered" >import { motion, AnimatePresence } from 'framer-motion';</span>
+<span class="cstat-no" title="statement not covered" >import { XMarkIcon } from '@heroicons/react/24/outline';</span>
+<span class="cstat-no" title="statement not covered" >import { trackCTAClick } from '../../utils/analytics';</span>
+<span class="cstat-no" title="statement not covered" >const DemoScheduleModal = ({ isOpen, onClose }) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    const [formData, setFormData] = useState({</span>
+<span class="cstat-no" title="statement not covered" >        name: '',</span>
+<span class="cstat-no" title="statement not covered" >        email: '',</span>
+<span class="cstat-no" title="statement not covered" >        company: '',</span>
+<span class="cstat-no" title="statement not covered" >        phone: '',</span>
+<span class="cstat-no" title="statement not covered" >        jobTitle: '',</span>
+<span class="cstat-no" title="statement not covered" >        companySize: '',</span>
+<span class="cstat-no" title="statement not covered" >        preferredDate: '',</span>
+<span class="cstat-no" title="statement not covered" >        preferredTime: '',</span>
+<span class="cstat-no" title="statement not covered" >        message: ''</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >    const [isSubmitting, setIsSubmitting] = useState(false);</span>
+<span class="cstat-no" title="statement not covered" >    const [submitStatus, setSubmitStatus] = useState('idle');</span>
+<span class="cstat-no" title="statement not covered" >    const handleSubmit = async (e) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        e.preventDefault();</span>
+<span class="cstat-no" title="statement not covered" >        setIsSubmitting(true);</span>
+<span class="cstat-no" title="statement not covered" >        try {</span>
+<span class="cstat-no" title="statement not covered" >            // Track the demo request</span>
+<span class="cstat-no" title="statement not covered" >            trackCTAClick('demo_request_submitted', 'demo_schedule_modal');</span>
+<span class="cstat-no" title="statement not covered" >            // Format email content</span>
+<span class="cstat-no" title="statement not covered" >            const emailContent = `</span>
+<span class="cstat-no" title="statement not covered" >        &lt;h2&gt;New Demo Request&lt;/h2&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Name:&lt;/strong&gt; ${formData.name}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Email:&lt;/strong&gt; ${formData.email}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Company:&lt;/strong&gt; ${formData.company}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Phone:&lt;/strong&gt; ${formData.phone}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Job Title:&lt;/strong&gt; ${formData.jobTitle}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Company Size:&lt;/strong&gt; ${formData.companySize}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Preferred Date:&lt;/strong&gt; ${formData.preferredDate}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Preferred Time:&lt;/strong&gt; ${formData.preferredTime}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p&gt;&lt;strong&gt;Message:&lt;/strong&gt; ${formData.message}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >      `;</span>
+<span class="cstat-no" title="statement not covered" >            // Send email via backend API</span>
+<span class="cstat-no" title="statement not covered" >            const response = await fetch('http://dev.aurigraph.io:8000/api/send-demo-request', {</span>
+<span class="cstat-no" title="statement not covered" >                method: 'POST',</span>
+<span class="cstat-no" title="statement not covered" >                headers: {</span>
+<span class="cstat-no" title="statement not covered" >                    'Content-Type': 'application/json',</span>
+<span class="cstat-no" title="statement not covered" >                },</span>
+<span class="cstat-no" title="statement not covered" >                body: JSON.stringify({</span>
+<span class="cstat-no" title="statement not covered" >                    to: 'helpdesk@aurigraph.io',</span>
+<span class="cstat-no" title="statement not covered" >                    cc: 'yogesh@aurigraph.io',</span>
+<span class="cstat-no" title="statement not covered" >                    subject: `Demo Request from ${formData.name} - ${formData.company}`,</span>
+<span class="cstat-no" title="statement not covered" >                    html: emailContent,</span>
+<span class="cstat-no" title="statement not covered" >                    ...formData</span>
+<span class="cstat-no" title="statement not covered" >                }),</span>
+<span class="cstat-no" title="statement not covered" >            });</span>
+<span class="cstat-no" title="statement not covered" >            if (response.ok) {</span>
+<span class="cstat-no" title="statement not covered" >                setSubmitStatus('success');</span>
+<span class="cstat-no" title="statement not covered" >                setTimeout(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                    onClose();</span>
+<span class="cstat-no" title="statement not covered" >                    setSubmitStatus('idle');</span>
+<span class="cstat-no" title="statement not covered" >                    setFormData({</span>
+<span class="cstat-no" title="statement not covered" >                        name: '',</span>
+<span class="cstat-no" title="statement not covered" >                        email: '',</span>
+<span class="cstat-no" title="statement not covered" >                        company: '',</span>
+<span class="cstat-no" title="statement not covered" >                        phone: '',</span>
+<span class="cstat-no" title="statement not covered" >                        jobTitle: '',</span>
+<span class="cstat-no" title="statement not covered" >                        companySize: '',</span>
+<span class="cstat-no" title="statement not covered" >                        preferredDate: '',</span>
+<span class="cstat-no" title="statement not covered" >                        preferredTime: '',</span>
+<span class="cstat-no" title="statement not covered" >                        message: ''</span>
+<span class="cstat-no" title="statement not covered" >                    });</span>
+<span class="cstat-no" title="statement not covered" >                }, 3000);</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            else {</span>
+<span class="cstat-no" title="statement not covered" >                throw new Error('Failed to send demo request');</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        catch (error) {</span>
+<span class="cstat-no" title="statement not covered" >            console.error('Error submitting demo request:', error);</span>
+<span class="cstat-no" title="statement not covered" >            setSubmitStatus('error');</span>
+<span class="cstat-no" title="statement not covered" >            // For now, show success even if API fails (will implement email service later)</span>
+<span class="cstat-no" title="statement not covered" >            setTimeout(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                setSubmitStatus('success');</span>
+<span class="cstat-no" title="statement not covered" >                setTimeout(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                    onClose();</span>
+<span class="cstat-no" title="statement not covered" >                    setSubmitStatus('idle');</span>
+<span class="cstat-no" title="statement not covered" >                }, 2000);</span>
+<span class="cstat-no" title="statement not covered" >            }, 1000);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        finally {</span>
+<span class="cstat-no" title="statement not covered" >            setIsSubmitting(false);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >    const handleInputChange = (e) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        setFormData({</span>
+<span class="cstat-no" title="statement not covered" >            ...formData,</span>
+<span class="cstat-no" title="statement not covered" >            [e.target.name]: e.target.value</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >    return (_jsx(AnimatePresence, { children: isOpen &amp;&amp; (_jsxs(_Fragment, { children: [_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, onClick: onClose, className: "fixed inset-0 bg-black bg-opacity-50 z-50" }), _jsx(motion.div, { initial: { opacity: 0, scale: 0.9, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, exit: { opacity: 0, scale: 0.9, y: 20 }, className: "fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto", children: _jsxs("div", { className: "bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto", children: [_jsxs("div", { className: "sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between", children: [_jsx("h2", { className: "text-2xl font-bold text-gray-900", children: "Schedule Your Demo" }), _jsx("button", { onClick: onClose, className: "p-2 hover:bg-gray-100 rounded-lg transition-colors", children: _jsx(XMarkIcon, { className: "w-6 h-6 text-gray-500" }) })] }), _jsx("div", { className: "p-6", children: submitStatus === 'success' ? (_jsxs(motion.div, { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, className: "text-center py-12", children: [_jsx("div", { className: "w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4", children: _jsx("svg", { className: "w-8 h-8 text-green-600", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M5 13l4 4L19 7" }) }) }), _jsx("h3", { className: "text-xl font-semibold text-gray-900 mb-2", children: "Demo Request Received!" }), _jsx("p", { className: "text-gray-600", children: "Thank you for your interest. Our team will contact you within 24 hours to schedule your demo." })] })) : (_jsxs("form", { onSubmit: handleSubmit, className: "space-y-6", children: [_jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { children: [_jsx("label", { htmlFor: "name", className: "block text-sm font-medium text-gray-700 mb-2", children: "Full Name *" }), _jsx("input", { type: "text", id: "name", name: "name", required: true, value: formData.name, onChange: handleInputChange, className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "email", className: "block text-sm font-medium text-gray-700 mb-2", children: "Work Email *" }), _jsx("input", { type: "email", id: "email", name: "email", required: true, value: formData.email, onChange: handleInputChange, className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "company", className: "block text-sm font-medium text-gray-700 mb-2", children: "Company *" }), _jsx("input", { type: "text", id: "company", name: "company", required: true, value: formData.company, onChange: handleInputChange, className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "phone", className: "block text-sm font-medium text-gray-700 mb-2", children: "Phone Number" }), _jsx("input", { type: "tel", id: "phone", name: "phone", value: formData.phone, onChange: handleInputChange, className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "jobTitle", className: "block text-sm font-medium text-gray-700 mb-2", children: "Job Title" }), _jsx("input", { type: "text", id: "jobTitle", name: "jobTitle", value: formData.jobTitle, onChange: handleInputChange, className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "companySize", className: "block text-sm font-medium text-gray-700 mb-2", children: "Company Size" }), _jsxs("select", { id: "companySize", name: "companySize", value: formData.companySize, onChange: handleInputChange, className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent", children: [_jsx("option", { value: "", children: "Select size" }), _jsx("option", { value: "1-10", children: "1-10 employees" }), _jsx("option", { value: "11-50", children: "11-50 employees" }), _jsx("option", { value: "51-200", children: "51-200 employees" }), _jsx("option", { value: "201-500", children: "201-500 employees" }), _jsx("option", { value: "501-1000", children: "501-1000 employees" }), _jsx("option", { value: "1000+", children: "1000+ employees" })] })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "preferredDate", className: "block text-sm font-medium text-gray-700 mb-2", children: "Preferred Date" }), _jsx("input", { type: "date", id: "preferredDate", name: "preferredDate", value: formData.preferredDate, onChange: handleInputChange, min: new Date().toISOString().split('T')[0], className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "preferredTime", className: "block text-sm font-medium text-gray-700 mb-2", children: "Preferred Time" }), _jsxs("select", { id: "preferredTime", name: "preferredTime", value: formData.preferredTime, onChange: handleInputChange, className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent", children: [_jsx("option", { value: "", children: "Select time" }), _jsx("option", { value: "9:00 AM", children: "9:00 AM" }), _jsx("option", { value: "10:00 AM", children: "10:00 AM" }), _jsx("option", { value: "11:00 AM", children: "11:00 AM" }), _jsx("option", { value: "12:00 PM", children: "12:00 PM" }), _jsx("option", { value: "1:00 PM", children: "1:00 PM" }), _jsx("option", { value: "2:00 PM", children: "2:00 PM" }), _jsx("option", { value: "3:00 PM", children: "3:00 PM" }), _jsx("option", { value: "4:00 PM", children: "4:00 PM" }), _jsx("option", { value: "5:00 PM", children: "5:00 PM" })] })] })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "message", className: "block text-sm font-medium text-gray-700 mb-2", children: "Additional Information" }), _jsx("textarea", { id: "message", name: "message", rows: 4, value: formData.message, onChange: handleInputChange, placeholder: "Tell us about your ESG goals and challenges...", className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" })] }), _jsxs("div", { className: "flex gap-4", children: [_jsx("button", { type: "submit", disabled: isSubmitting, className: "flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed", children: isSubmitting ? 'Submitting...' : 'Request Demo' }), _jsx("button", { type: "button", onClick: onClose, className: "px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors", children: "Cancel" })] }), _jsx("p", { className: "text-xs text-gray-500 text-center", children: "By submitting this form, you agree to our Privacy Policy and Terms of Service." })] })) })] }) })] })) }));</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+<span class="cstat-no" title="statement not covered" >export default DemoScheduleModal;</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2025-08-14T10:08:55.322Z
+            </div>
+        <script src="../../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../../sorter.js"></script>
+        <script src="../../../../block-navigation.js"></script>
+    </body>
+</html>
+    
