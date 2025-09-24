@@ -1,0 +1,45 @@
+# Aurex HydroPulse - Docker Ignore Patterns
+# Application-specific optimizations
+
+# Global patterns
+**/.git
+**/node_modules
+**/__pycache__
+**/.venv
+**/venv
+
+# Frontend specific
+frontend/dist
+frontend/build
+frontend/.vite
+frontend/coverage
+frontend/node_modules
+
+# Backend specific  
+backend/__pycache__
+backend/.pytest_cache
+backend/venv
+backend/.venv
+backend/logs
+backend/*.log
+
+# Development files
+**/.env*
+!**/.env.example
+**/README.md
+**/docs
+**/tests
+**/test
+
+# IDE files
+**/.vscode
+**/.idea
+
+# Build artifacts
+**/coverage
+**/*.log
+**/tmp
+
+# Deployment files
+**/Dockerfile*
+**/docker-compose*.yml

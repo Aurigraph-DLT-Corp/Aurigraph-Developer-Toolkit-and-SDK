@@ -1,0 +1,37 @@
+{
+  "customfield_10300": {
+    "name": "Story Points",
+    "custom": true,
+    "searchable": true
+  },
+  "customfield_10411": {
+    "name": "Story point estimate",
+    "custom": true,
+    "searchable": true
+  },
+  "customfield_10005": {
+    "name": "Epic Link",
+    "custom": true,
+    "searchable": true
+  },
+  "customfield_10002": {
+    "name": "Epic Name",
+    "custom": true,
+    "searchable": true
+  },
+  "customfield_10003": {
+    "name": "Epic Status",
+    "custom": true,
+    "searchable": true
+  },
+  "customfield_10004": {
+    "name": "Epic Color",
+    "custom": true,
+    "searchable": true
+  },
+  "customfield_10115": {
+    "name": "Sprint",
+    "custom": true,
+    "searchable": true
+  }
+}

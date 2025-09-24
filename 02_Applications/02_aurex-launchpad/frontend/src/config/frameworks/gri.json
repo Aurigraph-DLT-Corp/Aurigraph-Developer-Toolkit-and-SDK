@@ -1,0 +1,326 @@
+{
+  "framework": {
+    "name": "Global Reporting Initiative",
+    "abbreviation": "GRI",
+    "version": "2021",
+    "lastUpdated": "2021-10-05",
+    "website": "https://www.globalreporting.org/",
+    "description": "Comprehensive sustainability reporting framework covering economic, environmental, and social impacts",
+    "applicability": "All organizations seeking to report on sustainability impacts"
+  },
+  "structure": {
+    "universal_standards": [
+      {
+        "id": "GRI_1",
+        "name": "Foundation",
+        "description": "Requirements and principles for using the GRI Standards",
+        "mandatory": true
+      },
+      {
+        "id": "GRI_2",
+        "name": "General Disclosures",
+        "description": "Disclosures about the reporting organization and its reporting practices",
+        "mandatory": true
+      },
+      {
+        "id": "GRI_3",
+        "name": "Material Topics",
+        "description": "Disclosures about the organization's process for determining material topics and managing impacts",
+        "mandatory": true
+      }
+    ],
+    "topic_standards": {
+      "economic": [
+        {
+          "id": "GRI_201",
+          "name": "Economic Performance",
+          "description": "Direct economic value generated and distributed"
+        },
+        {
+          "id": "GRI_202",
+          "name": "Market Presence",
+          "description": "Ratios of standard entry level wage by gender compared to local minimum wage"
+        },
+        {
+          "id": "GRI_203",
+          "name": "Indirect Economic Impacts",
+          "description": "Infrastructure investments and services supported"
+        },
+        {
+          "id": "GRI_204",
+          "name": "Procurement Practices",
+          "description": "Proportion of spending on local suppliers"
+        },
+        {
+          "id": "GRI_205",
+          "name": "Anti-corruption",
+          "description": "Operations assessed for risks related to corruption"
+        },
+        {
+          "id": "GRI_206",
+          "name": "Anti-competitive Behavior",
+          "description": "Legal actions for anti-competitive behavior, anti-trust, and monopoly practices"
+        },
+        {
+          "id": "GRI_207",
+          "name": "Tax",
+          "description": "The organization's approach to tax"
+        }
+      ],
+      "environmental": [
+        {
+          "id": "GRI_301",
+          "name": "Materials",
+          "description": "Materials used by weight or volume"
+        },
+        {
+          "id": "GRI_302",
+          "name": "Energy",
+          "description": "Energy consumption within and outside the organization"
+        },
+        {
+          "id": "GRI_303",
+          "name": "Water and Effluents",
+          "description": "Interactions with water as a shared resource"
+        },
+        {
+          "id": "GRI_304",
+          "name": "Biodiversity",
+          "description": "Operational sites owned, leased, managed in, or adjacent to, protected areas"
+        },
+        {
+          "id": "GRI_305",
+          "name": "Emissions",
+          "description": "Direct and indirect greenhouse gas emissions"
+        },
+        {
+          "id": "GRI_306",
+          "name": "Waste",
+          "description": "Waste generation and significant waste-related impacts"
+        },
+        {
+          "id": "GRI_308",
+          "name": "Supplier Environmental Assessment",
+          "description": "New suppliers that were screened using environmental criteria"
+        }
+      ],
+      "social": [
+        {
+          "id": "GRI_401",
+          "name": "Employment",
+          "description": "New employee hires and employee turnover"
+        },
+        {
+          "id": "GRI_402",
+          "name": "Labor/Management Relations",
+          "description": "Minimum notice periods regarding operational changes"
+        },
+        {
+          "id": "GRI_403",
+          "name": "Occupational Health and Safety",
+          "description": "Occupational health and safety management system"
+        },
+        {
+          "id": "GRI_404",
+          "name": "Training and Education",
+          "description": "Average hours of training per year per employee"
+        },
+        {
+          "id": "GRI_405",
+          "name": "Diversity and Equal Opportunity",
+          "description": "Diversity of governance bodies and employees"
+        },
+        {
+          "id": "GRI_406",
+          "name": "Non-discrimination",
+          "description": "Incidents of discrimination and corrective actions taken"
+        },
+        {
+          "id": "GRI_407",
+          "name": "Freedom of Association and Collective Bargaining",
+          "description": "Operations and suppliers in which the right to freedom of association and collective bargaining may be at risk"
+        },
+        {
+          "id": "GRI_408",
+          "name": "Child Labor",
+          "description": "Operations and suppliers at significant risk for incidents of child labor"
+        },
+        {
+          "id": "GRI_409",
+          "name": "Forced or Compulsory Labor",
+          "description": "Operations and suppliers at significant risk for incidents of forced or compulsory labor"
+        },
+        {
+          "id": "GRI_410",
+          "name": "Security Practices",
+          "description": "Security personnel trained in human rights policies or procedures"
+        },
+        {
+          "id": "GRI_411",
+          "name": "Rights of Indigenous Peoples",
+          "description": "Incidents of violations involving rights of indigenous peoples"
+        },
+        {
+          "id": "GRI_413",
+          "name": "Local Communities",
+          "description": "Operations with local community engagement, impact assessments, and development programs"
+        },
+        {
+          "id": "GRI_414",
+          "name": "Supplier Social Assessment",
+          "description": "New suppliers that were screened using social criteria"
+        },
+        {
+          "id": "GRI_415",
+          "name": "Public Policy",
+          "description": "Political contributions"
+        },
+        {
+          "id": "GRI_416",
+          "name": "Customer Health and Safety",
+          "description": "Assessment of the health and safety impacts of product and service categories"
+        },
+        {
+          "id": "GRI_417",
+          "name": "Marketing and Labeling",
+          "description": "Requirements for product and service information and labeling"
+        },
+        {
+          "id": "GRI_418",
+          "name": "Customer Privacy",
+          "description": "Substantiated complaints concerning breaches of customer privacy and losses of customer data"
+        }
+      ]
+    }
+  },
+  "general_disclosures": [
+    {
+      "section": "organizational_details",
+      "id": "GRI_2_1",
+      "title": "Organizational Details",
+      "description": "Report the name of the organization",
+      "mandatory": true,
+      "dataType": "text"
+    },
+    {
+      "section": "organizational_details",
+      "id": "GRI_2_2",
+      "title": "Entities Included",
+      "description": "Report entities included in the organization's sustainability reporting",
+      "mandatory": true,
+      "dataType": "list"
+    },
+    {
+      "section": "organizational_details",
+      "id": "GRI_2_3",
+      "title": "Reporting Period",
+      "description": "Report the reporting period, frequency and contact point",
+      "mandatory": true,
+      "dataType": "date_range"
+    },
+    {
+      "section": "organizational_details",
+      "id": "GRI_2_4",
+      "title": "Restatements",
+      "description": "Report restatements of information",
+      "mandatory": true,
+      "dataType": "text"
+    },
+    {
+      "section": "organizational_details",
+      "id": "GRI_2_5",
+      "title": "External Assurance",
+      "description": "Report external assurance",
+      "mandatory": true,
+      "dataType": "boolean_with_details"
+    }
+  ],
+  "materiality_process": {
+    "steps": [
+      {
+        "id": 1,
+        "name": "Understanding Context",
+        "description": "Understand the organization's context, including its activities, business relationships, stakeholders, and sustainability context"
+      },
+      {
+        "id": 2,
+        "name": "Identifying Impacts",
+        "description": "Identify actual and potential negative and positive impacts on the economy, environment, and people"
+      },
+      {
+        "id": 3,
+        "name": "Assessing Significance",
+        "description": "Assess the significance of the impacts for the purpose of reporting"
+      },
+      {
+        "id": 4,
+        "name": "Prioritizing",
+        "description": "Prioritize the most significant impacts for reporting"
+      }
+    ],
+    "significance_factors": [
+      "scale",
+      "scope", 
+      "irremediable_character",
+      "likelihood"
+    ]
+  },
+  "due_diligence": {
+    "required": true,
+    "components": [
+      "identify_map_impacts",
+      "assess_impacts", 
+      "integrate_act",
+      "track_communicate"
+    ]
+  },
+  "validation": {
+    "required_standards": ["GRI_1", "GRI_2", "GRI_3"],
+    "topic_standards_minimum": 3,
+    "materiality_assessment_required": true,
+    "stakeholder_engagement_required": true,
+    "completeness_threshold": 85
+  },
+  "scoring": {
+    "methodology": "Comprehensive disclosure scoring",
+    "components": {
+      "completeness": 40,
+      "quality": 30,
+      "materiality_alignment": 20,
+      "stakeholder_engagement": 10
+    },
+    "maxScore": 100,
+    "passingScore": 70
+  },
+  "sector_supplements": [
+    {
+      "sector": "Oil and Gas",
+      "additional_topics": ["GRI_306", "GRI_304", "GRI_305"]
+    },
+    {
+      "sector": "Financial Services",
+      "additional_topics": ["GRI_201", "GRI_205", "GRI_418"]
+    },
+    {
+      "sector": "Mining and Metals",
+      "additional_topics": ["GRI_304", "GRI_306", "GRI_411"]
+    }
+  ],
+  "reporting": {
+    "principles": {
+      "accuracy": "Information must be sufficiently accurate and detailed",
+      "balance": "Information must reflect positive and negative aspects",
+      "clarity": "Information must be understandable and accessible",
+      "comparability": "Information must be consistent over time",
+      "completeness": "Information must be sufficient for stakeholders",
+      "sustainability_context": "Information must be presented in the context of sustainability",
+      "timeliness": "Information must be available in time for stakeholders",
+      "verifiability": "Information must be able to be examined and verified"
+    },
+    "recommendedFormat": "Standalone sustainability report or integrated report",
+    "updateFrequency": "Annual",
+    "verificationRecommended": true,
+    "publicDisclosure": true,
+    "languages": ["English", "Spanish", "French", "German", "Portuguese", "Chinese", "Arabic"]
+  }
+}

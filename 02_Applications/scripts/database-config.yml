@@ -1,0 +1,125 @@
+# Aurex Platform - Centralized Database Architecture Configuration
+# This file defines the database architecture and Redis database allocation for all applications
+
+# =================================
+# DATABASE ARCHITECTURE STANDARD
+# =================================
+version: "1.0"
+updated: "2025-08-07"
+
+# Primary PostgreSQL Database
+database:
+  type: "postgresql"
+  host: "${POSTGRES_HOST:-postgres}"
+  port: 5432
+  name: "${POSTGRES_DB:-aurex_platform_prod}"
+  user: "${POSTGRES_USER:-aurex_prod_user}"
+  password: "${POSTGRES_PASSWORD}"
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 1800
+
+# =================================
+# REDIS DATABASE ALLOCATION
+# =================================
+# Each application uses a separate Redis database to avoid key collisions
+redis:
+  host: "${REDIS_HOST:-redis}"
+  port: 6379
+  password: "${REDIS_PASSWORD}"
+  applications:
+    aurex-platform:
+      database: 0
+      description: "Main platform cache and sessions"
+    aurex-launchpad:
+      database: 1 
+      description: "ESG assessment data and reports cache"
+    aurex-hydropulse:
+      database: 2
+      description: "Water management and AWD data cache"
+    aurex-sylvagraph:
+      database: 3
+      description: "Forest management and carbon sequestration cache"
+    aurex-carbontrace:
+      database: 4
+      description: "Carbon footprint tracking cache"
+    aurex-admin:
+      database: 5
+      description: "Admin dashboard and user management cache"
+
+# =================================
+# DATABASE SCHEMA ORGANIZATION
+# =================================
+# All applications share the same PostgreSQL database but use different schemas
+schemas:
+  shared:
+    - users          # User management across all applications
+    - organizations  # Organization and tenant data
+    - audit_logs     # Centralized audit logging
+    - notifications  # Cross-application notifications
+  
+  aurex_platform:
+    - landing        # Marketing and landing page data
+    - content        # CMS content
+    
+  aurex_launchpad:
+    - assessments    # ESG assessments and questionnaires
+    - reports        # Generated reports and analytics
+    - ghg_emissions  # GHG emissions data and calculations
+    - sustainability # Sustainability metrics and tracking
+    - projects       # Project management data
+    
+  aurex_hydropulse:
+    - water_data     # Water usage and conservation data
+    - awd_education  # Alternate Wetting Drying education content
+    - monitoring     # Water monitoring systems
+    
+  aurex_sylvagraph:
+    - forest_data    # Forest management data
+    - carbon_sequestration # Carbon capture data
+    - biodiversity   # Biodiversity tracking
+    
+  aurex_carbontrace:
+    - emissions_tracking # Carbon footprint calculations
+    - offsets        # Carbon offset programs
+    - reporting      # Emissions reports
+    
+  aurex_admin:
+    - system_config  # System configuration
+    - user_management # User administration
+    - monitoring     # System monitoring data
+
+# =================================
+# MIGRATION STRATEGY
+# =================================
+migrations:
+  strategy: "alembic"
+  location: "./database/migrations"
+  shared_migrations: true
+  application_specific: true
+  
+# =================================
+# BACKUP STRATEGY
+# =================================
+backup:
+  frequency: "daily"
+  retention: "30_days"
+  location: "./backups/database"
+  compression: true
+  encryption: true
+
+# =================================
+# MONITORING AND HEALTH CHECKS
+# =================================
+monitoring:
+  health_checks:
+    - connection_pool
+    - query_performance
+    - disk_usage
+    - active_connections
+  alerts:
+    - connection_pool_exhaustion
+    - slow_queries
+    - disk_space_low
+    - high_cpu_usage
