@@ -147,3 +147,125 @@ aurigraph-av10-7/models/
 aurigraph-v9/models/
 aurigraph-av10-7/trusted-setup/
 aurigraph-v9/trusted-setup/
+
+# Credentials - NEVER COMMIT
+doc/Credentials.md
+/doc/Credentials.md
+Credentials.md
+*.credentials
+setup-credentials.sh
+
+# ============================================================================
+# BUILD ARTIFACTS & DEPLOYMENT PACKAGES
+# ============================================================================
+
+# Maven/Java build artifacts
+target/
+*.jar
+*.war
+*.ear
+*.class
+*.nar
+.mvn/
+
+# Deployment packages
+*.tar.gz
+*.zip
+deployment-*/
+*-deployment-*/
+*-deploy/
+deployment-package/
+
+# Production builds
+dist/
+build/
+out/
+
+# Native images
+*-runner
+*.so
+*.dylib
+*.dll
+
+# ============================================================================
+# TEMPORARY & CACHE FILES
+# ============================================================================
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+logs/
+log/
+
+# ============================================================================
+# LARGE FILES & ARCHIVES
+# ============================================================================
+
+# Source archives
+*-src.tar.gz
+*-complete.tar.gz
+*-production.tar.gz
+
+# Prevent accidental commits of large files
+*.iso
+*.img
+
+# ============================================================================
+# IDE & EDITOR FILES
+# ============================================================================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ============================================================================
+# ENTERPRISE PORTAL SPECIFIC
+# ============================================================================
+
+# Frontend build artifacts
+enterprise-portal/dist/
+enterprise-portal/build/
+enterprise-portal/node_modules/
+enterprise-portal/.env
+enterprise-portal/.env.local
+enterprise-portal/coverage/
+
+# ============================================================================
+# QUARKUS/GRAALVM SPECIFIC
+# ============================================================================
+
+# Quarkus
+.quarkus/
+quarkus.log
+
+# GraalVM native image build
+*.h
+native-image-build/
