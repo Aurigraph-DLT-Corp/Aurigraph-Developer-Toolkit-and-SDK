@@ -1,1 +1,0 @@
-import React from 'react'; export default function MonitoringPage() { return <div className="bg-white dark:bg-forest-900 rounded-lg p-6 shadow-sm"><h1 className="text-2xl font-bold text-forest-900 dark:text-forest-100">Monitoring</h1><p className="text-forest-600 dark:text-forest-400 mt-2">Coming soon...</p></div> }

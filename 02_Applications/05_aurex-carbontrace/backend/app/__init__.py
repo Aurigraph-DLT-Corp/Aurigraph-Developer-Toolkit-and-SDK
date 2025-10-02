@@ -1,1 +1,0 @@
-# CarbonTrace Trading Platform Backend

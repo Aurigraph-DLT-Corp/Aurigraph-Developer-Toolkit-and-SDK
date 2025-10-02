@@ -1,3 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-const EnterprisePartnersSection = () => { return (_jsxs("section", { className: "section-padding bg-white", children: [" ", _jsxs("div", { className: "max-w-7xl mx-auto container-padding", children: [" ", _jsxs("div", { className: "text-center", children: [" ", _jsx("h2", { className: "text-3xl font-bold text-gray-900 mb-4", children: "EnterprisePartnersSection" }), " ", _jsx("p", { className: "text-gray-600", children: "This section is under construction and will be implemented according to PRD-501 specifications." }), " "] }), " "] }), " "] })); };
-export default EnterprisePartnersSection;

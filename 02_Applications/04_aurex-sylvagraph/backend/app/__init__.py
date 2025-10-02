@@ -1,1 +1,0 @@
-# Aurex Sylvagraph Backend Application Package

@@ -1,1 +1,0 @@
-# CarbonTrace Schemas
