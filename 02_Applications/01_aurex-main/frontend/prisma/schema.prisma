@@ -1,0 +1,365 @@
+// 🗄️ Aurex Platform - Prisma Schema for Database Administration
+// Provides ORM access to all Aurex databases for admin interface
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/lib/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// CORE PLATFORM TABLES (aurex_platform database)
+// =============================================================================
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  username          String?  @unique
+  firstName         String?
+  lastName          String?
+  role              UserRole @default(USER)
+  isActive          Boolean  @default(true)
+  isEmailVerified   Boolean  @default(false)
+  keycloakId        String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastLoginAt       DateTime?
+  
+  // Relationships
+  auditLogs         AuditLog[]
+  userSessions      UserSession[]
+  
+  @@map("users")
+}
+
+model UserSession {
+  id          String   @id @default(cuid())
+  userId      String
+  sessionId   String   @unique
+  ipAddress   String?
+  userAgent   String?
+  isActive    Boolean  @default(true)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  // Relationships
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_sessions")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  
+  // Relationships
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  @@map("audit_logs")
+}
+
+// =============================================================================
+// HYDROPULSE TABLES (aurex_hydropulse database)
+// =============================================================================
+
+model Farmer {
+  id              String   @id @default(cuid())
+  farmerId        String   @unique
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  address         Json?
+  governmentId    String?
+  kycStatus       KYCStatus @default(PENDING)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  farms           Farm[]
+  awdEvents       AWDEvent[]
+  
+  @@map("farmers")
+}
+
+model Farm {
+  id              String   @id @default(cuid())
+  farmId          String   @unique
+  farmerId        String
+  name            String
+  location        Json?    // GeoJSON
+  totalArea       Float?   // in hectares
+  cropType        String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  farmer          Farmer   @relation(fields: [farmerId], references: [id])
+  fields          Field[]
+  
+  @@map("farms")
+}
+
+model Field {
+  id              String   @id @default(cuid())
+  fieldId         String   @unique
+  farmId          String
+  name            String
+  area            Float    // in hectares
+  soilType        String?
+  cropVariety     String?
+  plantingDate    DateTime?
+  harvestDate     DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  farm            Farm     @relation(fields: [farmId], references: [id])
+  sensors         Sensor[]
+  awdEvents       AWDEvent[]
+  
+  @@map("fields")
+}
+
+model Sensor {
+  id              String   @id @default(cuid())
+  sensorId        String   @unique
+  fieldId         String
+  sensorType      SensorType
+  location        Json?    // GeoJSON point
+  installDate     DateTime
+  lastMaintenance DateTime?
+  isActive        Boolean  @default(true)
+  batteryLevel    Float?
+  signalStrength  Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  field           Field    @relation(fields: [fieldId], references: [id])
+  readings        SensorReading[]
+  
+  @@map("sensors")
+}
+
+model SensorReading {
+  id              String   @id @default(cuid())
+  sensorId        String
+  readingType     ReadingType
+  value           Float
+  unit            String
+  quality         DataQuality @default(GOOD)
+  timestamp       DateTime
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  
+  // Relationships
+  sensor          Sensor   @relation(fields: [sensorId], references: [id])
+  
+  @@map("sensor_readings")
+}
+
+model AWDEvent {
+  id              String   @id @default(cuid())
+  eventId         String   @unique
+  farmerId        String
+  fieldId         String
+  eventType       AWDEventType
+  startDate       DateTime
+  endDate         DateTime?
+  waterSaved      Float?   // in liters
+  status          EventStatus @default(ACTIVE)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  farmer          Farmer   @relation(fields: [farmerId], references: [id])
+  field           Field    @relation(fields: [fieldId], references: [id])
+  
+  @@map("awd_events")
+}
+
+// =============================================================================
+// CARBONTRACE TABLES (aurex_carbontrace database)
+// =============================================================================
+
+model CarbonProject {
+  id              String   @id @default(cuid())
+  projectId       String   @unique
+  name            String
+  description     String?
+  projectType     ProjectType
+  methodology     String
+  location        Json?    // GeoJSON
+  startDate       DateTime
+  endDate         DateTime?
+  status          ProjectStatus @default(PLANNING)
+  totalCredits    Float?
+  issuedCredits   Float?
+  retiredCredits  Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  emissions       EmissionReduction[]
+  verifications   Verification[]
+  
+  @@map("carbon_projects")
+}
+
+model EmissionReduction {
+  id              String   @id @default(cuid())
+  projectId       String
+  reductionType   ReductionType
+  amount          Float    // in tCO2e
+  methodology     String
+  calculationDate DateTime
+  verificationStatus VerificationStatus @default(PENDING)
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  
+  // Relationships
+  project         CarbonProject @relation(fields: [projectId], references: [id])
+  
+  @@map("emission_reductions")
+}
+
+model Verification {
+  id              String   @id @default(cuid())
+  projectId       String
+  verifierId      String
+  verifierName    String
+  verificationType VerificationType
+  status          VerificationStatus
+  reportUrl       String?
+  verifiedAmount  Float?
+  verificationDate DateTime?
+  expiryDate      DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  project         CarbonProject @relation(fields: [projectId], references: [id])
+  
+  @@map("verifications")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  PLATFORM_ADMIN
+  LPA_ADMIN
+  VVB_ADMIN
+  FARMER
+  FIELD_AGENT
+  VERIFIER
+  AUDITOR
+  USER
+}
+
+enum KYCStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum SensorType {
+  SOIL_MOISTURE
+  WATER_LEVEL
+  TEMPERATURE
+  HUMIDITY
+  PH_SENSOR
+  EC_SENSOR
+}
+
+enum ReadingType {
+  SOIL_MOISTURE
+  WATER_LEVEL
+  TEMPERATURE
+  HUMIDITY
+  PH_VALUE
+  ELECTRICAL_CONDUCTIVITY
+}
+
+enum DataQuality {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  INVALID
+}
+
+enum AWDEventType {
+  IRRIGATION_START
+  IRRIGATION_STOP
+  FIELD_DRYING
+  FIELD_FLOODING
+  MAINTENANCE
+}
+
+enum EventStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  PAUSED
+}
+
+enum ProjectType {
+  AGRICULTURE
+  FORESTRY
+  RENEWABLE_ENERGY
+  WASTE_MANAGEMENT
+  INDUSTRIAL
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  MONITORING
+  COMPLETED
+  SUSPENDED
+  CANCELLED
+}
+
+enum ReductionType {
+  AVOIDED_EMISSIONS
+  SEQUESTRATION
+  SUBSTITUTION
+  DESTRUCTION
+}
+
+enum VerificationStatus {
+  PENDING
+  IN_PROGRESS
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum VerificationType {
+  INITIAL
+  PERIODIC
+  FINAL
+  SPOT_CHECK
+}

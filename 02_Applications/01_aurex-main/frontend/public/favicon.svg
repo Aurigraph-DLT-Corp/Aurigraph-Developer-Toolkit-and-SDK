@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="aurexFaviconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#D97706;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#92400E;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="32" height="32" fill="white" rx="4"/>
+
+  <!-- Official Aurex Lock/Security Symbol -->
+  <g transform="translate(16,16) scale(0.5)">
+    <!-- Lock Body -->
+    <rect x="-15" y="-5" width="30" height="25" rx="3" ry="3" fill="url(#aurexFaviconGradient)" stroke="none"/>
+
+    <!-- Lock Shackle -->
+    <path d="M -10,-5 A 10,10 0 0,1 10,-5 L 10,-15 A 15,15 0 0,0 -10,-15 Z"
+          fill="none"
+          stroke="url(#aurexFaviconGradient)"
+          stroke-width="4"
+          stroke-linecap="round"/>
+
+    <!-- Diamond Pattern Inside -->
+    <g transform="translate(0,7.5)">
+      <!-- Outer Diamond -->
+      <path d="M 0,-8 L 8,0 L 0,8 L -8,0 Z"
+            fill="white"
+            opacity="0.9"/>
+
+      <!-- Inner Diamond -->
+      <path d="M 0,-4 L 4,0 L 0,4 L -4,0 Z"
+            fill="url(#aurexFaviconGradient)"/>
+
+      <!-- Center Diamond -->
+      <path d="M 0,-2 L 2,0 L 0,2 L -2,0 Z"
+            fill="white"/>
+    </g>
+  </g>
+</svg>

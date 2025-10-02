@@ -1,0 +1,43 @@
+{
+  "name": "aurex-hydropulse-frontend",
+  "version": "2.1.0",
+  "description": "Aurex HydroPulse™ Frontend - Smart Water Management Platform",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3002",
+    "build": "vite build --base=/hydropulse/",
+    "preview": "vite preview --host 0.0.0.0 --port 3002",
+    "lint": "eslint src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest",
+    "build:production": "vite build --base=/hydropulse/ --mode production"
+  },
+  "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "autoprefixer": "^10.4.16",
+    "axios": "^1.5.0",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "lucide-react": "^0.263.1",
+    "postcss": "^8.4.31",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.8.0",
+    "recharts": "^2.8.0",
+    "tailwind-merge": "^1.14.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "vite": "^4.5.14",
+    "vitest": "^1.0.4"
+  }
+}

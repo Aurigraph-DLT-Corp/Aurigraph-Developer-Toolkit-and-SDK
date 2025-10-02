@@ -1,0 +1,903 @@
+import React, { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import {
+  ChevronRight,
+  ChevronLeft,
+  MapPin,
+  Calendar as CalendarIcon,
+  Users,
+  TreePine,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Save,
+  Send,
+} from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
+
+// Validation schemas for each step
+const basicInfoSchema = z.object({
+  name: z.string().min(3, 'Project name must be at least 3 characters').max(255),
+  description: z.string().max(2000).optional(),
+  state: z.enum(['Maharashtra', 'Chhattisgarh', 'Andhra Pradesh'], {
+    required_error: 'Please select a state',
+  }),
+  districts: z.array(z.string()).min(1, 'At least one district is required'),
+  season: z.string().optional(),
+});
+
+const targetsSchema = z.object({
+  acreageTarget: z.number().min(100, 'Minimum acreage is 100 hectares'),
+  farmerTarget: z.number().min(50, 'Minimum farmer count is 50'),
+});
+
+const methodologySchema = z.object({
+  methodologyType: z.enum(['verra_vm0042', 'gold_standard', 'vmd0051', 'custom']),
+  methodologyVersion: z.string().min(1, 'Version is required'),
+  vvbId: z.string().uuid().optional(),
+});
+
+const timelineSchema = z.object({
+  startDate: z.date({
+    required_error: 'Start date is required',
+  }),
+  endDate: z.date({
+    required_error: 'End date is required',
+  }),
+}).refine((data) => data.endDate > data.startDate, {
+  message: 'End date must be after start date',
+  path: ['endDate'],
+});
+
+// Combined schema
+const projectSchema = basicInfoSchema
+  .merge(targetsSchema)
+  .merge(methodologySchema)
+  .merge(timelineSchema);
+
+type ProjectFormData = z.infer<typeof projectSchema>;
+
+interface ProjectRegistrationWizardProps {
+  onSubmit: (data: ProjectFormData) => Promise<void>;
+  onSaveDraft: (data: Partial<ProjectFormData>) => Promise<void>;
+  initialData?: Partial<ProjectFormData>;
+  isLoading?: boolean;
+}
+
+const STEPS = [
+  {
+    id: 'basic-info',
+    title: 'Basic Information',
+    description: 'Project name, location, and description',
+    icon: Info,
+  },
+  {
+    id: 'targets',
+    title: 'Project Targets',
+    description: 'Acreage and farmer targets',
+    icon: Users,
+  },
+  {
+    id: 'methodology',
+    title: 'Methodology & VVB',
+    description: 'Standards and verification body',
+    icon: TreePine,
+  },
+  {
+    id: 'timeline',
+    title: 'Timeline',
+    description: 'Project start and end dates',
+    icon: CalendarIcon,
+  },
+  {
+    id: 'review',
+    title: 'Review & Submit',
+    description: 'Review all details before submission',
+    icon: CheckCircle,
+  },
+];
+
+const DISTRICT_OPTIONS = {
+  Maharashtra: [
+    'Ahmednagar', 'Akola', 'Amravati', 'Aurangabad', 'Beed', 'Bhandara',
+    'Buldhana', 'Chandrapur', 'Dhule', 'Gadchiroli', 'Gondia', 'Hingoli',
+    'Jalgaon', 'Jalna', 'Kolhapur', 'Latur', 'Mumbai', 'Nagpur', 'Nanded',
+    'Nandurbar', 'Nashik', 'Osmanabad', 'Palghar', 'Parbhani', 'Pune',
+    'Raigad', 'Ratnagiri', 'Sangli', 'Satara', 'Sindhudurg', 'Solapur',
+    'Thane', 'Wardha', 'Washim', 'Yavatmal'
+  ],
+  Chhattisgarh: [
+    'Balod', 'Baloda Bazar', 'Balrampur', 'Bastar', 'Bemetara', 'Bijapur',
+    'Bilaspur', 'Dantewada', 'Dhamtari', 'Durg', 'Gariaband', 'Gaurela Pendra Marwahi',
+    'Janjgir-Champa', 'Jashpur', 'Kabirdham', 'Kanker', 'Kondagaon', 'Korba',
+    'Korea', 'Mahasamund', 'Mungeli', 'Narayanpur', 'Raigarh', 'Raipur',
+    'Rajnandgaon', 'Sukma', 'Surajpur', 'Surguja'
+  ],
+  'Andhra Pradesh': [
+    'Anantapur', 'Chittoor', 'East Godavari', 'Guntur', 'Krishna', 'Kurnool',
+    'Nellore', 'Prakasam', 'Srikakulam', 'Visakhapatnam', 'Vizianagaram',
+    'West Godavari', 'YSR Kadapa'
+  ]
+};
+
+const METHODOLOGY_OPTIONS = [
+  { value: 'verra_vm0042', label: 'Verra VM0042 - AWD in Rice Cultivation' },
+  { value: 'gold_standard', label: 'Gold Standard - Sustainable Agriculture' },
+  { value: 'vmd0051', label: 'VMD0051 - GHG Emission Reductions' },
+  { value: 'custom', label: 'Custom Methodology' },
+];
+
+export const ProjectRegistrationWizard: React.FC<ProjectRegistrationWizardProps> = ({
+  onSubmit,
+  onSaveDraft,
+  initialData,
+  isLoading = false,
+}) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+  const [vvbOptions, setVvbOptions] = useState<Array<{ id: string; name: string; organization: string }>>([]);
+
+  const form = useForm<ProjectFormData>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      state: undefined,
+      districts: [],
+      season: '',
+      acreageTarget: 100,
+      farmerTarget: 50,
+      methodologyType: undefined,
+      methodologyVersion: '',
+      vvbId: undefined,
+      startDate: undefined,
+      endDate: undefined,
+      ...initialData,
+    },
+    mode: 'onChange',
+  });
+
+  const { watch, trigger, getValues, setValue } = form;
+  const watchedState = watch('state');
+  const watchedMethodology = watch('methodologyType');
+
+  // Fetch VVB options when methodology or state changes
+  useEffect(() => {
+    if (watchedMethodology && watchedState) {
+      fetchVVBOptions(watchedMethodology, watchedState);
+    }
+  }, [watchedMethodology, watchedState]);
+
+  const fetchVVBOptions = async (methodology: string, state: string) => {
+    try {
+      const response = await fetch(`/api/v1/projects/vvb/?methodology_type=${methodology}&region=${state}`);
+      const data = await response.json();
+      setVvbOptions(data);
+    } catch (error) {
+      console.error('Failed to fetch VVB options:', error);
+    }
+  };
+
+  const validateCurrentStep = async () => {
+    const stepSchemas = [basicInfoSchema, targetsSchema, methodologySchema, timelineSchema];
+    const currentSchema = stepSchemas[currentStep];
+    
+    if (!currentSchema) return true;
+
+    const currentData = getValues();
+    const result = await currentSchema.safeParseAsync(currentData);
+    
+    if (!result.success) {
+      const errors: Record<string, string[]> = {};
+      result.error.errors.forEach((error) => {
+        const path = error.path.join('.');
+        if (!errors[path]) errors[path] = [];
+        errors[path].push(error.message);
+      });
+      setValidationErrors(errors);
+      return false;
+    }
+    
+    setValidationErrors({});
+    return true;
+  };
+
+  const handleNext = async () => {
+    const isValid = await validateCurrentStep();
+    if (isValid) {
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps([...completedSteps, currentStep]);
+      }
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  const handleStepClick = (stepIndex: number) => {
+    if (stepIndex <= currentStep || completedSteps.includes(stepIndex)) {
+      setCurrentStep(stepIndex);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    const data = getValues();
+    await onSaveDraft(data);
+    toast({
+      title: 'Draft Saved',
+      description: 'Your project has been saved as a draft.',
+    });
+  };
+
+  const handleSubmit = async (data: ProjectFormData) => {
+    try {
+      await onSubmit(data);
+      toast({
+        title: 'Project Created',
+        description: 'Your project has been submitted for approval.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create project. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const progress = ((currentStep + 1) / STEPS.length) * 100;
+
+  const renderBasicInfo = () => (
+    <div className="space-y-6">
+      <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Project Name *</FormLabel>
+            <FormControl>
+              <Input placeholder="AWD Rice Cultivation Project - Maharashtra" {...field} />
+            </FormControl>
+            <FormDescription>
+              Choose a descriptive name for your AWD project
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="description"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Project Description</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Describe the objectives, scope, and expected outcomes of your AWD project..."
+                className="min-h-[100px]"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="state"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>State *</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                <SelectItem value="Chhattisgarh">Chhattisgarh</SelectItem>
+                <SelectItem value="Andhra Pradesh">Andhra Pradesh</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="districts"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Districts *</FormLabel>
+            <div className="space-y-3">
+              {watchedState && (
+                <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                  {DISTRICT_OPTIONS[watchedState]?.map((district) => (
+                    <label key={district} className="flex items-center space-x-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={field.value?.includes(district) || false}
+                        onChange={(e) => {
+                          const current = field.value || [];
+                          if (e.target.checked) {
+                            field.onChange([...current, district]);
+                          } else {
+                            field.onChange(current.filter(d => d !== district));
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <span>{district}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              {field.value?.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {field.value.map((district) => (
+                    <Badge key={district} variant="secondary" className="text-xs">
+                      {district}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+            <FormDescription>
+              Select the districts where this project will be implemented
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="season"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Season</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select season" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="Kharif">Kharif (June - October)</SelectItem>
+                <SelectItem value="Rabi">Rabi (November - April)</SelectItem>
+                <SelectItem value="Zaid">Zaid (April - June)</SelectItem>
+                <SelectItem value="Year-round">Year-round</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+
+  const renderTargets = () => (
+    <div className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-6">
+        <FormField
+          control={form.control}
+          name="acreageTarget"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Target Acreage (Hectares) *</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="100"
+                  step="0.1"
+                  {...field}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                />
+              </FormControl>
+              <FormDescription>
+                Minimum 100 hectares required for AWD project
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="farmerTarget"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Target Farmer Count *</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="50"
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                />
+              </FormControl>
+              <FormDescription>
+                Minimum 50 farmers required for AWD project
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Project Requirements:</strong>
+          <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+            <li>Minimum 100 hectares of rice cultivation area</li>
+            <li>At least 50 participating farmers</li>
+            <li>Average plot size should be 1-3 hectares per farmer</li>
+            <li>All land should be suitable for AWD implementation</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+
+  const renderMethodology = () => (
+    <div className="space-y-6">
+      <FormField
+        control={form.control}
+        name="methodologyType"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Methodology Type *</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select methodology" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {METHODOLOGY_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              Select the carbon accounting methodology for this project
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="methodologyVersion"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Methodology Version *</FormLabel>
+            <FormControl>
+              <Input placeholder="v2.0" {...field} />
+            </FormControl>
+            <FormDescription>
+              Specify the version of the selected methodology
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="vvbId"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Verification Body (VVB)</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select VVB (optional)" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {vvbOptions.map((vvb) => (
+                  <SelectItem key={vvb.id} value={vvb.id}>
+                    {vvb.name} - {vvb.organization}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              Optional: Pre-assign a Verification Body for this project
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+
+  const renderTimeline = () => (
+    <div className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-6">
+        <FormField
+          control={form.control}
+          name="startDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Project Start Date *</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full pl-3 text-left font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, 'PPP')
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormDescription>
+                When will the project implementation begin?
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="endDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Project End Date *</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full pl-3 text-left font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, 'PPP')
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) => date <= (watch('startDate') || new Date())}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormDescription>
+                When will the project monitoring period end?
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Timeline Guidelines:</strong>
+          <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+            <li>AWD projects typically run for 2-3 crop seasons</li>
+            <li>Monitoring period should cover at least one full cropping cycle</li>
+            <li>Consider seasonal variations and weather patterns</li>
+            <li>Allow sufficient time for farmer training and adoption</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+
+  const renderReview = () => {
+    const data = getValues();
+    
+    return (
+      <div className="space-y-6">
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please review all project details before submission. Once submitted, the project will enter the approval workflow.
+          </AlertDescription>
+        </Alert>
+
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-medium text-lg">Basic Information</h3>
+            <Separator className="my-2" />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Project Name:</span>
+                <p className="font-medium">{data.name}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">State:</span>
+                <p className="font-medium">{data.state}</p>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Districts:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {data.districts?.map((district) => (
+                    <Badge key={district} variant="secondary" className="text-xs">
+                      {district}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-medium text-lg">Project Targets</h3>
+            <Separator className="my-2" />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Target Acreage:</span>
+                <p className="font-medium">{data.acreageTarget} hectares</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Target Farmers:</span>
+                <p className="font-medium">{data.farmerTarget} farmers</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-medium text-lg">Methodology & Timeline</h3>
+            <Separator className="my-2" />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Methodology:</span>
+                <p className="font-medium">
+                  {METHODOLOGY_OPTIONS.find(m => m.value === data.methodologyType)?.label}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Version:</span>
+                <p className="font-medium">{data.methodologyVersion}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Start Date:</span>
+                <p className="font-medium">
+                  {data.startDate ? format(data.startDate, 'PPP') : 'Not set'}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">End Date:</span>
+                <p className="font-medium">
+                  {data.endDate ? format(data.endDate, 'PPP') : 'Not set'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return renderBasicInfo();
+      case 1:
+        return renderTargets();
+      case 2:
+        return renderMethodology();
+      case 3:
+        return renderTimeline();
+      case 4:
+        return renderReview();
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Create AWD Project</CardTitle>
+          <CardDescription>
+            Set up a new Alternate Wetting and Drying project for carbon credit generation
+          </CardDescription>
+          <div className="space-y-4">
+            <Progress value={progress} className="w-full" />
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Step {currentStep + 1} of {STEPS.length}</span>
+              <span>{Math.round(progress)}% Complete</span>
+            </div>
+          </div>
+        </CardHeader>
+
+        {/* Step Navigation */}
+        <div className="px-6 pb-6">
+          <div className="flex items-center justify-between">
+            {STEPS.map((step, index) => {
+              const Icon = step.icon;
+              const isCompleted = completedSteps.includes(index);
+              const isCurrent = currentStep === index;
+              const isClickable = index <= currentStep || completedSteps.includes(index);
+
+              return (
+                <div
+                  key={step.id}
+                  className={cn(
+                    'flex items-center space-x-2 cursor-pointer transition-colors',
+                    isClickable ? 'hover:text-primary' : 'cursor-not-allowed opacity-50',
+                    isCurrent && 'text-primary',
+                    isCompleted && 'text-green-600'
+                  )}
+                  onClick={() => isClickable && handleStepClick(index)}
+                >
+                  <div
+                    className={cn(
+                      'w-8 h-8 rounded-full flex items-center justify-center border-2',
+                      isCurrent && 'border-primary bg-primary text-primary-foreground',
+                      isCompleted && 'border-green-600 bg-green-600 text-white',
+                      !isCurrent && !isCompleted && 'border-muted'
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="hidden md:block">
+                    <p className="text-sm font-medium">{step.title}</p>
+                    <p className="text-xs text-muted-foreground">{step.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <CardContent className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">
+                  {STEPS[currentStep].title}
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  {STEPS[currentStep].description}
+                </p>
+                {renderStepContent()}
+              </div>
+
+              {/* Validation Errors */}
+              {Object.keys(validationErrors).length > 0 && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-1">
+                      {Object.entries(validationErrors).map(([field, errors]) => (
+                        <div key={field}>
+                          <strong>{field}:</strong> {errors.join(', ')}
+                        </div>
+                      ))}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+
+            <CardFooter className="flex justify-between">
+              <div className="flex space-x-2">
+                {currentStep > 0 && (
+                  <Button type="button" variant="outline" onClick={handlePrevious}>
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Previous
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleSaveDraft}
+                  disabled={isLoading}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Draft
+                </Button>
+              </div>
+
+              <div>
+                {currentStep < STEPS.length - 1 ? (
+                  <Button type="button" onClick={handleNext}>
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>Loading...</>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Submit Project
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </CardFooter>
+          </form>
+        </Form>
+      </Card>
+    </div>
+  );
+};

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <defs>
+    <linearGradient id="aurexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#D97706;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#92400E;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1F2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Official Aurex Logo Symbol -->
+  <g transform="translate(10, 10)">
+    <!-- Lock/Security Symbol -->
+    <g transform="translate(20,20) scale(0.8)">
+      <!-- Lock Body -->
+      <rect x="-15" y="-5" width="30" height="25" rx="3" ry="3" fill="url(#aurexGradient)" stroke="none"/>
+
+      <!-- Lock Shackle -->
+      <path d="M -10,-5 A 10,10 0 0,1 10,-5 L 10,-15 A 15,15 0 0,0 -10,-15 Z"
+            fill="none"
+            stroke="url(#aurexGradient)"
+            stroke-width="4"
+            stroke-linecap="round"/>
+
+      <!-- Diamond Pattern Inside -->
+      <g transform="translate(0,7.5)">
+        <!-- Outer Diamond -->
+        <path d="M 0,-8 L 8,0 L 0,8 L -8,0 Z"
+              fill="white"
+              opacity="0.9"/>
+
+        <!-- Inner Diamond -->
+        <path d="M 0,-4 L 4,0 L 0,4 L -4,0 Z"
+              fill="url(#aurexGradient)"/>
+
+        <!-- Center Diamond -->
+        <path d="M 0,-2 L 2,0 L 0,2 L -2,0 Z"
+              fill="white"/>
+      </g>
+    </g>
+
+    <!-- Aurex text -->
+    <text x="50" y="20" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="url(#textGradient)">AUREX</text>
+    <text x="50" y="32" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">SUSTAINABILITY PLATFORM</text>
+  </g>
+
+  <!-- Aurigraph branding -->
+  <text x="10" y="55" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF">by Aurigraph</text>
+</svg>

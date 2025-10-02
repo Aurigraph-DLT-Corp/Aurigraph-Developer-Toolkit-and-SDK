@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurex Launchpad Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(to bottom right, #eff6ff, #ecfeff); }
+        .tile:hover { transform: translateY(-8px); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Header -->
+    <header class="bg-white/90 backdrop-blur-md shadow-lg border-b border-blue-100">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <span class="text-white text-2xl">📊</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-blue-900">Aurex Launchpad™</h1>
+                        <p class="text-sm text-blue-600 font-medium">AI-Powered ESG Intelligence Platform</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-blue-600 hover:text-blue-700 font-medium px-4 py-2 rounded-lg hover:bg-blue-50">Sign In</button>
+                    <button class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 shadow-lg">Get Started</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">
+                Transform Your <span class="text-blue-600">ESG Journey</span>
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                World-class AI-powered sustainability platform with comprehensive ESG management tools
+            </p>
+        </div>
+
+        <!-- Tiles Grid -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <!-- Tile 1: GHG Readiness Assessment -->
+            <div class="tile bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all cursor-pointer border border-gray-100">
+                <span class="inline-flex items-center px-3 py-2 rounded-full text-xs font-bold bg-blue-100 text-blue-800 shadow-md mb-4">
+                    ✓ FREE
+                </span>
+                <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                    <span class="text-3xl">🛡️</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">GHG Readiness Assessment</h3>
+                <p class="text-gray-600 mb-6">Comprehensive greenhouse gas emissions readiness evaluation with ISO 14064-1 compliance assessment.</p>
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                        Scope 1, 2, 3 emissions analysis
+                    </li>
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                        Compliance gap identification
+                    </li>
+                </ul>
+                <button class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 shadow-lg">
+                    Start Assessment →
+                </button>
+            </div>
+
+            <!-- Tile 2: Report Analytics -->
+            <div class="tile bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all cursor-pointer border border-gray-100">
+                <span class="inline-flex items-center px-3 py-2 rounded-full text-xs font-bold bg-blue-100 text-blue-800 shadow-md mb-4">
+                    ✓ FREE
+                </span>
+                <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+                    <span class="text-3xl">📊</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Report Analytics</h3>
+                <p class="text-gray-600 mb-6">AI-powered sustainability report analysis and benchmarking against industry standards.</p>
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                        Automated data extraction
+                    </li>
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                        Industry benchmarking
+                    </li>
+                </ul>
+                <button class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 shadow-lg">
+                    Analyze Reports →
+                </button>
+            </div>
+
+            <!-- Tile 3: Aurex Maturity Model -->
+            <div class="tile bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all cursor-pointer border border-gray-100">
+                <span class="inline-flex items-center px-3 py-2 rounded-full text-xs font-bold bg-blue-100 text-blue-800 shadow-md mb-4">
+                    ✓ FREE
+                </span>
+                <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+                    <span class="text-3xl">📈</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Aurex Maturity Model</h3>
+                <p class="text-gray-600 mb-6">Assess your organization's carbon accounting maturity using our 5-level CMM framework.</p>
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                        5-level CMM framework
+                    </li>
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                        Industry benchmarking
+                    </li>
+                </ul>
+                <button class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 shadow-lg">
+                    Start Assessment →
+                </button>
+            </div>
+
+            <!-- Tile 4: Industry GHG Emissions Capture -->
+            <div class="tile bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all cursor-pointer border border-gray-100">
+                <span class="inline-flex items-center px-3 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg mb-4">
+                    👑 PREMIUM
+                </span>
+                <div class="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
+                    <span class="text-3xl">🗄️</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Industry GHG Emissions Capture</h3>
+                <p class="text-gray-600 mb-6">Capture and analyze industry-specific emission data with comprehensive data acquisition forms.</p>
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                        Industry-specific forms
+                    </li>
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                        Real-time analytics
+                    </li>
+                </ul>
+                <button class="w-full bg-gradient-to-r from-cyan-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-cyan-700 hover:to-blue-800 shadow-lg">
+                    ✉️ Contact Us
+                </button>
+            </div>
+
+            <!-- Tile 5: Product Carbon Footprint -->
+            <div class="tile bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all cursor-pointer border border-gray-100">
+                <span class="inline-flex items-center px-3 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg mb-4">
+                    👑 PREMIUM
+                </span>
+                <div class="w-16 h-16 bg-teal-100 rounded-xl flex items-center justify-center mb-6">
+                    <span class="text-3xl">👣</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Product Carbon Footprint</h3>
+                <p class="text-gray-600 mb-6">Calculate and analyze your product's carbon footprint with comprehensive emission tracking.</p>
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-teal-400 rounded-full mr-2"></span>
+                        Emission tracking
+                    </li>
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-teal-400 rounded-full mr-2"></span>
+                        Lifecycle analysis
+                    </li>
+                </ul>
+                <button class="w-full bg-gradient-to-r from-cyan-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-cyan-700 hover:to-blue-800 shadow-lg">
+                    ✉️ Contact Us
+                </button>
+            </div>
+
+            <!-- Tile 6: Life Cycle Assessment -->
+            <div class="tile bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all cursor-pointer border border-gray-100">
+                <span class="inline-flex items-center px-3 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg mb-4">
+                    👑 PREMIUM
+                </span>
+                <div class="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
+                    <span class="text-3xl">♻️</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Life Cycle Assessment (LCA)</h3>
+                <p class="text-gray-600 mb-6">Comprehensive life cycle assessment tools to evaluate environmental impacts.</p>
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
+                        Cradle-to-grave analysis
+                    </li>
+                    <li class="flex items-center text-sm text-gray-500">
+                        <span class="w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
+                        ISO 14040 compliance
+                    </li>
+                </ul>
+                <button class="w-full bg-gradient-to-r from-cyan-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-cyan-700 hover:to-blue-800 shadow-lg">
+                    ✉️ Contact Us
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
