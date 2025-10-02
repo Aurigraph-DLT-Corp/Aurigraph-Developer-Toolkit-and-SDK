@@ -1,0 +1,55 @@
+{
+  "name": "aurigraph-v11-enterprise-portal",
+  "version": "2.0.0",
+  "description": "Enterprise Portal for Aurigraph V11 Release 2 - AV11-137",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.14.19",
+    "@mui/material": "^5.14.20",
+    "@mui/x-charts": "^6.18.3",
+    "@mui/x-data-grid": "^6.18.3",
+    "@reduxjs/toolkit": "^2.0.1",
+    "axios": "^1.6.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^9.0.4",
+    "react-router-dom": "^6.20.1",
+    "recharts": "^2.10.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.17",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
+  },
+  "scripts": {
+    "dev": "vite --port 3000",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "deploy": "npm run build && docker build -t enterprise-portal .",
+    "test": "echo \"No tests configured yet\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT.git"
+  },
+  "keywords": [
+    "aurigraph",
+    "v11",
+    "enterprise",
+    "portal",
+    "release-2",
+    "AV11-137"
+  ],
+  "author": "Aurigraph DLT Team",
+  "license": "PROPRIETARY"
+}
