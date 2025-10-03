@@ -546,6 +546,195 @@
             background: currentColor;
         }
 
+        /* Filter Select */
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-select:hover {
+            border-color: var(--primary);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Sortable Table Headers */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .sortable:hover {
+            background: var(--bg-hover);
+        }
+
+        .sort-icon {
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .sortable:hover .sort-icon {
+            opacity: 1;
+        }
+
+        .sortable.active .sort-icon {
+            opacity: 1;
+            color: var(--primary);
+        }
+
+        /* Desktop/Mobile Table Views */
+        .desktop-table {
+            display: block;
+        }
+
+        .mobile-cards {
+            display: none;
+            padding: 1rem;
+        }
+
+        .transaction-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .transaction-card:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .transaction-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+
+        .transaction-card-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .transaction-card-value {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pagination-info {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .page-btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 2.5rem;
+            text-align: center;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .page-ellipsis {
+            padding: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .desktop-table {
+                display: none;
+            }
+
+            .mobile-cards {
+                display: block;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .table-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .filter-select {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .pagination {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .pagination-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
         /* Buttons */
         .btn {
             padding: 0.75rem 1.5rem;
@@ -1104,32 +1293,67 @@
                         <div class="table-header">
                             <h3 class="table-title">Recent Transactions</h3>
                             <div class="table-actions">
-                                <button class="btn btn-sm btn-secondary">
-                                    <i class="fas fa-filter"></i>
-                                    Filter
+                                <select id="filter-type" class="filter-select" onchange="applyFilters()">
+                                    <option value="all">All Types</option>
+                                    <option value="transfer">Transfer</option>
+                                    <option value="token">Token</option>
+                                    <option value="nft">NFT</option>
+                                    <option value="contract">Contract</option>
+                                </select>
+                                <select id="filter-status" class="filter-select" onchange="applyFilters()">
+                                    <option value="all">All Status</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+                                <button class="btn btn-sm btn-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-times"></i>
+                                    Clear
                                 </button>
-                                <button class="btn btn-sm btn-primary">
+                                <button class="btn btn-sm btn-primary" onclick="exportToCSV()">
                                     <i class="fas fa-download"></i>
                                     Export
                                 </button>
                             </div>
                         </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>TX Hash</th>
-                                    <th>Type</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recent-transactions">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
+                        <div class="desktop-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" onclick="sortTable('tx_id')">
+                                            TX Hash <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortTable('type')">
+                                            Type <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortTable('from_address')">
+                                            From <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortTable('to_address')">
+                                            To <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortTable('amount')">
+                                            Amount <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortTable('status')">
+                                            Status <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortTable('timestamp')">
+                                            Time <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-transactions">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mobile-cards" id="mobile-transactions">
+                            <!-- Populated by JavaScript for mobile -->
+                        </div>
+                        <div class="pagination" id="pagination-controls">
+                            <!-- Populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
 
@@ -1281,6 +1505,15 @@
         let sidebarCollapsed = false;
         let currentPage = 'dashboard';
         let charts = {};
+
+        // Transaction table state management
+        let cachedTransactions = [];
+        let sortColumn = 'timestamp';
+        let sortDirection = 'desc';
+        let filterType = 'all';
+        let filterStatus = 'all';
+        let txCurrentPage = 1;
+        const itemsPerPage = 20;
 
         // Sidebar toggle
         function toggleSidebar() {
@@ -1523,27 +1756,317 @@
         }
 
         function updateRecentTransactions(transactions) {
+            // Cache transactions
+            if (transactions && transactions.length > 0) {
+                cachedTransactions = transactions;
+            }
+
+            // Apply filtering
+            let filtered = filterTransactions(cachedTransactions);
+
+            // Apply sorting
+            filtered = sortTransactions(filtered);
+
+            // Apply pagination
+            const total = filtered.length;
+            const start = (txCurrentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginated = filtered.slice(start, end);
+
+            // Update desktop table
             const tbody = document.getElementById('recent-transactions');
             tbody.innerHTML = '';
 
-            transactions.slice(0, 10).forEach(tx => {
+            paginated.forEach(tx => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><code>${tx.tx_id}</code></td>
+                    <td><code>${tx.tx_id.substring(0, 16)}...</code></td>
                     <td><span class="status-badge status-info">${tx.type}</span></td>
-                    <td><code>${tx.from_address}</code></td>
-                    <td><code>${tx.to_address}</code></td>
+                    <td><code>${tx.from_address.substring(0, 12)}...</code></td>
+                    <td><code>${tx.to_address.substring(0, 12)}...</code></td>
                     <td>${tx.amount.toFixed(4)} AUR</td>
-                    <td><span class="status-badge ${tx.status === 'confirmed' ? 'status-success' : 'status-warning'}">
+                    <td><span class="status-badge ${getStatusClass(tx.status)}">
                         <span class="status-dot"></span>
                         ${tx.status}
                     </span></td>
-                    <td>${new Date(tx.timestamp).toLocaleTimeString()}</td>
+                    <td>${new Date(tx.timestamp).toLocaleString()}</td>
                 `;
                 row.style.cursor = 'pointer';
                 row.onclick = () => showTransactionDetail(tx);
                 tbody.appendChild(row);
             });
+
+            // Update mobile cards
+            renderMobileCards(paginated);
+
+            // Update pagination
+            renderPagination(total);
+
+            // Update sort icons
+            updateSortIcons();
+        }
+
+        function filterTransactions(transactions) {
+            let filtered = [...transactions];
+
+            // Filter by type
+            if (filterType !== 'all') {
+                filtered = filtered.filter(tx => tx.type.toLowerCase() === filterType);
+            }
+
+            // Filter by status
+            if (filterStatus !== 'all') {
+                filtered = filtered.filter(tx => tx.status.toLowerCase() === filterStatus);
+            }
+
+            return filtered;
+        }
+
+        function sortTransactions(transactions) {
+            return [...transactions].sort((a, b) => {
+                let aVal = a[sortColumn];
+                let bVal = b[sortColumn];
+
+                // Handle numeric sorting for amount
+                if (sortColumn === 'amount') {
+                    aVal = parseFloat(aVal);
+                    bVal = parseFloat(bVal);
+                }
+
+                // Handle date sorting for timestamp
+                if (sortColumn === 'timestamp') {
+                    aVal = new Date(aVal).getTime();
+                    bVal = new Date(bVal).getTime();
+                }
+
+                // String comparison
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (sortDirection === 'asc') {
+                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                } else {
+                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                }
+            });
+        }
+
+        function sortTable(column) {
+            // Toggle direction if same column
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'desc';
+            }
+
+            // Reset to first page when sorting
+            txCurrentPage = 1;
+
+            // Re-render table
+            updateRecentTransactions();
+        }
+
+        function applyFilters() {
+            // Get filter values
+            filterType = document.getElementById('filter-type').value;
+            filterStatus = document.getElementById('filter-status').value;
+
+            // Reset to first page
+            txCurrentPage = 1;
+
+            // Re-render table
+            updateRecentTransactions();
+        }
+
+        function clearFilters() {
+            // Reset filters
+            filterType = 'all';
+            filterStatus = 'all';
+            document.getElementById('filter-type').value = 'all';
+            document.getElementById('filter-status').value = 'all';
+
+            // Reset to first page
+            txCurrentPage = 1;
+
+            // Re-render table
+            updateRecentTransactions();
+        }
+
+        function changePage(page) {
+            const filtered = filterTransactions(cachedTransactions);
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+            if (page < 1 || page > totalPages) return;
+
+            txCurrentPage = page;
+            updateRecentTransactions();
+        }
+
+        function renderPagination(total) {
+            const totalPages = Math.ceil(total / itemsPerPage);
+            const paginationDiv = document.getElementById('pagination-controls');
+
+            if (totalPages <= 1) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+
+            const start = (txCurrentPage - 1) * itemsPerPage + 1;
+            const end = Math.min(txCurrentPage * itemsPerPage, total);
+
+            let html = `
+                <div class="pagination-info">
+                    Showing ${start}-${end} of ${total} transactions
+                </div>
+                <div class="pagination-buttons">
+                    <button class="page-btn" onclick="changePage(${txCurrentPage - 1})" ${txCurrentPage === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+            `;
+
+            // Page numbers
+            const maxButtons = 7;
+            let startPage = Math.max(1, txCurrentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<button class="page-btn" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span class="page-ellipsis">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === txCurrentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="page-ellipsis">...</span>`;
+                }
+                html += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `
+                    <button class="page-btn" onclick="changePage(${txCurrentPage + 1})" ${txCurrentPage === totalPages ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+
+            paginationDiv.innerHTML = html;
+        }
+
+        function renderMobileCards(transactions) {
+            const container = document.getElementById('mobile-transactions');
+            container.innerHTML = '';
+
+            transactions.forEach(tx => {
+                const card = document.createElement('div');
+                card.className = 'transaction-card';
+                card.onclick = () => showTransactionDetail(tx);
+
+                card.innerHTML = `
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">TX Hash</span>
+                        <code class="transaction-card-value">${tx.tx_id.substring(0, 16)}...</code>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Type</span>
+                        <span class="status-badge status-info">${tx.type}</span>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Amount</span>
+                        <span class="transaction-card-value">${tx.amount.toFixed(4)} AUR</span>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Status</span>
+                        <span class="status-badge ${getStatusClass(tx.status)}">
+                            <span class="status-dot"></span>
+                            ${tx.status}
+                        </span>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Time</span>
+                        <span class="transaction-card-value">${new Date(tx.timestamp).toLocaleString()}</span>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function updateSortIcons() {
+            // Remove active class from all headers
+            document.querySelectorAll('.sortable').forEach(th => {
+                th.classList.remove('active');
+                const icon = th.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = 'fas fa-sort sort-icon';
+                }
+            });
+
+            // Add active class and update icon for current sort column
+            const activeHeader = document.querySelector(`.sortable[onclick*="${sortColumn}"]`);
+            if (activeHeader) {
+                activeHeader.classList.add('active');
+                const icon = activeHeader.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = `fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'} sort-icon`;
+                }
+            }
+        }
+
+        function getStatusClass(status) {
+            const statusLower = status.toLowerCase();
+            if (statusLower === 'confirmed') return 'status-success';
+            if (statusLower === 'pending') return 'status-warning';
+            if (statusLower === 'failed') return 'status-danger';
+            return 'status-info';
+        }
+
+        function exportToCSV() {
+            // Get filtered and sorted transactions
+            let filtered = filterTransactions(cachedTransactions);
+            filtered = sortTransactions(filtered);
+
+            // Generate CSV content
+            const headers = ['TX Hash', 'Type', 'From', 'To', 'Amount', 'Status', 'Timestamp'];
+            const csvRows = [headers.join(',')];
+
+            filtered.forEach(tx => {
+                const row = [
+                    `"${tx.tx_id}"`,
+                    `"${tx.type}"`,
+                    `"${tx.from_address}"`,
+                    `"${tx.to_address}"`,
+                    tx.amount,
+                    `"${tx.status}"`,
+                    `"${new Date(tx.timestamp).toISOString()}"`
+                ];
+                csvRows.push(row.join(','));
+            });
+
+            const csvContent = csvRows.join('\n');
+
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         function showTransactionDetail(tx) {
