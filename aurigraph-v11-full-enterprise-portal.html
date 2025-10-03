@@ -1535,6 +1535,372 @@
             font-weight: 600;
         }
 
+        /* Analytics & Monitoring Styles */
+        .time-range-selector {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .time-range-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .time-range-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+        }
+
+        .time-range-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .custom-range {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-left: 1rem;
+        }
+
+        .date-input {
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .card-header-inline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .health-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .health-excellent {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .card-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .trend-stable {
+            color: var(--text-muted);
+        }
+
+        .chart-container-small {
+            height: 200px;
+            position: relative;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* Monitoring Styles */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .resource-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resource-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .resource-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .resource-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.813rem;
+            color: var(--text-muted);
+        }
+
+        .alert-filters {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 0.813rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            transition: all 0.2s;
+        }
+
+        .alert-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .alert-warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-info {
+            border-left: 4px solid var(--info);
+        }
+
+        .alert-critical {
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .alert-warning .alert-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .alert-info .alert-icon {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--info);
+        }
+
+        .alert-critical .alert-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 0.938rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-message {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .alert-dismiss {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .alert-dismiss:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .log-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .log-select {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.813rem;
+            cursor: pointer;
+        }
+
+        .log-viewer {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.813rem;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            min-width: 100px;
+        }
+
+        .log-level {
+            min-width: 60px;
+            font-weight: 600;
+        }
+
+        .log-info .log-level {
+            color: var(--info);
+        }
+
+        .log-warn .log-level {
+            color: var(--warning);
+        }
+
+        .log-error .log-level {
+            color: var(--danger);
+        }
+
+        .log-debug .log-level {
+            color: var(--text-muted);
+        }
+
+        .log-message {
+            color: var(--text-primary);
+            flex: 1;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -1915,36 +2281,133 @@
                     </div>
 
                     <div id="network-analytics" class="tab-content active">
-                        <div class="card-grid">
-                            <div class="card">
-                                <div class="card-title">Network Health Score</div>
-                                <div class="card-value" style="color: var(--success);">98.7%</div>
-                                <div class="progress-bar mt-2">
-                                    <div class="progress-fill" style="width: 98.7%;"></div>
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-title">Average Block Time</div>
-                                <div class="card-value">2.8s</div>
-                                <div class="card-label">Target: 3.0s</div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-title">Network Latency</div>
-                                <div class="card-value">45ms</div>
-                                <div class="card-trend trend-down">
-                                    <i class="fas fa-arrow-down"></i>
-                                    <span>-15% improvement</span>
+                        <!-- Time Range Selector -->
+                        <div class="card mb-2">
+                            <div class="time-range-selector">
+                                <button class="time-range-btn active" onclick="selectTimeRange('24h')">24 Hours</button>
+                                <button class="time-range-btn" onclick="selectTimeRange('7d')">7 Days</button>
+                                <button class="time-range-btn" onclick="selectTimeRange('30d')">30 Days</button>
+                                <button class="time-range-btn" onclick="selectTimeRange('custom')">Custom</button>
+                                <div class="custom-range" id="custom-range" style="display: none;">
+                                    <input type="date" id="analytics-date-from" class="date-input">
+                                    <span>to</span>
+                                    <input type="date" id="analytics-date-to" class="date-input">
+                                    <button class="btn btn-sm btn-primary" onclick="applyCustomRange()">Apply</button>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Network Health Metrics -->
+                        <div class="card-grid">
+                            <div class="card">
+                                <div class="card-header-inline">
+                                    <div class="card-title">Network Health Score</div>
+                                    <div class="health-indicator health-excellent">
+                                        <i class="fas fa-heartbeat"></i>
+                                    </div>
+                                </div>
+                                <div class="card-value" style="color: var(--success);" id="network-health-score">98.7%</div>
+                                <div class="progress-bar mt-2">
+                                    <div class="progress-fill" id="health-progress" style="width: 98.7%; background: var(--success);"></div>
+                                </div>
+                                <div class="card-label mt-1">Excellent</div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">Current TPS</div>
+                                <div class="card-value" id="current-tps">1,256,789</div>
+                                <div class="card-trend trend-up">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span id="tps-trend">+12.5% vs last hour</span>
+                                </div>
+                                <div class="card-label">Target: 2M TPS</div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">Average Block Time</div>
+                                <div class="card-value" id="avg-block-time">2.1s</div>
+                                <div class="card-trend trend-down">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span id="block-time-trend">-0.3s improvement</span>
+                                </div>
+                                <div class="card-label">Target: 3.0s</div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">Average Gas Price</div>
+                                <div class="card-value" id="avg-gas-price">42 Gwei</div>
+                                <div class="card-trend trend-stable">
+                                    <i class="fas fa-minus"></i>
+                                    <span id="gas-price-trend">Stable</span>
+                                </div>
+                                <div class="card-label">Last update: <span id="gas-price-update">Just now</span></div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">Network Latency</div>
+                                <div class="card-value" id="network-latency">45ms</div>
+                                <div class="card-trend trend-down">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span id="latency-trend">-15% improvement</span>
+                                </div>
+                                <div class="card-label">Peer-to-peer avg</div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">Active Validators</div>
+                                <div class="card-value" id="active-validators">127</div>
+                                <div class="card-trend trend-up">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span id="validators-trend">+3 this hour</span>
+                                </div>
+                                <div class="card-label">Total: 150</div>
+                            </div>
+                        </div>
+
+                        <!-- TPS Performance Chart -->
                         <div class="card mt-2">
-                            <div class="card-title">Network Activity (24h)</div>
+                            <div class="card-header-inline">
+                                <div class="card-title">Transactions Per Second (TPS)</div>
+                                <div class="chart-legend">
+                                    <span class="legend-item">
+                                        <span class="legend-color" style="background: var(--primary);"></span>
+                                        <span>TPS</span>
+                                    </span>
+                                    <span class="legend-item">
+                                        <span class="legend-color" style="background: var(--success);"></span>
+                                        <span>Peak</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="tps-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Block Time & Gas Price Charts -->
+                        <div class="card-grid mt-2">
+                            <div class="card">
+                                <div class="card-title">Block Time (seconds)</div>
+                                <div class="chart-container-small">
+                                    <canvas id="block-time-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">Gas Price (Gwei)</div>
+                                <div class="chart-container-small">
+                                    <canvas id="gas-price-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Activity Heatmap -->
+                        <div class="card mt-2">
+                            <div class="card-title">Network Activity Heatmap</div>
                             <div class="chart-container">
                                 <canvas id="network-activity-chart"></canvas>
                             </div>
+                            <div class="card-label mt-1">Hourly transaction volume over selected time range</div>
                         </div>
                     </div>
 
@@ -1976,15 +2439,218 @@
                     </div>
                 </div>
 
-                <!-- Other pages placeholders -->
+                <!-- System Monitoring Page -->
                 <div id="monitoring-page" class="page" style="display: none;">
                     <div class="page-header">
                         <h1 class="page-title">Real-Time Monitoring</h1>
-                        <p class="page-description">Live system monitoring and alerts</p>
+                        <p class="page-description">Live system monitoring, resource usage, and alerts</p>
                     </div>
-                    <div class="card">
-                        <h3 class="card-title">System Monitoring Dashboard</h3>
-                        <p class="text-muted">Real-time monitoring features will be displayed here</p>
+
+                    <!-- Node Status Cards -->
+                    <div class="card-grid">
+                        <div class="card">
+                            <div class="card-header-inline">
+                                <div class="card-title">Node Status</div>
+                                <div class="status-indicator status-online">
+                                    <span class="status-dot"></span>
+                                    <span>Online</span>
+                                </div>
+                            </div>
+                            <div class="card-value" id="node-uptime">99.98%</div>
+                            <div class="card-label">Uptime: <span id="uptime-duration">45 days 12 hours</span></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Connected Peers</div>
+                            <div class="card-value" id="connected-peers">247</div>
+                            <div class="card-trend trend-up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="peers-trend">+12 this hour</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Sync Status</div>
+                            <div class="card-value" id="sync-status">Synced</div>
+                            <div class="progress-bar mt-2">
+                                <div class="progress-fill" id="sync-progress" style="width: 100%; background: var(--success);"></div>
+                            </div>
+                            <div class="card-label mt-1">Block: <span id="current-block">1,500,000</span></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Active Alerts</div>
+                            <div class="card-value" style="color: var(--warning);" id="active-alerts">2</div>
+                            <div class="card-label">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span id="alert-summary">1 warning, 1 info</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resource Usage -->
+                    <div class="card mt-2">
+                        <div class="card-title">Resource Usage</div>
+                        <div class="resource-grid">
+                            <div class="resource-item">
+                                <div class="resource-header">
+                                    <span class="resource-title">CPU Usage</span>
+                                    <span class="resource-value" id="cpu-usage">42%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="cpu-progress" style="width: 42%; background: var(--primary);"></div>
+                                </div>
+                                <div class="resource-details">
+                                    <span>Cores: <span id="cpu-cores">16</span></span>
+                                    <span>Threads: <span id="cpu-threads">32</span></span>
+                                </div>
+                            </div>
+
+                            <div class="resource-item">
+                                <div class="resource-header">
+                                    <span class="resource-title">Memory Usage</span>
+                                    <span class="resource-value" id="memory-usage">68%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="memory-progress" style="width: 68%; background: var(--success);"></div>
+                                </div>
+                                <div class="resource-details">
+                                    <span>Used: <span id="memory-used">27.2 GB</span></span>
+                                    <span>Total: <span id="memory-total">40 GB</span></span>
+                                </div>
+                            </div>
+
+                            <div class="resource-item">
+                                <div class="resource-header">
+                                    <span class="resource-title">Disk Usage</span>
+                                    <span class="resource-value" id="disk-usage">73%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="disk-progress" style="width: 73%; background: var(--warning);"></div>
+                                </div>
+                                <div class="resource-details">
+                                    <span>Used: <span id="disk-used">730 GB</span></span>
+                                    <span>Total: <span id="disk-total">1 TB</span></span>
+                                </div>
+                            </div>
+
+                            <div class="resource-item">
+                                <div class="resource-header">
+                                    <span class="resource-title">Network I/O</span>
+                                    <span class="resource-value" id="network-io">125 MB/s</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="network-progress" style="width: 25%; background: var(--info);"></div>
+                                </div>
+                                <div class="resource-details">
+                                    <span>In: <span id="network-in">78 MB/s</span></span>
+                                    <span>Out: <span id="network-out">47 MB/s</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resource Charts -->
+                    <div class="card-grid mt-2">
+                        <div class="card">
+                            <div class="card-title">CPU Usage History</div>
+                            <div class="chart-container-small">
+                                <canvas id="cpu-history-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Memory Usage History</div>
+                            <div class="chart-container-small">
+                                <canvas id="memory-history-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Panel -->
+                    <div class="card mt-2">
+                        <div class="card-header-inline">
+                            <div class="card-title">System Alerts</div>
+                            <div class="alert-filters">
+                                <button class="filter-btn active" onclick="filterAlerts('all')">All</button>
+                                <button class="filter-btn" onclick="filterAlerts('critical')">Critical</button>
+                                <button class="filter-btn" onclick="filterAlerts('warning')">Warning</button>
+                                <button class="filter-btn" onclick="filterAlerts('info')">Info</button>
+                            </div>
+                        </div>
+                        <div class="alerts-list" id="alerts-list">
+                            <div class="alert-item alert-warning">
+                                <div class="alert-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">High Disk Usage</div>
+                                    <div class="alert-message">Disk usage has exceeded 70%. Consider cleaning up old data.</div>
+                                    <div class="alert-time">2 minutes ago</div>
+                                </div>
+                                <button class="alert-dismiss" onclick="dismissAlert(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+
+                            <div class="alert-item alert-info">
+                                <div class="alert-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">New Validator Joined</div>
+                                    <div class="alert-message">Validator #128 has joined the network and is now active.</div>
+                                    <div class="alert-time">15 minutes ago</div>
+                                </div>
+                                <button class="alert-dismiss" onclick="dismissAlert(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Viewer -->
+                    <div class="card mt-2">
+                        <div class="card-header-inline">
+                            <div class="card-title">System Logs</div>
+                            <div class="log-controls">
+                                <select id="log-level" class="log-select" onchange="filterLogs()">
+                                    <option value="all">All Levels</option>
+                                    <option value="error">Error</option>
+                                    <option value="warn">Warning</option>
+                                    <option value="info">Info</option>
+                                    <option value="debug">Debug</option>
+                                </select>
+                                <button class="btn btn-sm btn-secondary" onclick="clearLogs()">
+                                    <i class="fas fa-eraser"></i> Clear
+                                </button>
+                                <button class="btn btn-sm btn-secondary" onclick="downloadLogs()">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="log-viewer" id="log-viewer">
+                            <div class="log-entry log-info">
+                                <span class="log-time">14:32:45.123</span>
+                                <span class="log-level">INFO</span>
+                                <span class="log-message">Block #1,500,000 validated successfully</span>
+                            </div>
+                            <div class="log-entry log-info">
+                                <span class="log-time">14:32:42.851</span>
+                                <span class="log-level">INFO</span>
+                                <span class="log-message">New transaction received: 0xabc123...</span>
+                            </div>
+                            <div class="log-entry log-warn">
+                                <span class="log-time">14:32:38.456</span>
+                                <span class="log-level">WARN</span>
+                                <span class="log-message">Connection timeout to peer 192.168.1.45, retrying...</span>
+                            </div>
+                            <div class="log-entry log-info">
+                                <span class="log-time">14:32:35.234</span>
+                                <span class="log-level">INFO</span>
+                                <span class="log-message">Consensus round completed in 1.2s</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -4599,6 +5265,89 @@
             }
 
             return blocks;
+        }
+
+        // ==========================================
+        // Analytics & Monitoring Functions
+        // ==========================================
+
+        let selectedTimeRange = '24h';
+
+        function selectTimeRange(range) {
+            selectedTimeRange = range;
+            document.querySelectorAll('.time-range-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if (range === 'custom') {
+                document.getElementById('custom-range').style.display = 'flex';
+            } else {
+                document.getElementById('custom-range').style.display = 'none';
+                // Refresh charts with new time range
+                // loadAnalyticsData(range);
+            }
+        }
+
+        function applyCustomRange() {
+            const dateFrom = document.getElementById('analytics-date-from').value;
+            const dateTo = document.getElementById('analytics-date-to').value;
+            if (dateFrom && dateTo) {
+                // loadAnalyticsData('custom', dateFrom, dateTo);
+            }
+        }
+
+        function filterAlerts(level) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const alerts = document.querySelectorAll('.alert-item');
+            alerts.forEach(alert => {
+                if (level === 'all' || alert.classList.contains(`alert-${level}`)) {
+                    alert.style.display = 'flex';
+                } else {
+                    alert.style.display = 'none';
+                }
+            });
+        }
+
+        function dismissAlert(button) {
+            const alert = button.closest('.alert-item');
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 300);
+        }
+
+        function filterLogs() {
+            const level = document.getElementById('log-level').value;
+            const entries = document.querySelectorAll('.log-entry');
+            entries.forEach(entry => {
+                if (level === 'all' || entry.classList.contains(`log-${level}`)) {
+                    entry.style.display = 'flex';
+                } else {
+                    entry.style.display = 'none';
+                }
+            });
+        }
+
+        function clearLogs() {
+            if (confirm('Clear all logs?')) {
+                document.getElementById('log-viewer').innerHTML = '<p class="text-muted" style="padding: 1rem;">Logs cleared</p>';
+            }
+        }
+
+        function downloadLogs() {
+            const logs = Array.from(document.querySelectorAll('.log-entry')).map(entry => {
+                const time = entry.querySelector('.log-time').textContent;
+                const level = entry.querySelector('.log-level').textContent;
+                const message = entry.querySelector('.log-message').textContent;
+                return `[${time}] ${level}: ${message}`;
+            }).join('\n');
+
+            const blob = new Blob([logs], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `system-logs-${new Date().toISOString().split('T')[0]}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
         }
 
         // Initialize on load
