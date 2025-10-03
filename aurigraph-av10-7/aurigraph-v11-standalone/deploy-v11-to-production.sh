@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 REMOTE_HOST="dlt.aurigraph.io"
-REMOTE_PORT="22"
+REMOTE_PORT="2235"
 REMOTE_USER="subbu"
 REMOTE_DIR="/opt/aurigraph/v11"
 JAR_FILE="target/aurigraph-v11-standalone-11.0.0-runner.jar"
