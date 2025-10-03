@@ -973,6 +973,194 @@
             justify-content: flex-end;
         }
 
+        /* Transaction Detail Modal */
+        .modal-large {
+            max-width: 900px;
+        }
+
+        /* Timeline */
+        .tx-timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 0.75rem;
+            position: relative;
+        }
+
+        .timeline-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-step.completed .timeline-icon {
+            background: var(--success);
+            color: white;
+        }
+
+        .timeline-step.completed .timeline-label {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .timeline-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+
+        .timeline-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .timeline-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .timeline-connector {
+            height: 2px;
+            flex: 1;
+            background: var(--border);
+            position: relative;
+            top: -2.5rem;
+            margin: 0 -1rem;
+        }
+
+        .timeline-step.completed ~ .timeline-connector {
+            background: var(--success);
+        }
+
+        /* Detail Section */
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 0.938rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .detail-value code {
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .detail-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .detail-link:hover {
+            text-decoration: underline;
+        }
+
+        .detail-code {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+
+        /* Event List */
+        .event-list, .related-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .event-item, .related-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .event-item:hover, .related-item:hover {
+            border-color: var(--primary);
+            background: var(--bg-hover);
+        }
+
         /* Form */
         .form-group {
             margin-bottom: 1.5rem;
@@ -1692,7 +1880,7 @@
 
     <!-- Transaction Detail Modal -->
     <div id="transaction-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h3 class="modal-title">Transaction Details</h3>
                 <button class="modal-close" onclick="closeModal('transaction-modal')">
@@ -1700,30 +1888,174 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Transaction Hash</label>
-                    <input type="text" class="form-input" id="modal-tx-hash" readonly>
+                <!-- Transaction Status Timeline -->
+                <div class="tx-timeline mb-2">
+                    <div class="timeline-step completed" id="timeline-submitted">
+                        <div class="timeline-icon"><i class="fas fa-paper-plane"></i></div>
+                        <div class="timeline-label">Submitted</div>
+                        <div class="timeline-time" id="timeline-submitted-time"></div>
+                    </div>
+                    <div class="timeline-connector"></div>
+                    <div class="timeline-step" id="timeline-confirmed">
+                        <div class="timeline-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="timeline-label">Confirmed</div>
+                        <div class="timeline-time" id="timeline-confirmed-time"></div>
+                    </div>
+                    <div class="timeline-connector"></div>
+                    <div class="timeline-step" id="timeline-finalized">
+                        <div class="timeline-icon"><i class="fas fa-lock"></i></div>
+                        <div class="timeline-label">Finalized</div>
+                        <div class="timeline-time" id="timeline-finalized-time"></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <div id="modal-tx-status"></div>
+
+                <!-- Transaction Overview -->
+                <div class="detail-section">
+                    <h4 class="section-title">Overview</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Transaction Hash</label>
+                            <div class="detail-value">
+                                <code id="modal-tx-hash"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-tx-hash')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Status</label>
+                            <div id="modal-tx-status" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Type</label>
+                            <div id="modal-tx-type" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Timestamp</label>
+                            <div id="modal-tx-timestamp" class="detail-value"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">From Address</label>
-                    <input type="text" class="form-input" id="modal-tx-from" readonly>
+
+                <!-- Transaction Details -->
+                <div class="detail-section">
+                    <h4 class="section-title">Transaction Details</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">From Address</label>
+                            <div class="detail-value">
+                                <code id="modal-tx-from"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-tx-from')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">To Address</label>
+                            <div class="detail-value">
+                                <code id="modal-tx-to"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-tx-to')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Amount</label>
+                            <div id="modal-tx-amount" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Gas Used</label>
+                            <div id="modal-tx-gas" class="detail-value">21,000</div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Gas Price</label>
+                            <div id="modal-tx-gas-price" class="detail-value">50 Gwei</div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Nonce</label>
+                            <div id="modal-tx-nonce" class="detail-value">42</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">To Address</label>
-                    <input type="text" class="form-input" id="modal-tx-to" readonly>
+
+                <!-- Block Information -->
+                <div class="detail-section">
+                    <h4 class="section-title">Block Information</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Block Height</label>
+                            <div class="detail-value">
+                                <span id="modal-tx-block-height"></span>
+                                <a href="#" onclick="viewBlock(event)" class="detail-link">View Block</a>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Block Hash</label>
+                            <div class="detail-value">
+                                <code id="modal-tx-block-hash">0xblock123...</code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-tx-block-hash')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Confirmations</label>
+                            <div id="modal-tx-confirmations" class="detail-value">150</div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Position in Block</label>
+                            <div id="modal-tx-position" class="detail-value">12 of 250</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Amount</label>
-                    <input type="text" class="form-input" id="modal-tx-amount" readonly>
+
+                <!-- Smart Contract Details (if applicable) -->
+                <div class="detail-section" id="contract-section" style="display: none;">
+                    <h4 class="section-title">Smart Contract Interaction</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Contract Address</label>
+                            <div class="detail-value">
+                                <code id="modal-contract-address"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-contract-address')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Function Called</label>
+                            <div id="modal-contract-function" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <label class="detail-label">Parameters</label>
+                            <pre id="modal-contract-params" class="detail-code"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Logs -->
+                <div class="detail-section" id="events-section" style="display: none;">
+                    <h4 class="section-title">Event Logs</h4>
+                    <div id="modal-tx-events" class="event-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Related Transactions -->
+                <div class="detail-section" id="related-section" style="display: none;">
+                    <h4 class="section-title">Related Transactions</h4>
+                    <div id="modal-tx-related" class="related-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('transaction-modal')">Close</button>
-                <button class="btn btn-primary">View on Explorer</button>
+                <button class="btn btn-secondary" onclick="closeModal('transaction-modal')">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button class="btn btn-primary" onclick="shareTransaction()">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
             </div>
         </div>
     </div>
@@ -2298,17 +2630,183 @@
         }
 
         function showTransactionDetail(tx) {
-            document.getElementById('modal-tx-hash').value = tx.tx_id;
-            document.getElementById('modal-tx-from').value = tx.from_address;
-            document.getElementById('modal-tx-to').value = tx.to_address;
-            document.getElementById('modal-tx-amount').value = `${tx.amount} AUR`;
+            // Timeline - Update based on status
+            updateTransactionTimeline(tx);
+
+            // Overview
+            document.getElementById('modal-tx-hash').textContent = tx.tx_id;
             document.getElementById('modal-tx-status').innerHTML = `
-                <span class="status-badge ${tx.status === 'confirmed' ? 'status-success' : 'status-warning'}">
+                <span class="status-badge ${getStatusClass(tx.status)}">
                     <span class="status-dot"></span>
                     ${tx.status}
                 </span>
             `;
+            document.getElementById('modal-tx-type').innerHTML = `
+                <span class="status-badge status-info">${tx.type}</span>
+            `;
+            document.getElementById('modal-tx-timestamp').textContent = new Date(tx.timestamp).toLocaleString();
+
+            // Transaction Details
+            document.getElementById('modal-tx-from').textContent = tx.from_address;
+            document.getElementById('modal-tx-to').textContent = tx.to_address;
+            document.getElementById('modal-tx-amount').textContent = `${tx.amount.toFixed(4)} AUR`;
+            document.getElementById('modal-tx-gas').textContent = tx.gas_used || '21,000';
+            document.getElementById('modal-tx-gas-price').textContent = tx.gas_price || '50 Gwei';
+            document.getElementById('modal-tx-nonce').textContent = tx.nonce || '42';
+
+            // Block Information
+            document.getElementById('modal-tx-block-height').textContent = tx.block_height || 'Pending';
+            document.getElementById('modal-tx-block-hash').textContent = tx.block_hash || '0xblock123...';
+            document.getElementById('modal-tx-confirmations').textContent = tx.confirmations || '150';
+            document.getElementById('modal-tx-position').textContent = tx.position_in_block || '12 of 250';
+
+            // Smart Contract Section (show if contract interaction)
+            const contractSection = document.getElementById('contract-section');
+            if (tx.type === 'contract' && tx.contract_address) {
+                contractSection.style.display = 'block';
+                document.getElementById('modal-contract-address').textContent = tx.contract_address;
+                document.getElementById('modal-contract-function').textContent = tx.contract_function || 'transfer(address,uint256)';
+                document.getElementById('modal-contract-params').textContent = tx.contract_params ? JSON.stringify(tx.contract_params, null, 2) : '{\n  "to": "0x...",\n  "amount": "1000"\n}';
+            } else {
+                contractSection.style.display = 'none';
+            }
+
+            // Event Logs (show if any)
+            const eventsSection = document.getElementById('events-section');
+            if (tx.events && tx.events.length > 0) {
+                eventsSection.style.display = 'block';
+                renderEventLogs(tx.events);
+            } else {
+                eventsSection.style.display = 'none';
+            }
+
+            // Related Transactions (show if any)
+            const relatedSection = document.getElementById('related-section');
+            if (tx.related_txs && tx.related_txs.length > 0) {
+                relatedSection.style.display = 'block';
+                renderRelatedTransactions(tx.related_txs);
+            } else {
+                relatedSection.style.display = 'none';
+            }
+
             openModal('transaction-modal');
+        }
+
+        // Update transaction timeline based on status
+        function updateTransactionTimeline(tx) {
+            // Reset all steps
+            document.querySelectorAll('.timeline-step').forEach(step => {
+                step.classList.remove('completed');
+            });
+
+            // Mark completed steps
+            document.getElementById('timeline-submitted').classList.add('completed');
+            document.getElementById('timeline-submitted-time').textContent = new Date(tx.timestamp).toLocaleTimeString();
+
+            if (tx.status === 'confirmed' || tx.status === 'finalized') {
+                document.getElementById('timeline-confirmed').classList.add('completed');
+                document.getElementById('timeline-confirmed-time').textContent = tx.confirmed_at ? new Date(tx.confirmed_at).toLocaleTimeString() : new Date(tx.timestamp).toLocaleTimeString();
+            }
+
+            if (tx.status === 'finalized') {
+                document.getElementById('timeline-finalized').classList.add('completed');
+                document.getElementById('timeline-finalized-time').textContent = tx.finalized_at ? new Date(tx.finalized_at).toLocaleTimeString() : new Date(tx.timestamp).toLocaleTimeString();
+            }
+        }
+
+        // Render event logs
+        function renderEventLogs(events) {
+            const container = document.getElementById('modal-tx-events');
+            container.innerHTML = '';
+
+            events.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = 'event-item';
+                eventItem.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">${event.name}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                        ${event.data ? JSON.stringify(event.data) : 'No data'}
+                    </div>
+                `;
+                container.appendChild(eventItem);
+            });
+        }
+
+        // Render related transactions
+        function renderRelatedTransactions(relatedTxs) {
+            const container = document.getElementById('modal-tx-related');
+            container.innerHTML = '';
+
+            relatedTxs.forEach(relTx => {
+                const relatedItem = document.createElement('div');
+                relatedItem.className = 'related-item';
+                relatedItem.style.cursor = 'pointer';
+                relatedItem.onclick = () => viewTransactionDetail(relTx.tx_id);
+                relatedItem.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <code style="font-size: 0.875rem;">${relTx.tx_id.substring(0, 20)}...</code>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                ${relTx.type} • ${new Date(relTx.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                        <div>
+                            <span class="status-badge ${getStatusClass(relTx.status)}">
+                                ${relTx.status}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(relatedItem);
+            });
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.value || element.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                // Show copied feedback
+                const btn = event.target.closest('.copy-btn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.style.color = 'var(--success)';
+
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        // View block function
+        function viewBlock(event) {
+            event.preventDefault();
+            const blockHeight = document.getElementById('modal-tx-block-height').textContent;
+            alert(`Viewing block ${blockHeight} (Block Explorer integration coming soon)`);
+            // TODO: Navigate to block explorer page
+        }
+
+        // Share transaction function
+        function shareTransaction() {
+            const txHash = document.getElementById('modal-tx-hash').textContent;
+            const url = `${window.location.origin}${window.location.pathname}?tx=${txHash}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Transaction Details',
+                    text: `View transaction ${txHash}`,
+                    url: url
+                }).catch(err => console.log('Share failed:', err));
+            } else {
+                // Fallback: copy URL to clipboard
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Transaction URL copied to clipboard!');
+                });
+            }
         }
 
         // === Transaction Explorer Functions ===
