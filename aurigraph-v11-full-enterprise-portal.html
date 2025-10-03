@@ -1500,6 +1500,18 @@
                 document.getElementById('active-validators').textContent = stats.active_contracts.toLocaleString();
                 document.getElementById('block-height').textContent = '1,234,567'; // Placeholder
 
+                // Update Transaction Types Chart if data available
+                if (stats.transaction_types && charts.txTypes) {
+                    const txTypes = stats.transaction_types;
+                    charts.txTypes.data.datasets[0].data = [
+                        txTypes.transfer || 0,
+                        txTypes.token || 0,
+                        txTypes.nft || 0,
+                        txTypes.contract || 0
+                    ];
+                    charts.txTypes.update('none'); // Update without animation for performance
+                }
+
                 // Fetch recent transactions
                 const txResponse = await fetch('/portal/transactions/recent');
                 const txData = await txResponse.json();
@@ -1605,13 +1617,15 @@
                     data: {
                         labels: ['Transfer', 'Token', 'NFT', 'Contract'],
                         datasets: [{
-                            data: [35, 25, 20, 20],
+                            data: [1234567, 345678, 123456, 166582], // Will be updated from API
                             backgroundColor: [
-                                '#3b82f6',
-                                '#8b5cf6',
-                                '#10b981',
-                                '#f59e0b'
-                            ]
+                                '#3b82f6',  // Blue for Transfer
+                                '#10b981',  // Green for Token
+                                '#8b5cf6',  // Purple for NFT
+                                '#f59e0b'   // Orange for Contract
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#1e293b'
                         }]
                     },
                     options: {
@@ -1620,9 +1634,53 @@
                         plugins: {
                             legend: {
                                 position: 'bottom',
+                                onClick: (e, legendItem, legend) => {
+                                    // Interactive legend - toggle segment visibility
+                                    const index = legendItem.index;
+                                    const chart = legend.chart;
+                                    const meta = chart.getDatasetMeta(0);
+
+                                    // Toggle visibility
+                                    meta.data[index].hidden = !meta.data[index].hidden;
+                                    chart.update();
+                                },
                                 labels: {
-                                    color: '#f8fafc',
-                                    padding: 15
+                                    color: document.documentElement.getAttribute('data-theme') === 'light' ? '#0f172a' : '#f8fafc',
+                                    padding: 15,
+                                    font: {
+                                        size: 13
+                                    },
+                                    generateLabels: (chart) => {
+                                        const data = chart.data;
+                                        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+
+                                        return data.labels.map((label, i) => {
+                                            const value = data.datasets[0].data[i];
+                                            const percent = ((value / total) * 100).toFixed(1);
+                                            const meta = chart.getDatasetMeta(0);
+                                            const hidden = meta.data[i] && meta.data[i].hidden;
+
+                                            return {
+                                                text: `${label}: ${value.toLocaleString()} (${percent}%)`,
+                                                fillStyle: data.datasets[0].backgroundColor[i],
+                                                strokeStyle: data.datasets[0].backgroundColor[i],
+                                                lineWidth: 2,
+                                                hidden: hidden,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const label = context.label || '';
+                                        const value = context.parsed;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percent = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ${value.toLocaleString()} transactions (${percent}%)`;
+                                    }
                                 }
                             }
                         }
