@@ -32,7 +32,6 @@ import java.util.Random;
  * Production version would integrate with actual ML frameworks (TensorFlow, PyTorch, etc.).
  */
 @ApplicationScoped
-@Path("/api/v11/ai")
 public class AIOptimizationServiceStub {
 
     private static final Logger LOG = Logger.getLogger(AIOptimizationServiceStub.class);
@@ -160,10 +159,6 @@ public class AIOptimizationServiceStub {
     /**
      * Optimize consensus parameters using ML
      */
-    @POST
-    @Path("/consensus/optimize")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<ConsensusOptimizationResult> optimizeConsensus(ConsensusOptimizationRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -215,10 +210,6 @@ public class AIOptimizationServiceStub {
     /**
      * Predict transaction load using time series analysis
      */
-    @POST
-    @Path("/predict/load")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<LoadPredictionResult> predictTransactionLoad(LoadPredictionRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -259,10 +250,6 @@ public class AIOptimizationServiceStub {
     /**
      * Detect anomalies in network behavior
      */
-    @POST
-    @Path("/anomaly/detect")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<AnomalyDetectionResult> detectAnomalies(AnomalyDetectionRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -331,9 +318,6 @@ public class AIOptimizationServiceStub {
     /**
      * Get AI optimization statistics
      */
-    @GET
-    @Path("/stats")
-    @Produces(MediaType.APPLICATION_JSON)
     public AIOptimizationStats getOptimizationStats() {
         return new AIOptimizationStats(
             aiOptimizationEnabled,
@@ -353,9 +337,6 @@ public class AIOptimizationServiceStub {
     /**
      * Get AI model information
      */
-    @GET
-    @Path("/models")
-    @Produces(MediaType.APPLICATION_JSON)
     public AIModelsInfo getModelsInfo() {
         return new AIModelsInfo(
             new ArrayList<>(loadedModels.values()),
@@ -367,9 +348,6 @@ public class AIOptimizationServiceStub {
     /**
      * Get recent optimization recommendations
      */
-    @GET
-    @Path("/recommendations")
-    @Produces(MediaType.APPLICATION_JSON)
     public OptimizationRecommendations getRecentRecommendations() {
         synchronized (recentRecommendations) {
             return new OptimizationRecommendations(
@@ -382,9 +360,6 @@ public class AIOptimizationServiceStub {
     /**
      * Get recent anomaly alerts
      */
-    @GET
-    @Path("/anomalies/recent")
-    @Produces(MediaType.APPLICATION_JSON)
     public RecentAnomalies getRecentAnomalies() {
         synchronized (recentAnomalies) {
             return new RecentAnomalies(
@@ -397,10 +372,6 @@ public class AIOptimizationServiceStub {
     /**
      * AI performance benchmark
      */
-    @POST
-    @Path("/performance/benchmark")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<AIPerformanceResult> performanceBenchmark(AIPerformanceRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();

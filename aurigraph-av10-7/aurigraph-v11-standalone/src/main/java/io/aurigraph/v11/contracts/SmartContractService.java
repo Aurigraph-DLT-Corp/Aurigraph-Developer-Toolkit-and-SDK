@@ -7,6 +7,7 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.enterprise.inject.Instance;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
@@ -29,10 +30,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SmartContractService {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(SmartContractService.class);
-    
+
     @Inject
-    EntityManager entityManager;
-    
+    Instance<EntityManager> entityManager;
+
     @Inject
     QuantumCryptoService cryptoService;
     

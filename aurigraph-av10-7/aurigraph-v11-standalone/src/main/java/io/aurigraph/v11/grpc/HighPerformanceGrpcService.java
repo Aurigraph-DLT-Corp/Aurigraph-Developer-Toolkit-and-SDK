@@ -12,8 +12,8 @@ import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jboss.logging.Logger;
 
 import java.time.Duration;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * - AI-driven consensus optimization
  */
 @GrpcService
-@ApplicationScoped
+@Singleton
 public class HighPerformanceGrpcService implements AurigraphV11Service {
 
     private static final Logger LOG = Logger.getLogger(HighPerformanceGrpcService.class);

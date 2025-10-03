@@ -52,7 +52,6 @@ import jakarta.annotation.PostConstruct;
  * Supports security levels 3, 4, and 5 for maximum quantum resistance.
  */
 @ApplicationScoped
-@Path("/api/v11/crypto")
 public class QuantumCryptoService {
 
     private static final Logger LOG = Logger.getLogger(QuantumCryptoService.class);
@@ -153,10 +152,6 @@ public class QuantumCryptoService {
     /**
      * Generate quantum-resistant key pair using CRYSTALS-Kyber
      */
-    @POST
-    @Path("/keystore/generate")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<KeyGenerationResult> generateKeyPair(KeyGenerationRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -192,10 +187,6 @@ public class QuantumCryptoService {
     /**
      * Quantum-resistant encryption using lattice-based cryptography
      */
-    @POST
-    @Path("/encrypt")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<EncryptionResult> encryptData(EncryptionRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -227,10 +218,6 @@ public class QuantumCryptoService {
     /**
      * Quantum-resistant decryption
      */
-    @POST
-    @Path("/decrypt")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<DecryptionResult> decryptData(DecryptionRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -277,10 +264,6 @@ public class QuantumCryptoService {
     /**
      * Generate digital signature using CRYSTALS-Dilithium
      */
-    @POST
-    @Path("/sign")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<SignatureResult> signData(SignatureRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -312,10 +295,6 @@ public class QuantumCryptoService {
     /**
      * Verify digital signature using CRYSTALS-Dilithium
      */
-    @POST
-    @Path("/verify")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<VerificationResult> verifySignature(VerificationRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
@@ -349,9 +328,6 @@ public class QuantumCryptoService {
     /**
      * Get cryptographic service status
      */
-    @GET
-    @Path("/status")
-    @Produces(MediaType.APPLICATION_JSON)
     public CryptoStatus getStatus() {
         return new CryptoStatus(
             quantumCryptoEnabled,
@@ -374,9 +350,6 @@ public class QuantumCryptoService {
     /**
      * Get supported algorithms
      */
-    @GET
-    @Path("/algorithms")
-    @Produces(MediaType.APPLICATION_JSON)
     public SupportedAlgorithms getSupportedAlgorithms() {
         return new SupportedAlgorithms(
             java.util.List.of(
@@ -393,9 +366,6 @@ public class QuantumCryptoService {
     /**
      * Get quantum security compliance status
      */
-    @GET
-    @Path("/security/quantum-status")
-    @Produces(MediaType.APPLICATION_JSON)
     public QuantumSecurityStatus getQuantumStatus() {
         return getQuantumSecurityStatus();
     }
@@ -403,10 +373,6 @@ public class QuantumCryptoService {
     /**
      * Performance test for crypto operations
      */
-    @POST
-    @Path("/performance/test")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Uni<CryptoPerformanceResult> performanceTest(CryptoPerformanceRequest request) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();

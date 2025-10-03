@@ -197,24 +197,63 @@ public class ApiGateway {
 
     @Path("/proxy/{path: .*}")
     @GET
-    @POST
-    @PUT
-    @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<Response> proxyRequest(
+    public Uni<Response> proxyGetRequest(
+            @PathParam("path") String path,
+            @HeaderParam("Authorization") String authorization,
+            @HeaderParam("X-Client-ID") String clientId) {
+        return handleProxyRequest(path, authorization, clientId, null);
+    }
+
+    @Path("/proxy/{path: .*}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<Response> proxyPostRequest(
             @PathParam("path") String path,
             @HeaderParam("Authorization") String authorization,
             @HeaderParam("X-Client-ID") String clientId,
             String body) {
-        
+        return handleProxyRequest(path, authorization, clientId, body);
+    }
+
+    @Path("/proxy/{path: .*}")
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<Response> proxyPutRequest(
+            @PathParam("path") String path,
+            @HeaderParam("Authorization") String authorization,
+            @HeaderParam("X-Client-ID") String clientId,
+            String body) {
+        return handleProxyRequest(path, authorization, clientId, body);
+    }
+
+    @Path("/proxy/{path: .*}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<Response> proxyDeleteRequest(
+            @PathParam("path") String path,
+            @HeaderParam("Authorization") String authorization,
+            @HeaderParam("X-Client-ID") String clientId) {
+        return handleProxyRequest(path, authorization, clientId, null);
+    }
+
+    /**
+     * Common proxy request handler for all HTTP methods
+     */
+    private Uni<Response> handleProxyRequest(
+            String path,
+            String authorization,
+            String clientId,
+            String body) {
+
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
             metrics.incrementTotalRequests();
-            
+
             try {
                 // Extract client ID from authorization or header
                 String resolvedClientId = resolveClientId(authorization, clientId);
-                
+
                 // Rate limiting check
                 if (!rateLimiter.isAllowed(resolvedClientId)) {
                     metrics.incrementRateLimitedRequests();
@@ -225,24 +264,24 @@ public class ApiGateway {
                             "retryAfter", rateLimitWindowSeconds
                         )).build();
                 }
-                
+
                 // Authentication check
                 if (authenticationEnabled && !authService.isValidRequest(authorization, resolvedClientId)) {
                     metrics.incrementAuthenticationFailures();
                     return Response.status(Response.Status.UNAUTHORIZED)
                         .entity(Map.of("error", "Authentication failed")).build();
                 }
-                
+
                 // Route to appropriate service
                 Response response = routeRequest(path, body);
-                
+
                 // Update metrics
                 long duration = System.nanoTime() - startTime;
                 metrics.updateResponseTime(duration / 1_000_000.0); // Convert to milliseconds
                 metrics.incrementSuccessfulRequests();
-                
+
                 return response;
-                
+
             } catch (Exception e) {
                 LOG.errorf(e, "Request proxying failed for path: %s", path);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
