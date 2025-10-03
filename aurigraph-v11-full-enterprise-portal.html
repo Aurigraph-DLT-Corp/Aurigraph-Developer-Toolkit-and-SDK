@@ -1315,6 +1315,226 @@
         .gap-1 { gap: 0.5rem; }
         .gap-2 { gap: 1rem; }
 
+        /* Block Explorer Styles */
+        .block-stats-mini {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-mini {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stat-mini-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-mini-value {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .new-block-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .filter-group-inline {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-label-inline {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .filter-select-inline {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-select-inline:hover {
+            border-color: var(--primary);
+            background: var(--bg-hover);
+        }
+
+        .filter-select-inline:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .auto-refresh-toggle input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .loading-spinner i {
+            margin-right: 0.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .block-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .block-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .block-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .block-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .block-card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .block-card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .block-card-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .block-card-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .block-card-value {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transaction-list-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .transaction-list-item:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+        }
+
+        .transaction-list-item-hash {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: var(--primary);
+        }
+
+        .transaction-list-item-type {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -1337,6 +1557,42 @@
 
             .card-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .block-stats-mini {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .filter-group-inline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-container {
+                display: none !important;
+            }
+
+            .block-cards {
+                display: grid !important;
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .pagination-controls {
+                order: 1;
+            }
+
+            .pagination-info {
+                order: 2;
+            }
+
+            .pagination-size {
+                order: 3;
             }
         }
     </style>
@@ -2060,6 +2316,323 @@
         </div>
     </div>
 
+    <!-- Blocks Page -->
+    <div id="blocks-page" class="page" style="display: none;">
+        <div class="page-header">
+            <h1 class="page-title">Block Explorer</h1>
+            <p class="page-description">Browse and search blockchain blocks with real-time updates</p>
+        </div>
+
+        <!-- Block Search and Stats -->
+        <div class="card mb-2">
+            <div class="search-panel">
+                <div class="search-group">
+                    <input type="text" id="block-search-input" class="search-input-large"
+                           placeholder="Search by block height or hash...">
+                    <button class="btn btn-primary" onclick="searchBlocks()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="block-stats-mini">
+                    <div class="stat-mini">
+                        <span class="stat-mini-label">Latest Block</span>
+                        <span class="stat-mini-value" id="latest-block-height">Loading...</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-mini-label">Avg Block Time</span>
+                        <span class="stat-mini-value" id="avg-block-time">2.1s</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-mini-label">New Block</span>
+                        <span class="stat-mini-value new-block-indicator" id="new-block-indicator">
+                            <i class="fas fa-circle"></i> Just now
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Controls -->
+        <div class="card mb-2">
+            <div class="table-header">
+                <div class="filter-group-inline">
+                    <label class="filter-label-inline">Filter:</label>
+                    <select id="block-filter-validator" class="filter-select-inline" onchange="applyBlockFilters()">
+                        <option value="all">All Validators</option>
+                        <option value="validator-1">Validator 1</option>
+                        <option value="validator-2">Validator 2</option>
+                        <option value="validator-3">Validator 3</option>
+                    </select>
+                    <select id="block-filter-size" class="filter-select-inline" onchange="applyBlockFilters()">
+                        <option value="all">All Sizes</option>
+                        <option value="small">Small (&lt;100KB)</option>
+                        <option value="medium">Medium (100KB-500KB)</option>
+                        <option value="large">Large (&gt;500KB)</option>
+                    </select>
+                </div>
+                <div class="table-actions">
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="block-auto-refresh" checked onchange="toggleBlockAutoRefresh()">
+                        <span>Auto-refresh (10s)</span>
+                    </label>
+                    <button class="btn btn-sm btn-secondary" onclick="exportBlocks('csv')">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blocks Table -->
+        <div class="card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortBlocks('height')">
+                                Height <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" onclick="sortBlocks('hash')">
+                                Block Hash <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" onclick="sortBlocks('timestamp')">
+                                Timestamp <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" onclick="sortBlocks('validator')">
+                                Validator <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable text-right" onclick="sortBlocks('tx_count')">
+                                Transactions <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable text-right" onclick="sortBlocks('size')">
+                                Size <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable text-right" onclick="sortBlocks('gas_used')">
+                                Gas Used <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blocks-table-body">
+                        <tr>
+                            <td colspan="8" class="text-center">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading blocks...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info">
+                    <span id="block-pagination-info">Showing 0-0 of 0 blocks</span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" onclick="changeBlockPage(1)" id="block-first-page">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="page-btn" onclick="changeBlockPage(blockCurrentPage - 1)" id="block-prev-page">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div class="page-numbers" id="block-page-numbers"></div>
+                    <button class="page-btn" onclick="changeBlockPage(blockCurrentPage + 1)" id="block-next-page">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="page-btn" onclick="changeBlockPage(blockTotalPages)" id="block-last-page">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+                <div class="pagination-size">
+                    <label>Items per page:</label>
+                    <select id="block-page-size" onchange="changeBlockPageSize()">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile View (Responsive Cards) -->
+        <div class="block-cards" id="block-cards-container" style="display: none;">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Block Detail Modal -->
+    <div id="block-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title">Block Details</h3>
+                <button class="modal-close" onclick="closeModal('block-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Block Overview -->
+                <div class="detail-section">
+                    <h4 class="section-title">Overview</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Block Height</label>
+                            <div class="detail-value">
+                                <span id="modal-block-height"></span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Block Hash</label>
+                            <div class="detail-value">
+                                <code id="modal-block-hash"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-block-hash')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Timestamp</label>
+                            <div id="modal-block-timestamp" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Status</label>
+                            <div class="detail-value">
+                                <span class="status-badge status-confirmed">
+                                    <span class="status-dot"></span>
+                                    Finalized
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Block Details -->
+                <div class="detail-section">
+                    <h4 class="section-title">Block Information</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Parent Hash</label>
+                            <div class="detail-value">
+                                <code id="modal-block-parent-hash"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-block-parent-hash')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">State Root</label>
+                            <div class="detail-value">
+                                <code id="modal-block-state-root"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-block-state-root')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Transactions Root</label>
+                            <div class="detail-value">
+                                <code id="modal-block-tx-root"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-block-tx-root')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Receipts Root</label>
+                            <div class="detail-value">
+                                <code id="modal-block-receipts-root"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-block-receipts-root')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validator Information -->
+                <div class="detail-section">
+                    <h4 class="section-title">Validator Information</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Validator</label>
+                            <div id="modal-block-validator" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Validator Address</label>
+                            <div class="detail-value">
+                                <code id="modal-block-validator-address"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-block-validator-address')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Signature</label>
+                            <div class="detail-value">
+                                <code id="modal-block-signature" style="font-size: 0.75rem;"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-block-signature')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Extra Data</label>
+                            <div id="modal-block-extra-data" class="detail-value"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Block Metrics -->
+                <div class="detail-section">
+                    <h4 class="section-title">Block Metrics</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Transaction Count</label>
+                            <div id="modal-block-tx-count" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Block Size</label>
+                            <div id="modal-block-size" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Gas Used</label>
+                            <div id="modal-block-gas-used" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Gas Limit</label>
+                            <div id="modal-block-gas-limit" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Difficulty</label>
+                            <div id="modal-block-difficulty" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Nonce</label>
+                            <div id="modal-block-nonce" class="detail-value"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions in Block -->
+                <div class="detail-section">
+                    <h4 class="section-title">Transactions in this Block</h4>
+                    <div id="modal-block-transactions" class="transaction-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('block-modal')">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button class="btn btn-primary" onclick="shareBlock()">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global state
         let sidebarCollapsed = false;
@@ -2102,6 +2675,32 @@
             event.currentTarget.classList.add('active');
 
             currentPage = pageName;
+
+            // Page-specific initialization
+            if (pageName === 'blocks') {
+                // Load blocks data when blocks page is shown
+                if (cachedBlocks.length === 0) {
+                    loadBlocks();
+                }
+                // Start auto-refresh if enabled
+                const autoRefreshCheckbox = document.getElementById('block-auto-refresh');
+                if (autoRefreshCheckbox && autoRefreshCheckbox.checked && !blockAutoRefreshInterval) {
+                    blockAutoRefreshInterval = setInterval(loadBlocks, 10000);
+                }
+            } else {
+                // Stop block auto-refresh when leaving blocks page
+                if (blockAutoRefreshInterval) {
+                    clearInterval(blockAutoRefreshInterval);
+                    blockAutoRefreshInterval = null;
+                }
+            }
+
+            if (pageName === 'transactions') {
+                // Load transaction explorer data if needed
+                if (explorerTransactions.length === 0) {
+                    loadExplorerTransactions();
+                }
+            }
         }
 
         // Tab switching
@@ -3474,6 +4073,532 @@
                     }
                 });
             }
+        }
+
+        // ==========================================
+        // Block Explorer Functions
+        // ==========================================
+
+        // Block Explorer state management
+        let cachedBlocks = [];
+        let blockSortColumn = 'height';
+        let blockSortDirection = 'desc';
+        let blockFilterValidator = 'all';
+        let blockFilterSize = 'all';
+        let blockCurrentPage = 1;
+        let blockPageSize = 20;
+        let blockTotalPages = 1;
+        let blockAutoRefreshInterval = null;
+        let blockSearchQuery = '';
+
+        async function searchBlocks() {
+            blockSearchQuery = document.getElementById('block-search-input').value.trim();
+
+            if (!blockSearchQuery) {
+                await loadBlocks();
+                return;
+            }
+
+            try {
+                // Try to parse as block height (number)
+                const height = parseInt(blockSearchQuery);
+                if (!isNaN(height)) {
+                    // Search by height
+                    const response = await fetch(`/portal/blocks/${height}`);
+                    if (response.ok) {
+                        const block = await response.json();
+                        cachedBlocks = [block];
+                        renderBlocksTable();
+                        return;
+                    }
+                }
+
+                // Search by hash
+                const response = await fetch(`/portal/blocks/hash/${blockSearchQuery}`);
+                if (response.ok) {
+                    const block = await response.json();
+                    cachedBlocks = [block];
+                    renderBlocksTable();
+                } else {
+                    // Search failed - show no results
+                    cachedBlocks = [];
+                    renderBlocksTable();
+                }
+            } catch (error) {
+                console.error('Error searching blocks:', error);
+                await loadBlocks(); // Fallback to full list
+            }
+        }
+
+        function sortBlocks(column) {
+            if (blockSortColumn === column) {
+                blockSortDirection = blockSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                blockSortColumn = column;
+                blockSortDirection = 'desc';
+            }
+            blockCurrentPage = 1;
+            renderBlocksTable();
+        }
+
+        function applyBlockFilters() {
+            blockFilterValidator = document.getElementById('block-filter-validator').value;
+            blockFilterSize = document.getElementById('block-filter-size').value;
+            blockCurrentPage = 1;
+            renderBlocksTable();
+        }
+
+        function toggleBlockAutoRefresh() {
+            const checkbox = document.getElementById('block-auto-refresh');
+            if (checkbox.checked) {
+                // Start auto-refresh (10 seconds)
+                blockAutoRefreshInterval = setInterval(loadBlocks, 10000);
+            } else {
+                // Stop auto-refresh
+                if (blockAutoRefreshInterval) {
+                    clearInterval(blockAutoRefreshInterval);
+                    blockAutoRefreshInterval = null;
+                }
+            }
+        }
+
+        function changeBlockPage(page) {
+            if (page < 1 || page > blockTotalPages) return;
+            blockCurrentPage = page;
+            renderBlocksTable();
+        }
+
+        function changeBlockPageSize() {
+            blockPageSize = parseInt(document.getElementById('block-page-size').value);
+            blockCurrentPage = 1;
+            renderBlocksTable();
+        }
+
+        async function loadBlocks() {
+            try {
+                const response = await fetch('/portal/blocks');
+                const data = await response.json();
+                cachedBlocks = data.blocks || [];
+
+                // Update stats
+                if (cachedBlocks.length > 0) {
+                    document.getElementById('latest-block-height').textContent =
+                        cachedBlocks[0].height.toLocaleString();
+                }
+
+                renderBlocksTable();
+            } catch (error) {
+                console.error('Error loading blocks:', error);
+                // Use mock data for development
+                cachedBlocks = generateMockBlocks();
+                renderBlocksTable();
+            }
+        }
+
+        function filterBlocksData() {
+            let filtered = [...cachedBlocks];
+
+            // Apply validator filter
+            if (blockFilterValidator !== 'all') {
+                filtered = filtered.filter(block =>
+                    block.validator && block.validator.toLowerCase().includes(blockFilterValidator)
+                );
+            }
+
+            // Apply size filter
+            if (blockFilterSize !== 'all') {
+                filtered = filtered.filter(block => {
+                    const size = block.size || 0;
+                    if (blockFilterSize === 'small') return size < 100000;
+                    if (blockFilterSize === 'medium') return size >= 100000 && size < 500000;
+                    if (blockFilterSize === 'large') return size >= 500000;
+                    return true;
+                });
+            }
+
+            return filtered;
+        }
+
+        function sortBlocksData(blocks) {
+            return blocks.sort((a, b) => {
+                let aVal = a[blockSortColumn];
+                let bVal = b[blockSortColumn];
+
+                // Handle different data types
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (blockSortDirection === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        function paginateBlocks(blocks) {
+            const start = (blockCurrentPage - 1) * blockPageSize;
+            const end = start + blockPageSize;
+            return blocks.slice(start, end);
+        }
+
+        function renderBlocksTable() {
+            // Filter, sort, and paginate
+            let filtered = filterBlocksData();
+            let sorted = sortBlocksData(filtered);
+            blockTotalPages = Math.ceil(sorted.length / blockPageSize);
+            let paginated = paginateBlocks(sorted);
+
+            // Render table
+            const tbody = document.getElementById('blocks-table-body');
+            if (paginated.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <div style="padding: 2rem; color: var(--text-muted);">
+                                <i class="fas fa-inbox"></i> No blocks found
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = paginated.map(block => `
+                    <tr onclick="showBlockDetail(${block.height})" style="cursor: pointer;">
+                        <td class="font-semibold text-primary">${block.height.toLocaleString()}</td>
+                        <td>
+                            <code style="font-size: 0.813rem;">${block.hash.substring(0, 16)}...</code>
+                        </td>
+                        <td>${new Date(block.timestamp).toLocaleString()}</td>
+                        <td>${block.validator || 'Unknown'}</td>
+                        <td class="text-right">${(block.tx_count || 0).toLocaleString()}</td>
+                        <td class="text-right">${formatBytes(block.size || 0)}</td>
+                        <td class="text-right">${formatNumber(block.gas_used || 0)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showBlockDetail(${block.height})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Update pagination info
+            const start = (blockCurrentPage - 1) * blockPageSize + 1;
+            const end = Math.min(blockCurrentPage * blockPageSize, sorted.length);
+            document.getElementById('block-pagination-info').textContent =
+                `Showing ${start}-${end} of ${sorted.length} blocks`;
+
+            // Render page numbers
+            renderBlockPageNumbers();
+
+            // Update sort icons
+            updateBlockSortIcons();
+
+            // Render mobile cards
+            renderBlockCards(paginated);
+        }
+
+        function renderBlockPageNumbers() {
+            const container = document.getElementById('block-page-numbers');
+            const maxButtons = 7;
+            let pages = [];
+
+            if (blockTotalPages <= maxButtons) {
+                pages = Array.from({length: blockTotalPages}, (_, i) => i + 1);
+            } else {
+                if (blockCurrentPage <= 4) {
+                    pages = [1, 2, 3, 4, 5, '...', blockTotalPages];
+                } else if (blockCurrentPage >= blockTotalPages - 3) {
+                    pages = [1, '...', blockTotalPages - 4, blockTotalPages - 3, blockTotalPages - 2, blockTotalPages - 1, blockTotalPages];
+                } else {
+                    pages = [1, '...', blockCurrentPage - 1, blockCurrentPage, blockCurrentPage + 1, '...', blockTotalPages];
+                }
+            }
+
+            container.innerHTML = pages.map(page => {
+                if (page === '...') {
+                    return '<span class="page-ellipsis">...</span>';
+                }
+                const active = page === blockCurrentPage ? 'active' : '';
+                return `<button class="page-btn ${active}" onclick="changeBlockPage(${page})">${page}</button>`;
+            }).join('');
+
+            // Disable/enable navigation buttons
+            document.getElementById('block-first-page').disabled = blockCurrentPage === 1;
+            document.getElementById('block-prev-page').disabled = blockCurrentPage === 1;
+            document.getElementById('block-next-page').disabled = blockCurrentPage === blockTotalPages;
+            document.getElementById('block-last-page').disabled = blockCurrentPage === blockTotalPages;
+        }
+
+        function updateBlockSortIcons() {
+            // Remove all active sort icons
+            document.querySelectorAll('#blocks-table-body th .sort-icon').forEach(icon => {
+                icon.className = 'fas fa-sort sort-icon';
+            });
+
+            // Add active sort icon
+            const th = event?.currentTarget || document.querySelector(`#blocks-table-body th[onclick*="${blockSortColumn}"]`);
+            if (th) {
+                const icon = th.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = blockSortDirection === 'asc' ?
+                        'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+                }
+            }
+        }
+
+        function renderBlockCards(blocks) {
+            const container = document.getElementById('block-cards-container');
+            container.innerHTML = blocks.map(block => `
+                <div class="block-card" onclick="showBlockDetail(${block.height})">
+                    <div class="block-card-header">
+                        <div class="block-card-title">Block #${block.height.toLocaleString()}</div>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="block-card-body">
+                        <div class="block-card-item">
+                            <span class="block-card-label">Hash</span>
+                            <span class="block-card-value">
+                                <code>${block.hash.substring(0, 16)}...</code>
+                            </span>
+                        </div>
+                        <div class="block-card-item">
+                            <span class="block-card-label">Timestamp</span>
+                            <span class="block-card-value">${new Date(block.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="block-card-item">
+                            <span class="block-card-label">Validator</span>
+                            <span class="block-card-value">${block.validator || 'Unknown'}</span>
+                        </div>
+                        <div class="block-card-item">
+                            <span class="block-card-label">Transactions</span>
+                            <span class="block-card-value">${(block.tx_count || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="block-card-item">
+                            <span class="block-card-label">Size</span>
+                            <span class="block-card-value">${formatBytes(block.size || 0)}</span>
+                        </div>
+                        <div class="block-card-item">
+                            <span class="block-card-label">Gas Used</span>
+                            <span class="block-card-value">${formatNumber(block.gas_used || 0)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function showBlockDetail(height) {
+            try {
+                const response = await fetch(`/portal/blocks/${height}`);
+                const block = await response.json();
+
+                // Populate block detail modal
+                document.getElementById('modal-block-height').textContent = block.height.toLocaleString();
+                document.getElementById('modal-block-hash').textContent = block.hash;
+                document.getElementById('modal-block-timestamp').textContent =
+                    new Date(block.timestamp).toLocaleString();
+
+                document.getElementById('modal-block-parent-hash').textContent =
+                    block.parent_hash || '0x0000000000000000';
+                document.getElementById('modal-block-state-root').textContent =
+                    block.state_root || '0x0000000000000000';
+                document.getElementById('modal-block-tx-root').textContent =
+                    block.transactions_root || '0x0000000000000000';
+                document.getElementById('modal-block-receipts-root').textContent =
+                    block.receipts_root || '0x0000000000000000';
+
+                document.getElementById('modal-block-validator').textContent =
+                    block.validator || 'Unknown';
+                document.getElementById('modal-block-validator-address').textContent =
+                    block.validator_address || '0x0000000000000000';
+                document.getElementById('modal-block-signature').textContent =
+                    block.signature || 'N/A';
+                document.getElementById('modal-block-extra-data').textContent =
+                    block.extra_data || 'N/A';
+
+                document.getElementById('modal-block-tx-count').textContent =
+                    (block.tx_count || 0).toLocaleString();
+                document.getElementById('modal-block-size').textContent =
+                    formatBytes(block.size || 0);
+                document.getElementById('modal-block-gas-used').textContent =
+                    formatNumber(block.gas_used || 0);
+                document.getElementById('modal-block-gas-limit').textContent =
+                    formatNumber(block.gas_limit || 0);
+                document.getElementById('modal-block-difficulty').textContent =
+                    formatNumber(block.difficulty || 0);
+                document.getElementById('modal-block-nonce').textContent =
+                    block.nonce || '0';
+
+                // Populate transactions in block
+                const txList = document.getElementById('modal-block-transactions');
+                if (block.transactions && block.transactions.length > 0) {
+                    txList.innerHTML = block.transactions.map(tx => `
+                        <div class="transaction-list-item" onclick="showTransactionDetail(${JSON.stringify(tx).replace(/"/g, '&quot;')})">
+                            <div>
+                                <div class="transaction-list-item-hash">${tx.tx_id}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                    ${tx.from_address.substring(0, 16)}... → ${tx.to_address.substring(0, 16)}...
+                                </div>
+                            </div>
+                            <div class="transaction-list-item-type">${tx.type}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    txList.innerHTML = '<p class="text-muted">No transactions in this block</p>';
+                }
+
+                openModal('block-modal');
+            } catch (error) {
+                console.error('Error loading block details:', error);
+                // Use mock data
+                const mockBlock = cachedBlocks.find(b => b.height === height) ||
+                                  generateMockBlocks().find(b => b.height === height);
+                if (mockBlock) {
+                    showBlockDetailWithData(mockBlock);
+                }
+            }
+        }
+
+        function showBlockDetailWithData(block) {
+            // Similar to showBlockDetail but with provided data
+            document.getElementById('modal-block-height').textContent = block.height.toLocaleString();
+            document.getElementById('modal-block-hash').textContent = block.hash;
+            document.getElementById('modal-block-timestamp').textContent =
+                new Date(block.timestamp).toLocaleString();
+
+            document.getElementById('modal-block-parent-hash').textContent =
+                block.parent_hash || '0x0000000000000000';
+            document.getElementById('modal-block-state-root').textContent =
+                block.state_root || '0x0000000000000000';
+            document.getElementById('modal-block-tx-root').textContent =
+                block.transactions_root || '0x0000000000000000';
+            document.getElementById('modal-block-receipts-root').textContent =
+                block.receipts_root || '0x0000000000000000';
+
+            document.getElementById('modal-block-validator').textContent =
+                block.validator || 'Unknown';
+            document.getElementById('modal-block-validator-address').textContent =
+                block.validator_address || '0x0000000000000000';
+            document.getElementById('modal-block-signature').textContent =
+                block.signature || 'N/A';
+            document.getElementById('modal-block-extra-data').textContent =
+                block.extra_data || 'N/A';
+
+            document.getElementById('modal-block-tx-count').textContent =
+                (block.tx_count || 0).toLocaleString();
+            document.getElementById('modal-block-size').textContent =
+                formatBytes(block.size || 0);
+            document.getElementById('modal-block-gas-used').textContent =
+                formatNumber(block.gas_used || 0);
+            document.getElementById('modal-block-gas-limit').textContent =
+                formatNumber(block.gas_limit || 0);
+            document.getElementById('modal-block-difficulty').textContent =
+                formatNumber(block.difficulty || 0);
+            document.getElementById('modal-block-nonce').textContent =
+                block.nonce || '0';
+
+            // Transactions list
+            const txList = document.getElementById('modal-block-transactions');
+            txList.innerHTML = '<p class="text-muted">Transaction data not available</p>';
+
+            openModal('block-modal');
+        }
+
+        function shareBlock() {
+            const height = document.getElementById('modal-block-height').textContent.replace(/,/g, '');
+            const url = `${window.location.origin}${window.location.pathname}?block=${height}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: `Block #${height}`,
+                    text: `View block #${height} on Aurigraph`,
+                    url: url
+                }).catch(err => console.log('Share failed:', err));
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Block URL copied to clipboard!');
+                });
+            }
+        }
+
+        function exportBlocks(format) {
+            let filtered = filterBlocksData();
+            let sorted = sortBlocksData(filtered);
+
+            if (format === 'csv') {
+                const headers = ['Height', 'Hash', 'Timestamp', 'Validator', 'TX Count', 'Size', 'Gas Used'];
+                const csvRows = [headers.join(',')];
+
+                sorted.forEach(block => {
+                    const row = [
+                        block.height,
+                        `"${block.hash}"`,
+                        `"${new Date(block.timestamp).toISOString()}"`,
+                        `"${block.validator || 'Unknown'}"`,
+                        block.tx_count || 0,
+                        block.size || 0,
+                        block.gas_used || 0
+                    ];
+                    csvRows.push(row.join(','));
+                });
+
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `blocks_${new Date().toISOString().split('T')[0]}.csv`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function formatNumber(num) {
+            return num.toLocaleString();
+        }
+
+        function generateMockBlocks() {
+            const blocks = [];
+            const now = Date.now();
+
+            for (let i = 0; i < 100; i++) {
+                blocks.push({
+                    height: 1500000 - i,
+                    hash: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+                    timestamp: now - (i * 2100), // ~2.1s per block
+                    validator: `Validator ${(i % 3) + 1}`,
+                    validator_address: '0x' + Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+                    tx_count: Math.floor(Math.random() * 250) + 1,
+                    size: Math.floor(Math.random() * 900000) + 50000,
+                    gas_used: Math.floor(Math.random() * 20000000) + 1000000,
+                    gas_limit: 30000000,
+                    difficulty: Math.floor(Math.random() * 1000000),
+                    nonce: Math.floor(Math.random() * 1000000),
+                    parent_hash: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+                    state_root: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+                    transactions_root: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+                    receipts_root: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+                    signature: '0x' + Array(128).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+                    extra_data: '0x00'
+                });
+            }
+
+            return blocks;
         }
 
         // Initialize on load
