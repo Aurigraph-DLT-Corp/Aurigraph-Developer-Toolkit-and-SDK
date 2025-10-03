@@ -48,6 +48,30 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Light Theme */
+        [data-theme="light"] {
+            /* Background Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #e2e8f0;
+            --bg-card: #ffffff;
+            --bg-hover: #f1f5f9;
+
+            /* Text Colors */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+
+            /* Border */
+            --border: #e2e8f0;
+
+            /* Shadows (enhanced for light theme) */
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.2);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -60,6 +84,7 @@
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Layout */
@@ -589,10 +614,22 @@
             justify-content: center;
             z-index: 9999;
             backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .modal.active {
             display: flex;
+            opacity: 1;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            cursor: pointer;
         }
 
         .modal-content {
@@ -603,6 +640,9 @@
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+            position: relative;
+            z-index: 1;
+            box-shadow: var(--shadow-xl);
         }
 
         .modal-header {
@@ -1290,12 +1330,63 @@
         }
 
         // Modal functions
+        let activeModalId = null;
+
         function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            activeModalId = modalId;
+
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+
+            // Add active class for fade-in animation
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+
+            // Focus first input
+            setTimeout(() => {
+                const firstInput = modal.querySelector('input, button, textarea, select');
+                if (firstInput) firstInput.focus();
+            }, 300);
+
+            // Add ESC key listener
+            document.addEventListener('keydown', handleModalEsc);
+
+            // Add click-outside listener
+            modal.addEventListener('click', handleModalClickOutside);
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            // Remove active class
+            modal.classList.remove('active');
+
+            // Re-enable body scroll
+            document.body.style.overflow = '';
+
+            // Remove event listeners
+            document.removeEventListener('keydown', handleModalEsc);
+            modal.removeEventListener('click', handleModalClickOutside);
+
+            activeModalId = null;
+        }
+
+        function handleModalEsc(e) {
+            if (e.key === 'Escape' && activeModalId) {
+                closeModal(activeModalId);
+            }
+        }
+
+        function handleModalClickOutside(e) {
+            // Close modal if clicking directly on the modal container (not on modal-content)
+            if (e.target.classList.contains('modal')) {
+                closeModal(activeModalId);
+            }
         }
 
         function openNotifications() {
@@ -1303,7 +1394,89 @@
         }
 
         function toggleTheme() {
-            alert('Theme switcher coming soon!');
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            // Set theme
+            if (newTheme === 'light') {
+                html.setAttribute('data-theme', 'light');
+            } else {
+                html.removeAttribute('data-theme');
+            }
+
+            // Save to localStorage
+            localStorage.setItem('theme', newTheme);
+
+            // Update theme toggle button icon
+            const themeBtn = document.querySelector('[onclick="toggleTheme()"] i');
+            if (themeBtn) {
+                themeBtn.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            }
+
+            // Update charts for new theme
+            updateChartColors(newTheme);
+        }
+
+        function initTheme() {
+            // Check localStorage
+            const savedTheme = localStorage.getItem('theme');
+
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            // Apply theme (priority: localStorage > system preference > default dark)
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+
+            // Update button icon
+            const themeBtn = document.querySelector('[onclick="toggleTheme()"] i');
+            if (themeBtn) {
+                themeBtn.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            }
+
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    if (newTheme === 'light') {
+                        document.documentElement.setAttribute('data-theme', 'light');
+                    } else {
+                        document.documentElement.removeAttribute('data-theme');
+                    }
+                    updateChartColors(newTheme);
+                }
+            });
+        }
+
+        function updateChartColors(theme) {
+            const gridColor = theme === 'light' ? '#e2e8f0' : '#334155';
+            const textColor = theme === 'light' ? '#475569' : '#94a3b8';
+            const legendColor = theme === 'light' ? '#0f172a' : '#f8fafc';
+
+            // Update all charts
+            Object.values(charts).forEach(chart => {
+                if (chart && chart.options) {
+                    // Update scales if they exist
+                    if (chart.options.scales) {
+                        if (chart.options.scales.x) {
+                            chart.options.scales.x.grid.color = gridColor;
+                            chart.options.scales.x.ticks.color = textColor;
+                        }
+                        if (chart.options.scales.y) {
+                            chart.options.scales.y.grid.color = gridColor;
+                            chart.options.scales.y.ticks.color = textColor;
+                        }
+                    }
+                    // Update legend if it exists
+                    if (chart.options.plugins && chart.options.plugins.legend) {
+                        chart.options.plugins.legend.labels.color = legendColor;
+                    }
+                    chart.update('none'); // Update without animation for instant change
+                }
+            });
         }
 
         function openHelp() {
@@ -1460,6 +1633,10 @@
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize theme first (before charts)
+            initTheme();
+
+            // Initialize charts and data
             initCharts();
             fetchDashboardData();
 
