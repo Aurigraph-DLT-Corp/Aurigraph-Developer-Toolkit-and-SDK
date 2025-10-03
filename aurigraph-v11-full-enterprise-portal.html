@@ -698,6 +698,104 @@
             color: var(--text-muted);
         }
 
+        /* Transaction Explorer Styles */
+        .search-panel {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            padding: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-group {
+            display: flex;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-input-large {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.938rem;
+        }
+
+        .search-input-large:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Advanced Filters */
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-input {
+            padding: 0.625rem 0.875rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-select[multiple] {
+            height: 120px;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            justify-content: flex-end;
+        }
+
+        /* Bulk Actions */
+        .bulk-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .selected-count {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Utility Classes */
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .desktop-table {
@@ -1448,12 +1546,142 @@
 
                 <div id="transactions-page" class="page" style="display: none;">
                     <div class="page-header">
-                        <h1 class="page-title">Transaction Management</h1>
-                        <p class="page-description">View, search, and manage blockchain transactions</p>
+                        <h1 class="page-title">Transaction Explorer</h1>
+                        <p class="page-description">Advanced transaction search, filtering, and management</p>
                     </div>
+
+                    <!-- Search Panel -->
+                    <div class="card mb-2">
+                        <div class="search-panel">
+                            <div class="search-group">
+                                <input type="text" id="tx-search-input" class="search-input-large" placeholder="Search by TX hash, address, or block height...">
+                                <button class="btn btn-primary" onclick="searchTransactions()">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                            <button class="btn btn-secondary" onclick="toggleAdvancedFilters()">
+                                <i class="fas fa-filter"></i> Advanced Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters Panel (Collapsible) -->
+                    <div id="advanced-filters-panel" class="card mb-2" style="display: none;">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label class="filter-label">Type</label>
+                                <select id="tx-filter-type" class="filter-select" multiple>
+                                    <option value="transfer">Transfer</option>
+                                    <option value="token">Token</option>
+                                    <option value="nft">NFT</option>
+                                    <option value="contract">Smart Contract</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Status</label>
+                                <select id="tx-filter-status" class="filter-select" multiple>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Date From</label>
+                                <input type="date" id="tx-filter-date-from" class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Date To</label>
+                                <input type="date" id="tx-filter-date-to" class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Min Amount (AUR)</label>
+                                <input type="number" id="tx-filter-min-amount" class="filter-input" placeholder="0.00" step="0.01">
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Max Amount (AUR)</label>
+                                <input type="number" id="tx-filter-max-amount" class="filter-input" placeholder="Unlimited" step="0.01">
+                            </div>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-primary" onclick="applyAdvancedFilters()">
+                                <i class="fas fa-check"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearAdvancedFilters()">
+                                <i class="fas fa-times"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results Panel -->
                     <div class="card">
-                        <h3 class="card-title">Transaction Explorer</h3>
-                        <p class="text-muted">Transaction management features will be displayed here</p>
+                        <div class="table-header">
+                            <div class="bulk-actions">
+                                <input type="checkbox" id="select-all-tx" onclick="toggleSelectAll()">
+                                <span id="selected-count" class="selected-count">0 selected</span>
+                                <button class="btn btn-sm btn-secondary" onclick="exportSelected('csv')" disabled id="export-selected-btn">
+                                    <i class="fas fa-download"></i> Export CSV
+                                </button>
+                                <button class="btn btn-sm btn-secondary" onclick="exportSelected('json')" disabled id="export-json-btn">
+                                    <i class="fas fa-download"></i> Export JSON
+                                </button>
+                            </div>
+                            <div class="table-actions">
+                                <select id="page-size-selector" class="filter-select" onchange="changePageSize()">
+                                    <option value="10">10 per page</option>
+                                    <option value="20" selected>20 per page</option>
+                                    <option value="50">50 per page</option>
+                                    <option value="100">100 per page</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="desktop-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">
+                                            <input type="checkbox" id="header-select-all" onclick="toggleSelectAll()">
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('tx_id')">
+                                            TX Hash <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('type')">
+                                            Type <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('from_address')">
+                                            From <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('to_address')">
+                                            To <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('amount')">
+                                            Amount <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('block_height')">
+                                            Block <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('status')">
+                                            Status <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" onclick="sortExplorerTable('timestamp')">
+                                            Time <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th style="width: 100px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tx-explorer-results">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mobile-cards" id="tx-explorer-mobile">
+                            <!-- Populated by JavaScript for mobile -->
+                        </div>
+
+                        <div class="pagination" id="tx-explorer-pagination">
+                            <!-- Populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
 
@@ -2082,6 +2310,544 @@
             `;
             openModal('transaction-modal');
         }
+
+        // === Transaction Explorer Functions ===
+
+        // Explorer state management
+        let explorerTransactions = [];
+        let explorerSortColumn = 'timestamp';
+        let explorerSortDirection = 'desc';
+        let explorerCurrentPage = 1;
+        let explorerPageSize = 20;
+        let selectedTransactions = new Set();
+        let advancedFiltersVisible = false;
+
+        // Search Configuration
+        let searchQuery = '';
+        let advancedFilters = {
+            types: [],
+            statuses: [],
+            dateFrom: null,
+            dateTo: null,
+            minAmount: null,
+            maxAmount: null
+        };
+
+        // Toggle advanced filters panel
+        function toggleAdvancedFilters() {
+            const panel = document.getElementById('advanced-filters-panel');
+            advancedFiltersVisible = !advancedFiltersVisible;
+            panel.style.display = advancedFiltersVisible ? 'block' : 'none';
+        }
+
+        // Search transactions
+        async function searchTransactions() {
+            searchQuery = document.getElementById('tx-search-input').value.trim();
+
+            if (!searchQuery && !hasAdvancedFilters()) {
+                // If no search query and no advanced filters, load all transactions
+                await loadExplorerTransactions();
+                return;
+            }
+
+            // Perform search
+            try {
+                const params = new URLSearchParams();
+                if (searchQuery) params.append('q', searchQuery);
+
+                // Add advanced filters if active
+                if (advancedFilters.types.length > 0) {
+                    params.append('type', advancedFilters.types.join(','));
+                }
+                if (advancedFilters.statuses.length > 0) {
+                    params.append('status', advancedFilters.statuses.join(','));
+                }
+                if (advancedFilters.dateFrom) {
+                    params.append('from', advancedFilters.dateFrom);
+                }
+                if (advancedFilters.dateTo) {
+                    params.append('to', advancedFilters.dateTo);
+                }
+                if (advancedFilters.minAmount !== null) {
+                    params.append('min_amount', advancedFilters.minAmount);
+                }
+                if (advancedFilters.maxAmount !== null) {
+                    params.append('max_amount', advancedFilters.maxAmount);
+                }
+
+                params.append('limit', '1000'); // Get more for local filtering
+                params.append('sort', `${explorerSortColumn}:${explorerSortDirection}`);
+
+                const response = await fetch(`/portal/transactions/search?${params}`);
+                const data = await response.json();
+
+                explorerTransactions = data.transactions || [];
+                explorerCurrentPage = 1;
+                selectedTransactions.clear();
+                renderExplorerTable();
+            } catch (error) {
+                console.error('Error searching transactions:', error);
+                // Fallback to local transactions
+                await loadExplorerTransactions();
+            }
+        }
+
+        // Load all transactions for explorer
+        async function loadExplorerTransactions() {
+            try {
+                const response = await fetch('/portal/transactions/recent?limit=100');
+                const data = await response.json();
+                explorerTransactions = data.transactions || [];
+                explorerCurrentPage = 1;
+                selectedTransactions.clear();
+                renderExplorerTable();
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                explorerTransactions = [];
+                renderExplorerTable();
+            }
+        }
+
+        // Apply advanced filters
+        function applyAdvancedFilters() {
+            // Get type filters
+            const typeSelect = document.getElementById('tx-filter-type');
+            advancedFilters.types = Array.from(typeSelect.selectedOptions).map(opt => opt.value);
+
+            // Get status filters
+            const statusSelect = document.getElementById('tx-filter-status');
+            advancedFilters.statuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value);
+
+            // Get date filters
+            advancedFilters.dateFrom = document.getElementById('tx-filter-date-from').value || null;
+            advancedFilters.dateTo = document.getElementById('tx-filter-date-to').value || null;
+
+            // Get amount filters
+            const minAmount = document.getElementById('tx-filter-min-amount').value;
+            const maxAmount = document.getElementById('tx-filter-max-amount').value;
+            advancedFilters.minAmount = minAmount ? parseFloat(minAmount) : null;
+            advancedFilters.maxAmount = maxAmount ? parseFloat(maxAmount) : null;
+
+            // Perform search with advanced filters
+            searchTransactions();
+        }
+
+        // Clear advanced filters
+        function clearAdvancedFilters() {
+            // Reset filters object
+            advancedFilters = {
+                types: [],
+                statuses: [],
+                dateFrom: null,
+                dateTo: null,
+                minAmount: null,
+                maxAmount: null
+            };
+
+            // Reset UI
+            document.getElementById('tx-filter-type').selectedIndex = -1;
+            document.getElementById('tx-filter-status').selectedIndex = -1;
+            document.getElementById('tx-filter-date-from').value = '';
+            document.getElementById('tx-filter-date-to').value = '';
+            document.getElementById('tx-filter-min-amount').value = '';
+            document.getElementById('tx-filter-max-amount').value = '';
+
+            // Reload data
+            searchTransactions();
+        }
+
+        // Check if advanced filters are active
+        function hasAdvancedFilters() {
+            return advancedFilters.types.length > 0 ||
+                   advancedFilters.statuses.length > 0 ||
+                   advancedFilters.dateFrom ||
+                   advancedFilters.dateTo ||
+                   advancedFilters.minAmount !== null ||
+                   advancedFilters.maxAmount !== null;
+        }
+
+        // Sort explorer table
+        function sortExplorerTable(column) {
+            if (explorerSortColumn === column) {
+                explorerSortDirection = explorerSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                explorerSortColumn = column;
+                explorerSortDirection = 'desc';
+            }
+
+            explorerCurrentPage = 1;
+            renderExplorerTable();
+        }
+
+        // Toggle select all checkboxes
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all-tx') || document.getElementById('header-select-all');
+            const isChecked = selectAllCheckbox.checked;
+
+            // Get current page transactions
+            const filtered = filterExplorerTransactions();
+            const sorted = sortExplorerTransactions(filtered);
+            const start = (explorerCurrentPage - 1) * explorerPageSize;
+            const paginated = sorted.slice(start, start + explorerPageSize);
+
+            if (isChecked) {
+                // Select all on current page
+                paginated.forEach(tx => selectedTransactions.add(tx.tx_id));
+            } else {
+                // Deselect all on current page
+                paginated.forEach(tx => selectedTransactions.delete(tx.tx_id));
+            }
+
+            // Update checkboxes
+            document.querySelectorAll('.tx-checkbox').forEach((checkbox, index) => {
+                checkbox.checked = isChecked;
+            });
+
+            updateSelectedCount();
+        }
+
+        // Update selected transaction count
+        function updateSelectedCount() {
+            const count = selectedTransactions.size;
+            const countElement = document.getElementById('selected-count');
+            if (countElement) {
+                countElement.textContent = `${count} selected`;
+            }
+
+            // Enable/disable export buttons
+            const exportCsvBtn = document.getElementById('export-selected-btn');
+            const exportJsonBtn = document.getElementById('export-json-btn');
+            if (exportCsvBtn) exportCsvBtn.disabled = count === 0;
+            if (exportJsonBtn) exportJsonBtn.disabled = count === 0;
+
+            // Update select-all checkbox state
+            const selectAllCheckbox = document.getElementById('select-all-tx') || document.getElementById('header-select-all');
+            if (selectAllCheckbox) {
+                const filtered = filterExplorerTransactions();
+                const sorted = sortExplorerTransactions(filtered);
+                const start = (explorerCurrentPage - 1) * explorerPageSize;
+                const paginated = sorted.slice(start, start + explorerPageSize);
+                const allSelected = paginated.length > 0 && paginated.every(tx => selectedTransactions.has(tx.tx_id));
+                selectAllCheckbox.checked = allSelected;
+            }
+        }
+
+        // Export selected transactions
+        function exportSelected(format) {
+            if (selectedTransactions.size === 0) return;
+
+            // Get selected transaction objects
+            const selected = explorerTransactions.filter(tx => selectedTransactions.has(tx.tx_id));
+
+            if (format === 'csv') {
+                exportToCSVFormat(selected);
+            } else if (format === 'json') {
+                exportToJSONFormat(selected);
+            }
+        }
+
+        // Export to CSV format
+        function exportToCSVFormat(transactions) {
+            const headers = ['TX Hash', 'Type', 'From', 'To', 'Amount', 'Block', 'Status', 'Timestamp'];
+            const csvRows = [headers.join(',')];
+
+            transactions.forEach(tx => {
+                const row = [
+                    `"${tx.tx_id}"`,
+                    `"${tx.type}"`,
+                    `"${tx.from_address}"`,
+                    `"${tx.to_address}"`,
+                    tx.amount,
+                    tx.block_height || 'N/A',
+                    `"${tx.status}"`,
+                    `"${new Date(tx.timestamp).toISOString()}"`
+                ];
+                csvRows.push(row.join(','));
+            });
+
+            const csvContent = csvRows.join('\n');
+            downloadFile(csvContent, `transactions_export_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+        }
+
+        // Export to JSON format
+        function exportToJSONFormat(transactions) {
+            const jsonContent = JSON.stringify(transactions, null, 2);
+            downloadFile(jsonContent, `transactions_export_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+        }
+
+        // Download file helper
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Change page size
+        function changePageSize() {
+            const selector = document.getElementById('page-size-selector');
+            explorerPageSize = parseInt(selector.value);
+            explorerCurrentPage = 1;
+            renderExplorerTable();
+        }
+
+        // Change explorer page
+        function changeExplorerPage(page) {
+            const filtered = filterExplorerTransactions();
+            const totalPages = Math.ceil(filtered.length / explorerPageSize);
+
+            if (page < 1 || page > totalPages) return;
+
+            explorerCurrentPage = page;
+            renderExplorerTable();
+        }
+
+        // Filter explorer transactions (client-side)
+        function filterExplorerTransactions() {
+            return explorerTransactions;
+        }
+
+        // Sort explorer transactions
+        function sortExplorerTransactions(transactions) {
+            return [...transactions].sort((a, b) => {
+                let aVal = a[explorerSortColumn];
+                let bVal = b[explorerSortColumn];
+
+                // Handle numeric sorting
+                if (explorerSortColumn === 'amount' || explorerSortColumn === 'block_height') {
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                }
+
+                // Handle date sorting
+                if (explorerSortColumn === 'timestamp') {
+                    aVal = new Date(aVal).getTime();
+                    bVal = new Date(bVal).getTime();
+                }
+
+                // String comparison
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (explorerSortDirection === 'asc') {
+                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                } else {
+                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                }
+            });
+        }
+
+        // Render explorer table
+        function renderExplorerTable() {
+            const filtered = filterExplorerTransactions();
+            const sorted = sortExplorerTransactions(filtered);
+            const total = sorted.length;
+            const start = (explorerCurrentPage - 1) * explorerPageSize;
+            const end = start + explorerPageSize;
+            const paginated = sorted.slice(start, end);
+
+            // Render desktop table
+            const tbody = document.getElementById('tx-explorer-results');
+            tbody.innerHTML = '';
+
+            paginated.forEach(tx => {
+                const isSelected = selectedTransactions.has(tx.tx_id);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="checkbox" class="tx-checkbox" data-tx-id="${tx.tx_id}" ${isSelected ? 'checked' : ''} onchange="handleCheckboxChange('${tx.tx_id}')">
+                    </td>
+                    <td><code>${tx.tx_id.substring(0, 16)}...</code></td>
+                    <td><span class="status-badge status-info">${tx.type}</span></td>
+                    <td><code>${tx.from_address.substring(0, 12)}...</code></td>
+                    <td><code>${tx.to_address.substring(0, 12)}...</code></td>
+                    <td>${tx.amount.toFixed(4)} AUR</td>
+                    <td>${tx.block_height || 'Pending'}</td>
+                    <td><span class="status-badge ${getStatusClass(tx.status)}">
+                        <span class="status-dot"></span>
+                        ${tx.status}
+                    </span></td>
+                    <td>${new Date(tx.timestamp).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="viewTransactionDetail('${tx.tx_id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Render mobile cards
+            renderExplorerMobileCards(paginated);
+
+            // Render pagination
+            renderExplorerPagination(total);
+
+            // Update sort icons
+            updateExplorerSortIcons();
+
+            // Update selected count
+            updateSelectedCount();
+        }
+
+        // Render mobile cards for explorer
+        function renderExplorerMobileCards(transactions) {
+            const container = document.getElementById('tx-explorer-mobile');
+            container.innerHTML = '';
+
+            transactions.forEach(tx => {
+                const isSelected = selectedTransactions.has(tx.tx_id);
+                const card = document.createElement('div');
+                card.className = 'transaction-card';
+
+                card.innerHTML = `
+                    <div class="transaction-card-row">
+                        <input type="checkbox" class="tx-checkbox" data-tx-id="${tx.tx_id}" ${isSelected ? 'checked' : ''} onchange="handleCheckboxChange('${tx.tx_id}')">
+                        <span class="transaction-card-label">TX Hash</span>
+                        <code class="transaction-card-value">${tx.tx_id.substring(0, 16)}...</code>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Type</span>
+                        <span class="status-badge status-info">${tx.type}</span>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Amount</span>
+                        <span class="transaction-card-value">${tx.amount.toFixed(4)} AUR</span>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Block</span>
+                        <span class="transaction-card-value">${tx.block_height || 'Pending'}</span>
+                    </div>
+                    <div class="transaction-card-row">
+                        <span class="transaction-card-label">Status</span>
+                        <span class="status-badge ${getStatusClass(tx.status)}">
+                            <span class="status-dot"></span>
+                            ${tx.status}
+                        </span>
+                    </div>
+                    <div class="transaction-card-row">
+                        <button class="btn btn-sm btn-primary" onclick="viewTransactionDetail('${tx.tx_id}')">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Handle checkbox change
+        function handleCheckboxChange(txId) {
+            if (selectedTransactions.has(txId)) {
+                selectedTransactions.delete(txId);
+            } else {
+                selectedTransactions.add(txId);
+            }
+            updateSelectedCount();
+        }
+
+        // Render explorer pagination
+        function renderExplorerPagination(total) {
+            const totalPages = Math.ceil(total / explorerPageSize);
+            const paginationDiv = document.getElementById('tx-explorer-pagination');
+
+            if (totalPages <= 1) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+
+            const start = (explorerCurrentPage - 1) * explorerPageSize + 1;
+            const end = Math.min(explorerCurrentPage * explorerPageSize, total);
+
+            let html = `
+                <div class="pagination-info">
+                    Showing ${start}-${end} of ${total} transactions
+                </div>
+                <div class="pagination-buttons">
+                    <button class="page-btn" onclick="changeExplorerPage(${explorerCurrentPage - 1})" ${explorerCurrentPage === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+            `;
+
+            // Page numbers
+            const maxButtons = 7;
+            let startPage = Math.max(1, explorerCurrentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<button class="page-btn" onclick="changeExplorerPage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span class="page-ellipsis">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === explorerCurrentPage ? 'active' : ''}" onclick="changeExplorerPage(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="page-ellipsis">...</span>`;
+                }
+                html += `<button class="page-btn" onclick="changeExplorerPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `
+                    <button class="page-btn" onclick="changeExplorerPage(${explorerCurrentPage + 1})" ${explorerCurrentPage === totalPages ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+
+            paginationDiv.innerHTML = html;
+        }
+
+        // Update explorer sort icons
+        function updateExplorerSortIcons() {
+            document.querySelectorAll('#transactions-page .sortable').forEach(th => {
+                th.classList.remove('active');
+                const icon = th.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = 'fas fa-sort sort-icon';
+                }
+            });
+
+            const activeHeader = document.querySelector(`#transactions-page .sortable[onclick*="${explorerSortColumn}"]`);
+            if (activeHeader) {
+                activeHeader.classList.add('active');
+                const icon = activeHeader.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = `fas fa-sort-${explorerSortDirection === 'asc' ? 'up' : 'down'} sort-icon`;
+                }
+            }
+        }
+
+        // View transaction detail (for explorer)
+        function viewTransactionDetail(txId) {
+            const tx = explorerTransactions.find(t => t.tx_id === txId);
+            if (tx) {
+                showTransactionDetail(tx);
+            }
+        }
+
+        // Initialize explorer on page load
+        function initTransactionExplorer() {
+            loadExplorerTransactions();
+        }
+
+        // === End Transaction Explorer Functions ===
 
         // Initialize charts
         function initCharts() {
