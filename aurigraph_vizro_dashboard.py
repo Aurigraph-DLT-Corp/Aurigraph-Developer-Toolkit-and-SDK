@@ -1,547 +1,190 @@
-#!/usr/bin/env python3
-
 """
-Aurigraph DLT V11 - Vizro Real-time Dashboard
-Interactive visualization for blockchain throughput demonstration
+Aurigraph Enterprise Portal - Real-Time Vizro Dashboards
+Real-time blockchain analytics and monitoring using Vizro framework
 """
 
-import vizro as vm
+import vizro.plotly.express as px
+import vizro.models as vm
+from vizro import Vizro
 import pandas as pd
 import plotly.graph_objects as go
-from vizro.models import Page, Layout, Graph, Card, Button, Parameter
-from vizro.actions import filter_interaction
-import asyncio
-import aiohttp
-import json
-from datetime import datetime
-import dash
-from dash import dcc, html, Input, Output, State
-import dash_bootstrap_components as dbc
+from datetime import datetime, timedelta
+import numpy as np
+import requests
+from typing import Dict, List
 
-# API Configuration
-API_BASE_URL = "http://localhost:3088"
-WS_URL = "ws://localhost:3088/ws"
+# Configuration
+AURIGRAPH_API_BASE = "https://dlt.aurigraph.io"
+REFRESH_INTERVAL = 5000  # 5 seconds
 
-# Initialize Vizro app
-app = vm.Vizro()
+class AurigraphDataFetcher:
+    """Fetch real-time data from Aurigraph API"""
 
-# Create real-time TPS chart
-def create_tps_chart():
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=[],
-        y=[],
-        mode='lines+markers',
-        name='TPS',
-        line=dict(color='#667eea', width=3),
-        fill='tozeroy',
-        fillcolor='rgba(102, 126, 234, 0.2)'
-    ))
-    
-    fig.update_layout(
-        title="Real-time Throughput (TPS)",
-        xaxis_title="Time",
-        yaxis_title="Transactions Per Second",
-        template="plotly_white",
-        height=400,
-        showlegend=False,
-        xaxis=dict(
-            showgrid=True,
-            gridcolor='rgba(0,0,0,0.1)'
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor='rgba(0,0,0,0.1)',
-            tickformat=',.'
-        )
-    )
-    return fig
+    def __init__(self, base_url: str):
+        self.base_url = base_url
 
-# Create latency chart
-def create_latency_chart():
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=[],
-        y=[],
-        mode='lines+markers',
-        name='Latency',
-        line=dict(color='#ef4444', width=2),
-        marker=dict(size=6)
-    ))
-    
-    fig.update_layout(
-        title="Transaction Latency",
-        xaxis_title="Time",
-        yaxis_title="Latency (ms)",
-        template="plotly_white",
-        height=300,
-        showlegend=False,
-        xaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)')
-    )
-    return fig
+    def get_portal_stats(self) -> Dict:
+        """Fetch portal statistics"""
+        try:
+            response = requests.get(f"{self.base_url}/portal/stats", timeout=10)
+            return response.json()
+        except Exception as e:
+            print(f"Error fetching stats: {e}")
+            return self._get_mock_stats()
 
-# Create node status visualization
-def create_node_visualization():
-    fig = go.Figure()
-    
-    # Validators
-    fig.add_trace(go.Bar(
-        name='Validators',
-        x=['Active', 'Idle'],
-        y=[0, 0],
-        marker_color='#10b981',
-        text=[0, 0],
-        textposition='auto',
-    ))
-    
-    # Business Nodes
-    fig.add_trace(go.Bar(
-        name='Business Nodes',
-        x=['Active', 'Idle'],
-        y=[0, 0],
-        marker_color='#3b82f6',
-        text=[0, 0],
-        textposition='auto',
-    ))
-    
-    fig.update_layout(
-        title="Node Activity Status",
-        barmode='group',
-        template="plotly_white",
-        height=300,
-        xaxis_title="Status",
-        yaxis_title="Number of Nodes",
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        )
-    )
-    return fig
+    def get_recent_transactions(self) -> pd.DataFrame:
+        """Fetch recent transactions"""
+        try:
+            response = requests.get(f"{self.base_url}/portal/transactions/recent", timeout=10)
+            data = response.json()
+            return pd.DataFrame(data['transactions'])
+        except Exception as e:
+            print(f"Error fetching transactions: {e}")
+            return self._get_mock_transactions()
 
-# Create consensus performance chart
-def create_consensus_chart():
-    fig = go.Figure()
-    
-    fig.add_trace(go.Indicator(
-        mode="gauge+number+delta",
-        value=0,
-        title={'text': "Consensus Success Rate (%)"},
-        domain={'x': [0, 1], 'y': [0, 1]},
-        gauge={
-            'axis': {'range': [None, 100]},
-            'bar': {'color': "#667eea"},
-            'steps': [
-                {'range': [0, 50], 'color': "lightgray"},
-                {'range': [50, 80], 'color': "gray"}
-            ],
-            'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': 95
-            }
+    def get_network_history(self) -> pd.DataFrame:
+        """Fetch network performance history"""
+        try:
+            response = requests.get(f"{self.base_url}/portal/network/history", timeout=10)
+            data = response.json()
+            df = pd.DataFrame(data['history'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            return df
+        except Exception as e:
+            print(f"Error fetching network history: {e}")
+            return self._get_mock_network_history()
+
+    def _get_mock_stats(self) -> Dict:
+        """Generate mock statistics for testing"""
+        return {
+            "total_transactions": 1_870_000 + np.random.randint(0, 10000),
+            "active_contracts": 8534,
+            "total_tokens": 12847,
+            "network_tps": 650 + np.random.uniform(-100, 150),
+            "network_status": "healthy",
+            "last_block_time": datetime.utcnow().isoformat()
         }
-    ))
-    
-    fig.update_layout(
-        template="plotly_white",
-        height=250
-    )
-    return fig
 
-# Create block height progress
-def create_block_progress():
-    fig = go.Figure()
-    
-    fig.add_trace(go.Scatter(
-        x=[],
-        y=[],
-        mode='lines',
-        fill='tozeroy',
-        line=dict(color='#764ba2', width=2),
-        fillcolor='rgba(118, 75, 162, 0.2)',
-        name='Block Height'
-    ))
-    
-    fig.update_layout(
-        title="Block Height Progress",
-        xaxis_title="Time",
-        yaxis_title="Block Height",
-        template="plotly_white",
-        height=250,
-        showlegend=False
-    )
-    return fig
+    def _get_mock_transactions(self) -> pd.DataFrame:
+        """Generate mock transaction data"""
+        now = datetime.utcnow()
+        return pd.DataFrame([
+            {
+                "tx_id": f"0x{np.random.randint(1000000, 9999999):x}",
+                "timestamp": (now - timedelta(seconds=i*10)).isoformat(),
+                "from_address": f"0x{np.random.randint(100000, 999999):x}",
+                "to_address": f"0x{np.random.randint(100000, 999999):x}",
+                "amount": np.random.uniform(0.1, 100),
+                "status": np.random.choice(["confirmed", "pending"], p=[0.7, 0.3]),
+                "gas_used": np.random.randint(21000, 150000),
+                "type": np.random.choice(["transfer", "token", "nft", "contract"])
+            }
+            for i in range(50)
+        ])
 
-# Create performance metrics table
-def create_metrics_table():
-    df = pd.DataFrame({
-        'Metric': ['Current TPS', 'Total Transactions', 'Avg Latency', 'Success Rate', 
-                   'Active Nodes', 'Block Height', 'Consensus Rounds'],
-        'Value': ['0', '0', '0 ms', '100%', '0', '0', '0']
-    })
-    
-    fig = go.Figure(data=[go.Table(
-        header=dict(
-            values=['<b>Metric</b>', '<b>Value</b>'],
-            fill_color='#667eea',
-            font=dict(color='white', size=14),
-            align='left',
-            height=35
-        ),
-        cells=dict(
-            values=[df.Metric, df.Value],
-            fill_color=['#f3f4f6', 'white'],
-            font=dict(size=12),
-            align='left',
-            height=30
-        )
-    )])
-    
-    fig.update_layout(
-        height=300,
-        margin=dict(l=0, r=0, t=20, b=0)
-    )
-    return fig
+    def _get_mock_network_history(self) -> pd.DataFrame:
+        """Generate mock network history"""
+        now = datetime.utcnow()
+        return pd.DataFrame([
+            {
+                "timestamp": now - timedelta(minutes=i),
+                "tps": 700 + np.random.uniform(-150, 150),
+                "block_time": 2.8 + np.random.uniform(-0.5, 0.5),
+                "active_validators": np.random.randint(95, 106)
+            }
+            for i in range(60)
+        ])
 
-# Create Vizro dashboard pages
-dashboard_page = vm.Page(
-    title="Aurigraph DLT V11 - Performance Dashboard",
-    layout=vm.Layout(
-        grid=[
-            [0, 0, 1, 1],
-            [2, 2, 3, 3],
-            [4, 5, 6, 6]
-        ]
-    ),
-    components=[
-        vm.Graph(
-            id="tps-chart",
-            figure=create_tps_chart()
-        ),
-        vm.Graph(
-            id="metrics-table",
-            figure=create_metrics_table()
-        ),
-        vm.Graph(
-            id="latency-chart",
-            figure=create_latency_chart()
-        ),
-        vm.Graph(
-            id="node-viz",
-            figure=create_node_visualization()
-        ),
-        vm.Graph(
-            id="consensus-gauge",
-            figure=create_consensus_chart()
-        ),
-        vm.Graph(
-            id="block-progress",
-            figure=create_block_progress()
-        )
-    ]
-)
+# Initialize data fetcher
+data_fetcher = AurigraphDataFetcher(AURIGRAPH_API_BASE)
 
-control_page = vm.Page(
-    title="Simulation Control Panel",
-    layout=vm.Layout(
-        grid=[
-            [0],
-            [1],
-            [2]
-        ]
-    ),
-    components=[
-        vm.Card(
-            text="""
-            ## Network Configuration
-            
-            Configure the blockchain network parameters for the simulation.
-            """,
-            id="config-card"
-        ),
-        vm.Card(
-            text="""
-            ### Controls
-            - **Channel**: Network channel name
-            - **Validators**: Number of validator nodes (1-20)
-            - **Business Nodes**: Number of business nodes (1-50)
-            - **Target TPS**: Target transactions per second
-            - **Batch Size**: Transaction batch size
-            - **Consensus Type**: Consensus algorithm (HyperRAFT++, PBFT, RAFT)
-            """,
-            id="control-info"
-        ),
-        vm.Card(
-            text="""
-            ### Actions
-            - Click **Start Simulation** to begin the test
-            - Click **Stop Simulation** to end the test
-            - View real-time metrics on the Dashboard page
-            """,
-            id="action-info"
-        )
-    ]
-)
+# Data loading functions for Vizro
+def load_network_metrics():
+    """Load network metrics for dashboard"""
+    return data_fetcher.get_network_history()
 
-# Create Vizro dashboard
+def load_transaction_data():
+    """Load transaction data for dashboard"""
+    return data_fetcher.get_recent_transactions()
+
+def load_stats_data():
+    """Load statistics for cards"""
+    stats = data_fetcher.get_portal_stats()
+    return pd.DataFrame([
+        {"metric": "Total Transactions", "value": f"{stats['total_transactions']:,}"},
+        {"metric": "Network TPS", "value": f"{stats['network_tps']:.1f}"},
+        {"metric": "Active Contracts", "value": f"{stats['active_contracts']:,}"},
+        {"metric": "Total Tokens", "value": f"{stats['total_tokens']:,}"},
+        {"metric": "Network Status", "value": stats['network_status'].upper()},
+    ])
+
+def load_transaction_type_distribution():
+    """Load transaction type distribution"""
+    df = data_fetcher.get_recent_transactions()
+    type_counts = df['type'].value_counts().reset_index()
+    type_counts.columns = ['Transaction Type', 'Count']
+    return type_counts
+
+# Create Vizro Dashboard
 dashboard = vm.Dashboard(
-    pages=[dashboard_page, control_page],
-    title="Aurigraph DLT V11 Demo Platform"
+    title="Aurigraph Enterprise Portal",
+    pages=[
+        # Network Overview Page
+        vm.Page(
+            title="Network Overview",
+            components=[
+                vm.Card(
+                    text="""
+                    # 🌐 Aurigraph Network Dashboard
+                    Real-time monitoring of high-performance blockchain platform
+                    **Target TPS**: 2M+ | **Status**: Live
+                    """
+                ),
+                vm.AgGrid(
+                    figure=vm.Figure(
+                        data_frame=load_stats_data,
+                        title="📊 Key Metrics"
+                    )
+                ),
+                vm.Graph(
+                    figure=vm.Figure(
+                        data_frame=load_network_metrics,
+                        x="timestamp",
+                        y="tps",
+                        title="⚡ Network TPS"
+                    )
+                ),
+            ]
+        ),
+        # Transaction Analytics Page
+        vm.Page(
+            title="Transaction Analytics",
+            components=[
+                vm.Card(
+                    text="# 💸 Transaction Analytics\nComprehensive transaction analysis"
+                ),
+                vm.Graph(
+                    figure=vm.Figure(
+                        data_frame=load_transaction_type_distribution,
+                        values="Count",
+                        names="Transaction Type",
+                        hole=0.4,
+                        title="🔄 Transaction Types"
+                    )
+                ),
+                vm.AgGrid(
+                    figure=vm.Figure(
+                        data_frame=load_transaction_data,
+                        title="📋 Recent Transactions"
+                    )
+                ),
+            ]
+        ),
+    ]
 )
 
-# Custom Dash app for real-time updates
-dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-dash_app.layout = dbc.Container([
-    dbc.Row([
-        dbc.Col([
-            html.H1("🚀 Aurigraph DLT V11 - Live Demo", className="text-center mb-4"),
-            html.Hr()
-        ])
-    ]),
-    
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.H4("Network Configuration", className="card-title"),
-                    dbc.Form([
-                        dbc.Row([
-                            dbc.Col([
-                                dbc.Label("Channel Name"),
-                                dbc.Input(id="channel-input", value="main-channel", type="text")
-                            ], md=6),
-                            dbc.Col([
-                                dbc.Label("Consensus Type"),
-                                dbc.Select(
-                                    id="consensus-select",
-                                    options=[
-                                        {"label": "HyperRAFT++", "value": "hyperraft"},
-                                        {"label": "PBFT", "value": "pbft"},
-                                        {"label": "RAFT", "value": "raft"}
-                                    ],
-                                    value="hyperraft"
-                                )
-                            ], md=6)
-                        ], className="mb-3"),
-                        
-                        dbc.Row([
-                            dbc.Col([
-                                dbc.Label("Validators"),
-                                dcc.Slider(id="validator-slider", min=1, max=20, value=4, 
-                                         marks={i: str(i) for i in range(1, 21, 5)})
-                            ], md=6),
-                            dbc.Col([
-                                dbc.Label("Business Nodes"),
-                                dcc.Slider(id="business-slider", min=1, max=50, value=10,
-                                         marks={i: str(i) for i in range(1, 51, 10)})
-                            ], md=6)
-                        ], className="mb-3"),
-                        
-                        dbc.Row([
-                            dbc.Col([
-                                dbc.Label("Target TPS"),
-                                dbc.Select(
-                                    id="tps-select",
-                                    options=[
-                                        {"label": "1,000", "value": "1000"},
-                                        {"label": "10,000", "value": "10000"},
-                                        {"label": "100,000", "value": "100000"},
-                                        {"label": "500,000", "value": "500000"},
-                                        {"label": "1,000,000", "value": "1000000"},
-                                        {"label": "2,000,000", "value": "2000000"}
-                                    ],
-                                    value="100000"
-                                )
-                            ], md=6),
-                            dbc.Col([
-                                dbc.Label("Batch Size"),
-                                dbc.Input(id="batch-input", value="1000", type="number", min=100, max=10000)
-                            ], md=6)
-                        ], className="mb-3"),
-                        
-                        dbc.ButtonGroup([
-                            dbc.Button("▶️ Start Simulation", id="start-btn", color="primary", size="lg"),
-                            dbc.Button("⏹️ Stop Simulation", id="stop-btn", color="danger", size="lg", disabled=True)
-                        ], className="d-grid gap-2")
-                    ])
-                ])
-            ], className="mb-4")
-        ], md=4),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.H4("Live Metrics", className="card-title"),
-                    dcc.Graph(id="live-tps-chart"),
-                    dcc.Interval(id="interval-component", interval=100, n_intervals=0)
-                ])
-            ])
-        ], md=8)
-    ]),
-    
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.H4("Performance Metrics", className="card-title"),
-                    html.Div(id="metrics-display")
-                ])
-            ])
-        ], md=4),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.H4("Node Activity", className="card-title"),
-                    dcc.Graph(id="node-activity-chart")
-                ])
-            ])
-        ], md=4),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.H4("Consensus Performance", className="card-title"),
-                    dcc.Graph(id="consensus-gauge-chart")
-                ])
-            ])
-        ], md=4)
-    ], className="mt-4")
-], fluid=True)
-
-# Store for metrics data
-metrics_store = {
-    'tps_history': [],
-    'time_history': [],
-    'latency_history': []
-}
-
-@dash_app.callback(
-    [Output("live-tps-chart", "figure"),
-     Output("metrics-display", "children"),
-     Output("node-activity-chart", "figure"),
-     Output("consensus-gauge-chart", "figure")],
-    [Input("interval-component", "n_intervals")]
-)
-async def update_metrics(n):
-    # Fetch metrics from API
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{API_BASE_URL}/api/metrics") as response:
-                metrics = await response.json()
-            
-            async with session.get(f"{API_BASE_URL}/api/metrics/history") as response:
-                history = await response.json()
-        
-        # Update TPS chart
-        tps_fig = create_tps_chart()
-        if history['time'] and history['tps']:
-            tps_fig.data[0].x = history['time'][-50:]  # Last 50 points
-            tps_fig.data[0].y = history['tps'][-50:]
-        
-        # Update metrics display
-        metrics_cards = dbc.Row([
-            dbc.Col(dbc.Card([
-                dbc.CardBody([
-                    html.H5("Current TPS", className="text-muted"),
-                    html.H3(f"{metrics.get('tps', 0):,.0f}", className="text-primary")
-                ])
-            ])),
-            dbc.Col(dbc.Card([
-                dbc.CardBody([
-                    html.H5("Total Transactions", className="text-muted"),
-                    html.H3(f"{metrics.get('totalTransactions', 0):,}", className="text-success")
-                ])
-            ])),
-            dbc.Col(dbc.Card([
-                dbc.CardBody([
-                    html.H5("Avg Latency", className="text-muted"),
-                    html.H3(f"{metrics.get('latency', 0):.2f} ms", className="text-warning")
-                ])
-            ]))
-        ])
-        
-        # Update node activity chart
-        node_fig = create_node_visualization()
-        active_nodes = metrics.get('activeNodes', 0)
-        total_nodes = 14  # Default total
-        node_fig.data[0].y = [active_nodes, total_nodes - active_nodes]
-        
-        # Update consensus gauge
-        consensus_fig = create_consensus_chart()
-        consensus_fig.data[0].value = metrics.get('successRate', 100)
-        
-        return tps_fig, metrics_cards, node_fig, consensus_fig
-    
-    except Exception as e:
-        print(f"Error fetching metrics: {e}")
-        return create_tps_chart(), html.Div("No data"), create_node_visualization(), create_consensus_chart()
-
-@dash_app.callback(
-    [Output("start-btn", "disabled"),
-     Output("stop-btn", "disabled")],
-    [Input("start-btn", "n_clicks"),
-     Input("stop-btn", "n_clicks")],
-    [State("channel-input", "value"),
-     State("validator-slider", "value"),
-     State("business-slider", "value"),
-     State("tps-select", "value"),
-     State("batch-input", "value"),
-     State("consensus-select", "value")]
-)
-async def control_simulation(start_clicks, stop_clicks, channel, validators, business_nodes, 
-                            target_tps, batch_size, consensus_type):
-    ctx = dash.callback_context
-    
-    if not ctx.triggered:
-        return False, True
-    
-    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            if button_id == "start-btn":
-                config = {
-                    "channel": channel,
-                    "validators": validators,
-                    "businessNodes": business_nodes,
-                    "targetTps": int(target_tps),
-                    "batchSize": int(batch_size),
-                    "consensusType": consensus_type
-                }
-                async with session.post(f"{API_BASE_URL}/api/start", json=config) as response:
-                    if response.status == 200:
-                        return True, False
-            
-            elif button_id == "stop-btn":
-                async with session.post(f"{API_BASE_URL}/api/stop") as response:
-                    if response.status == 200:
-                        return False, True
-    
-    except Exception as e:
-        print(f"Error controlling simulation: {e}")
-    
-    return False, True
+# Build and run
+app = Vizro().build(dashboard)
 
 if __name__ == "__main__":
-    print("""
-    ========================================
-    🎨 Aurigraph DLT V11 - Vizro Dashboard
-    ========================================
-    
-    Dashboard running on:
-    - Vizro: http://localhost:8050
-    - API Server: http://localhost:3088
-    
-    Make sure the API server is running first!
-    ========================================
-    """)
-    
-    # Run Dash app for real-time dashboard
-    dash_app.run_server(debug=True, port=8050)
+    app.run(host="0.0.0.0", port=8050, debug=True)
