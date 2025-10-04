@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 REMOTE_SERVER="dlt.aurigraph.io"
-REMOTE_PORT="2235"
+REMOTE_PORT="22"
 REMOTE_USER="subbu"
 REMOTE_PASSWORD="subbuFuture@2025"
 LOCAL_PORTAL_FILE="/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/aurigraph-v11-enterprise-portal.html"
