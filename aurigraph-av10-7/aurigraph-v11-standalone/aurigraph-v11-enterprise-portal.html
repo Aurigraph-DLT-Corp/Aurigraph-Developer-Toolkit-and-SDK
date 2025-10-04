@@ -605,6 +605,8 @@
             <button class="nav-tab" data-tab="platform">Platform Status</button>
             <button class="nav-tab" data-tab="transactions">Transactions</button>
             <button class="nav-tab" data-tab="performance">Performance</button>
+            <button class="nav-tab" data-tab="transaction-analytics">Transaction Analytics</button>
+            <button class="nav-tab" data-tab="validator-analytics">Validator Analytics</button>
             <button class="nav-tab" data-tab="consensus">Consensus</button>
             <button class="nav-tab" data-tab="crypto">Quantum Crypto</button>
             <button class="nav-tab" data-tab="bridge">Cross-Chain Bridge</button>
@@ -799,6 +801,230 @@
                 <div id="perfMetricsResponse" class="response-container"></div>
                 <div class="chart-container mt-3">
                     <canvas id="perfMetricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Analytics Tab -->
+        <div id="transaction-analytics" class="tab-content">
+            <h2 class="mb-3">Transaction Analytics</h2>
+
+            <!-- Transaction Volume Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Transaction Volume Over Time</h3>
+                    <select id="txVolumeTimeRange" class="form-select" onchange="loadTransactionVolume()">
+                        <option value="24h">Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d">Last 30 Days</option>
+                        <option value="90d">Last 90 Days</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="txVolumeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Transaction Statistics Cards -->
+            <div class="grid grid-4 gap-2 mt-3">
+                <div class="stat-card">
+                    <div class="stat-label">Total Transactions (24h)</div>
+                    <div class="stat-value" id="txTotal24h">-</div>
+                    <div class="stat-trend text-success" id="txTotalTrend">+12.5% from yesterday</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Peak TPS</div>
+                    <div class="stat-value" id="txPeakTPS">-</div>
+                    <div class="stat-trend text-secondary" id="txPeakTime">at 14:23 UTC</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Average TPS</div>
+                    <div class="stat-value" id="txAvgTPS">-</div>
+                    <div class="stat-trend" id="txAvgChange">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value text-success" id="txSuccessRate">-</div>
+                    <div class="stat-trend text-success" id="txSuccessTrend">99.98% uptime</div>
+                </div>
+            </div>
+
+            <!-- Transaction Type Distribution -->
+            <div class="grid grid-2 gap-2 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Transaction Type Distribution</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="txTypeDistChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Fee Analysis</h3>
+                    </div>
+                    <div class="grid grid-2 gap-2 p-2">
+                        <div class="stat-card">
+                            <div class="stat-label">Average Fee</div>
+                            <div class="stat-value" id="avgFee">-</div>
+                            <div class="stat-trend text-secondary">AUR</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Fees (24h)</div>
+                            <div class="stat-value" id="totalFees24h">-</div>
+                            <div class="stat-trend text-secondary">AUR</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Median Fee</div>
+                            <div class="stat-value" id="medianFee">-</div>
+                            <div class="stat-trend text-secondary">AUR</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Fee Trend</div>
+                            <div class="stat-value text-success" id="feeTrend">-</div>
+                            <div class="stat-trend" id="feeTrendPercent">vs 7d avg</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Peak Transaction Periods -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Peak Transaction Periods (24h)</h3>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Time (UTC)</th>
+                                <th>TPS</th>
+                                <th>Total Transactions</th>
+                                <th>Success Rate</th>
+                                <th>Avg Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="peakPeriodsTable">
+                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validator Analytics Tab -->
+        <div id="validator-analytics" class="tab-content">
+            <h2 class="mb-3">Validator Analytics</h2>
+
+            <!-- Validator Statistics Cards -->
+            <div class="grid grid-4 gap-2">
+                <div class="stat-card">
+                    <div class="stat-label">Total Validators</div>
+                    <div class="stat-value" id="totalValidators">-</div>
+                    <div class="stat-trend text-success" id="validatorTrend">+3 this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Validators</div>
+                    <div class="stat-value text-success" id="activeValidators">-</div>
+                    <div class="stat-trend" id="activePercent">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Stake</div>
+                    <div class="stat-value" id="totalStake">-</div>
+                    <div class="stat-trend text-secondary">AUR</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Network Uptime</div>
+                    <div class="stat-value text-success" id="networkUptime">-</div>
+                    <div class="stat-trend text-success" id="uptimeTrend">30-day average</div>
+                </div>
+            </div>
+
+            <!-- Validator Performance Charts -->
+            <div class="grid grid-2 gap-2 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Stake Distribution</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="stakeDistChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Block Proposal Success Rate</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="proposalSuccessChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Validators -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Top Validators by Performance</h3>
+                    <select id="validatorSortBy" class="form-select" onchange="loadTopValidators()">
+                        <option value="performance">Performance Score</option>
+                        <option value="stake">Total Stake</option>
+                        <option value="uptime">Uptime</option>
+                        <option value="blocks">Blocks Proposed</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Validator</th>
+                                <th>Performance Score</th>
+                                <th>Uptime</th>
+                                <th>Stake Amount</th>
+                                <th>Blocks Proposed</th>
+                                <th>Success Rate</th>
+                                <th>Rewards (24h)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topValidatorsTable">
+                            <tr><td colspan="8" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Validator Reward Distribution -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Validator Rewards (7 Days)</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="rewardDistChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Validator Uptime Heatmap -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Validator Uptime Analysis</h3>
+                </div>
+                <div class="grid grid-3 gap-2 p-2">
+                    <div class="stat-card">
+                        <div class="stat-label">99-100% Uptime</div>
+                        <div class="stat-value text-success" id="uptime100">-</div>
+                        <div class="stat-trend text-secondary" id="uptime100Pct">validators</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">95-99% Uptime</div>
+                        <div class="stat-value text-warning" id="uptime95">-</div>
+                        <div class="stat-trend text-secondary" id="uptime95Pct">validators</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Below 95%</div>
+                        <div class="stat-value text-error" id="uptimeBelow95">-</div>
+                        <div class="stat-trend text-secondary" id="uptimeBelow95Pct">validators</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1099,6 +1325,12 @@
                     break;
                 case 'performance':
                     getPerformanceMetrics();
+                    break;
+                case 'transaction-analytics':
+                    loadTransactionAnalytics();
+                    break;
+                case 'validator-analytics':
+                    loadValidatorAnalytics();
                     break;
                 case 'consensus':
                     getConsensusStatus();
@@ -1496,6 +1728,349 @@
             setTimeout(() => {
                 showNotification('Metrics exported successfully', 'success');
             }, 1000);
+        }
+
+        // ==================== TRANSACTION ANALYTICS ====================
+        let txVolumeChart = null;
+        let txTypeDistChart = null;
+
+        async function loadTransactionAnalytics() {
+            try {
+                const timeRange = document.getElementById('txVolumeTimeRange').value;
+                // Mock data for transaction analytics
+                const mockData = {
+                    total24h: 8652000,
+                    peakTPS: 1850000,
+                    avgTPS: 950000,
+                    successRate: 99.98,
+                    avgFee: 0.000012,
+                    totalFees: 103.82,
+                    medianFee: 0.000008,
+                    feeTrend: '-5.2%',
+                    volume: generateVolumeData(timeRange),
+                    types: {
+                        transfer: 4500000,
+                        smartContract: 2100000,
+                        token: 1500000,
+                        nft: 420000,
+                        governance: 132000
+                    },
+                    peakPeriods: [
+                        { time: '14:00-15:00', tps: 1850000, total: 6660000, successRate: 99.99, latency: 45 },
+                        { time: '09:00-10:00', tps: 1620000, total: 5832000, successRate: 99.98, latency: 48 },
+                        { time: '18:00-19:00', tps: 1480000, total: 5328000, successRate: 99.97, latency: 52 },
+                        { time: '12:00-13:00', tps: 1350000, total: 4860000, successRate: 99.98, latency: 50 },
+                        { time: '21:00-22:00', tps: 1220000, total: 4392000, successRate: 99.96, latency: 55 }
+                    ]
+                };
+
+                // Update statistics cards
+                document.getElementById('txTotal24h').textContent = formatNumber(mockData.total24h);
+                document.getElementById('txPeakTPS').textContent = formatNumber(mockData.peakTPS);
+                document.getElementById('txAvgTPS').textContent = formatNumber(mockData.avgTPS);
+                document.getElementById('txSuccessRate').textContent = mockData.successRate.toFixed(2) + '%';
+
+                document.getElementById('avgFee').textContent = mockData.avgFee.toFixed(6);
+                document.getElementById('totalFees24h').textContent = mockData.totalFees.toFixed(2);
+                document.getElementById('medianFee').textContent = mockData.medianFee.toFixed(6);
+                document.getElementById('feeTrend').textContent = mockData.feeTrend;
+
+                // Update peak periods table
+                const tbody = document.getElementById('peakPeriodsTable');
+                tbody.innerHTML = mockData.peakPeriods.map(period => `
+                    <tr>
+                        <td>${period.time}</td>
+                        <td class="text-primary font-bold">${formatNumber(period.tps)}</td>
+                        <td>${formatNumber(period.total)}</td>
+                        <td class="text-success">${period.successRate.toFixed(2)}%</td>
+                        <td>${period.latency}ms</td>
+                    </tr>
+                `).join('');
+
+                // Update charts
+                updateTxVolumeChart(mockData.volume);
+                updateTxTypeChart(mockData.types);
+            } catch (error) {
+                console.error('Failed to load transaction analytics:', error);
+            }
+        }
+
+        function generateVolumeData(timeRange) {
+            const dataPoints = timeRange === '24h' ? 24 : timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+            const labels = [];
+            const data = [];
+
+            for (let i = 0; i < dataPoints; i++) {
+                if (timeRange === '24h') {
+                    labels.push(`${i}:00`);
+                } else {
+                    labels.push(`Day ${i + 1}`);
+                }
+                data.push(Math.floor(800000 + Math.random() * 400000));
+            }
+
+            return { labels, data };
+        }
+
+        function updateTxVolumeChart(volumeData) {
+            const ctx = document.getElementById('txVolumeChart');
+            if (!ctx) return;
+
+            if (txVolumeChart) {
+                txVolumeChart.destroy();
+            }
+
+            txVolumeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: volumeData.labels,
+                    datasets: [{
+                        label: 'Transaction Volume',
+                        data: volumeData.data,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        title: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function updateTxTypeChart(types) {
+            const ctx = document.getElementById('txTypeDistChart');
+            if (!ctx) return;
+
+            if (txTypeDistChart) {
+                txTypeDistChart.destroy();
+            }
+
+            txTypeDistChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Transfer', 'Smart Contract', 'Token', 'NFT', 'Governance'],
+                    datasets: [{
+                        data: [types.transfer, types.smartContract, types.token, types.nft, types.governance],
+                        backgroundColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(16, 185, 129)',
+                            'rgb(251, 146, 60)',
+                            'rgb(139, 92, 246)',
+                            'rgb(236, 72, 153)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        function loadTransactionVolume() {
+            loadTransactionAnalytics();
+        }
+
+        // ==================== VALIDATOR ANALYTICS ====================
+        let stakeDistChart = null;
+        let proposalSuccessChart = null;
+        let rewardDistChart = null;
+
+        async function loadValidatorAnalytics() {
+            try {
+                // Mock data for validator analytics
+                const mockData = {
+                    totalValidators: 127,
+                    activeValidators: 121,
+                    totalStake: 2450000000,
+                    networkUptime: 99.98,
+                    stakeDistribution: [
+                        { validator: 'Validator-1', stake: 250000000 },
+                        { validator: 'Validator-2', stake: 180000000 },
+                        { validator: 'Validator-3', stake: 150000000 },
+                        { validator: 'Validator-4', stake: 120000000 },
+                        { validator: 'Others', stake: 1750000000 }
+                    ],
+                    proposalSuccess: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        data: [99.8, 99.9, 99.7, 99.9, 99.8, 99.6, 99.9]
+                    },
+                    topValidators: [
+                        { rank: 1, name: 'AurigraphValidator-01', score: 98.5, uptime: 99.99, stake: 250000000, blocks: 12450, successRate: 99.9, rewards: 1250 },
+                        { rank: 2, name: 'SecureNode-Prime', score: 97.8, uptime: 99.98, stake: 180000000, blocks: 11200, successRate: 99.8, rewards: 980 },
+                        { rank: 3, name: 'QuantumValidator-X', score: 97.2, uptime: 99.97, stake: 150000000, blocks: 10800, successRate: 99.7, rewards: 850 },
+                        { rank: 4, name: 'HyperNode-Alpha', score: 96.9, uptime: 99.96, stake: 120000000, blocks: 10200, successRate: 99.7, rewards: 720 },
+                        { rank: 5, name: 'EliteValidator-5', score: 96.5, uptime: 99.95, stake: 100000000, blocks: 9800, successRate: 99.6, rewards: 680 }
+                    ],
+                    rewards: {
+                        labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                        data: [45000, 48000, 47500, 49000, 50000, 48500, 51000]
+                    },
+                    uptimeCategories: {
+                        uptime100: 95,
+                        uptime95: 26,
+                        uptimeBelow95: 6
+                    }
+                };
+
+                // Update statistics cards
+                document.getElementById('totalValidators').textContent = mockData.totalValidators;
+                document.getElementById('activeValidators').textContent = mockData.activeValidators;
+                document.getElementById('activePercent').textContent = `${((mockData.activeValidators / mockData.totalValidators) * 100).toFixed(1)}% active`;
+                document.getElementById('totalStake').textContent = formatNumber(mockData.totalStake);
+                document.getElementById('networkUptime').textContent = mockData.networkUptime.toFixed(2) + '%';
+
+                // Update uptime categories
+                document.getElementById('uptime100').textContent = mockData.uptimeCategories.uptime100;
+                document.getElementById('uptime100Pct').textContent = `${((mockData.uptimeCategories.uptime100 / mockData.totalValidators) * 100).toFixed(1)}%`;
+                document.getElementById('uptime95').textContent = mockData.uptimeCategories.uptime95;
+                document.getElementById('uptime95Pct').textContent = `${((mockData.uptimeCategories.uptime95 / mockData.totalValidators) * 100).toFixed(1)}%`;
+                document.getElementById('uptimeBelow95').textContent = mockData.uptimeCategories.uptimeBelow95;
+                document.getElementById('uptimeBelow95Pct').textContent = `${((mockData.uptimeCategories.uptimeBelow95 / mockData.totalValidators) * 100).toFixed(1)}%`;
+
+                // Update top validators table
+                const tbody = document.getElementById('topValidatorsTable');
+                tbody.innerHTML = mockData.topValidators.map(v => `
+                    <tr>
+                        <td class="font-bold">${v.rank}</td>
+                        <td class="text-primary">${v.name}</td>
+                        <td class="text-success font-bold">${v.score.toFixed(1)}</td>
+                        <td>${v.uptime.toFixed(2)}%</td>
+                        <td>${formatNumber(v.stake)} AUR</td>
+                        <td>${formatNumber(v.blocks)}</td>
+                        <td class="text-success">${v.successRate.toFixed(1)}%</td>
+                        <td class="text-primary">${v.rewards.toFixed(2)} AUR</td>
+                    </tr>
+                `).join('');
+
+                // Update charts
+                updateStakeDistChart(mockData.stakeDistribution);
+                updateProposalSuccessChart(mockData.proposalSuccess);
+                updateRewardDistChart(mockData.rewards);
+            } catch (error) {
+                console.error('Failed to load validator analytics:', error);
+            }
+        }
+
+        function updateStakeDistChart(distribution) {
+            const ctx = document.getElementById('stakeDistChart');
+            if (!ctx) return;
+
+            if (stakeDistChart) {
+                stakeDistChart.destroy();
+            }
+
+            stakeDistChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: distribution.map(d => d.validator),
+                    datasets: [{
+                        data: distribution.map(d => d.stake),
+                        backgroundColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(16, 185, 129)',
+                            'rgb(251, 146, 60)',
+                            'rgb(139, 92, 246)',
+                            'rgb(107, 114, 128)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        function updateProposalSuccessChart(proposalData) {
+            const ctx = document.getElementById('proposalSuccessChart');
+            if (!ctx) return;
+
+            if (proposalSuccessChart) {
+                proposalSuccessChart.destroy();
+            }
+
+            proposalSuccessChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: proposalData.labels,
+                    datasets: [{
+                        label: 'Success Rate (%)',
+                        data: proposalData.data,
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 99,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRewardDistChart(rewardData) {
+            const ctx = document.getElementById('rewardDistChart');
+            if (!ctx) return;
+
+            if (rewardDistChart) {
+                rewardDistChart.destroy();
+            }
+
+            rewardDistChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: rewardData.labels,
+                    datasets: [{
+                        label: 'Total Rewards (AUR)',
+                        data: rewardData.data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function loadTopValidators() {
+            loadValidatorAnalytics();
         }
 
         // ==================== CHART SETUP ====================

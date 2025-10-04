@@ -12,8 +12,9 @@ const https = require('https');
 const JIRA_CONFIG = {
   baseUrl: 'https://aurigraphdlt.atlassian.net',
   email: 'subbu@aurigraph.io',
-  apiToken: process.env.JIRA_API_TOKEN || 'YOUR_API_TOKEN_HERE',
-  projectKey: 'AV11'
+  apiToken: process.env.JIRA_API_TOKEN || 'ATATT3xFfGF0c79X44m_ecHcP5d2F-jx5ljisCVB11tCEl5jB0Cx_FaapQt_u44IqcmBwfq8Gl8CsMFdtu9mqV8SgzcUwjZ2TiHRJo9eh718fUYw7ptk5ZFOzc-aLV2FH_ywq2vSsJ5gLvSorz-eB4JeKxUSLyYiGS9Y05-WhlEWa0cgFUdhUI4=0BECD4F5',
+  projectKey: 'AV11',
+  epicKey: 'AV11-176'  // Existing epic created
 };
 
 // Create Authorization header
@@ -159,14 +160,14 @@ async function createStory(storyData, epicKey, issueTypes) {
     }
   };
 
-  // Add priority if specified
-  if (storyData.priority) {
-    const priorities = await jiraRequest('GET', '/priority');
-    const priority = priorities.find(p => p.name === storyData.priority);
-    if (priority) {
-      storyPayload.fields.priority = { id: priority.id };
-    }
-  }
+  // Skip priority - not available in this JIRA project configuration
+  // if (storyData.priority) {
+  //   const priorities = await jiraRequest('GET', '/priority');
+  //   const priority = priorities.find(p => p.name === storyData.priority);
+  //   if (priority) {
+  //     storyPayload.fields.priority = { id: priority.id };
+  //   }
+  // }
 
   // Add story points if customfield exists (varies by JIRA instance)
   // Uncomment if you know your story points field ID
@@ -194,16 +195,22 @@ async function importTickets() {
 
   try {
     // Read tickets JSON
-    const ticketsData = JSON.parse(fs.readFileSync('./JIRA_TICKETS.json', 'utf8'));
+    const ticketsData = JSON.parse(fs.readFileSync(__dirname + '/JIRA_TICKETS.json', 'utf8'));
 
     // Get issue types
     console.log('\n📋 Fetching JIRA project configuration...');
     const issueTypes = await getIssueTypes();
     console.log(`✅ Found ${issueTypes.length} issue types in project ${JIRA_CONFIG.projectKey}`);
 
-    // Create Epic
-    console.log('\n📌 Creating Epic...');
-    const epic = await createEpic(ticketsData.epic, issueTypes);
+    // Use existing Epic or create new one
+    let epicKey = JIRA_CONFIG.epicKey;
+    if (!epicKey) {
+      console.log('\n📌 Creating Epic...');
+      const epic = await createEpic(ticketsData.epic, issueTypes);
+      epicKey = epic.key;
+    } else {
+      console.log(`\n📌 Using existing Epic: ${epicKey}`);
+    }
 
     // Create Tasks (Stories)
     console.log(`\n📝 Creating ${ticketsData.tickets.length} Tasks...\n`);
@@ -211,7 +218,7 @@ async function importTickets() {
 
     for (let i = 0; i < ticketsData.tickets.length; i++) {
       const story = ticketsData.tickets[i];
-      const result = await createStory(story, epic.key, issueTypes);
+      const result = await createStory(story, epicKey, issueTypes);
       if (result) {
         createdStories.push(result);
       }
@@ -223,9 +230,9 @@ async function importTickets() {
     // Summary
     console.log('\n' + '='.repeat(70));
     console.log('✅ Import Complete!\n');
-    console.log(`Epic Created: ${epic.key} - ${ticketsData.epic.summary}`);
+    console.log(`Epic: ${epicKey} - ${ticketsData.epic.summary}`);
     console.log(`Stories Created: ${createdStories.length}/${ticketsData.tickets.length}`);
-    console.log(`\nView in JIRA: ${JIRA_CONFIG.baseUrl}/browse/${epic.key}`);
+    console.log(`\nView in JIRA: ${JIRA_CONFIG.baseUrl}/browse/${epicKey}`);
     console.log('=' .repeat(70) + '\n');
 
     // Write summary to file
