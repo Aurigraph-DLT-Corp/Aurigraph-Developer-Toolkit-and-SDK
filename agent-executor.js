@@ -28,7 +28,7 @@ const EXECUTION_CONFIG = {
     dryRun: false,              // Set to true to simulate without JIRA updates
     maxConcurrentAgents: 5,     // Max parallel agents
     delayBetweenTickets: 2000,  // 2 seconds between tickets
-    sprintToExecute: 1,         // Which sprint to execute (1 = first sprint)
+    sprintToExecute: 2,         // Which sprint to execute (2 = second sprint)
     maxTicketsPerRun: 10        // Limit tickets per execution
 };
 
