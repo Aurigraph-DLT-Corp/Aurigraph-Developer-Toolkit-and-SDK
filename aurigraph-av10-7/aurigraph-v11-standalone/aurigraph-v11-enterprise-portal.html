@@ -2380,6 +2380,1225 @@
         </div>
     </div>
 
+
+        <!-- Sprint 16: AI Optimization Dashboard Tab -->
+        <div id="ai-optimization" class="tab-content">
+            <h2 class="mb-3">AI Optimization Dashboard</h2>
+
+            <!-- ML Model Performance -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">ML Model Performance</h3>
+                    <span class="card-badge">Sprint 16 - 21 Points</span>
+                </div>
+                <div class="grid grid-4 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Model Accuracy</div>
+                        <div class="stat-value" id="modelAccuracy">97.8%</div>
+                        <div class="stat-change positive">+2.1%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Prediction Latency</div>
+                        <div class="stat-value" id="predictionLatency">12ms</div>
+                        <div class="stat-change positive">-3ms</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Training Epochs</div>
+                        <div class="stat-value" id="trainingEpochs">1,245</div>
+                        <div class="stat-change">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Model Version</div>
+                        <div class="stat-value" id="modelVersion">v3.2.1</div>
+                        <div class="stat-change">Latest</div>
+                    </div>
+                </div>
+
+                <!-- Model Accuracy Trend Chart -->
+                <div class="mt-3">
+                    <h4 class="mb-2">Model Accuracy Over Time</h4>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="modelAccuracyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consensus Optimization Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Consensus Optimization Metrics</h3>
+                    <span class="card-badge">AI-Driven Improvements</span>
+                </div>
+                <div class="grid grid-3 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">TPS Improvement</div>
+                        <div class="stat-value" style="color: #00ff88;">+342K</div>
+                        <div class="stat-change positive">+18.5%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Latency Reduction</div>
+                        <div class="stat-value" style="color: #00ff88;">-125ms</div>
+                        <div class="stat-change positive">-42%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Resource Efficiency</div>
+                        <div class="stat-value" style="color: #00ff88;">+28%</div>
+                        <div class="stat-change positive">Optimized</div>
+                    </div>
+                </div>
+
+                <!-- Optimization Timeline -->
+                <div class="mt-3">
+                    <h4 class="mb-2">Recent Optimizations</h4>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Optimization Type</th>
+                                    <th>Impact</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="optimizationTable">
+                                <tr>
+                                    <td>2025-10-04 14:23</td>
+                                    <td>Leader Election</td>
+                                    <td>+45K TPS</td>
+                                    <td><span class="badge badge-success">Applied</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-10-04 13:15</td>
+                                    <td>Batch Processing</td>
+                                    <td>-38ms latency</td>
+                                    <td><span class="badge badge-success">Applied</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-10-04 12:05</td>
+                                    <td>Thread Allocation</td>
+                                    <td>+12% efficiency</td>
+                                    <td><span class="badge badge-success">Applied</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Predictive Analytics</h3>
+                    <span class="card-badge">Transaction Forecasting</span>
+                </div>
+                <div class="grid grid-2 gap-2">
+                    <div>
+                        <h4 class="mb-2">Load Predictions (Next 24h)</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Time Window</th>
+                                        <th>Predicted TPS</th>
+                                        <th>Confidence</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="predictionTable">
+                                    <tr>
+                                        <td>00:00 - 06:00</td>
+                                        <td>850K</td>
+                                        <td>94%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>06:00 - 12:00</td>
+                                        <td>1.2M</td>
+                                        <td>96%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>12:00 - 18:00</td>
+                                        <td>1.8M</td>
+                                        <td>92%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>18:00 - 24:00</td>
+                                        <td>1.5M</td>
+                                        <td>95%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="mb-2">Anomaly Detection</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Anomaly Type</th>
+                                        <th>Severity</th>
+                                        <th>Count (24h)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="anomalyTable">
+                                    <tr>
+                                        <td>Unusual TPS Spike</td>
+                                        <td><span class="badge badge-warning">Medium</span></td>
+                                        <td>3</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Latency Outlier</td>
+                                        <td><span class="badge badge-success">Low</span></td>
+                                        <td>7</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Resource Anomaly</td>
+                                        <td><span class="badge badge-success">Low</span></td>
+                                        <td>2</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Training Controls -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Model Training & Deployment</h3>
+                    <span class="card-badge">ML Operations</span>
+                </div>
+                <form onsubmit="trainModel(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Model Type</label>
+                            <select class="form-select" id="modelType" required>
+                                <option value="consensus">Consensus Optimizer</option>
+                                <option value="transaction">Transaction Predictor</option>
+                                <option value="anomaly">Anomaly Detector</option>
+                                <option value="resource">Resource Optimizer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Training Dataset Size</label>
+                            <input type="number" class="form-input" id="datasetSize" placeholder="1000000" min="1000" value="1000000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Epochs</label>
+                            <input type="number" class="form-input" id="epochs" placeholder="100" min="10" value="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Learning Rate</label>
+                            <input type="number" class="form-input" id="learningRate" placeholder="0.001" step="0.0001" value="0.001" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Start Training</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sprint 17: Quantum Security Advanced Tab -->
+        <div id="quantum-security-adv" class="tab-content">
+            <h2 class="mb-3">Quantum Security Advanced</h2>
+
+            <!-- Cryptographic Algorithms -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Post-Quantum Cryptography</h3>
+                    <span class="card-badge">Sprint 17 - 18 Points</span>
+                </div>
+                <div class="grid grid-3 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Algorithm</div>
+                        <div class="stat-value" style="font-size: 1rem;">CRYSTALS-Kyber</div>
+                        <div class="stat-change">NIST Level 5</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Signature Scheme</div>
+                        <div class="stat-value" style="font-size: 1rem;">Dilithium</div>
+                        <div class="stat-change">Post-Quantum</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Security Level</div>
+                        <div class="stat-value" style="color: #00ff88;">256-bit</div>
+                        <div class="stat-change">Quantum-Safe</div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Selector -->
+                <div class="mt-3">
+                    <h4 class="mb-2">Algorithm Configuration</h4>
+                    <form onsubmit="updateCryptoAlgorithm(event)">
+                        <div class="grid grid-2 gap-2">
+                            <div class="form-group">
+                                <label class="form-label">Key Encapsulation</label>
+                                <select class="form-select" id="kemAlgorithm" required>
+                                    <option value="kyber512">CRYSTALS-Kyber-512</option>
+                                    <option value="kyber768" selected>CRYSTALS-Kyber-768</option>
+                                    <option value="kyber1024">CRYSTALS-Kyber-1024</option>
+                                    <option value="ntru">NTRU</option>
+                                    <option value="saber">SABER</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Digital Signature</label>
+                                <select class="form-select" id="sigAlgorithm" required>
+                                    <option value="dilithium2">Dilithium2</option>
+                                    <option value="dilithium3" selected>Dilithium3</option>
+                                    <option value="dilithium5">Dilithium5</option>
+                                    <option value="falcon">FALCON</option>
+                                    <option value="sphincs">SPHINCS+</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Apply Configuration</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Key Management -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quantum Key Management</h3>
+                    <span class="card-badge">Advanced Operations</span>
+                </div>
+                <div class="grid grid-4 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Keys</div>
+                        <div class="stat-value">2,456</div>
+                        <div class="stat-change">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Keys Rotated (24h)</div>
+                        <div class="stat-value">142</div>
+                        <div class="stat-change positive">Secure</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Key Lifetime</div>
+                        <div class="stat-value">7 days</div>
+                        <div class="stat-change">Policy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Compromised Keys</div>
+                        <div class="stat-value" style="color: #00ff88;">0</div>
+                        <div class="stat-change positive">Secure</div>
+                    </div>
+                </div>
+
+                <!-- Key Generation Form -->
+                <form onsubmit="generateQuantumKey(event)">
+                    <h4 class="mb-2">Generate New Key Pair</h4>
+                    <div class="grid grid-3 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Key Purpose</label>
+                            <select class="form-select" id="keyPurpose" required>
+                                <option value="signing">Transaction Signing</option>
+                                <option value="encryption">Data Encryption</option>
+                                <option value="validator">Validator Identity</option>
+                                <option value="consensus">Consensus Participation</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Algorithm</label>
+                            <select class="form-select" id="keyAlgorithm" required>
+                                <option value="kyber768">Kyber-768</option>
+                                <option value="dilithium3">Dilithium3</option>
+                                <option value="sphincs">SPHINCS+</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Lifetime (days)</label>
+                            <input type="number" class="form-input" id="keyLifetime" placeholder="7" min="1" max="365" value="7" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Generate Key Pair</button>
+                </form>
+            </div>
+
+            <!-- Compliance Dashboard -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Security Compliance & Audit</h3>
+                    <span class="card-badge">Regulatory Standards</span>
+                </div>
+                <div class="grid grid-2 gap-2">
+                    <div>
+                        <h4 class="mb-2">Compliance Status</h4>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>NIST PQC Standards</span>
+                                <span style="color: #00ff88;">100%</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 24px; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #00ff88, #00cc66); height: 100%; width: 100%; border-radius: 8px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>FIPS 140-3</span>
+                                <span style="color: #00ff88;">100%</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 24px; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #00ff88, #00cc66); height: 100%; width: 100%; border-radius: 8px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>ISO 27001</span>
+                                <span style="color: #ffaa00;">95%</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 24px; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #ffaa00, #cc8800); height: 100%; width: 95%; border-radius: 8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="mb-2">Recent Security Audits</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Audit Type</th>
+                                        <th>Date</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="auditLogTable">
+                                    <tr>
+                                        <td>Key Rotation</td>
+                                        <td>2025-10-04</td>
+                                        <td><span class="badge badge-success">Pass</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Crypto Algorithm</td>
+                                        <td>2025-10-03</td>
+                                        <td><span class="badge badge-success">Pass</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Access Control</td>
+                                        <td>2025-10-02</td>
+                                        <td><span class="badge badge-success">Pass</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint 18: Smart Contract Development Tab -->
+        <div id="smart-contracts" class="tab-content">
+            <h2 class="mb-3">Smart Contract Development</h2>
+
+            <!-- Contract IDE -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Contract Editor</h3>
+                    <span class="card-badge">Sprint 18 - 21 Points</span>
+                </div>
+                <div class="grid grid-2 gap-2 mb-2">
+                    <div class="form-group">
+                        <label class="form-label">Contract Template</label>
+                        <select class="form-select" id="contractTemplate" onchange="loadContractTemplate(event)">
+                            <option value="">Blank Contract</option>
+                            <option value="token">ERC-20 Token</option>
+                            <option value="nft">NFT Collection</option>
+                            <option value="defi">DeFi Protocol</option>
+                            <option value="dao">DAO Governance</option>
+                            <option value="marketplace">Marketplace</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contract Name</label>
+                        <input type="text" class="form-input" id="contractName" placeholder="MySmartContract">
+                    </div>
+                </div>
+
+                <!-- Code Editor Area -->
+                <div style="background: #0a0e27; border: 1px solid #2a2f4a; border-radius: 8px; padding: 1rem; font-family: 'Courier New', monospace; min-height: 400px; overflow: auto;">
+                    <pre id="contractEditor" contenteditable="true" style="color: #a0a0b0; outline: none; white-space: pre-wrap;">// Smart Contract Code
+contract MySmartContract {
+    // State variables
+    mapping(address => uint256) public balances;
+
+    // Constructor
+    constructor() {
+        // Initialize contract
+    }
+
+    // Functions
+    function transfer(address to, uint256 amount) public {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+    }
+}</pre>
+                </div>
+
+                <div class="grid grid-3 gap-2 mt-2">
+                    <button type="button" class="btn btn-secondary" onclick="compileContract()">Compile Contract</button>
+                    <button type="button" class="btn btn-secondary" onclick="testContract()">Run Tests</button>
+                    <button type="button" class="btn btn-primary" onclick="saveContract()">Save Contract</button>
+                </div>
+            </div>
+
+            <!-- Compilation Results -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Compilation & Test Results</h3>
+                    <span class="card-badge">Build Status</span>
+                </div>
+                <div id="compileResults" class="mb-3" style="background: rgba(0,255,136,0.1); border: 1px solid #00ff88; border-radius: 8px; padding: 1rem; display: none;">
+                    <h4 style="color: #00ff88; margin-bottom: 0.5rem;">Compilation Successful</h4>
+                    <p style="color: #a0a0b0; margin: 0;">Contract compiled successfully. Gas estimate: 245,678</p>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Test Case</th>
+                                <th>Status</th>
+                                <th>Gas Used</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="testResultsTable">
+                            <tr>
+                                <td>test_constructor</td>
+                                <td><span class="badge badge-success">Pass</span></td>
+                                <td>21,000</td>
+                                <td>12ms</td>
+                            </tr>
+                            <tr>
+                                <td>test_transfer</td>
+                                <td><span class="badge badge-success">Pass</span></td>
+                                <td>45,678</td>
+                                <td>24ms</td>
+                            </tr>
+                            <tr>
+                                <td>test_insufficient_balance</td>
+                                <td><span class="badge badge-success">Pass</span></td>
+                                <td>23,456</td>
+                                <td>18ms</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Deployment Wizard -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Contract Deployment</h3>
+                    <span class="card-badge">Deploy to Network</span>
+                </div>
+                <form onsubmit="deployContract(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Network</label>
+                            <select class="form-select" id="deployNetwork" required>
+                                <option value="mainnet">Aurigraph Mainnet</option>
+                                <option value="testnet" selected>Aurigraph Testnet</option>
+                                <option value="devnet">Development Network</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gas Limit</label>
+                            <input type="number" class="form-input" id="gasLimit" placeholder="500000" value="500000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Constructor Arguments (JSON)</label>
+                            <input type="text" class="form-input" id="constructorArgs" placeholder='["arg1", "arg2"]'>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Deploy From Address</label>
+                            <input type="text" class="form-input" id="deployerAddress" placeholder="0x..." required>
+                        </div>
+                    </div>
+
+                    <!-- Deployment Steps -->
+                    <div class="mt-3">
+                        <h4 class="mb-2">Deployment Steps</h4>
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 1rem;">
+                            <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="background: #00ff88; color: #0a0e27; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 0.75rem;">1</span>
+                                <span>Compile contract bytecode</span>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="background: rgba(255,255,255,0.2); color: #ffffff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 0.75rem;">2</span>
+                                <span>Sign deployment transaction</span>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="background: rgba(255,255,255,0.2); color: #ffffff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 0.75rem;">3</span>
+                                <span>Submit to network</span>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <span style="background: rgba(255,255,255,0.2); color: #ffffff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 0.75rem;">4</span>
+                                <span>Verify contract on explorer</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Deploy Contract</button>
+                </form>
+            </div>
+
+            <!-- Deployed Contracts -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Deployed Contracts</h3>
+                    <span class="card-badge">Contract Registry</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Contract Name</th>
+                                <th>Address</th>
+                                <th>Network</th>
+                                <th>Deployed</th>
+                                <th>Interactions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deployedContractsTable">
+                            <tr>
+                                <td>AuriToken</td>
+                                <td>0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb</td>
+                                <td>Mainnet</td>
+                                <td>2025-09-15</td>
+                                <td>24,567</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="viewContract('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>NFTMarketplace</td>
+                                <td>0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984</td>
+                                <td>Testnet</td>
+                                <td>2025-09-28</td>
+                                <td>8,934</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="viewContract('0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984')">View</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint 19: Token/NFT Marketplace Tab -->
+        <div id="marketplace" class="tab-content">
+            <h2 class="mb-3">Token & NFT Marketplace</h2>
+
+            <!-- Market Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Market Overview</h3>
+                    <span class="card-badge">Sprint 19 - 21 Points</span>
+                </div>
+                <div class="grid grid-4 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">24h Volume</div>
+                        <div class="stat-value">$45.2M</div>
+                        <div class="stat-change positive">+18.5%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Active Listings</div>
+                        <div class="stat-value">12,456</div>
+                        <div class="stat-change positive">+234</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Floor Price</div>
+                        <div class="stat-value">2.5 AUR</div>
+                        <div class="stat-change positive">+0.3</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Traders</div>
+                        <div class="stat-value">8,934</div>
+                        <div class="stat-change positive">+456</div>
+                    </div>
+                </div>
+
+                <!-- Price Chart -->
+                <div class="mt-3">
+                    <h4 class="mb-2">Market Price Trend (24h)</h4>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="marketPriceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Interface -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Trading Interface</h3>
+                    <span class="card-badge">Buy & Sell</span>
+                </div>
+                <div class="grid grid-2 gap-3">
+                    <!-- Buy Form -->
+                    <div>
+                        <h4 class="mb-2" style="color: #00ff88;">Buy Order</h4>
+                        <form onsubmit="createBuyOrder(event)">
+                            <div class="form-group">
+                                <label class="form-label">Asset Type</label>
+                                <select class="form-select" id="buyAssetType" required>
+                                    <option value="token">Token</option>
+                                    <option value="nft">NFT</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Asset/Collection</label>
+                                <select class="form-select" id="buyAsset" required>
+                                    <option value="aur">AUR Token</option>
+                                    <option value="nft1">AuriPunks #1234</option>
+                                    <option value="nft2">CryptoArt Collection</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input" id="buyQuantity" placeholder="100" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Price per Unit (AUR)</label>
+                                <input type="number" class="form-input" id="buyPrice" placeholder="2.5" step="0.01" min="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Total Cost</label>
+                                <input type="text" class="form-input" id="buyTotal" readonly value="250 AUR">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, #00ff88, #00cc66);">Place Buy Order</button>
+                        </form>
+                    </div>
+
+                    <!-- Sell Form -->
+                    <div>
+                        <h4 class="mb-2" style="color: #ff6b6b;">Sell Order</h4>
+                        <form onsubmit="createSellOrder(event)">
+                            <div class="form-group">
+                                <label class="form-label">Asset Type</label>
+                                <select class="form-select" id="sellAssetType" required>
+                                    <option value="token">Token</option>
+                                    <option value="nft">NFT</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Asset/Collection</label>
+                                <select class="form-select" id="sellAsset" required>
+                                    <option value="aur">AUR Token</option>
+                                    <option value="nft1">AuriPunks #1234</option>
+                                    <option value="nft2">CryptoArt Collection</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input" id="sellQuantity" placeholder="50" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Price per Unit (AUR)</label>
+                                <input type="number" class="form-input" id="sellPrice" placeholder="2.8" step="0.01" min="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Total Revenue</label>
+                                <input type="text" class="form-input" id="sellTotal" readonly value="140 AUR">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, #ff6b6b, #cc5555);">Place Sell Order</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Book -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Order Book</h3>
+                    <span class="card-badge">Live Trading Data</span>
+                </div>
+                <div class="grid grid-2 gap-3">
+                    <!-- Buy Orders -->
+                    <div>
+                        <h4 class="mb-2" style="color: #00ff88;">Buy Orders</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Price (AUR)</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="buyOrdersTable">
+                                    <tr>
+                                        <td style="color: #00ff88;">2.52</td>
+                                        <td>1,245</td>
+                                        <td>3,137 AUR</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #00ff88;">2.51</td>
+                                        <td>2,567</td>
+                                        <td>6,443 AUR</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #00ff88;">2.50</td>
+                                        <td>3,890</td>
+                                        <td>9,725 AUR</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #00ff88;">2.49</td>
+                                        <td>1,456</td>
+                                        <td>3,626 AUR</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Sell Orders -->
+                    <div>
+                        <h4 class="mb-2" style="color: #ff6b6b;">Sell Orders</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Price (AUR)</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sellOrdersTable">
+                                    <tr>
+                                        <td style="color: #ff6b6b;">2.53</td>
+                                        <td>987</td>
+                                        <td>2,497 AUR</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #ff6b6b;">2.54</td>
+                                        <td>2,134</td>
+                                        <td>5,420 AUR</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #ff6b6b;">2.55</td>
+                                        <td>3,456</td>
+                                        <td>8,813 AUR</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #ff6b6b;">2.56</td>
+                                        <td>1,789</td>
+                                        <td>4,580 AUR</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Trades -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Trades</h3>
+                    <span class="card-badge">Trade History</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Asset</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTradesTable">
+                            <tr>
+                                <td>14:32:15</td>
+                                <td><span style="color: #00ff88;">Buy</span></td>
+                                <td>AUR Token</td>
+                                <td>2.52 AUR</td>
+                                <td>500</td>
+                                <td>1,260 AUR</td>
+                                <td><span class="badge badge-success">Filled</span></td>
+                            </tr>
+                            <tr>
+                                <td>14:31:48</td>
+                                <td><span style="color: #ff6b6b;">Sell</span></td>
+                                <td>NFT #4567</td>
+                                <td>125 AUR</td>
+                                <td>1</td>
+                                <td>125 AUR</td>
+                                <td><span class="badge badge-success">Filled</span></td>
+                            </tr>
+                            <tr>
+                                <td>14:30:22</td>
+                                <td><span style="color: #00ff88;">Buy</span></td>
+                                <td>CryptoArt #89</td>
+                                <td>45.5 AUR</td>
+                                <td>1</td>
+                                <td>45.5 AUR</td>
+                                <td><span class="badge badge-success">Filled</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint 20: DeFi Integration Tab -->
+        <div id="defi" class="tab-content">
+            <h2 class="mb-3">DeFi Integration</h2>
+
+            <!-- DeFi Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">DeFi Protocol Overview</h3>
+                    <span class="card-badge">Sprint 20 - 21 Points</span>
+                </div>
+                <div class="grid grid-4 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Value Locked</div>
+                        <div class="stat-value">$156.8M</div>
+                        <div class="stat-change positive">+12.4%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Active Pools</div>
+                        <div class="stat-value">42</div>
+                        <div class="stat-change positive">+3 new</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg APY</div>
+                        <div class="stat-value" style="color: #00ff88;">24.5%</div>
+                        <div class="stat-change positive">High Yield</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">DeFi Users</div>
+                        <div class="stat-value">15,678</div>
+                        <div class="stat-change positive">+892 this week</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liquidity Pools -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Liquidity Pools</h3>
+                    <span class="card-badge">Provide Liquidity</span>
+                </div>
+                <div class="table-container mb-3">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pool</th>
+                                <th>TVL</th>
+                                <th>APY</th>
+                                <th>Volume (24h)</th>
+                                <th>Your Share</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liquidityPoolsTable">
+                            <tr>
+                                <td><strong>AUR/USDC</strong></td>
+                                <td>$45.2M</td>
+                                <td style="color: #00ff88;">28.5%</td>
+                                <td>$8.4M</td>
+                                <td>0.24%</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="manageLiquidityPool('AUR/USDC')">Manage</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>AUR/ETH</strong></td>
+                                <td>$32.6M</td>
+                                <td style="color: #00ff88;">22.3%</td>
+                                <td>$5.6M</td>
+                                <td>0.15%</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="manageLiquidityPool('AUR/ETH')">Manage</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>AUR/BTC</strong></td>
+                                <td>$28.4M</td>
+                                <td style="color: #00ff88;">19.8%</td>
+                                <td>$4.2M</td>
+                                <td>0.08%</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="manageLiquidityPool('AUR/BTC')">Manage</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Add Liquidity Form -->
+                <form onsubmit="addLiquidity(event)">
+                    <h4 class="mb-2">Add Liquidity</h4>
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Pool</label>
+                            <select class="form-select" id="liquidityPool" required>
+                                <option value="AUR/USDC">AUR/USDC</option>
+                                <option value="AUR/ETH">AUR/ETH</option>
+                                <option value="AUR/BTC">AUR/BTC</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Amount (Token A)</label>
+                            <input type="number" class="form-input" id="liquidityAmountA" placeholder="1000" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Amount (Token B)</label>
+                            <input type="number" class="form-input" id="liquidityAmountB" placeholder="2500" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Slippage Tolerance (%)</label>
+                            <input type="number" class="form-input" id="slippageTolerance" placeholder="0.5" step="0.1" value="0.5" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Add Liquidity</button>
+                </form>
+            </div>
+
+            <!-- Yield Farming -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Yield Farming</h3>
+                    <span class="card-badge">Earn Rewards</span>
+                </div>
+                <div class="grid grid-3 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Your Staked Value</div>
+                        <div class="stat-value">$24,567</div>
+                        <div class="stat-change">Across 3 farms</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pending Rewards</div>
+                        <div class="stat-value" style="color: #00ff88;">456.7 AUR</div>
+                        <div class="stat-change positive">$1,152</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Earned</div>
+                        <div class="stat-value" style="color: #00ff88;">2,345 AUR</div>
+                        <div class="stat-change positive">$5,923</div>
+                    </div>
+                </div>
+
+                <!-- Active Farms -->
+                <div class="table-container mb-3">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Farm</th>
+                                <th>Staked</th>
+                                <th>APY</th>
+                                <th>Earned</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yieldFarmsTable">
+                            <tr>
+                                <td><strong>AUR-USDC LP</strong></td>
+                                <td>$15,234</td>
+                                <td style="color: #00ff88;">45.6%</td>
+                                <td style="color: #00ff88;">234.5 AUR</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="harvestRewards('AUR-USDC')">Harvest</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>AUR Single Stake</strong></td>
+                                <td>$6,789</td>
+                                <td style="color: #00ff88;">32.1%</td>
+                                <td style="color: #00ff88;">156.8 AUR</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="harvestRewards('AUR-Single')">Harvest</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>AUR-ETH LP</strong></td>
+                                <td>$2,544</td>
+                                <td style="color: #00ff88;">28.9%</td>
+                                <td style="color: #00ff88;">65.4 AUR</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="harvestRewards('AUR-ETH')">Harvest</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Stake Form -->
+                <form onsubmit="stakeFarm(event)">
+                    <h4 class="mb-2">Stake in Farm</h4>
+                    <div class="grid grid-3 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Farm</label>
+                            <select class="form-select" id="farmSelect" required>
+                                <option value="AUR-USDC">AUR-USDC LP (45.6% APY)</option>
+                                <option value="AUR-Single">AUR Single Stake (32.1% APY)</option>
+                                <option value="AUR-ETH">AUR-ETH LP (28.9% APY)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Amount to Stake</label>
+                            <input type="number" class="form-input" id="stakeAmount" placeholder="1000" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Lock Period (days)</label>
+                            <select class="form-select" id="lockPeriod" required>
+                                <option value="0">Flexible (0% bonus)</option>
+                                <option value="30">30 days (+5% APY)</option>
+                                <option value="90">90 days (+10% APY)</option>
+                                <option value="180">180 days (+15% APY)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Stake Now</button>
+                </form>
+            </div>
+
+            <!-- Protocol Integrations -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Protocol Integrations</h3>
+                    <span class="card-badge">External DeFi Protocols</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Protocol</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>TVL</th>
+                                <th>Integration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="protocolIntegrationsTable">
+                            <tr>
+                                <td><strong>Uniswap V3</strong></td>
+                                <td>DEX</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>$45.2M</td>
+                                <td>Cross-chain Bridge</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Aave</strong></td>
+                                <td>Lending</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>$32.8M</td>
+                                <td>Money Market</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Curve Finance</strong></td>
+                                <td>Stableswap</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>$28.4M</td>
+                                <td>Liquidity Provider</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Compound</strong></td>
+                                <td>Lending</td>
+                                <td><span class="badge badge-warning">Testing</span></td>
+                                <td>$15.6M</td>
+                                <td>Money Market</td>
+                            </tr>
+                            <tr>
+                                <td><strong>SushiSwap</strong></td>
+                                <td>DEX</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>$12.3M</td>
+                                <td>Cross-chain Bridge</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Lending & Borrowing -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Lending & Borrowing</h3>
+                    <span class="card-badge">Money Market</span>
+                </div>
+                <div class="grid grid-2 gap-3">
+                    <!-- Lend Section -->
+                    <div>
+                        <h4 class="mb-2" style="color: #00ff88;">Lend Assets</h4>
+                        <form onsubmit="lendAsset(event)">
+                            <div class="form-group">
+                                <label class="form-label">Asset to Lend</label>
+                                <select class="form-select" id="lendAsset" required>
+                                    <option value="AUR">AUR (12.5% APY)</option>
+                                    <option value="USDC">USDC (8.3% APY)</option>
+                                    <option value="ETH">ETH (6.8% APY)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-input" id="lendAmount" placeholder="1000" step="0.01" min="0.01" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Lend Asset</button>
+                        </form>
+                    </div>
+
+                    <!-- Borrow Section -->
+                    <div>
+                        <h4 class="mb-2" style="color: #ffaa00;">Borrow Assets</h4>
+                        <form onsubmit="borrowAsset(event)">
+                            <div class="form-group">
+                                <label class="form-label">Asset to Borrow</label>
+                                <select class="form-select" id="borrowAsset" required>
+                                    <option value="AUR">AUR (14.2% APR)</option>
+                                    <option value="USDC">USDC (9.5% APR)</option>
+                                    <option value="ETH">ETH (7.8% APR)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-input" id="borrowAmount" placeholder="500" step="0.01" min="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Collateral (AUR)</label>
+                                <input type="number" class="form-input" id="collateralAmount" placeholder="1000" step="0.01" min="0.01" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Borrow Asset</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lending/Borrowing Stats -->
+                <div class="grid grid-4 gap-2 mt-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Your Deposits</div>
+                        <div class="stat-value">$12,456</div>
+                        <div class="stat-change">3 assets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Your Borrows</div>
+                        <div class="stat-value">$5,678</div>
+                        <div class="stat-change">2 assets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Health Factor</div>
+                        <div class="stat-value" style="color: #00ff88;">2.45</div>
+                        <div class="stat-change positive">Safe</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Net APY</div>
+                        <div class="stat-value" style="color: #00ff88;">+8.7%</div>
+                        <div class="stat-change positive">Earning</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Sprint 21: Cross-Chain Advanced Tab -->
         <div id="crosschain-adv" class="tab-content">
             <h2 class="mb-3">Cross-Chain Advanced Operations</h2>
@@ -2538,6 +3757,689 @@
                 </div>
                 <div class="chart-container">
                     <canvas id="bridgeVolumeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint 22: HMS Integration Full Tab -->
+        <div id="hms-full" class="tab-content">
+            <h2 class="mb-3">HMS Full Integration Dashboard</h2>
+
+            <!-- HMS Overview Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Healthcare Management System Overview</h3>
+                    <span class="card-badge">Real-time</span>
+                </div>
+                <div class="grid grid-4 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Patients</div>
+                        <div class="stat-value">12,458</div>
+                        <div class="stat-change positive">+156 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">EHR Records</div>
+                        <div class="stat-value">48,923</div>
+                        <div class="stat-change positive">+892 today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Tokenized Assets</div>
+                        <div class="stat-value">$5.2M</div>
+                        <div class="stat-change positive">+$420K</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Active Providers</div>
+                        <div class="stat-value">342</div>
+                        <div class="stat-change positive">98% online</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Tokenization -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Healthcare Asset Tokenization</h3>
+                    <span class="card-badge">Tokenize</span>
+                </div>
+                <form onsubmit="tokenizeAsset(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Asset Type</label>
+                            <select class="form-select" id="hmsAssetType" required>
+                                <option value="equipment">Medical Equipment</option>
+                                <option value="facility">Healthcare Facility</option>
+                                <option value="patent">Medical Patent/IP</option>
+                                <option value="research">Research Data</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Asset Value (USD)</label>
+                            <input type="number" class="form-input" id="hmsAssetValue" placeholder="100000" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Asset Description</label>
+                        <textarea class="form-textarea" id="hmsAssetDesc" placeholder="Detailed description of the asset..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Compliance Certifications</label>
+                        <input type="text" class="form-input" id="hmsCertifications" placeholder="HIPAA, FDA, ISO 13485">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tokenize Asset</button>
+                </form>
+            </div>
+
+            <!-- EHR Integration -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Electronic Health Records (EHR) Integration</h3>
+                    <span class="card-badge">HIPAA Compliant</span>
+                </div>
+                <div class="grid grid-3 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Sync Status</div>
+                        <div class="stat-value" style="color: #00ff88;">Active</div>
+                        <div class="stat-change">Last sync: 2 min ago</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Records Synced</div>
+                        <div class="stat-value">892</div>
+                        <div class="stat-change">Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Encryption Status</div>
+                        <div class="stat-value" style="color: #00ff88;">AES-256</div>
+                        <div class="stat-change">Quantum-safe</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="syncEHR()">Force EHR Sync</button>
+                <button class="btn btn-secondary" onclick="showNotification('EHR audit log generated', 'success')">View Audit Log</button>
+            </div>
+
+            <!-- Patient Data Access Control -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Patient Data Access Control</h3>
+                    <span class="card-badge">Privacy</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patient ID</th>
+                                <th>Provider</th>
+                                <th>Access Level</th>
+                                <th>Expires</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#PAT-10234</td>
+                                <td>Dr. Sarah Johnson</td>
+                                <td><span class="badge badge-success">Full Access</span></td>
+                                <td>30 days</td>
+                                <td><button class="btn btn-danger" style="padding: 0.4rem 0.8rem;">Revoke</button></td>
+                            </tr>
+                            <tr>
+                                <td>#PAT-10235</td>
+                                <td>City Hospital Lab</td>
+                                <td><span class="badge badge-warning">Read Only</span></td>
+                                <td>7 days</td>
+                                <td><button class="btn btn-secondary" style="padding: 0.4rem 0.8rem;">Extend</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- HMS Performance Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">HMS Transaction Performance</h3>
+                    <span class="card-badge">Analytics</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="hmsPerformanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint 23: AI/ML Tools Tab -->
+        <div id="ml-tools" class="tab-content">
+            <h2 class="mb-3">AI/ML Optimization Tools</h2>
+
+            <!-- ML Model Training -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Model Training Dashboard</h3>
+                    <span class="card-badge">Deep Learning</span>
+                </div>
+                <div class="grid grid-4 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Models</div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-change positive">3 training</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Training Accuracy</div>
+                        <div class="stat-value">94.8%</div>
+                        <div class="stat-change positive">+2.3%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Inference Speed</div>
+                        <div class="stat-value">850ms</div>
+                        <div class="stat-change positive">-15%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">GPU Utilization</div>
+                        <div class="stat-value">78%</div>
+                        <div class="stat-change">Optimal</div>
+                    </div>
+                </div>
+                <form onsubmit="trainModel(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Model Type</label>
+                            <select class="form-select" id="mlModelType" required>
+                                <option value="consensus">Consensus Optimizer</option>
+                                <option value="anomaly">Anomaly Detector</option>
+                                <option value="forecasting">Transaction Forecasting</option>
+                                <option value="validator">Validator Performance Predictor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Training Dataset</label>
+                            <select class="form-select" id="mlDataset" required>
+                                <option value="historical">Historical Transactions (1M)</option>
+                                <option value="recent">Recent Data (100K)</option>
+                                <option value="synthetic">Synthetic Dataset</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-3 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Epochs</label>
+                            <input type="number" class="form-input" id="mlEpochs" value="100" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Batch Size</label>
+                            <input type="number" class="form-input" id="mlBatchSize" value="32" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Learning Rate</label>
+                            <input type="number" class="form-input" id="mlLearningRate" value="0.001" step="0.0001" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Start Training</button>
+                </form>
+            </div>
+
+            <!-- Anomaly Detection -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Real-time Anomaly Detection</h3>
+                    <span class="card-badge">AI-Powered</span>
+                </div>
+                <div class="grid grid-3 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Anomalies Detected (24h)</div>
+                        <div class="stat-value">23</div>
+                        <div class="stat-change">5 critical</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Detection Rate</div>
+                        <div class="stat-value">99.2%</div>
+                        <div class="stat-change positive">High accuracy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">False Positives</div>
+                        <div class="stat-value">0.8%</div>
+                        <div class="stat-change positive">Low rate</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="detectAnomalies()">Run Anomaly Scan</button>
+                <button class="btn btn-secondary" onclick="showNotification('Anomaly detection report downloaded', 'success')">Download Report</button>
+            </div>
+
+            <!-- Recent Anomalies -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Anomalies</h3>
+                    <span class="card-badge">Alerts</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025-10-04 14:23:45</td>
+                                <td>Transaction Pattern</td>
+                                <td><span class="badge badge-danger">Critical</span></td>
+                                <td>Unusual transaction velocity detected</td>
+                                <td><button class="btn btn-primary" style="padding: 0.4rem 0.8rem;">Investigate</button></td>
+                            </tr>
+                            <tr>
+                                <td>2025-10-04 13:15:22</td>
+                                <td>Validator Behavior</td>
+                                <td><span class="badge badge-warning">Warning</span></td>
+                                <td>Validator response time anomaly</td>
+                                <td><button class="btn btn-secondary" style="padding: 0.4rem 0.8rem;">Review</button></td>
+                            </tr>
+                            <tr>
+                                <td>2025-10-04 12:08:11</td>
+                                <td>Network Traffic</td>
+                                <td><span class="badge badge-primary">Info</span></td>
+                                <td>Traffic spike above normal range</td>
+                                <td><button class="btn btn-secondary" style="padding: 0.4rem 0.8rem;">Dismiss</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Model Performance Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">ML Model Performance Metrics</h3>
+                    <span class="card-badge">Analytics</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="mlPerformanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint 24: Security & Audit Tab -->
+        <div id="security-audit" class="tab-content">
+            <h2 class="mb-3">Security & Audit Dashboard</h2>
+
+            <!-- Security Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Security Status Overview</h3>
+                    <span class="card-badge">Real-time</span>
+                </div>
+                <div class="grid grid-4 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Security Score</div>
+                        <div class="stat-value" style="color: #00ff88;">98/100</div>
+                        <div class="stat-change positive">Excellent</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Vulnerabilities</div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-change positive">Critical: 0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Last Scan</div>
+                        <div class="stat-value">15m</div>
+                        <div class="stat-change">ago</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Compliance Status</div>
+                        <div class="stat-value" style="color: #00ff88;">100%</div>
+                        <div class="stat-change positive">All standards met</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="scanVulnerabilities()">Run Security Scan</button>
+                <button class="btn btn-secondary" onclick="showNotification('Security report downloaded', 'success')">Download Report</button>
+            </div>
+
+            <!-- Vulnerability Scanner -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Vulnerability Scanner</h3>
+                    <span class="card-badge">Scan</span>
+                </div>
+                <div class="grid grid-2 gap-2 mb-3">
+                    <div class="form-group">
+                        <label class="form-label">Scan Type</label>
+                        <select class="form-select" id="scanType">
+                            <option value="full">Full System Scan</option>
+                            <option value="smart-contract">Smart Contract Audit</option>
+                            <option value="network">Network Security</option>
+                            <option value="cryptographic">Cryptographic Analysis</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Scan Depth</label>
+                        <select class="form-select" id="scanDepth">
+                            <option value="quick">Quick Scan (5 min)</option>
+                            <option value="standard">Standard Scan (30 min)</option>
+                            <option value="deep">Deep Scan (2 hours)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Scan ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Findings</th>
+                                <th>Completion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#SCAN-1234</td>
+                                <td>Full System</td>
+                                <td><span class="badge badge-success">Completed</span></td>
+                                <td>0 Critical, 2 Low</td>
+                                <td>100%</td>
+                            </tr>
+                            <tr>
+                                <td>#SCAN-1233</td>
+                                <td>Smart Contract</td>
+                                <td><span class="badge badge-warning">In Progress</span></td>
+                                <td>-</td>
+                                <td>65%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Audit Log Viewer -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Security Audit Log</h3>
+                    <span class="card-badge">Complete History</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event Type</th>
+                                <th>User/Entity</th>
+                                <th>Action</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025-10-04 14:45:12</td>
+                                <td>Authentication</td>
+                                <td>admin@aurigraph.io</td>
+                                <td>Admin login</td>
+                                <td><span class="badge badge-success">Success</span></td>
+                            </tr>
+                            <tr>
+                                <td>2025-10-04 14:30:55</td>
+                                <td>Access Control</td>
+                                <td>validator-node-5</td>
+                                <td>Permission change</td>
+                                <td><span class="badge badge-success">Success</span></td>
+                            </tr>
+                            <tr>
+                                <td>2025-10-04 14:12:33</td>
+                                <td>Authentication</td>
+                                <td>unknown-user</td>
+                                <td>Failed login attempt</td>
+                                <td><span class="badge badge-danger">Failed</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Compliance Reporting -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Compliance Reporting</h3>
+                    <span class="card-badge">Standards</span>
+                </div>
+                <div class="grid grid-3 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">ISO 27001</div>
+                        <div class="stat-value" style="color: #00ff88;">✓ Compliant</div>
+                        <div class="stat-change">Certified</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">SOC 2 Type II</div>
+                        <div class="stat-value" style="color: #00ff88;">✓ Compliant</div>
+                        <div class="stat-change">Audited</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">GDPR</div>
+                        <div class="stat-value" style="color: #00ff88;">✓ Compliant</div>
+                        <div class="stat-change">Verified</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="generateComplianceReport()">Generate Compliance Report</button>
+                <button class="btn btn-secondary" onclick="showNotification('Compliance audit scheduled', 'success')">Schedule Audit</button>
+            </div>
+
+            <!-- Security Trends Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Security Metrics Trends</h3>
+                    <span class="card-badge">30-Day View</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="securityTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint 25: Developer Tools Tab -->
+        <div id="dev-tools" class="tab-content">
+            <h2 class="mb-3">Developer Tools & Resources</h2>
+
+            <!-- API Documentation Portal -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">API Documentation Portal</h3>
+                    <span class="card-badge">Interactive</span>
+                </div>
+                <div class="grid grid-3 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">API Endpoints</div>
+                        <div class="stat-value">142</div>
+                        <div class="stat-change">RESTful + gRPC</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">API Version</div>
+                        <div class="stat-value">v11.0</div>
+                        <div class="stat-change">Latest stable</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-value">99.98%</div>
+                        <div class="stat-change positive">SLA: 99.9%</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h4>Quick Links:</h4>
+                    <div class="flex gap-2">
+                        <button class="btn btn-primary" onclick="showNotification('Opening REST API docs...', 'info')">REST API Docs</button>
+                        <button class="btn btn-primary" onclick="showNotification('Opening gRPC API docs...', 'info')">gRPC API Docs</button>
+                        <button class="btn btn-secondary" onclick="showNotification('Opening WebSocket docs...', 'info')">WebSocket Docs</button>
+                        <button class="btn btn-secondary" onclick="showNotification('Opening GraphQL schema...', 'info')">GraphQL Schema</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SDK Downloads -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">SDK Downloads</h3>
+                    <span class="card-badge">Multi-Language</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Language</th>
+                                <th>Version</th>
+                                <th>Updated</th>
+                                <th>Downloads</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>JavaScript/TypeScript</td>
+                                <td>v11.0.2</td>
+                                <td>2 days ago</td>
+                                <td>12,345</td>
+                                <td><button class="btn btn-primary" style="padding: 0.4rem 0.8rem;" onclick="downloadSDK('javascript')">Download</button></td>
+                            </tr>
+                            <tr>
+                                <td>Python</td>
+                                <td>v11.0.1</td>
+                                <td>5 days ago</td>
+                                <td>8,234</td>
+                                <td><button class="btn btn-primary" style="padding: 0.4rem 0.8rem;" onclick="downloadSDK('python')">Download</button></td>
+                            </tr>
+                            <tr>
+                                <td>Java/Kotlin</td>
+                                <td>v11.0.0</td>
+                                <td>1 week ago</td>
+                                <td>5,678</td>
+                                <td><button class="btn btn-primary" style="padding: 0.4rem 0.8rem;" onclick="downloadSDK('java')">Download</button></td>
+                            </tr>
+                            <tr>
+                                <td>Go</td>
+                                <td>v11.0.0</td>
+                                <td>1 week ago</td>
+                                <td>4,123</td>
+                                <td><button class="btn btn-primary" style="padding: 0.4rem 0.8rem;" onclick="downloadSDK('go')">Download</button></td>
+                            </tr>
+                            <tr>
+                                <td>Rust</td>
+                                <td>v11.0.0-rc1</td>
+                                <td>2 weeks ago</td>
+                                <td>2,567</td>
+                                <td><button class="btn btn-primary" style="padding: 0.4rem 0.8rem;" onclick="downloadSDK('rust')">Download</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Developer Sandbox -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Developer Sandbox</h3>
+                    <span class="card-badge">Test Environment</span>
+                </div>
+                <div class="grid grid-2 gap-2 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Sandbox Transactions</div>
+                        <div class="stat-value">1,234</div>
+                        <div class="stat-change">Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Test Accounts</div>
+                        <div class="stat-value">45</div>
+                        <div class="stat-change">Active</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h4>Sandbox Actions:</h4>
+                    <div class="flex gap-2">
+                        <button class="btn btn-primary" onclick="showNotification('Sandbox environment created', 'success')">Create Sandbox</button>
+                        <button class="btn btn-secondary" onclick="showNotification('Sandbox reset complete', 'success')">Reset Sandbox</button>
+                        <button class="btn btn-secondary" onclick="showNotification('Test data loaded', 'success')">Load Test Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Testing Tool -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">API Testing Tool</h3>
+                    <span class="card-badge">Interactive</span>
+                </div>
+                <form onsubmit="testAPI(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">HTTP Method</label>
+                            <select class="form-select" id="apiMethod" required>
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Endpoint</label>
+                            <input type="text" class="form-input" id="apiEndpoint" placeholder="/api/v11/transactions" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Request Body (JSON)</label>
+                        <textarea class="form-textarea" id="apiBody" placeholder='{"amount": 100, "recipient": "0x123..."}'></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Test API Call</button>
+                </form>
+                <div id="apiTestResults" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(0, 212, 255, 0.05); border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h4>Response:</h4>
+                    <pre id="apiResponse" style="color: #00ff88; white-space: pre-wrap; word-break: break-all;"></pre>
+                </div>
+            </div>
+
+            <!-- Code Examples -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Code Examples</h3>
+                    <span class="card-badge">Snippets</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Select Example</label>
+                    <select class="form-select" id="codeExample" onchange="showCodeExample()">
+                        <option value="">-- Select Example --</option>
+                        <option value="transaction">Send Transaction</option>
+                        <option value="balance">Check Balance</option>
+                        <option value="contract">Deploy Smart Contract</option>
+                        <option value="bridge">Cross-Chain Bridge</option>
+                    </select>
+                </div>
+                <div id="codeExampleDisplay" style="display: none; padding: 1rem; background: #0a0e27; border-radius: 8px; margin-top: 1rem;">
+                    <pre style="color: #00d4ff; white-space: pre-wrap;"><code id="codeSnippet"></code></pre>
+                    <button class="btn btn-secondary mt-2" onclick="showNotification('Code copied to clipboard', 'success')">Copy Code</button>
+                </div>
+            </div>
+
+            <!-- Developer Community Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Developer Community</h3>
+                    <span class="card-badge">Active</span>
+                </div>
+                <div class="grid grid-4 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Developers</div>
+                        <div class="stat-value">2,458</div>
+                        <div class="stat-change positive">+234 this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Projects</div>
+                        <div class="stat-value">892</div>
+                        <div class="stat-change positive">+67 this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">API Calls (24h)</div>
+                        <div class="stat-value">1.2M</div>
+                        <div class="stat-change positive">+12%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">GitHub Stars</div>
+                        <div class="stat-value">4,567</div>
+                        <div class="stat-change positive">+89 this week</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4301,6 +6203,21 @@
                 case 'governance':
                     loadGovernancePortal();
                     break;
+                case 'ai-optimization':
+                    loadAIDashboard();
+                    break;
+                case 'quantum-security-adv':
+                    loadQuantumSecurityAdv();
+                    break;
+                case 'smart-contracts':
+                    loadSmartContracts();
+                    break;
+                case 'marketplace':
+                    loadMarketplace();
+                    break;
+                case 'defi':
+                    loadDeFi();
+                    break;
                 case 'network-topology':
                     loadNetworkTopology();
                     break;
@@ -4930,6 +6847,354 @@
                 updateProposalSuccessChart(mockData.proposalSuccess);
                 updateRewardDistChart(mockData.rewards);
             } catch (error) {
+        // ==================== SPRINT 21: CROSS-CHAIN ADVANCED ====================
+        function loadCrossChainAdv() {
+            console.log('Loading Cross-Chain Advanced Operations...');
+            initBridgeVolumeChart();
+            showNotification('Cross-Chain Advanced Operations loaded', 'success');
+        }
+
+        function batchBridge(event) {
+            event.preventDefault();
+            const sourceChain = document.getElementById('batchSourceChain').value;
+            const destChain = document.getElementById('batchDestChain').value;
+            const assets = document.getElementById('batchAssets').value;
+            const amounts = document.getElementById('batchAmounts').value;
+            
+            const assetCount = assets.split(',').length;
+            showNotification(`Batch bridge initiated: ${assetCount} assets from ${sourceChain} to ${destChain}`, 'success');
+            event.target.reset();
+        }
+
+        function wrapAsset(event) {
+            event.preventDefault();
+            const assetType = document.getElementById('wrapAssetType').value;
+            const operation = document.getElementById('wrapOperation').value;
+            const amount = document.getElementById('wrapAmount').value;
+            
+            showNotification(`Asset ${operation} operation initiated: ${amount} ${assetType}`, 'success');
+            event.target.reset();
+        }
+
+        function initBridgeVolumeChart() {
+            const ctx = document.getElementById('bridgeVolumeChart');
+            if (!ctx) return;
+            
+            if (charts.bridgeVolume) {
+                charts.bridgeVolume.destroy();
+            }
+            
+            charts.bridgeVolume = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['ETH', 'BSC', 'Polygon', 'Avalanche', 'Solana', 'Fantom', 'Arbitrum', 'Optimism'],
+                    datasets: [{
+                        label: 'Bridge Volume (24h)',
+                        data: [420, 380, 290, 245, 210, 180, 150, 125],
+                        backgroundColor: '#00d4ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#ffffff' } } },
+                    scales: {
+                        x: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // ==================== SPRINT 22: HMS INTEGRATION FULL ====================
+        function loadHMSFull() {
+            console.log('Loading HMS Full Integration...');
+            initHMSPerformanceChart();
+            showNotification('HMS Full Integration loaded', 'success');
+        }
+
+        function tokenizeAsset(event) {
+            event.preventDefault();
+            const assetType = document.getElementById('hmsAssetType').value;
+            const value = document.getElementById('hmsAssetValue').value;
+            const description = document.getElementById('hmsAssetDesc').value;
+            
+            const tokenId = 'HMS-' + Math.floor(Math.random() * 100000);
+            showNotification(`Asset tokenized successfully! Token ID: ${tokenId}, Value: $${formatNumber(value)}`, 'success');
+            event.target.reset();
+        }
+
+        function syncEHR() {
+            showNotification('EHR synchronization initiated...', 'info');
+            setTimeout(() => {
+                showNotification('EHR sync completed: 892 records synchronized', 'success');
+            }, 2000);
+        }
+
+        function initHMSPerformanceChart() {
+            const ctx = document.getElementById('hmsPerformanceChart');
+            if (!ctx) return;
+            
+            if (charts.hmsPerformance) {
+                charts.hmsPerformance.destroy();
+            }
+            
+            charts.hmsPerformance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [
+                        {
+                            label: 'Patient Records',
+                            data: [120, 145, 178, 210, 192, 165],
+                            borderColor: '#00d4ff',
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Asset Tokenizations',
+                            data: [12, 18, 25, 32, 28, 22],
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#ffffff' } } },
+                    scales: {
+                        x: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // ==================== SPRINT 23: AI/ML TOOLS ====================
+        function loadMLTools() {
+            console.log('Loading ML Tools...');
+            initMLPerformanceChart();
+            showNotification('ML Tools loaded', 'success');
+        }
+
+        function trainModel(event) {
+            event.preventDefault();
+            const modelType = document.getElementById('mlModelType').value;
+            const dataset = document.getElementById('mlDataset').value;
+            const epochs = document.getElementById('mlEpochs').value;
+            const batchSize = document.getElementById('mlBatchSize').value;
+            const learningRate = document.getElementById('mlLearningRate').value;
+            
+            showNotification(`Training ${modelType} model: ${epochs} epochs, batch size ${batchSize}, learning rate ${learningRate}`, 'info');
+            setTimeout(() => {
+                showNotification(`Model training completed! Final accuracy: 94.8%`, 'success');
+            }, 3000);
+        }
+
+        function detectAnomalies() {
+            showNotification('Running anomaly detection scan...', 'info');
+            setTimeout(() => {
+                showNotification('Anomaly scan completed: 3 anomalies detected (1 critical, 2 warnings)', 'warning');
+            }, 2500);
+        }
+
+        function initMLPerformanceChart() {
+            const ctx = document.getElementById('mlPerformanceChart');
+            if (!ctx) return;
+            
+            if (charts.mlPerformance) {
+                charts.mlPerformance.destroy();
+            }
+            
+            charts.mlPerformance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Epoch 20', 'Epoch 40', 'Epoch 60', 'Epoch 80', 'Epoch 100'],
+                    datasets: [
+                        {
+                            label: 'Training Accuracy',
+                            data: [78, 85, 90, 93, 94.8],
+                            borderColor: '#00d4ff',
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Validation Accuracy',
+                            data: [76, 83, 88, 91, 93.2],
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#ffffff' } } },
+                    scales: {
+                        x: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' }, min: 70, max: 100 }
+                    }
+                }
+            });
+        }
+
+        // ==================== SPRINT 24: SECURITY & AUDIT ====================
+        function loadSecurityAudit() {
+            console.log('Loading Security & Audit Dashboard...');
+            initSecurityTrendsChart();
+            showNotification('Security & Audit Dashboard loaded', 'success');
+        }
+
+        function scanVulnerabilities() {
+            showNotification('Initiating comprehensive security scan...', 'info');
+            setTimeout(() => {
+                showNotification('Security scan completed: No critical vulnerabilities found!', 'success');
+            }, 3000);
+        }
+
+        function generateComplianceReport() {
+            showNotification('Generating compliance report...', 'info');
+            setTimeout(() => {
+                showNotification('Compliance report generated successfully (ISO 27001, SOC 2, GDPR)', 'success');
+            }, 2000);
+        }
+
+        function initSecurityTrendsChart() {
+            const ctx = document.getElementById('securityTrendsChart');
+            if (!ctx) return;
+            
+            if (charts.securityTrends) {
+                charts.securityTrends.destroy();
+            }
+            
+            charts.securityTrends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'Security Score',
+                            data: [95, 96, 97, 98],
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Vulnerabilities Found',
+                            data: [5, 3, 2, 0],
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#ffffff' } } },
+                    scales: {
+                        x: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // ==================== SPRINT 25: DEVELOPER TOOLS ====================
+        function loadDevTools() {
+            console.log('Loading Developer Tools...');
+            showNotification('Developer Tools loaded', 'success');
+        }
+
+        function downloadSDK(language) {
+            showNotification(`Downloading ${language} SDK...`, 'info');
+            setTimeout(() => {
+                showNotification(`${language} SDK v11.0 downloaded successfully!`, 'success');
+            }, 1500);
+        }
+
+        function testAPI(event) {
+            event.preventDefault();
+            const method = document.getElementById('apiMethod').value;
+            const endpoint = document.getElementById('apiEndpoint').value;
+            const body = document.getElementById('apiBody').value;
+            
+            showNotification(`Testing API: ${method} ${endpoint}...`, 'info');
+            
+            setTimeout(() => {
+                const mockResponse = {
+                    status: 200,
+                    message: 'Success',
+                    data: {
+                        transactionId: '0x' + Math.random().toString(16).substr(2, 64),
+                        timestamp: new Date().toISOString(),
+                        status: 'confirmed'
+                    }
+                };
+                
+                document.getElementById('apiResponse').textContent = JSON.stringify(mockResponse, null, 2);
+                document.getElementById('apiTestResults').style.display = 'block';
+                showNotification('API test completed successfully!', 'success');
+            }, 1500);
+        }
+
+        function showCodeExample() {
+            const example = document.getElementById('codeExample').value;
+            const codeSnippet = document.getElementById('codeSnippet');
+            const display = document.getElementById('codeExampleDisplay');
+            
+            if (!example) {
+                display.style.display = 'none';
+                return;
+            }
+            
+            const examples = {
+                transaction: `// Send a transaction using Aurigraph SDK
+const { AurigraphClient } = require('@aurigraph/sdk');
+
+const client = new AurigraphClient({
+    endpoint: 'http://dlt.aurigraph.io:9003'
+});
+
+const tx = await client.sendTransaction({
+    to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+    amount: 100,
+    data: 'Hello Aurigraph!'
+});
+
+console.log('Transaction ID:', tx.id);`,
+                balance: `// Check account balance
+const balance = await client.getBalance({
+    address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+});
+
+console.log('Balance:', balance.amount, 'AUR');`,
+                contract: `// Deploy a smart contract
+const contract = await client.deployContract({
+    bytecode: '0x608060...',
+    abi: contractABI,
+    constructor: ['arg1', 'arg2']
+});
+
+console.log('Contract deployed at:', contract.address);`,
+                bridge: `// Cross-chain bridge transfer
+const bridge = await client.crossChainBridge({
+    sourceChain: 'ethereum',
+    destChain: 'aurigraph',
+    asset: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    amount: 1000
+});
+
+console.log('Bridge transaction:', bridge.id);`
+            };
+            
+            codeSnippet.textContent = examples[example] || '';
+            display.style.display = 'block';
+        }
+
                 console.error('Failed to load validator analytics:', error);
             }
         }
@@ -5730,6 +7995,333 @@
                     }
                 }
             });
+        }
+
+
+        // ==================== SPRINT 16: AI OPTIMIZATION DASHBOARD ====================
+        function loadAIDashboard() {
+            console.log('Loading AI Optimization Dashboard...');
+            initModelAccuracyChart();
+            showNotification('AI Optimization Dashboard loaded', 'success');
+        }
+
+        function trainModel(event) {
+            event.preventDefault();
+            const modelType = document.getElementById('modelType').value;
+            const datasetSize = document.getElementById('datasetSize').value;
+            const epochs = document.getElementById('epochs').value;
+            const learningRate = document.getElementById('learningRate').value;
+
+            showNotification(`Training ${modelType} model with ${datasetSize} samples, ${epochs} epochs, LR: ${learningRate}`, 'success');
+            event.target.reset();
+        }
+
+        function getModelMetrics() {
+            return {
+                accuracy: '97.8%',
+                latency: '12ms',
+                epochs: 1245,
+                version: 'v3.2.1'
+            };
+        }
+
+        function getPredictions() {
+            return [
+                { window: '00:00 - 06:00', tps: '850K', confidence: '94%' },
+                { window: '06:00 - 12:00', tps: '1.2M', confidence: '96%' },
+                { window: '12:00 - 18:00', tps: '1.8M', confidence: '92%' },
+                { window: '18:00 - 24:00', tps: '1.5M', confidence: '95%' }
+            ];
+        }
+
+        function initModelAccuracyChart() {
+            const ctx = document.getElementById('modelAccuracyChart');
+            if (!ctx) return;
+
+            if (charts.modelAccuracy) {
+                charts.modelAccuracy.destroy();
+            }
+
+            charts.modelAccuracy = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7'],
+                    datasets: [{
+                        label: 'Model Accuracy %',
+                        data: [89.2, 91.5, 93.8, 95.2, 96.4, 97.1, 97.8],
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#ffffff' } } },
+                    scales: {
+                        x: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' }, min: 85, max: 100 }
+                    }
+                }
+            });
+        }
+
+        // ==================== SPRINT 17: QUANTUM SECURITY ADVANCED ====================
+        function loadQuantumSecurityAdv() {
+            console.log('Loading Quantum Security Advanced...');
+            showNotification('Quantum Security Advanced loaded', 'success');
+        }
+
+        function updateCryptoAlgorithm(event) {
+            event.preventDefault();
+            const kem = document.getElementById('kemAlgorithm').value;
+            const sig = document.getElementById('sigAlgorithm').value;
+
+            showNotification(`Updated crypto algorithms - KEM: ${kem}, Signature: ${sig}`, 'success');
+        }
+
+        function generateQuantumKey(event) {
+            event.preventDefault();
+            const purpose = document.getElementById('keyPurpose').value;
+            const algorithm = document.getElementById('keyAlgorithm').value;
+            const lifetime = document.getElementById('keyLifetime').value;
+
+            const keyId = 'QK' + Math.floor(Math.random() * 100000);
+            showNotification(`Generated quantum key ${keyId} for ${purpose} using ${algorithm}, lifetime: ${lifetime} days`, 'success');
+            event.target.reset();
+        }
+
+        function auditCrypto() {
+            return {
+                nistCompliance: 100,
+                fipsCompliance: 100,
+                isoCompliance: 95,
+                lastAudit: '2025-10-04'
+            };
+        }
+
+        // ==================== SPRINT 18: SMART CONTRACT DEVELOPMENT ====================
+        function loadSmartContracts() {
+            console.log('Loading Smart Contract Development...');
+            showNotification('Smart Contract Development IDE loaded', 'success');
+        }
+
+        function loadContractTemplate(event) {
+            const template = event.target.value;
+            const editor = document.getElementById('contractEditor');
+
+            if (template === 'token') {
+                editor.textContent = `// ERC-20 Token Contract
+contract MyToken {
+    string public name = "My Token";
+    string public symbol = "MTK";
+    uint256 public totalSupply = 1000000;
+
+    mapping(address => uint256) public balances;
+
+    function transfer(address to, uint256 amount) public {
+        require(balances[msg.sender] >= amount);
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+    }
+}`;
+            } else if (template === 'nft') {
+                editor.textContent = `// NFT Contract
+contract MyNFT {
+    string public name = "My NFT Collection";
+    mapping(uint256 => address) public owners;
+    uint256 public tokenIdCounter = 1;
+
+    function mint() public {
+        owners[tokenIdCounter] = msg.sender;
+        tokenIdCounter++;
+    }
+}`;
+            }
+        }
+
+        function compileContract() {
+            document.getElementById('compileResults').style.display = 'block';
+            showNotification('Contract compiled successfully', 'success');
+        }
+
+        function testContract() {
+            showNotification('Running 3 test cases...', 'info');
+            setTimeout(() => {
+                showNotification('All tests passed (3/3)', 'success');
+            }, 1500);
+        }
+
+        function saveContract() {
+            const name = document.getElementById('contractName').value || 'MySmartContract';
+            showNotification(`Contract "${name}" saved successfully`, 'success');
+        }
+
+        function deployContract(event) {
+            event.preventDefault();
+            const network = document.getElementById('deployNetwork').value;
+            const gasLimit = document.getElementById('gasLimit').value;
+            const name = document.getElementById('contractName').value || 'MySmartContract';
+
+            const address = '0x' + Math.random().toString(16).substring(2, 42);
+            showNotification(`Contract "${name}" deployed to ${network} at ${address}. Gas used: ${gasLimit}`, 'success');
+            setTimeout(() => {
+                document.getElementById('deployedContractsTable').insertAdjacentHTML('afterbegin', `
+                    <tr>
+                        <td>${name}</td>
+                        <td>${address}</td>
+                        <td>${network}</td>
+                        <td>${new Date().toISOString().split('T')[0]}</td>
+                        <td>0</td>
+                        <td><button class="btn btn-sm" onclick="viewContract('${address}')">View</button></td>
+                    </tr>
+                `);
+            }, 1000);
+        }
+
+        function viewContract(address) {
+            showNotification(`Viewing contract at ${address}`, 'info');
+        }
+
+        // ==================== SPRINT 19: TOKEN/NFT MARKETPLACE ====================
+        function loadMarketplace() {
+            console.log('Loading Token & NFT Marketplace...');
+            initMarketPriceChart();
+            showNotification('Marketplace loaded', 'success');
+        }
+
+        function createBuyOrder(event) {
+            event.preventDefault();
+            const assetType = document.getElementById('buyAssetType').value;
+            const asset = document.getElementById('buyAsset').value;
+            const quantity = document.getElementById('buyQuantity').value;
+            const price = document.getElementById('buyPrice').value;
+            const total = quantity * price;
+
+            showNotification(`Buy order created: ${quantity} ${asset} at ${price} AUR each (Total: ${total} AUR)`, 'success');
+            event.target.reset();
+        }
+
+        function createSellOrder(event) {
+            event.preventDefault();
+            const assetType = document.getElementById('sellAssetType').value;
+            const asset = document.getElementById('sellAsset').value;
+            const quantity = document.getElementById('sellQuantity').value;
+            const price = document.getElementById('sellPrice').value;
+            const total = quantity * price;
+
+            showNotification(`Sell order created: ${quantity} ${asset} at ${price} AUR each (Total: ${total} AUR)`, 'success');
+            event.target.reset();
+        }
+
+        function getOrderBook() {
+            return {
+                buyOrders: [
+                    { price: 2.52, quantity: 1245, total: '3,137 AUR' },
+                    { price: 2.51, quantity: 2567, total: '6,443 AUR' },
+                    { price: 2.50, quantity: 3890, total: '9,725 AUR' }
+                ],
+                sellOrders: [
+                    { price: 2.53, quantity: 987, total: '2,497 AUR' },
+                    { price: 2.54, quantity: 2134, total: '5,420 AUR' },
+                    { price: 2.55, quantity: 3456, total: '8,813 AUR' }
+                ]
+            };
+        }
+
+        function initMarketPriceChart() {
+            const ctx = document.getElementById('marketPriceChart');
+            if (!ctx) return;
+
+            if (charts.marketPrice) {
+                charts.marketPrice.destroy();
+            }
+
+            charts.marketPrice = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    datasets: [{
+                        label: 'AUR Price',
+                        data: [2.45, 2.48, 2.50, 2.52, 2.54, 2.51, 2.52],
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#ffffff' } } },
+                    scales: {
+                        x: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.1)' }, min: 2.4, max: 2.6 }
+                    }
+                }
+            });
+        }
+
+        // ==================== SPRINT 20: DEFI INTEGRATION ====================
+        function loadDeFi() {
+            console.log('Loading DeFi Integration...');
+            showNotification('DeFi Integration loaded', 'success');
+        }
+
+        function addLiquidity(event) {
+            event.preventDefault();
+            const pool = document.getElementById('liquidityPool').value;
+            const amountA = document.getElementById('liquidityAmountA').value;
+            const amountB = document.getElementById('liquidityAmountB').value;
+            const slippage = document.getElementById('slippageTolerance').value;
+
+            showNotification(`Added liquidity to ${pool}: ${amountA} + ${amountB} tokens (Slippage: ${slippage}%)`, 'success');
+            event.target.reset();
+        }
+
+        function stakeFarm(event) {
+            event.preventDefault();
+            const farm = document.getElementById('farmSelect').value;
+            const amount = document.getElementById('stakeAmount').value;
+            const lockPeriod = document.getElementById('lockPeriod').value;
+
+            const lockText = lockPeriod == 0 ? 'flexible' : `${lockPeriod} days`;
+            showNotification(`Staked ${amount} AUR in ${farm} with ${lockText} lock period`, 'success');
+            event.target.reset();
+        }
+
+        function harvestRewards(farm) {
+            const rewards = Math.floor(Math.random() * 500) + 100;
+            showNotification(`Harvested ${rewards} AUR from ${farm}`, 'success');
+        }
+
+        function manageLiquidityPool(pool) {
+            showNotification(`Managing liquidity pool: ${pool}`, 'info');
+        }
+
+        function lendAsset(event) {
+            event.preventDefault();
+            const asset = document.getElementById('lendAsset').value;
+            const amount = document.getElementById('lendAmount').value;
+
+            showNotification(`Lent ${amount} ${asset} to money market`, 'success');
+            event.target.reset();
+        }
+
+        function borrowAsset(event) {
+            event.preventDefault();
+            const asset = document.getElementById('borrowAsset').value;
+            const amount = document.getElementById('borrowAmount').value;
+            const collateral = document.getElementById('collateralAmount').value;
+
+            showNotification(`Borrowed ${amount} ${asset} with ${collateral} AUR collateral`, 'success');
+            event.target.reset();
+        }
+
+        function claimYield() {
+            const amount = Math.floor(Math.random() * 1000) + 500;
+            showNotification(`Claimed ${amount} AUR in yield rewards`, 'success');
         }
 
         // ==================== SPRINT 26: NETWORK TOPOLOGY ====================
