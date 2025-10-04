@@ -14,13 +14,15 @@ NC='\033[0m' # No Color
 
 # Configuration
 REMOTE_SERVER="dlt.aurigraph.io"
-REMOTE_PORT="22"
+REMOTE_PORT="2235"  # FIXED: Correct SSH port
 REMOTE_USER="subbu"
 REMOTE_PASSWORD="subbuFuture@2025"
-LOCAL_PORTAL_FILE="/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/aurigraph-v11-enterprise-portal.html"
-REMOTE_PORTAL_DIR="/opt/aurigraph/portal"
-DEPLOYMENT_ENV="green"  # Blue/Green deployment
-BACKUP_DIR="/opt/aurigraph/backups"
+LOCAL_JAR_FILE="target/aurigraph-v11-standalone-11.0.0-runner.jar"
+LOCAL_PORTAL_FILE="aurigraph-v11-enterprise-portal.html"
+DEMO_APP_DIR="../../demo-app"
+REMOTE_DEPLOY_DIR="/home/subbu/aurigraph-v11"
+DOMAIN="dlt.aurigraph.io"
+APP_PORT="9003"
 
 # Functions
 print_header() {
