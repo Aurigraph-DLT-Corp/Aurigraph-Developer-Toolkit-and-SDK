@@ -126,12 +126,12 @@ async function createEpic(epicData, issueTypes) {
 }
 
 /**
- * Create Story
+ * Create Story (using Task issue type)
  */
 async function createStory(storyData, epicKey, issueTypes) {
-  const storyType = issueTypes.find(type => type.name === 'Story');
+  const storyType = issueTypes.find(type => type.name === 'Task' || type.name === 'Story');
   if (!storyType) {
-    throw new Error('Story issue type not found in project');
+    throw new Error('Task/Story issue type not found in project');
   }
 
   const storyPayload = {
@@ -175,12 +175,12 @@ async function createStory(storyData, epicKey, issueTypes) {
   // }
 
   try {
-    console.log(`Creating Story: ${storyData.summary}`);
+    console.log(`Creating Task: ${storyData.summary}`);
     const result = await jiraRequest('POST', '/issue', storyPayload);
-    console.log(`  ✅ Story created: ${result.key} (${storyData.storyPoints} SP)`);
+    console.log(`  ✅ Task created: ${result.key} (${storyData.storyPoints} SP)`);
     return result;
   } catch (error) {
-    console.error(`  ❌ Failed to create Story:`, error.message);
+    console.error(`  ❌ Failed to create Task:`, error.message);
     return null;
   }
 }
@@ -205,8 +205,8 @@ async function importTickets() {
     console.log('\n📌 Creating Epic...');
     const epic = await createEpic(ticketsData.epic, issueTypes);
 
-    // Create Stories
-    console.log(`\n📝 Creating ${ticketsData.tickets.length} User Stories...\n`);
+    // Create Tasks (Stories)
+    console.log(`\n📝 Creating ${ticketsData.tickets.length} Tasks...\n`);
     const createdStories = [];
 
     for (let i = 0; i < ticketsData.tickets.length; i++) {
