@@ -667,6 +667,40 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
         }
+
+        /* Scalability Controls Styles */
+        .scalability-controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .scalability-controls h3 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .btn-mode {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            color: white;
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .btn-mode:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-mode.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -690,6 +724,19 @@
         <button id="btnExportConfig" class="btn btn-secondary">📤 Export JSON</button>
         <button id="btnImportConfig" class="btn btn-secondary">📥 Import JSON</button>
         <input type="file" id="fileImportConfig" accept=".json" style="display: none;">
+    </div>
+
+    <div class="scalability-controls">
+        <h3 style="margin-bottom: 15px;">⚡ Scalability Modes</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+            <button id="btnModeEducational" class="btn btn-mode">📚 Educational (1K-5K TPS)</button>
+            <button id="btnModeDevelopment" class="btn btn-mode">💻 Development (10K-50K TPS)</button>
+            <button id="btnModeStaging" class="btn btn-mode">🔬 Staging (100K-500K TPS)</button>
+            <button id="btnModeProduction" class="btn btn-mode">🚀 Production (2M+ TPS)</button>
+            <div id="currentModeIndicator" style="margin-left: auto; padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 8px; display: none;">
+                <strong>Current:</strong> <span id="currentModeName">None</span>
+            </div>
+        </div>
     </div>
 
     <div class="dashboard">
@@ -773,6 +820,7 @@
     <script src="src/frontend/graph-visualizer.js"></script>
     <script src="src/frontend/panel-ui-components.js"></script>
     <script src="src/frontend/configuration-manager.js"></script>
+    <script src="src/frontend/scalability-modes.js"></script>
 
     <script>
         // Demo application state
@@ -784,7 +832,9 @@
             logEntries: [],
             graphVisualizer: null,
             panelUI: null,
-            configManager: null
+            configManager: null,
+            scalabilityManager: null,
+            currentScalabilityMode: null
         };
 
         // Initialize demo with small-scale preset
@@ -1213,6 +1263,167 @@
             event.target.value = '';
         }
 
+        // ===========================
+        // Scalability Mode Management
+        // ===========================
+
+        function switchScalabilityMode(modeName) {
+            if (!demoApp.scalabilityManager) {
+                alert('Scalability manager not initialized');
+                return;
+            }
+
+            try {
+                // Switch to new mode
+                const result = demoApp.scalabilityManager.switchMode(modeName);
+
+                // Update UI to show active mode
+                updateModeIndicator(modeName, result.config);
+
+                // Update button states
+                updateModeButtonStates(modeName);
+
+                // Log the mode switch
+                logEvent(`⚡ ${result.message} (Target: ${result.config.targetTPS.toLocaleString()} TPS)`);
+
+                // If demo is running, restart with new parameters
+                if (demoApp.running) {
+                    stopDemo();
+                    setTimeout(() => {
+                        applyScalabilityMode(result.config);
+                        startDemo();
+                        logEvent(`🔄 Demo restarted with ${result.config.name}`);
+                    }, 500);
+                } else {
+                    applyScalabilityMode(result.config);
+                }
+
+            } catch (error) {
+                alert(`Failed to switch mode: ${error.message}`);
+                logEvent(`❌ Mode switch failed: ${error.message}`);
+            }
+        }
+
+        function applyScalabilityMode(modeConfig) {
+            // Generate scaled configuration
+            const scaledConfig = demoApp.scalabilityManager.generateScaledConfiguration();
+
+            // Stop demo if running
+            if (demoApp.running) {
+                stopDemo();
+            }
+
+            // Clear current nodes
+            demoApp.nodes.clear();
+
+            // Apply scaled configuration
+            const nodeClasses = { ChannelNode, ValidatorNode, BusinessNode, APIIntegrationNode };
+            demoApp.nodes = demoApp.configManager.applyConfiguration(scaledConfig, nodeClasses);
+
+            // Setup event listeners for all nodes
+            demoApp.nodes.forEach(node => {
+                const state = node.getState();
+                node.on('state-change', (data) => logEvent(`${state.name}: State → ${data.state}`));
+                node.on('consensus-state-change', (data) => logEvent(`${state.name}: Consensus → ${data.state}`));
+                node.on('block-validated', (data) => logEvent(`${state.name}: Block validated #${data.blockNumber}`));
+                node.on('message-sent', (data) => logEvent(`${state.name}: Message routed to ${data.to}`));
+            });
+
+            // Store mode parameters for simulation
+            demoApp.currentModeParams = {
+                batchSize: modeConfig.transactionBatchSize,
+                updateInterval: modeConfig.updateInterval,
+                targetTPS: modeConfig.targetTPS
+            };
+
+            // Render and update
+            renderNodes();
+            updateDashboard();
+
+            logEvent(`📊 Loaded ${demoApp.nodes.size} nodes for ${modeConfig.name}`);
+        }
+
+        function updateModeIndicator(modeName, modeConfig) {
+            const indicator = document.getElementById('currentModeName');
+            if (indicator) {
+                indicator.textContent = modeConfig.name;
+                indicator.style.color = getModeColor(modeName);
+            }
+        }
+
+        function updateModeButtonStates(activeMode) {
+            // Remove active class from all mode buttons
+            document.querySelectorAll('.btn-mode').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Add active class to selected mode button
+            const buttonIds = {
+                'educational': 'btnModeEducational',
+                'development': 'btnModeDevelopment',
+                'staging': 'btnModeStaging',
+                'production': 'btnModeProduction'
+            };
+
+            const activeButton = document.getElementById(buttonIds[activeMode]);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        function getModeColor(modeName) {
+            const colors = {
+                'educational': '#2196F3',
+                'development': '#4CAF50',
+                'staging': '#FF9800',
+                'production': '#9C27B0'
+            };
+            return colors[modeName] || '#2196F3';
+        }
+
+        function generateLoadTest() {
+            if (!demoApp.scalabilityManager || !demoApp.scalabilityManager.currentMode) {
+                alert('Please select a scalability mode first');
+                return;
+            }
+
+            const duration = 60; // 60 seconds
+            const scenario = demoApp.scalabilityManager.generateLoadTestScenario(duration);
+
+            console.log('Load Test Scenario:', scenario);
+            logEvent(`🧪 Load test generated: ${scenario.expectedTotal.toLocaleString()} transactions over ${duration}s`);
+
+            alert(`Load Test Scenario Generated:\n\n` +
+                  `Mode: ${scenario.mode}\n` +
+                  `Duration: ${scenario.duration}s\n` +
+                  `Target TPS: ${scenario.targetTPS.toLocaleString()}\n` +
+                  `Total Steps: ${scenario.totalSteps}\n` +
+                  `Transactions per Step: ${scenario.transactionsPerStep}\n` +
+                  `Expected Total: ${scenario.expectedTotal.toLocaleString()}`);
+        }
+
+        function exportModeConfig() {
+            if (!demoApp.scalabilityManager) {
+                alert('Scalability manager not initialized');
+                return;
+            }
+
+            const config = demoApp.scalabilityManager.exportModeConfig();
+            const dataStr = JSON.stringify(config, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `scalability-mode-${config.currentMode}-${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            logEvent(`📤 Mode configuration exported: ${config.currentMode}`);
+        }
+
         // Event listeners
         document.getElementById('btnStart').addEventListener('click', startDemo);
         document.getElementById('btnStop').addEventListener('click', stopDemo);
@@ -1227,6 +1438,12 @@
         document.getElementById('btnExportConfig').addEventListener('click', exportConfig);
         document.getElementById('btnImportConfig').addEventListener('click', importConfig);
         document.getElementById('fileImportConfig').addEventListener('change', handleFileImport);
+
+        // Scalability mode event listeners
+        document.getElementById('btnModeEducational').addEventListener('click', () => switchScalabilityMode('educational'));
+        document.getElementById('btnModeDevelopment').addEventListener('click', () => switchScalabilityMode('development'));
+        document.getElementById('btnModeStaging').addEventListener('click', () => switchScalabilityMode('staging'));
+        document.getElementById('btnModeProduction').addEventListener('click', () => switchScalabilityMode('production'));
 
         // Initialize on page load
         window.addEventListener('load', () => {
@@ -1244,6 +1461,10 @@
             // Initialize configuration manager
             demoApp.configManager = new ConfigurationManager();
             logEvent('⚙️ Configuration manager initialized');
+
+            // Initialize scalability modes manager
+            demoApp.scalabilityManager = new ScalabilityModesManager();
+            logEvent('⚡ Scalability modes manager initialized');
 
             loadSmallScalePreset();
         });
