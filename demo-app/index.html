@@ -701,6 +701,103 @@
             border-color: #667eea;
             box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
         }
+
+        /* WebSocket Controls Styles */
+        .websocket-controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .websocket-controls h3 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .ws-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .ws-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .ws-status-dot.connected {
+            background: #4CAF50;
+        }
+
+        .ws-status-dot.disconnected {
+            background: #f44336;
+            animation: none;
+        }
+
+        .ws-status-dot.connecting {
+            background: #FF9800;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .ws-metrics {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .ws-metric {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .ws-metric strong {
+            color: #4CAF50;
+        }
+
+        .btn-ws {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(56, 142, 60, 0.3) 100%);
+            color: white;
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .btn-ws:hover {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-ws.disconnect {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.3) 0%, rgba(211, 47, 47, 0.3) 100%);
+            border: 2px solid rgba(244, 67, 54, 0.5);
+        }
+
+        .btn-ws.disconnect:hover {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            border-color: #f44336;
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -735,6 +832,34 @@
             <button id="btnModeProduction" class="btn btn-mode">🚀 Production (2M+ TPS)</button>
             <div id="currentModeIndicator" style="margin-left: auto; padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 8px; display: none;">
                 <strong>Current:</strong> <span id="currentModeName">None</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebSocket Controls -->
+    <div class="websocket-controls">
+        <h3>🔌 WebSocket Connection</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
+            <button id="btnWsConnect" class="btn btn-ws">🔗 Connect</button>
+            <button id="btnWsDisconnect" class="btn btn-ws disconnect" style="display: none;">🔌 Disconnect</button>
+            <button id="btnWsSubscribe" class="btn btn-ws" disabled>📡 Subscribe to Updates</button>
+            <div class="ws-status">
+                <div id="wsStatusDot" class="ws-status-dot disconnected"></div>
+                <span id="wsStatusText">Disconnected</span>
+            </div>
+        </div>
+        <div class="ws-metrics" id="wsMetrics" style="display: none;">
+            <div class="ws-metric">
+                <strong id="wsMessagesSent">0</strong> messages sent
+            </div>
+            <div class="ws-metric">
+                <strong id="wsMessagesReceived">0</strong> messages received
+            </div>
+            <div class="ws-metric">
+                <strong id="wsLatency">0</strong> ms latency
+            </div>
+            <div class="ws-metric">
+                <strong id="wsQueueSize">0</strong> queued
             </div>
         </div>
     </div>
@@ -821,6 +946,7 @@
     <script src="src/frontend/panel-ui-components.js"></script>
     <script src="src/frontend/configuration-manager.js"></script>
     <script src="src/frontend/scalability-modes.js"></script>
+    <script src="src/frontend/websocket-manager.js"></script>
 
     <script>
         // Demo application state
@@ -1424,6 +1550,173 @@
             logEvent(`📤 Mode configuration exported: ${config.currentMode}`);
         }
 
+        // ===========================
+        // WebSocket Management
+        // ===========================
+
+        function connectWebSocket() {
+            if (!demoApp.wsManager) {
+                // Initialize WebSocket manager
+                demoApp.wsManager = new WebSocketManager({
+                    url: 'ws://localhost:9003/ws',
+                    autoConnect: false
+                });
+
+                // Setup event listeners
+                demoApp.wsManager.addEventListener('connected', (e) => {
+                    updateWSStatus('connected', 'Connected');
+                    logEvent('🔌 WebSocket connected');
+
+                    // Enable subscribe button
+                    document.getElementById('btnWsSubscribe').disabled = false;
+
+                    // Show disconnect button, hide connect button
+                    document.getElementById('btnWsConnect').style.display = 'none';
+                    document.getElementById('btnWsDisconnect').style.display = 'inline-block';
+                });
+
+                demoApp.wsManager.addEventListener('disconnected', (e) => {
+                    updateWSStatus('disconnected', 'Disconnected');
+                    logEvent('🔌 WebSocket disconnected');
+
+                    // Disable subscribe button
+                    document.getElementById('btnWsSubscribe').disabled = true;
+
+                    // Show connect button, hide disconnect button
+                    document.getElementById('btnWsConnect').style.display = 'inline-block';
+                    document.getElementById('btnWsDisconnect').style.display = 'none';
+                });
+
+                demoApp.wsManager.addEventListener('reconnecting', (e) => {
+                    updateWSStatus('connecting', `Reconnecting (${e.detail.attempt})`);
+                    logEvent(`🔄 Reconnecting... attempt ${e.detail.attempt}`);
+                });
+
+                demoApp.wsManager.addEventListener('message', (e) => {
+                    handleWebSocketMessage(e.detail.message);
+                });
+
+                demoApp.wsManager.addEventListener('error', (e) => {
+                    logEvent('❌ WebSocket error');
+                });
+
+                // Start metrics update interval
+                demoApp.wsMetricsInterval = setInterval(updateWSMetrics, 1000);
+            }
+
+            // Connect
+            demoApp.wsManager.connect();
+            updateWSStatus('connecting', 'Connecting...');
+        }
+
+        function disconnectWebSocket() {
+            if (demoApp.wsManager) {
+                demoApp.wsManager.disconnect();
+            }
+        }
+
+        function subscribeToUpdates() {
+            if (!demoApp.wsManager) {
+                alert('WebSocket not connected');
+                return;
+            }
+
+            // Subscribe to system metrics
+            demoApp.wsManager.subscribeToMetrics();
+            logEvent('📡 Subscribed to system metrics');
+
+            // Subscribe to each node
+            demoApp.nodes.forEach(node => {
+                const state = node.getState();
+                demoApp.wsManager.subscribeToNodeUpdates(state.id);
+            });
+
+            logEvent(`📡 Subscribed to ${demoApp.nodes.size} node updates`);
+            alert(`Subscribed to system metrics and ${demoApp.nodes.size} nodes`);
+        }
+
+        function updateWSStatus(status, text) {
+            const statusDot = document.getElementById('wsStatusDot');
+            const statusText = document.getElementById('wsStatusText');
+            const wsMetrics = document.getElementById('wsMetrics');
+
+            // Remove all status classes
+            statusDot.classList.remove('connected', 'disconnected', 'connecting');
+
+            // Add new status class
+            statusDot.classList.add(status);
+
+            // Update text
+            statusText.textContent = text;
+
+            // Show/hide metrics
+            if (status === 'connected') {
+                wsMetrics.style.display = 'flex';
+            } else {
+                wsMetrics.style.display = 'none';
+            }
+        }
+
+        function updateWSMetrics() {
+            if (!demoApp.wsManager) return;
+
+            const metrics = demoApp.wsManager.getMetrics();
+
+            document.getElementById('wsMessagesSent').textContent = metrics.messagesSent;
+            document.getElementById('wsMessagesReceived').textContent = metrics.messagesReceived;
+            document.getElementById('wsLatency').textContent = Math.round(metrics.averageLatency);
+            document.getElementById('wsQueueSize').textContent = metrics.queuedMessages;
+        }
+
+        function handleWebSocketMessage(message) {
+            // Handle different message types
+            switch (message.type) {
+                case 'node-update':
+                    handleNodeUpdate(message.data);
+                    break;
+                case 'system-metrics':
+                    handleSystemMetrics(message.data);
+                    break;
+                case 'transaction-broadcast':
+                    handleTransactionBroadcast(message.data);
+                    break;
+                case 'system-health':
+                    handleSystemHealth(message.data);
+                    break;
+                default:
+                    console.log('Unknown message type:', message.type, message.data);
+            }
+        }
+
+        function handleNodeUpdate(data) {
+            logEvent(`🔄 Node update: ${data.nodeId}`);
+
+            // Update node state if it exists
+            const node = demoApp.nodes.get(data.nodeId);
+            if (node && data.state) {
+                // Update node with new data from server
+                console.log('Updating node with server data:', data);
+            }
+        }
+
+        function handleSystemMetrics(data) {
+            // Update dashboard with real-time metrics from server
+            if (data.tps !== undefined) {
+                document.getElementById('systemTPS').textContent = Math.round(data.tps).toLocaleString();
+            }
+            if (data.activeNodes !== undefined) {
+                document.getElementById('activeNodes').textContent = data.activeNodes;
+            }
+        }
+
+        function handleTransactionBroadcast(data) {
+            logEvent(`📤 Transaction broadcast: ${data.transactionId}`);
+        }
+
+        function handleSystemHealth(data) {
+            logEvent(`💚 System health: ${data.status}`);
+        }
+
         // Event listeners
         document.getElementById('btnStart').addEventListener('click', startDemo);
         document.getElementById('btnStop').addEventListener('click', stopDemo);
@@ -1444,6 +1737,11 @@
         document.getElementById('btnModeDevelopment').addEventListener('click', () => switchScalabilityMode('development'));
         document.getElementById('btnModeStaging').addEventListener('click', () => switchScalabilityMode('staging'));
         document.getElementById('btnModeProduction').addEventListener('click', () => switchScalabilityMode('production'));
+
+        // WebSocket event listeners
+        document.getElementById('btnWsConnect').addEventListener('click', connectWebSocket);
+        document.getElementById('btnWsDisconnect').addEventListener('click', disconnectWebSocket);
+        document.getElementById('btnWsSubscribe').addEventListener('click', subscribeToUpdates);
 
         // Initialize on page load
         window.addEventListener('load', () => {
