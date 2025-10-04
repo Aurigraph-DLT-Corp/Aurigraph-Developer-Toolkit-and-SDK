@@ -947,6 +947,7 @@
     <script src="src/frontend/configuration-manager.js"></script>
     <script src="src/frontend/scalability-modes.js"></script>
     <script src="src/frontend/websocket-manager.js"></script>
+    <script src="src/frontend/v11-backend-client.js"></script>
 
     <script>
         // Demo application state
@@ -1763,6 +1764,21 @@
             // Initialize scalability modes manager
             demoApp.scalabilityManager = new ScalabilityModesManager();
             logEvent('⚡ Scalability modes manager initialized');
+
+            // Initialize V11 backend client
+            demoApp.v11Client = new V11BackendClient({
+                baseUrl: 'http://localhost:9003'
+            });
+            logEvent('🔗 V11 Backend client initialized');
+
+            // Check V11 backend availability
+            demoApp.v11Client.isAvailable().then(available => {
+                if (available) {
+                    logEvent('✅ V11 Backend is available');
+                } else {
+                    logEvent('⚠️ V11 Backend is not available (running in demo mode)');
+                }
+            });
 
             loadSmallScalePreset();
         });
