@@ -4,7 +4,7 @@
 # Uses JIRA REST API to create all features systematically
 
 JIRA_URL="https://aurigraphdlt.atlassian.net"
-JIRA_USER="sjoish12@gmail.com"
+JIRA_USER="subbu@aurigraph.io"
 JIRA_API_TOKEN="${JIRA_API_TOKEN}"
 PROJECT_KEY="AV11"
 

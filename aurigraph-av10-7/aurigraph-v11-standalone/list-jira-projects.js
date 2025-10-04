@@ -3,7 +3,7 @@
 const https = require('https');
 
 const JIRA_CONFIG = {
-  email: 'sjoish12@gmail.com',
+  email: 'subbu@aurigraph.io',
   apiToken: 'ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C'
 };
 

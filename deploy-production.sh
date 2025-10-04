@@ -65,7 +65,7 @@ fi
 # Generate SSL certificate
 if [ ! -f "ssl/fullchain.pem" ]; then
     echo "Generating SSL certificate for dlt.aurigraph.io..."
-    sudo certbot certonly --standalone -d dlt.aurigraph.io --non-interactive --agree-tos --email sjoish12@gmail.com
+    sudo certbot certonly --standalone -d dlt.aurigraph.io --non-interactive --agree-tos --email subbu@aurigraph.io
     sudo cp /etc/letsencrypt/live/dlt.aurigraph.io/fullchain.pem ssl/
     sudo cp /etc/letsencrypt/live/dlt.aurigraph.io/privkey.pem ssl/
     sudo chown -R subbu:subbu ssl/
