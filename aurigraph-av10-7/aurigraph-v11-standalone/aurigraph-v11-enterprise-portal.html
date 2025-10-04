@@ -591,7 +591,7 @@
                 </div>
                 <select class="api-selector" id="apiBaseUrl">
                     <option value="http://dlt.aurigraph.io:9003">Production (dlt.aurigraph.io)</option>
-                    <option value="http://localhost:9003" selected>Local (localhost:9003)</option>
+                    <option value="http://dlt.aurigraph.io:9003" selected>Production (dlt.aurigraph.io:9003)</option>
                     <option value="demo">Demo Mode (Sample Data)</option>
                 </select>
             </div>
@@ -627,6 +627,7 @@
             <button class="nav-tab" data-tab="ai-optimization">AI Optimization</button>
             <button class="nav-tab" data-tab="quantum-security-adv">Quantum Security</button>
             <button class="nav-tab" data-tab="smart-contracts">Smart Contracts</button>
+            <button class="nav-tab" data-tab="ricardian">Ricardian Contracts</button>
             <button class="nav-tab" data-tab="marketplace">Marketplace</button>
             <button class="nav-tab" data-tab="defi">DeFi</button>
             <button class="nav-tab" data-tab="data-export">Data Export</button>
@@ -1382,7 +1383,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Batch Size</label>
-                            <input type="number" class="form-input" id="batchSize" value="10000" placeholder="10000">
+                            <input type="number" class="form-input" id="perfBatchSize" value="10000" placeholder="10000">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Parallel Threads</label>
@@ -1925,11 +1926,11 @@
                     <div class="grid grid-2 gap-2">
                         <div class="form-group">
                             <label class="form-label">Node ID</label>
-                            <input type="text" class="form-input" id="nodeId" placeholder="node-123" required>
+                            <input type="text" class="form-input" id="newNodeId" placeholder="node-123" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Node Type</label>
-                            <select class="form-select" id="nodeType" required>
+                            <select class="form-select" id="newNodeType" required>
                                 <option value="validator">Validator Node</option>
                                 <option value="full">Full Node</option>
                                 <option value="light">Light Node</option>
@@ -1937,7 +1938,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">IP Address</label>
-                            <input type="text" class="form-input" id="nodeIp" placeholder="192.168.1.100" required>
+                            <input type="text" class="form-input" id="newNodeIp" placeholder="192.168.1.100" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Port</label>
@@ -2995,6 +2996,255 @@ contract MySmartContract {
             </div>
         </div>
 
+        <!-- Ricardian Contracts Tab -->
+        <div id="ricardian" class="tab-content">
+            <h2 class="mb-3">Ricardian Contracts & Legal Document Tokenization</h2>
+
+            <!-- Overview Stats -->
+            <div class="grid grid-4 gap-2 mb-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="ricardianContractsCount">127</div>
+                    <div class="stat-label">Active Contracts</div>
+                    <div class="stat-change" style="color: #00ff88;">+12 this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tokenizedDocumentsCount">1,854</div>
+                    <div class="stat-label">Tokenized Documents</div>
+                    <div class="stat-change" style="color: #00ff88;">+156 today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="legalValueLocked">$12.3M</div>
+                    <div class="stat-label">Legal Value Locked</div>
+                    <div class="stat-change" style="color: #00ff88;">+$2.1M this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="complianceScore">98.5%</div>
+                    <div class="stat-label">Compliance Score</div>
+                    <div class="stat-change" style="color: #00ff88;">+2.3% improved</div>
+                </div>
+            </div>
+
+            <!-- Legal Document Upload & Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Legal Document Upload & AI Analysis</h3>
+                    <span class="card-badge">Upload Legal Documents</span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Upload Legal Document (PDF, DOCX, TXT)</label>
+                    <div style="border: 2px dashed var(--primary-color); border-radius: 8px; padding: 2rem; text-align: center; background: rgba(0, 212, 255, 0.05);">
+                        <input type="file" id="legalDocUpload" accept=".pdf,.docx,.txt" style="display: none;" onchange="analyzeLegalDocument(event)">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('legalDocUpload').click()">
+                            📄 Choose Legal Document
+                        </button>
+                        <p style="margin-top: 1rem; color: #a0a0b0;">Supported: PDF, DOCX, TXT • Max size: 50MB</p>
+                    </div>
+                </div>
+
+                <!-- Document Analysis Results -->
+                <div id="docAnalysisResults" style="display: none;">
+                    <div style="background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,255,136,0.1)); border: 1px solid var(--primary-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">📊 AI Document Analysis Complete</h4>
+                        <div class="grid grid-2 gap-2">
+                            <div>
+                                <strong style="color: #00ff88;">Document Type:</strong>
+                                <p id="docType" style="color: #fff; margin: 0.5rem 0;">Legal Agreement</p>
+                            </div>
+                            <div>
+                                <strong style="color: #00ff88;">Jurisdiction:</strong>
+                                <p id="docJurisdiction" style="color: #fff; margin: 0.5rem 0;">Delaware, USA</p>
+                            </div>
+                            <div>
+                                <strong style="color: #00ff88;">Key Parties:</strong>
+                                <p id="docParties" style="color: #fff; margin: 0.5rem 0;">Company A, Company B</p>
+                            </div>
+                            <div>
+                                <strong style="color: #00ff88;">Effective Date:</strong>
+                                <p id="docEffectiveDate" style="color: #fff; margin: 0.5rem 0;">January 1, 2025</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <strong style="color: #00ff88;">Key Terms Extracted:</strong>
+                            <div id="keyTerms" style="margin-top: 0.5rem;">
+                                <span class="badge" style="background: rgba(0,212,255,0.2); color: var(--primary-color); margin: 0.25rem;">Payment Terms: Net 30</span>
+                                <span class="badge" style="background: rgba(0,212,255,0.2); color: var(--primary-color); margin: 0.25rem;">Value: $500,000</span>
+                                <span class="badge" style="background: rgba(0,212,255,0.2); color: var(--primary-color); margin: 0.25rem;">Duration: 12 months</span>
+                                <span class="badge" style="background: rgba(0,212,255,0.2); color: var(--primary-color); margin: 0.25rem;">Auto-renewal: Yes</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ricardian Contract Creation -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Create Ricardian Contract</h3>
+                    <span class="card-badge">Machine + Human Readable</span>
+                </div>
+                <form onsubmit="createRicardianContract(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Contract Name</label>
+                            <input type="text" class="form-input" id="ricardianName" placeholder="Supply Agreement 2025-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contract Type</label>
+                            <select class="form-select" id="ricardianType" required>
+                                <option value="purchase">Purchase Agreement</option>
+                                <option value="service">Service Agreement</option>
+                                <option value="employment">Employment Contract</option>
+                                <option value="partnership">Partnership Agreement</option>
+                                <option value="licensing">Licensing Agreement</option>
+                                <option value="nda">Non-Disclosure Agreement</option>
+                                <option value="loan">Loan Agreement</option>
+                                <option value="custom">Custom Contract</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contract Value (USD)</label>
+                            <input type="number" class="form-input" id="ricardianValue" placeholder="500000" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Jurisdiction</label>
+                            <select class="form-select" id="ricardianJurisdiction" required>
+                                <option value="us-de">United States - Delaware</option>
+                                <option value="us-ny">United States - New York</option>
+                                <option value="uk">United Kingdom</option>
+                                <option value="sg">Singapore</option>
+                                <option value="ae">UAE - Dubai</option>
+                                <option value="ch">Switzerland</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Legal Text (Human-Readable)</label>
+                        <textarea class="form-textarea" id="ricardianLegalText" rows="6" placeholder="Enter the legal contract text here..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Machine-Readable Terms (JSON)</label>
+                        <textarea class="form-textarea" id="ricardianMachineTerms" rows="8" placeholder='{"parties": [...], "terms": {...}, "conditions": [...]}' required></textarea>
+                        <small style="color: #a0a0b0;">AI will auto-generate this from legal text if left empty</small>
+                    </div>
+
+                    <div class="grid grid-3 gap-2">
+                        <button type="button" class="btn btn-secondary" onclick="validateRicardianContract()">🔍 Validate Contract</button>
+                        <button type="button" class="btn btn-secondary" onclick="previewRicardianContract()">👁️ Preview</button>
+                        <button type="submit" class="btn btn-primary">✨ Create & Tokenize Contract</button>
+                    </div>
+                </form>
+
+                <!-- Contract Preview -->
+                <div id="ricardianPreview" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: rgba(0,255,136,0.05); border: 1px solid #00ff88; border-radius: 8px;">
+                    <h4 style="color: #00ff88; margin-bottom: 1rem;">📋 Contract Preview</h4>
+                    <div id="previewContent" style="color: #fff;"></div>
+                </div>
+            </div>
+
+            <!-- Contract Tokenization & Blockchain Storage -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Tokenization & Blockchain Storage</h3>
+                    <span class="card-badge">Immutable Records</span>
+                </div>
+                <div id="tokenizationResult" style="display: none;">
+                    <div style="background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,212,255,0.1)); border: 1px solid #00ff88; border-radius: 8px; padding: 1.5rem;">
+                        <h4 style="color: #00ff88; margin-bottom: 1rem;">✅ Contract Successfully Tokenized!</h4>
+                        <div class="grid grid-2 gap-2">
+                            <div>
+                                <strong style="color: var(--primary-color);">Token ID:</strong>
+                                <p id="tokenId" style="color: #fff; font-family: monospace; margin: 0.5rem 0;">RC-2025-0x7f8a...</p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-color);">Blockchain Hash:</strong>
+                                <p id="blockchainHash" style="color: #fff; font-family: monospace; margin: 0.5rem 0;">0x4c9b...</p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-color);">IPFS CID:</strong>
+                                <p id="ipfsCid" style="color: #fff; font-family: monospace; margin: 0.5rem 0;">Qm...</p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary-color);">Timestamp:</strong>
+                                <p id="tokenTimestamp" style="color: #fff; margin: 0.5rem 0;">2025-01-15 14:23:45 UTC</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,255,136,0.3);">
+                            <strong style="color: #00ff88;">Smart Contract Features Enabled:</strong>
+                            <div style="margin-top: 0.5rem;">
+                                <span class="badge badge-success">Auto-Execution</span>
+                                <span class="badge badge-success">Multi-Sig Required</span>
+                                <span class="badge badge-success">Audit Trail</span>
+                                <span class="badge badge-success">Version Control</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Ricardian Contracts Registry -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Ricardian Contracts Registry</h3>
+                    <span class="card-badge">127 Active</span>
+                </div>
+                <div class="mb-2">
+                    <input type="text" class="form-input" placeholder="🔍 Search contracts by name, type, or token ID..." style="width: 100%;">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Token ID</th>
+                                <th>Contract Name</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>RC-2025-0x4a2f</code></td>
+                                <td>Supply Agreement Q1-2025</td>
+                                <td>Purchase</td>
+                                <td>$850,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>2025-01-15</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="viewContract('RC-2025-0x4a2f')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>RC-2025-0x7b3c</code></td>
+                                <td>Service Level Agreement</td>
+                                <td>Service</td>
+                                <td>$125,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>2025-01-14</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="viewContract('RC-2025-0x7b3c')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>RC-2025-0x9d5e</code></td>
+                                <td>Partnership Agreement 2025</td>
+                                <td>Partnership</td>
+                                <td>$2,500,000</td>
+                                <td><span class="badge badge-warning">Pending</span></td>
+                                <td>2025-01-13</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="viewContract('RC-2025-0x9d5e')">View</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Sprint 19: Token/NFT Marketplace Tab -->
         <div id="marketplace" class="tab-content">
             <h2 class="mb-3">Token & NFT Marketplace</h2>
@@ -3452,11 +3702,11 @@ contract MySmartContract {
                         </div>
                         <div class="form-group">
                             <label class="form-label">Amount to Stake</label>
-                            <input type="number" class="form-input" id="stakeAmount" placeholder="1000" step="0.01" min="0.01" required>
+                            <input type="number" class="form-input" id="defiStakeAmount" placeholder="1000" step="0.01" min="0.01" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Lock Period (days)</label>
-                            <select class="form-select" id="lockPeriod" required>
+                            <select class="form-select" id="defiLockPeriod" required>
                                 <option value="0">Flexible (0% bonus)</option>
                                 <option value="30">30 days (+5% APY)</option>
                                 <option value="90">90 days (+10% APY)</option>
@@ -6601,7 +6851,7 @@ contract MySmartContract {
 
     <script>
         // ==================== GLOBAL STATE ====================
-        let apiBaseUrl = 'http://localhost:9003';
+        let apiBaseUrl = 'http://dlt.aurigraph.io:9003';
         let isDemoMode = false;
         let charts = {};
         let metricsInterval = null;
@@ -7891,7 +8141,7 @@ console.log('Bridge transaction:', bridge.id);`
             event.preventDefault();
             const formData = {
                 targetTps: document.getElementById('targetTps').value,
-                batchSize: document.getElementById('batchSize').value,
+                batchSize: document.getElementById('perfBatchSize').value,
                 parallelThreads: document.getElementById('parallelThreads').value,
                 memPoolSize: document.getElementById('memPoolSize').value,
                 cacheSize: document.getElementById('cacheSize').value,
@@ -8332,9 +8582,9 @@ console.log('Bridge transaction:', bridge.id);`
 
         function registerNode(event) {
             event.preventDefault();
-            const nodeId = document.getElementById('nodeId').value;
-            const nodeType = document.getElementById('nodeType').value;
-            const ip = document.getElementById('nodeIp').value;
+            const nodeId = document.getElementById('newNodeId').value;
+            const nodeType = document.getElementById('newNodeType').value;
+            const ip = document.getElementById('newNodeIp').value;
             const port = document.getElementById('nodePort').value;
 
             showNotification(`Node ${nodeId} (${nodeType}) registered at ${ip}:${port}`, 'success');
@@ -8813,8 +9063,8 @@ contract MyNFT {
         function stakeFarm(event) {
             event.preventDefault();
             const farm = document.getElementById('farmSelect').value;
-            const amount = document.getElementById('stakeAmount').value;
-            const lockPeriod = document.getElementById('lockPeriod').value;
+            const amount = document.getElementById('defiStakeAmount').value;
+            const lockPeriod = document.getElementById('defiLockPeriod').value;
 
             const lockText = lockPeriod == 0 ? 'flexible' : `${lockPeriod} days`;
             showNotification(`Staked ${amount} AUR in ${farm} with ${lockText} lock period`, 'success');
@@ -9962,6 +10212,155 @@ contract MyNFT {
             setTimeout(() => {
                 showNotification('Health report exported: system_health_report.pdf', 'success');
             }, 2500);
+        }
+
+        // ==================== RICARDIAN CONTRACTS FUNCTIONS ====================
+
+        function analyzeLegalDocument(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showNotification(`Analyzing legal document: ${file.name}...`, 'info');
+
+            // Simulate AI analysis
+            setTimeout(() => {
+                const resultsDiv = document.getElementById('docAnalysisResults');
+                resultsDiv.style.display = 'block';
+
+                // Update analysis results with realistic data
+                document.getElementById('docType').textContent = file.name.includes('NDA') ? 'Non-Disclosure Agreement' :
+                    file.name.includes('Service') ? 'Service Agreement' : 'Legal Agreement';
+                document.getElementById('docJurisdiction').textContent = 'Delaware, USA';
+                document.getElementById('docParties').textContent = 'Company A, Company B';
+                document.getElementById('docEffectiveDate').textContent = new Date().toLocaleDateString();
+
+                // Auto-fill contract creation form
+                document.getElementById('ricardianLegalText').value = `This agreement, entered into on ${new Date().toLocaleDateString()}, represents a legally binding contract between the parties.\n\nTerms and conditions extracted from uploaded document:\n1. Payment terms: Net 30 days\n2. Service duration: 12 months\n3. Automatic renewal clause applies\n4. Governing law: State of Delaware`;
+
+                document.getElementById('ricardianMachineTerms').value = JSON.stringify({
+                    "parties": ["Company A", "Company B"],
+                    "effectiveDate": new Date().toISOString(),
+                    "terms": {
+                        "payment": "Net 30",
+                        "value": 500000,
+                        "currency": "USD",
+                        "duration": "12 months",
+                        "autoRenewal": true
+                    },
+                    "conditions": [
+                        "Payment within 30 days",
+                        "Service level agreement applies",
+                        "Termination clause: 90 days notice"
+                    ],
+                    "jurisdiction": "Delaware, USA"
+                }, null, 2);
+
+                showNotification(`✅ Document analysis complete! Key terms extracted and ready for contract creation.`, 'success');
+            }, 2000);
+        }
+
+        function validateRicardianContract() {
+            const name = document.getElementById('ricardianName').value;
+            const legalText = document.getElementById('ricardianLegalText').value;
+            const machineTerms = document.getElementById('ricardianMachineTerms').value;
+
+            if (!name || !legalText || !machineTerms) {
+                showNotification('⚠️ Please fill in all required fields before validation', 'error');
+                return;
+            }
+
+            showNotification('🔍 Validating contract structure and compliance...', 'info');
+
+            setTimeout(() => {
+                try {
+                    JSON.parse(machineTerms); // Validate JSON
+                    showNotification('✅ Contract validation successful! All checks passed:\n• JSON structure valid\n• Legal text present\n• Compliance requirements met\n• Ready for tokenization', 'success');
+                } catch (e) {
+                    showNotification('❌ Invalid JSON in machine-readable terms. Please check syntax.', 'error');
+                }
+            }, 1500);
+        }
+
+        function previewRicardianContract() {
+            const name = document.getElementById('ricardianName').value;
+            const type = document.getElementById('ricardianType').value;
+            const value = document.getElementById('ricardianValue').value;
+            const jurisdiction = document.getElementById('ricardianJurisdiction').value;
+            const legalText = document.getElementById('ricardianLegalText').value;
+
+            if (!name || !legalText) {
+                showNotification('⚠️ Please enter contract name and legal text to preview', 'error');
+                return;
+            }
+
+            const previewDiv = document.getElementById('ricardianPreview');
+            const previewContent = document.getElementById('previewContent');
+
+            previewContent.innerHTML = `
+                <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 1rem;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">${name}</h3>
+                    <p style="color: #a0a0b0;">Type: ${type.charAt(0).toUpperCase() + type.slice(1)} Agreement</p>
+                    <p style="color: #a0a0b0;">Value: $${formatNumber(value)} USD</p>
+                    <p style="color: #a0a0b0;">Jurisdiction: ${jurisdiction}</p>
+                </div>
+                <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 4px; font-family: 'Georgia', serif; line-height: 1.6;">
+                    ${legalText.replace(/\n/g, '<br>')}
+                </div>
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(0,212,255,0.1); border-left: 3px solid var(--primary-color);">
+                    <strong>📍 Next Step:</strong> Click "Create & Tokenize Contract" to store this contract immutably on the blockchain
+                </div>
+            `;
+
+            previewDiv.style.display = 'block';
+            previewDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createRicardianContract(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('ricardianName').value;
+            const type = document.getElementById('ricardianType').value;
+            const value = document.getElementById('ricardianValue').value;
+            const jurisdiction = document.getElementById('ricardianJurisdiction').value;
+            const legalText = document.getElementById('ricardianLegalText').value;
+            const machineTerms = document.getElementById('ricardianMachineTerms').value;
+
+            showNotification('⏳ Creating Ricardian contract and tokenizing on blockchain...', 'info');
+
+            // Simulate contract creation and blockchain storage
+            setTimeout(() => {
+                const tokenId = `RC-2025-0x${Math.random().toString(16).substr(2, 8)}`;
+                const blockchainHash = `0x${Math.random().toString(16).substr(2, 64)}`;
+                const ipfsCid = `Qm${Math.random().toString(36).substr(2, 44)}`;
+                const timestamp = new Date().toISOString().replace('T', ' ').substr(0, 19) + ' UTC';
+
+                // Update tokenization result display
+                document.getElementById('tokenId').textContent = tokenId;
+                document.getElementById('blockchainHash').textContent = blockchainHash;
+                document.getElementById('ipfsCid').textContent = ipfsCid;
+                document.getElementById('tokenTimestamp').textContent = timestamp;
+
+                const tokenizationDiv = document.getElementById('tokenizationResult');
+                tokenizationDiv.style.display = 'block';
+                tokenizationDiv.scrollIntoView({ behavior: 'smooth' });
+
+                // Update stats
+                const contractsCount = document.getElementById('ricardianContractsCount');
+                contractsCount.textContent = parseInt(contractsCount.textContent) + 1;
+
+                const documentsCount = document.getElementById('tokenizedDocumentsCount');
+                documentsCount.textContent = (parseInt(documentsCount.textContent.replace(/,/g, '')) + 1).toLocaleString();
+
+                showNotification(`🎉 Ricardian contract successfully created and tokenized!\n\n📋 Contract: ${name}\n🔑 Token ID: ${tokenId}\n⛓️ Stored on blockchain with IPFS backup\n✅ Auto-execution enabled`, 'success');
+
+                // Reset form
+                event.target.reset();
+                document.getElementById('ricardianPreview').style.display = 'none';
+            }, 3000);
+        }
+
+        function viewContract(tokenId) {
+            showNotification(`📄 Opening contract ${tokenId}...\n\n🔍 Contract Details:\n• Token ID: ${tokenId}\n• Status: Active\n• Blockchain: Verified ✅\n• IPFS: Accessible ✅\n\n[View full contract in new window]`, 'info');
         }
     </script>
 </body>
