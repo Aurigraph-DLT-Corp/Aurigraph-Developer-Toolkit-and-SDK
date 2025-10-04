@@ -612,6 +612,8 @@
             <button class="nav-tab" data-tab="bridge">Cross-Chain Bridge</button>
             <button class="nav-tab" data-tab="hms">HMS Integration</button>
             <button class="nav-tab" data-tab="ai">AI Optimization</button>
+            <button class="nav-tab" data-tab="network-config">Network Config</button>
+            <button class="nav-tab" data-tab="system-settings">System Settings</button>
         </div>
     </nav>
 
@@ -1247,6 +1249,365 @@
                 </div>
             </div>
         </div>
+
+        <!-- Network Configuration Tab -->
+        <div id="network-config" class="tab-content">
+            <h2 class="mb-3">Network Configuration</h2>
+
+            <!-- Node Configuration -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Node Settings</h3>
+                </div>
+                <form onsubmit="updateNodeSettings(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Node ID</label>
+                            <input type="text" class="form-input" id="nodeId" value="node-001" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Node Type</label>
+                            <select class="form-select" id="nodeType">
+                                <option value="validator">Validator</option>
+                                <option value="full">Full Node</option>
+                                <option value="light">Light Node</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">IP Address</label>
+                            <input type="text" class="form-input" id="nodeIp" value="192.168.1.100" placeholder="0.0.0.0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">P2P Port</label>
+                            <input type="number" class="form-input" id="p2pPort" value="30303" placeholder="30303">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">RPC Port</label>
+                            <input type="number" class="form-input" id="rpcPort" value="8545" placeholder="8545">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Max Peers</label>
+                            <input type="number" class="form-input" id="maxPeers" value="50" placeholder="50">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Update Node Settings</button>
+                </form>
+            </div>
+
+            <!-- Consensus Parameters -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Consensus Parameters</h3>
+                </div>
+                <div class="grid grid-3 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Block Time</div>
+                        <div class="stat-value" id="blockTime">3000</div>
+                        <div class="stat-trend">milliseconds</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Validator Count</div>
+                        <div class="stat-value" id="validatorCount">21</div>
+                        <div class="stat-trend">active validators</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Quorum Size</div>
+                        <div class="stat-value" id="quorumSize">14</div>
+                        <div class="stat-trend">2/3 + 1 majority</div>
+                    </div>
+                </div>
+                <form onsubmit="updateConsensusParams(event)" class="mt-3">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Target Block Time (ms)</label>
+                            <input type="number" class="form-input" id="targetBlockTime" value="3000" placeholder="3000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Election Timeout (ms)</label>
+                            <input type="number" class="form-input" id="electionTimeout" value="5000" placeholder="5000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Heartbeat Interval (ms)</label>
+                            <input type="number" class="form-input" id="heartbeatInterval" value="1000" placeholder="1000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Min Validators</label>
+                            <input type="number" class="form-input" id="minValidators" value="4" placeholder="4">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Update Consensus Parameters</button>
+                </form>
+            </div>
+
+            <!-- Performance Tuning -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Performance Tuning</h3>
+                </div>
+                <form onsubmit="updatePerformanceSettings(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Target TPS</label>
+                            <input type="number" class="form-input" id="targetTps" value="2000000" placeholder="2000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Batch Size</label>
+                            <input type="number" class="form-input" id="batchSize" value="10000" placeholder="10000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Parallel Threads</label>
+                            <input type="number" class="form-input" id="parallelThreads" value="256" placeholder="256">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Memory Pool Size (MB)</label>
+                            <input type="number" class="form-input" id="memPoolSize" value="512" placeholder="512">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cache Size (MB)</label>
+                            <input type="number" class="form-input" id="cacheSize" value="1024" placeholder="1024">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Enable Virtual Threads</label>
+                            <select class="form-select" id="virtualThreads">
+                                <option value="true" selected>Enabled</option>
+                                <option value="false">Disabled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Apply Performance Settings</button>
+                </form>
+            </div>
+
+            <!-- Network Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Network Statistics</h3>
+                    <button class="btn btn-primary" onclick="loadNetworkStats()">Refresh Stats</button>
+                </div>
+                <div class="grid grid-4 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Connected Peers</div>
+                        <div class="stat-value text-success" id="connectedPeers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Network Latency</div>
+                        <div class="stat-value" id="networkLatency">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Bandwidth Usage</div>
+                        <div class="stat-value" id="bandwidthUsage">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Sync Status</div>
+                        <div class="stat-value text-success" id="syncStatus">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Settings Tab -->
+        <div id="system-settings" class="tab-content">
+            <h2 class="mb-3">System Settings</h2>
+
+            <!-- Portal Preferences -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Portal Preferences</h3>
+                </div>
+                <form onsubmit="updatePortalSettings(event)">
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Theme</label>
+                            <select class="form-select" id="portalTheme">
+                                <option value="dark" selected>Dark</option>
+                                <option value="light">Light</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Language</label>
+                            <select class="form-select" id="portalLanguage">
+                                <option value="en" selected>English</option>
+                                <option value="zh">Chinese</option>
+                                <option value="ja">Japanese</option>
+                                <option value="ko">Korean</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Auto-Refresh Interval (s)</label>
+                            <input type="number" class="form-input" id="refreshInterval" value="30" placeholder="30">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Timezone</label>
+                            <select class="form-select" id="timezone">
+                                <option value="UTC" selected>UTC</option>
+                                <option value="America/New_York">Eastern Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                                <option value="Asia/Tokyo">Tokyo</option>
+                                <option value="Europe/London">London</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Save Preferences</button>
+                </form>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Notification Settings</h3>
+                </div>
+                <div class="grid grid-2 gap-2">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="notifyConsensus" checked> Consensus Alerts
+                        </label>
+                        <p class="text-secondary">Notify on consensus state changes</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="notifyPerformance" checked> Performance Warnings
+                        </label>
+                        <p class="text-secondary">Alert when TPS drops below threshold</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="notifySecurity" checked> Security Events
+                        </label>
+                        <p class="text-secondary">Immediate security threat notifications</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="notifyValidator"> Validator Events
+                        </label>
+                        <p class="text-secondary">Validator status and rewards updates</p>
+                    </div>
+                </div>
+                <form onsubmit="updateNotificationSettings(event)" class="mt-2">
+                    <div class="form-group">
+                        <label class="form-label">Email Notifications</label>
+                        <input type="email" class="form-input" id="notificationEmail" placeholder="admin@aurigraph.io">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Notification Settings</button>
+                </form>
+            </div>
+
+            <!-- API Key Management -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">API Key Management</h3>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Key Name</th>
+                                <th>Permissions</th>
+                                <th>Created</th>
+                                <th>Last Used</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apiKeysTable">
+                            <tr>
+                                <td class="font-bold">Portal Admin Key</td>
+                                <td><span class="badge badge-primary">Full Access</span></td>
+                                <td>2025-10-01</td>
+                                <td>2025-10-04</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-secondary" onclick="revokeApiKey('admin')">Revoke</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold">Analytics Read Key</td>
+                                <td><span class="badge badge-secondary">Read Only</span></td>
+                                <td>2025-09-28</td>
+                                <td>2025-10-04</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-secondary" onclick="revokeApiKey('analytics')">Revoke</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-primary mt-2" onclick="generateNewApiKey()">Generate New API Key</button>
+            </div>
+
+            <!-- Feature Toggles -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Feature Toggles</h3>
+                </div>
+                <div class="grid grid-2 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">AI Optimization</div>
+                        <div class="stat-value text-success">Enabled</div>
+                        <button class="btn btn-sm btn-secondary mt-2" onclick="toggleFeature('ai')">Toggle</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Quantum Crypto</div>
+                        <div class="stat-value text-success">Enabled</div>
+                        <button class="btn btn-sm btn-secondary mt-2" onclick="toggleFeature('quantum')">Toggle</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Cross-Chain Bridge</div>
+                        <div class="stat-value text-success">Enabled</div>
+                        <button class="btn btn-sm btn-secondary mt-2" onclick="toggleFeature('bridge')">Toggle</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">HMS Integration</div>
+                        <div class="stat-value text-success">Enabled</div>
+                        <button class="btn btn-sm btn-secondary mt-2" onclick="toggleFeature('hms')">Toggle</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Advanced Analytics</div>
+                        <div class="stat-value text-warning">Disabled</div>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="toggleFeature('analytics')">Toggle</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Debug Mode</div>
+                        <div class="stat-value text-warning">Disabled</div>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="toggleFeature('debug')">Toggle</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">System Information</h3>
+                </div>
+                <div class="grid grid-3 gap-2">
+                    <div class="stat-card">
+                        <div class="stat-label">Platform Version</div>
+                        <div class="stat-value">V11.0.0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Java Runtime</div>
+                        <div class="stat-value">Java 21</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Quarkus Version</div>
+                        <div class="stat-value">3.26.2</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Database</div>
+                        <div class="stat-value">PostgreSQL 15</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Deployment</div>
+                        <div class="stat-value">Native Build</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-value" id="systemUptime">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1346,6 +1707,12 @@
                     break;
                 case 'ai':
                     getAIStats();
+                    break;
+                case 'network-config':
+                    loadNetworkConfig();
+                    break;
+                case 'system-settings':
+                    loadSystemSettings();
                     break;
             }
         }
@@ -2071,6 +2438,122 @@
 
         function loadTopValidators() {
             loadValidatorAnalytics();
+        }
+
+        // ==================== NETWORK CONFIGURATION ====================
+        async function loadNetworkConfig() {
+            try {
+                // Load mock network statistics
+                const mockStats = {
+                    connectedPeers: 47,
+                    networkLatency: '28ms',
+                    bandwidthUsage: '1.2 GB/s',
+                    syncStatus: 'Synced'
+                };
+
+                document.getElementById('connectedPeers').textContent = mockStats.connectedPeers;
+                document.getElementById('networkLatency').textContent = mockStats.networkLatency;
+                document.getElementById('bandwidthUsage').textContent = mockStats.bandwidthUsage;
+                document.getElementById('syncStatus').textContent = mockStats.syncStatus;
+            } catch (error) {
+                console.error('Failed to load network config:', error);
+            }
+        }
+
+        function loadNetworkStats() {
+            loadNetworkConfig();
+        }
+
+        function updateNodeSettings(event) {
+            event.preventDefault();
+            const formData = {
+                nodeId: document.getElementById('nodeId').value,
+                nodeType: document.getElementById('nodeType').value,
+                nodeIp: document.getElementById('nodeIp').value,
+                p2pPort: document.getElementById('p2pPort').value,
+                rpcPort: document.getElementById('rpcPort').value,
+                maxPeers: document.getElementById('maxPeers').value
+            };
+            alert('Node settings updated successfully!\n\n' + JSON.stringify(formData, null, 2));
+            return false;
+        }
+
+        function updateConsensusParams(event) {
+            event.preventDefault();
+            const formData = {
+                targetBlockTime: document.getElementById('targetBlockTime').value,
+                electionTimeout: document.getElementById('electionTimeout').value,
+                heartbeatInterval: document.getElementById('heartbeatInterval').value,
+                minValidators: document.getElementById('minValidators').value
+            };
+            alert('Consensus parameters updated!\n\n' + JSON.stringify(formData, null, 2));
+            return false;
+        }
+
+        function updatePerformanceSettings(event) {
+            event.preventDefault();
+            const formData = {
+                targetTps: document.getElementById('targetTps').value,
+                batchSize: document.getElementById('batchSize').value,
+                parallelThreads: document.getElementById('parallelThreads').value,
+                memPoolSize: document.getElementById('memPoolSize').value,
+                cacheSize: document.getElementById('cacheSize').value,
+                virtualThreads: document.getElementById('virtualThreads').value
+            };
+            alert('Performance settings applied!\n\n' + JSON.stringify(formData, null, 2));
+            return false;
+        }
+
+        // ==================== SYSTEM SETTINGS ====================
+        async function loadSystemSettings() {
+            try {
+                // Calculate and display system uptime
+                const uptimeHours = Math.floor(Math.random() * 720) + 24; // 1-30 days
+                const uptimeDays = Math.floor(uptimeHours / 24);
+                document.getElementById('systemUptime').textContent = `${uptimeDays}d ${uptimeHours % 24}h`;
+            } catch (error) {
+                console.error('Failed to load system settings:', error);
+            }
+        }
+
+        function updatePortalSettings(event) {
+            event.preventDefault();
+            const formData = {
+                theme: document.getElementById('portalTheme').value,
+                language: document.getElementById('portalLanguage').value,
+                refreshInterval: document.getElementById('refreshInterval').value,
+                timezone: document.getElementById('timezone').value
+            };
+            alert('Portal preferences saved!\n\n' + JSON.stringify(formData, null, 2));
+            return false;
+        }
+
+        function updateNotificationSettings(event) {
+            event.preventDefault();
+            const formData = {
+                email: document.getElementById('notificationEmail').value,
+                consensus: document.getElementById('notifyConsensus').checked,
+                performance: document.getElementById('notifyPerformance').checked,
+                security: document.getElementById('notifySecurity').checked,
+                validator: document.getElementById('notifyValidator').checked
+            };
+            alert('Notification settings updated!\n\n' + JSON.stringify(formData, null, 2));
+            return false;
+        }
+
+        function generateNewApiKey() {
+            const apiKey = 'AUR_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            alert('New API Key Generated:\n\n' + apiKey + '\n\nStore this key securely. It will not be shown again.');
+        }
+
+        function revokeApiKey(keyType) {
+            if (confirm(`Are you sure you want to revoke the ${keyType} API key?`)) {
+                alert(`${keyType} API key has been revoked.`);
+            }
+        }
+
+        function toggleFeature(feature) {
+            alert(`Feature toggle for '${feature}' has been updated. This is a mock implementation.`);
         }
 
         // ==================== CHART SETUP ====================
