@@ -590,8 +590,8 @@
                     <span id="statusText">Connecting...</span>
                 </div>
                 <select class="api-selector" id="apiBaseUrl">
-                    <option value="https://dlt.aurigraph.io:9003">Production (dlt.aurigraph.io)</option>
-                    <option value="https://dlt.aurigraph.io:9003" selected>Production (HTTPS - dlt.aurigraph.io:9003)</option>
+                    <option value="https://dlt.aurigraph.io/api/v11">Production (dlt.aurigraph.io)</option>
+                    <option value="https://dlt.aurigraph.io/api/v11" selected>Production (HTTPS - dlt.aurigraph.io:9003)</option>
                     <option value="demo">Demo Mode (Sample Data)</option>
                 </select>
             </div>
@@ -6851,7 +6851,7 @@ contract MySmartContract {
 
     <script>
         // ==================== GLOBAL STATE ====================
-        let apiBaseUrl = 'https://dlt.aurigraph.io:9003';
+        let apiBaseUrl = 'https://dlt.aurigraph.io/api/v11';
         let isDemoMode = false;
         let charts = {};
         let metricsInterval = null;
@@ -7936,7 +7936,7 @@ contract MySmartContract {
 const { AurigraphClient } = require('@aurigraph/sdk');
 
 const client = new AurigraphClient({
-    endpoint: 'https://dlt.aurigraph.io:9003'
+    endpoint: 'https://dlt.aurigraph.io/api/v11'
 });
 
 const tx = await client.sendTransaction({
