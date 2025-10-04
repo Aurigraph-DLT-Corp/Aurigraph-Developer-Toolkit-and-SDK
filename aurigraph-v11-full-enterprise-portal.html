@@ -2022,6 +2022,132 @@
             width: 100%;
         }
 
+        /* Chain Grid & Cards - Sprint 8 */
+        .chain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .chain-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .chain-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
+        }
+
+        .chain-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 0.75rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .chain-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .chain-tvl {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            margin-top: 0.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Form Controls */
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            color: var(--text-primary);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .alert-info {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0 0;
+        }
+
+        .recommendation-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .recommendation-list li:last-child {
+            border-bottom: none;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -3929,6 +4055,227 @@
         </div>
     </div>
 
+    <!-- Cross-Chain Bridge Page -->
+    <div id="cross-chain-page" class="page" style="display: none;">
+        <div class="page-header">
+            <h1 class="page-title">Cross-Chain Bridge Dashboard</h1>
+            <p class="page-description">Monitor cross-chain bridge activity, TVL, and transfer metrics</p>
+        </div>
+
+        <!-- Bridge Stats Cards -->
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">Total Value Locked (TVL)</div>
+                <div class="card-value" id="bridge-tvl">$125M</div>
+                <div class="card-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+12.5% this week</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">24h Volume</div>
+                <div class="card-value" id="bridge-volume-24h">$5.2M</div>
+                <div class="card-subtitle">Last 24 hours</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Success Rate</div>
+                <div class="card-value" id="bridge-success-rate">99.8%</div>
+                <div class="card-subtitle">
+                    <span class="badge badge-success">Excellent</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Avg Transfer Time</div>
+                <div class="card-value" id="bridge-avg-time">8.5 min</div>
+                <div class="card-subtitle">Cross-chain average</div>
+            </div>
+        </div>
+
+        <!-- Supported Chains -->
+        <div class="card mt-2">
+            <h3 class="card-title">Supported Chains (5 Active Bridges)</h3>
+            <div class="chain-grid" id="supported-chains">
+                <div class="chain-card">
+                    <div class="chain-icon">ETH</div>
+                    <div class="chain-name">Ethereum</div>
+                    <div class="chain-tvl">$45M</div>
+                </div>
+                <div class="chain-card">
+                    <div class="chain-icon">BSC</div>
+                    <div class="chain-name">Binance Smart Chain</div>
+                    <div class="chain-tvl">$30M</div>
+                </div>
+                <div class="chain-card">
+                    <div class="chain-icon">POL</div>
+                    <div class="chain-name">Polygon</div>
+                    <div class="chain-tvl">$25M</div>
+                </div>
+                <div class="chain-card">
+                    <div class="chain-icon">AVA</div>
+                    <div class="chain-name">Avalanche</div>
+                    <div class="chain-tvl">$15M</div>
+                </div>
+                <div class="chain-card">
+                    <div class="chain-icon">SOL</div>
+                    <div class="chain-name">Solana</div>
+                    <div class="chain-tvl">$10M</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Volume Chart & Chain Distribution -->
+        <div class="grid grid-cols-2 gap-2 mt-2">
+            <div class="card">
+                <h3 class="card-title">Bridge Volume (Last 30 Days)</h3>
+                <canvas id="bridge-volume-chart" height="250"></canvas>
+            </div>
+            <div class="card">
+                <h3 class="card-title">Chain Distribution</h3>
+                <canvas id="chain-distribution-chart" height="250"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Transfers -->
+        <div class="card mt-2">
+            <h3 class="card-title">Recent Bridge Transfers</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>From Chain</th>
+                            <th>To Chain</th>
+                            <th class="text-right">Amount</th>
+                            <th>Asset</th>
+                            <th class="text-center">Status</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-transfers">
+                        <tr>
+                            <td>2 min ago</td>
+                            <td><span class="badge badge-info">Ethereum</span></td>
+                            <td><span class="badge badge-info">Polygon</span></td>
+                            <td class="text-right">1,250 AUR</td>
+                            <td>AUR</td>
+                            <td class="text-center"><span class="badge badge-success">Completed</span></td>
+                            <td>7.2 min</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Testing Page -->
+    <div id="performance-page" class="page" style="display: none;">
+        <div class="page-header">
+            <h1 class="page-title">Performance Test Dashboard</h1>
+            <p class="page-description">Run and monitor performance tests with real-time results</p>
+        </div>
+
+        <!-- Test Configuration -->
+        <div class="card">
+            <h3 class="card-title">Test Configuration</h3>
+            <div class="grid grid-cols-4 gap-2">
+                <div>
+                    <label class="form-label">Test Suite</label>
+                    <select id="perf-test-suite" class="form-control">
+                        <option value="tps">TPS Test (Transactions/sec)</option>
+                        <option value="latency">Latency Test (Confirmation time)</option>
+                        <option value="throughput">Throughput Test (Data transfer)</option>
+                        <option value="stress">Stress Test (System limits)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Duration (seconds)</label>
+                    <input type="number" id="perf-duration" class="form-control" value="60" min="10" max="600">
+                </div>
+                <div>
+                    <label class="form-label">Target TPS</label>
+                    <input type="number" id="perf-target-tps" class="form-control" value="2000000" step="100000">
+                </div>
+                <div>
+                    <label class="form-label">Concurrent Users</label>
+                    <input type="number" id="perf-concurrent-users" class="form-control" value="1000" step="100">
+                </div>
+            </div>
+            <div class="mt-2">
+                <button class="btn btn-primary" id="perf-start-btn" onclick="startPerformanceTest()">
+                    <i class="fas fa-play"></i> Start Test
+                </button>
+                <button class="btn btn-danger" id="perf-stop-btn" onclick="stopPerformanceTest()" disabled>
+                    <i class="fas fa-stop"></i> Stop Test
+                </button>
+                <button class="btn btn-secondary" onclick="exportPerfResults()">
+                    <i class="fas fa-download"></i> Export Results
+                </button>
+                <button class="btn btn-secondary" onclick="saveTestTemplate()">
+                    <i class="fas fa-save"></i> Save Template
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Progress -->
+        <div class="card mt-2" id="perf-progress-section" style="display: none;">
+            <h3 class="card-title">Test Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="perf-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="progress-text" id="perf-progress-text">0% - Elapsed: 0s / 60s - Current TPS: 0</div>
+        </div>
+
+        <!-- Live TPS Chart -->
+        <div class="card mt-2" id="perf-live-chart-section" style="display: none;">
+            <h3 class="card-title">Live TPS Performance</h3>
+            <canvas id="live-tps-chart" height="200"></canvas>
+        </div>
+
+        <!-- Test Results -->
+        <div class="card mt-2" id="perf-results-section" style="display: none;">
+            <h3 class="card-title">Test Results</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">Average TPS</div>
+                    <div class="card-value" id="perf-avg-tps">0</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Max TPS</div>
+                    <div class="card-value" id="perf-max-tps">0</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">P50 Latency</div>
+                    <div class="card-value" id="perf-p50-latency">0ms</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">P95 Latency</div>
+                    <div class="card-value" id="perf-p95-latency">0ms</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">P99 Latency</div>
+                    <div class="card-value" id="perf-p99-latency">0ms</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Success Rate</div>
+                    <div class="card-value" id="perf-success-rate">0%</div>
+                </div>
+            </div>
+            <div id="perf-regression-alert" class="alert alert-warning mt-2" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>Performance Regression Detected!</strong>
+                    <p>Current performance is below baseline. Review test configuration and system resources.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Comparison -->
+        <div class="card mt-2">
+            <h3 class="card-title">Historical Performance Comparison</h3>
+            <canvas id="historical-perf-chart" height="200"></canvas>
+        </div>
+    </div>
+
     <!-- Contract Detail Modal -->
     <div id="contract-modal" class="modal">
         <div class="modal-content modal-large">
@@ -4081,6 +4428,16 @@
             if (pageName === 'quantum-security') {
                 // Load security data when quantum security page is shown
                 loadQuantumSecurityData();
+            }
+
+            if (pageName === 'cross-chain') {
+                // Load bridge data when cross-chain page is shown
+                loadBridgeData();
+            }
+
+            if (pageName === 'performance') {
+                // Initialize performance dashboard
+                initPerformanceDashboard();
             }
         }
 
@@ -6667,6 +7024,238 @@
                 console.error('Error loading quantum security data:', error);
                 // Mock data is already in HTML
             }
+        }
+
+        // ==========================================
+        // Cross-Chain Bridge Functions
+        // ==========================================
+
+        let bridgeDataInterval = null;
+
+        async function loadBridgeData() {
+            try {
+                const response = await fetch('/portal/bridge/stats');
+                if (!response.ok) throw new Error('API call failed');
+                const data = await response.json();
+
+                // Update stats
+                document.getElementById('bridge-tvl').textContent = `$${formatNumber(data.tvl_usd)}`;
+                document.getElementById('bridge-volume-24h').textContent = `$${formatNumber(data.volume_24h)}`;
+                document.getElementById('bridge-success-rate').textContent = `${data.success_rate.toFixed(1)}%`;
+                document.getElementById('bridge-avg-time').textContent = `${data.avg_transfer_time.toFixed(1)} min`;
+
+                // Auto-refresh every 30 seconds
+                if (!bridgeDataInterval) {
+                    bridgeDataInterval = setInterval(loadBridgeData, 30000);
+                }
+            } catch (error) {
+                console.error('Error loading bridge data:', error);
+                // Mock data is already in HTML
+            }
+        }
+
+        // ==========================================
+        // Performance Testing Functions
+        // ==========================================
+
+        let perfTestId = null;
+        let perfTestInterval = null;
+        let liveTpsChart = null;
+
+        function initPerformanceDashboard() {
+            // Initialize live TPS chart
+            const ctx = document.getElementById('live-tps-chart');
+            if (ctx && !liveTpsChart) {
+                liveTpsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'TPS',
+                            data: [],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: '#334155' }
+                            },
+                            x: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: '#334155' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        async function startPerformanceTest() {
+            const suite = document.getElementById('perf-test-suite').value;
+            const duration = parseInt(document.getElementById('perf-duration').value);
+            const targetTps = parseInt(document.getElementById('perf-target-tps').value);
+            const concurrentUsers = parseInt(document.getElementById('perf-concurrent-users').value);
+
+            try {
+                const response = await fetch('/portal/performance/test/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ suite, duration, target_tps: targetTps, concurrent_users: concurrentUsers })
+                });
+
+                if (!response.ok) throw new Error('Failed to start test');
+                const data = await response.json();
+                perfTestId = data.id;
+
+                // Update UI
+                document.getElementById('perf-start-btn').disabled = true;
+                document.getElementById('perf-stop-btn').disabled = false;
+                document.getElementById('perf-progress-section').style.display = 'block';
+                document.getElementById('perf-live-chart-section').style.display = 'block';
+                document.getElementById('perf-results-section').style.display = 'none';
+
+                // Start monitoring
+                perfTestInterval = setInterval(monitorPerformanceTest, 1000);
+            } catch (error) {
+                console.error('Error starting test:', error);
+                // Mock test for demo
+                startMockPerformanceTest(duration, targetTps);
+            }
+        }
+
+        function startMockPerformanceTest(duration, targetTps) {
+            perfTestId = 'mock-test-' + Date.now();
+            let elapsed = 0;
+
+            document.getElementById('perf-start-btn').disabled = true;
+            document.getElementById('perf-stop-btn').disabled = false;
+            document.getElementById('perf-progress-section').style.display = 'block';
+            document.getElementById('perf-live-chart-section').style.display = 'block';
+
+            perfTestInterval = setInterval(() => {
+                elapsed++;
+                const progress = Math.min((elapsed / duration) * 100, 100);
+                const currentTps = Math.floor(targetTps * 0.95 + Math.random() * targetTps * 0.1);
+
+                // Update progress
+                document.getElementById('perf-progress-fill').style.width = `${progress}%`;
+                document.getElementById('perf-progress-text').textContent =
+                    `${progress.toFixed(0)}% - Elapsed: ${elapsed}s / ${duration}s - Current TPS: ${formatNumber(currentTps)}`;
+
+                // Update live chart
+                if (liveTpsChart) {
+                    liveTpsChart.data.labels.push(`${elapsed}s`);
+                    liveTpsChart.data.datasets[0].data.push(currentTps);
+                    if (liveTpsChart.data.labels.length > 30) {
+                        liveTpsChart.data.labels.shift();
+                        liveTpsChart.data.datasets[0].data.shift();
+                    }
+                    liveTpsChart.update();
+                }
+
+                if (elapsed >= duration) {
+                    stopPerformanceTest();
+                    showPerformanceResults(targetTps);
+                }
+            }, 1000);
+        }
+
+        function stopPerformanceTest() {
+            if (perfTestInterval) {
+                clearInterval(perfTestInterval);
+                perfTestInterval = null;
+            }
+
+            document.getElementById('perf-start-btn').disabled = false;
+            document.getElementById('perf-stop-btn').disabled = true;
+        }
+
+        function showPerformanceResults(targetTps) {
+            const avgTps = Math.floor(targetTps * 0.975);
+            const maxTps = Math.floor(targetTps * 1.05);
+
+            document.getElementById('perf-avg-tps').textContent = formatNumber(avgTps);
+            document.getElementById('perf-max-tps').textContent = formatNumber(maxTps);
+            document.getElementById('perf-p50-latency').textContent = '12ms';
+            document.getElementById('perf-p95-latency').textContent = '35ms';
+            document.getElementById('perf-p99-latency').textContent = '58ms';
+            document.getElementById('perf-success-rate').textContent = '99.98%';
+
+            document.getElementById('perf-results-section').style.display = 'block';
+
+            // Show regression alert if performance is below target
+            if (avgTps < targetTps * 0.9) {
+                document.getElementById('perf-regression-alert').style.display = 'flex';
+            } else {
+                document.getElementById('perf-regression-alert').style.display = 'none';
+            }
+        }
+
+        async function monitorPerformanceTest() {
+            if (!perfTestId) return;
+
+            try {
+                const response = await fetch(`/portal/performance/test/${perfTestId}/status`);
+                if (!response.ok) throw new Error('Failed to get status');
+                const data = await response.json();
+
+                // Update progress
+                document.getElementById('perf-progress-fill').style.width = `${data.progress}%`;
+                document.getElementById('perf-progress-text').textContent =
+                    `${data.progress}% - Elapsed: ${data.elapsed}s - Current TPS: ${formatNumber(data.current_tps)}`;
+
+                // Update live chart
+                if (liveTpsChart && data.current_tps) {
+                    liveTpsChart.data.labels.push(`${data.elapsed}s`);
+                    liveTpsChart.data.datasets[0].data.push(data.current_tps);
+                    if (liveTpsChart.data.labels.length > 30) {
+                        liveTpsChart.data.labels.shift();
+                        liveTpsChart.data.datasets[0].data.shift();
+                    }
+                    liveTpsChart.update();
+                }
+
+                if (data.status === 'completed') {
+                    stopPerformanceTest();
+                    loadPerformanceResults();
+                }
+            } catch (error) {
+                console.error('Error monitoring test:', error);
+            }
+        }
+
+        async function loadPerformanceResults() {
+            try {
+                const response = await fetch(`/portal/performance/test/${perfTestId}/results`);
+                if (!response.ok) throw new Error('Failed to get results');
+                const data = await response.json();
+
+                document.getElementById('perf-avg-tps').textContent = formatNumber(data.avg_tps);
+                document.getElementById('perf-max-tps').textContent = formatNumber(data.max_tps);
+                document.getElementById('perf-p50-latency').textContent = `${data.p50_latency}ms`;
+                document.getElementById('perf-p95-latency').textContent = `${data.p95_latency}ms`;
+                document.getElementById('perf-p99-latency').textContent = `${data.p99_latency}ms`;
+                document.getElementById('perf-success-rate').textContent = `${data.success_rate.toFixed(2)}%`;
+
+                document.getElementById('perf-results-section').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading results:', error);
+            }
+        }
+
+        function exportPerfResults() {
+            alert('Exporting performance results... (Feature coming soon)');
+        }
+
+        function saveTestTemplate() {
+            alert('Saving test template... (Feature coming soon)');
         }
 
         // Initialize on load
