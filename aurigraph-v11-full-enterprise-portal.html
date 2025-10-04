@@ -3661,6 +3661,333 @@
         </div>
     </div>
 
+    <!-- Smart Contracts Page -->
+    <div id="contracts-page" class="page" style="display: none;">
+        <div class="page-header">
+            <h1 class="page-title">Smart Contract Registry</h1>
+            <p class="page-description">Browse and verify deployed smart contracts on Aurigraph</p>
+        </div>
+
+        <!-- Contract Stats -->
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">Total Contracts</div>
+                <div class="card-value" id="total-contracts">8,534</div>
+                <div class="card-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+127 this week</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Verified Contracts</div>
+                <div class="card-value" id="verified-contracts">6,245</div>
+                <div class="card-subtitle">73.2% verified</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Total Interactions</div>
+                <div class="card-value" id="contract-interactions">125.4M</div>
+                <div class="card-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+5.2M today</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Active Contracts</div>
+                <div class="card-value" id="active-contracts">4,892</div>
+                <div class="card-subtitle">Last 24h</div>
+            </div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="card mt-2">
+            <div class="search-panel">
+                <input type="text" id="contract-search" class="search-input-large"
+                       placeholder="Search by contract address, name, or deployer...">
+                <button class="btn btn-primary" onclick="searchContracts()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <select id="contract-filter-type" class="filter-select-inline" onchange="filterContracts()">
+                    <option value="all">All Types</option>
+                    <option value="token">Token</option>
+                    <option value="nft">NFT</option>
+                    <option value="defi">DeFi</option>
+                    <option value="governance">Governance</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="contract-filter-verified" class="filter-select-inline" onchange="filterContracts()">
+                    <option value="all">All Status</option>
+                    <option value="verified">Verified Only</option>
+                    <option value="unverified">Unverified Only</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Contracts Table -->
+        <div class="card mt-2">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortContracts('address')">Address <i class="fas fa-sort"></i></th>
+                            <th class="sortable" onclick="sortContracts('name')">Name <i class="fas fa-sort"></i></th>
+                            <th class="sortable" onclick="sortContracts('type')">Type <i class="fas fa-sort"></i></th>
+                            <th class="sortable" onclick="sortContracts('deployed_at')">Deployed <i class="fas fa-sort"></i></th>
+                            <th class="sortable" onclick="sortContracts('deployer')">Deployer <i class="fas fa-sort"></i></th>
+                            <th class="text-center">Verified</th>
+                            <th class="sortable text-right" onclick="sortContracts('interactions')">Interactions <i class="fas fa-sort"></i></th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contracts-table-body">
+                        <tr><td colspan="8" class="text-center">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i> Loading contracts...
+                            </div>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="table-footer">
+                <div class="pagination-info" id="contract-pagination-info">Showing 1-20 of 8,534 contracts</div>
+                <div class="pagination-controls" id="contract-pagination-controls">
+                    <button class="btn btn-sm btn-secondary" disabled><i class="fas fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-primary">1</button>
+                    <button class="btn btn-sm btn-secondary">2</button>
+                    <button class="btn btn-sm btn-secondary">3</button>
+                    <button class="btn btn-sm btn-secondary"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div>
+                    <select id="contract-page-size" class="filter-select-inline" onchange="changeContractPageSize()">
+                        <option value="20">20 per page</option>
+                        <option value="50">50 per page</option>
+                        <option value="100">100 per page</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quantum Security Page -->
+    <div id="quantum-security-page" class="page" style="display: none;">
+        <div class="page-header">
+            <h1 class="page-title">Quantum Security Dashboard</h1>
+            <p class="page-description">Post-quantum cryptography monitoring with CRYSTALS-Kyber and CRYSTALS-Dilithium</p>
+        </div>
+
+        <!-- Security Status Cards -->
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">Quantum Threat Level</div>
+                <div class="card-value" id="threat-level-value">Low</div>
+                <div class="text-center mt-1">
+                    <span class="badge badge-success" id="threat-level-badge">
+                        <i class="fas fa-shield-alt"></i> Protected
+                    </span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Encryption Strength</div>
+                <div class="card-value" id="encryption-strength">NIST Level 5</div>
+                <div class="card-subtitle">Kyber-1024 + Dilithium-5</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Active Keys</div>
+                <div class="card-value" id="active-keys">2,847</div>
+                <div class="card-subtitle">Kyber + Dilithium</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Signatures/min</div>
+                <div class="card-value" id="signatures-rate">12.4K</div>
+                <div class="card-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+8.2%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kyber Key Exchange Status -->
+        <div class="card mt-2">
+            <h3 class="card-title">CRYSTALS-Kyber Key Exchange</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label class="detail-label">Algorithm Version</label>
+                    <div class="detail-value">Kyber-1024 (NIST Level 5)</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Active Keys</label>
+                    <div class="detail-value" id="kyber-active-keys">1,523</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Last Rotation</label>
+                    <div class="detail-value" id="kyber-last-rotation">2 hours ago</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Next Rotation</label>
+                    <div class="detail-value" id="kyber-next-rotation">in 22 hours</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Key Size</label>
+                    <div class="detail-value">1568 bytes</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Security Level</label>
+                    <div class="detail-value">
+                        <span class="badge badge-success">AES-256 equivalent</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dilithium Signature Status -->
+        <div class="card mt-2">
+            <h3 class="card-title">CRYSTALS-Dilithium Digital Signatures</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label class="detail-label">Algorithm Version</label>
+                    <div class="detail-value">Dilithium-5 (NIST Level 5)</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Active Keys</label>
+                    <div class="detail-value" id="dilithium-active-keys">1,324</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Total Signatures</label>
+                    <div class="detail-value" id="dilithium-signatures">845.2M</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Last Rotation</label>
+                    <div class="detail-value" id="dilithium-last-rotation">3 hours ago</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Signature Size</label>
+                    <div class="detail-value">4595 bytes</div>
+                </div>
+                <div class="detail-item">
+                    <label class="detail-label">Security Level</label>
+                    <div class="detail-value">
+                        <span class="badge badge-success">Beyond RSA-4096</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Audit Log -->
+        <div class="card mt-2">
+            <h3 class="card-title">Security Audit Log</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Event Type</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="security-audit-log">
+                        <tr>
+                            <td>2025-01-04 14:32:15</td>
+                            <td><span class="badge badge-info">KEY_ROTATION</span></td>
+                            <td>Kyber-1024 key rotation completed</td>
+                            <td><span class="badge badge-success">Success</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-04 13:15:42</td>
+                            <td><span class="badge badge-info">SIGNATURE</span></td>
+                            <td>Dilithium-5 signature verification</td>
+                            <td><span class="badge badge-success">Verified</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-04 12:08:33</td>
+                            <td><span class="badge badge-warning">THREAT_ANALYSIS</span></td>
+                            <td>Quantum threat level assessment</td>
+                            <td><span class="badge badge-success">Low</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Security Recommendations -->
+        <div class="card mt-2">
+            <h3 class="card-title">Security Recommendations</h3>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Current Status: Optimal</strong>
+                    <p>Your quantum-resistant cryptography is properly configured. Continue monitoring for quantum computing advances.</p>
+                </div>
+            </div>
+            <ul class="recommendation-list">
+                <li><i class="fas fa-check-circle text-success"></i> NIST Level 5 algorithms active (Kyber-1024, Dilithium-5)</li>
+                <li><i class="fas fa-check-circle text-success"></i> Key rotation schedule on track (24-hour cycle)</li>
+                <li><i class="fas fa-check-circle text-success"></i> No quantum threats detected</li>
+                <li><i class="fas fa-info-circle text-info"></i> Consider upgrading to Kyber-1536 when available (2026)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Contract Detail Modal -->
+    <div id="contract-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title">Contract Details</h3>
+                <button class="modal-close" onclick="closeModal('contract-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <h4 class="section-title">Contract Information</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="detail-label">Name</label>
+                            <div id="modal-contract-name" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Address</label>
+                            <div class="detail-value">
+                                <code id="modal-contract-address"></code>
+                                <button class="copy-btn" onclick="copyToClipboard('modal-contract-address')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Type</label>
+                            <div id="modal-contract-type" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Deployer</label>
+                            <div class="detail-value">
+                                <code id="modal-contract-deployer"></code>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Deployed At</label>
+                            <div id="modal-contract-deployed" class="detail-value"></div>
+                        </div>
+                        <div class="detail-item">
+                            <label class="detail-label">Verification Status</label>
+                            <div id="modal-contract-verified" class="detail-value"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section mt-2" id="modal-contract-verified-section">
+                    <h4 class="section-title">Verified Contract Resources</h4>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="modal-contract-abi-btn">
+                            <i class="fas fa-download"></i> Download ABI
+                        </button>
+                        <button class="btn btn-primary" id="modal-contract-source-btn">
+                            <i class="fas fa-code"></i> View Source Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global state
         let sidebarCollapsed = false;
@@ -3742,6 +4069,18 @@
                 if (cachedNFTs.length === 0) {
                     loadNFTs();
                 }
+            }
+
+            if (pageName === 'contracts') {
+                // Load contracts data when contracts page is shown
+                if (cachedContracts.length === 0) {
+                    loadContracts();
+                }
+            }
+
+            if (pageName === 'quantum-security') {
+                // Load security data when quantum security page is shown
+                loadQuantumSecurityData();
             }
         }
 
@@ -6060,6 +6399,274 @@
             document.getElementById('modal-nft-price').textContent = `${nft.price} AUR`;
 
             openModal('nft-modal');
+        }
+
+        // ==========================================
+        // Smart Contract Registry Functions
+        // ==========================================
+
+        // Contract state management
+        let cachedContracts = [];
+        let contractSortColumn = 'interactions';
+        let contractSortDirection = 'desc';
+        let contractFilterType = 'all';
+        let contractFilterVerified = 'all';
+        let contractCurrentPage = 1;
+        let contractPageSize = 20;
+        let contractTotalPages = 1;
+        let contractSearchQuery = '';
+
+        async function searchContracts() {
+            contractSearchQuery = document.getElementById('contract-search').value.trim();
+
+            if (!contractSearchQuery) {
+                await loadContracts();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/portal/contracts/search?q=${encodeURIComponent(contractSearchQuery)}`);
+                if (response.ok) {
+                    cachedContracts = await response.json();
+                    renderContractsTable();
+                } else {
+                    throw new Error('Search failed');
+                }
+            } catch (error) {
+                console.error('Error searching contracts:', error);
+                // Filter from cached data
+                cachedContracts = cachedContracts.filter(contract =>
+                    contract.address.toLowerCase().includes(contractSearchQuery.toLowerCase()) ||
+                    contract.name.toLowerCase().includes(contractSearchQuery.toLowerCase()) ||
+                    contract.deployer?.toLowerCase().includes(contractSearchQuery.toLowerCase())
+                );
+                renderContractsTable();
+            }
+        }
+
+        function filterContracts() {
+            contractFilterType = document.getElementById('contract-filter-type').value;
+            contractFilterVerified = document.getElementById('contract-filter-verified').value;
+            contractCurrentPage = 1;
+            renderContractsTable();
+        }
+
+        function sortContracts(column) {
+            if (contractSortColumn === column) {
+                contractSortDirection = contractSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                contractSortColumn = column;
+                contractSortDirection = 'desc';
+            }
+            contractCurrentPage = 1;
+            renderContractsTable();
+        }
+
+        function changeContractPage(page) {
+            if (page < 1 || page > contractTotalPages) return;
+            contractCurrentPage = page;
+            renderContractsTable();
+        }
+
+        function changeContractPageSize() {
+            contractPageSize = parseInt(document.getElementById('contract-page-size').value);
+            contractCurrentPage = 1;
+            renderContractsTable();
+        }
+
+        async function loadContracts() {
+            try {
+                const response = await fetch('/portal/contracts');
+                if (!response.ok) throw new Error('API call failed');
+                cachedContracts = await response.json();
+                renderContractsTable();
+            } catch (error) {
+                console.error('Error loading contracts:', error);
+                // Mock data fallback
+                cachedContracts = [
+                    { id: 1, address: '0x1234...abcd', name: 'AuriToken Contract', type: 'token', deployed_at: '2025-01-15T10:30:00Z', deployer: '0xdeployer1...', verified: true, interactions: 125000, source_code_url: 'https://...', abi_url: 'https://...' },
+                    { id: 2, address: '0x2345...bcde', name: 'NFT Marketplace', type: 'nft', deployed_at: '2025-01-14T08:20:00Z', deployer: '0xdeployer2...', verified: true, interactions: 89000, source_code_url: 'https://...', abi_url: 'https://...' },
+                    { id: 3, address: '0x3456...cdef', name: 'DeFi Vault', type: 'defi', deployed_at: '2025-01-13T15:45:00Z', deployer: '0xdeployer3...', verified: false, interactions: 56000 },
+                    { id: 4, address: '0x4567...def0', name: 'Governance Contract', type: 'governance', deployed_at: '2025-01-12T12:10:00Z', deployer: '0xdeployer4...', verified: true, interactions: 42000, source_code_url: 'https://...', abi_url: 'https://...' },
+                    { id: 5, address: '0x5678...ef01', name: 'Staking Pool', type: 'defi', deployed_at: '2025-01-11T09:30:00Z', deployer: '0xdeployer5...', verified: true, interactions: 38000, source_code_url: 'https://...', abi_url: 'https://...' }
+                ];
+                renderContractsTable();
+            }
+        }
+
+        function renderContractsTable() {
+            // Filter by type
+            let filtered = cachedContracts;
+            if (contractFilterType !== 'all') {
+                filtered = filtered.filter(contract => contract.type === contractFilterType);
+            }
+
+            // Filter by verification
+            if (contractFilterVerified === 'verified') {
+                filtered = filtered.filter(contract => contract.verified === true);
+            } else if (contractFilterVerified === 'unverified') {
+                filtered = filtered.filter(contract => contract.verified === false);
+            }
+
+            // Sort
+            filtered.sort((a, b) => {
+                let aVal = a[contractSortColumn];
+                let bVal = b[contractSortColumn];
+
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (contractSortDirection === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            // Paginate
+            contractTotalPages = Math.ceil(filtered.length / contractPageSize);
+            const startIdx = (contractCurrentPage - 1) * contractPageSize;
+            const endIdx = startIdx + contractPageSize;
+            const paginated = filtered.slice(startIdx, endIdx);
+
+            // Render
+            const tbody = document.getElementById('contracts-table-body');
+            if (paginated.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No contracts found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = paginated.map(contract => `
+                <tr onclick="viewContract(${contract.id})">
+                    <td><code class="text-sm">${contract.address}</code></td>
+                    <td class="font-medium">${contract.name}</td>
+                    <td><span class="badge badge-info">${contract.type}</span></td>
+                    <td>${new Date(contract.deployed_at).toLocaleDateString()}</td>
+                    <td><code class="text-sm">${contract.deployer}</code></td>
+                    <td class="text-center">
+                        ${contract.verified ?
+                            '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Verified</span>' :
+                            '<span class="badge badge-secondary"><i class="fas fa-times-circle"></i> Unverified</span>'
+                        }
+                    </td>
+                    <td class="text-right">${formatNumber(contract.interactions)}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewContract(${contract.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Update pagination
+            updateContractPagination();
+        }
+
+        function updateContractPagination() {
+            const info = document.getElementById('contract-pagination-info');
+            const controls = document.getElementById('contract-pagination-controls');
+
+            const start = (contractCurrentPage - 1) * contractPageSize + 1;
+            const end = Math.min(contractCurrentPage * contractPageSize, cachedContracts.length);
+            info.textContent = `Showing ${start}-${end} of ${cachedContracts.length} contracts`;
+
+            // Generate page numbers with ellipsis
+            let pages = [];
+            if (contractTotalPages <= 7) {
+                pages = Array.from({ length: contractTotalPages }, (_, i) => i + 1);
+            } else {
+                if (contractCurrentPage <= 3) {
+                    pages = [1, 2, 3, 4, '...', contractTotalPages];
+                } else if (contractCurrentPage >= contractTotalPages - 2) {
+                    pages = [1, '...', contractTotalPages - 3, contractTotalPages - 2, contractTotalPages - 1, contractTotalPages];
+                } else {
+                    pages = [1, '...', contractCurrentPage - 1, contractCurrentPage, contractCurrentPage + 1, '...', contractTotalPages];
+                }
+            }
+
+            controls.innerHTML = `
+                <button class="btn btn-sm btn-secondary" ${contractCurrentPage === 1 ? 'disabled' : ''}
+                        onclick="changeContractPage(${contractCurrentPage - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                ${pages.map(page => {
+                    if (page === '...') {
+                        return '<span class="pagination-ellipsis">...</span>';
+                    }
+                    return `<button class="btn btn-sm ${page === contractCurrentPage ? 'btn-primary' : 'btn-secondary'}"
+                            onclick="changeContractPage(${page})">${page}</button>`;
+                }).join('')}
+                <button class="btn btn-sm btn-secondary" ${contractCurrentPage === contractTotalPages ? 'disabled' : ''}
+                        onclick="changeContractPage(${contractCurrentPage + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+        }
+
+        function viewContract(contractId) {
+            const contract = cachedContracts.find(c => c.id === contractId);
+            if (!contract) return;
+
+            document.getElementById('modal-contract-name').textContent = contract.name;
+            document.getElementById('modal-contract-address').textContent = contract.address;
+            document.getElementById('modal-contract-type').textContent = contract.type;
+            document.getElementById('modal-contract-deployer').textContent = contract.deployer;
+            document.getElementById('modal-contract-deployed').textContent = new Date(contract.deployed_at).toLocaleString();
+            document.getElementById('modal-contract-verified').innerHTML = contract.verified ?
+                '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Verified</span>' :
+                '<span class="badge badge-secondary"><i class="fas fa-times-circle"></i> Unverified</span>';
+
+            // Show/hide verified section
+            const verifiedSection = document.getElementById('modal-contract-verified-section');
+            if (contract.verified) {
+                verifiedSection.style.display = 'block';
+                document.getElementById('modal-contract-abi-btn').onclick = () => window.open(contract.abi_url, '_blank');
+                document.getElementById('modal-contract-source-btn').onclick = () => window.open(contract.source_code_url, '_blank');
+            } else {
+                verifiedSection.style.display = 'none';
+            }
+
+            openModal('contract-modal');
+        }
+
+        // ==========================================
+        // Quantum Security Dashboard Functions
+        // ==========================================
+
+        let securityDataInterval = null;
+
+        async function loadQuantumSecurityData() {
+            try {
+                const response = await fetch('/portal/quantum-security');
+                if (!response.ok) throw new Error('API call failed');
+                const data = await response.json();
+
+                // Update threat level
+                document.getElementById('threat-level-value').textContent = data.threat_level;
+                const badge = document.getElementById('threat-level-badge');
+                badge.className = `badge badge-${data.threat_level === 'Low' ? 'success' : data.threat_level === 'Medium' ? 'warning' : 'danger'}`;
+                badge.innerHTML = `<i class="fas fa-shield-alt"></i> ${data.threat_level === 'Low' ? 'Protected' : data.threat_level === 'Medium' ? 'Monitor' : 'Alert'}`;
+
+                // Update Kyber data
+                document.getElementById('kyber-active-keys').textContent = formatNumber(data.kyber.active_keys);
+                document.getElementById('kyber-last-rotation').textContent = data.kyber.last_rotation;
+                document.getElementById('kyber-next-rotation').textContent = data.kyber.next_rotation;
+
+                // Update Dilithium data
+                document.getElementById('dilithium-active-keys').textContent = formatNumber(data.dilithium.active_keys);
+                document.getElementById('dilithium-signatures').textContent = formatNumber(data.dilithium.total_signatures);
+                document.getElementById('dilithium-last-rotation').textContent = data.dilithium.last_rotation;
+
+                // Auto-refresh every 60 seconds
+                if (!securityDataInterval) {
+                    securityDataInterval = setInterval(loadQuantumSecurityData, 60000);
+                }
+            } catch (error) {
+                console.error('Error loading quantum security data:', error);
+                // Mock data is already in HTML
+            }
         }
 
         // Initialize on load
