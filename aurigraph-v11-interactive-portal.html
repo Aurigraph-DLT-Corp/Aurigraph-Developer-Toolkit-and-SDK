@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Aurigraph V11 Enterprise Portal - Release 3.6.2 Fixed</title>
+    <title>Aurigraph V11 Enterprise Portal - Release 3.7.0 Backend Integrated</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -455,7 +455,7 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">Aurigraph V11</div>
-            <div class="version-badge">Release 1.1</div>
+            <div class="version-badge">Release 3.7.0</div>
 
             <ul class="nav-menu">
                 <li class="nav-item active" data-page="dashboard">
@@ -473,6 +473,42 @@
                 <li class="nav-item" data-page="performance">
                     <span class="nav-icon">⚡</span>
                     <span>Performance Dashboard</span>
+                </li>
+                <li class="nav-item" data-page="blockchain">
+                    <span class="nav-icon">⛓️</span>
+                    <span>Blockchain Explorer</span>
+                </li>
+                <li class="nav-item" data-page="validators">
+                    <span class="nav-icon">🛡️</span>
+                    <span>Validators</span>
+                </li>
+                <li class="nav-item" data-page="tokens">
+                    <span class="nav-icon">🪙</span>
+                    <span>Tokens & NFTs</span>
+                </li>
+                <li class="nav-item" data-page="governance">
+                    <span class="nav-icon">🗳️</span>
+                    <span>Governance</span>
+                </li>
+                <li class="nav-item" data-page="staking">
+                    <span class="nav-icon">💰</span>
+                    <span>Staking</span>
+                </li>
+                <li class="nav-item" data-page="identity">
+                    <span class="nav-icon">🆔</span>
+                    <span>Identity</span>
+                </li>
+                <li class="nav-item" data-page="rwa">
+                    <span class="nav-icon">🏢</span>
+                    <span>Real Estate</span>
+                </li>
+                <li class="nav-item" data-page="gaming">
+                    <span class="nav-icon">🎮</span>
+                    <span>Gaming</span>
+                </li>
+                <li class="nav-item" data-page="education">
+                    <span class="nav-icon">🎓</span>
+                    <span>Education</span>
                 </li>
             </ul>
         </div>
@@ -766,12 +802,213 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Blockchain Explorer Page -->
+            <div id="blockchain" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Blockchain Explorer</h1>
+                    <p class="page-subtitle">Browse blocks and transactions on Aurigraph V11</p>
+                </div>
+
+                <div id="blocksList" class="contract-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading blocks...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validators Page -->
+            <div id="validators" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Network Validators</h1>
+                    <p class="page-subtitle">Active validators securing the Aurigraph network</p>
+                </div>
+
+                <div id="validatorsList" class="contract-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading validators...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tokens & NFTs Page -->
+            <div id="tokens" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Tokens & NFTs</h1>
+                    <p class="page-subtitle">Token registry and NFT collections</p>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 style="margin-bottom: 16px; color: #2d3748;">Token Registry</h3>
+                        <div id="tokensContainer">Loading...</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 16px; color: white;">NFT Collections</h3>
+                    <div id="nftsList" class="contract-list">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div>Loading NFT collections...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Governance Page -->
+            <div id="governance" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Governance</h1>
+                    <p class="page-subtitle">Participate in Aurigraph protocol governance</p>
+                </div>
+
+                <div id="proposalsList" class="contract-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading proposals...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staking Page -->
+            <div id="staking" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Staking Dashboard</h1>
+                    <p class="page-subtitle">Stake AUR tokens and earn rewards</p>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Total Staked</span>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                <span style="color: white;">💰</span>
+                            </div>
+                        </div>
+                        <div id="totalStaked" class="card-value">-</div>
+                        <div class="card-label">AUR Tokens</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Active Stakers</span>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                                <span style="color: white;">👥</span>
+                            </div>
+                        </div>
+                        <div id="activeStakers" class="card-value">-</div>
+                        <div class="card-label">Participants</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">APY</span>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                                <span style="color: white;">📈</span>
+                            </div>
+                        </div>
+                        <div id="stakingApy" class="card-value">-</div>
+                        <div class="card-label">Annual Yield</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Identity Page -->
+            <div id="identity" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Decentralized Identity</h1>
+                    <p class="page-subtitle">DIDs and verifiable credentials</p>
+                </div>
+
+                <div id="didsList" class="contract-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading DIDs...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real Estate Page -->
+            <div id="rwa" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Real Estate Tokenization</h1>
+                    <p class="page-subtitle">Tokenized real-world properties</p>
+                </div>
+
+                <div id="propertiesList" class="contract-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading properties...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gaming Page -->
+            <div id="gaming" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Gaming Platform</h1>
+                    <p class="page-subtitle">Gaming assets and marketplace</p>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Total Players</span>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                <span style="color: white;">🎮</span>
+                            </div>
+                        </div>
+                        <div id="totalPlayers" class="card-value">-</div>
+                        <div class="card-label">Active Players</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Gaming Assets</span>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                                <span style="color: white;">🎯</span>
+                            </div>
+                        </div>
+                        <div id="gamingAssets" class="card-value">-</div>
+                        <div class="card-label">NFT Items</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Marketplace Volume</span>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                                <span style="color: white;">💎</span>
+                            </div>
+                        </div>
+                        <div id="marketplaceVolume" class="card-value">-</div>
+                        <div class="card-label">24h Trading</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education Page -->
+            <div id="education" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Education Platform</h1>
+                    <p class="page-subtitle">Blockchain courses and certifications</p>
+                </div>
+
+                <div id="coursesList" class="contract-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading courses...</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // Portal Version - for debugging
-        const PORTAL_VERSION = '3.6.2-FIXED';
+        const PORTAL_VERSION = '3.7.0 - Backend Integrated';
         console.log('%c🚀 Aurigraph V11 Portal ' + PORTAL_VERSION, 'color: #667eea; font-size: 16px; font-weight: bold');
 
         // Configuration
@@ -811,6 +1048,24 @@
                     // Load page-specific data
                     if (page === 'contracts') {
                         loadContracts();
+                    } else if (page === 'blockchain') {
+                        loadBlocks();
+                    } else if (page === 'validators') {
+                        loadValidators();
+                    } else if (page === 'tokens') {
+                        loadTokensAndNFTs();
+                    } else if (page === 'governance') {
+                        loadGovernance();
+                    } else if (page === 'staking') {
+                        loadStaking();
+                    } else if (page === 'identity') {
+                        loadIdentity();
+                    } else if (page === 'rwa') {
+                        loadRealEstate();
+                    } else if (page === 'gaming') {
+                        loadGaming();
+                    } else if (page === 'education') {
+                        loadEducation();
                     }
                 });
             });
@@ -868,6 +1123,18 @@
 
                 document.getElementById('contractHealth').innerHTML =
                     `<span class="status-badge ${contractHealth.status === 'UP' ? 'healthy' : 'error'}">${contractHealth.status}</span>`;
+
+                // Load network stats (optional - enhance dashboard with network data)
+                try {
+                    const networkResponse = await fetch(`${API_BASE_URL}/api/v11/network`);
+                    if (networkResponse.ok) {
+                        const networkStats = await networkResponse.json();
+                        console.log('Network stats loaded:', networkStats);
+                        // Network stats can be displayed in future dashboard enhancements
+                    }
+                } catch (netError) {
+                    console.log('Network stats not available:', netError.message);
+                }
 
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
@@ -1026,6 +1293,403 @@
                 showNotification('Failed to create contract. Please try again.', 'error');
             }
         });
+
+        // Load Blocks (Blockchain Explorer)
+        async function loadBlocks() {
+            const containerElement = document.getElementById('blocksList');
+            containerElement.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading blocks...</div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/blocks?page=0&size=20`);
+                if (!response.ok) throw new Error('Failed to fetch blocks');
+
+                const data = await response.json();
+                const blocks = data.blocks || data.content || [];
+
+                if (!blocks || blocks.length === 0) {
+                    containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;">No blocks found.</div>';
+                    return;
+                }
+
+                containerElement.innerHTML = '';
+                blocks.forEach(block => {
+                    const blockElement = document.createElement('div');
+                    blockElement.className = 'contract-item';
+                    blockElement.innerHTML = `
+                        <div class="contract-header">
+                            <div class="contract-id">Block #${block.height || 'N/A'}</div>
+                            <span class="status-badge healthy">CONFIRMED</span>
+                        </div>
+                        <div class="contract-details">
+                            <div class="contract-detail-item">
+                                Hash: <span class="contract-detail-value">${block.hash ? block.hash.substring(0, 16) + '...' : 'N/A'}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Transactions: <span class="contract-detail-value">${block.transactionCount || 0}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Timestamp: <span class="contract-detail-value">${block.timestamp ? new Date(block.timestamp).toLocaleString() : 'N/A'}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Validator: <span class="contract-detail-value">${block.validator ? block.validator.substring(0, 10) + '...' : 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+                    containerElement.appendChild(blockElement);
+                });
+            } catch (error) {
+                console.error('Error loading blocks:', error);
+                containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #e53e3e;">Failed to load blocks. Please try again.</div>';
+            }
+        }
+
+        // Load Validators
+        async function loadValidators() {
+            const containerElement = document.getElementById('validatorsList');
+            containerElement.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading validators...</div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/validators`);
+                if (!response.ok) throw new Error('Failed to fetch validators');
+
+                const data = await response.json();
+                const validators = data.validators || data || [];
+
+                if (!validators || validators.length === 0) {
+                    containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;">No validators found.</div>';
+                    return;
+                }
+
+                containerElement.innerHTML = '';
+                validators.forEach(validator => {
+                    const validatorElement = document.createElement('div');
+                    validatorElement.className = 'contract-item';
+                    validatorElement.innerHTML = `
+                        <div class="contract-header">
+                            <div class="contract-id">${validator.address ? validator.address.substring(0, 20) + '...' : 'N/A'}</div>
+                            <span class="status-badge ${validator.status === 'ACTIVE' ? 'healthy' : 'warning'}">${validator.status || 'UNKNOWN'}</span>
+                        </div>
+                        <div class="contract-details">
+                            <div class="contract-detail-item">
+                                Stake: <span class="contract-detail-value">${formatNumber(validator.stake || 0)} AUR</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Commission: <span class="contract-detail-value">${validator.commission || 0}%</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Uptime: <span class="contract-detail-value">${validator.uptime || 0}%</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Delegators: <span class="contract-detail-value">${validator.delegatorCount || 0}</span>
+                            </div>
+                        </div>
+                    `;
+                    containerElement.appendChild(validatorElement);
+                });
+            } catch (error) {
+                console.error('Error loading validators:', error);
+                containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #e53e3e;">Failed to load validators. Please try again.</div>';
+            }
+        }
+
+        // Load Tokens and NFTs
+        async function loadTokensAndNFTs() {
+            try {
+                // Load Tokens
+                const tokensResponse = await fetch(`${API_BASE_URL}/api/v11/tokens`);
+                if (tokensResponse.ok) {
+                    const tokensData = await tokensResponse.json();
+                    const tokens = tokensData.tokens || tokensData || [];
+
+                    const tokensContainer = document.getElementById('tokensContainer');
+                    if (tokens.length > 0) {
+                        tokensContainer.innerHTML = tokens.map(token => `
+                            <div style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                                <strong>${token.symbol || 'N/A'}</strong> - ${token.name || 'Unknown Token'}
+                                <br>
+                                <small style="color: #718096;">Supply: ${formatNumber(token.totalSupply || 0)}</small>
+                            </div>
+                        `).join('');
+                    } else {
+                        tokensContainer.innerHTML = '<div style="color: #718096;">No tokens found.</div>';
+                    }
+                }
+
+                // Load NFTs
+                const nftsResponse = await fetch(`${API_BASE_URL}/api/v11/nfts`);
+                if (nftsResponse.ok) {
+                    const nftsData = await nftsResponse.json();
+                    const nfts = nftsData.collections || nftsData || [];
+
+                    const nftsContainer = document.getElementById('nftsList');
+                    if (nfts.length > 0) {
+                        nftsContainer.innerHTML = '';
+                        nfts.forEach(nft => {
+                            const nftElement = document.createElement('div');
+                            nftElement.className = 'contract-item';
+                            nftElement.innerHTML = `
+                                <div class="contract-header">
+                                    <div class="contract-id">${nft.name || 'Unnamed Collection'}</div>
+                                </div>
+                                <div class="contract-details">
+                                    <div class="contract-detail-item">
+                                        Symbol: <span class="contract-detail-value">${nft.symbol || 'N/A'}</span>
+                                    </div>
+                                    <div class="contract-detail-item">
+                                        Items: <span class="contract-detail-value">${nft.totalItems || 0}</span>
+                                    </div>
+                                    <div class="contract-detail-item">
+                                        Floor Price: <span class="contract-detail-value">${nft.floorPrice || 0} AUR</span>
+                                    </div>
+                                </div>
+                            `;
+                            nftsContainer.appendChild(nftElement);
+                        });
+                    } else {
+                        nftsContainer.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;">No NFT collections found.</div>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading tokens and NFTs:', error);
+            }
+        }
+
+        // Load Governance Proposals
+        async function loadGovernance() {
+            const containerElement = document.getElementById('proposalsList');
+            containerElement.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading proposals...</div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/governance/proposals`);
+                if (!response.ok) throw new Error('Failed to fetch proposals');
+
+                const data = await response.json();
+                const proposals = data.proposals || data || [];
+
+                if (!proposals || proposals.length === 0) {
+                    containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;">No active proposals.</div>';
+                    return;
+                }
+
+                containerElement.innerHTML = '';
+                proposals.forEach(proposal => {
+                    const proposalElement = document.createElement('div');
+                    proposalElement.className = 'contract-item';
+                    proposalElement.innerHTML = `
+                        <div class="contract-header">
+                            <div class="contract-id">Proposal #${proposal.id || 'N/A'}</div>
+                            <span class="status-badge ${proposal.status === 'ACTIVE' ? 'healthy' : 'warning'}">${proposal.status || 'PENDING'}</span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <strong style="font-size: 16px; color: #2d3748;">${proposal.title || 'Untitled Proposal'}</strong>
+                        </div>
+                        <div class="contract-details">
+                            <div class="contract-detail-item">
+                                Votes For: <span class="contract-detail-value">${formatNumber(proposal.votesFor || 0)}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Votes Against: <span class="contract-detail-value">${formatNumber(proposal.votesAgainst || 0)}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                End Date: <span class="contract-detail-value">${proposal.endDate ? new Date(proposal.endDate).toLocaleDateString() : 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+                    containerElement.appendChild(proposalElement);
+                });
+            } catch (error) {
+                console.error('Error loading governance proposals:', error);
+                containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #e53e3e;">Failed to load proposals. Please try again.</div>';
+            }
+        }
+
+        // Load Staking Stats
+        async function loadStaking() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/staking/stats`);
+                if (!response.ok) throw new Error('Failed to fetch staking stats');
+
+                const stats = await response.json();
+
+                document.getElementById('totalStaked').textContent = formatNumber(stats.totalStaked || 0);
+                document.getElementById('activeStakers').textContent = formatNumber(stats.activeStakers || 0);
+                document.getElementById('stakingApy').textContent = (stats.apy || 0) + '%';
+            } catch (error) {
+                console.error('Error loading staking stats:', error);
+                document.getElementById('totalStaked').textContent = 'Error';
+                document.getElementById('activeStakers').textContent = 'Error';
+                document.getElementById('stakingApy').textContent = 'Error';
+            }
+        }
+
+        // Load DIDs (Identity)
+        async function loadIdentity() {
+            const containerElement = document.getElementById('didsList');
+            containerElement.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading DIDs...</div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/identity/dids`);
+                if (!response.ok) throw new Error('Failed to fetch DIDs');
+
+                const data = await response.json();
+                const dids = data.dids || data || [];
+
+                if (!dids || dids.length === 0) {
+                    containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;">No DIDs found.</div>';
+                    return;
+                }
+
+                containerElement.innerHTML = '';
+                dids.forEach(did => {
+                    const didElement = document.createElement('div');
+                    didElement.className = 'contract-item';
+                    didElement.innerHTML = `
+                        <div class="contract-header">
+                            <div class="contract-id">${did.id || 'N/A'}</div>
+                            <span class="status-badge ${did.verified ? 'healthy' : 'warning'}">${did.verified ? 'VERIFIED' : 'UNVERIFIED'}</span>
+                        </div>
+                        <div class="contract-details">
+                            <div class="contract-detail-item">
+                                Type: <span class="contract-detail-value">${did.type || 'N/A'}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Created: <span class="contract-detail-value">${did.createdAt ? new Date(did.createdAt).toLocaleDateString() : 'N/A'}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Credentials: <span class="contract-detail-value">${did.credentialCount || 0}</span>
+                            </div>
+                        </div>
+                    `;
+                    containerElement.appendChild(didElement);
+                });
+            } catch (error) {
+                console.error('Error loading DIDs:', error);
+                containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #e53e3e;">Failed to load DIDs. Please try again.</div>';
+            }
+        }
+
+        // Load Real Estate Properties
+        async function loadRealEstate() {
+            const containerElement = document.getElementById('propertiesList');
+            containerElement.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading properties...</div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/real-estate/properties`);
+                if (!response.ok) throw new Error('Failed to fetch properties');
+
+                const data = await response.json();
+                const properties = data.properties || data || [];
+
+                if (!properties || properties.length === 0) {
+                    containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;">No properties found.</div>';
+                    return;
+                }
+
+                containerElement.innerHTML = '';
+                properties.forEach(property => {
+                    const propertyElement = document.createElement('div');
+                    propertyElement.className = 'contract-item';
+                    propertyElement.innerHTML = `
+                        <div class="contract-header">
+                            <div class="contract-id">${property.id || 'N/A'}</div>
+                            <span class="status-badge ${property.status === 'AVAILABLE' ? 'healthy' : 'warning'}">${property.status || 'UNKNOWN'}</span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <strong style="font-size: 16px; color: #2d3748;">${property.name || 'Unnamed Property'}</strong>
+                        </div>
+                        <div class="contract-details">
+                            <div class="contract-detail-item">
+                                Location: <span class="contract-detail-value">${property.location || 'N/A'}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Value: <span class="contract-detail-value">${formatNumber(property.value || 0)} USD</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Token Supply: <span class="contract-detail-value">${formatNumber(property.tokenSupply || 0)}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Token Price: <span class="contract-detail-value">${property.tokenPrice || 0} USD</span>
+                            </div>
+                        </div>
+                    `;
+                    containerElement.appendChild(propertyElement);
+                });
+            } catch (error) {
+                console.error('Error loading properties:', error);
+                containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #e53e3e;">Failed to load properties. Please try again.</div>';
+            }
+        }
+
+        // Load Gaming Stats
+        async function loadGaming() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/gaming/stats`);
+                if (!response.ok) throw new Error('Failed to fetch gaming stats');
+
+                const stats = await response.json();
+
+                document.getElementById('totalPlayers').textContent = formatNumber(stats.totalPlayers || 0);
+                document.getElementById('gamingAssets').textContent = formatNumber(stats.totalAssets || 0);
+                document.getElementById('marketplaceVolume').textContent = formatNumber(stats.volume24h || 0) + ' AUR';
+            } catch (error) {
+                console.error('Error loading gaming stats:', error);
+                document.getElementById('totalPlayers').textContent = 'Error';
+                document.getElementById('gamingAssets').textContent = 'Error';
+                document.getElementById('marketplaceVolume').textContent = 'Error';
+            }
+        }
+
+        // Load Education Courses
+        async function loadEducation() {
+            const containerElement = document.getElementById('coursesList');
+            containerElement.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading courses...</div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v11/education/courses`);
+                if (!response.ok) throw new Error('Failed to fetch courses');
+
+                const data = await response.json();
+                const courses = data.courses || data || [];
+
+                if (!courses || courses.length === 0) {
+                    containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;">No courses found.</div>';
+                    return;
+                }
+
+                containerElement.innerHTML = '';
+                courses.forEach(course => {
+                    const courseElement = document.createElement('div');
+                    courseElement.className = 'contract-item';
+                    courseElement.innerHTML = `
+                        <div class="contract-header">
+                            <div class="contract-id">${course.id || 'N/A'}</div>
+                            <span class="status-badge ${course.status === 'ACTIVE' ? 'healthy' : 'warning'}">${course.status || 'DRAFT'}</span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <strong style="font-size: 16px; color: #2d3748;">${course.title || 'Untitled Course'}</strong>
+                        </div>
+                        <div class="contract-details">
+                            <div class="contract-detail-item">
+                                Instructor: <span class="contract-detail-value">${course.instructor || 'N/A'}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Enrolled: <span class="contract-detail-value">${formatNumber(course.enrolledCount || 0)}</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Duration: <span class="contract-detail-value">${course.duration || 0} hours</span>
+                            </div>
+                            <div class="contract-detail-item">
+                                Certificates Issued: <span class="contract-detail-value">${formatNumber(course.certificatesIssued || 0)}</span>
+                            </div>
+                        </div>
+                    `;
+                    containerElement.appendChild(courseElement);
+                });
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                containerElement.innerHTML = '<div style="padding: 40px; text-align: center; color: #e53e3e;">Failed to load courses. Please try again.</div>';
+            }
+        }
 
         // Initialize Charts
         function initCharts() {
