@@ -557,4 +557,361 @@ public class V11ApiResource {
     ) {}
 
     public record AIOptimizationRequest(String optimizationType, Map<String, Object> parameters) {}
+
+    // ==================== BLOCKS API ====================
+
+    @GET
+    @Path("/blocks")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get blocks", description = "Retrieve list of recent blocks")
+    public Uni<Response> getBlocks(@QueryParam("limit") @DefaultValue("10") int limit,
+                                   @QueryParam("offset") @DefaultValue("0") int offset) {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> blocks = new java.util.ArrayList<>();
+            long currentHeight = 1_450_789 + offset;
+
+            for (int i = 0; i < Math.min(limit, 100); i++) {
+                blocks.add(Map.of(
+                    "height", currentHeight - i,
+                    "hash", "0x" + Long.toHexString(System.currentTimeMillis() - (i * 5000)) + "abc" + i,
+                    "timestamp", System.currentTimeMillis() - (i * 5000),
+                    "transactions", 1500 + (i * 100),
+                    "validator", "validator_" + (i % 5),
+                    "size", 1024 * (250 + i),
+                    "gasUsed", 8_000_000 + (i * 50_000)
+                ));
+            }
+
+            return Response.ok(Map.of(
+                "blocks", blocks,
+                "total", currentHeight,
+                "limit", limit,
+                "offset", offset
+            )).build();
+        });
+    }
+
+    @GET
+    @Path("/blocks/{height}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get block by height", description = "Retrieve block details by height")
+    public Uni<Response> getBlock(@PathParam("height") long height) {
+        return Uni.createFrom().item(() -> {
+            var blockData = new HashMap<String, Object>();
+            blockData.put("height", height);
+            blockData.put("hash", "0x" + Long.toHexString(System.currentTimeMillis()) + "block" + height);
+            blockData.put("parentHash", "0x" + Long.toHexString(System.currentTimeMillis() - 5000) + "parent");
+            blockData.put("timestamp", System.currentTimeMillis());
+            blockData.put("transactions", 1500);
+            blockData.put("validator", "validator_0");
+            blockData.put("size", 256000);
+            blockData.put("gasUsed", 8_000_000);
+            blockData.put("gasLimit", 15_000_000);
+            blockData.put("difficulty", "12345678");
+            blockData.put("totalDifficulty", "987654321000");
+            return Response.ok(blockData).build();
+        });
+    }
+
+    // ==================== VALIDATORS API ====================
+
+    @GET
+    @Path("/validators")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get validators", description = "Retrieve list of active validators")
+    public Uni<Response> getValidators() {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> validators = new java.util.ArrayList<>();
+            for (int i = 0; i < 20; i++) {
+                validators.add(Map.of(
+                    "address", "0xValidator" + Long.toHexString(System.currentTimeMillis() + i),
+                    "name", "Validator Node " + i,
+                    "stake", (1_000_000 + (i * 100_000)) + " AUR",
+                    "commission", (5.0 + (i * 0.5)) + "%",
+                    "uptime", (98.0 + (i * 0.1)) + "%",
+                    "blocksProduced", 45_000 + (i * 1000),
+                    "status", i < 15 ? "ACTIVE" : "STANDBY",
+                    "votingPower", (50_000 + (i * 10_000))
+                ));
+            }
+
+            return Response.ok(Map.of(
+                "validators", validators,
+                "totalValidators", validators.size(),
+                "activeValidators", 15,
+                "totalStake", "25000000 AUR"
+            )).build();
+        });
+    }
+
+    // ==================== NETWORK API ====================
+
+    @GET
+    @Path("/network")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get network stats", description = "Retrieve network statistics and topology")
+    public Uni<Response> getNetworkStats() {
+        return Uni.createFrom().item(() -> {
+            return Response.ok(Map.of(
+                "peers", 145,
+                "activePeers", 132,
+                "inboundConnections", 68,
+                "outboundConnections", 77,
+                "avgLatency", 45.3,
+                "bandwidth", Map.of(
+                    "inbound", "125 MB/s",
+                    "outbound", "118 MB/s"
+                ),
+                "geographicDistribution", Map.of(
+                    "NA", 45,
+                    "EU", 52,
+                    "ASIA", 38,
+                    "OTHER", 10
+                )
+            )).build();
+        });
+    }
+
+    // ==================== TOKENS API ====================
+
+    @GET
+    @Path("/tokens")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get tokens", description = "Retrieve list of tokens")
+    public Uni<Response> getTokens(@QueryParam("limit") @DefaultValue("20") int limit) {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> tokens = new java.util.ArrayList<>();
+            String[] tokenNames = {"Aurigraph", "StableAUR", "GovernAUR", "RewardAUR", "BridgeAUR"};
+            String[] symbols = {"AUR", "sAUR", "gAUR", "rAUR", "bAUR"};
+
+            for (int i = 0; i < Math.min(limit, tokenNames.length); i++) {
+                tokens.add(Map.of(
+                    "address", "0xToken" + Long.toHexString(System.currentTimeMillis() + i),
+                    "name", tokenNames[i],
+                    "symbol", symbols[i],
+                    "totalSupply", (1_000_000_000 + (i * 100_000_000)),
+                    "decimals", 18,
+                    "holders", 15_000 + (i * 2000),
+                    "price", 1.25 + (i * 0.1),
+                    "marketCap", (1_250_000_000 + (i * 150_000_000))
+                ));
+            }
+
+            return Response.ok(Map.of("tokens", tokens, "total", tokens.size())).build();
+        });
+    }
+
+    // ==================== NFTs API ====================
+
+    @GET
+    @Path("/nfts")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get NFTs", description = "Retrieve list of NFT collections")
+    public Uni<Response> getNFTs(@QueryParam("limit") @DefaultValue("10") int limit) {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> nfts = new java.util.ArrayList<>();
+            String[] collections = {"AurigraphPunks", "QuantumArt", "RWA Estates", "GameItems", "Certificates"};
+
+            for (int i = 0; i < Math.min(limit, collections.length); i++) {
+                nfts.add(Map.of(
+                    "collectionId", "0xNFT" + Long.toHexString(System.currentTimeMillis() + i),
+                    "name", collections[i],
+                    "totalItems", 10_000 + (i * 1000),
+                    "owners", 2_500 + (i * 500),
+                    "floorPrice", (0.5 + (i * 0.2)) + " ETH",
+                    "volume24h", (1_250 + (i * 250)) + " ETH",
+                    "standard", "ERC-721"
+                ));
+            }
+
+            return Response.ok(Map.of("collections", nfts, "total", nfts.size())).build();
+        });
+    }
+
+    // ==================== GOVERNANCE API ====================
+
+    @GET
+    @Path("/governance/proposals")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get governance proposals", description = "Retrieve active governance proposals")
+    public Uni<Response> getGovernanceProposals() {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> proposals = new java.util.ArrayList<>();
+            String[] titles = {
+                "Increase Block Size to 5MB",
+                "Reduce Validator Commission Cap",
+                "Enable Cross-Chain Bridge to Polygon",
+                "Upgrade Quantum Security to Level 6"
+            };
+
+            for (int i = 0; i < titles.length; i++) {
+                proposals.add(Map.of(
+                    "proposalId", "PROP-" + (1000 + i),
+                    "title", titles[i],
+                    "status", i < 2 ? "ACTIVE" : "VOTING",
+                    "votesFor", 1_250_000 + (i * 100_000),
+                    "votesAgainst", 350_000 + (i * 50_000),
+                    "quorum", 2_000_000,
+                    "endDate", System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+                ));
+            }
+
+            return Response.ok(Map.of("proposals", proposals, "total", proposals.size())).build();
+        });
+    }
+
+    // ==================== STAKING API ====================
+
+    @GET
+    @Path("/staking/stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get staking statistics", description = "Retrieve platform staking stats")
+    public Uni<Response> getStakingStats() {
+        return Uni.createFrom().item(() -> {
+            return Response.ok(Map.of(
+                "totalStaked", "125000000 AUR",
+                "totalStakers", 45_678,
+                "apr", "12.5%",
+                "averageStake", "2738 AUR",
+                "unbondingPeriod", "14 days",
+                "minStake", "100 AUR",
+                "rewards24h", "342150 AUR"
+            )).build();
+        });
+    }
+
+    // ==================== IDENTITY/DID API ====================
+
+    @GET
+    @Path("/identity/dids")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get DIDs", description = "Retrieve decentralized identifiers")
+    public Uni<Response> getDIDs(@QueryParam("limit") @DefaultValue("10") int limit) {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> dids = new java.util.ArrayList<>();
+
+            for (int i = 0; i < limit; i++) {
+                dids.add(Map.of(
+                    "did", "did:aurigraph:" + Long.toHexString(System.currentTimeMillis() + i),
+                    "controller", "0xController" + i,
+                    "created", System.currentTimeMillis() - (i * 86400000L),
+                    "updated", System.currentTimeMillis(),
+                    "verificationMethods", 3,
+                    "services", 2,
+                    "status", "ACTIVE"
+                ));
+            }
+
+            return Response.ok(Map.of("dids", dids, "total", dids.size())).build();
+        });
+    }
+
+    // ==================== API GATEWAY API ====================
+
+    @GET
+    @Path("/api-gateway/stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get API gateway stats", description = "Retrieve API gateway statistics")
+    public Uni<Response> getAPIGatewayStats() {
+        return Uni.createFrom().item(() -> {
+            return Response.ok(Map.of(
+                "totalRequests24h", 2_345_678,
+                "avgResponseTime", "45ms",
+                "successRate", "99.97%",
+                "activeConnections", 1_234,
+                "rateLimitHits", 156,
+                "topEndpoints", java.util.List.of(
+                    Map.of("endpoint", "/api/v11/transactions", "requests", 856_432),
+                    Map.of("endpoint", "/api/v11/blocks", "requests", 234_567),
+                    Map.of("endpoint", "/api/v11/validators", "requests", 123_456)
+                )
+            )).build();
+        });
+    }
+
+    // ==================== REAL ESTATE API ====================
+
+    @GET
+    @Path("/real-estate/properties")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get tokenized properties", description = "Retrieve tokenized real estate assets")
+    public Uni<Response> getProperties(@QueryParam("limit") @DefaultValue("10") int limit) {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> properties = new java.util.ArrayList<>();
+            String[] types = {"Residential", "Commercial", "Industrial", "Mixed-Use"};
+            String[] locations = {"New York, NY", "San Francisco, CA", "Miami, FL", "Austin, TX"};
+
+            for (int i = 0; i < limit; i++) {
+                properties.add(Map.of(
+                    "propertyId", "PROP-RWA-" + (10000 + i),
+                    "type", types[i % types.length],
+                    "location", locations[i % locations.length],
+                    "value", (2_500_000 + (i * 500_000)),
+                    "tokenized", true,
+                    "tokens", 10_000,
+                    "owners", 125 + (i * 10),
+                    "yield", (5.5 + (i * 0.3)) + "%"
+                ));
+            }
+
+            return Response.ok(Map.of("properties", properties, "total", properties.size())).build();
+        });
+    }
+
+    // ==================== GAMING API ====================
+
+    @GET
+    @Path("/gaming/stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get gaming platform stats", description = "Retrieve gaming ecosystem statistics")
+    public Uni<Response> getGamingStats() {
+        return Uni.createFrom().item(() -> {
+            return Response.ok(Map.of(
+                "activeGames", 45,
+                "totalPlayers", 125_678,
+                "activePlayers24h", 23_456,
+                "nftsSold24h", 1_234,
+                "volume24h", "456.78 ETH",
+                "topGames", java.util.List.of(
+                    Map.of("name", "Quantum Warriors", "players", 12_345, "volume", "45.6 ETH"),
+                    Map.of("name", "Crypto Raiders", "players", 8_765, "volume", "34.2 ETH"),
+                    Map.of("name", "Block Battles", "players", 5_432, "volume", "23.1 ETH")
+                )
+            )).build();
+        });
+    }
+
+    // ==================== EDUCATION API ====================
+
+    @GET
+    @Path("/education/courses")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get education courses", description = "Retrieve blockchain education courses")
+    public Uni<Response> getCourses(@QueryParam("limit") @DefaultValue("10") int limit) {
+        return Uni.createFrom().item(() -> {
+            java.util.List<Map<String, Object>> courses = new java.util.ArrayList<>();
+            String[] titles = {
+                "Blockchain Fundamentals",
+                "Smart Contract Development",
+                "DeFi Protocol Design",
+                "NFT Creation and Marketing",
+                "Quantum-Resistant Cryptography"
+            };
+
+            for (int i = 0; i < Math.min(limit, titles.length); i++) {
+                courses.add(Map.of(
+                    "courseId", "COURSE-" + (1000 + i),
+                    "title", titles[i],
+                    "students", 1_234 + (i * 200),
+                    "duration", (8 + (i * 2)) + " weeks",
+                    "level", i < 2 ? "Beginner" : (i < 4 ? "Intermediate" : "Advanced"),
+                    "certified", true,
+                    "nftCertificate", true,
+                    "price", (299 + (i * 100)) + " AUR"
+                ));
+            }
+
+            return Response.ok(Map.of("courses", courses, "total", courses.size())).build();
+        });
+    }
 }
