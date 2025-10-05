@@ -118,28 +118,62 @@ public class SmartContractService {
      */
     @Transactional
     public Uni<RicardianContract> createContract(ContractCreationRequest request) {
-        // Convert ContractCreationRequest to ContractRequest
-        ContractRequest contractRequest = new ContractRequest();
-        // Note: ContractCreationRequest doesn't have getLegalText() method, using default
-        contractRequest.setLegalText("Default legal text for contract creation");
-        contractRequest.setExecutableCode("function execute() { return 'Contract executed'; }");
-        contractRequest.setContractType("DEFAULT");
-        contractRequest.setName("Contract-" + java.util.UUID.randomUUID().toString().substring(0, 8));
-        contractRequest.setVersion("1.0");
-        contractRequest.setJurisdiction("DEFAULT");
-        
-        // ContractCreationRequest doesn't have getParties() method, skipping parties
-        
-        // Set metadata - convert from Map<String,String> to Map<String,Object>
-        if (request.getMetadata() != null) {
-            Map<String, Object> objectMetadata = new HashMap<>();
-            for (Map.Entry<String, String> entry : request.getMetadata().entrySet()) {
-                objectMetadata.put(entry.getKey(), entry.getValue());
+        return Uni.createFrom().item(() -> {
+            LOGGER.info("Creating Ricardian contract from CreationRequest: {}", request.getContractType());
+
+            // Create contract entity directly
+            RicardianContract contract = new RicardianContract();
+            contract.setContractId(generateContractId());
+            contract.setName(request.getContractName() != null ? request.getContractName() : "Contract-" + UUID.randomUUID().toString().substring(0, 8));
+            contract.setVersion("1.0");
+
+            // Map fields from ContractCreationRequest
+            contract.setLegalText(request.getLegalText() != null ? request.getLegalText() : "Default legal text for " + request.getContractType());
+            contract.setExecutableCode(request.getExecutableCode() != null ? request.getExecutableCode() : "function execute() { return { status: 'success' }; }");
+            contract.setContractType(request.getContractType());
+            contract.setTemplateId(request.getTemplateId());
+            contract.setJurisdiction("DEFAULT");
+            contract.setStatus(ContractStatus.DRAFT);
+            contract.setCreatedAt(Instant.now());
+            contract.setUpdatedAt(Instant.now());
+
+            // Add parties if provided
+            if (request.getParties() != null && !request.getParties().isEmpty()) {
+                for (String partyAddress : request.getParties()) {
+                    ContractParty party = new ContractParty();
+                    party.setPartyId(UUID.randomUUID().toString());
+                    party.setAddress(partyAddress);
+                    party.setName(partyAddress);
+                    party.setRole("PARTICIPANT");
+                    party.setSignatureRequired(true);
+                    contract.addParty(party);
+                }
             }
-            contractRequest.setMetadata(objectMetadata);
-        }
-        
-        return createContract(contractRequest);
+
+            // Set metadata
+            if (request.getMetadata() != null) {
+                contract.setMetadata(request.getMetadata());
+            }
+
+            // Calculate enforceability score
+            contract.setEnforceabilityScore(calculateEnforceabilityScore(contract));
+
+            // Perform legal analysis
+            performLegalAnalysis(contract);
+
+            // Save to database
+            contractRepository.persist(contract);
+
+            // Add to cache
+            contractCache.put(contract.getContractId(), contract);
+
+            // Update metrics
+            contractsCreated.incrementAndGet();
+
+            LOGGER.info("Contract created successfully: {}", contract.getContractId());
+            return contract;
+        })
+        .runSubscriptionOn(executor);
     }
     
     /**

@@ -7259,17 +7259,27 @@
         }
 
         // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Initialize theme first (before charts)
             initTheme();
 
-            // Initialize charts and data
+            // Initialize charts
             initCharts();
-            fetchDashboardData();
 
-            // Update data every 5 seconds
-            setInterval(fetchDashboardData, 5000);
+            // LIVE DATA: Initialize V11 API integration
+            if (typeof v11Integration !== 'undefined') {
+                console.log('[Portal] Initializing V11 Live Data Integration...');
+                await v11Integration.init();
+            } else {
+                console.warn('[Portal] V11 integration not loaded, falling back to mock data');
+                fetchDashboardData();
+                setInterval(fetchDashboardData, 5000);
+            }
         });
     </script>
+
+    <!-- V11 LIVE DATA INTEGRATION -->
+    <script src="v11-api-client.js"></script>
+    <script src="v11-portal-integration.js"></script>
 </body>
 </html>

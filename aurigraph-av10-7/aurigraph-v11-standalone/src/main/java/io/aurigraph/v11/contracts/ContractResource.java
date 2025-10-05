@@ -30,6 +30,7 @@ public class ContractResource {
      */
     @POST
     @Path("/create")
+    @io.smallrye.common.annotation.Blocking
     public Uni<Response> createContract(ContractCreationRequest request) {
         Log.infof("Creating new Ricardian contract of type: %s", request.getContractType());
         
