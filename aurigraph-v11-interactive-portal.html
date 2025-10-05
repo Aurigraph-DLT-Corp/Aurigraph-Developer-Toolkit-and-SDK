@@ -768,7 +768,7 @@
 
     <script>
         // Configuration
-        const API_BASE_URL = '';  // Use relative path for nginx proxy
+        const API_BASE_URL = `https://${window.location.hostname}`;  // Use absolute URL with correct port
         const REFRESH_INTERVAL = 5000; // 5 seconds
         let refreshTimer;
         let charts = {};
