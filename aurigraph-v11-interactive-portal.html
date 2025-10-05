@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurigraph V11 Enterprise Portal - Release 1.1</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Aurigraph V11 Enterprise Portal - Release 3.6.2 Fixed</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -767,6 +770,10 @@
     </div>
 
     <script>
+        // Portal Version - for debugging
+        const PORTAL_VERSION = '3.6.2-FIXED';
+        console.log('%c🚀 Aurigraph V11 Portal ' + PORTAL_VERSION, 'color: #667eea; font-size: 16px; font-weight: bold');
+
         // Configuration
         const API_BASE_URL = `https://${window.location.hostname}`;  // Use absolute URL with correct port
         const REFRESH_INTERVAL = 5000; // 5 seconds
@@ -774,6 +781,11 @@
         let charts = {};
         let startTime = Date.now();
         let requestCount = 0;
+
+        console.log('✅ API_BASE_URL:', API_BASE_URL);
+        console.log('✅ Current URL:', window.location.href);
+        console.log('✅ Hostname:', window.location.hostname);
+        console.log('✅ Port:', window.location.port || '(default)');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
