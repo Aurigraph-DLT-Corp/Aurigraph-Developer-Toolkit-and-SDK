@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Aurigraph V11 Enterprise Portal - Release 3.7.0 Backend Integrated</title>
+    <title>Aurigraph V11 Enterprise Portal - Release 3.7.1 Zero Errors</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -455,7 +455,7 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">Aurigraph V11</div>
-            <div class="version-badge">Release 3.7.0</div>
+            <div class="version-badge">Release 3.7.1</div>
 
             <ul class="nav-menu">
                 <li class="nav-item active" data-page="dashboard">
@@ -1008,11 +1008,11 @@
 
     <script>
         // Portal Version - for debugging
-        const PORTAL_VERSION = '3.7.0 - Backend Integrated';
+        const PORTAL_VERSION = '3.7.1 - Zero Errors';
         console.log('%c🚀 Aurigraph V11 Portal ' + PORTAL_VERSION, 'color: #667eea; font-size: 16px; font-weight: bold');
 
         // Configuration
-        const API_BASE_URL = `https://${window.location.hostname}`;  // Use absolute URL with correct port
+        const API_BASE_URL = '';  // Use relative URL to ensure same port as portal (nginx proxies to backend)
         const REFRESH_INTERVAL = 5000; // 5 seconds
         let refreshTimer;
         let charts = {};
