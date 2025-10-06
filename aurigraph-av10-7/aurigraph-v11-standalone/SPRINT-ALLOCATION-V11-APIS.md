@@ -427,6 +427,81 @@
 
 ---
 
+## Sprint 16: Demo Application Deployment (13 points)
+**Duration**: Jan 13-24, 2026 (2 weeks)
+**JIRA**: AV11-192
+**Focus**: Enterprise demo application deployment and showcase
+
+### Story 1: Demo Application Setup (8 points)
+**JIRA**: AV11-192
+
+**Tasks**:
+1. Configure demo app environment (2 points)
+   - Set up isolated demo database
+   - Configure demo user accounts
+   - Prepare sample data sets
+
+2. Deploy enterprise portal demo (3 points)
+   - Deploy `aurigraph-v11-enterprise-portal.html` to demo subdomain
+   - Configure demo API endpoints
+   - Set up demo authentication flow
+
+3. Integration with V11 backend (3 points)
+   - Connect demo portal to production V11 APIs
+   - Configure demo channel with sample transactions
+   - Set up demo smart contracts and tokens
+
+**Acceptance Criteria**:
+- Demo app accessible at `https://demo.dlt.aurigraph.io/`
+- All 23 navigation tabs functional with real data
+- Demo credentials provided (demo user accounts)
+- Sample blockchain data populated (blocks, transactions, contracts)
+- Performance: Same as production (1.85M TPS capability)
+
+**Files to Deploy**:
+- `aurigraph-v11-enterprise-portal.html` (4,741 lines)
+- Demo configuration files
+- Sample data scripts
+- Demo user setup scripts
+
+---
+
+### Story 2: Demo Showcase & Documentation (5 points)
+**JIRA**: AV11-193
+
+**Tasks**:
+1. Create demo walkthrough documentation (2 points)
+   - User guide for demo features
+   - API documentation specific to demo
+   - Video tutorials for key features
+
+2. Configure demo scenarios (2 points)
+   - Transaction submission demo
+   - Smart contract deployment demo
+   - Cross-chain bridge demo
+   - Token creation demo
+   - Active contracts demo
+
+3. Setup monitoring for demo app (1 point)
+   - Demo usage analytics
+   - Performance monitoring
+   - Error tracking and alerts
+
+**Acceptance Criteria**:
+- Comprehensive demo documentation published
+- 5+ demo scenarios configured and tested
+- Demo monitoring dashboard operational
+- Demo access credentials documented
+- Demo promotional materials ready
+
+**Deliverables**:
+- Demo walkthrough PDF/website
+- Demo scenario scripts
+- Demo monitoring dashboard
+- Demo access guide
+
+---
+
 ## Summary
 
 ### Sprint Breakdown
@@ -439,13 +514,14 @@
 | **Sprint 13** | Active Contracts & DeFi | 13 | 2 weeks | Active contracts (6 endpoints) |
 | **Sprint 14** | Analytics & System | 15 | 2 weeks | Analytics, auth, system (13 endpoints) |
 | **Sprint 15** | Deployment | 8 | 2 weeks | Production rollout |
-| **TOTAL** | | **88 points** | **14 weeks** | **54 endpoints** |
+| **Sprint 16** | Demo App Deployment | 13 | 2 weeks | Demo showcase (AV11-192) |
+| **TOTAL** | | **101 points** | **16 weeks** | **54 endpoints** |
 
 ### Velocity Assumptions
 - **Team Capacity**: 13 points/sprint (2-week sprints)
 - **Current Progress**: 9% complete (4/44 APIs)
-- **Remaining Work**: 91% (40/44 APIs + portal cleanup)
-- **Estimated Completion**: January 10, 2026
+- **Remaining Work**: 91% (40/44 APIs + portal cleanup + demo deployment)
+- **Estimated Completion**: January 24, 2026 (with Sprint 16 demo)
 
 ### Dependencies
 1. **Database Schema**: Must be finalized in Sprint 9
