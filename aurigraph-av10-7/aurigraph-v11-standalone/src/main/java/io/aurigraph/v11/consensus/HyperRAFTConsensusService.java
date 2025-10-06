@@ -61,8 +61,8 @@ public class HyperRAFTConsensusService {
         public final long consensusLatency;
         public final long throughput;
         public final int clusterSize;
-        
-        public ConsensusStats(String nodeId, NodeState state, long currentTerm, 
+
+        public ConsensusStats(String nodeId, NodeState state, long currentTerm,
                             long commitIndex, String leaderId, long consensusLatency,
                             long throughput, int clusterSize) {
             this.nodeId = nodeId;
@@ -73,6 +73,32 @@ public class HyperRAFTConsensusService {
             this.consensusLatency = consensusLatency;
             this.throughput = throughput;
             this.clusterSize = clusterSize;
+        }
+    }
+
+    public static class ConsensusStatus {
+        public final String status;
+        public final boolean healthy;
+        public final long latency;
+        public final Instant timestamp;
+
+        public ConsensusStatus(String status, boolean healthy, long latency) {
+            this.status = status;
+            this.healthy = healthy;
+            this.latency = latency;
+            this.timestamp = Instant.now();
+        }
+    }
+
+    public static class PerformanceMetrics {
+        public final long tps;
+        public final long latency;
+        public final Instant timestamp;
+
+        public PerformanceMetrics(long tps, long latency) {
+            this.tps = tps;
+            this.latency = latency;
+            this.timestamp = Instant.now();
         }
     }
     

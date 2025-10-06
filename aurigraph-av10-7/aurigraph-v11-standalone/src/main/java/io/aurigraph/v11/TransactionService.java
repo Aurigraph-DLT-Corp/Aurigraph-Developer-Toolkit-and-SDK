@@ -122,7 +122,7 @@ public class TransactionService {
     }
     
     @PostConstruct
-    void initialize() {
+    public void initialize() {
         // Initialize optimized sharded storage with dynamic sizing
         this.transactionShards = new ConcurrentHashMap[shardCount];
         IntStream.range(0, shardCount)

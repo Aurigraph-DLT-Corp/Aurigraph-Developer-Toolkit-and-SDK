@@ -609,9 +609,14 @@ public class SecurityTest {
         return CompletableFuture.supplyAsync(() -> {
             activePenetrationTests.incrementAndGet();
             long startTime = System.currentTimeMillis();
-            
+
             try {
-                List<ExploitAttempt> exploits = testFunction.execute();
+                List<ExploitAttempt> exploits;
+                try {
+                    exploits = testFunction.execute();
+                } catch (Exception e) {
+                    throw new RuntimeException("Penetration test execution failed", e);
+                }
                 
                 int successfulExploits = (int) exploits.stream()
                     .mapToInt(ExploitAttempt::successCount)

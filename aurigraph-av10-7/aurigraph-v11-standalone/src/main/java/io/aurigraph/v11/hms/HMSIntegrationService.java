@@ -81,8 +81,8 @@ public class HMSIntegrationService {
         public final long failedTransactions;
         public final long averageLatency;
         public final BigDecimal totalValue;
-        
-        public HMSStats(long totalAssets, long totalTransactions, 
+
+        public HMSStats(long totalAssets, long totalTransactions,
                        long successfulTransactions, long failedTransactions,
                        long averageLatency, BigDecimal totalValue) {
             this.totalAssets = totalAssets;
@@ -91,6 +91,18 @@ public class HMSIntegrationService {
             this.failedTransactions = failedTransactions;
             this.averageLatency = averageLatency;
             this.totalValue = totalValue;
+        }
+    }
+
+    public static class HMSOrder {
+        public final String orderId;
+        public final String status;
+        public final Instant timestamp;
+
+        public HMSOrder(String orderId, String status) {
+            this.orderId = orderId;
+            this.status = status;
+            this.timestamp = Instant.now();
         }
     }
     
