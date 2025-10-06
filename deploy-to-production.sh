@@ -14,12 +14,12 @@ NC='\033[0m' # No Color
 
 # Configuration
 REMOTE_SERVER="dlt.aurigraph.io"
-REMOTE_PORT="2235"  # FIXED: Correct SSH port
+REMOTE_PORT="22"  # Standard SSH port (2235 was incorrect)
 REMOTE_USER="subbu"
 REMOTE_PASSWORD="subbuFuture@2025"
-LOCAL_JAR_FILE="target/aurigraph-v11-standalone-11.0.0-runner.jar"
-LOCAL_PORTAL_FILE="aurigraph-v11-enterprise-portal.html"
-DEMO_APP_DIR="../../demo-app"
+LOCAL_JAR_FILE="aurigraph-av10-7/aurigraph-v11-standalone/target/aurigraph-v11-standalone-11.0.0-runner.jar"
+LOCAL_PORTAL_FILE="aurigraph-v11-full-enterprise-portal.html"
+DEMO_APP_DIR="demo-app"
 REMOTE_DEPLOY_DIR="/home/subbu/aurigraph-v11"
 DOMAIN="dlt.aurigraph.io"
 APP_PORT="9003"
