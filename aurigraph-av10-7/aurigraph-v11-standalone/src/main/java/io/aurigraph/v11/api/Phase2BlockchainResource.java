@@ -120,6 +120,37 @@ public class Phase2BlockchainResource {
     }
 
     /**
+     * List all validators
+     * GET /api/v11/blockchain/validators
+     */
+    @GET
+    @Path("/validators")
+    public Uni<ValidatorsList> getAllValidators(@QueryParam("status") String status,
+                                                  @QueryParam("limit") @DefaultValue("50") int limit) {
+        LOG.infof("Fetching all validators (status: %s, limit: %d)", status, limit);
+
+        return Uni.createFrom().item(() -> {
+            ValidatorsList list = new ValidatorsList();
+            list.totalValidators = 127;
+            list.activeValidators = 121;
+            list.validators = new ArrayList<>();
+
+            for (int i = 1; i <= Math.min(limit, 10); i++) {
+                ValidatorSummary validator = new ValidatorSummary();
+                validator.validatorAddress = "0xvalidator-" + String.format("%02d", i);
+                validator.name = "AurigraphValidator-" + String.format("%02d", i);
+                validator.status = i <= 121 ? "ACTIVE" : "INACTIVE";
+                validator.totalStake = new BigDecimal(String.valueOf(500000000 - (i * 10000000)));
+                validator.uptime = 99.0 + (i * 0.01);
+                validator.commissionRate = 10.0 + (i % 10);
+                list.validators.add(validator);
+            }
+
+            return list;
+        });
+    }
+
+    /**
      * Get validator details
      * GET /api/v11/blockchain/validators/{address}
      */
@@ -248,6 +279,42 @@ public class Phase2BlockchainResource {
             "registeredAt", Instant.now().toString(),
             "message", "Node registered successfully"
         )).build());
+    }
+
+    /**
+     * List all nodes
+     * GET /api/v11/blockchain/nodes
+     */
+    @GET
+    @Path("/nodes")
+    public Uni<NodesList> getAllNodes(@QueryParam("type") String nodeType,
+                                        @QueryParam("status") String status,
+                                        @QueryParam("limit") @DefaultValue("50") int limit) {
+        LOG.infof("Fetching all nodes (type: %s, status: %s, limit: %d)", nodeType, status, limit);
+
+        return Uni.createFrom().item(() -> {
+            NodesList list = new NodesList();
+            list.totalNodes = 250;
+            list.activeNodes = 235;
+            list.nodes = new ArrayList<>();
+
+            String[] types = {"VALIDATOR", "FULL", "LIGHT", "ARCHIVE"};
+            String[] regions = {"US-EAST", "US-WEST", "EU-WEST", "ASIA-PACIFIC", "SA-EAST"};
+
+            for (int i = 1; i <= Math.min(limit, 10); i++) {
+                NodeSummary node = new NodeSummary();
+                node.nodeId = "node-" + UUID.randomUUID().toString().substring(0, 8);
+                node.nodeAddress = "0xnode-" + String.format("%03d", i);
+                node.nodeType = types[i % types.length];
+                node.status = i <= 235 ? "ACTIVE" : "INACTIVE";
+                node.region = regions[i % regions.length];
+                node.uptime = 98.0 + (i * 0.05);
+                node.lastSeen = Instant.now().minusSeconds(i * 60).toString();
+                list.nodes.add(node);
+            }
+
+            return list;
+        });
     }
 
     /**
@@ -393,6 +460,45 @@ public class Phase2BlockchainResource {
     }
 
     // ==================== SPRINT 15: GOVERNANCE PORTAL ====================
+
+    /**
+     * List all governance proposals
+     * GET /api/v11/blockchain/governance/proposals
+     */
+    @GET
+    @Path("/governance/proposals")
+    public Uni<ProposalsList> getAllProposals(@QueryParam("status") String status,
+                                                @QueryParam("type") String type,
+                                                @QueryParam("limit") @DefaultValue("50") int limit) {
+        LOG.infof("Fetching all proposals (status: %s, type: %s, limit: %d)", status, type, limit);
+
+        return Uni.createFrom().item(() -> {
+            ProposalsList list = new ProposalsList();
+            list.totalProposals = 45;
+            list.activeProposals = 12;
+            list.proposals = new ArrayList<>();
+
+            String[] types = {"PARAMETER_CHANGE", "TEXT_PROPOSAL", "TREASURY_SPEND", "UPGRADE"};
+            String[] statuses = {"ACTIVE", "PASSED", "REJECTED", "PENDING"};
+
+            for (int i = 1; i <= Math.min(limit, 10); i++) {
+                ProposalSummary proposal = new ProposalSummary();
+                proposal.proposalId = "prop-" + String.format("%03d", i);
+                proposal.title = "Proposal " + i + ": Network Improvement";
+                proposal.type = types[i % types.length];
+                proposal.status = statuses[i % statuses.length];
+                proposal.proposer = "0xproposer-" + String.format("%02d", i);
+                proposal.votingStartsAt = Instant.now().minusSeconds(i * 24 * 3600).toString();
+                proposal.votingEndsAt = Instant.now().plusSeconds((7 - i) * 24 * 3600).toString();
+                proposal.yesVotes = new BigDecimal(String.valueOf(1000000 + (i * 50000)));
+                proposal.noVotes = new BigDecimal(String.valueOf(500000 + (i * 20000)));
+                proposal.turnout = 45.0 + (i * 2.5);
+                list.proposals.add(proposal);
+            }
+
+            return list;
+        });
+    }
 
     /**
      * Create governance proposal
@@ -722,6 +828,44 @@ public class Phase2BlockchainResource {
     }
 
     // ==================== SPRINT 19: TOKEN/NFT MARKETPLACE ====================
+
+    /**
+     * List all NFTs
+     * GET /api/v11/blockchain/marketplace/nfts
+     */
+    @GET
+    @Path("/marketplace/nfts")
+    public Uni<NFTList> getAllNFTs(@QueryParam("collection") String collection,
+                                     @QueryParam("owner") String owner,
+                                     @QueryParam("limit") @DefaultValue("50") int limit) {
+        LOG.infof("Fetching all NFTs (collection: %s, owner: %s, limit: %d)", collection, owner, limit);
+
+        return Uni.createFrom().item(() -> {
+            NFTList list = new NFTList();
+            list.totalNFTs = 5000;
+            list.collections = 50;
+            list.nfts = new ArrayList<>();
+
+            String[] collections = {"Aurigraph Genesis", "Crypto Punks", "Bored Apes", "Art Blocks", "Cool Cats"};
+            String[] statuses = {"LISTED", "UNLISTED", "AUCTION"};
+
+            for (int i = 1; i <= Math.min(limit, 10); i++) {
+                NFTSummary nft = new NFTSummary();
+                nft.tokenId = "NFT-" + String.format("%05d", i);
+                nft.collection = collections[i % collections.length];
+                nft.name = collections[i % collections.length] + " #" + i;
+                nft.owner = "0xowner-" + String.format("%03d", i);
+                nft.price = new BigDecimal(String.valueOf(10.0 + (i * 0.5)));
+                nft.currency = "AUR";
+                nft.status = statuses[i % statuses.length];
+                nft.imageUrl = "https://ipfs.io/ipfs/QmNFT" + i;
+                nft.rarity = i % 4 == 0 ? "LEGENDARY" : i % 3 == 0 ? "RARE" : "COMMON";
+                list.nfts.add(nft);
+            }
+
+            return list;
+        });
+    }
 
     /**
      * Create trading order
@@ -1313,5 +1457,75 @@ public class Phase2BlockchainResource {
             this.tvl = tvl;
             this.active = active;
         }
+    }
+
+    // New DTOs for list endpoints
+
+    public static class ValidatorsList {
+        public int totalValidators;
+        public int activeValidators;
+        public List<ValidatorSummary> validators;
+    }
+
+    public static class ValidatorSummary {
+        public String validatorAddress;
+        public String name;
+        public String status;
+        public BigDecimal totalStake;
+        public double uptime;
+        public double commissionRate;
+    }
+
+    public static class NodesList {
+        public int totalNodes;
+        public int activeNodes;
+        public List<NodeSummary> nodes;
+    }
+
+    public static class NodeSummary {
+        public String nodeId;
+        public String nodeAddress;
+        public String nodeType;
+        public String status;
+        public String region;
+        public double uptime;
+        public String lastSeen;
+    }
+
+    public static class ProposalsList {
+        public int totalProposals;
+        public int activeProposals;
+        public List<ProposalSummary> proposals;
+    }
+
+    public static class ProposalSummary {
+        public String proposalId;
+        public String title;
+        public String type;
+        public String status;
+        public String proposer;
+        public String votingStartsAt;
+        public String votingEndsAt;
+        public BigDecimal yesVotes;
+        public BigDecimal noVotes;
+        public double turnout;
+    }
+
+    public static class NFTList {
+        public int totalNFTs;
+        public int collections;
+        public List<NFTSummary> nfts;
+    }
+
+    public static class NFTSummary {
+        public String tokenId;
+        public String collection;
+        public String name;
+        public String owner;
+        public BigDecimal price;
+        public String currency;
+        public String status;
+        public String imageUrl;
+        public String rarity;
     }
 }
