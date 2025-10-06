@@ -143,25 +143,25 @@ const Transactions: React.FC = () => {
     return () => ws.close();
   }, []);
 
-  // Fetch transactions
+  // Fetch transactions - ONLY REAL API DATA, NO FALLBACK
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE}/api/v11/transactions`);
       if (response.ok) {
         const data = await response.json();
-        const txs = data.transactions || generateSampleTransactions();
+        const txs = data.transactions || [];  // Empty array if no data
         setTransactions(txs);
         calculateStats(txs);
       } else {
-        const sampleTxs = generateSampleTransactions();
-        setTransactions(sampleTxs);
-        calculateStats(sampleTxs);
+        console.error('Failed to fetch transactions:', response.statusText);
+        setTransactions([]);  // Empty array on error, NOT sample data
+        calculateStats([]);
       }
     } catch (error) {
-      const sampleTxs = generateSampleTransactions();
-      setTransactions(sampleTxs);
-      calculateStats(sampleTxs);
+      console.error('Error fetching transactions:', error);
+      setTransactions([]);  // Empty array on error, NOT sample data
+      calculateStats([]);
     } finally {
       setLoading(false);
     }
@@ -292,24 +292,7 @@ const Transactions: React.FC = () => {
     a.click();
   };
 
-  const generateSampleTransactions = (): Transaction[] => {
-    return Array.from({ length: 50 }, (_, i) => ({
-      id: `tx_${Date.now()}_${i}`,
-      hash: `0x${Math.random().toString(16).substr(2, 64)}`,
-      from: `0x${Math.random().toString(16).substr(2, 40)}`,
-      to: `0x${Math.random().toString(16).substr(2, 40)}`,
-      value: Math.floor(Math.random() * 1000),
-      gas: 21000 + Math.floor(Math.random() * 100000),
-      gasPrice: 20 + Math.floor(Math.random() * 100),
-      nonce: i,
-      timestamp: Date.now() - Math.floor(Math.random() * 86400000),
-      blockNumber: 1000000 + i,
-      status: ['pending', 'confirmed', 'failed'][Math.floor(Math.random() * 3)] as any,
-      type: ['transfer', 'contract', 'token'][Math.floor(Math.random() * 3)] as any,
-      fee: Math.random() * 10,
-      confirmations: Math.floor(Math.random() * 100),
-    }));
-  };
+  // REMOVED generateSampleTransactions() - NO STATIC DATA per #MEMORIZE requirement
 
   const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
   const copyToClipboard = (text: string) => navigator.clipboard.writeText(text);
@@ -323,11 +306,8 @@ const Transactions: React.FC = () => {
     }
   };
 
-  const volumeData = Array.from({ length: 24 }, (_, i) => ({
-    hour: `${i}:00`,
-    volume: Math.floor(Math.random() * 100000),
-    transactions: Math.floor(Math.random() * 1000),
-  }));
+  // TODO: Fetch volumeData from /api/v11/analytics/volume endpoint
+  const volumeData: any[] = [];  // REMOVED static data - must come from API
 
   return (
     <Box sx={{ p: 3 }}>

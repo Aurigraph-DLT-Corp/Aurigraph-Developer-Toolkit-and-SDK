@@ -65,22 +65,8 @@ const INITIAL_CONTRACT_STATS: ContractStats = {
   totalAudited: 0
 }
 
-const TPS_HISTORY: TPSDataPoint[] = [
-  { time: '00:00', value: 750000 },
-  { time: '04:00', value: 780000 },
-  { time: '08:00', value: 820000 },
-  { time: '12:00', value: 776000 },
-  { time: '16:00', value: 790000 },
-  { time: '20:00', value: 810000 },
-  { time: '24:00', value: 776000 },
-]
-
-const SYSTEM_HEALTH_ITEMS: SystemHealthItem[] = [
-  { name: 'Consensus', status: 'Operational', progress: 95 },
-  { name: 'Network', status: 'Operational', progress: 90 },
-  { name: 'Storage', status: 'Operational', progress: 85 },
-  { name: 'API Gateway', status: 'Operational', progress: 80 },
-]
+// REMOVED STATIC DATA - All data now fetched from backend APIs
+// Use usePerformanceData() and useSystemHealth() hooks instead
 
 const CARD_STYLE = {
   background: 'linear-gradient(135deg, #1A1F3A 0%, #2A3050 100%)',
@@ -174,6 +160,56 @@ const useContractStats = () => {
   return { contractStats, loading, error, fetchContractStats }
 }
 
+const usePerformanceData = () => {
+  const [tpsHistory, setTpsHistory] = useState<TPSDataPoint[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchPerformanceData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await apiService.getPerformance()
+      if (data && data.tpsHistory) {
+        setTpsHistory(data.tpsHistory)
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch performance data'
+      setError(errorMessage)
+      console.error('Failed to fetch performance data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  return { tpsHistory, loading, error, fetchPerformanceData }
+}
+
+const useSystemHealth = () => {
+  const [healthItems, setHealthItems] = useState<SystemHealthItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchSystemHealth = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await apiService.getSystemStatus()
+      if (data && data.components) {
+        setHealthItems(data.components)
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch system health'
+      setError(errorMessage)
+      console.error('Failed to fetch system health:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  return { healthItems, loading, error, fetchSystemHealth }
+}
+
 // ============================================================================
 // SUB-COMPONENTS
 // ============================================================================
@@ -223,14 +259,18 @@ const MetricCardComponent: React.FC<{ card: MetricCard }> = ({ card }) => (
   </Grid>
 )
 
-const TPSChart: React.FC = () => (
+interface TPSChartProps {
+  tpsHistory: TPSDataPoint[]
+}
+
+const TPSChart: React.FC<TPSChartProps> = ({ tpsHistory }) => (
   <Grid item xs={12} md={8}>
     <Card sx={{ ...CARD_STYLE, p: 2 }}>
       <Typography variant="h6" sx={{ mb: 2, color: '#fff' }}>
-        TPS Performance (24h)
+        TPS Performance (24h) - Real-time API Data
       </Typography>
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={TPS_HISTORY}>
+        <AreaChart data={tpsHistory}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
           <XAxis dataKey="time" stroke="rgba(255,255,255,0.5)" />
           <YAxis stroke="rgba(255,255,255,0.5)" />
@@ -258,14 +298,18 @@ const TPSChart: React.FC = () => (
   </Grid>
 )
 
-const SystemHealthPanel: React.FC = () => (
+interface SystemHealthPanelProps {
+  healthItems: SystemHealthItem[]
+}
+
+const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ healthItems }) => (
   <Grid item xs={12} md={4}>
     <Card sx={{ ...CARD_STYLE, p: 2, height: '100%' }}>
       <Typography variant="h6" sx={{ mb: 2, color: '#fff' }}>
-        System Health
+        System Health - Real-time API Data
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {SYSTEM_HEALTH_ITEMS.map((item, index) => (
+        {healthItems.map((item, index) => (
           <Box key={`health-${index}`}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
@@ -396,19 +440,25 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { metrics, fetchMetrics } = useMetrics()
   const { contractStats, fetchContractStats } = useContractStats()
+  const { tpsHistory, fetchPerformanceData } = usePerformanceData()
+  const { healthItems, fetchSystemHealth } = useSystemHealth()
 
-  // Fetch data on mount and set up polling
+  // Fetch data on mount and set up polling - ALL DATA FROM REAL APIs
   useEffect(() => {
     fetchMetrics()
     fetchContractStats()
+    fetchPerformanceData()
+    fetchSystemHealth()
 
     const interval = setInterval(() => {
       fetchMetrics()
       fetchContractStats()
+      fetchPerformanceData()
+      fetchSystemHealth()
     }, REFRESH_INTERVAL)
 
     return () => clearInterval(interval)
-  }, [fetchMetrics, fetchContractStats])
+  }, [fetchMetrics, fetchContractStats, fetchPerformanceData, fetchSystemHealth])
 
   // Memoize metric cards to avoid recreation on every render
   const metricCards: MetricCard[] = useMemo(() => [
@@ -460,10 +510,10 @@ export default function Dashboard() {
         ))}
       </Grid>
 
-      {/* TPS Chart and System Health */}
+      {/* TPS Chart and System Health - Real-time API Data */}
       <Grid container spacing={3} sx={{ mt: 1 }}>
-        <TPSChart />
-        <SystemHealthPanel />
+        <TPSChart tpsHistory={tpsHistory} />
+        <SystemHealthPanel healthItems={healthItems} />
       </Grid>
 
       {/* Smart Contracts Widget */}
