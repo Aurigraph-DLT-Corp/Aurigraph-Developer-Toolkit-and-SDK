@@ -39,17 +39,27 @@ public class SmartContractService {
     
     @Inject
     ContractRepository contractRepository;
-    
+
+    @Inject
+    io.aurigraph.v11.services.ContractCompiler contractCompiler;
+
+    @Inject
+    io.aurigraph.v11.services.ContractVerifier contractVerifier;
+
     // Performance metrics
     private final AtomicLong contractsCreated = new AtomicLong(0);
     private final AtomicLong contractsExecuted = new AtomicLong(0);
     private final AtomicLong rwaTokenized = new AtomicLong(0);
-    
+    private final AtomicLong contractsDeployed = new AtomicLong(0);
+
     // Virtual thread executor for high concurrency
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-    
+
     // Contract cache for performance
     private final Map<String, RicardianContract> contractCache = new ConcurrentHashMap<>();
+
+    // Deployed contract tracking
+    private final Map<String, DeployedContract> deployedContracts = new ConcurrentHashMap<>();
     
     /**
      * Create a new Ricardian contract
@@ -667,5 +677,480 @@ public class SmartContractService {
         long total = contractsCreated.get() + contractsExecuted.get() + rwaTokenized.get();
         long timeElapsed = System.currentTimeMillis() / 1000; // seconds since start
         return timeElapsed > 0 ? (double) total / timeElapsed : 0;
+    }
+
+    // ==================== NEW SPRINT 11 LIFECYCLE METHODS ====================
+
+    /**
+     * Deployed Contract Information
+     */
+    public static class DeployedContract {
+        private final String contractAddress;
+        private final String bytecode;
+        private final String abi;
+        private final Map<String, Object> constructorParams;
+        private final Instant deployedAt;
+        private final String transactionHash;
+        private final long gasUsed;
+
+        public DeployedContract(String contractAddress, String bytecode, String abi,
+                               Map<String, Object> constructorParams, Instant deployedAt,
+                               String transactionHash, long gasUsed) {
+            this.contractAddress = contractAddress;
+            this.bytecode = bytecode;
+            this.abi = abi;
+            this.constructorParams = constructorParams;
+            this.deployedAt = deployedAt;
+            this.transactionHash = transactionHash;
+            this.gasUsed = gasUsed;
+        }
+
+        // Getters
+        public String getContractAddress() { return contractAddress; }
+        public String getBytecode() { return bytecode; }
+        public String getAbi() { return abi; }
+        public Map<String, Object> getConstructorParams() { return constructorParams; }
+        public Instant getDeployedAt() { return deployedAt; }
+        public String getTransactionHash() { return transactionHash; }
+        public long getGasUsed() { return gasUsed; }
+    }
+
+    /**
+     * Deploy a smart contract to the blockchain
+     *
+     * @param bytecode Compiled contract bytecode
+     * @param abi Contract ABI (Application Binary Interface)
+     * @param constructorParams Constructor parameters
+     * @return DeployedContract with deployment details
+     */
+    @Transactional
+    public Uni<DeployedContract> deployContract(String bytecode, String abi,
+                                               Map<String, Object> constructorParams) {
+        return Uni.createFrom().item(() -> {
+            LOGGER.info("Deploying smart contract with bytecode size: {} bytes",
+                bytecode != null ? bytecode.length() / 2 : 0);
+
+            // Validate inputs
+            if (bytecode == null || bytecode.trim().isEmpty()) {
+                throw new IllegalArgumentException("Bytecode is required for deployment");
+            }
+
+            if (abi == null || abi.trim().isEmpty()) {
+                throw new IllegalArgumentException("ABI is required for deployment");
+            }
+
+            // Estimate gas for deployment
+            io.aurigraph.v11.services.ContractCompiler.GasEstimation gasEstimation =
+                contractCompiler.estimateGas(bytecode, constructorParams != null ? constructorParams : new HashMap<>())
+                    .await().indefinitely();
+
+            LOGGER.info("Estimated deployment gas: {} ({})", gasEstimation.getDeploymentGas(),
+                gasEstimation.getRiskLevel());
+
+            // Generate contract address (in production, this would come from blockchain)
+            String contractAddress = generateContractAddress();
+
+            // Simulate blockchain deployment
+            String transactionHash = generateTransactionHash();
+
+            // Create deployed contract record
+            DeployedContract deployedContract = new DeployedContract(
+                contractAddress,
+                bytecode,
+                abi,
+                constructorParams != null ? new HashMap<>(constructorParams) : new HashMap<>(),
+                Instant.now(),
+                transactionHash,
+                gasEstimation.getDeploymentGas()
+            );
+
+            // Store deployment info
+            deployedContracts.put(contractAddress, deployedContract);
+            contractsDeployed.incrementAndGet();
+
+            LOGGER.info("Contract deployed successfully at address: {}", contractAddress);
+            return deployedContract;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Execute a contract method by name with parameters
+     *
+     * @param contractAddress Deployed contract address
+     * @param methodName Method/function name to execute
+     * @param params Method parameters
+     * @return Execution result
+     */
+    @Transactional
+    public Uni<Map<String, Object>> executeContractMethod(String contractAddress,
+                                                          String methodName,
+                                                          Map<String, Object> params) {
+        return Uni.createFrom().item(() -> {
+            LOGGER.info("Executing contract method: {} on contract: {}", methodName, contractAddress);
+
+            // Validate inputs
+            if (contractAddress == null || contractAddress.trim().isEmpty()) {
+                throw new IllegalArgumentException("Contract address is required");
+            }
+
+            if (methodName == null || methodName.trim().isEmpty()) {
+                throw new IllegalArgumentException("Method name is required");
+            }
+
+            // Check if contract is deployed
+            DeployedContract deployed = deployedContracts.get(contractAddress);
+            if (deployed == null) {
+                throw new IllegalStateException("Contract not found at address: " + contractAddress);
+            }
+
+            // Simulate method execution (in production, this would call actual blockchain)
+            Map<String, Object> result = new HashMap<>();
+            result.put("contractAddress", contractAddress);
+            result.put("methodName", methodName);
+            result.put("params", params != null ? params : new HashMap<>());
+            result.put("transactionHash", generateTransactionHash());
+            result.put("blockNumber", System.currentTimeMillis() / 1000);
+            result.put("gasUsed", estimateMethodGas(methodName));
+            result.put("status", "SUCCESS");
+            result.put("executedAt", Instant.now());
+
+            // Simulate method-specific results
+            switch (methodName.toLowerCase()) {
+                case "transfer" -> {
+                    result.put("from", params != null ? params.get("from") : "0x0");
+                    result.put("to", params != null ? params.get("to") : "0x0");
+                    result.put("amount", params != null ? params.get("amount") : 0);
+                }
+                case "balanceof" -> {
+                    result.put("balance", 1000000);
+                    result.put("address", params != null ? params.get("address") : "0x0");
+                }
+                case "approve" -> {
+                    result.put("spender", params != null ? params.get("spender") : "0x0");
+                    result.put("amount", params != null ? params.get("amount") : 0);
+                }
+                default -> result.put("output", "Method executed successfully");
+            }
+
+            contractsExecuted.incrementAndGet();
+            LOGGER.info("Method {} executed successfully", methodName);
+
+            return result;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get predefined contract templates (ERC20, ERC721, ERC1155)
+     *
+     * @return List of available contract templates
+     */
+    public Uni<List<Map<String, Object>>> getContractTemplates() {
+        return Uni.createFrom().item(() -> {
+            LOGGER.debug("Retrieving contract templates");
+
+            List<Map<String, Object>> templates = new ArrayList<>();
+
+            // ERC20 Token Template
+            Map<String, Object> erc20 = new HashMap<>();
+            erc20.put("id", "erc20-token");
+            erc20.put("name", "ERC20 Token");
+            erc20.put("description", "Standard fungible token contract (ERC20)");
+            erc20.put("standard", "ERC20");
+            erc20.put("category", "TOKEN");
+            erc20.put("sourceCode", generateERC20Template());
+            erc20.put("abi", generateERC20ABI());
+            erc20.put("variables", List.of("name", "symbol", "decimals", "totalSupply"));
+            templates.add(erc20);
+
+            // ERC721 NFT Template
+            Map<String, Object> erc721 = new HashMap<>();
+            erc721.put("id", "erc721-nft");
+            erc721.put("name", "ERC721 NFT");
+            erc721.put("description", "Non-fungible token contract (ERC721)");
+            erc721.put("standard", "ERC721");
+            erc721.put("category", "NFT");
+            erc721.put("sourceCode", generateERC721Template());
+            erc721.put("abi", generateERC721ABI());
+            erc721.put("variables", List.of("name", "symbol", "baseURI"));
+            templates.add(erc721);
+
+            // ERC1155 Multi-Token Template
+            Map<String, Object> erc1155 = new HashMap<>();
+            erc1155.put("id", "erc1155-multi");
+            erc1155.put("name", "ERC1155 Multi-Token");
+            erc1155.put("description", "Multi-token standard contract (ERC1155)");
+            erc1155.put("standard", "ERC1155");
+            erc1155.put("category", "MULTI_TOKEN");
+            erc1155.put("sourceCode", generateERC1155Template());
+            erc1155.put("abi", generateERC1155ABI());
+            erc1155.put("variables", List.of("uri"));
+            templates.add(erc1155);
+
+            LOGGER.debug("Returning {} contract templates", templates.size());
+            return templates;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Perform security audit on a deployed contract
+     *
+     * @param contractAddress Contract address to audit
+     * @return Audit report with security findings
+     */
+    @Transactional
+    public Uni<Map<String, Object>> auditContract(String contractAddress) {
+        return Uni.createFrom().item(() -> {
+            LOGGER.info("Performing security audit on contract: {}", contractAddress);
+
+            // Validate input
+            if (contractAddress == null || contractAddress.trim().isEmpty()) {
+                throw new IllegalArgumentException("Contract address is required");
+            }
+
+            // Check if contract exists
+            DeployedContract deployed = deployedContracts.get(contractAddress);
+            if (deployed == null) {
+                throw new IllegalStateException("Contract not found at address: " + contractAddress);
+            }
+
+            // Perform verification and security scan
+            // Note: In a real implementation, we would need the source code
+            // For now, we'll simulate the audit based on bytecode analysis
+
+            Map<String, Object> auditReport = new HashMap<>();
+            auditReport.put("contractAddress", contractAddress);
+            auditReport.put("auditedAt", Instant.now());
+            auditReport.put("bytecodeSize", deployed.getBytecode().length());
+
+            // Simulate security checks
+            List<Map<String, Object>> findings = new ArrayList<>();
+
+            // Check 1: Gas optimization
+            findings.add(createFinding("GAS-001", "Gas Optimization",
+                "Contract uses efficient gas patterns", "INFO", "LOW"));
+
+            // Check 2: Access control
+            findings.add(createFinding("SEC-001", "Access Control",
+                "Verify proper access control implementation", "WARNING", "MEDIUM"));
+
+            // Check 3: Reentrancy
+            findings.add(createFinding("SEC-002", "Reentrancy Protection",
+                "Ensure reentrancy guards are in place", "WARNING", "HIGH"));
+
+            auditReport.put("findings", findings);
+            auditReport.put("totalFindings", findings.size());
+            auditReport.put("criticalCount", 0);
+            auditReport.put("highCount", 1);
+            auditReport.put("mediumCount", 1);
+            auditReport.put("lowCount", 1);
+            auditReport.put("overallRisk", "MEDIUM");
+
+            // Recommendations
+            List<String> recommendations = new ArrayList<>();
+            recommendations.add("Review access control mechanisms");
+            recommendations.add("Implement reentrancy guards for external calls");
+            recommendations.add("Consider professional security audit before production");
+            auditReport.put("recommendations", recommendations);
+
+            LOGGER.info("Audit completed with {} findings", findings.size());
+            return auditReport;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get comprehensive contract statistics
+     *
+     * @return Map of contract statistics
+     */
+    public Map<String, Object> getContractStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+
+        // Basic counts
+        stats.put("totalContractsCreated", contractsCreated.get());
+        stats.put("totalContractsExecuted", contractsExecuted.get());
+        stats.put("totalContractsDeployed", contractsDeployed.get());
+        stats.put("totalRWATokenized", rwaTokenized.get());
+
+        // Cache stats
+        stats.put("contractsCached", contractCache.size());
+        stats.put("deployedContractsTracked", deployedContracts.size());
+
+        // Compiler stats
+        if (contractCompiler != null) {
+            stats.put("compilerStats", contractCompiler.getStatistics());
+        }
+
+        // Verifier stats
+        if (contractVerifier != null) {
+            stats.put("verifierStats", contractVerifier.getStatistics());
+        }
+
+        // Performance metrics
+        stats.put("averageThroughput", getAverageThroughput());
+        stats.put("timestamp", Instant.now());
+
+        return stats;
+    }
+
+    // Helper methods for new functionality
+
+    private String generateContractAddress() {
+        return "0x" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 40);
+    }
+
+    private String generateTransactionHash() {
+        return "0x" + UUID.randomUUID().toString().replaceAll("-", "");
+    }
+
+    private long estimateMethodGas(String methodName) {
+        return switch (methodName.toLowerCase()) {
+            case "transfer" -> 21000L;
+            case "approve" -> 45000L;
+            case "mint" -> 75000L;
+            case "burn" -> 30000L;
+            case "balanceof" -> 1000L;
+            default -> 50000L;
+        };
+    }
+
+    private Map<String, Object> createFinding(String id, String title, String description,
+                                             String type, String severity) {
+        Map<String, Object> finding = new HashMap<>();
+        finding.put("id", id);
+        finding.put("title", title);
+        finding.put("description", description);
+        finding.put("type", type);
+        finding.put("severity", severity);
+        return finding;
+    }
+
+    // Template generation methods
+
+    private String generateERC20Template() {
+        return """
+            // SPDX-License-Identifier: MIT
+            pragma solidity ^0.8.20;
+
+            contract ERC20Token {
+                string public name;
+                string public symbol;
+                uint8 public decimals;
+                uint256 public totalSupply;
+
+                mapping(address => uint256) public balanceOf;
+                mapping(address => mapping(address => uint256)) public allowance;
+
+                event Transfer(address indexed from, address indexed to, uint256 value);
+                event Approval(address indexed owner, address indexed spender, uint256 value);
+
+                constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _totalSupply) {
+                    name = _name;
+                    symbol = _symbol;
+                    decimals = _decimals;
+                    totalSupply = _totalSupply;
+                    balanceOf[msg.sender] = _totalSupply;
+                }
+
+                function transfer(address to, uint256 value) public returns (bool) {
+                    require(balanceOf[msg.sender] >= value, "Insufficient balance");
+                    balanceOf[msg.sender] -= value;
+                    balanceOf[to] += value;
+                    emit Transfer(msg.sender, to, value);
+                    return true;
+                }
+
+                function approve(address spender, uint256 value) public returns (bool) {
+                    allowance[msg.sender][spender] = value;
+                    emit Approval(msg.sender, spender, value);
+                    return true;
+                }
+            }
+            """;
+    }
+
+    private String generateERC20ABI() {
+        return """
+            [{"type":"constructor","inputs":[{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},
+            {"name":"_decimals","type":"uint8"},{"name":"_totalSupply","type":"uint256"}]},
+            {"type":"function","name":"transfer","inputs":[{"name":"to","type":"address"},
+            {"name":"value","type":"uint256"}],"outputs":[{"type":"bool"}]},
+            {"type":"function","name":"approve","inputs":[{"name":"spender","type":"address"},
+            {"name":"value","type":"uint256"}],"outputs":[{"type":"bool"}]},
+            {"type":"function","name":"balanceOf","inputs":[{"name":"account","type":"address"}],
+            "outputs":[{"type":"uint256"}]}]
+            """;
+    }
+
+    private String generateERC721Template() {
+        return """
+            // SPDX-License-Identifier: MIT
+            pragma solidity ^0.8.20;
+
+            contract ERC721Token {
+                string public name;
+                string public symbol;
+
+                mapping(uint256 => address) public ownerOf;
+                mapping(address => uint256) public balanceOf;
+                mapping(uint256 => address) public getApproved;
+
+                event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+                event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+
+                constructor(string memory _name, string memory _symbol) {
+                    name = _name;
+                    symbol = _symbol;
+                }
+
+                function mint(address to, uint256 tokenId) public {
+                    require(ownerOf[tokenId] == address(0), "Token already minted");
+                    ownerOf[tokenId] = to;
+                    balanceOf[to]++;
+                    emit Transfer(address(0), to, tokenId);
+                }
+            }
+            """;
+    }
+
+    private String generateERC721ABI() {
+        return """
+            [{"type":"constructor","inputs":[{"name":"_name","type":"string"},{"name":"_symbol","type":"string"}]},
+            {"type":"function","name":"mint","inputs":[{"name":"to","type":"address"},
+            {"name":"tokenId","type":"uint256"}]},
+            {"type":"function","name":"ownerOf","inputs":[{"name":"tokenId","type":"uint256"}],
+            "outputs":[{"type":"address"}]}]
+            """;
+    }
+
+    private String generateERC1155Template() {
+        return """
+            // SPDX-License-Identifier: MIT
+            pragma solidity ^0.8.20;
+
+            contract ERC1155Token {
+                mapping(uint256 => mapping(address => uint256)) public balanceOf;
+
+                event TransferSingle(address indexed operator, address indexed from,
+                    address indexed to, uint256 id, uint256 value);
+
+                function mint(address to, uint256 id, uint256 amount) public {
+                    balanceOf[id][to] += amount;
+                    emit TransferSingle(msg.sender, address(0), to, id, amount);
+                }
+            }
+            """;
+    }
+
+    private String generateERC1155ABI() {
+        return """
+            [{"type":"function","name":"mint","inputs":[{"name":"to","type":"address"},
+            {"name":"id","type":"uint256"},{"name":"amount","type":"uint256"}]},
+            {"type":"function","name":"balanceOf","inputs":[{"name":"account","type":"address"},
+            {"name":"id","type":"uint256"}],"outputs":[{"type":"uint256"}]}]
+            """;
     }
 }

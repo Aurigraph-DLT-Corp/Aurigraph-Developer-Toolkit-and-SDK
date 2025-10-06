@@ -69,6 +69,9 @@ public class V11ApiResource {
     @Inject
     AIOptimizationServiceStub aiOptimizationService;
 
+    @Inject
+    io.aurigraph.v11.contracts.SmartContractService smartContractService;
+
     // Compliance services
     @Inject
     io.aurigraph.v11.contracts.rwa.compliance.KYCAMLProviderService kycAmlService;
@@ -687,32 +690,7 @@ public class V11ApiResource {
 
     // ==================== TOKENS API ====================
 
-    @GET
-    @Path("/tokens")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get tokens", description = "Retrieve list of tokens")
-    public Uni<Response> getTokens(@QueryParam("limit") @DefaultValue("20") int limit) {
-        return Uni.createFrom().item(() -> {
-            java.util.List<Map<String, Object>> tokens = new java.util.ArrayList<>();
-            String[] tokenNames = {"Aurigraph", "StableAUR", "GovernAUR", "RewardAUR", "BridgeAUR"};
-            String[] symbols = {"AUR", "sAUR", "gAUR", "rAUR", "bAUR"};
-
-            for (int i = 0; i < Math.min(limit, tokenNames.length); i++) {
-                tokens.add(Map.of(
-                    "address", "0xToken" + Long.toHexString(System.currentTimeMillis() + i),
-                    "name", tokenNames[i],
-                    "symbol", symbols[i],
-                    "totalSupply", (1_000_000_000 + (i * 100_000_000)),
-                    "decimals", 18,
-                    "holders", 15_000 + (i * 2000),
-                    "price", 1.25 + (i * 0.1),
-                    "marketCap", (1_250_000_000 + (i * 150_000_000))
-                ));
-            }
-
-            return Response.ok(Map.of("tokens", tokens, "total", tokens.size())).build();
-        });
-    }
+    // Note: Moved to getTokensV2 below (line ~1310) for better filtering support
 
     // ==================== NFTs API ====================
 
@@ -926,6 +904,1075 @@ public class V11ApiResource {
 
             return Response.ok(Map.of("courses", courses, "total", courses.size())).build();
         });
+    }
+
+    // ==================== SPRINT 10: CHANNEL MANAGEMENT APIs ====================
+
+    @GET
+    @Path("/channels")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get channels", description = "Retrieve list of channels with pagination")
+    @APIResponse(responseCode = "200", description = "Channels retrieved successfully")
+    public Uni<Response> getChannels(
+            @QueryParam("limit") @DefaultValue("50") int limit,
+            @QueryParam("offset") @DefaultValue("0") int offset) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Replace with ChannelManagementService when implemented
+            java.util.List<Map<String, Object>> channels = new java.util.ArrayList<>();
+            for (int i = offset; i < Math.min(offset + limit, offset + 100); i++) {
+                channels.add(Map.of(
+                    "channelId", "CHANNEL-" + (10000 + i),
+                    "name", "Channel " + i,
+                    "type", i % 2 == 0 ? "PUBLIC" : "PRIVATE",
+                    "status", "ACTIVE",
+                    "members", 50 + (i * 5),
+                    "transactionCount", 10_000 + (i * 1000),
+                    "createdAt", System.currentTimeMillis() - (i * 86400000L),
+                    "lastActivity", System.currentTimeMillis() - (i * 3600000L)
+                ));
+            }
+            return Response.ok(Map.of(
+                "channels", channels,
+                "total", 1000,
+                "limit", limit,
+                "offset", offset
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/channels/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get channel by ID", description = "Retrieve detailed channel information")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Channel found"),
+        @APIResponse(responseCode = "404", description = "Channel not found")
+    })
+    public Uni<Response> getChannelById(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Replace with ChannelManagementService when implemented
+            Map<String, Object> channel = Map.ofEntries(
+                Map.entry("channelId", id),
+                Map.entry("name", "Channel for " + id),
+                Map.entry("type", "PUBLIC"),
+                Map.entry("status", "ACTIVE"),
+                Map.entry("members", 125),
+                Map.entry("transactionCount", 45678),
+                Map.entry("consensusType", "HyperRAFT++"),
+                Map.entry("blockHeight", 125789),
+                Map.entry("createdAt", System.currentTimeMillis() - 7 * 86400000L),
+                Map.entry("lastActivity", System.currentTimeMillis()),
+                Map.entry("config", Map.of(
+                    "maxMembers", 500,
+                    "blockTime", "1s",
+                    "maxBlockSize", "5MB"
+                ))
+            );
+            return Response.ok(channel).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/channels")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Create channel", description = "Create a new blockchain channel")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "Channel created successfully"),
+        @APIResponse(responseCode = "400", description = "Invalid channel data")
+    })
+    public Uni<Response> createChannel(Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Replace with ChannelManagementService when implemented
+            String channelId = "CHANNEL-" + System.currentTimeMillis();
+            Map<String, Object> channel = new HashMap<>(request);
+            channel.put("channelId", channelId);
+            channel.put("status", "CREATED");
+            channel.put("createdAt", System.currentTimeMillis());
+
+            return Response.status(Response.Status.CREATED)
+                .entity(channel)
+                .build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @PUT
+    @Path("/channels/{id}/config")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Update channel config", description = "Update channel configuration")
+    @APIResponse(responseCode = "200", description = "Configuration updated successfully")
+    public Uni<Response> updateChannelConfig(
+            @PathParam("id") String id,
+            Map<String, Object> config) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Replace with ChannelManagementService when implemented
+            return Response.ok(Map.of(
+                "channelId", id,
+                "config", config,
+                "updatedAt", System.currentTimeMillis(),
+                "status", "UPDATED"
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @DELETE
+    @Path("/channels/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Archive channel", description = "Archive a channel (soft delete)")
+    @APIResponse(responseCode = "200", description = "Channel archived successfully")
+    public Uni<Response> archiveChannel(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Replace with ChannelManagementService when implemented
+            return Response.ok(Map.of(
+                "channelId", id,
+                "status", "ARCHIVED",
+                "archivedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/channels/{id}/metrics")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get channel metrics", description = "Retrieve channel performance metrics")
+    @APIResponse(responseCode = "200", description = "Metrics retrieved successfully")
+    public Uni<Response> getChannelMetrics(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Replace with ChannelMetricsService when implemented
+            return Response.ok(Map.of(
+                "channelId", id,
+                "metrics", Map.of(
+                    "tps", 12500.0,
+                    "avgBlockTime", "1.2s",
+                    "totalTransactions", 1_234_567,
+                    "activeNodes", 15,
+                    "avgLatency", "45ms"
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/channels/{id}/transactions")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get channel transactions", description = "Retrieve transactions for a specific channel")
+    @APIResponse(responseCode = "200", description = "Transactions retrieved successfully")
+    public Uni<Response> getChannelTransactions(
+            @PathParam("id") String id,
+            @QueryParam("limit") @DefaultValue("50") int limit,
+            @QueryParam("offset") @DefaultValue("0") int offset) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Replace with ChannelManagementService when implemented
+            java.util.List<Map<String, Object>> transactions = new java.util.ArrayList<>();
+            for (int i = 0; i < Math.min(limit, 50); i++) {
+                transactions.add(Map.of(
+                    "txId", "TX-" + id + "-" + (offset + i),
+                    "channelId", id,
+                    "type", "TRANSFER",
+                    "amount", 1000 + (i * 100),
+                    "status", "CONFIRMED",
+                    "timestamp", System.currentTimeMillis() - (i * 60000L)
+                ));
+            }
+            return Response.ok(Map.of(
+                "transactions", transactions,
+                "channelId", id,
+                "total", 50000,
+                "limit", limit,
+                "offset", offset
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // ==================== SPRINT 11: SMART CONTRACTS APIs ====================
+
+    @GET
+    @Path("/contracts")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get smart contracts", description = "Retrieve list of smart contracts with filters")
+    @APIResponse(responseCode = "200", description = "Contracts retrieved successfully")
+    public Uni<Response> getContracts(
+            @QueryParam("status") String status,
+            @QueryParam("type") String type,
+            @QueryParam("limit") @DefaultValue("50") int limit,
+            @QueryParam("offset") @DefaultValue("0") int offset) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SmartContractService for real data
+            java.util.List<Map<String, Object>> contracts = new java.util.ArrayList<>();
+            for (int i = 0; i < Math.min(limit, 20); i++) {
+                contracts.add(Map.of(
+                    "contractId", "CONTRACT-" + (10000 + i),
+                    "name", "Smart Contract " + i,
+                    "type", type != null ? type : (i % 2 == 0 ? "ERC20" : "ERC721"),
+                    "status", status != null ? status : "DEPLOYED",
+                    "version", "1.0." + i,
+                    "createdAt", System.currentTimeMillis() - (i * 86400000L),
+                    "executions", 1000 + (i * 100)
+                ));
+            }
+            return Response.ok(Map.of(
+                "contracts", contracts,
+                "total", 500,
+                "limit", limit,
+                "offset", offset,
+                "filters", Map.of("status", status, "type", type)
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/contracts/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get contract by ID", description = "Retrieve detailed contract information")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Contract found"),
+        @APIResponse(responseCode = "404", description = "Contract not found")
+    })
+    public Uni<Response> getContractById(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SmartContractService for real data
+            return Response.ok(Map.ofEntries(
+                Map.entry("contractId", id),
+                Map.entry("name", "Contract " + id),
+                Map.entry("type", "ERC20"),
+                Map.entry("status", "DEPLOYED"),
+                Map.entry("version", "1.0.0"),
+                Map.entry("address", "0x" + Long.toHexString(System.currentTimeMillis())),
+                Map.entry("abi", "[]"),
+                Map.entry("bytecode", "0x..."),
+                Map.entry("createdAt", System.currentTimeMillis() - 86400000L),
+                Map.entry("deployedAt", System.currentTimeMillis() - 3600000L),
+                Map.entry("executions", 5432)
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/contracts/templates")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get contract templates", description = "Retrieve available contract templates")
+    @APIResponse(responseCode = "200", description = "Templates retrieved successfully")
+    public Uni<Response> getContractTemplates() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SmartContractService for real templates
+            java.util.List<Map<String, Object>> templates = java.util.List.of(
+                Map.of("templateId", "TPL-ERC20", "name", "ERC-20 Token", "category", "Token", "verified", true),
+                Map.of("templateId", "TPL-ERC721", "name", "ERC-721 NFT", "category", "NFT", "verified", true),
+                Map.of("templateId", "TPL-RWA", "name", "Real World Asset", "category", "RWA", "verified", true),
+                Map.of("templateId", "TPL-DEFI", "name", "DeFi Protocol", "category", "DeFi", "verified", true)
+            );
+            return Response.ok(Map.of("templates", templates, "total", templates.size())).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/contracts/deploy")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Deploy contract", description = "Deploy a smart contract to the blockchain")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "Contract deployed successfully"),
+        @APIResponse(responseCode = "400", description = "Invalid contract data")
+    })
+    public Uni<Response> deployContract(Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SmartContractService for real deployment
+            String contractId = "CONTRACT-" + System.currentTimeMillis();
+            return Response.status(Response.Status.CREATED).entity(Map.of(
+                "contractId", contractId,
+                "address", "0x" + Long.toHexString(System.currentTimeMillis()),
+                "status", "DEPLOYED",
+                "deployedAt", System.currentTimeMillis(),
+                "txHash", "0x" + Long.toHexString(System.currentTimeMillis()) + "deploy"
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/contracts/{id}/execute")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Execute contract", description = "Execute a smart contract function")
+    @APIResponse(responseCode = "200", description = "Contract executed successfully")
+    public Uni<Response> executeContract(
+            @PathParam("id") String id,
+            Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SmartContractService for real execution
+            return Response.ok(Map.of(
+                "contractId", id,
+                "function", request.getOrDefault("function", "unknown"),
+                "result", "SUCCESS",
+                "txHash", "0x" + Long.toHexString(System.currentTimeMillis()) + "exec",
+                "gasUsed", 21000,
+                "executedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/contracts/{id}/verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Verify contract", description = "Verify contract source code")
+    @APIResponse(responseCode = "200", description = "Contract verified successfully")
+    public Uni<Response> verifyContract(
+            @PathParam("id") String id,
+            Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ContractVerifier service when implemented
+            return Response.ok(Map.of(
+                "contractId", id,
+                "verified", true,
+                "status", "VERIFIED",
+                "verifiedAt", System.currentTimeMillis(),
+                "compiler", request.getOrDefault("compiler", "solc-0.8.19")
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/contracts/{id}/audit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Audit contract", description = "Perform security audit on contract")
+    @APIResponse(responseCode = "200", description = "Audit completed successfully")
+    public Uni<Response> auditContract(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Integrate with security audit service
+            return Response.ok(Map.of(
+                "contractId", id,
+                "auditStatus", "COMPLETED",
+                "riskLevel", "LOW",
+                "issues", java.util.List.of(
+                    Map.of("severity", "LOW", "type", "Gas Optimization", "line", 42),
+                    Map.of("severity", "MEDIUM", "type", "Unchecked Return", "line", 67)
+                ),
+                "auditedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/contracts/statistics")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get contract statistics", description = "Retrieve platform contract statistics")
+    @APIResponse(responseCode = "200", description = "Statistics retrieved successfully")
+    public Uni<Response> getContractStatistics() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SmartContractService for real statistics
+            return Response.ok(Map.of(
+                "totalContracts", 12_345,
+                "activeContracts", 8_765,
+                "verifiedContracts", 6_543,
+                "totalExecutions", 1_234_567,
+                "executions24h", 45_678,
+                "byType", Map.of(
+                    "ERC20", 4567,
+                    "ERC721", 2345,
+                    "RWA", 1234,
+                    "DeFi", 987
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // ==================== SPRINT 12: TOKENS & RWA APIs ====================
+
+    @GET
+    @Path("/tokens")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get tokens", description = "Retrieve list of tokens with type filters")
+    @APIResponse(responseCode = "200", description = "Tokens retrieved successfully")
+    public Uni<Response> getTokensV2(
+            @QueryParam("type") String type,
+            @QueryParam("standard") String standard,
+            @QueryParam("limit") @DefaultValue("50") int limit,
+            @QueryParam("offset") @DefaultValue("0") int offset) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            java.util.List<Map<String, Object>> tokens = new java.util.ArrayList<>();
+            String[] tokenTypes = {"UTILITY", "SECURITY", "RWA", "NFT"};
+            String[] standards = {"ERC20", "ERC721", "ERC1155"};
+
+            for (int i = 0; i < Math.min(limit, 20); i++) {
+                tokens.add(Map.of(
+                    "tokenId", "TOKEN-" + (10000 + i),
+                    "name", "Token " + i,
+                    "symbol", "TKN" + i,
+                    "type", type != null ? type : tokenTypes[i % tokenTypes.length],
+                    "standard", standard != null ? standard : standards[i % standards.length],
+                    "totalSupply", 1_000_000 + (i * 100_000),
+                    "holders", 500 + (i * 50),
+                    "createdAt", System.currentTimeMillis() - (i * 86400000L)
+                ));
+            }
+            return Response.ok(Map.of(
+                "tokens", tokens,
+                "total", 5000,
+                "limit", limit,
+                "offset", offset,
+                "filters", Map.of("type", type, "standard", standard)
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/tokens/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get token by ID", description = "Retrieve detailed token information")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Token found"),
+        @APIResponse(responseCode = "404", description = "Token not found")
+    })
+    public Uni<Response> getTokenById(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            return Response.ok(Map.ofEntries(
+                Map.entry("tokenId", id),
+                Map.entry("name", "Aurigraph Token"),
+                Map.entry("symbol", "AUR"),
+                Map.entry("type", "UTILITY"),
+                Map.entry("standard", "ERC20"),
+                Map.entry("totalSupply", 1_000_000_000),
+                Map.entry("circulatingSupply", 750_000_000),
+                Map.entry("holders", 12_345),
+                Map.entry("decimals", 18),
+                Map.entry("address", "0x" + Long.toHexString(System.currentTimeMillis())),
+                Map.entry("createdAt", System.currentTimeMillis() - 86400000L * 30)
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/tokens/templates")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get token templates", description = "Retrieve available token templates")
+    @APIResponse(responseCode = "200", description = "Templates retrieved successfully")
+    public Uni<Response> getTokenTemplates() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            java.util.List<Map<String, Object>> templates = java.util.List.of(
+                Map.of("templateId", "TPL-ERC20-BASIC", "name", "Basic ERC-20", "standard", "ERC20", "features", java.util.List.of("mintable", "burnable")),
+                Map.of("templateId", "TPL-ERC721-NFT", "name", "NFT Collection", "standard", "ERC721", "features", java.util.List.of("enumerable", "metadata")),
+                Map.of("templateId", "TPL-RWA-REAL-ESTATE", "name", "Real Estate RWA", "standard", "ERC1155", "features", java.util.List.of("fractional", "compliant")),
+                Map.of("templateId", "TPL-RWA-COMMODITY", "name", "Commodity RWA", "standard", "ERC20", "features", java.util.List.of("backed", "audited"))
+            );
+            return Response.ok(Map.of("templates", templates, "total", templates.size())).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/tokens/create")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Create token", description = "Create a new token")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "Token created successfully"),
+        @APIResponse(responseCode = "400", description = "Invalid token data")
+    })
+    public Uni<Response> createToken(Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            String tokenId = "TOKEN-" + System.currentTimeMillis();
+            return Response.status(Response.Status.CREATED).entity(Map.of(
+                "tokenId", tokenId,
+                "name", request.get("name"),
+                "symbol", request.get("symbol"),
+                "address", "0x" + Long.toHexString(System.currentTimeMillis()),
+                "status", "CREATED",
+                "createdAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/tokens/{id}/mint")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Mint tokens", description = "Mint additional tokens")
+    @APIResponse(responseCode = "200", description = "Tokens minted successfully")
+    public Uni<Response> mintTokens(
+            @PathParam("id") String id,
+            Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            return Response.ok(Map.of(
+                "tokenId", id,
+                "recipient", request.get("recipient"),
+                "amount", request.get("amount"),
+                "txHash", "0x" + Long.toHexString(System.currentTimeMillis()) + "mint",
+                "status", "MINTED",
+                "mintedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/tokens/{id}/burn")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Burn tokens", description = "Burn tokens from supply")
+    @APIResponse(responseCode = "200", description = "Tokens burned successfully")
+    public Uni<Response> burnTokens(
+            @PathParam("id") String id,
+            Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            return Response.ok(Map.of(
+                "tokenId", id,
+                "amount", request.get("amount"),
+                "txHash", "0x" + Long.toHexString(System.currentTimeMillis()) + "burn",
+                "status", "BURNED",
+                "burnedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/tokens/{id}/verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Verify token", description = "Verify token compliance and authenticity")
+    @APIResponse(responseCode = "200", description = "Token verified successfully")
+    public Uni<Response> verifyToken(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            return Response.ok(Map.of(
+                "tokenId", id,
+                "verified", true,
+                "compliance", java.util.List.of("KYC", "AML", "SEC"),
+                "verifiedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/tokens/statistics")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get token statistics", description = "Retrieve platform token statistics")
+    @APIResponse(responseCode = "200", description = "Statistics retrieved successfully")
+    public Uni<Response> getTokenStatistics() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            return Response.ok(Map.of(
+                "totalTokens", 15_678,
+                "activeTokens", 12_345,
+                "totalHolders", 456_789,
+                "totalVolume24h", "125M AUR",
+                "byType", Map.of(
+                    "UTILITY", 5678,
+                    "SECURITY", 3456,
+                    "RWA", 2345,
+                    "NFT", 4199
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/tokens/rwa")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get RWA tokens", description = "Retrieve Real World Asset tokens")
+    @APIResponse(responseCode = "200", description = "RWA tokens retrieved successfully")
+    public Uni<Response> getRWATokens(
+            @QueryParam("assetType") String assetType,
+            @QueryParam("limit") @DefaultValue("50") int limit) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use TokenManagementService when implemented
+            java.util.List<Map<String, Object>> rwaTokens = new java.util.ArrayList<>();
+            String[] assetTypes = {"REAL_ESTATE", "COMMODITY", "ART", "BONDS"};
+
+            for (int i = 0; i < Math.min(limit, 10); i++) {
+                rwaTokens.add(Map.of(
+                    "tokenId", "RWA-" + (10000 + i),
+                    "name", "RWA Asset " + i,
+                    "assetType", assetType != null ? assetType : assetTypes[i % assetTypes.length],
+                    "value", (1_000_000 + (i * 100_000)) + " USD",
+                    "backed", true,
+                    "audited", true,
+                    "compliant", true,
+                    "fractionalOwners", 50 + (i * 10)
+                ));
+            }
+            return Response.ok(Map.of("rwaTokens", rwaTokens, "total", rwaTokens.size())).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // ==================== SPRINT 13: ACTIVE CONTRACTS APIs ====================
+
+    @GET
+    @Path("/activecontracts/contracts")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get active contracts", description = "Retrieve list of active contracts")
+    @APIResponse(responseCode = "200", description = "Active contracts retrieved successfully")
+    public Uni<Response> getActiveContracts(
+            @QueryParam("status") String status,
+            @QueryParam("limit") @DefaultValue("50") int limit) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ActiveContractService when implemented
+            java.util.List<Map<String, Object>> contracts = new java.util.ArrayList<>();
+            for (int i = 0; i < Math.min(limit, 20); i++) {
+                contracts.add(Map.of(
+                    "contractId", "AC-" + (10000 + i),
+                    "name", "Active Contract " + i,
+                    "type", "RICARDIAN",
+                    "status", status != null ? status : (i % 2 == 0 ? "ACTIVE" : "PENDING"),
+                    "parties", 3,
+                    "actionsCompleted", i * 2,
+                    "actionsPending", 5 - (i % 5),
+                    "createdAt", System.currentTimeMillis() - (i * 86400000L)
+                ));
+            }
+            return Response.ok(Map.of("contracts", contracts, "total", 500, "limit", limit)).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/activecontracts/contracts/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get active contract by ID", description = "Retrieve detailed active contract information")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Contract found"),
+        @APIResponse(responseCode = "404", description = "Contract not found")
+    })
+    public Uni<Response> getActiveContractById(@PathParam("id") String id) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ActiveContractService when implemented
+            return Response.ok(Map.of(
+                "contractId", id,
+                "name", "Purchase Agreement",
+                "type", "RICARDIAN",
+                "status", "ACTIVE",
+                "parties", java.util.List.of(
+                    Map.of("role", "BUYER", "address", "0xBuyer123"),
+                    Map.of("role", "SELLER", "address", "0xSeller456")
+                ),
+                "actions", java.util.List.of(
+                    Map.of("actionId", "ACT-1", "name", "Payment", "status", "COMPLETED"),
+                    Map.of("actionId", "ACT-2", "name", "Delivery", "status", "PENDING")
+                ),
+                "createdAt", System.currentTimeMillis() - 86400000L
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/activecontracts/create")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Create active contract", description = "Create a new active contract")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "Contract created successfully"),
+        @APIResponse(responseCode = "400", description = "Invalid contract data")
+    })
+    public Uni<Response> createActiveContract(Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ActiveContractService when implemented
+            String contractId = "AC-" + System.currentTimeMillis();
+            return Response.status(Response.Status.CREATED).entity(Map.of(
+                "contractId", contractId,
+                "name", request.get("name"),
+                "type", request.get("type"),
+                "status", "CREATED",
+                "createdAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/activecontracts/{contractId}/execute/{actionId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Execute contract action", description = "Execute a specific action in an active contract")
+    @APIResponse(responseCode = "200", description = "Action executed successfully")
+    public Uni<Response> executeContractAction(
+            @PathParam("contractId") String contractId,
+            @PathParam("actionId") String actionId,
+            Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ActiveContractService when implemented
+            return Response.ok(Map.of(
+                "contractId", contractId,
+                "actionId", actionId,
+                "status", "EXECUTED",
+                "result", request.getOrDefault("result", "SUCCESS"),
+                "executedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/activecontracts/templates")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get active contract templates", description = "Retrieve available active contract templates")
+    @APIResponse(responseCode = "200", description = "Templates retrieved successfully")
+    public Uni<Response> getActiveContractTemplates() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ActiveContractService when implemented
+            java.util.List<Map<String, Object>> templates = java.util.List.of(
+                Map.of("templateId", "TPL-AC-PURCHASE", "name", "Purchase Agreement", "category", "Trade"),
+                Map.of("templateId", "TPL-AC-LEASE", "name", "Lease Agreement", "category", "RealEstate"),
+                Map.of("templateId", "TPL-AC-SUPPLY", "name", "Supply Chain Contract", "category", "Logistics"),
+                Map.of("templateId", "TPL-AC-SERVICE", "name", "Service Agreement", "category", "Services")
+            );
+            return Response.ok(Map.of("templates", templates, "total", templates.size())).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/activecontracts/templates/{templateId}/instantiate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Instantiate contract from template", description = "Create a contract instance from template")
+    @APIResponse(responseCode = "201", description = "Contract instantiated successfully")
+    public Uni<Response> instantiateContractTemplate(
+            @PathParam("templateId") String templateId,
+            Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ActiveContractService when implemented
+            String contractId = "AC-" + System.currentTimeMillis();
+            return Response.status(Response.Status.CREATED).entity(Map.of(
+                "contractId", contractId,
+                "templateId", templateId,
+                "status", "INSTANTIATED",
+                "instantiatedAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // ==================== SPRINT 14: ANALYTICS, SYSTEM & AUTH APIs ====================
+
+    @GET
+    @Path("/analytics/{period}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get analytics by period", description = "Retrieve analytics for specified time period (24h, 7d, 30d)")
+    @APIResponse(responseCode = "200", description = "Analytics retrieved successfully")
+    public Uni<Response> getAnalyticsByPeriod(@PathParam("period") String period) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AnalyticsService when implemented
+            return Response.ok(Map.of(
+                "period", period,
+                "metrics", Map.of(
+                    "transactions", 1_234_567,
+                    "volume", "125M AUR",
+                    "activeUsers", 12_345,
+                    "avgTps", 45_678.5,
+                    "peakTps", 98_765.0
+                ),
+                "growth", Map.of(
+                    "transactions", "+15.2%",
+                    "users", "+8.7%",
+                    "volume", "+22.3%"
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/analytics/volume")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get volume analytics", description = "Retrieve transaction volume analytics")
+    @APIResponse(responseCode = "200", description = "Volume analytics retrieved successfully")
+    public Uni<Response> getVolumeAnalytics(
+            @QueryParam("startTime") Long startTime,
+            @QueryParam("endTime") Long endTime) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AnalyticsService when implemented
+            return Response.ok(Map.of(
+                "totalVolume", "1.25B AUR",
+                "volumeByDay", java.util.List.of(
+                    Map.of("date", "2025-10-01", "volume", "45M AUR"),
+                    Map.of("date", "2025-10-02", "volume", "52M AUR"),
+                    Map.of("date", "2025-10-03", "volume", "48M AUR")
+                ),
+                "topAssets", java.util.List.of(
+                    Map.of("asset", "AUR", "volume", "850M AUR"),
+                    Map.of("asset", "sAUR", "volume", "250M AUR")
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/analytics/distribution")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get distribution analytics", description = "Retrieve asset distribution analytics")
+    @APIResponse(responseCode = "200", description = "Distribution analytics retrieved successfully")
+    public Uni<Response> getDistributionAnalytics() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AnalyticsService when implemented
+            return Response.ok(Map.of(
+                "byType", Map.of(
+                    "UTILITY", "45%",
+                    "SECURITY", "25%",
+                    "RWA", "20%",
+                    "NFT", "10%"
+                ),
+                "byRegion", Map.of(
+                    "NA", "35%",
+                    "EU", "30%",
+                    "ASIA", "25%",
+                    "OTHER", "10%"
+                ),
+                "concentration", Map.of(
+                    "top10Holders", "25%",
+                    "top100Holders", "45%"
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/analytics/performance")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get performance analytics", description = "Retrieve system performance analytics")
+    @APIResponse(responseCode = "200", description = "Performance analytics retrieved successfully")
+    public Uni<Response> getPerformanceAnalytics() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AnalyticsService when implemented
+            return Response.ok(Map.of(
+                "currentTps", 45_678.5,
+                "avgTps24h", 38_456.2,
+                "peakTps24h", 98_765.0,
+                "avgLatency", "45ms",
+                "blockTime", "1.2s",
+                "uptime", "99.99%",
+                "nodeHealth", Map.of(
+                    "active", 145,
+                    "syncing", 3,
+                    "offline", 2
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/system/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get system status", description = "Retrieve comprehensive system status")
+    @APIResponse(responseCode = "200", description = "System status retrieved successfully")
+    public Uni<Response> getSystemStatus() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SystemStatusService when implemented
+            return Response.ok(Map.of(
+                "status", "HEALTHY",
+                "version", apiVersion,
+                "uptime", System.currentTimeMillis() - startupTime.getEpochSecond() * 1000,
+                "services", Map.of(
+                    "consensus", "OPERATIONAL",
+                    "transaction", "OPERATIONAL",
+                    "bridge", "OPERATIONAL",
+                    "ai", "OPERATIONAL"
+                ),
+                "resources", Map.of(
+                    "cpuUsage", "45%",
+                    "memoryUsage", "62%",
+                    "diskUsage", "38%",
+                    "networkIn", "125 MB/s",
+                    "networkOut", "118 MB/s"
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/system/config")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get system configuration", description = "Retrieve current system configuration")
+    @APIResponse(responseCode = "200", description = "Configuration retrieved successfully")
+    public Uni<Response> getSystemConfig() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use ConfigurationService when implemented
+            return Response.ok(Map.of(
+                "network", Map.of(
+                    "chainId", 11,
+                    "networkName", "Aurigraph V11",
+                    "consensusAlgorithm", "HyperRAFT++"
+                ),
+                "performance", Map.of(
+                    "targetTps", targetTPS,
+                    "blockTime", "1s",
+                    "maxBlockSize", "5MB"
+                ),
+                "features", Map.of(
+                    "quantumCrypto", true,
+                    "aiOptimization", true,
+                    "crossChainBridge", true,
+                    "rwaTokenization", true
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/system/nodes/consensus")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get consensus nodes", description = "Retrieve consensus node information")
+    @APIResponse(responseCode = "200", description = "Consensus nodes retrieved successfully")
+    public Uni<Response> getConsensusNodes() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SystemStatusService when implemented
+            java.util.List<Map<String, Object>> nodes = new java.util.ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                nodes.add(Map.of(
+                    "nodeId", "NODE-" + i,
+                    "role", i == 0 ? "LEADER" : "FOLLOWER",
+                    "status", "ACTIVE",
+                    "uptime", "99.98%",
+                    "blockHeight", 1_234_567 + i,
+                    "lastSeen", System.currentTimeMillis()
+                ));
+            }
+            return Response.ok(Map.of(
+                "nodes", nodes,
+                "totalNodes", nodes.size(),
+                "leaderNode", "NODE-0",
+                "consensusHealth", "HEALTHY"
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/system/storage")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get storage statistics", description = "Retrieve storage usage statistics")
+    @APIResponse(responseCode = "200", description = "Storage statistics retrieved successfully")
+    public Uni<Response> getStorageStats() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use SystemStatusService when implemented
+            return Response.ok(Map.of(
+                "totalCapacity", "10TB",
+                "usedSpace", "3.8TB",
+                "freeSpace", "6.2TB",
+                "usagePercent", 38.0,
+                "breakdown", Map.of(
+                    "blockchain", "2.5TB",
+                    "state", "800GB",
+                    "logs", "300GB",
+                    "other", "200GB"
+                ),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/auth/login")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "User login", description = "Authenticate user and generate token")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Login successful"),
+        @APIResponse(responseCode = "401", description = "Authentication failed")
+    })
+    public Uni<Response> login(Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AuthenticationService when implemented
+            String username = (String) request.get("username");
+            String password = (String) request.get("password");
+
+            // Placeholder validation
+            if (username != null && password != null) {
+                return Response.ok(Map.of(
+                    "token", "jwt_token_" + System.currentTimeMillis(),
+                    "refreshToken", "refresh_" + System.currentTimeMillis(),
+                    "expiresIn", 3600,
+                    "user", Map.of(
+                        "userId", "USER-" + username.hashCode(),
+                        "username", username,
+                        "role", "USER"
+                    )
+                )).build();
+            }
+            return Response.status(Response.Status.UNAUTHORIZED)
+                .entity(Map.of("error", "Invalid credentials"))
+                .build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/auth/logout")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "User logout", description = "Invalidate user session")
+    @APIResponse(responseCode = "200", description = "Logout successful")
+    public Uni<Response> logout() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AuthenticationService when implemented
+            return Response.ok(Map.of(
+                "status", "LOGGED_OUT",
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/auth/refresh")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Refresh token", description = "Refresh authentication token")
+    @APIResponse(responseCode = "200", description = "Token refreshed successfully")
+    public Uni<Response> refreshToken(Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AuthenticationService when implemented
+            return Response.ok(Map.of(
+                "token", "jwt_token_new_" + System.currentTimeMillis(),
+                "expiresIn", 3600
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @GET
+    @Path("/auth/me")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get current user", description = "Get currently authenticated user information")
+    @APIResponse(responseCode = "200", description = "User information retrieved successfully")
+    public Uni<Response> getCurrentUser() {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AuthenticationService when implemented
+            return Response.ok(Map.of(
+                "userId", "USER-12345",
+                "username", "demouser",
+                "email", "demo@aurigraph.io",
+                "role", "USER",
+                "permissions", java.util.List.of("READ", "WRITE", "EXECUTE"),
+                "createdAt", System.currentTimeMillis() - 86400000L * 30
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @POST
+    @Path("/auth/register")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Register user", description = "Register a new user")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "User registered successfully"),
+        @APIResponse(responseCode = "400", description = "Invalid registration data")
+    })
+    public Uni<Response> register(Map<String, Object> request) {
+        return Uni.createFrom().item(() -> {
+            // TODO: Use AuthenticationService when implemented
+            String username = (String) request.get("username");
+            String userId = "USER-" + System.currentTimeMillis();
+
+            return Response.status(Response.Status.CREATED).entity(Map.of(
+                "userId", userId,
+                "username", username,
+                "status", "REGISTERED",
+                "registeredAt", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     // ==================== COMPLIANCE APIs ====================
