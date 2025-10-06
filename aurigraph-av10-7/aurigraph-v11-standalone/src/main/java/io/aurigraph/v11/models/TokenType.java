@@ -1,7 +1,7 @@
-package io.aurigraph.v11.contracts.composite;
+package io.aurigraph.v11.models;
 
 /**
- * Token Type Enum
+ * Token Type Enumeration
  *
  * Defines the token standards supported by Aurigraph V11 platform.
  *
@@ -11,20 +11,17 @@ package io.aurigraph.v11.contracts.composite;
  */
 public enum TokenType {
     /**
-     * ERC20 - Fungible tokens
-     * Standard for fungible digital assets (coins, utility tokens, etc.)
+     * ERC20 - Fungible token standard
      */
     ERC20,
 
     /**
-     * ERC721 - Non-Fungible Tokens (NFTs)
-     * Standard for unique digital assets with distinct properties
+     * ERC721 - Non-fungible token (NFT) standard
      */
     ERC721,
 
     /**
-     * ERC1155 - Multi-Token Standard
-     * Supports both fungible and non-fungible tokens in a single contract
+     * ERC1155 - Multi-token standard (fungible + non-fungible)
      */
     ERC1155,
 

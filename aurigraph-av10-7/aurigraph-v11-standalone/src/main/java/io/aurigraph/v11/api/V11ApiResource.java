@@ -69,8 +69,8 @@ public class V11ApiResource {
     @Inject
     AIOptimizationServiceStub aiOptimizationService;
 
-    @Inject
-    io.aurigraph.v11.contracts.SmartContractService smartContractService;
+    // @Inject
+    // io.aurigraph.v11.contracts.SmartContractService smartContractService; // TODO: Re-enable after SmartContractService is fixed
 
     // Compliance services
     @Inject

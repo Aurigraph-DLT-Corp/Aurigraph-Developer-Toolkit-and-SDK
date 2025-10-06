@@ -802,23 +802,6 @@ public class TokenRegistry {
 /**
  * Token Type Enumeration
  */
-enum TokenType {
-    /**
-     * ERC20 - Fungible token standard
-     */
-    ERC20,
-
-    /**
-     * ERC721 - Non-fungible token (NFT) standard
-     */
-    ERC721,
-
-    /**
-     * ERC1155 - Multi-token standard (fungible + non-fungible)
-     */
-    ERC1155
-}
-
 /**
  * Verification Status Enumeration
  */
