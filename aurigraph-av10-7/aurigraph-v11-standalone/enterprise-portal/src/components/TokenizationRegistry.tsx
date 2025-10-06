@@ -18,6 +18,8 @@ import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, Legend } from 'recharts';
 import ChannelService from '../services/ChannelService';
 
+const API_BASE = 'http://localhost:9003/api/v11';
+
 // Token Types and Interfaces
 interface Token {
   id: string;
@@ -114,6 +116,8 @@ const TokenizationRegistry: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('marketCap');
   const [isDeploying, setIsDeploying] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Token creation form
   const [newToken, setNewToken] = useState({
