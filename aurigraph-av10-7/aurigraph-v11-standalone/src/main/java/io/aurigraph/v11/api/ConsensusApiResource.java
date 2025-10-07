@@ -79,7 +79,8 @@ public class ConsensusApiResource {
     @APIResponse(responseCode = "200", description = "Consensus nodes retrieved successfully")
     public Uni<Response> getConsensusNodes() {
         return Uni.createFrom().item(() -> {
-            // TODO: Use SystemStatusService when implemented
+            // TODO: [HIGH] Integrate with SystemStatusService for real node data - Target: V3.8.0
+            // Current: Mock data for demonstration
             List<Map<String, Object>> nodes = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
                 nodes.add(Map.of(

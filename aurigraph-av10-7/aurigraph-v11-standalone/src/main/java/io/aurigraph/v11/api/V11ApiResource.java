@@ -70,7 +70,11 @@ public class V11ApiResource {
     AIOptimizationServiceStub aiOptimizationService;
 
     // @Inject
-    // io.aurigraph.v11.contracts.SmartContractService smartContractService; // TODO: Re-enable after SmartContractService is fixed
+    // io.aurigraph.v11.contracts.SmartContractService smartContractService;
+    // TODO: [CRITICAL] Re-enable after SmartContractService dependencies are implemented - Target: V3.8.0
+    // Required: ContractRepository, ContractCompiler, ContractVerifier
+    // Blocks: 15+ smart contract endpoints
+    // See: TODO.md for full dependency list
 
     // Compliance services
     @Inject
