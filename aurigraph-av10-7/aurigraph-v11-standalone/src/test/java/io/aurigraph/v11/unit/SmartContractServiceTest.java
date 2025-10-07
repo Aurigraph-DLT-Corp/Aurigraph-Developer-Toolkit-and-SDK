@@ -48,10 +48,10 @@ class SmartContractServiceTest {
     QuantumCryptoService cryptoService;
 
     @InjectMock
-    io.aurigraph.v11.services.ContractCompiler contractCompiler;
+    io.aurigraph.v11.contracts.ContractCompiler contractCompiler;
 
     @InjectMock
-    io.aurigraph.v11.services.ContractVerifier contractVerifier;
+    io.aurigraph.v11.contracts.ContractVerifier contractVerifier;
 
     @InjectMock
     io.aurigraph.v11.contracts.ContractRepository contractRepository;

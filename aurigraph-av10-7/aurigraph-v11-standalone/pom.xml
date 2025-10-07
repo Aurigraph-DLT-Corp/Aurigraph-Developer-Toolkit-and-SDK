@@ -26,6 +26,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Force newer Groovy version to avoid conflicts -->
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy</artifactId>
+                <version>4.0.22</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-xml</artifactId>
+                <version>4.0.22</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -188,7 +199,9 @@
             <artifactId>bctls-jdk18on</artifactId>
             <version>1.78</version>
         </dependency>
-        <!-- AI/ML Dependencies for AV11-2002 AI Optimization -->
+        <!-- AI/ML Dependencies temporarily commented out to resolve Groovy version conflict -->
+        <!-- TODO: Re-enable after resolving dependency conflicts -->
+        <!--
         <dependency>
             <groupId>org.deeplearning4j</groupId>
             <artifactId>deeplearning4j-core</artifactId>
@@ -209,31 +222,45 @@
             <artifactId>nd4j-api</artifactId>
             <version>1.0.0-M2.1</version>
         </dependency>
+        -->
         <!-- Apache Commons Math for ML algorithms -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
         </dependency>
-        <!-- Weka ML library -->
+        <!-- ML libraries temporarily commented out to resolve Groovy version conflict -->
+        <!-- TODO: Re-enable after resolving Groovy conflict or upgrade to compatible versions -->
+        <!--
         <dependency>
             <groupId>nz.ac.waikato.cms.weka</groupId>
             <artifactId>weka-stable</artifactId>
             <version>3.8.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <!-- Apache Spark MLlib for advanced ML -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-mllib_2.13</artifactId>
             <version>3.5.0</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <!-- SMILE ML library for high-performance algorithms -->
         <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-core</artifactId>
             <version>3.1.1</version>
         </dependency>
+        -->
         
         <!-- Cross-Chain Bridge Dependencies -->
         <!-- Web3j for Ethereum Integration -->
