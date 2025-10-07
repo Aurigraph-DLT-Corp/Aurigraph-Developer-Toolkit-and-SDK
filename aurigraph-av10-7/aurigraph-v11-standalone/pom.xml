@@ -136,12 +136,26 @@
             <artifactId>ApacheJMeter_core</artifactId>
             <version>5.6.3</version>
             <scope>test</scope>
+            <exclusions>
+                <!-- Exclude old Groovy to resolve RestAssured conflict -->
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.jmeter</groupId>
             <artifactId>ApacheJMeter_java</artifactId>
             <version>5.6.3</version>
             <scope>test</scope>
+            <exclusions>
+                <!-- Exclude old Groovy to resolve RestAssured conflict -->
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -536,6 +550,37 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <!-- Maven Enforcer Plugin - Ban old Groovy versions -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-banned-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <!-- Ban old Groovy versions to resolve RestAssured conflict -->
+                                        <exclude>org.codehaus.groovy:*</exclude>
+                                    </excludes>
+                                    <message>
+                                        Old Groovy (org.codehaus.groovy) is banned. Use org.apache.groovy:groovy:4.0.22 instead.
+                                        This resolves the RestAssured Groovy version conflict.
+                                    </message>
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
