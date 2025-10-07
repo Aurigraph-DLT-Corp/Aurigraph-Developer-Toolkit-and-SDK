@@ -27,16 +27,17 @@ import static org.assertj.core.api.Assertions.*;
  * Comprehensive test suite for HyperRAFTConsensusService.
  *
  * Tests:
- * - Consensus operations
- * - Leader election
- * - Log replication
- * - Node state management
- * - Performance under load
- * - Error handling
- * - Statistics and metrics
+ * - Consensus operations (basic implementation)
+ * - Leader election mechanisms
+ * - Log replication and append entries
+ * - Node state management and transitions
+ * - Performance under load (throughput/latency)
+ * - Error handling and edge cases
+ * - Statistics and metrics tracking
+ *
+ * Coverage Target: 95% line, 90% branch (Phase 1 requirement)
  */
 @QuarkusTest
-@Disabled("Service not fully implemented - requires complete HyperRAFT consensus implementation")
 class HyperRAFTConsensusServiceTest extends ServiceTestBase {
 
     private static final Logger logger = LoggerFactory.getLogger(HyperRAFTConsensusServiceTest.class);
