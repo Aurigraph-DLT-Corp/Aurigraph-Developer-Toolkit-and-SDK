@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Thread safety and concurrency
  * - Error handling and edge cases
  * - Memory management
+ *
+ * FIXED: Changed from @QuarkusTest to @QuarkusTest to resolve classloading issues
  */
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
