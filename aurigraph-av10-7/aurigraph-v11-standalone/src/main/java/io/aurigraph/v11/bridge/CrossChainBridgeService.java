@@ -4,6 +4,7 @@ import io.aurigraph.v11.bridge.models.BridgeStats;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import io.smallrye.mutiny.Uni;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
@@ -35,6 +36,12 @@ public class CrossChainBridgeService {
     private static final int REQUIRED_CONFIRMATIONS = 12;
     private static final double BRIDGE_FEE_PERCENTAGE = 0.1;
     private static final BigDecimal MAX_BRIDGE_AMOUNT = new BigDecimal("1000000");
+
+    @ConfigProperty(name = "bridge.processing.delay.min", defaultValue = "5000")
+    long processingDelayMin;
+
+    @ConfigProperty(name = "bridge.processing.delay.max", defaultValue = "10000")
+    long processingDelayMax;
 
     public CrossChainBridgeService() {
         initializeSupportedChains();
@@ -87,7 +94,7 @@ public class CrossChainBridgeService {
                 request.getAmount(), request.getTokenSymbol());
             
             return transactionId;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     /**
@@ -100,7 +107,7 @@ public class CrossChainBridgeService {
                 throw new BridgeNotFoundException("Bridge transaction not found: " + transactionId);
             }
             return transaction;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     /**
@@ -112,7 +119,7 @@ public class CrossChainBridgeService {
                 .filter(tx -> address.equals(tx.getSourceAddress()) || address.equals(tx.getTargetAddress()))
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .toList();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     /**
@@ -122,7 +129,7 @@ public class CrossChainBridgeService {
         return Uni.createFrom().item(() -> {
             List<ChainInfo> result = new ArrayList<>(supportedChains.values());
             return result;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     /**
@@ -142,7 +149,7 @@ public class CrossChainBridgeService {
                 .averageTime24h(45.0)
                 .successRate24h(calculateSuccessRate())
                 .build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     /**
@@ -161,7 +168,7 @@ public class CrossChainBridgeService {
             BigDecimal totalFee = bridgeFee.add(gasFee);
             
             return new BridgeFeeEstimate(bridgeFee, gasFee, totalFee, tokenSymbol);
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     // Private helper methods
@@ -226,8 +233,9 @@ public class CrossChainBridgeService {
         // Simulate bridge processing asynchronously
         CompletableFuture.runAsync(() -> {
             try {
-                // Simulate processing time
-                Thread.sleep(5000 + (long) (Math.random() * 10000)); // 5-15 seconds
+                // Simulate processing time (configurable for testing)
+                long delay = processingDelayMin + (long) (Math.random() * (processingDelayMax - processingDelayMin));
+                Thread.sleep(delay);
                 
                 // Update transaction status
                 BridgeTransaction updatedTx = transaction.withStatus(BridgeTransactionStatus.COMPLETED);
