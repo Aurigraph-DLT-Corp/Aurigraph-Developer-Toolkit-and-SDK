@@ -1,0 +1,548 @@
+package io.aurigraph.v11.unit;
+
+import io.aurigraph.v11.channels.ChannelManagementService;
+import io.aurigraph.v11.channels.ChannelManagementService.*;
+import io.aurigraph.v11.channels.ChannelRepository;
+import io.aurigraph.v11.channels.MessageRepository;
+import io.aurigraph.v11.channels.ChannelMemberRepository;
+import io.aurigraph.v11.channels.models.Channel;
+import io.aurigraph.v11.channels.models.Channel.*;
+import io.aurigraph.v11.channels.models.ChannelMember;
+import io.aurigraph.v11.channels.models.ChannelMember.*;
+import io.aurigraph.v11.channels.models.Message;
+import io.aurigraph.v11.channels.models.Message.*;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.*;
+
+import java.time.Duration;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * Comprehensive unit tests for ChannelManagementService
+ *
+ * Tests channel and messaging operations with mocked dependencies:
+ * - Channel creation and lifecycle management
+ * - Message sending and retrieval
+ * - Member management (join/leave/promote)
+ * - Channel statistics and metrics
+ * - Public/private channel handling
+ * - Error handling and edge cases
+ *
+ * Coverage Target: 90% line, 85% branch (Phase 4 Critical Package)
+ *
+ * @version 3.10.0 (Phase 4 Day 3-4)
+ */
+@QuarkusTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class ChannelManagementServiceTest {
+
+    @Inject
+    ChannelManagementService channelService;
+
+    @InjectMock
+    ChannelRepository channelRepository;
+
+    @InjectMock
+    MessageRepository messageRepository;
+
+    @InjectMock
+    ChannelMemberRepository memberRepository;
+
+    private Channel testChannel;
+    private ChannelMember testMember;
+    private Message testMessage;
+
+    private static final String TEST_CHANNEL_ID = "channel-123";
+    private static final String TEST_OWNER = "0xOwner123";
+    private static final String TEST_MEMBER = "0xMember456";
+    private static final String TEST_MEMBER_2 = "0xMember789";
+
+    @BeforeEach
+    void setUp() {
+        // Create test channel
+        testChannel = new Channel();
+        testChannel.setChannelId(TEST_CHANNEL_ID);
+        testChannel.setName("TestChannel");
+        testChannel.setChannelType(ChannelType.PUBLIC);
+        testChannel.setOwnerAddress(TEST_OWNER);
+        testChannel.setDescription("Test channel for unit tests");
+        testChannel.setTopic("Testing");
+        testChannel.setIsPublic(true);
+        testChannel.setIsEncrypted(false);
+        testChannel.setMaxMembers(100);
+        testChannel.setMemberCount(1);
+        testChannel.setActiveMembers(1);
+        testChannel.setMessageCount(0L);
+
+        // Create test member
+        testMember = new ChannelMember(TEST_CHANNEL_ID, TEST_OWNER, MemberRole.OWNER);
+        testMember.setStatus(MemberStatus.ACTIVE);
+
+        // Create test message
+        testMessage = new Message();
+        testMessage.setMessageId("msg-123");
+        testMessage.setChannelId(TEST_CHANNEL_ID);
+        testMessage.setSenderAddress(TEST_OWNER);
+        testMessage.setContent("Test message");
+        testMessage.setMessageType(MessageType.TEXT);
+        testMessage.setStatus(MessageStatus.DELIVERED);
+    }
+
+    // ==================== CHANNEL CREATION ====================
+
+    @Test
+    @Order(1)
+    @DisplayName("UT-CMS-01: Should create public channel successfully")
+    void testCreatePublicChannel() {
+        // Arrange
+        ChannelCreationRequest request = new ChannelCreationRequest(
+                "PublicChannel",
+                ChannelType.PUBLIC,
+                TEST_OWNER,
+                "Public test channel",
+                "General",
+                true,
+                false,
+                100,
+                false,
+                "{\"category\": \"general\"}"
+        );
+
+        doAnswer(invocation -> {
+            Channel channel = invocation.getArgument(0);
+            channel.setChannelId("new-channel-123");
+            return null;
+        }).when(channelRepository).persist(any(Channel.class));
+
+        // Act
+        Channel result = channelService.createChannel(request)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(channelRepository, times(2)).persist(any(Channel.class)); // Once for creation, once for member count
+        verify(memberRepository, times(1)).persist(any(ChannelMember.class)); // Owner added
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("UT-CMS-02: Should create private encrypted channel")
+    void testCreatePrivateEncryptedChannel() {
+        // Arrange
+        ChannelCreationRequest request = new ChannelCreationRequest(
+                "PrivateChannel",
+                ChannelType.PRIVATE,
+                TEST_OWNER,
+                "Private encrypted channel",
+                "Confidential",
+                false, // Not public
+                true,  // Encrypted
+                50,
+                false,
+                "{\"security\": \"high\"}"
+        );
+
+        doNothing().when(channelRepository).persist(any(Channel.class));
+
+        // Act
+        Channel result = channelService.createChannel(request)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(channelRepository, times(2)).persist(any(Channel.class));
+        verify(memberRepository, times(1)).persist(any(ChannelMember.class));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("UT-CMS-03: Should create channel with default values")
+    void testCreateChannelWithDefaults() {
+        // Arrange - Null values should use defaults
+        ChannelCreationRequest request = new ChannelCreationRequest(
+                "DefaultChannel",
+                ChannelType.PUBLIC,
+                TEST_OWNER,
+                "Channel with defaults",
+                null,  // null topic
+                null,  // null isPublic (default: false)
+                null,  // null isEncrypted (default: false)
+                null,  // null maxMembers (default: 100)
+                null,  // null allowGuestAccess (default: false)
+                null   // null metadata
+        );
+
+        doNothing().when(channelRepository).persist(any(Channel.class));
+
+        // Act
+        Channel result = channelService.createChannel(request)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+    }
+
+    // ==================== CHANNEL RETRIEVAL ====================
+
+    @Test
+    @Order(4)
+    @DisplayName("UT-CMS-04: Should get channel by ID")
+    void testGetChannel() {
+        // Arrange
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+
+        // Act
+        Channel result = channelService.getChannel(TEST_CHANNEL_ID)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getChannelId()).isEqualTo(TEST_CHANNEL_ID);
+        assertThat(result.getName()).isEqualTo("TestChannel");
+        verify(channelRepository, times(1)).findByChannelId(TEST_CHANNEL_ID);
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("UT-CMS-05: Should throw exception for non-existent channel")
+    void testGetChannelNotFound() {
+        // Arrange
+        when(channelRepository.findByChannelId("invalid-channel")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() ->
+                channelService.getChannel("invalid-channel")
+                        .await().atMost(Duration.ofSeconds(5))
+        ).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Channel not found");
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("UT-CMS-06: Should list channels with pagination")
+    void testListChannels() {
+        // Act - Just verify method doesn't throw exceptions
+        assertThatNoException().isThrownBy(() -> {
+            List<Channel> result = channelService.listChannels(0, 10)
+                    .await().atMost(Duration.ofSeconds(5));
+            assertThat(result).isNotNull();
+        });
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("UT-CMS-07: Should list only public channels")
+    void testListPublicChannels() {
+        // Arrange
+        List<Channel> publicChannels = Arrays.asList(testChannel);
+        when(channelRepository.findPublicChannels()).thenReturn(publicChannels);
+
+        // Act
+        List<Channel> result = channelService.listPublicChannels()
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(ch -> ch.getIsPublic());
+    }
+
+    // ==================== CHANNEL LIFECYCLE ====================
+
+    @Test
+    @Order(8)
+    @DisplayName("UT-CMS-08: Should close channel successfully")
+    void testCloseChannel() {
+        // Arrange
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Arrays.asList(testMember));
+
+        // Act
+        ChannelOperationResult result = channelService.closeChannel(TEST_CHANNEL_ID, TEST_OWNER)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.success()).isTrue();
+        assertThat(result.channelId()).isEqualTo(TEST_CHANNEL_ID);
+        verify(channelRepository, atLeastOnce()).persist(testChannel);
+    }
+
+    // ==================== MESSAGE OPERATIONS ====================
+
+    @Test
+    @Order(9)
+    @DisplayName("UT-CMS-09: Should send message to channel")
+    void testSendMessage() {
+        // Arrange
+        MessageSendRequest request = new MessageSendRequest(
+                TEST_CHANNEL_ID,
+                TEST_OWNER,
+                "Hello, world!",
+                MessageType.TEXT,
+                null,
+                null,
+                null,
+                null
+        );
+
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_OWNER))
+                .thenReturn(Optional.of(testMember));
+        when(messageRepository.persist(any(Message.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        Message result = channelService.sendMessage(request)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEqualTo("Hello, world!");
+        assertThat(result.getMessageType()).isEqualTo(MessageType.TEXT);
+        verify(messageRepository, times(1)).persist(any(Message.class));
+        verify(channelRepository, times(1)).persist(testChannel); // Message count updated
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("UT-CMS-10: Should fail to send message to non-existent channel")
+    void testSendMessageChannelNotFound() {
+        // Arrange
+        MessageSendRequest request = new MessageSendRequest(
+                "invalid-channel",
+                TEST_OWNER,
+                "Message",
+                MessageType.TEXT,
+                null,
+                null,
+                null,
+                null
+        );
+
+        when(channelRepository.findByChannelId("invalid-channel")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() ->
+                channelService.sendMessage(request)
+                        .await().atMost(Duration.ofSeconds(5))
+        ).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Channel not found");
+
+        verify(messageRepository, never()).persist(any());
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("UT-CMS-11: Should fail to send message from non-member")
+    void testSendMessageNonMember() {
+        // Arrange
+        MessageSendRequest request = new MessageSendRequest(
+                TEST_CHANNEL_ID,
+                TEST_MEMBER_2,
+                "Message from non-member",
+                MessageType.TEXT,
+                null,
+                null,
+                null,
+                null
+        );
+
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_MEMBER_2))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() ->
+                channelService.sendMessage(request)
+                        .await().atMost(Duration.ofSeconds(5))
+        ).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Not a member");
+
+        verify(messageRepository, never()).persist(any());
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("UT-CMS-12: Should get channel messages")
+    void testGetMessages() {
+        // Arrange
+        List<Message> messages = Arrays.asList(testMessage);
+        when(messageRepository.findByChannelIdOrdered(TEST_CHANNEL_ID, 10)).thenReturn(messages);
+
+        // Act
+        List<Message> result = channelService.getMessages(TEST_CHANNEL_ID, 10)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessageId()).isEqualTo("msg-123");
+        assertThat(result.get(0).getContent()).isEqualTo("Test message");
+    }
+
+    @Test
+    @Order(13)
+    @DisplayName("UT-CMS-13: Should get messages with pagination")
+    void testGetMessagesPaginated() {
+        // Arrange
+        List<Message> messages = Arrays.asList(testMessage);
+        when(messageRepository.findByChannelIdPaginated(TEST_CHANNEL_ID, 0, 20)).thenReturn(messages);
+
+        // Act
+        List<Message> result = channelService.getMessagesPaginated(TEST_CHANNEL_ID, 0, 20)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @Order(14)
+    @DisplayName("UT-CMS-14: Should delete message successfully")
+    void testDeleteMessage() {
+        // Arrange
+        when(messageRepository.findByMessageId("msg-123")).thenReturn(Optional.of(testMessage));
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_OWNER))
+                .thenReturn(Optional.of(testMember));
+
+        // Act
+        MessageOperationResult result = channelService.deleteMessage("msg-123", TEST_OWNER)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.success()).isTrue();
+        verify(messageRepository, times(1)).persist(testMessage);
+    }
+
+    // ==================== MEMBER OPERATIONS ====================
+
+    @Test
+    @Order(15)
+    @DisplayName("UT-CMS-15: Should join public channel successfully")
+    void testJoinPublicChannel() {
+        // Arrange
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_MEMBER))
+                .thenReturn(Optional.empty());
+        when(memberRepository.countByChannelId(TEST_CHANNEL_ID)).thenReturn(1L);
+
+        // Act
+        ChannelMember result = channelService.joinChannel(TEST_CHANNEL_ID, TEST_MEMBER)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(memberRepository, times(1)).persist(any(ChannelMember.class));
+        verify(channelRepository, times(1)).persist(testChannel); // Member count updated
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("UT-CMS-16: Should fail to join when already a member")
+    void testJoinChannelAlreadyMember() {
+        // Arrange
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_OWNER))
+                .thenReturn(Optional.of(testMember)); // Already a member
+
+        // Act & Assert
+        assertThatThrownBy(() ->
+                channelService.joinChannel(TEST_CHANNEL_ID, TEST_OWNER)
+                        .await().atMost(Duration.ofSeconds(5))
+        ).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Already a member");
+
+        verify(memberRepository, never()).persist(any(ChannelMember.class));
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("UT-CMS-17: Should leave channel successfully")
+    void testLeaveChannel() {
+        // Arrange
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_MEMBER))
+                .thenReturn(Optional.of(testMember));
+
+        // Act
+        MemberOperationResult result = channelService.leaveChannel(TEST_CHANNEL_ID, TEST_MEMBER)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.success()).isTrue();
+        verify(memberRepository, times(1)).persist(testMember);
+        verify(channelRepository, times(1)).persist(testChannel);
+    }
+
+    @Test
+    @Order(18)
+    @DisplayName("UT-CMS-18: Should get channel members")
+    void testGetMembers() {
+        // Arrange
+        List<ChannelMember> members = Arrays.asList(testMember);
+        when(memberRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(members);
+
+        // Act
+        List<ChannelMember> result = channelService.getMembers(TEST_CHANNEL_ID)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMemberAddress()).isEqualTo(TEST_OWNER);
+    }
+
+    @Test
+    @Order(19)
+    @DisplayName("UT-CMS-19: Should promote member to moderator")
+    void testPromoteMember() {
+        // Arrange
+        ChannelMember regularMember = new ChannelMember(TEST_CHANNEL_ID, TEST_MEMBER, MemberRole.MEMBER);
+        regularMember.setStatus(MemberStatus.ACTIVE);
+
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_OWNER))
+                .thenReturn(Optional.of(testMember)); // Promoter (owner)
+        when(memberRepository.findByChannelIdAndAddress(TEST_CHANNEL_ID, TEST_MEMBER))
+                .thenReturn(Optional.of(regularMember)); // Member to promote
+
+        // Act
+        MemberOperationResult result = channelService.promoteMember(TEST_CHANNEL_ID, TEST_MEMBER, TEST_OWNER)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.success()).isTrue();
+        verify(memberRepository, times(1)).persist(regularMember);
+    }
+
+    // ==================== STATISTICS ====================
+
+    @Test
+    @Order(20)
+    @DisplayName("UT-CMS-20: Should get channel statistics")
+    void testGetChannelStatistics() {
+        // Arrange
+        when(channelRepository.findByChannelId(TEST_CHANNEL_ID)).thenReturn(Optional.of(testChannel));
+        when(memberRepository.countByChannelId(TEST_CHANNEL_ID)).thenReturn(10L);
+        when(memberRepository.countActiveByChannelId(TEST_CHANNEL_ID)).thenReturn(8L);
+        when(messageRepository.countByChannelId(TEST_CHANNEL_ID)).thenReturn(50L);
+
+        // Act
+        Map<String, Object> stats = channelService.getChannelStatistics(TEST_CHANNEL_ID)
+                .await().atMost(Duration.ofSeconds(5));
+
+        // Assert
+        assertThat(stats).isNotNull();
+        assertThat(stats).containsKeys("channelId", "channelName", "totalMembers",
+                "activeMembers", "totalMessages");
+        assertThat(stats.get("totalMembers")).isEqualTo(10L);
+        assertThat(stats.get("activeMembers")).isEqualTo(8L);
+        assertThat(stats.get("totalMessages")).isEqualTo(50L);
+    }
+}
