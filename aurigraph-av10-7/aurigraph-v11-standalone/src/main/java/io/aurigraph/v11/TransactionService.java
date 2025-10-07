@@ -217,9 +217,10 @@ public class TransactionService {
 
     /**
      * Get transaction by ID (from sharded storage)
+     * FIXED: Use same hash function as storage (fastHash) to prevent data loss
      */
     public Transaction getTransaction(String id) {
-        int shard = Math.abs(id.hashCode()) % shardCount;
+        int shard = fastHash(id) % shardCount;  // Fixed: was using id.hashCode()
         return transactionShards[shard].get(id);
     }
     
