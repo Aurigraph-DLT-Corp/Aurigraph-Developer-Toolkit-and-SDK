@@ -3,11 +3,9 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 🚀 ENHANCED DEVELOPMENT TEAM AGENTS
-
 **NEW**: Aurigraph now uses an enhanced multi-agent development team for parallel development and deployment. See [AURIGRAPH-TEAM-AGENTS.md](./AURIGRAPH-TEAM-AGENTS.md) for full details.
 
 ### Quick Agent Reference
-
 - **CAA (Chief Architect Agent)**: System architecture and strategic decisions
 - **BDA (Backend Development Agent)**: Core blockchain platform development
 - **FDA (Frontend Development Agent)**: User interfaces and dashboards
@@ -20,7 +18,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **PMA (Project Management Agent)**: Sprint planning and task coordination
 
 ### Agent Invocation Examples
-
 ```bash
 # Backend Development
 "Invoke BDA to implement HyperRAFT++ consensus"
@@ -44,9 +41,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 
 ### Parallel Development Workflow
-
 Agents work in parallel across multiple workstreams:
-
 - **Stream 1**: BDA + QAA (Backend development and testing)
 - **Stream 2**: FDA + DOA (Frontend and documentation)
 - **Stream 3**: SCA + ADA (Security and AI optimization)
@@ -54,24 +49,21 @@ Agents work in parallel across multiple workstreams:
 - **Coordination**: CAA + PMA (Architecture and project management)
 
 ## Project Overview
-
 **Aurigraph DLT V11** - High-performance blockchain platform migration from TypeScript (V10) to Java/Quarkus/GraalVM architecture targeting 2M+ TPS with quantum-resistant cryptography and AI-driven consensus.
 
 **Current Migration Status**: ~30% complete
-
-- ✅ Core Java/Quarkus structure
+- ✅ Core Java/Quarkus structure 
 - ✅ REST API and health endpoints
 - ✅ Native compilation with optimized profiles
 - ✅ AI optimization services (ML-based consensus)
 - ✅ HMS integration for real-world asset tokenization
-- 🚧 gRPC service implementation
+- 🚧 gRPC service implementation 
 - 🚧 Performance optimization (currently 776K TPS)
 - 📋 Full consensus migration from TypeScript
 
 ## Essential Commands
 
 ### Default: V11 Java/Quarkus Development
-
 ```bash
 # Quick start V11 (now default)
 npm start                        # Starts V11 in dev mode
@@ -97,7 +89,7 @@ cd aurigraph-av10-7/aurigraph-v11-standalone/
 
 # Native Compilation (3 profiles available)
 ./mvnw package -Pnative-fast    # Fast development native build
-./mvnw package -Pnative         # Standard optimized native build
+./mvnw package -Pnative         # Standard optimized native build  
 ./mvnw package -Pnative-ultra   # Ultra-optimized production build
 
 # Run native executable
@@ -112,9 +104,8 @@ cd aurigraph-av10-7/aurigraph-v11-standalone/
 ```
 
 ### V10 TypeScript Development (Legacy Support)
-
 ```bash
-# From aurigraph-av10-7/ directory
+# From aurigraph-av10-7/ directory  
 npm install && npm run build   # Install and build
 npm start                      # Start V10 platform (port 8080)
 npm run test:all              # Full test suite
@@ -132,17 +123,17 @@ aurigraph-v11-standalone/
 │   │   ├── AurigraphResource.java         # REST API endpoints
 │   │   ├── TransactionService.java        # Core transaction processing
 │   │   ├── ai/                           # AI optimization components
-│   │   │   ├── AIOptimizationService.java # ML-based consensus optimization
+│   │   │   ├── AIOptimizationService.java # ML-based consensus optimization  
 │   │   │   ├── PredictiveTransactionOrdering.java
 │   │   │   └── AnomalyDetectionService.java
-│   │   ├── consensus/                    # HyperRAFT++ consensus
+│   │   ├── consensus/                    # HyperRAFT++ consensus 
 │   │   │   ├── HyperRAFTConsensusService.java
 │   │   │   └── ConsensusModels.java
 │   │   ├── crypto/                       # Quantum-resistant crypto
 │   │   │   ├── QuantumCryptoService.java # CRYSTALS-Kyber/Dilithium
 │   │   │   └── DilithiumSignatureService.java
 │   │   ├── grpc/                        # gRPC services
-│   │   │   ├── AurigraphV11GrpcService.java
+│   │   │   ├── AurigraphV11GrpcService.java  
 │   │   │   └── HighPerformanceGrpcService.java
 │   │   ├── bridge/                      # Cross-chain bridge
 │   │   │   ├── CrossChainBridgeService.java
@@ -159,7 +150,6 @@ aurigraph-v11-standalone/
 ```
 
 ### Key Technology Stack
-
 - **Framework**: Quarkus 3.26.2 with reactive programming (Mutiny)
 - **Runtime**: Java 21 with Virtual Threads
 - **Native**: GraalVM native compilation with 3 optimization profiles
@@ -171,11 +161,10 @@ aurigraph-v11-standalone/
 ## Service Endpoints & Configuration
 
 ### V11 Primary Services (Port 9003)
-
 ```bash
 # REST API endpoints
 curl http://localhost:9003/api/v11/health         # Health status
-curl http://localhost:9003/api/v11/info           # System information
+curl http://localhost:9003/api/v11/info           # System information  
 curl http://localhost:9003/api/v11/performance    # Performance testing
 curl http://localhost:9003/api/v11/stats          # Transaction statistics
 
@@ -189,15 +178,13 @@ grpcurl -plaintext localhost:9004 list            # List gRPC services
 ```
 
 ### V10 Legacy Services (Reference)
-
 - Main Platform: `http://localhost:8080`
-- Management API: `http://localhost:3040`
+- Management API: `http://localhost:3040` 
 - Monitoring API: `http://localhost:3001`
 
 ## Performance & Requirements
 
 ### Current V11 Performance
-
 - **Achieved TPS**: ~776K (optimization ongoing)
 - **Target TPS**: 2M+ (production goal)
 - **Startup Time**: <1s native, ~3s JVM
@@ -205,15 +192,13 @@ grpcurl -plaintext localhost:9004 list            # List gRPC services
 - **Transport**: HTTP/2 with TLS 1.3, gRPC ready
 
 ### V11 Native Compilation Profiles
-
 1. **`-Pnative-fast`**: Development builds (~2 min, -O1 optimization)
-2. **`-Pnative`**: Standard production (~15 min, optimized)
+2. **`-Pnative`**: Standard production (~15 min, optimized)  
 3. **`-Pnative-ultra`**: Ultra-optimized production (~30 min, -march=native)
 
 ## Testing Strategy & Quality Requirements
 
 ### V11 Testing Framework
-
 ```bash
 # Unit tests - JUnit 5 with Mockito
 ./mvnw test                                    # All tests
@@ -231,8 +216,7 @@ grpcurl -plaintext localhost:9004 list            # List gRPC services
 ./mvnw test -Dnative                          # Test native executable
 ```
 
-### Coverage Requirements
-
+### Coverage Requirements  
 - **Target Coverage**: 95% line, 90% function
 - **Critical Modules**: crypto (98%), consensus (95%), grpc (90%)
 - **Current Status**: ~15% coverage (migration in progress)
@@ -240,7 +224,6 @@ grpcurl -plaintext localhost:9004 list            # List gRPC services
 ### Environment Configuration
 
 #### V11 Configuration Properties
-
 ```bash
 # Core settings in application.properties
 quarkus.http.port=9003                        # Changed from 9000 due to conflicts
@@ -256,7 +239,7 @@ consensus.parallel.threads=256                # Processing threads
 ai.optimization.enabled=true                  # Enable ML optimization
 ai.optimization.target.tps=3000000           # AI TPS target
 
-# HMS integration
+# HMS integration  
 hms.performance.target.tps=100000            # HMS TPS target
 hms.grpc.port=9005                           # HMS gRPC port
 ```
@@ -264,15 +247,13 @@ hms.grpc.port=9005                           # HMS gRPC port
 ## Migration Status & Critical Requirements
 
 ### V11 Migration Requirements
-
 1. **100% Java/Quarkus/GraalVM** - No TypeScript dependencies
-2. **gRPC + Protocol Buffers** - All internal service communication
+2. **gRPC + Protocol Buffers** - All internal service communication  
 3. **HTTP/2 with TLS 1.3** - High-performance transport layer
 4. **Native Compilation** - Sub-second startup required for production
 5. **Java 21 Virtual Threads** - Concurrency without OS thread limits
 
 ### Component Migration Progress
-
 - ✅ Core Quarkus application structure
 - ✅ REST API with reactive endpoints (`AurigraphResource.java`)
 - ✅ Transaction processing service (`TransactionService.java`)
@@ -289,7 +270,6 @@ hms.grpc.port=9005                           # HMS gRPC port
 ## Debugging & Troubleshooting
 
 ### V11 Java/Quarkus Issues
-
 ```bash
 # Java version check (requires 21+)
 java --version
@@ -303,7 +283,7 @@ docker info | grep "Server Version"
 lsof -i :9003 && sudo kill -9 <PID>         # Main HTTP port
 lsof -i :9004 && sudo kill -9 <PID>         # gRPC port
 
-# Native build troubleshooting
+# Native build troubleshooting  
 ./validate-native-setup.sh                   # Validate native setup
 ./mvnw clean                                 # Clean before retry
 docker system prune -f                      # Clean Docker cache
@@ -317,14 +297,13 @@ export MAVEN_OPTS="-Xmx4g -XX:+UseG1GC"
 ```
 
 ### Common V11 Development Patterns
-
 ```bash
 # Rapid development cycle
 ./mvnw quarkus:dev                           # Start dev mode (hot reload)
 # Make Java changes -> automatic reload
 curl localhost:9003/api/v11/health          # Test endpoint
 
-# Performance testing cycle
+# Performance testing cycle  
 ./mvnw clean package -Pnative-fast          # Quick native build
 ./target/*-runner                            # Run native
 ./performance-benchmark.sh                  # Benchmark TPS
@@ -333,7 +312,6 @@ curl localhost:9003/api/v11/health          # Test endpoint
 ## Development Workflow & Integration
 
 ### V11 Development Workflow
-
 1. **Navigate to V11 project**: `cd aurigraph-av10-7/aurigraph-v11-standalone/`
 2. **Start development**: `./mvnw quarkus:dev` (hot reload enabled)
 3. **Implement feature**: Follow reactive programming patterns (Uni/Multi)
@@ -342,7 +320,6 @@ curl localhost:9003/api/v11/health          # Test endpoint
 6. **Build native**: `./mvnw package -Pnative-fast` for quick validation
 
 ### V11 Code Patterns
-
 ```java
 // Reactive endpoint pattern
 @GET
@@ -366,20 +343,17 @@ public class MyGrpcService implements MyService {
 ### Integration Points
 
 #### GitHub & JIRA
-
 - **Repository**: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
 - **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
 - **Branch Strategy**: `feature/aurigraph-v11-*` for V11 migration work
 
 #### JIRA API Configuration
-
 - **JIRA Email**: `subbu@aurigraph.io`
 - **JIRA API Token**: `ATATT3xFfGF0c79X44m_ecHcP5d2F-jx5ljisCVB11tCEl5jB0Cx_FaapQt_u44IqcmBwfq8Gl8CsMFdtu9mqV8SgzcUwjZ2TiHRJo9eh718fUYw7ptk5ZFOzc-aLV2FH_ywq2vSsJ5gLvSorz-eB4JeKxUSLyYiGS9Y05-WhlEWa0cgFUdhUI4=0BECD4F5`
 - **JIRA Base URL**: `https://aurigraphdlt.atlassian.net`
 - **Project Key**: `AV11`
 
 **Usage in Scripts:**
-
 ```bash
 export JIRA_EMAIL="subbu@aurigraph.io"
 export JIRA_API_TOKEN="ATATT3xFfGF0c79X44m_ecHcP5d2F-jx5ljisCVB11tCEl5jB0Cx_FaapQt_u44IqcmBwfq8Gl8CsMFdtu9mqV8SgzcUwjZ2TiHRJo9eh718fUYw7ptk5ZFOzc-aLV2FH_ywq2vSsJ5gLvSorz-eB4JeKxUSLyYiGS9Y05-WhlEWa0cgFUdhUI4=0BECD4F5"
@@ -388,7 +362,6 @@ export JIRA_PROJECT_KEY="AV11"
 ```
 
 #### Build & Deploy Scripts for HMS
-
 Use these scripts to build and deploy HMS in future:
 
 **@remote_dev4.sh** - Remote development deployment script
@@ -396,28 +369,25 @@ Use these scripts to build and deploy HMS in future:
 **@docker-compose.yml** - Docker orchestration configuration
 
 **Quick Deploy Command:**
-
 ```bash
 # Run remote dev4 deployment
 ./remote_dev4.sh
 ```
 
-#### Deployment & Infrastructure
-
+#### Deployment & Infrastructure  
 - **Dev4 Environment**: AWS-based development cluster
 - **Container Strategy**: Docker-based native builds via GraalVM
 - **Kubernetes**: Configs in `k8s/` directory with HPA/VPA scaling
 
 #### Performance Validation
-
 - **Local Testing**: `./performance-benchmark.sh` (comprehensive)
 - **Load Testing**: `./run-performance-tests.sh` (JMeter integration)
 - **Target Metrics**: 2M+ TPS, <1s startup, <256MB memory
 - memorize remote server for Aurigraph DLT :#AURDLT
-  Domain Name: dlt.aurigraph.io
-  SSH:- ssh subbu@dlt.aurigraph.io
-  UID: subbu
-  pwd: subbuFuture@2025
+   Domain Name: dlt.aurigraph.io
+   SSH:-  ssh -p2235 subbu@dlt.aurigraph.io
+   UID: subbu
+   pwd: subbuFuture@2025
 
 --- System Info ---
 System OS: Linux
@@ -428,5 +398,4 @@ CPU Model: Intel Xeon Processor (Skylake, IBRS) pc-i440fx-8.2 CPU @ 2.0GHz
 Total Disk Space: 133G
 --- Docker Info ---
 Installed Docker Version: 28.4.0
-
 - memorize
