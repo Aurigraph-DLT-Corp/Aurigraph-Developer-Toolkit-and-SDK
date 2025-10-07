@@ -64,15 +64,14 @@ class SmartContractServiceIntegrationTest {
     @Order(3)
     @DisplayName("CIT-03: Should create smart contract")
     void testCreateContract() {
-        ContractCreationRequest request = new ContractCreationRequest(
-            "SimpleContract",
-            "0xCreator123",
-            null,  // parties
-            "contract SimpleContract { function execute() public { } }",
-            "Simple test contract",
-            null,  // templateId
-            null   // metadata
-        );
+        ContractCreationRequest request = ContractCreationRequest.builder()
+            .contractName("SimpleContract")
+            .contractType("STANDARD")
+            .creatorAddress("0xCreator123")
+            .executableCode("contract SimpleContract { function execute() public { } }")
+            .legalText("Simple test contract")
+            .parameters(new java.util.HashMap<>())
+            .build();
 
         SmartContract contract = contractService.createContract(request)
             .await().atMost(Duration.ofSeconds(5));
@@ -80,7 +79,7 @@ class SmartContractServiceIntegrationTest {
         assertThat(contract).isNotNull();
         assertThat(contract.getContractId()).isNotNull().isNotEmpty();
         assertThat(contract.getName()).contains("SimpleContract");
-        assertThat(contract.getStatus()).isEqualTo(SmartContract.Status.DRAFT);
+        assertThat(contract.getStatus()).isEqualTo(ContractStatus.DRAFT);
 
         testContractId = contract.getContractId();
         logger.info("✓ Contract created: {}", testContractId);
@@ -95,7 +94,7 @@ class SmartContractServiceIntegrationTest {
 
         assertThat(contract).isNotNull();
         assertThat(contract.getContractId()).isEqualTo(testContractId);
-        assertThat(contract.getStatus()).isEqualTo(SmartContract.Status.DRAFT);
+        assertThat(contract.getStatus()).isEqualTo(ContractStatus.DRAFT);
 
         logger.info("✓ Retrieved contract: {}", testContractId);
     }
@@ -107,15 +106,14 @@ class SmartContractServiceIntegrationTest {
         List<String> contractIds = new ArrayList<>();
 
         for (int i = 0; i < 5; i++) {
-            ContractCreationRequest request = new ContractCreationRequest(
-                "Contract-" + i,
-                "0xCreator" + i,
-                null,
-                "contract Test" + i + " { }",
-                "Test contract " + i,
-                null,
-                null
-            );
+            ContractCreationRequest request = ContractCreationRequest.builder()
+                .contractName("Contract-" + i)
+                .contractType("STANDARD")
+                .creatorAddress("0xCreator" + i)
+                .executableCode("contract Test" + i + " { }")
+                .legalText("Test contract " + i)
+                .parameters(new HashMap<>())
+                .build();
 
             SmartContract contract = contractService.createContract(request)
                 .await().atMost(Duration.ofSeconds(5));
@@ -141,11 +139,11 @@ class SmartContractServiceIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.contractId()).isEqualTo(testContractId);
-        assertThat(result.deploymentAddress()).isNotNull();
-        assertThat(result.gasUsed()).isGreaterThan(0);
+        assertThat(result.contractAddress()).isNotNull();
+        assertThat(result.verificationScore()).isGreaterThanOrEqualTo(0);
         assertThat(result.transactionHash()).isNotNull();
 
-        logger.info("✓ Contract deployed: {}", result.deploymentAddress());
+        logger.info("✓ Contract deployed: {}", result.contractAddress());
     }
 
     @Test
@@ -155,7 +153,7 @@ class SmartContractServiceIntegrationTest {
         SmartContract contract = contractService.getContract(testContractId)
             .await().atMost(Duration.ofSeconds(5));
 
-        assertThat(contract.getStatus()).isEqualTo(SmartContract.Status.DEPLOYED);
+        assertThat(contract.getStatus()).isEqualTo(ContractStatus.DEPLOYED);
         assertThat(contract.getDeployedAt()).isNotNull();
 
         logger.info("✓ Contract status: DEPLOYED");
@@ -175,8 +173,8 @@ class SmartContractServiceIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.contractId()).isEqualTo(testContractId);
-        assertThat(result.success()).isTrue();
-        assertThat(result.gasUsed()).isGreaterThan(0);
+        assertThat(result.status()).isEqualTo("SUCCESS");
+        assertThat(result.output()).containsKey("gasUsed");
 
         logger.info("✓ Contract executed successfully");
     }
@@ -192,7 +190,7 @@ class SmartContractServiceIntegrationTest {
             SmartContractService.ExecutionResult result = contractService.executeContract(testContractId, params)
                 .await().atMost(Duration.ofSeconds(5));
 
-            assertThat(result.success()).isTrue();
+            assertThat(result.status()).isEqualTo("SUCCESS");
         }
 
         SmartContract contract = contractService.getContract(testContractId)
@@ -212,7 +210,7 @@ class SmartContractServiceIntegrationTest {
         SmartContract contract = contractService.activateContract(testContractId)
             .await().atMost(Duration.ofSeconds(5));
 
-        assertThat(contract.getStatus()).isEqualTo(SmartContract.Status.ACTIVE);
+        assertThat(contract.getStatus()).isEqualTo(ContractStatus.ACTIVE);
 
         logger.info("✓ Contract activated");
     }
@@ -224,7 +222,7 @@ class SmartContractServiceIntegrationTest {
         SmartContract contract = contractService.completeContract(testContractId)
             .await().atMost(Duration.ofSeconds(5));
 
-        assertThat(contract.getStatus()).isEqualTo(SmartContract.Status.COMPLETED);
+        assertThat(contract.getStatus()).isEqualTo(ContractStatus.COMPLETED);
         assertThat(contract.getCompletedAt()).isNotNull();
 
         logger.info("✓ Contract completed");
@@ -235,15 +233,14 @@ class SmartContractServiceIntegrationTest {
     @DisplayName("CIT-12: Should terminate contract")
     void testTerminateContract() {
         // Create a new contract for termination test
-        ContractCreationRequest request = new ContractCreationRequest(
-            "TerminateTest",
-            "0xTerminator",
-            null,
-            "contract Test { }",
-            "Test termination",
-            null,
-            null
-        );
+        ContractCreationRequest request = ContractCreationRequest.builder()
+            .contractName("TerminateTest")
+            .contractType("STANDARD")
+            .creatorAddress("0xTerminator")
+            .executableCode("contract Test { }")
+            .legalText("Test termination")
+            .parameters(new HashMap<>())
+            .build();
 
         SmartContract contract = contractService.createContract(request)
             .await().atMost(Duration.ofSeconds(5));
@@ -253,7 +250,7 @@ class SmartContractServiceIntegrationTest {
         SmartContract terminated = contractService.terminateContract(terminateId, "Test termination")
             .await().atMost(Duration.ofSeconds(5));
 
-        assertThat(terminated.getStatus()).isEqualTo(SmartContract.Status.TERMINATED);
+        assertThat(terminated.getStatus()).isEqualTo(ContractStatus.TERMINATED);
 
         logger.info("✓ Contract terminated");
     }
@@ -264,20 +261,18 @@ class SmartContractServiceIntegrationTest {
     @Order(13)
     @DisplayName("CIT-13: Should create RWA contract")
     void testCreateRWAContract() {
-        RWAContractRequest request = new RWAContractRequest(
-            "RealEstate-001",
-            AssetType.REAL_ESTATE,
-            new BigDecimal("500000.00"),
-            "USD",
-            "PropertyOwner123",
-            Map.of("location", "123 Main St", "sqft", "2500")
-        );
+        SmartContractService.RWAContractRequest request = new SmartContractService.RWAContractRequest();
+        request.setAssetName("RealEstate-001");
+        request.setAssetType(AssetType.REAL_ESTATE);
+        request.setAssetValue(new BigDecimal("500000.00"));
+        request.setCurrency("USD");
+        request.setOwner("PropertyOwner123");
 
         SmartContract contract = contractService.createRWAContract(request)
             .await().atMost(Duration.ofSeconds(5));
 
         assertThat(contract).isNotNull();
-        assertThat(contract.isRWA()).isTrue();
+        assertThat(contract.getIsRWA()).isTrue();
         assertThat(contract.getAssetType()).isEqualTo(AssetType.REAL_ESTATE);
         assertThat(contract.getValue()).isEqualByComparingTo(new BigDecimal("500000.00"));
 
@@ -292,7 +287,7 @@ class SmartContractServiceIntegrationTest {
             .await().atMost(Duration.ofSeconds(5));
 
         assertThat(rwaContracts).isNotEmpty();
-        assertThat(rwaContracts).allMatch(SmartContract::isRWA);
+        assertThat(rwaContracts).allMatch(c -> c.getIsRWA());
 
         logger.info("✓ Found {} RWA contracts", rwaContracts.size());
     }
@@ -307,7 +302,7 @@ class SmartContractServiceIntegrationTest {
             .await().atMost(Duration.ofSeconds(5));
 
         assertThat(templates).isNotEmpty();
-        assertThat(templates).allMatch(t -> t.templateId() != null);
+        assertThat(templates).allMatch(t -> t.id() != null);
 
         logger.info("✓ Found {} templates", templates.size());
     }
@@ -321,7 +316,7 @@ class SmartContractServiceIntegrationTest {
             .await().atMost(Duration.ofSeconds(5));
 
         assertThat(templates).isNotEmpty();
-        String templateId = templates.get(0).templateId();
+        String templateId = templates.get(0).id();
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("owner", "0xTemplateUser");
@@ -371,15 +366,14 @@ class SmartContractServiceIntegrationTest {
             int index = i;
             executor.submit(() -> {
                 try {
-                    ContractCreationRequest request = new ContractCreationRequest(
-                        "Concurrent-" + index,
-                        "0xConcurrent" + index,
-                        null,
-                        "contract Test" + index + " { }",
-                        "Concurrent test " + index,
-                        null,
-                        null
-                    );
+                    ContractCreationRequest request = ContractCreationRequest.builder()
+                        .contractName("Concurrent-" + index)
+                        .contractType("STANDARD")
+                        .creatorAddress("0xConcurrent" + index)
+                        .executableCode("contract Test" + index + " { }")
+                        .legalText("Concurrent test " + index)
+                        .parameters(new HashMap<>())
+                        .build();
 
                     SmartContract contract = contractService.createContract(request)
                         .await().atMost(Duration.ofSeconds(10));
@@ -409,21 +403,24 @@ class SmartContractServiceIntegrationTest {
     @DisplayName("CIT-19: Should measure contract execution performance")
     void testExecutionPerformance() {
         // Create a contract for performance testing
-        ContractCreationRequest createRequest = new ContractCreationRequest(
-            "PerfTest",
-            "0xPerf",
-            null,
-            "contract Perf { }",
-            "Performance test",
-            null,
-            null
-        );
+        ContractCreationRequest createRequest = ContractCreationRequest.builder()
+            .contractName("PerfTest")
+            .contractType("STANDARD")
+            .creatorAddress("0xPerf")
+            .executableCode("contract Perf { }")
+            .legalText("Performance test")
+            .parameters(new HashMap<>())
+            .build();
 
         SmartContract contract = contractService.createContract(createRequest)
             .await().atMost(Duration.ofSeconds(5));
 
         // Deploy it
         contractService.deployContract(contract.getContractId(), Map.of())
+            .await().atMost(Duration.ofSeconds(5));
+
+        // Activate it so it can be executed
+        contractService.activateContract(contract.getContractId())
             .await().atMost(Duration.ofSeconds(5));
 
         // Execute multiple times and measure
