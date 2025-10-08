@@ -1,158 +1,143 @@
 package io.aurigraph.v11.contracts.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import io.aurigraph.v11.contracts.models.ContractStatus;
 
 /**
- * Smart Contract Entity for Aurigraph V11
+ * Smart Contract Model for Aurigraph V11 - LevelDB Compatible
  *
  * Represents a Ricardian smart contract with RWA (Real-World Asset) support.
  * Supports contract lifecycle management, digital twins, and multi-party agreements.
  *
- * @version 3.8.0 (Phase 2)
+ * LevelDB Storage: Uses contractId as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "smart_contracts", indexes = {
-    @Index(name = "idx_contract_id", columnList = "contractId", unique = true),
-    @Index(name = "idx_owner", columnList = "owner"),
-    @Index(name = "idx_status", columnList = "status"),
-    @Index(name = "idx_type", columnList = "contractType"),
-    @Index(name = "idx_created_at", columnList = "createdAt")
-})
 public class SmartContract {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "contractId", nullable = false, unique = true, length = 66)
+    @JsonProperty("contractId")
     private String contractId;
 
-    @Column(name = "owner", nullable = false, length = 66)
+    @JsonProperty("owner")
     private String owner;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @JsonProperty("name")
     private String name;
 
-    @Column(name = "description", length = 1000)
+    @JsonProperty("description")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "contractType", nullable = false, length = 50)
+    @JsonProperty("contractType")
     private ContractType contractType;
 
-    @Column(name = "sourceCode", columnDefinition = "TEXT")
+    @JsonProperty("sourceCode")
     private String sourceCode;
 
-    @Column(name = "bytecode", columnDefinition = "TEXT")
+    @JsonProperty("bytecode")
     private String bytecode;
 
-    @Column(name = "abiDefinition", columnDefinition = "TEXT")
+    @JsonProperty("abiDefinition")
     private String abiDefinition;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @JsonProperty("status")
     private ContractStatus status;
 
-    @Column(name = "version", nullable = false)
+    @JsonProperty("version")
     private Integer version = 1;
 
-    @Column(name = "templateId", length = 66)
+    @JsonProperty("templateId")
     private String templateId;
 
-    @Column(name = "parentContractId", length = 66)
+    @JsonProperty("parentContractId")
     private String parentContractId;
 
     // Financial fields
-    @Column(name = "value", precision = 36, scale = 18)
+    @JsonProperty("value")
     private BigDecimal value;
 
-    @Column(name = "currency", length = 10)
+    @JsonProperty("currency")
     private String currency = "AUR";
 
     // RWA (Real-World Asset) fields
-    @Column(name = "assetId", length = 100)
+    @JsonProperty("assetId")
     private String assetId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "assetType", length = 50)
+    @JsonProperty("assetType")
     private AssetType assetType;
 
-    @Column(name = "isRWA", nullable = false)
+    @JsonProperty("isRWA")
     private Boolean isRWA = false;
 
-    @Column(name = "isDigitalTwin", nullable = false)
+    @JsonProperty("isDigitalTwin")
     private Boolean isDigitalTwin = false;
 
     // Verification and security
-    @Column(name = "isVerified", nullable = false)
+    @JsonProperty("isVerified")
     private Boolean isVerified = false;
 
-    @Column(name = "verificationHash", length = 66)
+    @JsonProperty("verificationHash")
     private String verificationHash;
 
-    @Column(name = "securityAuditStatus", length = 30)
+    @JsonProperty("securityAuditStatus")
     private String securityAuditStatus;
 
     // Timestamps
-    @Column(name = "createdAt", nullable = false)
+    @JsonProperty("createdAt")
     private Instant createdAt;
 
-    @Column(name = "updatedAt")
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
-    @Column(name = "deployedAt")
+    @JsonProperty("deployedAt")
     private Instant deployedAt;
 
-    @Column(name = "completedAt")
+    @JsonProperty("completedAt")
     private Instant completedAt;
 
-    @Column(name = "expiresAt")
+    @JsonProperty("expiresAt")
     private Instant expiresAt;
 
     // Execution metrics
-    @Column(name = "executionCount", nullable = false)
+    @JsonProperty("executionCount")
     private Long executionCount = 0L;
 
-    @Column(name = "gasUsed", nullable = false)
+    @JsonProperty("gasUsed")
     private Long gasUsed = 0L;
 
-    @Column(name = "lastExecutedAt")
+    @JsonProperty("lastExecutedAt")
     private Instant lastExecutedAt;
 
     // Multi-party support
-    @ElementCollection
-    @CollectionTable(name = "contract_parties", joinColumns = @JoinColumn(name = "contract_id"))
-    @Column(name = "party_address")
+    @JsonProperty("parties")
     private List<String> parties = new ArrayList<>();
 
-    @ElementCollection
-    @CollectionTable(name = "contract_tags", joinColumns = @JoinColumn(name = "contract_id"))
-    @Column(name = "tag")
+    @JsonProperty("tags")
     private List<String> tags = new ArrayList<>();
 
     // Compliance and regulatory
-    @Column(name = "jurisdiction", length = 10)
+    @JsonProperty("jurisdiction")
     private String jurisdiction;
 
-    @Column(name = "complianceStatus", length = 30)
+    @JsonProperty("complianceStatus")
     private String complianceStatus;
 
-    @Column(name = "kycVerified", nullable = false)
+    @JsonProperty("kycVerified")
     private Boolean kycVerified = false;
 
-    @Column(name = "amlChecked", nullable = false)
+    @JsonProperty("amlChecked")
     private Boolean amlChecked = false;
 
     // Metadata
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
-    @Column(name = "ipfsHash", length = 100)
+    @JsonProperty("ipfsHash")
     private String ipfsHash;
 
     // ==================== CONSTRUCTORS ====================
@@ -160,6 +145,15 @@ public class SmartContract {
     public SmartContract() {
         this.createdAt = Instant.now();
         this.status = ContractStatus.DRAFT;
+        this.version = 1;
+        this.currency = "AUR";
+        this.executionCount = 0L;
+        this.gasUsed = 0L;
+        this.isRWA = false;
+        this.isDigitalTwin = false;
+        this.isVerified = false;
+        this.kycVerified = false;
+        this.amlChecked = false;
     }
 
     public SmartContract(String contractId, String owner, String name, ContractType contractType) {
@@ -172,8 +166,10 @@ public class SmartContract {
 
     // ==================== LIFECYCLE METHODS ====================
 
-    @PrePersist
-    protected void onCreate() {
+    /**
+     * Ensure createdAt is set (call before first persist)
+     */
+    public void ensureCreatedAt() {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
@@ -182,8 +178,10 @@ public class SmartContract {
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
+    /**
+     * Update timestamp (call before each persist)
+     */
+    public void updateTimestamp() {
         updatedAt = Instant.now();
     }
 
@@ -196,6 +194,7 @@ public class SmartContract {
         }
         this.status = ContractStatus.DEPLOYED;
         this.deployedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     /**
@@ -206,6 +205,7 @@ public class SmartContract {
             throw new IllegalStateException("Cannot activate contract in state: " + status);
         }
         this.status = ContractStatus.ACTIVE;
+        this.updatedAt = Instant.now();
     }
 
     /**
@@ -217,6 +217,7 @@ public class SmartContract {
         }
         this.status = ContractStatus.COMPLETED;
         this.completedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     /**
@@ -224,6 +225,7 @@ public class SmartContract {
      */
     public void terminate() {
         this.status = ContractStatus.TERMINATED;
+        this.updatedAt = Instant.now();
     }
 
     /**
@@ -233,6 +235,7 @@ public class SmartContract {
         this.executionCount++;
         this.gasUsed += gasConsumed;
         this.lastExecutedAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     /**
@@ -251,9 +254,6 @@ public class SmartContract {
     }
 
     // ==================== GETTERS AND SETTERS ====================
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getContractId() { return contractId; }
     public void setContractId(String contractId) { this.contractId = contractId; }
@@ -348,6 +348,7 @@ public class SmartContract {
     public void addParty(String partyAddress) {
         if (!this.parties.contains(partyAddress)) {
             this.parties.add(partyAddress);
+            this.updatedAt = Instant.now();
         }
     }
 
@@ -357,6 +358,7 @@ public class SmartContract {
     public void addTag(String tag) {
         if (!this.tags.contains(tag)) {
             this.tags.add(tag);
+            this.updatedAt = Instant.now();
         }
     }
 
@@ -393,7 +395,7 @@ public class SmartContract {
 
     @Override
     public String toString() {
-        return String.format("SmartContract{id=%d, contractId='%s', name='%s', type=%s, status=%s, owner='%s'}",
-                id, contractId, name, contractType, status, owner);
+        return String.format("SmartContract{contractId='%s', name='%s', type=%s, status=%s, owner='%s'}",
+                contractId, name, contractType, status, owner);
     }
 }

@@ -1,96 +1,85 @@
 package io.aurigraph.v11.channels.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 
 /**
- * Channel Member Entity
+ * Channel Member Model for Aurigraph V11 - LevelDB Compatible
  *
  * Represents a member's participation in a channel.
  * Tracks membership status, role, and activity.
  *
- * @version 3.8.0 (Phase 2 Day 11)
+ * LevelDB Storage: Uses composite key "channelId:memberAddress"
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "channel_members", indexes = {
-    @Index(name = "idx_member_channel_address", columnList = "channelId, memberAddress", unique = true),
-    @Index(name = "idx_member_channel", columnList = "channelId"),
-    @Index(name = "idx_member_address", columnList = "memberAddress"),
-    @Index(name = "idx_member_status", columnList = "status"),
-    @Index(name = "idx_member_joined_at", columnList = "joinedAt")
-})
 public class ChannelMember {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "channelId", nullable = false, length = 66)
+    @JsonProperty("channelId")
     private String channelId;
 
-    @Column(name = "memberAddress", nullable = false, length = 66)
+    @JsonProperty("memberAddress")
     private String memberAddress;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 30)
+    @JsonProperty("role")
     private MemberRole role;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @JsonProperty("status")
     private MemberStatus status;
 
     // Permissions
-    @Column(name = "canPost", nullable = false)
+    @JsonProperty("canPost")
     private Boolean canPost = true;
 
-    @Column(name = "canRead", nullable = false)
+    @JsonProperty("canRead")
     private Boolean canRead = true;
 
-    @Column(name = "canInvite", nullable = false)
+    @JsonProperty("canInvite")
     private Boolean canInvite = false;
 
-    @Column(name = "canManage", nullable = false)
+    @JsonProperty("canManage")
     private Boolean canManage = false;
 
     // Activity tracking
-    @Column(name = "lastActiveAt")
+    @JsonProperty("lastActiveAt")
     private Instant lastActiveAt;
 
-    @Column(name = "lastReadMessageId", length = 66)
+    @JsonProperty("lastReadMessageId")
     private String lastReadMessageId;
 
-    @Column(name = "unreadCount", nullable = false)
+    @JsonProperty("unreadCount")
     private Integer unreadCount = 0;
 
     // Timestamps
-    @Column(name = "joinedAt", nullable = false)
+    @JsonProperty("joinedAt")
     private Instant joinedAt;
 
-    @Column(name = "leftAt")
+    @JsonProperty("leftAt")
     private Instant leftAt;
 
-    @Column(name = "invitedBy", length = 66)
+    @JsonProperty("invitedBy")
     private String invitedBy;
 
-    @Column(name = "invitedAt")
+    @JsonProperty("invitedAt")
     private Instant invitedAt;
 
-    @Column(name = "updatedAt")
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
     // Notifications
-    @Column(name = "notificationsEnabled", nullable = false)
+    @JsonProperty("notificationsEnabled")
     private Boolean notificationsEnabled = true;
 
-    @Column(name = "mutedUntil")
+    @JsonProperty("mutedUntil")
     private Instant mutedUntil;
 
     // Metadata
-    @Column(name = "nickname", length = 255)
+    @JsonProperty("nickname")
     private String nickname;
 
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
     // ==================== CONSTRUCTORS ====================
@@ -122,17 +111,21 @@ public class ChannelMember {
         }
     }
 
-    // ==================== LIFECYCLE METHODS ====================
+    // ==================== BUSINESS LOGIC METHODS ====================
 
-    @PrePersist
-    protected void onCreate() {
+    /**
+     * Ensure joinedAt is set (call before first persist)
+     */
+    public void ensureJoinedAt() {
         if (joinedAt == null) {
             joinedAt = Instant.now();
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
+    /**
+     * Update timestamp (call before each persist)
+     */
+    public void updateTimestamp() {
         updatedAt = Instant.now();
     }
 
@@ -258,9 +251,6 @@ public class ChannelMember {
 
     // ==================== GETTERS AND SETTERS ====================
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
     public String getChannelId() { return channelId; }
     public void setChannelId(String channelId) { this.channelId = channelId; }
 
@@ -341,7 +331,7 @@ public class ChannelMember {
 
     @Override
     public String toString() {
-        return String.format("ChannelMember{id=%d, channelId='%s', member='%s', role=%s, status=%s}",
-                id, channelId, memberAddress, role, status);
+        return String.format("ChannelMember{channelId='%s', member='%s', role=%s, status=%s}",
+                channelId, memberAddress, role, status);
     }
 }

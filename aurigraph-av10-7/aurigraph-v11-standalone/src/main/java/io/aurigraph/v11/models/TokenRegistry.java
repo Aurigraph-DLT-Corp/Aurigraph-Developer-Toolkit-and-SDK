@@ -1,12 +1,12 @@
 package io.aurigraph.v11.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Token Registry Entity
+ * Token Registry Model for Aurigraph V11 - LevelDB Compatible
  *
  * Central registry for all tokens created on the Aurigraph V11 platform.
  * Supports ERC20, ERC721, and ERC1155 token standards with RWA integration.
@@ -18,34 +18,19 @@ import java.util.UUID;
  * - Deployment transaction tracking
  * - Supply and circulation management
  *
- * Part of Sprint 12 - Token & RWA APIs (AV11-058)
+ * LevelDB Storage: Uses tokenAddress as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
  *
- * @author Backend Development Agent (BDA)
- * @version 11.0.0
- * @since Sprint 12
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
+ * @since Sprint 12 - AV11-058: Token & RWA APIs
  */
-@Entity
-@Table(name = "token_registry", indexes = {
-    @Index(name = "idx_token_address", columnList = "token_address", unique = true),
-    @Index(name = "idx_token_type", columnList = "token_type"),
-    @Index(name = "idx_token_symbol", columnList = "symbol"),
-    @Index(name = "idx_token_rwa", columnList = "is_rwa"),
-    @Index(name = "idx_token_created", columnList = "created_at"),
-    @Index(name = "idx_token_contract", columnList = "contract_address"),
-    @Index(name = "idx_token_deployment", columnList = "deployment_tx_hash")
-})
 public class TokenRegistry {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
-
     /**
-     * Unique token address on Aurigraph network
+     * Unique token address on Aurigraph network - PRIMARY KEY for LevelDB
      * Format: 0x[64 hex chars] (SHA3-256 hash)
      */
-    @Column(name = "token_address", nullable = false, unique = true, length = 66)
+    @JsonProperty("tokenAddress")
     private String tokenAddress;
 
     /**
@@ -54,29 +39,28 @@ public class TokenRegistry {
      * ERC721: Non-fungible tokens (NFTs)
      * ERC1155: Multi-token standard
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "token_type", nullable = false, length = 20)
+    @JsonProperty("tokenType")
     private TokenType tokenType;
 
     /**
      * Human-readable token name
      * Example: "Aurigraph Wrapped Gold", "Carbon Credit Token"
      */
-    @Column(name = "name", nullable = false, length = 100)
+    @JsonProperty("name")
     private String name;
 
     /**
      * Token ticker symbol
      * Example: "wAUG", "CCT", "RWA-GOLD"
      */
-    @Column(name = "symbol", nullable = false, length = 20)
+    @JsonProperty("symbol")
     private String symbol;
 
     /**
      * Decimal precision for token amounts
      * Standard: 18 for ERC20, 0 for ERC721, variable for ERC1155
      */
-    @Column(name = "decimals", nullable = false)
+    @JsonProperty("decimals")
     private Integer decimals = 18;
 
     /**
@@ -85,221 +69,225 @@ public class TokenRegistry {
      * For ERC20: total fungible tokens
      * For ERC1155: sum of all token types
      */
-    @Column(name = "total_supply", precision = 36, scale = 0)
+    @JsonProperty("totalSupply")
     private BigDecimal totalSupply = BigDecimal.ZERO;
 
     /**
      * Circulating supply (total supply minus burned/locked tokens)
      */
-    @Column(name = "circulating_supply", precision = 36, scale = 0)
+    @JsonProperty("circulatingSupply")
     private BigDecimal circulatingSupply = BigDecimal.ZERO;
 
     /**
      * Smart contract address if deployed via contract factory
      */
-    @Column(name = "contract_address", length = 66)
+    @JsonProperty("contractAddress")
     private String contractAddress;
 
     /**
      * Transaction hash of the deployment transaction
      */
-    @Column(name = "deployment_tx_hash", length = 66)
+    @JsonProperty("deploymentTxHash")
     private String deploymentTxHash;
 
     /**
      * Block number where token was deployed
      */
-    @Column(name = "deployment_block")
+    @JsonProperty("deploymentBlock")
     private Long deploymentBlock;
 
     /**
      * Flag indicating if this token represents a Real-World Asset
      */
-    @Column(name = "is_rwa", nullable = false)
+    @JsonProperty("isRWA")
     private Boolean isRWA = false;
 
     /**
      * Reference to RWA asset ID (if isRWA = true)
      * Links to external RWA tokenization system
      */
-    @Column(name = "rwa_asset_id", length = 100)
+    @JsonProperty("rwaAssetId")
     private String rwaAssetId;
 
     /**
      * Token metadata in JSON format
      * Contains custom properties, descriptions, images, etc.
      */
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
     /**
      * IPFS hash for metadata storage
      * Used for decentralized metadata hosting
      */
-    @Column(name = "ipfs_hash", length = 64)
+    @JsonProperty("ipfsHash")
     private String ipfsHash;
 
     /**
      * Token creator/deployer address
      */
-    @Column(name = "creator_address", nullable = false, length = 66)
+    @JsonProperty("creatorAddress")
     private String creatorAddress;
 
     /**
      * Current token owner/controller address (for admin functions)
      */
-    @Column(name = "owner_address", nullable = false, length = 66)
+    @JsonProperty("ownerAddress")
     private String ownerAddress;
 
     /**
      * Flag indicating if token is mintable after creation
      */
-    @Column(name = "is_mintable", nullable = false)
+    @JsonProperty("isMintable")
     private Boolean isMintable = false;
 
     /**
      * Flag indicating if token is burnable
      */
-    @Column(name = "is_burnable", nullable = false)
+    @JsonProperty("isBurnable")
     private Boolean isBurnable = false;
 
     /**
      * Flag indicating if token is pausable
      */
-    @Column(name = "is_pausable", nullable = false)
+    @JsonProperty("isPausable")
     private Boolean isPausable = false;
 
     /**
      * Current pause state
      */
-    @Column(name = "is_paused", nullable = false)
+    @JsonProperty("isPaused")
     private Boolean isPaused = false;
 
     /**
      * Token verification status
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "verification_status", length = 20)
+    @JsonProperty("verificationStatus")
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;
 
     /**
      * Token listing status (for DEX/exchanges)
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "listing_status", length = 20)
+    @JsonProperty("listingStatus")
     private ListingStatus listingStatus = ListingStatus.UNLISTED;
 
     /**
      * Current market price in AUR (if listed)
      */
-    @Column(name = "market_price", precision = 36, scale = 18)
+    @JsonProperty("marketPrice")
     private BigDecimal marketPrice;
 
     /**
      * 24-hour trading volume
      */
-    @Column(name = "volume_24h", precision = 36, scale = 18)
+    @JsonProperty("volume24h")
     private BigDecimal volume24h = BigDecimal.ZERO;
 
     /**
      * Market capitalization (total supply * market price)
      */
-    @Column(name = "market_cap", precision = 36, scale = 18)
+    @JsonProperty("marketCap")
     private BigDecimal marketCap;
 
     /**
      * Total number of unique holders
      */
-    @Column(name = "holder_count")
+    @JsonProperty("holderCount")
     private Long holderCount = 0L;
 
     /**
      * Total number of transfers
      */
-    @Column(name = "transfer_count")
+    @JsonProperty("transferCount")
     private Long transferCount = 0L;
 
     /**
      * Website URL for token project
      */
-    @Column(name = "website_url", length = 255)
+    @JsonProperty("websiteUrl")
     private String websiteUrl;
 
     /**
      * Social media links (JSON array)
      */
-    @Column(name = "social_links", columnDefinition = "TEXT")
+    @JsonProperty("socialLinks")
     private String socialLinks;
 
     /**
      * Audit report URL/hash
      */
-    @Column(name = "audit_report", length = 255)
+    @JsonProperty("auditReport")
     private String auditReport;
 
     /**
      * Compliance certifications (JSON array)
      */
-    @Column(name = "compliance_certs", columnDefinition = "TEXT")
+    @JsonProperty("complianceCerts")
     private String complianceCerts;
 
     /**
      * Token category/tags (comma-separated)
      * Examples: "DeFi,Stablecoin", "NFT,Gaming", "RWA,Carbon"
      */
-    @Column(name = "categories", length = 255)
+    @JsonProperty("categories")
     private String categories;
 
     /**
      * Risk score (1-10, calculated by AI)
      * 1 = Very Low Risk, 10 = Very High Risk
      */
-    @Column(name = "risk_score")
+    @JsonProperty("riskScore")
     private Integer riskScore = 5;
 
     /**
      * Liquidity score (0-100, calculated by AI)
      * 0 = No liquidity, 100 = Highly liquid
      */
-    @Column(name = "liquidity_score")
+    @JsonProperty("liquidityScore")
     private Double liquidityScore = 0.0;
 
     /**
      * Last price update timestamp
      */
-    @Column(name = "last_price_update")
+    @JsonProperty("lastPriceUpdate")
     private Instant lastPriceUpdate;
 
     /**
      * Token creation timestamp
      */
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @JsonProperty("createdAt")
     private Instant createdAt;
 
     /**
      * Last update timestamp
      */
-    @Column(name = "updated_at")
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
     /**
      * Soft delete flag
      */
-    @Column(name = "is_deleted")
+    @JsonProperty("isDeleted")
     private Boolean isDeleted = false;
 
     /**
      * Deletion timestamp
      */
-    @Column(name = "deleted_at")
+    @JsonProperty("deletedAt")
     private Instant deletedAt;
 
-    @PrePersist
-    protected void onCreate() {
+    // Lifecycle methods (converted from JPA @PrePersist/@PreUpdate)
+
+    /**
+     * Initialize timestamps and token address (call before first save)
+     */
+    public void ensureCreatedAt() {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
-        updatedAt = Instant.now();
+        if (updatedAt == null) {
+            updatedAt = Instant.now();
+        }
 
         // Auto-generate token address if not set
         if (tokenAddress == null) {
@@ -307,8 +295,10 @@ public class TokenRegistry {
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
+    /**
+     * Update timestamp and auto-calculate market cap (call before each save)
+     */
+    public void updateTimestamp() {
         updatedAt = Instant.now();
 
         // Auto-calculate market cap if price is available
@@ -470,14 +460,6 @@ public class TokenRegistry {
     }
 
     // Getters and Setters
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public String getTokenAddress() {
         return tokenAddress;
@@ -786,8 +768,7 @@ public class TokenRegistry {
     @Override
     public String toString() {
         return "TokenRegistry{" +
-                "id=" + id +
-                ", tokenAddress='" + tokenAddress + '\'' +
+                "tokenAddress='" + tokenAddress + '\'' +
                 ", tokenType=" + tokenType +
                 ", name='" + name + '\'' +
                 ", symbol='" + symbol + '\'' +
@@ -799,9 +780,6 @@ public class TokenRegistry {
     }
 }
 
-/**
- * Token Type Enumeration
- */
 /**
  * Verification Status Enumeration
  */

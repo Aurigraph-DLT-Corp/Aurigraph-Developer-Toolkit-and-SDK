@@ -1,11 +1,11 @@
 package io.aurigraph.v11.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Token Metadata Entity
+ * Token Metadata Model for Aurigraph V11 - LevelDB Compatible
  *
  * Stores detailed metadata for individual tokens (NFTs) or token types.
  * Particularly important for ERC721 and ERC1155 tokens where each token
@@ -18,93 +18,84 @@ import java.util.UUID;
  * - Verification and validation tracking
  * - Multi-format media support (images, videos, 3D models)
  *
- * Part of Sprint 12 - Token & RWA APIs (AV11-058)
+ * LevelDB Storage: Uses contentHash as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
  *
- * @author Backend Development Agent (BDA)
- * @version 11.0.0
- * @since Sprint 12
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
+ * @since Sprint 12 - AV11-058: Token & RWA APIs
  */
-@Entity
-@Table(name = "token_metadata", indexes = {
-    @Index(name = "idx_metadata_token_id", columnList = "token_id"),
-    @Index(name = "idx_metadata_token_registry", columnList = "token_registry_id"),
-    @Index(name = "idx_metadata_uri", columnList = "metadata_uri"),
-    @Index(name = "idx_metadata_ipfs", columnList = "ipfs_hash"),
-    @Index(name = "idx_metadata_verification", columnList = "verification_status"),
-    @Index(name = "idx_metadata_created", columnList = "created_at")
-})
 public class TokenMetadata {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
+    /**
+     * Content hash for integrity verification - PRIMARY KEY for LevelDB
+     * SHA3-256 hash of all metadata fields
+     */
+    @JsonProperty("contentHash")
+    private String contentHash;
 
     /**
      * Token ID (for ERC721/ERC1155)
      * For ERC20, this will be null as metadata applies to all tokens
      */
-    @Column(name = "token_id", length = 100)
+    @JsonProperty("tokenId")
     private String tokenId;
 
     /**
-     * Reference to the token registry
-     * Many-to-One relationship: multiple metadata entries can belong to one token
+     * Reference to the token registry address (replaces @ManyToOne relationship)
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "token_registry_id", nullable = false)
-    private TokenRegistry tokenRegistry;
+    @JsonProperty("tokenRegistryAddress")
+    private String tokenRegistryAddress;
 
     /**
      * Metadata URI (URL or IPFS path)
      * Example: "ipfs://QmHash...", "https://api.example.com/metadata/123"
      */
-    @Column(name = "metadata_uri", length = 512)
+    @JsonProperty("metadataUri")
     private String metadataUri;
 
     /**
      * Token name (can differ from registry name for individual NFTs)
      * Example: "Bored Ape #1234", "Carbon Credit Certificate #5678"
      */
-    @Column(name = "name", length = 255)
+    @JsonProperty("name")
     private String name;
 
     /**
      * Detailed description of the token
      */
-    @Column(name = "description", columnDefinition = "TEXT")
+    @JsonProperty("description")
     private String description;
 
     /**
      * Primary image URL or IPFS hash
      * Example: "ipfs://QmImageHash", "https://cdn.example.com/nft/1234.png"
      */
-    @Column(name = "image", length = 512)
+    @JsonProperty("image")
     private String image;
 
     /**
      * Image IPFS hash (redundant storage for reliability)
      */
-    @Column(name = "image_ipfs_hash", length = 64)
+    @JsonProperty("imageIpfsHash")
     private String imageIpfsHash;
 
     /**
      * Animation/video URL for animated NFTs
      */
-    @Column(name = "animation_url", length = 512)
+    @JsonProperty("animationUrl")
     private String animationUrl;
 
     /**
      * External URL to project/asset website
      */
-    @Column(name = "external_url", length = 512)
+    @JsonProperty("externalUrl")
     private String externalUrl;
 
     /**
      * Background color (for NFT display)
      * Hex format: "FFFFFF"
      */
-    @Column(name = "background_color", length = 6)
+    @JsonProperty("backgroundColor")
     private String backgroundColor;
 
     /**
@@ -115,14 +106,14 @@ public class TokenMetadata {
      *   {"trait_type": "Rarity", "value": "Legendary"}
      * ]
      */
-    @Column(name = "attributes", columnDefinition = "TEXT")
+    @JsonProperty("attributes")
     private String attributes;
 
     /**
      * Additional properties in JSON format
      * Custom fields specific to the token type
      */
-    @Column(name = "properties", columnDefinition = "TEXT")
+    @JsonProperty("properties")
     private String properties;
 
     /**
@@ -134,165 +125,162 @@ public class TokenMetadata {
      * - Ownership documents
      * - Legal compliance data
      */
-    @Column(name = "rwa_data", columnDefinition = "TEXT")
+    @JsonProperty("rwaData")
     private String rwaData;
 
     /**
      * IPFS hash of the complete metadata JSON
      */
-    @Column(name = "ipfs_hash", length = 64)
+    @JsonProperty("ipfsHash")
     private String ipfsHash;
 
     /**
      * Metadata verification status
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "verification_status", length = 20)
+    @JsonProperty("verificationStatus")
     private MetadataVerificationStatus verificationStatus = MetadataVerificationStatus.UNVERIFIED;
 
     /**
      * Verifier address (who verified this metadata)
      */
-    @Column(name = "verifier_address", length = 66)
+    @JsonProperty("verifierAddress")
     private String verifierAddress;
 
     /**
      * Verification timestamp
      */
-    @Column(name = "verified_at")
+    @JsonProperty("verifiedAt")
     private Instant verifiedAt;
-
-    /**
-     * Content hash for integrity verification
-     * SHA3-256 hash of all metadata fields
-     */
-    @Column(name = "content_hash", length = 64)
-    private String contentHash;
 
     /**
      * Flag indicating if metadata is frozen (immutable)
      */
-    @Column(name = "is_frozen", nullable = false)
+    @JsonProperty("isFrozen")
     private Boolean isFrozen = false;
 
     /**
      * Timestamp when metadata was frozen
      */
-    @Column(name = "frozen_at")
+    @JsonProperty("frozenAt")
     private Instant frozenAt;
 
     /**
      * Media type classification
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "media_type", length = 20)
+    @JsonProperty("mediaType")
     private MediaType mediaType = MediaType.IMAGE;
 
     /**
      * File format/MIME type
      * Example: "image/png", "video/mp4", "model/gltf-binary"
      */
-    @Column(name = "file_format", length = 50)
+    @JsonProperty("fileFormat")
     private String fileFormat;
 
     /**
      * File size in bytes
      */
-    @Column(name = "file_size")
+    @JsonProperty("fileSize")
     private Long fileSize;
 
     /**
      * Image dimensions (if applicable)
      * Format: "1920x1080"
      */
-    @Column(name = "dimensions", length = 20)
+    @JsonProperty("dimensions")
     private String dimensions;
 
     /**
      * Duration in seconds (for video/audio)
      */
-    @Column(name = "duration")
+    @JsonProperty("duration")
     private Integer duration;
 
     /**
      * Creator/artist name
      */
-    @Column(name = "creator_name", length = 255)
+    @JsonProperty("creatorName")
     private String creatorName;
 
     /**
      * Creator address
      */
-    @Column(name = "creator_address", length = 66)
+    @JsonProperty("creatorAddress")
     private String creatorAddress;
 
     /**
      * Royalty percentage (for NFT resales)
      * Stored as basis points (100 = 1%)
      */
-    @Column(name = "royalty_percentage")
+    @JsonProperty("royaltyPercentage")
     private Integer royaltyPercentage = 0;
 
     /**
      * Royalty recipient address
      */
-    @Column(name = "royalty_recipient", length = 66)
+    @JsonProperty("royaltyRecipient")
     private String royaltyRecipient;
 
     /**
      * Category/collection name
      */
-    @Column(name = "category", length = 100)
+    @JsonProperty("category")
     private String category;
 
     /**
      * Tags for searchability (comma-separated)
      */
-    @Column(name = "tags", length = 500)
+    @JsonProperty("tags")
     private String tags;
 
     /**
      * Rarity score (0-100, calculated from attributes)
      */
-    @Column(name = "rarity_score")
+    @JsonProperty("rarityScore")
     private Double rarityScore;
 
     /**
      * Metadata version (for tracking updates)
      */
-    @Column(name = "version")
+    @JsonProperty("version")
     private Integer version = 1;
 
     /**
-     * Previous metadata ID (for version tracking)
+     * Previous metadata content hash (for version tracking)
      */
-    @Column(name = "previous_metadata_id")
-    private UUID previousMetadataId;
+    @JsonProperty("previousMetadataHash")
+    private String previousMetadataHash;
 
     /**
      * Metadata creation timestamp
      */
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @JsonProperty("createdAt")
     private Instant createdAt;
 
     /**
      * Last update timestamp
      */
-    @Column(name = "updated_at")
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
     /**
      * Soft delete flag
      */
-    @Column(name = "is_deleted")
+    @JsonProperty("isDeleted")
     private Boolean isDeleted = false;
 
-    @PrePersist
-    protected void onCreate() {
+    // Lifecycle methods (converted from JPA @PrePersist/@PreUpdate)
+
+    /**
+     * Initialize timestamps and content hash (call before first save)
+     */
+    public void ensureCreatedAt() {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
-        updatedAt = Instant.now();
+        if (updatedAt == null) {
+            updatedAt = Instant.now();
+        }
 
         // Generate content hash if not set
         if (contentHash == null) {
@@ -300,15 +288,17 @@ public class TokenMetadata {
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        if (!isFrozen) {
-            updatedAt = Instant.now();
-            // Regenerate content hash on update
-            contentHash = generateContentHash();
-        } else {
+    /**
+     * Update timestamp and regenerate content hash (call before each save)
+     * Throws exception if metadata is frozen
+     */
+    public void updateTimestamp() {
+        if (isFrozen) {
             throw new IllegalStateException("Cannot update frozen metadata");
         }
+        updatedAt = Instant.now();
+        // Regenerate content hash on update
+        contentHash = generateContentHash();
     }
 
     // Constructors
@@ -316,8 +306,8 @@ public class TokenMetadata {
     public TokenMetadata() {
     }
 
-    public TokenMetadata(TokenRegistry tokenRegistry, String name, String description) {
-        this.tokenRegistry = tokenRegistry;
+    public TokenMetadata(String tokenRegistryAddress, String name, String description) {
+        this.tokenRegistryAddress = tokenRegistryAddress;
         this.name = name;
         this.description = description;
         this.verificationStatus = MetadataVerificationStatus.UNVERIFIED;
@@ -397,12 +387,12 @@ public class TokenMetadata {
 
     // Getters and Setters
 
-    public UUID getId() {
-        return id;
+    public String getContentHash() {
+        return contentHash;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setContentHash(String contentHash) {
+        this.contentHash = contentHash;
     }
 
     public String getTokenId() {
@@ -413,12 +403,12 @@ public class TokenMetadata {
         this.tokenId = tokenId;
     }
 
-    public TokenRegistry getTokenRegistry() {
-        return tokenRegistry;
+    public String getTokenRegistryAddress() {
+        return tokenRegistryAddress;
     }
 
-    public void setTokenRegistry(TokenRegistry tokenRegistry) {
-        this.tokenRegistry = tokenRegistry;
+    public void setTokenRegistryAddress(String tokenRegistryAddress) {
+        this.tokenRegistryAddress = tokenRegistryAddress;
     }
 
     public String getMetadataUri() {
@@ -541,14 +531,6 @@ public class TokenMetadata {
         this.verifiedAt = verifiedAt;
     }
 
-    public String getContentHash() {
-        return contentHash;
-    }
-
-    public void setContentHash(String contentHash) {
-        this.contentHash = contentHash;
-    }
-
     public Boolean getIsFrozen() {
         return isFrozen;
     }
@@ -669,12 +651,12 @@ public class TokenMetadata {
         this.version = version;
     }
 
-    public UUID getPreviousMetadataId() {
-        return previousMetadataId;
+    public String getPreviousMetadataHash() {
+        return previousMetadataHash;
     }
 
-    public void setPreviousMetadataId(UUID previousMetadataId) {
-        this.previousMetadataId = previousMetadataId;
+    public void setPreviousMetadataHash(String previousMetadataHash) {
+        this.previousMetadataHash = previousMetadataHash;
     }
 
     public Instant getCreatedAt() {
@@ -696,7 +678,7 @@ public class TokenMetadata {
     @Override
     public String toString() {
         return "TokenMetadata{" +
-                "id=" + id +
+                "contentHash='" + contentHash + '\'' +
                 ", tokenId='" + tokenId + '\'' +
                 ", name='" + name + '\'' +
                 ", verificationStatus=" + verificationStatus +

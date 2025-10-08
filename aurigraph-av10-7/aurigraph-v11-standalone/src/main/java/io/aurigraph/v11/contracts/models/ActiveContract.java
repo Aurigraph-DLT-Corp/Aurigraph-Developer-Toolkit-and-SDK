@@ -1,104 +1,93 @@
 package io.aurigraph.v11.contracts.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Active Contract Entity
+ * Active Contract Model for Aurigraph V11 - LevelDB Compatible
  *
  * Represents contracts that are currently active in the system.
  * Tracks lifecycle events, parties involved, and execution status.
  *
- * @version 3.8.0 (Phase 2 Day 10)
+ * LevelDB Storage: Uses contractId as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "active_contracts", indexes = {
-    @Index(name = "idx_active_contract_id", columnList = "contractId", unique = true),
-    @Index(name = "idx_active_status", columnList = "status"),
-    @Index(name = "idx_active_creator", columnList = "creatorAddress"),
-    @Index(name = "idx_active_expires_at", columnList = "expiresAt")
-})
 public class ActiveContract {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "contractId", nullable = false, unique = true, length = 66)
+    @JsonProperty("contractId")
     private String contractId;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @JsonProperty("name")
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @JsonProperty("status")
     private ActiveContractStatus status;
 
-    @Column(name = "creatorAddress", nullable = false, length = 66)
+    @JsonProperty("creatorAddress")
     private String creatorAddress;
 
-    @Column(name = "contractType", length = 50)
+    @JsonProperty("contractType")
     private String contractType;
 
     // Timestamps
-    @Column(name = "createdAt", nullable = false)
+    @JsonProperty("createdAt")
     private Instant createdAt;
 
-    @Column(name = "activatedAt")
+    @JsonProperty("activatedAt")
     private Instant activatedAt;
 
-    @Column(name = "completedAt")
+    @JsonProperty("completedAt")
     private Instant completedAt;
 
-    @Column(name = "terminatedAt")
+    @JsonProperty("terminatedAt")
     private Instant terminatedAt;
 
-    @Column(name = "expiresAt")
+    @JsonProperty("expiresAt")
     private Instant expiresAt;
 
-    @Column(name = "lastEventAt")
+    @JsonProperty("lastEventAt")
     private Instant lastEventAt;
 
-    @Column(name = "updatedAt")
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
     // Parties
-    @ElementCollection
-    @CollectionTable(name = "active_contract_parties", joinColumns = @JoinColumn(name = "contract_id"))
-    @Column(name = "party_address")
+    @JsonProperty("parties")
     private List<String> parties = new ArrayList<>();
 
     // Execution details
-    @Column(name = "executionCount", nullable = false)
+    @JsonProperty("executionCount")
     private Long executionCount = 0L;
 
-    @Column(name = "eventCount", nullable = false)
+    @JsonProperty("eventCount")
     private Long eventCount = 0L;
 
-    @Column(name = "lastExecutionAt")
+    @JsonProperty("lastExecutionAt")
     private Instant lastExecutionAt;
 
-    @Column(name = "lastExecutionStatus", length = 50)
+    @JsonProperty("lastExecutionStatus")
     private String lastExecutionStatus;
 
     // Metadata
-    @Column(name = "description", length = 1000)
+    @JsonProperty("description")
     private String description;
 
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
-    @Column(name = "tags", columnDefinition = "TEXT")
+    @JsonProperty("tags")
     private String tags;
 
     // Notifications
-    @Column(name = "notificationEnabled", nullable = false)
+    @JsonProperty("notificationEnabled")
     private Boolean notificationEnabled = true;
 
-    @Column(name = "notificationRecipients", columnDefinition = "TEXT")
+    @JsonProperty("notificationRecipients")
     private String notificationRecipients;
 
     // ==================== CONSTRUCTORS ====================
@@ -108,6 +97,7 @@ public class ActiveContract {
         this.status = ActiveContractStatus.PENDING;
         this.executionCount = 0L;
         this.eventCount = 0L;
+        this.notificationEnabled = true;
     }
 
     public ActiveContract(String contractId, String name, String creatorAddress) {
@@ -119,15 +109,19 @@ public class ActiveContract {
 
     // ==================== LIFECYCLE METHODS ====================
 
-    @PrePersist
-    protected void onCreate() {
+    /**
+     * Ensure createdAt is set (call before first persist)
+     */
+    public void ensureCreatedAt() {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
+    /**
+     * Update timestamp (call before each persist)
+     */
+    public void updateTimestamp() {
         updatedAt = Instant.now();
     }
 
@@ -244,9 +238,6 @@ public class ActiveContract {
 
     // ==================== GETTERS AND SETTERS ====================
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
     public String getContractId() { return contractId; }
     public void setContractId(String contractId) { this.contractId = contractId; }
 
@@ -326,7 +317,7 @@ public class ActiveContract {
 
     @Override
     public String toString() {
-        return String.format("ActiveContract{id=%d, contractId='%s', name='%s', status=%s, parties=%d}",
-                id, contractId, name, status, parties.size());
+        return String.format("ActiveContract{contractId='%s', name='%s', status=%s, parties=%d}",
+                contractId, name, status, parties.size());
     }
 }

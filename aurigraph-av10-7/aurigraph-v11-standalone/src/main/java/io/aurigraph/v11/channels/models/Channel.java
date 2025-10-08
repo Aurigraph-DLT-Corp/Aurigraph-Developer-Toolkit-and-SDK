@@ -1,99 +1,86 @@
 package io.aurigraph.v11.channels.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Channel Entity
+ * Channel Model for Aurigraph V11 - LevelDB Compatible
  *
  * Represents a communication channel for multi-party messaging.
  * Supports real-time messaging, member management, and message history.
  *
- * @version 3.8.0 (Phase 2 Day 11)
+ * LevelDB Storage: Uses channelId as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "channels", indexes = {
-    @Index(name = "idx_channel_id", columnList = "channelId", unique = true),
-    @Index(name = "idx_channel_type", columnList = "channelType"),
-    @Index(name = "idx_channel_owner", columnList = "ownerAddress"),
-    @Index(name = "idx_channel_status", columnList = "status"),
-    @Index(name = "idx_channel_created_at", columnList = "createdAt")
-})
 public class Channel {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "channelId", nullable = false, unique = true, length = 66)
+    @JsonProperty("channelId")
     private String channelId;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @JsonProperty("name")
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "channelType", nullable = false, length = 30)
+    @JsonProperty("channelType")
     private ChannelType channelType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @JsonProperty("status")
     private ChannelStatus status;
 
-    @Column(name = "ownerAddress", nullable = false, length = 66)
+    @JsonProperty("ownerAddress")
     private String ownerAddress;
 
     // Channel configuration
-    @Column(name = "isPublic", nullable = false)
+    @JsonProperty("isPublic")
     private Boolean isPublic = false;
 
-    @Column(name = "isEncrypted", nullable = false)
+    @JsonProperty("isEncrypted")
     private Boolean isEncrypted = false;
 
-    @Column(name = "maxMembers", nullable = false)
+    @JsonProperty("maxMembers")
     private Integer maxMembers = 100;
 
-    @Column(name = "allowGuestAccess", nullable = false)
+    @JsonProperty("allowGuestAccess")
     private Boolean allowGuestAccess = false;
 
     // Timestamps
-    @Column(name = "createdAt", nullable = false)
+    @JsonProperty("createdAt")
     private Instant createdAt;
 
-    @Column(name = "updatedAt")
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
-    @Column(name = "lastMessageAt")
+    @JsonProperty("lastMessageAt")
     private Instant lastMessageAt;
 
-    @Column(name = "closedAt")
+    @JsonProperty("closedAt")
     private Instant closedAt;
 
     // Statistics
-    @Column(name = "memberCount", nullable = false)
+    @JsonProperty("memberCount")
     private Integer memberCount = 0;
 
-    @Column(name = "messageCount", nullable = false)
+    @JsonProperty("messageCount")
     private Long messageCount = 0L;
 
-    @Column(name = "activeMembers", nullable = false)
+    @JsonProperty("activeMembers")
     private Integer activeMembers = 0;
 
     // Metadata
-    @Column(name = "description", length = 1000)
+    @JsonProperty("description")
     private String description;
 
-    @Column(name = "topic", length = 500)
+    @JsonProperty("topic")
     private String topic;
 
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
-    @ElementCollection
-    @CollectionTable(name = "channel_tags", joinColumns = @JoinColumn(name = "channel_id"))
-    @Column(name = "tag")
+    @JsonProperty("tags")
     private List<String> tags = new ArrayList<>();
 
     // ==================== CONSTRUCTORS ====================
@@ -114,17 +101,21 @@ public class Channel {
         this.channelType = channelType;
     }
 
-    // ==================== LIFECYCLE METHODS ====================
+    // ==================== BUSINESS LOGIC METHODS ====================
 
-    @PrePersist
-    protected void onCreate() {
+    /**
+     * Ensure createdAt is set (call before first persist)
+     */
+    public void ensureCreatedAt() {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
+    /**
+     * Update timestamp (call before each persist)
+     */
+    public void updateTimestamp() {
         updatedAt = Instant.now();
     }
 
@@ -212,9 +203,6 @@ public class Channel {
 
     // ==================== GETTERS AND SETTERS ====================
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
     public String getChannelId() { return channelId; }
     public void setChannelId(String channelId) { this.channelId = channelId; }
 
@@ -295,7 +283,7 @@ public class Channel {
 
     @Override
     public String toString() {
-        return String.format("Channel{id=%d, channelId='%s', name='%s', type=%s, status=%s, members=%d}",
-                id, channelId, name, channelType, status, memberCount);
+        return String.format("Channel{channelId='%s', name='%s', type=%s, status=%s, members=%d}",
+                channelId, name, channelType, status, memberCount);
     }
 }

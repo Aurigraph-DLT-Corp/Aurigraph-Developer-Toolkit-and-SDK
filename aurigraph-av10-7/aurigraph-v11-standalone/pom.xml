@@ -387,7 +387,7 @@
         
         <!-- Missing Dependencies for V11 Features -->
         
-        <!-- Hibernate ORM with Panache for JPA -->
+        <!-- Hibernate ORM with Panache for JPA (for model classes, not active) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm</artifactId>
@@ -396,13 +396,22 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-postgresql</artifactId>
-        </dependency>
+        <!-- H2 in-memory database for now (migrate to LevelDB later) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-h2</artifactId>
+        </dependency>
+
+        <!-- LevelDB for embedded key-value storage (one per node) -->
+        <dependency>
+            <groupId>org.iq80.leveldb</groupId>
+            <artifactId>leveldb</artifactId>
+            <version>0.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.iq80.leveldb</groupId>
+            <artifactId>leveldb-api</artifactId>
+            <version>0.12</version>
         </dependency>
 
         <!-- Lombok for code generation -->

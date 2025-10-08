@@ -1,143 +1,130 @@
 package io.aurigraph.v11.tokens.models;
 
 import io.aurigraph.v11.contracts.models.AssetType;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Token Entity for Aurigraph V11
+ * Token Model for Aurigraph V11 - LevelDB Compatible
  *
  * Supports standard tokens (fungible/non-fungible) and RWA tokenization.
  * Includes balance tracking, holder management, and transaction history.
  *
- * @version 3.8.0 (Phase 2 Day 8)
+ * LevelDB Storage: Uses tokenId as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "tokens", indexes = {
-    @Index(name = "idx_token_id", columnList = "tokenId", unique = true),
-    @Index(name = "idx_token_type", columnList = "tokenType"),
-    @Index(name = "idx_owner", columnList = "owner"),
-    @Index(name = "idx_is_rwa", columnList = "isRWA"),
-    @Index(name = "idx_created_at", columnList = "createdAt")
-})
 public class Token {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "tokenId", nullable = false, unique = true, length = 66)
+    @JsonProperty("tokenId")
     private String tokenId;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @JsonProperty("name")
     private String name;
 
-    @Column(name = "symbol", nullable = false, length = 20)
+    @JsonProperty("symbol")
     private String symbol;
 
-    @Column(name = "decimals", nullable = false)
+    @JsonProperty("decimals")
     private Integer decimals = 18;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tokenType", nullable = false, length = 30)
+    @JsonProperty("tokenType")
     private TokenType tokenType;
 
-    @Column(name = "totalSupply", precision = 36, scale = 18, nullable = false)
+    @JsonProperty("totalSupply")
     private BigDecimal totalSupply;
 
-    @Column(name = "circulatingSupply", precision = 36, scale = 18, nullable = false)
+    @JsonProperty("circulatingSupply")
     private BigDecimal circulatingSupply;
 
-    @Column(name = "owner", nullable = false, length = 66)
+    @JsonProperty("owner")
     private String owner;
 
-    @Column(name = "contractAddress", length = 66)
+    @JsonProperty("contractAddress")
     private String contractAddress;
 
     // RWA fields
-    @Column(name = "isRWA", nullable = false)
+    @JsonProperty("isRWA")
     private Boolean isRWA = false;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "assetType", length = 50)
+    @JsonProperty("assetType")
     private AssetType assetType;
 
-    @Column(name = "assetId", length = 100)
+    @JsonProperty("assetId")
     private String assetId;
 
-    @Column(name = "assetValue", precision = 36, scale = 18)
+    @JsonProperty("assetValue")
     private BigDecimal assetValue;
 
-    @Column(name = "assetCurrency", length = 10)
+    @JsonProperty("assetCurrency")
     private String assetCurrency;
 
     // Token economics
-    @Column(name = "isMintable", nullable = false)
+    @JsonProperty("isMintable")
     private Boolean isMintable = true;
 
-    @Column(name = "isBurnable", nullable = false)
+    @JsonProperty("isBurnable")
     private Boolean isBurnable = true;
 
-    @Column(name = "isPausable", nullable = false)
+    @JsonProperty("isPausable")
     private Boolean isPausable = false;
 
-    @Column(name = "isPaused", nullable = false)
+    @JsonProperty("isPaused")
     private Boolean isPaused = false;
 
-    @Column(name = "maxSupply", precision = 36, scale = 18)
+    @JsonProperty("maxSupply")
     private BigDecimal maxSupply;
 
     // Compliance
-    @Column(name = "isCompliant", nullable = false)
+    @JsonProperty("isCompliant")
     private Boolean isCompliant = false;
 
-    @Column(name = "complianceStandard", length = 50)
+    @JsonProperty("complianceStandard")
     private String complianceStandard; // ERC20, ERC721, ERC1155, etc.
 
-    @Column(name = "kycRequired", nullable = false)
+    @JsonProperty("kycRequired")
     private Boolean kycRequired = false;
 
     // Timestamps
-    @Column(name = "createdAt", nullable = false)
+    @JsonProperty("createdAt")
     private Instant createdAt;
 
-    @Column(name = "updatedAt")
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
-    @Column(name = "lastTransferAt")
+    @JsonProperty("lastTransferAt")
     private Instant lastTransferAt;
 
     // Metrics
-    @Column(name = "transferCount", nullable = false)
+    @JsonProperty("transferCount")
     private Long transferCount = 0L;
 
-    @Column(name = "holderCount", nullable = false)
+    @JsonProperty("holderCount")
     private Long holderCount = 0L;
 
-    @Column(name = "burnedAmount", precision = 36, scale = 18, nullable = false)
+    @JsonProperty("burnedAmount")
     private BigDecimal burnedAmount = BigDecimal.ZERO;
 
     // Metadata
-    @Column(name = "description", length = 1000)
+    @JsonProperty("description")
     private String description;
 
-    @Column(name = "iconUrl", length = 500)
+    @JsonProperty("iconUrl")
     private String iconUrl;
 
-    @Column(name = "websiteUrl", length = 500)
+    @JsonProperty("websiteUrl")
     private String websiteUrl;
 
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
     // Collections
-    @ElementCollection
-    @CollectionTable(name = "token_tags", joinColumns = @JoinColumn(name = "token_id"))
-    @Column(name = "tag")
+    @JsonProperty("tags")
     private List<String> tags = new ArrayList<>();
 
     // ==================== CONSTRUCTORS ====================
@@ -157,17 +144,21 @@ public class Token {
         this.tokenType = tokenType;
     }
 
-    // ==================== LIFECYCLE METHODS ====================
+    // ==================== BUSINESS LOGIC METHODS ====================
 
-    @PrePersist
-    protected void onCreate() {
+    /**
+     * Ensure createdAt is set (call before first persist)
+     */
+    public void ensureCreatedAt() {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
+    /**
+     * Update timestamp (call before each persist after creation)
+     */
+    public void updateTimestamp() {
         updatedAt = Instant.now();
     }
 
@@ -251,9 +242,6 @@ public class Token {
     }
 
     // ==================== GETTERS AND SETTERS ====================
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getTokenId() { return tokenId; }
     public void setTokenId(String tokenId) { this.tokenId = tokenId; }
@@ -369,7 +357,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return String.format("Token{id=%d, tokenId='%s', name='%s', symbol='%s', type=%s, totalSupply=%s}",
-                id, tokenId, name, symbol, tokenType, totalSupply);
+        return String.format("Token{tokenId='%s', name='%s', symbol='%s', type=%s, totalSupply=%s}",
+                tokenId, name, symbol, tokenType, totalSupply);
     }
 }

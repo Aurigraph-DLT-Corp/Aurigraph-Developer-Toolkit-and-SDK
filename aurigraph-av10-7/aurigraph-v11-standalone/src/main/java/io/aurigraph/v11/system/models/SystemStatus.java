@@ -1,157 +1,149 @@
 package io.aurigraph.v11.system.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * System Status Entity
+ * System Status Model for Aurigraph V11 - LevelDB Compatible
  *
  * Tracks comprehensive system health and performance metrics.
  * Monitors consensus, resources, network, and service availability.
  *
- * @version 3.8.0 (Phase 2 Day 12)
+ * LevelDB Storage: Uses composite key "nodeId:timestamp" or nodeId as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "system_status", indexes = {
-    @Index(name = "idx_status_timestamp", columnList = "timestamp"),
-    @Index(name = "idx_status_node", columnList = "nodeId"),
-    @Index(name = "idx_status_health", columnList = "healthStatus")
-})
 public class SystemStatus {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "nodeId", nullable = false, length = 66)
+    @JsonProperty("nodeId")
     private String nodeId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "healthStatus", nullable = false, length = 30)
+    @JsonProperty("healthStatus")
     private HealthStatus healthStatus;
 
     // Timestamps
-    @Column(name = "timestamp", nullable = false)
+    @JsonProperty("timestamp")
     private Instant timestamp;
 
-    @Column(name = "uptime", nullable = false)
+    @JsonProperty("uptime")
     private Long uptime = 0L; // seconds
 
-    @Column(name = "startedAt", nullable = false)
+    @JsonProperty("startedAt")
     private Instant startedAt;
 
     // Performance Metrics
-    @Column(name = "tps", precision = 18, scale = 2)
+    @JsonProperty("tps")
     private BigDecimal tps; // Transactions per second
 
-    @Column(name = "avgLatency", precision = 18, scale = 2)
+    @JsonProperty("avgLatency")
     private BigDecimal avgLatency; // milliseconds
 
-    @Column(name = "peakTps", precision = 18, scale = 2)
+    @JsonProperty("peakTps")
     private BigDecimal peakTps;
 
-    @Column(name = "totalTransactions", nullable = false)
+    @JsonProperty("totalTransactions")
     private Long totalTransactions = 0L;
 
-    @Column(name = "failedTransactions", nullable = false)
+    @JsonProperty("failedTransactions")
     private Long failedTransactions = 0L;
 
     // Resource Usage
-    @Column(name = "cpuUsage", precision = 5, scale = 2)
+    @JsonProperty("cpuUsage")
     private BigDecimal cpuUsage; // percentage
 
-    @Column(name = "memoryUsed", nullable = false)
+    @JsonProperty("memoryUsed")
     private Long memoryUsed = 0L; // bytes
 
-    @Column(name = "memoryTotal", nullable = false)
+    @JsonProperty("memoryTotal")
     private Long memoryTotal = 0L; // bytes
 
-    @Column(name = "diskUsed", nullable = false)
+    @JsonProperty("diskUsed")
     private Long diskUsed = 0L; // bytes
 
-    @Column(name = "diskTotal", nullable = false)
+    @JsonProperty("diskTotal")
     private Long diskTotal = 0L; // bytes
 
-    @Column(name = "threadCount", nullable = false)
+    @JsonProperty("threadCount")
     private Integer threadCount = 0;
 
-    @Column(name = "activeThreadCount", nullable = false)
+    @JsonProperty("activeThreadCount")
     private Integer activeThreadCount = 0;
 
     // Consensus Metrics
-    @Enumerated(EnumType.STRING)
-    @Column(name = "consensusStatus", length = 30)
+    @JsonProperty("consensusStatus")
     private ConsensusStatus consensusStatus;
 
-    @Column(name = "blockHeight", nullable = false)
+    @JsonProperty("blockHeight")
     private Long blockHeight = 0L;
 
-    @Column(name = "blockTime", precision = 18, scale = 2)
+    @JsonProperty("blockTime")
     private BigDecimal blockTime; // milliseconds
 
-    @Column(name = "isLeader", nullable = false)
+    @JsonProperty("isLeader")
     private Boolean isLeader = false;
 
-    @Column(name = "peerCount", nullable = false)
+    @JsonProperty("peerCount")
     private Integer peerCount = 0;
 
-    @Column(name = "activePeers", nullable = false)
+    @JsonProperty("activePeers")
     private Integer activePeers = 0;
 
     // Network Metrics
-    @Column(name = "networkBytesIn", nullable = false)
+    @JsonProperty("networkBytesIn")
     private Long networkBytesIn = 0L;
 
-    @Column(name = "networkBytesOut", nullable = false)
+    @JsonProperty("networkBytesOut")
     private Long networkBytesOut = 0L;
 
-    @Column(name = "networkErrors", nullable = false)
+    @JsonProperty("networkErrors")
     private Long networkErrors = 0L;
 
-    @Column(name = "connectionCount", nullable = false)
+    @JsonProperty("connectionCount")
     private Integer connectionCount = 0;
 
     // Service Availability
-    @Column(name = "apiAvailable", nullable = false)
+    @JsonProperty("apiAvailable")
     private Boolean apiAvailable = true;
 
-    @Column(name = "grpcAvailable", nullable = false)
+    @JsonProperty("grpcAvailable")
     private Boolean grpcAvailable = true;
 
-    @Column(name = "databaseAvailable", nullable = false)
+    @JsonProperty("databaseAvailable")
     private Boolean databaseAvailable = true;
 
-    @Column(name = "cacheAvailable", nullable = false)
+    @JsonProperty("cacheAvailable")
     private Boolean cacheAvailable = true;
 
     // Error Tracking
-    @Column(name = "errorCount", nullable = false)
+    @JsonProperty("errorCount")
     private Long errorCount = 0L;
 
-    @Column(name = "warningCount", nullable = false)
+    @JsonProperty("warningCount")
     private Long warningCount = 0L;
 
-    @Column(name = "lastError", columnDefinition = "TEXT")
+    @JsonProperty("lastError")
     private String lastError;
 
-    @Column(name = "lastErrorAt")
+    @JsonProperty("lastErrorAt")
     private Instant lastErrorAt;
 
     // Metadata
-    @Column(name = "version", length = 50)
+    @JsonProperty("version")
     private String version;
 
-    @Column(name = "environment", length = 50)
+    @JsonProperty("environment")
     private String environment;
 
-    @Column(name = "region", length = 50)
+    @JsonProperty("region")
     private String region;
 
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
     // ==================== CONSTRUCTORS ====================
@@ -170,6 +162,20 @@ public class SystemStatus {
         this.databaseAvailable = true;
         this.cacheAvailable = true;
         this.isLeader = false;
+        this.uptime = 0L;
+        this.memoryUsed = 0L;
+        this.memoryTotal = 0L;
+        this.diskUsed = 0L;
+        this.diskTotal = 0L;
+        this.threadCount = 0;
+        this.activeThreadCount = 0;
+        this.blockHeight = 0L;
+        this.peerCount = 0;
+        this.activePeers = 0;
+        this.networkBytesIn = 0L;
+        this.networkBytesOut = 0L;
+        this.networkErrors = 0L;
+        this.connectionCount = 0;
     }
 
     public SystemStatus(String nodeId) {
@@ -179,8 +185,10 @@ public class SystemStatus {
 
     // ==================== LIFECYCLE METHODS ====================
 
-    @PrePersist
-    protected void onCreate() {
+    /**
+     * Ensure timestamp is set (call before first persist)
+     */
+    public void ensureTimestamp() {
         if (timestamp == null) {
             timestamp = Instant.now();
         }
@@ -204,7 +212,7 @@ public class SystemStatus {
             return BigDecimal.ZERO;
         }
         return BigDecimal.valueOf(memoryUsed)
-                .divide(BigDecimal.valueOf(memoryTotal), 4, BigDecimal.ROUND_HALF_UP)
+                .divide(BigDecimal.valueOf(memoryTotal), 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
 
@@ -216,7 +224,7 @@ public class SystemStatus {
             return BigDecimal.ZERO;
         }
         return BigDecimal.valueOf(diskUsed)
-                .divide(BigDecimal.valueOf(diskTotal), 4, BigDecimal.ROUND_HALF_UP)
+                .divide(BigDecimal.valueOf(diskTotal), 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
 
@@ -229,7 +237,7 @@ public class SystemStatus {
         }
         long successful = totalTransactions - failedTransactions;
         return BigDecimal.valueOf(successful)
-                .divide(BigDecimal.valueOf(totalTransactions), 4, BigDecimal.ROUND_HALF_UP)
+                .divide(BigDecimal.valueOf(totalTransactions), 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
 
@@ -322,9 +330,6 @@ public class SystemStatus {
     }
 
     // ==================== GETTERS AND SETTERS ====================
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getNodeId() { return nodeId; }
     public void setNodeId(String nodeId) { this.nodeId = nodeId; }
@@ -463,7 +468,7 @@ public class SystemStatus {
 
     @Override
     public String toString() {
-        return String.format("SystemStatus{id=%d, nodeId='%s', health=%s, tps=%s, blockHeight=%d, uptime=%d}",
-                id, nodeId, healthStatus, tps, blockHeight, uptime);
+        return String.format("SystemStatus{nodeId='%s', health=%s, tps=%s, blockHeight=%d, uptime=%d}",
+                nodeId, healthStatus, tps, blockHeight, uptime);
     }
 }

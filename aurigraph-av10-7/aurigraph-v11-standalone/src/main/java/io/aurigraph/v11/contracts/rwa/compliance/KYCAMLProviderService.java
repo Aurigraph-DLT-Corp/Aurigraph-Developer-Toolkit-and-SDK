@@ -3,8 +3,9 @@ package io.aurigraph.v11.contracts.rwa.compliance;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
+// TODO: Remove after LevelDB migration complete
+// import jakarta.persistence.EntityManager;
+// import jakarta.transaction.Transactional;
 import io.quarkus.logging.Log;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,11 +41,18 @@ import io.aurigraph.v11.contracts.rwa.compliance.entities.AMLScreeningRecord;
 @ApplicationScoped
 public class KYCAMLProviderService {
 
-    @Inject
-    EntityManager entityManager;
+    // TODO: Remove after LevelDB migration complete
+    // @Inject
+    // EntityManager entityManager;
 
     @Inject
     ObjectMapper objectMapper;
+
+    @Inject
+    io.aurigraph.v11.repository.KYCVerificationRepository kycRepository;
+
+    @Inject
+    io.aurigraph.v11.repository.AMLScreeningRepository amlRepository;
 
     // Configuration
     @ConfigProperty(name = "compliance.kyc.provider.enabled", defaultValue = "true")
@@ -67,7 +75,8 @@ public class KYCAMLProviderService {
     /**
      * Perform KYC verification for a user
      */
-    @Transactional
+    // TODO: Remove after LevelDB migration complete
+    // @Transactional
     public Uni<KYCVerificationResult> performKYCVerification(String userId, String address,
                                                              RegulatoryJurisdiction jurisdiction,
                                                              KYCProvider provider,
@@ -109,7 +118,8 @@ public class KYCAMLProviderService {
     /**
      * Perform AML screening for a user
      */
-    @Transactional
+    // TODO: Remove after LevelDB migration complete
+    // @Transactional
     public Uni<AMLScreeningResult> performAMLScreening(String userId, String address,
                                                        RegulatoryJurisdiction jurisdiction,
                                                        AMLProvider provider) {
@@ -158,7 +168,7 @@ public class KYCAMLProviderService {
 
             // If not in cache, load from database
             if (kycResult == null) {
-                KYCVerificationRecord record = KYCVerificationRecord.findByUserId(userId);
+                KYCVerificationRecord record = findKYCRecordByUserId(userId);
                 if (record != null) {
                     kycResult = convertKYCRecordToResult(record);
                     kycCache.put(userId, kycResult);
@@ -166,7 +176,7 @@ public class KYCAMLProviderService {
             }
 
             if (amlResult == null) {
-                AMLScreeningRecord record = AMLScreeningRecord.findByUserId(userId);
+                AMLScreeningRecord record = findAMLRecordByUserId(userId);
                 if (record != null) {
                     amlResult = convertAMLRecordToResult(record);
                     amlCache.put(userId, amlResult);
@@ -204,7 +214,7 @@ public class KYCAMLProviderService {
             KYCVerificationResult result = kycCache.get(userId);
             if (result == null) {
                 // Check database
-                KYCVerificationRecord record = KYCVerificationRecord.findByUserId(userId);
+                KYCVerificationRecord record = findKYCRecordByUserId(userId);
                 if (record == null) return true;
                 result = convertKYCRecordToResult(record);
                 kycCache.put(userId, result);
@@ -221,7 +231,7 @@ public class KYCAMLProviderService {
             AMLScreeningResult result = amlCache.get(userId);
             if (result == null) {
                 // Check database
-                AMLScreeningRecord record = AMLScreeningRecord.findByUserId(userId);
+                AMLScreeningRecord record = findAMLRecordByUserId(userId);
                 if (record == null) return true;
                 result = convertAMLRecordToResult(record);
                 amlCache.put(userId, result);
@@ -742,8 +752,9 @@ public class KYCAMLProviderService {
             );
             record.metadata = objectMapper.writeValueAsString(metadata);
 
-            record.persist();
-            Log.infof("Persisted KYC verification record for user %s (ID: %d)", result.getUserId(), record.id);
+            // Persist to LevelDB
+            kycRepository.saveRecord(record);
+            Log.infof("Persisted KYC verification record for user %s (ID: %s)", result.getUserId(), record.verificationId);
 
         } catch (Exception e) {
             Log.errorf(e, "Failed to persist KYC result for user %s", result.getUserId());
@@ -775,8 +786,9 @@ public class KYCAMLProviderService {
                 record.metadata = objectMapper.writeValueAsString(result.getMetadata());
             }
 
-            record.persist();
-            Log.infof("Persisted AML screening record for user %s (ID: %d)", result.getUserId(), record.id);
+            // Persist to LevelDB
+            amlRepository.saveRecord(record);
+            Log.infof("Persisted AML screening record for user %s (ID: %s)", result.getUserId(), record.screeningId);
 
         } catch (Exception e) {
             Log.errorf(e, "Failed to persist AML result for user %s", result.getUserId());
@@ -808,7 +820,7 @@ public class KYCAMLProviderService {
                 result.setDocumentNumber((String) metadata.get("documentNumber"));
             }
         } catch (Exception e) {
-            Log.warnf("Failed to parse metadata for KYC record %d", record.id);
+            Log.warnf("Failed to parse metadata for KYC record %s", record.verificationId);
             result.setVerificationScore(90.0); // Default score
         }
 
@@ -847,10 +859,30 @@ public class KYCAMLProviderService {
                 result.setMetadata(metadata);
             }
         } catch (Exception e) {
-            Log.warnf("Failed to parse metadata for AML record %d", record.id);
+            Log.warnf("Failed to parse metadata for AML record %s", record.screeningId);
             result.setWatchlistMatches(new ArrayList<>());
         }
 
         return result;
+    }
+
+    // ==================== LevelDB Repository Methods ====================
+
+    /**
+     * Find KYC verification record by user ID
+     * Returns the most recent KYC record for the user
+     */
+    private KYCVerificationRecord findKYCRecordByUserId(String userId) {
+        Log.debugf("Looking up KYC record for user: %s", userId);
+        return kycRepository.findByUserId(userId).orElse(null);
+    }
+
+    /**
+     * Find AML screening record by user ID
+     * Returns the most recent AML record for the user
+     */
+    private AMLScreeningRecord findAMLRecordByUserId(String userId) {
+        Log.debugf("Looking up AML record for user: %s", userId);
+        return amlRepository.findByUserId(userId).orElse(null);
     }
 }

@@ -1,110 +1,99 @@
 package io.aurigraph.v11.channels.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 
 /**
- * Message Entity
+ * Message Model for Aurigraph V11 - LevelDB Compatible
  *
  * Represents a message in a channel.
  * Supports text, attachments, reactions, and threading.
  *
- * @version 3.8.0 (Phase 2 Day 11)
+ * LevelDB Storage: Uses messageId as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "messages", indexes = {
-    @Index(name = "idx_message_id", columnList = "messageId", unique = true),
-    @Index(name = "idx_message_channel", columnList = "channelId"),
-    @Index(name = "idx_message_sender", columnList = "senderAddress"),
-    @Index(name = "idx_message_created_at", columnList = "createdAt"),
-    @Index(name = "idx_message_thread", columnList = "threadId")
-})
 public class Message {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "messageId", nullable = false, unique = true, length = 66)
+    @JsonProperty("messageId")
     private String messageId;
 
-    @Column(name = "channelId", nullable = false, length = 66)
+    @JsonProperty("channelId")
     private String channelId;
 
-    @Column(name = "senderAddress", nullable = false, length = 66)
+    @JsonProperty("senderAddress")
     private String senderAddress;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "messageType", nullable = false, length = 30)
+    @JsonProperty("messageType")
     private MessageType messageType;
 
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
+    @JsonProperty("content")
     private String content;
 
-    @Column(name = "contentHash", length = 66)
+    @JsonProperty("contentHash")
     private String contentHash;
 
     // Threading
-    @Column(name = "threadId", length = 66)
+    @JsonProperty("threadId")
     private String threadId;
 
-    @Column(name = "replyToMessageId", length = 66)
+    @JsonProperty("replyToMessageId")
     private String replyToMessageId;
 
     // Attachments
-    @Column(name = "hasAttachments", nullable = false)
+    @JsonProperty("hasAttachments")
     private Boolean hasAttachments = false;
 
-    @Column(name = "attachmentUrls", columnDefinition = "TEXT")
+    @JsonProperty("attachmentUrls")
     private String attachmentUrls;
 
-    @Column(name = "attachmentCount", nullable = false)
+    @JsonProperty("attachmentCount")
     private Integer attachmentCount = 0;
 
     // Reactions
-    @Column(name = "reactions", columnDefinition = "TEXT")
+    @JsonProperty("reactions")
     private String reactions;
 
-    @Column(name = "reactionCount", nullable = false)
+    @JsonProperty("reactionCount")
     private Integer reactionCount = 0;
 
     // Status
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @JsonProperty("status")
     private MessageStatus status;
 
-    @Column(name = "isEdited", nullable = false)
+    @JsonProperty("isEdited")
     private Boolean isEdited = false;
 
-    @Column(name = "isDeleted", nullable = false)
+    @JsonProperty("isDeleted")
     private Boolean isDeleted = false;
 
     // Timestamps
-    @Column(name = "createdAt", nullable = false)
+    @JsonProperty("createdAt")
     private Instant createdAt;
 
-    @Column(name = "editedAt")
+    @JsonProperty("editedAt")
     private Instant editedAt;
 
-    @Column(name = "deletedAt")
+    @JsonProperty("deletedAt")
     private Instant deletedAt;
 
-    @Column(name = "readAt")
+    @JsonProperty("readAt")
     private Instant readAt;
 
     // Metadata
-    @Column(name = "metadata", columnDefinition = "TEXT")
+    @JsonProperty("metadata")
     private String metadata;
 
-    @Column(name = "mentions", columnDefinition = "TEXT")
+    @JsonProperty("mentions")
     private String mentions;
 
     // Encryption
-    @Column(name = "isEncrypted", nullable = false)
+    @JsonProperty("isEncrypted")
     private Boolean isEncrypted = false;
 
-    @Column(name = "encryptionKey", length = 255)
+    @JsonProperty("encryptionKey")
     private String encryptionKey;
 
     // ==================== CONSTRUCTORS ====================
@@ -129,10 +118,12 @@ public class Message {
         this.messageType = MessageType.TEXT;
     }
 
-    // ==================== LIFECYCLE METHODS ====================
+    // ==================== BUSINESS LOGIC METHODS ====================
 
-    @PrePersist
-    protected void onCreate() {
+    /**
+     * Ensure createdAt is set (call before first persist)
+     */
+    public void ensureCreatedAt() {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
@@ -191,9 +182,6 @@ public class Message {
     }
 
     // ==================== GETTERS AND SETTERS ====================
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getMessageId() { return messageId; }
     public void setMessageId(String messageId) { this.messageId = messageId; }
@@ -290,7 +278,7 @@ public class Message {
 
     @Override
     public String toString() {
-        return String.format("Message{id=%d, messageId='%s', channelId='%s', sender='%s', type=%s, status=%s}",
-                id, messageId, channelId, senderAddress, messageType, status);
+        return String.format("Message{messageId='%s', channelId='%s', sender='%s', type=%s, status=%s}",
+                messageId, channelId, senderAddress, messageType, status);
     }
 }

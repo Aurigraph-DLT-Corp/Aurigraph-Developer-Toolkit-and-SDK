@@ -1,108 +1,119 @@
 package io.aurigraph.v11.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * Transaction Model
+ * Transaction Model for Aurigraph V11 - LevelDB Compatible
  *
  * Represents a transaction in the Aurigraph V11 platform.
  * Maps to Transaction message in aurigraph-v11.proto
  *
- * @author Claude Code
- * @version 11.0.0
+ * LevelDB Storage: Uses id (hash) as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ * Binary Data: Stored as Base64 encoded strings for JSON compatibility
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
+ * @author Aurigraph V11 Development Team
  * @since Sprint 9
  */
-@Entity
-@Table(name = "transactions", indexes = {
-    @Index(name = "idx_tx_hash", columnList = "hash", unique = true),
-    @Index(name = "idx_tx_from", columnList = "from_address"),
-    @Index(name = "idx_tx_to", columnList = "to_address"),
-    @Index(name = "idx_tx_status", columnList = "status"),
-    @Index(name = "idx_tx_timestamp", columnList = "timestamp"),
-    @Index(name = "idx_tx_type", columnList = "type")
-})
 public class Transaction {
 
-    @Id
-    @Column(name = "id", nullable = false, unique = true, length = 64)
+    @JsonProperty("id")
     private String id;
 
-    @Lob
-    @Column(name = "payload", columnDefinition = "BLOB")
-    private byte[] payload;
+    @JsonProperty("payload")
+    private String payload; // Base64 encoded
 
-    @Column(name = "priority", nullable = false)
+    @JsonProperty("priority")
     private int priority = 0;
 
-    @Column(name = "timestamp", nullable = false)
+    @JsonProperty("timestamp")
     private Instant timestamp;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 50)
+    @JsonProperty("status")
     private TransactionStatus status = TransactionStatus.PENDING;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", length = 50)
+    @JsonProperty("type")
     private TransactionType type = TransactionType.TRANSFER;
 
-    @Column(name = "from_address", nullable = false, length = 128)
+    @JsonProperty("fromAddress")
     private String fromAddress;
 
-    @Column(name = "to_address", length = 128)
+    @JsonProperty("toAddress")
     private String toAddress;
 
-    @Column(name = "amount", nullable = false)
+    @JsonProperty("amount")
     private long amount = 0L;
 
-    @Column(name = "gas_price", nullable = false)
+    @JsonProperty("gasPrice")
     private long gasPrice = 0L;
 
-    @Column(name = "gas_limit", nullable = false)
+    @JsonProperty("gasLimit")
     private long gasLimit = 0L;
 
-    @Lob
-    @Column(name = "signature", columnDefinition = "BLOB")
-    private byte[] signature;
+    @JsonProperty("signature")
+    private String signature; // Base64 encoded
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "transaction_metadata",
-                    joinColumns = @JoinColumn(name = "transaction_id"))
-    @MapKeyColumn(name = "metadata_key", length = 100)
-    @Column(name = "metadata_value", length = 500)
+    @JsonProperty("metadata")
     private Map<String, String> metadata = new HashMap<>();
 
-    @Column(name = "hash", nullable = false, unique = true, length = 64)
+    @JsonProperty("hash")
     private String hash;
 
-    @Column(name = "from_alias", length = 128)
+    @JsonProperty("from")
     private String from;
 
-    @Column(name = "to_alias", length = 128)
+    @JsonProperty("to")
     private String to;
 
-    @Lob
-    @Column(name = "zk_proof", columnDefinition = "BLOB")
-    private byte[] zkProof;
+    @JsonProperty("zkProof")
+    private String zkProof; // Base64 encoded
 
-    @Column(name = "block_height")
+    @JsonProperty("blockHeight")
     private Long blockHeight;
 
-    @Column(name = "block_hash", length = 64)
+    @JsonProperty("blockHash")
     private String blockHash;
 
-    @Column(name = "confirmations")
+    @JsonProperty("confirmations")
     private int confirmations = 0;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "block_id")
-    private Block block;
+    // Block reference as ID instead of full object
+    @JsonProperty("blockId")
+    private String blockId;
 
-    @PrePersist
-    protected void onCreate() {
+    // ==================== CONSTRUCTORS ====================
+
+    public Transaction() {
+        this.priority = 0;
+        this.amount = 0L;
+        this.gasPrice = 0L;
+        this.gasLimit = 0L;
+        this.confirmations = 0;
+        this.metadata = new HashMap<>();
+    }
+
+    public Transaction(String id, String fromAddress, String toAddress, long amount) {
+        this();
+        this.id = id;
+        this.fromAddress = fromAddress;
+        this.toAddress = toAddress;
+        this.amount = amount;
+        this.timestamp = Instant.now();
+        this.status = TransactionStatus.PENDING;
+        this.type = TransactionType.TRANSFER;
+    }
+
+    // ==================== LIFECYCLE METHODS ====================
+
+    /**
+     * Ensure timestamp is set (call before first persist)
+     */
+    public void ensureTimestamp() {
         if (timestamp == null) {
             timestamp = Instant.now();
         }
@@ -114,188 +125,70 @@ public class Transaction {
         }
     }
 
-    // Constructors
-    public Transaction() {
-    }
+    // ==================== GETTERS AND SETTERS ====================
 
-    public Transaction(String id, String fromAddress, String toAddress, long amount) {
-        this.id = id;
-        this.fromAddress = fromAddress;
-        this.toAddress = toAddress;
-        this.amount = amount;
-        this.timestamp = Instant.now();
-        this.status = TransactionStatus.PENDING;
-        this.type = TransactionType.TRANSFER;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    // Getters and Setters
-    public String getId() {
-        return id;
-    }
+    public String getPayload() { return payload; }
+    public void setPayload(String payload) { this.payload = payload; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public int getPriority() { return priority; }
+    public void setPriority(int priority) { this.priority = priority; }
 
-    public byte[] getPayload() {
-        return payload;
-    }
+    public Instant getTimestamp() { return timestamp; }
+    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
 
-    public void setPayload(byte[] payload) {
-        this.payload = payload;
-    }
+    public TransactionStatus getStatus() { return status; }
+    public void setStatus(TransactionStatus status) { this.status = status; }
 
-    public int getPriority() {
-        return priority;
-    }
+    public TransactionType getType() { return type; }
+    public void setType(TransactionType type) { this.type = type; }
 
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
+    public String getFromAddress() { return fromAddress; }
+    public void setFromAddress(String fromAddress) { this.fromAddress = fromAddress; }
 
-    public Instant getTimestamp() {
-        return timestamp;
-    }
+    public String getToAddress() { return toAddress; }
+    public void setToAddress(String toAddress) { this.toAddress = toAddress; }
 
-    public void setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
-    }
+    public long getAmount() { return amount; }
+    public void setAmount(long amount) { this.amount = amount; }
 
-    public TransactionStatus getStatus() {
-        return status;
-    }
+    public long getGasPrice() { return gasPrice; }
+    public void setGasPrice(long gasPrice) { this.gasPrice = gasPrice; }
 
-    public void setStatus(TransactionStatus status) {
-        this.status = status;
-    }
+    public long getGasLimit() { return gasLimit; }
+    public void setGasLimit(long gasLimit) { this.gasLimit = gasLimit; }
 
-    public TransactionType getType() {
-        return type;
-    }
+    public String getSignature() { return signature; }
+    public void setSignature(String signature) { this.signature = signature; }
 
-    public void setType(TransactionType type) {
-        this.type = type;
-    }
+    public Map<String, String> getMetadata() { return metadata; }
+    public void setMetadata(Map<String, String> metadata) { this.metadata = metadata; }
 
-    public String getFromAddress() {
-        return fromAddress;
-    }
+    public String getHash() { return hash; }
+    public void setHash(String hash) { this.hash = hash; }
 
-    public void setFromAddress(String fromAddress) {
-        this.fromAddress = fromAddress;
-    }
+    public String getFrom() { return from; }
+    public void setFrom(String from) { this.from = from; }
 
-    public String getToAddress() {
-        return toAddress;
-    }
+    public String getTo() { return to; }
+    public void setTo(String to) { this.to = to; }
 
-    public void setToAddress(String toAddress) {
-        this.toAddress = toAddress;
-    }
+    public String getZkProof() { return zkProof; }
+    public void setZkProof(String zkProof) { this.zkProof = zkProof; }
 
-    public long getAmount() {
-        return amount;
-    }
+    public Long getBlockHeight() { return blockHeight; }
+    public void setBlockHeight(Long blockHeight) { this.blockHeight = blockHeight; }
 
-    public void setAmount(long amount) {
-        this.amount = amount;
-    }
+    public String getBlockHash() { return blockHash; }
+    public void setBlockHash(String blockHash) { this.blockHash = blockHash; }
 
-    public long getGasPrice() {
-        return gasPrice;
-    }
+    public int getConfirmations() { return confirmations; }
+    public void setConfirmations(int confirmations) { this.confirmations = confirmations; }
 
-    public void setGasPrice(long gasPrice) {
-        this.gasPrice = gasPrice;
-    }
-
-    public long getGasLimit() {
-        return gasLimit;
-    }
-
-    public void setGasLimit(long gasLimit) {
-        this.gasLimit = gasLimit;
-    }
-
-    public byte[] getSignature() {
-        return signature;
-    }
-
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
-    }
-
-    public Map<String, String> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public void setFrom(String from) {
-        this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
-    }
-
-    public byte[] getZkProof() {
-        return zkProof;
-    }
-
-    public void setZkProof(byte[] zkProof) {
-        this.zkProof = zkProof;
-    }
-
-    public Long getBlockHeight() {
-        return blockHeight;
-    }
-
-    public void setBlockHeight(Long blockHeight) {
-        this.blockHeight = blockHeight;
-    }
-
-    public String getBlockHash() {
-        return blockHash;
-    }
-
-    public void setBlockHash(String blockHash) {
-        this.blockHash = blockHash;
-    }
-
-    public int getConfirmations() {
-        return confirmations;
-    }
-
-    public void setConfirmations(int confirmations) {
-        this.confirmations = confirmations;
-    }
-
-    public Block getBlock() {
-        return block;
-    }
-
-    public void setBlock(Block block) {
-        this.block = block;
-    }
+    public String getBlockId() { return blockId; }
+    public void setBlockId(String blockId) { this.blockId = blockId; }
 
     @Override
     public boolean equals(Object o) {
@@ -312,15 +205,8 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "Transaction{" +
-                "id='" + id + '\'' +
-                ", fromAddress='" + fromAddress + '\'' +
-                ", toAddress='" + toAddress + '\'' +
-                ", amount=" + amount +
-                ", status=" + status +
-                ", type=" + type +
-                ", timestamp=" + timestamp +
-                ", hash='" + hash + '\'' +
-                '}';
+        return String.format("Transaction{id='%s', fromAddress='%s', toAddress='%s', " +
+                        "amount=%d, status=%s, type=%s, timestamp=%s, hash='%s'}",
+                id, fromAddress, toAddress, amount, status, type, timestamp, hash);
     }
 }

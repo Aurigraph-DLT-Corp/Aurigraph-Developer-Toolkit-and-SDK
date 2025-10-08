@@ -1,6 +1,5 @@
 package io.aurigraph.v11.models;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +12,9 @@ import java.time.LocalDate;
 import java.util.*;
 
 /**
- * Triple-Entry Ledger Entity - Implements triple-entry accounting with blockchain receipts
+ * Triple-Entry Ledger Model for Aurigraph V11 - LevelDB Compatible
+ *
+ * Implements triple-entry accounting with blockchain receipts.
  *
  * Triple-Entry Accounting Principles:
  * - Every transaction has a debit, credit, AND blockchain receipt
@@ -21,78 +22,55 @@ import java.util.*;
  * - Third entry is the blockchain hash/receipt providing independent verification
  * - Enables real-time reconciliation with blockchain state
  *
- * Features:
- * - Cryptographic proof of transactions via blockchain receipts
- * - Multi-currency support
- * - Account balance tracking and validation
- * - Blockchain reconciliation
- * - Audit trail with complete history
- * - Support for complex accounting scenarios
+ * LevelDB Storage: Uses receiptHash as primary key
+ * JSON Serializable: All fields stored as JSON in LevelDB
  *
- * @version 1.0.0
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @since Sprint 13 (AV11-060)
  */
-@Entity
-@Table(name = "triple_entry_ledger", indexes = {
-    @Index(name = "idx_transaction_id", columnList = "transactionId"),
-    @Index(name = "idx_receipt_hash", columnList = "receiptHash", unique = true),
-    @Index(name = "idx_debit_account", columnList = "debitAccount"),
-    @Index(name = "idx_credit_account", columnList = "creditAccount"),
-    @Index(name = "idx_timestamp", columnList = "timestamp"),
-    @Index(name = "idx_entry_date", columnList = "entryDate"),
-    @Index(name = "idx_contract_id", columnList = "contractId"),
-    @Index(name = "idx_reconciliation", columnList = "reconciled")
-})
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TripleEntryLedger {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @JsonProperty("id")
-    private UUID id;
+    // Removed UUID id - using receiptHash as primary key for LevelDB
+
+    // ==================== FIELDS ====================
 
     /**
      * Transaction reference - links all related ledger entries
      */
-    @Column(name = "transactionId", nullable = false, length = 128)
     @JsonProperty("transactionId")
     private String transactionId;
 
     /**
-     * Blockchain receipt hash - the third entry providing cryptographic proof
+     * Blockchain receipt hash - PRIMARY KEY for LevelDB (the third entry providing cryptographic proof)
      */
-    @Column(name = "receiptHash", nullable = false, unique = true, length = 128)
     @JsonProperty("receiptHash")
     private String receiptHash;
 
     /**
      * Debit account (source of funds)
      */
-    @Column(name = "debitAccount", nullable = false, length = 128)
     @JsonProperty("debitAccount")
     private String debitAccount;
 
     /**
      * Credit account (destination of funds)
      */
-    @Column(name = "creditAccount", nullable = false, length = 128)
     @JsonProperty("creditAccount")
     private String creditAccount;
 
     /**
      * Amount transferred
      */
-    @Column(name = "amount", nullable = false, precision = 36, scale = 18)
     @JsonProperty("amount")
     private BigDecimal amount;
 
     /**
      * Currency code
      */
-    @Column(name = "currency", nullable = false, length = 16)
     @JsonProperty("currency")
     @Builder.Default
     private String currency = "USD";
@@ -100,43 +78,35 @@ public class TripleEntryLedger {
     /**
      * Exchange rate if multi-currency
      */
-    @Column(name = "exchangeRate", precision = 18, scale = 8)
     @JsonProperty("exchangeRate")
     private BigDecimal exchangeRate;
 
     /**
      * Converted amount in base currency
      */
-    @Column(name = "baseAmount", precision = 36, scale = 18)
     @JsonProperty("baseAmount")
     private BigDecimal baseAmount;
 
-    @Column(name = "baseCurrency", length = 16)
     @JsonProperty("baseCurrency")
     private String baseCurrency;
 
     /**
      * Timestamps
      */
-    @Column(name = "timestamp", nullable = false)
     @JsonProperty("timestamp")
     @Builder.Default
     private Instant timestamp = Instant.now();
 
-    @Column(name = "entryDate", nullable = false)
     @JsonProperty("entryDate")
     @Builder.Default
     private LocalDate entryDate = LocalDate.now();
 
-    @Column(name = "valueDate")
     @JsonProperty("valueDate")
     private LocalDate valueDate;
 
     /**
      * Entry type classification
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "entryType", nullable = false, length = 32)
     @JsonProperty("entryType")
     @Builder.Default
     private EntryType entryType = EntryType.NORMAL;
@@ -144,140 +114,113 @@ public class TripleEntryLedger {
     /**
      * Description and narrative
      */
-    @Column(name = "description", columnDefinition = "TEXT")
     @JsonProperty("description")
     private String description;
 
-    @Column(name = "narrative", columnDefinition = "TEXT")
     @JsonProperty("narrative")
     private String narrative;
 
     /**
      * Reference to contract if applicable
      */
-    @Column(name = "contractId", length = 128)
     @JsonProperty("contractId")
     private String contractId;
 
     /**
      * Blockchain details
      */
-    @Column(name = "blockchainNetwork", length = 64)
     @JsonProperty("blockchainNetwork")
     @Builder.Default
     private String blockchainNetwork = "Aurigraph";
 
-    @Column(name = "blockNumber")
     @JsonProperty("blockNumber")
     private Long blockNumber;
 
-    @Column(name = "blockHash", length = 128)
     @JsonProperty("blockHash")
     private String blockHash;
 
-    @Column(name = "transactionIndex")
     @JsonProperty("transactionIndex")
     private Integer transactionIndex;
 
     /**
      * Reconciliation status
      */
-    @Column(name = "reconciled")
     @JsonProperty("reconciled")
     @Builder.Default
     private boolean reconciled = false;
 
-    @Column(name = "reconciledAt")
     @JsonProperty("reconciledAt")
     private Instant reconciledAt;
 
-    @Column(name = "reconciledBy", length = 128)
     @JsonProperty("reconciledBy")
     private String reconciledBy;
 
     /**
      * Verification and validation
      */
-    @Column(name = "verified")
     @JsonProperty("verified")
     @Builder.Default
     private boolean verified = false;
 
-    @Column(name = "verifiedAt")
     @JsonProperty("verifiedAt")
     private Instant verifiedAt;
 
-    @Column(name = "verificationSignature", length = 512)
     @JsonProperty("verificationSignature")
     private String verificationSignature;
 
     /**
      * Cryptographic signature of the entry
      */
-    @Column(name = "entrySignature", columnDefinition = "TEXT")
     @JsonProperty("entrySignature")
     private String entrySignature;
 
-    @Column(name = "publicKey", columnDefinition = "TEXT")
     @JsonProperty("publicKey")
     private String publicKey;
 
     /**
      * Account balances after this entry (for quick lookup)
      */
-    @Column(name = "debitAccountBalance", precision = 36, scale = 18)
     @JsonProperty("debitAccountBalance")
     private BigDecimal debitAccountBalance;
 
-    @Column(name = "creditAccountBalance", precision = 36, scale = 18)
     @JsonProperty("creditAccountBalance")
     private BigDecimal creditAccountBalance;
 
     /**
      * Status and flags
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 32)
     @JsonProperty("status")
     @Builder.Default
     private EntryStatus status = EntryStatus.PENDING;
 
-    @Column(name = "reversed")
     @JsonProperty("reversed")
     @Builder.Default
     private boolean reversed = false;
 
-    @Column(name = "reversalEntryId")
     @JsonProperty("reversalEntryId")
-    private UUID reversalEntryId;
+    private String reversalEntryId; // Changed from UUID to String for LevelDB
 
-    @Column(name = "reversedAt")
     @JsonProperty("reversedAt")
     private Instant reversedAt;
 
     /**
      * Audit and compliance
      */
-    @Column(name = "createdBy", length = 128)
     @JsonProperty("createdBy")
     private String createdBy;
 
-    @Column(name = "approvedBy", length = 128)
     @JsonProperty("approvedBy")
     private String approvedBy;
 
-    @Column(name = "approvedAt")
     @JsonProperty("approvedAt")
     private Instant approvedAt;
 
-    @Column(name = "fiscalPeriod", length = 32)
     @JsonProperty("fiscalPeriod")
     private String fiscalPeriod; // e.g., "2025-Q1"
 
     /**
      * Additional metadata (JSON)
      */
-    @Column(name = "metadata", columnDefinition = "TEXT")
     @JsonProperty("metadata")
     @Builder.Default
     private String metadata = "{}"; // JSON object
@@ -285,7 +228,6 @@ public class TripleEntryLedger {
     /**
      * Tags for categorization (JSON array)
      */
-    @Column(name = "tags", columnDefinition = "TEXT")
     @JsonProperty("tags")
     @Builder.Default
     private String tags = "[]"; // JSON array
@@ -293,16 +235,16 @@ public class TripleEntryLedger {
     /**
      * Related entries (for complex transactions)
      */
-    @Column(name = "relatedEntries", columnDefinition = "TEXT")
     @JsonProperty("relatedEntries")
     @Builder.Default
     private String relatedEntries = "[]"; // JSON array of entry IDs
 
+    // ==================== LIFECYCLE METHODS ====================
+
     /**
-     * Lifecycle methods
+     * Ensure timestamp is set (call before first persist)
      */
-    @PrePersist
-    protected void onCreate() {
+    public void ensureTimestamp() {
         if (timestamp == null) {
             timestamp = Instant.now();
         }
@@ -361,7 +303,7 @@ public class TripleEntryLedger {
         }
     }
 
-    public void reverse(UUID reversalId) {
+    public void reverse(String reversalId) {
         this.reversed = true;
         this.reversalEntryId = reversalId;
         this.reversedAt = Instant.now();
@@ -378,19 +320,18 @@ public class TripleEntryLedger {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TripleEntryLedger that = (TripleEntryLedger) o;
-        return Objects.equals(id, that.id) &&
-               Objects.equals(receiptHash, that.receiptHash);
+        return Objects.equals(receiptHash, that.receiptHash);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, receiptHash);
+        return Objects.hash(receiptHash);
     }
 
     @Override
     public String toString() {
-        return String.format("TripleEntryLedger{id=%s, txId='%s', debit='%s', credit='%s', amount=%s %s, receipt='%s', status=%s}",
-            id, transactionId, debitAccount, creditAccount, amount, currency,
+        return String.format("TripleEntryLedger{txId='%s', debit='%s', credit='%s', amount=%s %s, receipt='%s', status=%s}",
+            transactionId, debitAccount, creditAccount, amount, currency,
             receiptHash != null ? receiptHash.substring(0, Math.min(16, receiptHash.length())) + "..." : "none",
             status);
     }

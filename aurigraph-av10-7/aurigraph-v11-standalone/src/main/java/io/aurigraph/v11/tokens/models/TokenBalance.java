@@ -1,46 +1,39 @@
 package io.aurigraph.v11.tokens.models;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Token Balance Entity
+ * Token Balance Model for Aurigraph V11 - LevelDB Compatible
  *
  * Tracks token balances for each address.
  * Supports fungible and non-fungible token tracking.
  *
- * @version 3.8.0 (Phase 2 Day 8)
+ * LevelDB Storage: Uses composite key "tokenId:address"
+ * JSON Serializable: All fields stored as JSON in LevelDB
+ *
+ * @version 4.0.0 (LevelDB Migration - Oct 8, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Entity
-@Table(name = "token_balances", indexes = {
-    @Index(name = "idx_token_address", columnList = "tokenId, address", unique = true),
-    @Index(name = "idx_address", columnList = "address"),
-    @Index(name = "idx_token_id", columnList = "tokenId")
-})
 public class TokenBalance {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "tokenId", nullable = false, length = 66)
+    @JsonProperty("tokenId")
     private String tokenId;
 
-    @Column(name = "address", nullable = false, length = 66)
+    @JsonProperty("address")
     private String address;
 
-    @Column(name = "balance", precision = 36, scale = 18, nullable = false)
+    @JsonProperty("balance")
     private BigDecimal balance;
 
-    @Column(name = "lockedBalance", precision = 36, scale = 18, nullable = false)
+    @JsonProperty("lockedBalance")
     private BigDecimal lockedBalance = BigDecimal.ZERO;
 
-    @Column(name = "lastTransferAt")
+    @JsonProperty("lastTransferAt")
     private Instant lastTransferAt;
 
-    @Column(name = "updatedAt", nullable = false)
+    @JsonProperty("updatedAt")
     private Instant updatedAt;
 
     // ==================== CONSTRUCTORS ====================
@@ -58,10 +51,12 @@ public class TokenBalance {
         this.balance = balance;
     }
 
-    // ==================== LIFECYCLE METHODS ====================
+    // ==================== BUSINESS LOGIC METHODS ====================
 
-    @PreUpdate
-    protected void onUpdate() {
+    /**
+     * Update timestamp (call before each persist)
+     */
+    public void updateTimestamp() {
         updatedAt = Instant.now();
     }
 
@@ -135,9 +130,6 @@ public class TokenBalance {
     }
 
     // ==================== GETTERS AND SETTERS ====================
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getTokenId() { return tokenId; }
     public void setTokenId(String tokenId) { this.tokenId = tokenId; }
