@@ -6,7 +6,6 @@ import io.aurigraph.v11.tokens.models.TokenBalance;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
@@ -22,7 +21,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * Handles token operations including mint, burn, transfer, and RWA tokenization.
  * Supports ERC20-like fungible tokens, ERC721-like NFTs, and real-world asset tokens.
  *
- * @version 3.8.0 (Phase 2 Day 8-9)
+ * REFACTORED: Fully reactive LevelDB implementation (Oct 9, 2025)
+ * - Replaced Panache blocking repositories with reactive LevelDBRepository
+ * - Removed @Transactional annotations (LevelDB handles atomicity)
+ * - Converted all blocking operations to reactive Uni chains with flatMap
+ *
+ * @version 4.0.0 (Oct 9, 2025 - LevelDB Reactive Migration)
  * @author Aurigraph V11 Development Team
  */
 @ApplicationScoped
@@ -31,10 +35,10 @@ public class TokenManagementService {
     private static final Logger LOG = Logger.getLogger(TokenManagementService.class);
 
     @Inject
-    TokenRepository tokenRepository;
+    TokenRepositoryLevelDB tokenRepository;
 
     @Inject
-    TokenBalanceRepository balanceRepository;
+    TokenBalanceRepositoryLevelDB balanceRepository;
 
     // Performance metrics
     private final AtomicLong tokensMinted = new AtomicLong(0);
@@ -49,339 +53,395 @@ public class TokenManagementService {
 
     /**
      * Mint new tokens to an address
+     * REACTIVE: Fully chained flatMap operations, no blocking
      */
-    @Transactional
     public Uni<MintResult> mintToken(MintRequest request) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Minting %s tokens of %s to %s",
-                    request.amount(), request.tokenId(), request.toAddress());
+        LOG.infof("Minting %s tokens of %s to %s",
+                request.amount(), request.tokenId(), request.toAddress());
 
-            // Get token
-            Token token = tokenRepository.findByTokenId(request.tokenId())
-                    .orElseThrow(() -> new IllegalArgumentException("Token not found: " + request.tokenId()));
+        return tokenRepository.findByTokenId(request.tokenId())
+                .flatMap(optToken -> {
+                    if (optToken.isEmpty()) {
+                        return Uni.createFrom().failure(
+                                new IllegalArgumentException("Token not found: " + request.tokenId()));
+                    }
 
-            // Mint tokens
-            token.mint(request.amount());
-            tokenRepository.persist(token);
+                    Token token = optToken.get();
+                    token.mint(request.amount());
 
-            // Update balance
-            TokenBalance balance = balanceRepository
-                    .findByTokenAndAddress(request.tokenId(), request.toAddress())
-                    .orElse(new TokenBalance(request.tokenId(), request.toAddress(), BigDecimal.ZERO));
+                    // Save token and update balance reactively
+                    return tokenRepository.persist(token)
+                            .flatMap(savedToken ->
+                                    balanceRepository.findByTokenAndAddress(request.tokenId(), request.toAddress())
+                                            .flatMap(optBalance -> {
+                                                TokenBalance balance = optBalance.orElse(
+                                                        new TokenBalance(request.tokenId(), request.toAddress(), BigDecimal.ZERO)
+                                                );
+                                                balance.add(request.amount());
 
-            balance.add(request.amount());
-            balanceRepository.persist(balance);
+                                                return balanceRepository.persist(balance)
+                                                        .flatMap(savedBalance ->
+                                                                // Update holder count reactively
+                                                                balanceRepository.countHolders(request.tokenId())
+                                                                        .flatMap(holderCount -> {
+                                                                            savedToken.updateHolderCount(holderCount);
+                                                                            return tokenRepository.persist(savedToken)
+                                                                                    .map(finalToken -> {
+                                                                                        tokensMinted.incrementAndGet();
 
-            // Update holder count
-            long holderCount = balanceRepository.countHolders(request.tokenId());
-            token.updateHolderCount(holderCount);
-            tokenRepository.persist(token);
-
-            tokensMinted.incrementAndGet();
-
-            return new MintResult(
-                    request.tokenId(),
-                    request.toAddress(),
-                    request.amount(),
-                    token.getTotalSupply(),
-                    balance.getBalance(),
-                    generateTransactionHash(),
-                    Instant.now()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                                                                                        return new MintResult(
+                                                                                                request.tokenId(),
+                                                                                                request.toAddress(),
+                                                                                                request.amount(),
+                                                                                                finalToken.getTotalSupply(),
+                                                                                                savedBalance.getBalance(),
+                                                                                                generateTransactionHash(),
+                                                                                                Instant.now()
+                                                                                        );
+                                                                                    });
+                                                                        })
+                                                        );
+                                            })
+                            );
+                });
     }
 
     /**
      * Burn tokens from an address
+     * REACTIVE: Fully chained flatMap operations, no blocking
      */
-    @Transactional
     public Uni<BurnResult> burnToken(BurnRequest request) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Burning %s tokens of %s from %s",
-                    request.amount(), request.tokenId(), request.fromAddress());
+        LOG.infof("Burning %s tokens of %s from %s",
+                request.amount(), request.tokenId(), request.fromAddress());
 
-            // Get token
-            Token token = tokenRepository.findByTokenId(request.tokenId())
-                    .orElseThrow(() -> new IllegalArgumentException("Token not found: " + request.tokenId()));
+        return tokenRepository.findByTokenId(request.tokenId())
+                .flatMap(optToken -> {
+                    if (optToken.isEmpty()) {
+                        return Uni.createFrom().failure(
+                                new IllegalArgumentException("Token not found: " + request.tokenId()));
+                    }
 
-            // Get balance
-            TokenBalance balance = balanceRepository
-                    .findByTokenAndAddress(request.tokenId(), request.fromAddress())
-                    .orElseThrow(() -> new IllegalArgumentException("Balance not found"));
+                    Token token = optToken.get();
 
-            // Burn tokens
-            balance.subtract(request.amount());
-            token.burn(request.amount());
+                    return balanceRepository.findByTokenAndAddress(request.tokenId(), request.fromAddress())
+                            .flatMap(optBalance -> {
+                                if (optBalance.isEmpty()) {
+                                    return Uni.createFrom().failure(
+                                            new IllegalArgumentException("Balance not found"));
+                                }
 
-            balanceRepository.persist(balance);
-            tokenRepository.persist(token);
+                                TokenBalance balance = optBalance.get();
+                                balance.subtract(request.amount());
+                                token.burn(request.amount());
 
-            // Update holder count
-            long holderCount = balanceRepository.countHolders(request.tokenId());
-            token.updateHolderCount(holderCount);
-            tokenRepository.persist(token);
+                                // Save balance and token reactively
+                                return balanceRepository.persist(balance)
+                                        .flatMap(savedBalance ->
+                                                tokenRepository.persist(token)
+                                                        .flatMap(savedToken ->
+                                                                // Update holder count reactively
+                                                                balanceRepository.countHolders(request.tokenId())
+                                                                        .flatMap(holderCount -> {
+                                                                            savedToken.updateHolderCount(holderCount);
+                                                                            return tokenRepository.persist(savedToken)
+                                                                                    .map(finalToken -> {
+                                                                                        tokensBurned.incrementAndGet();
 
-            tokensBurned.incrementAndGet();
-
-            return new BurnResult(
-                    request.tokenId(),
-                    request.fromAddress(),
-                    request.amount(),
-                    token.getTotalSupply(),
-                    token.getBurnedAmount(),
-                    generateTransactionHash(),
-                    Instant.now()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                                                                                        return new BurnResult(
+                                                                                                request.tokenId(),
+                                                                                                request.fromAddress(),
+                                                                                                request.amount(),
+                                                                                                finalToken.getTotalSupply(),
+                                                                                                finalToken.getBurnedAmount(),
+                                                                                                generateTransactionHash(),
+                                                                                                Instant.now()
+                                                                                        );
+                                                                                    });
+                                                                        })
+                                                        )
+                                        );
+                            });
+                });
     }
 
     /**
      * Transfer tokens between addresses
+     * REACTIVE: Fully chained flatMap operations, no blocking
      */
-    @Transactional
     public Uni<TransferResult> transferToken(TransferRequest request) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Transferring %s tokens of %s from %s to %s",
-                    request.amount(), request.tokenId(), request.fromAddress(), request.toAddress());
+        LOG.infof("Transferring %s tokens of %s from %s to %s",
+                request.amount(), request.tokenId(), request.fromAddress(), request.toAddress());
 
-            // Get token
-            Token token = tokenRepository.findByTokenId(request.tokenId())
-                    .orElseThrow(() -> new IllegalArgumentException("Token not found: " + request.tokenId()));
+        return tokenRepository.findByTokenId(request.tokenId())
+                .flatMap(optToken -> {
+                    if (optToken.isEmpty()) {
+                        return Uni.createFrom().failure(
+                                new IllegalArgumentException("Token not found: " + request.tokenId()));
+                    }
 
-            // Check if paused
-            if (token.getIsPaused()) {
-                throw new IllegalStateException("Token is paused");
-            }
+                    Token token = optToken.get();
 
-            // Get sender balance
-            TokenBalance fromBalance = balanceRepository
-                    .findByTokenAndAddress(request.tokenId(), request.fromAddress())
-                    .orElseThrow(() -> new IllegalArgumentException("Sender balance not found"));
+                    // Check if paused
+                    if (token.getIsPaused()) {
+                        return Uni.createFrom().failure(
+                                new IllegalStateException("Token is paused"));
+                    }
 
-            // Get or create receiver balance
-            TokenBalance toBalance = balanceRepository
-                    .findByTokenAndAddress(request.tokenId(), request.toAddress())
-                    .orElse(new TokenBalance(request.tokenId(), request.toAddress(), BigDecimal.ZERO));
+                    return balanceRepository.findByTokenAndAddress(request.tokenId(), request.fromAddress())
+                            .flatMap(optFromBalance -> {
+                                if (optFromBalance.isEmpty()) {
+                                    return Uni.createFrom().failure(
+                                            new IllegalArgumentException("Sender balance not found"));
+                                }
 
-            // Transfer
-            fromBalance.subtract(request.amount());
-            toBalance.add(request.amount());
+                                TokenBalance fromBalance = optFromBalance.get();
 
-            balanceRepository.persist(fromBalance);
-            balanceRepository.persist(toBalance);
+                                return balanceRepository.findByTokenAndAddress(request.tokenId(), request.toAddress())
+                                        .flatMap(optToBalance -> {
+                                            TokenBalance toBalance = optToBalance.orElse(
+                                                    new TokenBalance(request.tokenId(), request.toAddress(), BigDecimal.ZERO)
+                                            );
 
-            // Update token transfer count
-            token.recordTransfer();
-            tokenRepository.persist(token);
+                                            // Transfer
+                                            fromBalance.subtract(request.amount());
+                                            toBalance.add(request.amount());
 
-            // Update holder count
-            long holderCount = balanceRepository.countHolders(request.tokenId());
-            token.updateHolderCount(holderCount);
-            tokenRepository.persist(token);
+                                            // Save both balances reactively
+                                            return balanceRepository.persist(fromBalance)
+                                                    .flatMap(savedFromBalance ->
+                                                            balanceRepository.persist(toBalance)
+                                                                    .flatMap(savedToBalance -> {
+                                                                        // Update token transfer count
+                                                                        token.recordTransfer();
 
-            transfersCompleted.incrementAndGet();
+                                                                        return tokenRepository.persist(token)
+                                                                                .flatMap(savedToken ->
+                                                                                        // Update holder count reactively
+                                                                                        balanceRepository.countHolders(request.tokenId())
+                                                                                                .flatMap(holderCount -> {
+                                                                                                    savedToken.updateHolderCount(holderCount);
+                                                                                                    return tokenRepository.persist(savedToken)
+                                                                                                            .map(finalToken -> {
+                                                                                                                transfersCompleted.incrementAndGet();
 
-            return new TransferResult(
-                    request.tokenId(),
-                    request.fromAddress(),
-                    request.toAddress(),
-                    request.amount(),
-                    fromBalance.getBalance(),
-                    toBalance.getBalance(),
-                    generateTransactionHash(),
-                    Instant.now()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                                                                                                                return new TransferResult(
+                                                                                                                        request.tokenId(),
+                                                                                                                        request.fromAddress(),
+                                                                                                                        request.toAddress(),
+                                                                                                                        request.amount(),
+                                                                                                                        savedFromBalance.getBalance(),
+                                                                                                                        savedToBalance.getBalance(),
+                                                                                                                        generateTransactionHash(),
+                                                                                                                        Instant.now()
+                                                                                                                );
+                                                                                                            });
+                                                                                                })
+                                                                                );
+                                                                    })
+                                                    );
+                                        });
+                            });
+                });
     }
 
     // ==================== QUERY OPERATIONS ====================
 
     /**
      * Get token balance for an address
+     * REACTIVE: Direct repository chain, no blocking
      */
     public Uni<BigDecimal> getBalance(String address, String tokenId) {
-        return Uni.createFrom().item(() -> {
-            return balanceRepository
-                    .findByTokenAndAddress(tokenId, address)
-                    .map(TokenBalance::getBalance)
-                    .orElse(BigDecimal.ZERO);
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        return balanceRepository.findByTokenAndAddress(tokenId, address)
+                .map(optBalance -> optBalance
+                        .map(TokenBalance::getBalance)
+                        .orElse(BigDecimal.ZERO));
     }
 
     /**
      * Get total token supply
+     * REACTIVE: Direct repository chain, no blocking
      */
     public Uni<TokenSupply> getTotalSupply(String tokenId) {
-        return Uni.createFrom().item(() -> {
-            Token token = tokenRepository.findByTokenId(tokenId)
-                    .orElseThrow(() -> new IllegalArgumentException("Token not found: " + tokenId));
-
-            return new TokenSupply(
-                    tokenId,
-                    token.getTotalSupply(),
-                    token.getCirculatingSupply(),
-                    token.getBurnedAmount(),
-                    token.getMaxSupply()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        return tokenRepository.findByTokenId(tokenId)
+                .map(optToken -> {
+                    if (optToken.isEmpty()) {
+                        throw new IllegalArgumentException("Token not found: " + tokenId);
+                    }
+                    Token token = optToken.get();
+                    return new TokenSupply(
+                            tokenId,
+                            token.getTotalSupply(),
+                            token.getCirculatingSupply(),
+                            token.getBurnedAmount(),
+                            token.getMaxSupply()
+                    );
+                });
     }
 
     /**
      * Get token holders
+     * REACTIVE: Combined repository operations
      */
     public Uni<List<TokenHolder>> getTokenHolders(String tokenId, int limit) {
-        return Uni.createFrom().item(() -> {
-            List<TokenBalance> balances = balanceRepository.findTopHolders(tokenId, limit);
+        return tokenRepository.findByTokenId(tokenId)
+                .flatMap(optToken -> {
+                    if (optToken.isEmpty()) {
+                        return Uni.createFrom().failure(
+                                new IllegalArgumentException("Token not found: " + tokenId));
+                    }
+                    Token token = optToken.get();
 
-            Token token = tokenRepository.findByTokenId(tokenId)
-                    .orElseThrow(() -> new IllegalArgumentException("Token not found: " + tokenId));
-
-            return balances.stream()
-                    .map(balance -> new TokenHolder(
-                            balance.getAddress(),
-                            balance.getBalance(),
-                            calculatePercentage(balance.getBalance(), token.getTotalSupply()),
-                            balance.getLastTransferAt()
-                    ))
-                    .toList();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                    return balanceRepository.findTopHolders(tokenId, limit)
+                            .map(balances -> balances.stream()
+                                    .map(balance -> new TokenHolder(
+                                            balance.getAddress(),
+                                            balance.getBalance(),
+                                            calculatePercentage(balance.getBalance(), token.getTotalSupply()),
+                                            balance.getLastTransferAt()
+                                    ))
+                                    .toList());
+                });
     }
 
     // ==================== RWA OPERATIONS ====================
 
     /**
      * Create a new RWA token
+     * REACTIVE: Fully chained flatMap operations
      */
-    @Transactional
     public Uni<Token> createRWAToken(RWATokenRequest request) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Creating RWA token: %s for asset %s", request.name(), request.assetId());
+        LOG.infof("Creating RWA token: %s for asset %s", request.name(), request.assetId());
 
-            Token token = new Token();
-            token.setTokenId(generateTokenId());
-            token.setName(request.name());
-            token.setSymbol(request.symbol());
-            token.setTokenType(Token.TokenType.RWA_BACKED);
-            token.setTotalSupply(request.totalSupply());
-            token.setCirculatingSupply(request.totalSupply());
-            token.setOwner(request.owner());
-            token.setDecimals(request.decimals() != null ? request.decimals() : 18);
+        Token token = new Token();
+        token.setTokenId(generateTokenId());
+        token.setName(request.name());
+        token.setSymbol(request.symbol());
+        token.setTokenType(Token.TokenType.RWA_BACKED);
+        token.setTotalSupply(request.totalSupply());
+        token.setCirculatingSupply(request.totalSupply());
+        token.setOwner(request.owner());
+        token.setDecimals(request.decimals() != null ? request.decimals() : 18);
 
-            // RWA fields
-            token.setIsRWA(true);
-            token.setAssetType(request.assetType());
-            token.setAssetId(request.assetId());
-            token.setAssetValue(request.assetValue());
-            token.setAssetCurrency(request.assetCurrency());
+        // RWA fields
+        token.setIsRWA(true);
+        token.setAssetType(request.assetType());
+        token.setAssetId(request.assetId());
+        token.setAssetValue(request.assetValue());
+        token.setAssetCurrency(request.assetCurrency());
 
-            // Economics
-            token.setIsMintable(request.isMintable() != null ? request.isMintable() : false);
-            token.setIsBurnable(request.isBurnable() != null ? request.isBurnable() : false);
-            token.setMaxSupply(request.maxSupply());
+        // Economics
+        token.setIsMintable(request.isMintable() != null ? request.isMintable() : false);
+        token.setIsBurnable(request.isBurnable() != null ? request.isBurnable() : false);
+        token.setMaxSupply(request.maxSupply());
 
-            // Compliance
-            token.setKycRequired(request.kycRequired() != null ? request.kycRequired() : true);
+        // Compliance
+        token.setKycRequired(request.kycRequired() != null ? request.kycRequired() : true);
 
-            tokenRepository.persist(token);
+        return tokenRepository.persist(token)
+                .flatMap(savedToken -> {
+                    // Create initial balance for owner if supply > 0
+                    if (request.totalSupply().compareTo(BigDecimal.ZERO) > 0) {
+                        TokenBalance ownerBalance = new TokenBalance(
+                                savedToken.getTokenId(),
+                                request.owner(),
+                                request.totalSupply()
+                        );
 
-            // Create initial balance for owner
-            if (request.totalSupply().compareTo(BigDecimal.ZERO) > 0) {
-                TokenBalance ownerBalance = new TokenBalance(
-                        token.getTokenId(),
-                        request.owner(),
-                        request.totalSupply()
-                );
-                balanceRepository.persist(ownerBalance);
-
-                token.updateHolderCount(1);
-                tokenRepository.persist(token);
-            }
-
-            rwaTokensCreated.incrementAndGet();
-
-            LOG.infof("RWA token created: %s", token.getTokenId());
-            return token;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                        return balanceRepository.persist(ownerBalance)
+                                .flatMap(savedBalance -> {
+                                    savedToken.updateHolderCount(1);
+                                    return tokenRepository.persist(savedToken)
+                                            .map(finalToken -> {
+                                                rwaTokensCreated.incrementAndGet();
+                                                LOG.infof("RWA token created: %s", finalToken.getTokenId());
+                                                return finalToken;
+                                            });
+                                });
+                    } else {
+                        rwaTokensCreated.incrementAndGet();
+                        LOG.infof("RWA token created: %s", savedToken.getTokenId());
+                        return Uni.createFrom().item(savedToken);
+                    }
+                });
     }
 
     /**
      * Tokenize an existing asset
+     * REACTIVE: Delegates to createRWAToken
      */
-    @Transactional
     public Uni<Token> tokenizeAsset(AssetTokenizationRequest request) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Tokenizing asset: %s", request.assetId());
+        LOG.infof("Tokenizing asset: %s", request.assetId());
 
-            // Create RWA token for the asset
-            RWATokenRequest rwaRequest = new RWATokenRequest(
-                    request.assetName() + " Token",
-                    request.assetSymbol(),
-                    request.owner(),
-                    request.totalSupply(),
-                    18,
-                    request.assetType(),
-                    request.assetId(),
-                    request.assetValue(),
-                    request.assetCurrency(),
-                    request.isMintable(),
-                    request.isBurnable(),
-                    request.maxSupply(),
-                    request.kycRequired()
-            );
+        RWATokenRequest rwaRequest = new RWATokenRequest(
+                request.assetName() + " Token",
+                request.assetSymbol(),
+                request.owner(),
+                request.totalSupply(),
+                18,
+                request.assetType(),
+                request.assetId(),
+                request.assetValue(),
+                request.assetCurrency(),
+                request.isMintable(),
+                request.isBurnable(),
+                request.maxSupply(),
+                request.kycRequired()
+        );
 
-            return createRWAToken(rwaRequest).await().indefinitely();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        return createRWAToken(rwaRequest);
     }
 
     /**
      * Get token information
+     * REACTIVE: Direct repository chain
      */
     public Uni<Token> getToken(String tokenId) {
-        return Uni.createFrom().item(() ->
-                tokenRepository.findByTokenId(tokenId)
-                        .orElseThrow(() -> new IllegalArgumentException("Token not found: " + tokenId))
-        ).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        return tokenRepository.findByTokenId(tokenId)
+                .map(optToken -> optToken.orElseThrow(
+                        () -> new IllegalArgumentException("Token not found: " + tokenId)));
     }
 
     /**
      * List tokens with pagination
+     * REACTIVE: Uses LevelDB listAll with stream limiting
      */
     public Uni<List<Token>> listTokens(int page, int size) {
-        return Uni.createFrom().item(() -> {
-            return tokenRepository.findAll()
-                    .page(page, size)
-                    .list();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        return tokenRepository.listAll()
+                .map(tokens -> tokens.stream()
+                        .skip((long) page * size)
+                        .limit(size)
+                        .toList());
     }
 
     // ==================== STATISTICS ====================
 
     /**
      * Get service statistics
+     * REACTIVE: Combines multiple repository queries
      */
     public Uni<Map<String, Object>> getStatistics() {
-        return Uni.createFrom().item(() -> {
-            Map<String, Object> stats = new HashMap<>();
+        return tokenRepository.getStatistics()
+                .map(tokenStats -> {
+                    Map<String, Object> stats = new HashMap<>();
 
-            stats.put("tokensMinted", tokensMinted.get());
-            stats.put("tokensBurned", tokensBurned.get());
-            stats.put("transfersCompleted", transfersCompleted.get());
-            stats.put("rwaTokensCreated", rwaTokensCreated.get());
+                    stats.put("tokensMinted", tokensMinted.get());
+                    stats.put("tokensBurned", tokensBurned.get());
+                    stats.put("transfersCompleted", transfersCompleted.get());
+                    stats.put("rwaTokensCreated", rwaTokensCreated.get());
 
-            TokenRepository.TokenStatistics tokenStats = tokenRepository.getStatistics();
-            stats.put("tokenStatistics", Map.of(
-                    "totalTokens", tokenStats.totalTokens(),
-                    "fungibleTokens", tokenStats.fungibleTokens(),
-                    "nonFungibleTokens", tokenStats.nonFungibleTokens(),
-                    "rwaTokens", tokenStats.rwaTokens(),
-                    "totalSupply", tokenStats.totalSupply(),
-                    "totalCirculating", tokenStats.totalCirculating()
-            ));
+                    stats.put("tokenStatistics", Map.of(
+                            "totalTokens", tokenStats.totalTokens(),
+                            "fungibleTokens", tokenStats.fungibleTokens(),
+                            "nonFungibleTokens", tokenStats.nonFungibleTokens(),
+                            "rwaTokens", tokenStats.rwaTokens(),
+                            "totalSupply", tokenStats.totalSupply(),
+                            "totalCirculating", tokenStats.totalCirculating()
+                    ));
 
-            stats.put("timestamp", Instant.now());
+                    stats.put("timestamp", Instant.now());
 
-            return stats;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                    return stats;
+                });
     }
 
     // ==================== HELPER METHODS ====================
