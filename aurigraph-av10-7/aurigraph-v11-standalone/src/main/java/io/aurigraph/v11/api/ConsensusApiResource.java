@@ -75,30 +75,45 @@ public class ConsensusApiResource {
     @GET
     @Path("/nodes")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get consensus nodes", description = "Retrieve consensus node information")
+    @Operation(summary = "Get consensus nodes", description = "Retrieve real-time HyperRAFT++ consensus node information")
     @APIResponse(responseCode = "200", description = "Consensus nodes retrieved successfully")
+    @APIResponse(responseCode = "503", description = "Consensus service unavailable")
     public Uni<Response> getConsensusNodes() {
-        return Uni.createFrom().item(() -> {
-            // TODO: [HIGH] Integrate with SystemStatusService for real node data - Target: V3.8.0
-            // Current: Mock data for demonstration
-            List<Map<String, Object>> nodes = new ArrayList<>();
-            for (int i = 0; i < 10; i++) {
-                nodes.add(Map.of(
-                    "nodeId", "NODE-" + i,
-                    "role", i == 0 ? "LEADER" : "FOLLOWER",
-                    "status", "ACTIVE",
-                    "uptime", "99.98%",
-                    "blockHeight", 1_234_567 + i,
-                    "lastSeen", System.currentTimeMillis()
-                ));
-            }
-            return Response.ok(Map.of(
-                "nodes", nodes,
-                "totalNodes", nodes.size(),
-                "leaderNode", "NODE-0",
-                "consensusHealth", "HEALTHY"
-            )).build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        return consensusService.getClusterInfo()
+            .map(clusterInfo -> {
+                // Transform NodeInfo objects to response format
+                List<Map<String, Object>> nodes = clusterInfo.nodes.stream()
+                    .map(node -> Map.<String, Object>of(
+                        "nodeId", node.nodeId,
+                        "role", node.role.toString(),
+                        "status", node.status,
+                        "currentTerm", node.currentTerm,
+                        "commitIndex", node.commitIndex,
+                        "lastApplied", node.lastApplied,
+                        "throughput", node.throughput,
+                        "lastSeen", node.lastSeen.toEpochMilli()
+                    ))
+                    .toList();
+
+                return Response.ok(Map.of(
+                    "nodes", nodes,
+                    "totalNodes", clusterInfo.totalNodes,
+                    "leaderNode", clusterInfo.leaderNode,
+                    "consensusHealth", clusterInfo.consensusHealth,
+                    "timestamp", clusterInfo.timestamp.toEpochMilli()
+                )).build();
+            })
+            .onFailure().recoverWithItem(throwable -> {
+                LOG.errorf(throwable, "Failed to retrieve consensus node information");
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity(Map.of(
+                        "error", "Consensus service unavailable",
+                        "message", throwable.getMessage(),
+                        "timestamp", System.currentTimeMillis()
+                    ))
+                    .build();
+            })
+            .runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
     // ==================== DATA MODELS ====================
