@@ -11,6 +11,7 @@ import { Header, Sidebar, Footer } from '@components/layout';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
 import { selectThemeMode } from './store/selectors';
+import DemoApp from './components/demo-app/DemoApp';
 
 const { Content } = Layout;
 
@@ -79,18 +80,13 @@ function App() {
           <Content
             style={{
               margin: '24px 16px',
-              padding: 24,
               minHeight: 280,
               background: isDarkMode ? '#141414' : '#fff',
               borderRadius: '8px',
             }}
           >
-            {/* Placeholder for dashboard content */}
-            <div style={{ textAlign: 'center', padding: '100px 0' }}>
-              <h1>Welcome to Aurigraph Enterprise Portal</h1>
-              <p>Active View: {activeView}</p>
-              <p>Phase 2 Task 2.2 in progress - React project structure created</p>
-            </div>
+            {/* Demo App */}
+            <DemoApp />
           </Content>
 
           <Footer version="2.1.0" systemStatus="healthy" />
