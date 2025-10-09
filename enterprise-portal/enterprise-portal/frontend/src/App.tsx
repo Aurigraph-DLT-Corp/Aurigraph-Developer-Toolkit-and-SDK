@@ -6,11 +6,19 @@
  */
 
 import { useState } from 'react';
-import { Layout, ConfigProvider, theme } from 'antd';
+import { Layout, ConfigProvider, theme, Tabs } from 'antd';
+import {
+  DashboardOutlined,
+  LineChartOutlined,
+  ExperimentOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import { Header, Sidebar, Footer } from '@components/layout';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
 import { selectThemeMode } from './store/selectors';
+import Dashboard from './components/Dashboard';
+import Monitoring from './components/Monitoring';
 import DemoApp from './components/demo-app/DemoApp';
 
 const { Content } = Layout;
@@ -18,6 +26,7 @@ const { Content } = Layout;
 function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('spatial-dashboard');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Redux state and actions
   const dispatch = useAppDispatch();
@@ -31,7 +40,14 @@ function App() {
 
   const handleMenuClick = (key: string) => {
     setActiveView(key);
-    console.log('Active view:', key);
+    // Map sidebar menu to tabs
+    if (key === 'spatial-dashboard' || key === 'vizor-dashboard') {
+      setActiveTab('demo');
+    } else if (key === 'performance-metrics') {
+      setActiveTab('monitoring');
+    } else {
+      setActiveTab('dashboard');
+    }
   };
 
   const handleSettingsClick = () => {
@@ -85,11 +101,62 @@ function App() {
               borderRadius: '8px',
             }}
           >
-            {/* Demo App */}
-            <DemoApp />
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              size="large"
+              style={{ padding: '0 24px' }}
+              items={[
+                {
+                  key: 'dashboard',
+                  label: (
+                    <span>
+                      <DashboardOutlined />
+                      Dashboard
+                    </span>
+                  ),
+                  children: <Dashboard />,
+                },
+                {
+                  key: 'monitoring',
+                  label: (
+                    <span>
+                      <LineChartOutlined />
+                      Monitoring
+                    </span>
+                  ),
+                  children: <Monitoring />,
+                },
+                {
+                  key: 'demo',
+                  label: (
+                    <span>
+                      <ExperimentOutlined />
+                      Node Visualization Demo
+                    </span>
+                  ),
+                  children: <DemoApp />,
+                },
+                {
+                  key: 'settings',
+                  label: (
+                    <span>
+                      <SettingOutlined />
+                      Settings
+                    </span>
+                  ),
+                  children: (
+                    <div style={{ padding: '24px' }}>
+                      <h1>Settings</h1>
+                      <p>Portal settings and configuration options will appear here.</p>
+                    </div>
+                  ),
+                },
+              ]}
+            />
           </Content>
 
-          <Footer version="2.1.0" systemStatus="healthy" />
+          <Footer version="4.0.0" systemStatus="healthy" />
         </Layout>
       </Layout>
     </ConfigProvider>
