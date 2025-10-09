@@ -2,18 +2,26 @@
  * Main Application Component
  *
  * Root component that sets up the application layout with Ant Design Layout system
+ * Integrates with Redux for state management
  */
 
 import { useState } from 'react';
 import { Layout, ConfigProvider, theme } from 'antd';
 import { Header, Sidebar, Footer } from '@components/layout';
+import { useAppSelector, useAppDispatch } from './hooks/useRedux';
+import { toggleThemeMode } from './store/settingsSlice';
+import { selectThemeMode } from './store/selectors';
 
 const { Content } = Layout;
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('spatial-dashboard');
-  const [isDarkMode] = useState(true); // TODO: Add theme toggle in Task 2.3
+
+  // Redux state and actions
+  const dispatch = useAppDispatch();
+  const themeMode = useAppSelector(selectThemeMode);
+  const isDarkMode = themeMode === 'dark';
 
   const user = {
     name: 'Admin User',
@@ -27,7 +35,8 @@ function App() {
 
   const handleSettingsClick = () => {
     console.log('Settings clicked');
-    // TODO: Open settings modal
+    // Toggle theme as a demo of Redux integration
+    dispatch(toggleThemeMode());
   };
 
   const handleLogoutClick = () => {
