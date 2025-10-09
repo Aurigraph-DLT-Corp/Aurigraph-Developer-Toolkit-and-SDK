@@ -147,10 +147,15 @@ public class TransactionService {
     /**
      * Process a transaction with high performance using virtual threads
      * Target: 3M+ TPS with <50ms P99 latency
+     * OPTIMIZED (Oct 9, 2025): Now uses ultra-fast implementation directly
      */
     public Uni<String> processTransactionReactive(String id, double amount) {
-        return Uni.createFrom().item(() -> processTransactionOptimized(id, amount))
-            .runSubscriptionOn(Executors.newVirtualThreadPerTaskExecutor());
+        // OLD (blocking wrapped in Uni):
+        // return Uni.createFrom().item(() -> processTransactionOptimized(id, amount))
+        //     .runSubscriptionOn(Executors.newVirtualThreadPerTaskExecutor());
+
+        // NEW (truly reactive with best implementation):
+        return Uni.createFrom().item(() -> processTransactionUltraFast(id, amount));
     }
     
     /**
@@ -203,9 +208,10 @@ public class TransactionService {
     
     /**
      * Legacy method for backward compatibility
+     * OPTIMIZED (Oct 9, 2025): Now uses ultra-fast implementation
      */
     public String processTransaction(String id, double amount) {
-        return processTransactionOptimized(id, amount);
+        return processTransactionUltraFast(id, amount);  // ← Use best implementation
     }
 
     /**
@@ -227,24 +233,20 @@ public class TransactionService {
     /**
      * High-performance batch processing with virtual threads
      * Optimized for maximum throughput and parallel processing
+     * OPTIMIZED (Oct 9, 2025): Uses ultra-fast processing
      */
     public Multi<String> batchProcessTransactions(List<TransactionRequest> requests) {
         return Multi.createFrom().iterable(requests)
-            .onItem().transformToUniAndMerge(req -> 
-                processTransactionReactive(req.id(), req.amount()))
-            .runSubscriptionOn(Executors.newVirtualThreadPerTaskExecutor());
+            .onItem().transform(req -> processTransactionUltraFast(req.id(), req.amount()));
     }
-    
+
     /**
      * Ultra-high-performance parallel batch processing
      * Uses ForkJoinPool for CPU-intensive operations
+     * OPTIMIZED (Oct 9, 2025): Delegates to ultra-scale implementation
      */
     public CompletableFuture<List<String>> batchProcessParallel(List<TransactionRequest> requests) {
-        return CompletableFuture.supplyAsync(() -> {
-            return requests.parallelStream()
-                .map(req -> processTransactionOptimized(req.id(), req.amount()))
-                .toList();
-        }, processingPool);
+        return processUltraScaleBatch(requests);  // ← Use best batch implementation
     }
     
     /**
