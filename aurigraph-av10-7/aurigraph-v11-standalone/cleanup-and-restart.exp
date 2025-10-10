@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+
+# Cleanup old processes and restart
+set timeout 60
+set password "subbuFuture@2025"
+
+# Kill processes using ports 9003, 9004, 8443
+spawn ssh -p 22 subbu@dlt.aurigraph.io "echo 'Killing processes on ports 9003, 9004, 8443...' && sudo lsof -ti:9003 | xargs -r sudo kill -9 && sudo lsof -ti:9004 | xargs -r sudo kill -9 && sudo lsof -ti:8443 | xargs -r sudo kill -9 && pkill -9 -f 'aurigraph-v11' || echo 'No processes to kill' && sleep 2 && cd ~/aurigraph-v11 && ./start-v11.sh && sleep 10 && ps aux | grep aurigraph-v11 | grep -v grep && curl -s http://localhost:9003/q/health || echo 'Service not responding yet'"
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    -re "\\\[sudo\\\] password for.*:" {
+        send "$password\r"
+        exp_continue
+    }
+    "Are you sure you want to continue connecting" {
+        send "yes\r"
+        exp_continue
+    }
+    eof
+}
+
+wait
