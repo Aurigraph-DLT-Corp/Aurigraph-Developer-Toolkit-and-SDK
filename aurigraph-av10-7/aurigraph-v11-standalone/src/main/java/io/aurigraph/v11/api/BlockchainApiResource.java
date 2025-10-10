@@ -131,6 +131,42 @@ public class BlockchainApiResource {
     }
 
     @GET
+    @Path("/transactions")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get transactions", description = "Retrieve list of recent transactions")
+    @APIResponse(responseCode = "200", description = "Transactions retrieved successfully",
+                content = @Content(mediaType = "application/json"))
+    public Uni<Response> getTransactions(@QueryParam("limit") @DefaultValue("10") int limit,
+                                         @QueryParam("offset") @DefaultValue("0") int offset) {
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> transactions = new ArrayList<>();
+            long currentTime = System.currentTimeMillis();
+
+            for (int i = 0; i < Math.min(limit, 100); i++) {
+                transactions.add(Map.of(
+                    "hash", "0x" + Long.toHexString(currentTime - (i * 1000)) + "tx" + i,
+                    "from", "0xsender" + Long.toHexString(currentTime + i).substring(0, 8),
+                    "to", "0xreceiver" + Long.toHexString(currentTime + i + 100).substring(0, 8),
+                    "value", String.valueOf((100.0 + (i * 10.5))),
+                    "fee", String.valueOf((0.001 + (i * 0.0001))),
+                    "status", i % 10 == 0 ? "PENDING" : "CONFIRMED",
+                    "timestamp", currentTime - (i * 1000),
+                    "blockHeight", 1_450_789L - (i / 10),
+                    "nonce", 1000 + i,
+                    "gasUsed", 21000 + (i * 100)
+                ));
+            }
+
+            return Response.ok(Map.of(
+                "transactions", transactions,
+                "total", 125_678_000L,
+                "limit", limit,
+                "offset", offset
+            )).build();
+        });
+    }
+
+    @GET
     @Path("/transactions/stats")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get transaction statistics", description = "Returns current transaction processing statistics")
