@@ -368,6 +368,31 @@ public class Phase2BlockchainResource {
     // ==================== SPRINT 14: STAKING DASHBOARD ====================
 
     /**
+     * Get staking information overview
+     * GET /api/v11/blockchain/staking/info
+     */
+    @GET
+    @Path("/staking/info")
+    public Uni<StakingInfo> getStakingInfo() {
+        LOG.info("Fetching staking information");
+
+        return Uni.createFrom().item(() -> {
+            StakingInfo info = new StakingInfo();
+            info.totalStaked = new BigDecimal("2450000000"); // 2.45B AUR
+            info.totalValidators = 127;
+            info.activeValidators = 121;
+            info.averageAPY = 12.5;
+            info.minStakeAmount = new BigDecimal("1000");
+            info.unbondingPeriod = "7 days";
+            info.totalDelegators = 15000;
+            info.totalRewardsDistributed = new BigDecimal("125000000"); // 125M AUR
+            info.rewardsDistributedToday = new BigDecimal("342465"); // ~342K AUR
+            info.networkStakingRatio = 68.5; // % of total supply staked
+            return info;
+        });
+    }
+
+    /**
      * Get staking pools overview
      * GET /api/v11/blockchain/staking/pools
      */
@@ -1157,6 +1182,19 @@ public class Phase2BlockchainResource {
     }
 
     // Sprint 14 DTOs
+    public static class StakingInfo {
+        public BigDecimal totalStaked;
+        public int totalValidators;
+        public int activeValidators;
+        public double averageAPY;
+        public BigDecimal minStakeAmount;
+        public String unbondingPeriod;
+        public int totalDelegators;
+        public BigDecimal totalRewardsDistributed;
+        public BigDecimal rewardsDistributedToday;
+        public double networkStakingRatio;
+    }
+
     public static class StakingPools {
         public int totalPools;
         public BigDecimal totalStaked;

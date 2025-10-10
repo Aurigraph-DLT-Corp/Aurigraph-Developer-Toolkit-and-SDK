@@ -226,6 +226,38 @@ public class BlockchainApiResource {
         });
     }
 
+    // ==================== CHAIN INFO API ====================
+
+    @GET
+    @Path("/chain/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get blockchain info", description = "Retrieve comprehensive blockchain information")
+    public Uni<Response> getChainInfo() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> chainInfo = new HashMap<>();
+            chainInfo.put("chainId", "aurigraph-mainnet-1");
+            chainInfo.put("chainName", "Aurigraph V11 Mainnet");
+            chainInfo.put("networkVersion", "11.0.0");
+            chainInfo.put("blockHeight", 1_450_789L);
+            chainInfo.put("averageBlockTime", 2.0); // seconds
+            chainInfo.put("totalTransactions", 125_678_000L);
+            chainInfo.put("totalValidators", 127);
+            chainInfo.put("activeValidators", 121);
+            chainInfo.put("consensusAlgorithm", "HyperRAFT++");
+            chainInfo.put("currentTPS", 1_850_000);
+            chainInfo.put("peakTPS", 2_150_000);
+            chainInfo.put("averageLatency", 42.5); // ms
+            chainInfo.put("finalizationTime", 495); // ms
+            chainInfo.put("totalSupply", "10000000000"); // 10B AUR
+            chainInfo.put("circulatingSupply", "3575000000"); // 3.575B AUR
+            chainInfo.put("stakingRatio", 68.5); // %
+            chainInfo.put("quantumResistant", true);
+            chainInfo.put("aiOptimizationEnabled", true);
+            chainInfo.put("timestamp", System.currentTimeMillis());
+            return Response.ok(chainInfo).build();
+        });
+    }
+
     // ==================== NETWORK API ====================
 
     @GET
