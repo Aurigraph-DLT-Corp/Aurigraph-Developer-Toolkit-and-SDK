@@ -13,7 +13,7 @@ REMOTE_PASSWORD="subbuFuture@2025"
 REMOTE_PATH="/var/www/aurigraph-portal"
 
 echo "╔════════════════════════════════════════════════════════════╗"
-echo "║   Aurigraph Enterprise Portal v4.0.1 Deployment            ║"
+echo "║   Aurigraph Enterprise Portal v4.1.0 Deployment            ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -67,7 +67,7 @@ echo "✅ Deployment verification:"
 echo ""
 echo "🌐 Portal URL:     https://dlt.aurigraph.io"
 echo "🔒 SSL:            Enabled"
-echo "📦 Version:        4.0.1"
+echo "📦 Version:        4.1.0"
 echo "⏰ Deployed:       $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 

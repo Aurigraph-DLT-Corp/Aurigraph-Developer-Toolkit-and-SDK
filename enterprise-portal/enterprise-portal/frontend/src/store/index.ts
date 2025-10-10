@@ -24,6 +24,7 @@ import storage from 'redux-persist/lib/storage'; // defaults to localStorage
 
 import demoAppReducer from './demoAppSlice';
 import settingsReducer from './settingsSlice';
+import comprehensivePortalReducer from './comprehensivePortalSlice';
 import type { RootState } from '../types/state';
 
 // ============================================================================
@@ -67,6 +68,7 @@ const demoAppPersistConfig = {
 const rootReducer = combineReducers({
   demoApp: persistReducer(demoAppPersistConfig, demoAppReducer),
   settings: persistReducer(settingsPersistConfig, settingsReducer),
+  comprehensivePortal: comprehensivePortalReducer,
 });
 
 // ============================================================================

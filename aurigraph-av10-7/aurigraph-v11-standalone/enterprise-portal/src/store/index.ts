@@ -3,6 +3,8 @@ import authReducer from './authSlice'
 import dashboardReducer from './dashboardSlice'
 import performanceReducer from './performanceSlice'
 import transactionReducer from './transactionSlice'
+import rwaReducer from './rwaSlice'
+import apiIntegrationReducer from './apiIntegrationSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +12,8 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     performance: performanceReducer,
     transactions: transactionReducer,
+    rwa: rwaReducer,
+    apiIntegration: apiIntegrationReducer,
   },
 })
 

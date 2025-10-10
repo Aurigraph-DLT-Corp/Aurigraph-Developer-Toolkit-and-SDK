@@ -12,6 +12,12 @@ import {
   LineChartOutlined,
   ExperimentOutlined,
   SettingOutlined,
+  ThunderboltOutlined,
+  BlockOutlined,
+  NodeIndexOutlined,
+  RobotOutlined,
+  SafetyOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import { Header, Sidebar, Footer } from '@components/layout';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
@@ -20,6 +26,12 @@ import { selectThemeMode } from './store/selectors';
 import Dashboard from './components/Dashboard';
 import Monitoring from './components/Monitoring';
 import DemoApp from './components/demo-app/DemoApp';
+import TransactionExplorer from './components/comprehensive/TransactionExplorer';
+import BlockExplorer from './components/comprehensive/BlockExplorer';
+import ValidatorDashboard from './components/comprehensive/ValidatorDashboard';
+import AIOptimizationControls from './components/comprehensive/AIOptimizationControls';
+import QuantumSecurityPanel from './components/comprehensive/QuantumSecurityPanel';
+import CrossChainBridge from './components/comprehensive/CrossChainBridge';
 
 const { Content } = Layout;
 
@@ -118,6 +130,66 @@ function App() {
                   children: <Dashboard />,
                 },
                 {
+                  key: 'transactions',
+                  label: (
+                    <span>
+                      <ThunderboltOutlined />
+                      Transactions
+                    </span>
+                  ),
+                  children: <TransactionExplorer />,
+                },
+                {
+                  key: 'blocks',
+                  label: (
+                    <span>
+                      <BlockOutlined />
+                      Blocks
+                    </span>
+                  ),
+                  children: <BlockExplorer />,
+                },
+                {
+                  key: 'validators',
+                  label: (
+                    <span>
+                      <NodeIndexOutlined />
+                      Validators
+                    </span>
+                  ),
+                  children: <ValidatorDashboard />,
+                },
+                {
+                  key: 'ai',
+                  label: (
+                    <span>
+                      <RobotOutlined />
+                      AI Optimization
+                    </span>
+                  ),
+                  children: <AIOptimizationControls />,
+                },
+                {
+                  key: 'security',
+                  label: (
+                    <span>
+                      <SafetyOutlined />
+                      Security
+                    </span>
+                  ),
+                  children: <QuantumSecurityPanel />,
+                },
+                {
+                  key: 'bridge',
+                  label: (
+                    <span>
+                      <SwapOutlined />
+                      Bridge
+                    </span>
+                  ),
+                  children: <CrossChainBridge />,
+                },
+                {
                   key: 'monitoring',
                   label: (
                     <span>
@@ -132,7 +204,7 @@ function App() {
                   label: (
                     <span>
                       <ExperimentOutlined />
-                      Node Visualization Demo
+                      Node Visualization
                     </span>
                   ),
                   children: <DemoApp />,
@@ -156,7 +228,7 @@ function App() {
             />
           </Content>
 
-          <Footer version="4.0.0" systemStatus="healthy" />
+          <Footer version="4.1.0" systemStatus="healthy" />
         </Layout>
       </Layout>
     </ConfigProvider>

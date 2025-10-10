@@ -1,7 +1,8 @@
 import { Outlet } from 'react-router-dom'
 import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Divider, Chip } from '@mui/material'
 import { Dashboard, Receipt, Speed, Hub, Analytics, Settings, Logout, PlayCircleOutline,
-  AccountTree, Code, Token, Gavel, SwapHoriz, Inventory } from '@mui/icons-material'
+  AccountTree, Code, Token, Gavel, SwapHoriz, Inventory, AccountBalance, ShowChart,
+  VerifiedUser, Assessment, TrendingUp } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../hooks'
 import { logout } from '../store/authSlice'
@@ -23,6 +24,12 @@ const menuItems = [
   { divider: true, label: 'Tokenization' },
   { text: 'Token Registry', icon: <Token />, path: '/tokens', badge: '3.1' },
   { text: 'Tokenization', icon: <SwapHoriz />, path: '/tokenization' },
+  { divider: true, label: 'RWA Tokenization', badge: 'NEW' },
+  { text: 'Tokenize Asset', icon: <AccountBalance />, path: '/rwa/tokenize', badge: 'NEW' },
+  { text: 'My Portfolio', icon: <TrendingUp />, path: '/rwa/portfolio' },
+  { text: 'Asset Valuation', icon: <ShowChart />, path: '/rwa/valuation' },
+  { text: 'Dividends', icon: <Assessment />, path: '/rwa/dividends' },
+  { text: 'Compliance', icon: <VerifiedUser />, path: '/rwa/compliance' },
   { divider: true, label: 'Management' },
   { text: 'Channel Config', icon: <Inventory />, path: '/channel-management' },
   { text: 'Settings', icon: <Settings />, path: '/settings' },
