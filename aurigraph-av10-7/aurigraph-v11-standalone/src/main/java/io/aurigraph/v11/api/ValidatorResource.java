@@ -1,6 +1,8 @@
 package io.aurigraph.v11.api;
 
+import io.aurigraph.v11.validators.LiveValidatorService;
 import io.smallrye.mutiny.Uni;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -10,104 +12,66 @@ import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * Validator API Resource
+ * Validator API Resource - LIVE DATA
  *
- * Provides validator management endpoints for the Validator Dashboard UI.
+ * Provides validator management endpoints for the Validator Dashboard UI with REAL-TIME data.
  * This resource exposes validators at /api/v11/validators to match frontend expectations.
  *
  * @author Backend Development Agent (BDA)
- * @version 4.1.0
+ * @version 5.0.0 - LIVE DATA
  * @since BUG-002 Fix
  */
 @Path("/api/v11/validators")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Tag(name = "Validator API", description = "Validator management and staking operations")
+@Tag(name = "Validator API - LIVE", description = "Validator management with real-time live data")
 public class ValidatorResource {
 
     private static final Logger LOG = Logger.getLogger(ValidatorResource.class);
 
+    @Inject
+    LiveValidatorService liveValidatorService;
+
     /**
-     * Get all validators
+     * Get all validators - LIVE DATA
      * GET /api/v11/validators
      */
     @GET
-    @Operation(summary = "List all validators", description = "Retrieve list of all validator nodes with staking information")
-    public Uni<ValidatorsList> getAllValidators(
+    @Operation(summary = "List all validators (LIVE)", description = "Retrieve list of all validator nodes with REAL-TIME staking information")
+    public Uni<LiveValidatorService.LiveValidatorsList> getAllValidators(
             @QueryParam("status") String status,
             @QueryParam("offset") @DefaultValue("0") int offset,
             @QueryParam("limit") @DefaultValue("50") int limit) {
 
-        LOG.infof("Fetching validators (status: %s, offset: %d, limit: %d)", status, offset, limit);
+        LOG.infof("Fetching LIVE validators (status: %s, offset: %d, limit: %d)", status, offset, limit);
 
-        return Uni.createFrom().item(() -> {
-            ValidatorsList list = new ValidatorsList();
-            list.totalValidators = 127;
-            list.activeValidators = 121;
-            list.validators = new ArrayList<>();
-
-            // Generate validator data
-            for (int i = 0; i < Math.min(limit, 50); i++) {
-                int validatorIndex = offset + i;
-                if (validatorIndex >= list.totalValidators) break;
-
-                Validator validator = new Validator();
-                validator.id = "validator_" + validatorIndex;
-                validator.address = "0xvalidator" + String.format("%03d", validatorIndex);
-                validator.name = "Aurigraph Validator #" + validatorIndex;
-                validator.status = validatorIndex < 121 ? "ACTIVE" : "INACTIVE";
-                validator.stake = new BigDecimal(500_000_000L - (validatorIndex * 1_000_000L));
-                validator.delegatedStake = new BigDecimal(250_000_000L - (validatorIndex * 500_000L));
-                validator.commission = 5.0 + (validatorIndex % 15);
-                validator.uptime = 95.0 + (validatorIndex * 0.03);
-                validator.blocksProduced = 50_000 + (validatorIndex * 500);
-                validator.votingPower = 1_000_000L + (validatorIndex * 50_000L);
-                validator.lastActive = Instant.now().minusSeconds(validatorIndex * 300).toString();
-                validator.apr = 10.0 + (validatorIndex % 10);
-                validator.delegators = 100 + (validatorIndex * 5);
-
-                list.validators.add(validator);
-            }
-
-            return list;
-        });
+        return Uni.createFrom().item(() -> liveValidatorService.getAllValidators(status, offset, limit));
     }
 
     /**
-     * Get specific validator details
+     * Get specific validator details - LIVE DATA
      * GET /api/v11/validators/{id}
      */
     @GET
     @Path("/{id}")
-    @Operation(summary = "Get validator details", description = "Retrieve detailed information about a specific validator")
-    public Uni<Validator> getValidatorDetails(@PathParam("id") String validatorId) {
-        LOG.infof("Fetching validator details: %s", validatorId);
+    @Operation(summary = "Get validator details (LIVE)", description = "Retrieve REAL-TIME detailed information about a specific validator")
+    public Uni<Response> getValidatorDetails(@PathParam("id") String validatorId) {
+        LOG.infof("Fetching LIVE validator details: %s", validatorId);
 
         return Uni.createFrom().item(() -> {
-            Validator validator = new Validator();
-            validator.id = validatorId;
-            validator.address = "0x" + validatorId.replace("validator_", "address");
-            validator.name = "Aurigraph Validator Prime";
-            validator.status = "ACTIVE";
-            validator.stake = new BigDecimal("500000000");
-            validator.delegatedStake = new BigDecimal("250000000");
-            validator.commission = 10.0;
-            validator.uptime = 99.95;
-            validator.blocksProduced = 125_000;
-            validator.votingPower = 5_000_000L;
-            validator.lastActive = Instant.now().minusSeconds(60).toString();
-            validator.apr = 12.5;
-            validator.delegators = 500;
-            validator.rewards = new BigDecimal("12500000");
-            validator.slashingEvents = 0;
-            validator.registeredAt = "2025-01-15T00:00:00Z";
+            LiveValidatorService.ValidatorResponse validator = liveValidatorService.getValidatorById(validatorId);
 
-            return validator;
+            if (validator == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", "Validator not found", "validatorId", validatorId))
+                    .build();
+            }
+
+            return Response.ok(validator).build();
         });
     }
 
@@ -154,31 +118,7 @@ public class ValidatorResource {
     }
 
     // ==================== DTOs ====================
-
-    public static class ValidatorsList {
-        public int totalValidators;
-        public int activeValidators;
-        public List<Validator> validators;
-    }
-
-    public static class Validator {
-        public String id;
-        public String address;
-        public String name;
-        public String status;
-        public BigDecimal stake;
-        public BigDecimal delegatedStake;
-        public double commission;
-        public double uptime;
-        public long blocksProduced;
-        public long votingPower;
-        public String lastActive;
-        public double apr;
-        public int delegators;
-        public BigDecimal rewards;
-        public Integer slashingEvents;
-        public String registeredAt;
-    }
+    // Validator DTOs moved to LiveValidatorService for real-time data
 
     public static class StakeRequest {
         public String amount;
