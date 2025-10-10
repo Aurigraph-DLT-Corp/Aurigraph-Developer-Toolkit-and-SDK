@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Tag(name = "Feed Token API", description = "Data feed tokenization and throughput management")
 public class FeedTokenResource {
 
-    private static final Logger LOG = Logger.getLogger(FeedTokenResource.java);
+    private static final Logger LOG = Logger.getLogger(FeedTokenResource.class);
 
     // In-memory token storage (replace with database in production)
     private static final Map<String, FeedToken> TOKENS = new ConcurrentHashMap<>();
