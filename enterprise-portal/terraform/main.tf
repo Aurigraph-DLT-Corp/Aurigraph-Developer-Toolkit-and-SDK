@@ -79,10 +79,7 @@ resource "null_resource" "create_deployment_package" {
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
-      cd ${path.root}/../enterprise-portal/frontend
-      tar -czf ${path.root}/portal-${local.portal_version}.tar.gz -C . dist
-    EOT
+    command = "tar -czf ${path.root}/portal-${local.portal_version}.tar.gz -C ${path.root}/../enterprise-portal/frontend dist"
   }
 }
 

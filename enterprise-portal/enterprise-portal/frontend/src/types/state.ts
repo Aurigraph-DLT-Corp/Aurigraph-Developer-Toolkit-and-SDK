@@ -12,6 +12,7 @@ import type {
   ChannelStats,
   NetworkStats,
 } from './api';
+import type { NetworkConfig } from './dataSources';
 
 // ============================================================================
 // Demo App State (demoAppSlice)
@@ -43,6 +44,9 @@ export interface DemoAppState {
   nodes: NodesMap;
   selectedNodeId: string | null;
 
+  // Network Configuration
+  networkConfig: NetworkConfig | null;
+
   // System Metrics
   systemMetrics: SystemMetrics;
 
@@ -50,7 +54,7 @@ export interface DemoAppState {
   chartData: ChartData;
 
   // Dashboard State
-  activeDashboard: 'spatial' | 'vizor';
+  activeDashboard: 'config' | 'spatial' | 'vizor';
   spatialViewMode: '2d' | '3d';
 
   // Loading States
@@ -280,6 +284,13 @@ export interface DeleteNodeThunkResult {
 export const DEFAULT_DEMO_APP_STATE: DemoAppState = {
   nodes: {},
   selectedNodeId: null,
+  networkConfig: {
+    channels: 1,
+    validators: 4,
+    businessNodes: 2,
+    slimNodes: 3,
+    dataSources: [],
+  },
   systemMetrics: {
     performance: null,
     consensus: null,
@@ -294,7 +305,7 @@ export const DEFAULT_DEMO_APP_STATE: DemoAppState = {
     consensus: [],
     transactions: [],
   },
-  activeDashboard: 'spatial',
+  activeDashboard: 'config',
   spatialViewMode: '2d',
   isLoadingNodes: false,
   isLoadingMetrics: false,

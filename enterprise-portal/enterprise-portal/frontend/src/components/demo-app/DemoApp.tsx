@@ -5,12 +5,13 @@
  */
 
 import { Tabs } from 'antd';
-import { AppstoreOutlined, LineChartOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, LineChartOutlined, SettingOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { selectActiveDashboard } from '../../store/selectors';
 import { setActiveDashboard } from '../../store/demoAppSlice';
 import SpatialDashboard from './SpatialDashboard';
 import VizorDashboard from './VizorDashboard';
+import NetworkConfigPanel from './NetworkConfigPanel';
 
 const { TabPane } = Tabs;
 
@@ -19,12 +20,23 @@ export const DemoApp = () => {
   const activeDashboard = useAppSelector(selectActiveDashboard);
 
   const handleTabChange = (key: string) => {
-    dispatch(setActiveDashboard(key as 'spatial' | 'vizor'));
+    dispatch(setActiveDashboard(key as 'spatial' | 'vizor' | 'config'));
   };
 
   return (
     <div style={{ padding: '24px' }}>
       <Tabs activeKey={activeDashboard} onChange={handleTabChange} size="large">
+        <TabPane
+          tab={
+            <span>
+              <SettingOutlined />
+              Network Config
+            </span>
+          }
+          key="config"
+        >
+          <NetworkConfigPanel />
+        </TabPane>
         <TabPane
           tab={
             <span>

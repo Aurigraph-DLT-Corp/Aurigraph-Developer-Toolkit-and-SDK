@@ -199,9 +199,9 @@ export const demoAppSlice = createSlice({
     // ========================================================================
 
     /**
-     * Set the active dashboard (spatial or vizor)
+     * Set the active dashboard (config, spatial or vizor)
      */
-    setActiveDashboard: (state, action: PayloadAction<'spatial' | 'vizor'>) => {
+    setActiveDashboard: (state, action: PayloadAction<'config' | 'spatial' | 'vizor'>) => {
       state.activeDashboard = action.payload;
     },
 
@@ -294,6 +294,62 @@ export const demoAppSlice = createSlice({
     },
 
     // ========================================================================
+    // Network Configuration Actions
+    // ========================================================================
+
+    /**
+     * Update network configuration
+     */
+    updateNetworkConfig: (state, action: PayloadAction<Partial<import('../types/dataSources').NetworkConfig>>) => {
+      if (state.networkConfig) {
+        state.networkConfig = {
+          ...state.networkConfig,
+          ...action.payload,
+        };
+      } else {
+        state.networkConfig = action.payload as import('../types/dataSources').NetworkConfig;
+      }
+    },
+
+    /**
+     * Add data source to network configuration
+     */
+    addDataSource: (state, action: PayloadAction<import('../types/dataSources').AnyDataSource>) => {
+      if (state.networkConfig) {
+        state.networkConfig.dataSources.push(action.payload);
+      }
+    },
+
+    /**
+     * Remove data source from network configuration
+     */
+    removeDataSource: (state, action: PayloadAction<string>) => {
+      if (state.networkConfig) {
+        state.networkConfig.dataSources = state.networkConfig.dataSources.filter(
+          (ds) => ds.id !== action.payload
+        );
+      }
+    },
+
+    /**
+     * Update data source in network configuration
+     */
+    updateDataSource: (
+      state,
+      action: PayloadAction<{ id: string; updates: Partial<import('../types/dataSources').AnyDataSource> }>
+    ) => {
+      if (state.networkConfig) {
+        const index = state.networkConfig.dataSources.findIndex((ds) => ds.id === action.payload.id);
+        if (index !== -1) {
+          state.networkConfig.dataSources[index] = {
+            ...state.networkConfig.dataSources[index],
+            ...action.payload.updates,
+          } as import('../types/dataSources').AnyDataSource;
+        }
+      }
+    },
+
+    // ========================================================================
     // Demo Mode Actions
     // ========================================================================
 
@@ -332,6 +388,12 @@ export const {
   updateNodeStatus,
   setSelectedNode,
   clearNodes,
+
+  // Network configuration
+  updateNetworkConfig,
+  addDataSource,
+  removeDataSource,
+  updateDataSource,
 
   // System metrics
   updateSystemMetrics,
