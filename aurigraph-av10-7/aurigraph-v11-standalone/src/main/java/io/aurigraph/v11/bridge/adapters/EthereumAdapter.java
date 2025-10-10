@@ -295,7 +295,7 @@ public class EthereumAdapter implements ChainAdapter {
     @Override
     public Uni<BigDecimal> getBalance(String address, String assetIdentifier) {
         return Uni.createFrom().item(() -> {
-            validateAddress(address);
+            validateAddressSync(address);
 
             String cacheKey = address + ":" + (assetIdentifier != null ? assetIdentifier : "ETH");
 
@@ -568,7 +568,7 @@ public class EthereumAdapter implements ChainAdapter {
         }
     }
 
-    private void validateAddress(String address) {
+    private void validateAddressSync(String address) {
         AddressValidationResult result = validateAddress(address).await().indefinitely();
         if (!result.isValid) {
             throw new IllegalArgumentException(result.validationMessage);

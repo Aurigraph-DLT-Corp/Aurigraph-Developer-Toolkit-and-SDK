@@ -286,7 +286,7 @@ public class SolanaAdapter implements ChainAdapter {
     @Override
     public Uni<BigDecimal> getBalance(String address, String assetIdentifier) {
         return Uni.createFrom().item(() -> {
-            validateSolanaAddress(address);
+            validateSolanaAddressSync(address);
 
             String cacheKey = address + ":" + (assetIdentifier != null ? assetIdentifier : "SOL");
 
@@ -380,7 +380,7 @@ public class SolanaAdapter implements ChainAdapter {
             // In Solana, this deploys a Program (smart contract)
             ContractDeploymentResult result = new ContractDeploymentResult();
             result.contractAddress = generateProgramAddress();
-            result.transactionSignature = generateTransactionSignature();
+            result.transactionHash = generateTransactionSignature();
             result.success = true;
             result.gasUsed = new BigDecimal("50000"); // lamports for program deployment
             result.errorMessage = null;
@@ -558,7 +558,7 @@ public class SolanaAdapter implements ChainAdapter {
         }
     }
 
-    private void validateSolanaAddress(String address) {
+    private void validateSolanaAddressSync(String address) {
         AddressValidationResult result = validateAddress(address).await().indefinitely();
         if (!result.isValid) {
             throw new IllegalArgumentException(result.validationMessage);

@@ -164,7 +164,7 @@ public class HSMCryptoService {
                 if (hsmEnabled && hsmKeyStore != null) {
                     // Store in HSM
                     KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password);
-                    KeyStore.SecretKeyEntry skEntry = new KeyStore.SecretKeyEntry((SecretKey) key);
+                    KeyStore.SecretKeyEntry skEntry = new KeyStore.SecretKeyEntry((javax.crypto.SecretKey) key);
                     hsmKeyStore.setEntry(alias, skEntry, protParam);
                     System.out.println("Stored key in HSM: " + alias);
                 } else {
