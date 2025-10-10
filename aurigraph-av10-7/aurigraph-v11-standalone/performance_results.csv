@@ -1,4 +1,0 @@
-Profile,Startup Time,Memory Usage,Performance
-native-fast,0.8s,180MB,800000 TPS
-native,0.6s,150MB,1200000 TPS
-native-ultra,0.4s,120MB,2000000 TPS
