@@ -1,8 +1,8 @@
 package io.aurigraph.v11.contracts;
 
 import io.aurigraph.v11.contracts.models.ActiveContract;
-import io.aurigraph.v11.contracts.models.ActiveContractStatus;
 import io.aurigraph.v11.contracts.models.ContractParty;
+import io.aurigraph.v11.contracts.models.ContractTerm;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -62,16 +62,18 @@ public class RicardianContractConversionService {
             // Build Ricardian Contract
             RicardianContract contract = RicardianContract.builder()
                     .contractId(contractId)
-                    .name(analysis.contractName)
                     .version("1.0.0")
                     .legalText(legalText)
                     .executableCode(generateExecutableCode(analysis, contractType))
                     .contractType(contractType)
-                    .jurisdiction(jurisdiction)
                     .parties(mergeParties(analysis.detectedParties, suggestedParties))
-                    .status(ContractStatus.DRAFT)
+                    .status(io.aurigraph.v11.contracts.ContractStatus.DRAFT)
                     .createdAt(Instant.now())
                     .build();
+
+            // Set additional fields
+            contract.setName(analysis.contractName);
+            contract.setJurisdiction(jurisdiction);
 
             // Add terms from analysis
             analysis.extractedTerms.forEach(term -> contract.addTerm(term));
@@ -275,8 +277,7 @@ public class RicardianContractConversionService {
                     termId,
                     description.length() > 50 ? description.substring(0, 50) : description,
                     description,
-                    "STANDARD",
-                    true
+                    "STANDARD"
                 );
             } else if (currentTerm != null && !trimmed.isEmpty()) {
                 // Add to current term description
@@ -313,7 +314,7 @@ public class RicardianContractConversionService {
         for (int i = 0; i < analysis.extractedTerms.size(); i++) {
             ContractTerm term = analysis.extractedTerms.get(i);
             code.append("    // Term ").append(i + 1).append(": ")
-                .append(term.getName()).append("\n");
+                .append(term.getTitle()).append("\n");
         }
 
         code.append("\n    // Execute contract\n");

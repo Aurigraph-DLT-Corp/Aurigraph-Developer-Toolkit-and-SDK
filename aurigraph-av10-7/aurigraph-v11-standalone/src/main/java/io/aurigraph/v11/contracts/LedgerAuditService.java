@@ -180,18 +180,18 @@ public class LedgerAuditService {
                             .map(entry -> {
                                 String integrityKey = INTEGRITY_PREFIX + entry.entryId();
                                 return levelDBService.get(integrityKey)
-                                        .map(storedHash -> {
+                                        .onItem().transformToUni(storedHash -> {
                                             if (storedHash == null) {
                                                 missingHashes.add(entry.entryId());
                                             } else if (!storedHash.equals(entry.integrityHash())) {
                                                 corruptedEntries.add(entry.entryId());
                                             }
-                                            return null;
+                                            return Uni.createFrom().voidItem();
                                         });
                             })
                             .collect(Collectors.toList());
 
-                    return Uni.join().all(verificationTasks).andFailFast()
+                    return Uni.join().all(verificationTasks).andCollectFailures()
                             .map(v -> {
                                 boolean isIntact = corruptedEntries.isEmpty() && missingHashes.isEmpty();
 

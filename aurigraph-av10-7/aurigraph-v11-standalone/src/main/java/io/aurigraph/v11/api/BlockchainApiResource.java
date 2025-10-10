@@ -16,6 +16,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 
 import io.aurigraph.v11.TransactionService;
+import io.aurigraph.v11.blockchain.NetworkStats;
+import io.aurigraph.v11.blockchain.NetworkStatsService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +46,9 @@ public class BlockchainApiResource {
 
     @Inject
     TransactionService transactionService;
+
+    @Inject
+    NetworkStatsService networkStatsService;
 
     // ==================== TRANSACTION APIs ====================
 
@@ -320,6 +325,41 @@ public class BlockchainApiResource {
                 )
             )).build();
         });
+    }
+
+    /**
+     * Network Statistics API - AV11-267
+     *
+     * Returns comprehensive network statistics including:
+     * - Total nodes and active validators
+     * - Current TPS and network performance
+     * - Block production metrics
+     * - Network latency and health
+     */
+    @GET
+    @Path("/network/stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Get comprehensive network statistics",
+        description = "Retrieve detailed network health and performance metrics including TPS, validators, blocks, and latency"
+    )
+    @APIResponses({
+        @APIResponse(
+            responseCode = "200",
+            description = "Network statistics retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = NetworkStats.class)
+            )
+        ),
+        @APIResponse(
+            responseCode = "503",
+            description = "Service temporarily unavailable"
+        )
+    })
+    public Uni<NetworkStats> getNetworkStatistics() {
+        LOG.debug("Network statistics endpoint called - AV11-267");
+        return networkStatsService.getNetworkStatistics();
     }
 
     // ==================== DATA MODELS ====================

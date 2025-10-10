@@ -38,6 +38,9 @@ public class Phase2BlockchainResource {
 
     private static final Logger LOG = Logger.getLogger(Phase2BlockchainResource.class);
 
+    @jakarta.inject.Inject
+    io.aurigraph.v11.blockchain.governance.GovernanceStatsService governanceStatsService;
+
     // ==================== SPRINT 11: VALIDATOR MANAGEMENT ====================
 
     /**
@@ -621,6 +624,45 @@ public class Phase2BlockchainResource {
             details.votingEndsAt = "2025-10-12T00:00:00Z";
             return details;
         });
+    }
+
+    /**
+     * Get comprehensive governance and voting statistics
+     * GET /api/v11/blockchain/governance/stats
+     *
+     * AV11-272: Implement Voting Statistics API
+     * Returns comprehensive governance metrics including:
+     * - Total proposals (all-time)
+     * - Active proposals (currently voting)
+     * - Passed and rejected proposals
+     * - Total votes cast
+     * - Participation rate (% of eligible voters)
+     * - Average turnout per proposal
+     * - Top 10 voters by participation
+     * - Recent governance activity (20 latest events)
+     * - Proposals breakdown by type
+     * - Historical trends (30 days)
+     */
+    @GET
+    @Path("/governance/stats")
+    public Uni<io.aurigraph.v11.blockchain.governance.GovernanceStatsService.GovernanceStats> getVotingStatistics() {
+        LOG.info("Fetching comprehensive voting statistics");
+        return governanceStatsService.getGovernanceStatistics();
+    }
+
+    /**
+     * Get governance statistics for a specific time period
+     * GET /api/v11/blockchain/governance/stats?period={days}
+     *
+     * Query parameters:
+     * - period: Number of days to look back (default: all-time)
+     */
+    @GET
+    @Path("/governance/stats/period")
+    public Uni<io.aurigraph.v11.blockchain.governance.GovernanceStatsService.GovernanceStats> getVotingStatisticsByPeriod(
+            @QueryParam("days") @DefaultValue("30") int days) {
+        LOG.infof("Fetching voting statistics for last %d days", days);
+        return governanceStatsService.getGovernanceStatisticsByPeriod(days);
     }
 
     // ==================== SPRINT 16: AI OPTIMIZATION ====================
