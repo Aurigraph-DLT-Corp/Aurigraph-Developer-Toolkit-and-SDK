@@ -61,6 +61,8 @@ public class RicardianContractResource {
      * Upload document and convert to Ricardian contract
      *
      * POST /api/v11/contracts/ricardian/upload
+     *
+     * AV11-289: Enhanced validation for contract upload
      */
     @POST
     @Path("/upload")
@@ -70,6 +72,18 @@ public class RicardianContractResource {
                 form.fileName, form.contractType, form.jurisdiction);
 
         try {
+            // AV11-289: Comprehensive Upload Validation
+            ValidationResult validation = validateUpload(form);
+            if (!validation.isValid()) {
+                LOG.warnf("Upload validation failed: %s", validation.getErrors());
+                return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of(
+                                "error", "Upload validation failed",
+                                "validationErrors", validation.getErrors()
+                        ))
+                        .build());
+            }
+
             // Read file content
             byte[] fileContent = form.file.readAllBytes();
 
@@ -610,6 +624,120 @@ public class RicardianContractResource {
         } catch (Exception e) {
             LOG.error("Failed to create signature via reflection", e);
             return null;
+        }
+    }
+
+    /**
+     * AV11-289: Comprehensive upload validation
+     *
+     * Validates:
+     * - File presence and size
+     * - File name and extension
+     * - Required fields
+     * - Contract type validity
+     * - Jurisdiction validity
+     * - Submitter address format
+     */
+    private ValidationResult validateUpload(DocumentUploadForm form) {
+        List<String> errors = new ArrayList<>();
+
+        // 1. File validation
+        if (form.file == null) {
+            errors.add("File is required");
+        } else {
+            try {
+                byte[] content = form.file.readAllBytes();
+
+                // File size validation (max 10MB)
+                if (content.length > 10 * 1024 * 1024) {
+                    errors.add("File size exceeds maximum of 10MB");
+                }
+
+                // Minimum file size (1KB)
+                if (content.length < 1024) {
+                    errors.add("File size is too small (minimum 1KB)");
+                }
+            } catch (Exception e) {
+                errors.add("Failed to read file: " + e.getMessage());
+            }
+        }
+
+        // 2. File name validation
+        if (form.fileName == null || form.fileName.trim().isEmpty()) {
+            errors.add("File name is required");
+        } else {
+            // Check for valid file extensions
+            String lowerFileName = form.fileName.toLowerCase();
+            List<String> validExtensions = Arrays.asList(".pdf", ".docx", ".doc", ".txt", ".md");
+            boolean hasValidExtension = validExtensions.stream()
+                    .anyMatch(lowerFileName::endsWith);
+
+            if (!hasValidExtension) {
+                errors.add("Invalid file type. Supported: PDF, DOCX, DOC, TXT, MD");
+            }
+
+            // File name length check
+            if (form.fileName.length() > 255) {
+                errors.add("File name is too long (maximum 255 characters)");
+            }
+        }
+
+        // 3. Contract type validation
+        if (form.contractType == null || form.contractType.trim().isEmpty()) {
+            errors.add("Contract type is required");
+        } else {
+            List<String> validTypes = Arrays.asList(
+                "SALE_AGREEMENT", "SERVICE_AGREEMENT", "NDA",
+                "EMPLOYMENT", "PARTNERSHIP", "LICENSING"
+            );
+            if (!validTypes.contains(form.contractType.toUpperCase())) {
+                errors.add("Invalid contract type. Valid types: " + String.join(", ", validTypes));
+            }
+        }
+
+        // 4. Jurisdiction validation
+        if (form.jurisdiction == null || form.jurisdiction.trim().isEmpty()) {
+            errors.add("Jurisdiction is required");
+        } else {
+            List<String> validJurisdictions = Arrays.asList(
+                "US", "UK", "EU", "CA", "AU", "SG", "JP", "INTERNATIONAL"
+            );
+            if (!validJurisdictions.contains(form.jurisdiction.toUpperCase())) {
+                errors.add("Invalid jurisdiction. Valid jurisdictions: " + String.join(", ", validJurisdictions));
+            }
+        }
+
+        // 5. Submitter address validation
+        if (form.submitterAddress == null || form.submitterAddress.trim().isEmpty()) {
+            errors.add("Submitter address is required");
+        } else {
+            // Basic blockchain address format validation (0x + 40 hex chars)
+            if (!form.submitterAddress.matches("^0x[a-fA-F0-9]{40}$")) {
+                errors.add("Invalid submitter address format (expected: 0x followed by 40 hex characters)");
+            }
+        }
+
+        return new ValidationResult(errors.isEmpty(), errors);
+    }
+
+    /**
+     * Validation result container
+     */
+    private static class ValidationResult {
+        private final boolean valid;
+        private final List<String> errors;
+
+        public ValidationResult(boolean valid, List<String> errors) {
+            this.valid = valid;
+            this.errors = errors;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public List<String> getErrors() {
+            return errors;
         }
     }
 }
