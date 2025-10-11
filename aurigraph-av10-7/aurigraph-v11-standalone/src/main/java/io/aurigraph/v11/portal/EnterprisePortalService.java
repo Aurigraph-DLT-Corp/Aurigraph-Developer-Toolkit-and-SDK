@@ -213,7 +213,7 @@ public class EnterprisePortalService {
      * Get recent transactions
      */
     private PortalResponse getTransactions(PortalRequest request) {
-        int limit = request.params.getOrDefault("limit", 100);
+        int limit = Integer.parseInt(request.params.getOrDefault("limit", "100"));
         List<TransactionInfo> transactions = metrics.getRecentTransactions(limit);
         return new PortalResponse("transactions", transactions);
     }

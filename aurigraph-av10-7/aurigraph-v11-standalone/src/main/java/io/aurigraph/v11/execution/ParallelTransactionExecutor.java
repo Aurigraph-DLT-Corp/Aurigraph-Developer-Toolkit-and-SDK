@@ -1,6 +1,5 @@
 package io.aurigraph.v11.execution;
 
-import io.aurigraph.v11.grpc.transaction.Transaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.logging.Logger;
 
