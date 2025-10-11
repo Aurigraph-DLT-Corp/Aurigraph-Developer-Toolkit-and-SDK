@@ -177,6 +177,62 @@ public class RicardianContractResource {
     }
 
     /**
+     * List all contracts with pagination
+     *
+     * GET /api/v11/contracts/ricardian
+     *
+     * Query params:
+     * - page: page number (default: 0)
+     * - size: page size (default: 20)
+     * - status: filter by status (optional)
+     * - jurisdiction: filter by jurisdiction (optional)
+     */
+    @GET
+    public Uni<Response> listContracts(
+            @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("size") @DefaultValue("20") int size,
+            @QueryParam("status") String status,
+            @QueryParam("jurisdiction") String jurisdiction
+    ) {
+        LOG.infof("Listing contracts: page=%d, size=%d, status=%s, jurisdiction=%s",
+                page, size, status, jurisdiction);
+
+        // Filter contracts
+        List<RicardianContract> filteredContracts = contracts.values().stream()
+                .filter(c -> status == null || c.getStatus().toString().equalsIgnoreCase(status))
+                .filter(c -> jurisdiction == null || c.getJurisdiction().equalsIgnoreCase(jurisdiction))
+                .sorted((c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt())) // newest first
+                .toList();
+
+        // Calculate pagination
+        int totalContracts = filteredContracts.size();
+        int totalPages = (int) Math.ceil((double) totalContracts / size);
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, totalContracts);
+
+        List<Map<String, Object>> paginatedContracts = new ArrayList<>();
+        if (fromIndex < totalContracts) {
+            paginatedContracts = filteredContracts.subList(fromIndex, toIndex).stream()
+                    .map(this::serializeContract)
+                    .toList();
+        }
+
+        Map<String, Object> response = Map.of(
+                "contracts", paginatedContracts,
+                "pagination", Map.of(
+                        "page", page,
+                        "size", size,
+                        "totalContracts", totalContracts,
+                        "totalPages", totalPages,
+                        "hasNext", (page + 1) < totalPages,
+                        "hasPrevious", page > 0
+                )
+        );
+
+        return Uni.createFrom().item(Response.ok(response).build());
+    }
+
+    /**
      * Get contract by ID
      *
      * GET /api/v11/contracts/ricardian/{contractId}
