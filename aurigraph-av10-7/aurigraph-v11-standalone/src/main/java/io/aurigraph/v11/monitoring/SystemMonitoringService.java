@@ -38,6 +38,7 @@ public class SystemMonitoringService {
     // Monitoring state
     private volatile boolean monitoring = false;
     private final Map<String, MetricTimeSeries> metrics;
+    private final List<ScheduledFuture<?>> scheduledTasks = new CopyOnWriteArrayList<>();
 
     public SystemMonitoringService() {
         this.metricsCollector = new MetricsCollector();
@@ -64,28 +65,28 @@ public class SystemMonitoringService {
         LOG.info("Starting system monitoring...");
 
         // Schedule metric collection (every 10 seconds)
-        scheduler.scheduleAtFixedRate(
+        scheduledTasks.add(scheduler.scheduleAtFixedRate(
             this::collectMetrics,
             0, 10, TimeUnit.SECONDS
-        );
+        ));
 
         // Schedule health checks (every 30 seconds)
-        scheduler.scheduleAtFixedRate(
+        scheduledTasks.add(scheduler.scheduleAtFixedRate(
             this::performHealthChecks,
             0, 30, TimeUnit.SECONDS
-        );
+        ));
 
         // Schedule alert checking (every 60 seconds)
-        scheduler.scheduleAtFixedRate(
+        scheduledTasks.add(scheduler.scheduleAtFixedRate(
             this::checkAlerts,
             60, 60, TimeUnit.SECONDS
-        );
+        ));
 
         // Schedule performance analysis (every 5 minutes)
-        scheduler.scheduleAtFixedRate(
+        scheduledTasks.add(scheduler.scheduleAtFixedRate(
             this::analyzePerformance,
             300, 300, TimeUnit.SECONDS
-        );
+        ));
 
         LOG.info("System monitoring started");
     }
@@ -95,7 +96,13 @@ public class SystemMonitoringService {
      */
     public void stopMonitoring() {
         monitoring = false;
-        scheduler.shutdown();
+
+        // Cancel all scheduled tasks
+        for (ScheduledFuture<?> task : scheduledTasks) {
+            task.cancel(false);
+        }
+        scheduledTasks.clear();
+
         LOG.info("System monitoring stopped");
     }
 
