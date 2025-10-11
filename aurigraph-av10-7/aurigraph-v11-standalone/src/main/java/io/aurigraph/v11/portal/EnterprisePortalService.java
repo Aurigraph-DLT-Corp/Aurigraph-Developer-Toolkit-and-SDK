@@ -348,7 +348,8 @@ public class EnterprisePortalService {
             UserInfo user = users.get(username);
             if (user == null) return false;
 
-            return user.role == UserRole.ADMIN || user.permissions.contains(permission);
+            // Admin has all permissions
+            return user.role == UserRole.ADMIN;
         }
     }
 
@@ -430,9 +431,7 @@ public class EnterprisePortalService {
 
     record TransactionInfo(String txHash, String from, String to, long amount, long timestamp) {}
 
-    record UserInfo(String username, String email, UserRole role, boolean active) {
-        List<String> permissions = new ArrayList<>();
-    }
+    record UserInfo(String username, String email, UserRole role, boolean active) {}
 
     record Alert(String id, AlertLevel level, String message, long timestamp) {}
 
