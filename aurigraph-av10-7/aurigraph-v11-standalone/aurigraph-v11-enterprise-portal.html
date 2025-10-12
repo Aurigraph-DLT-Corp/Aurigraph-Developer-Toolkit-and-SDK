@@ -13314,6 +13314,48 @@ function resetDemoConfig() {
                     icon: '⚙️',
                     color: '#f472b6',
                     description: 'User-defined custom data source'
+                },
+                {
+                    id: 'feed_realestate_001',
+                    name: 'Argus Real Estate API',
+                    type: 'REAL_ESTATE',
+                    source: 'Argus Data',
+                    endpoint: 'https://api.argus.com/realestate',
+                    status: 'ACTIVE',
+                    frequency: '60s',
+                    subscribers: 0,
+                    throughput: 95,
+                    icon: '🏢',
+                    color: '#34d399',
+                    description: 'Commercial real estate data, property valuations, market trends'
+                },
+                {
+                    id: 'feed_stocks_001',
+                    name: 'Alpaca Stock Trading API',
+                    type: 'STOCK_MARKET',
+                    source: 'Alpaca Markets',
+                    endpoint: 'https://api.alpaca.markets/v2',
+                    status: 'ACTIVE',
+                    frequency: '5s',
+                    subscribers: 0,
+                    throughput: 320,
+                    icon: '📈',
+                    color: '#10b981',
+                    description: 'Real-time stock quotes, trades, and market data'
+                },
+                {
+                    id: 'feed_news_001',
+                    name: 'NewsAPI Live Feed',
+                    type: 'NEWS',
+                    source: 'NewsAPI.org',
+                    endpoint: 'https://newsapi.org/v2',
+                    status: 'ACTIVE',
+                    frequency: '30s',
+                    subscribers: 0,
+                    throughput: 150,
+                    icon: '📰',
+                    color: '#ef4444',
+                    description: 'Breaking news and headlines from global sources'
                 }
             ];
 
