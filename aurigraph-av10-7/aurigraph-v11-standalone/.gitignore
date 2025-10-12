@@ -1,0 +1,17 @@
+# Session reports and generated documentation
+*SESSION*.md
+*SPRINT*.md
+*DEPLOYMENT*.md
+*COMPLETION*.md
+*REPORT*.md
+*SUMMARY*.md
+*.html.backup*
+performance_results.csv
+optimization-summary.txt
+jar.md5
+
+# Environment files
+.env.production
+
+# Build artifacts
+*.jar.md5
