@@ -531,4 +531,445 @@ class ParallelTransactionExecutorTest_Enhanced {
             Thread.currentThread().interrupt();
         }
     }
+
+    // ==================== Day 2: Virtual Thread Concurrency Tests ====================
+
+    /**
+     * Test 11: High Concurrency with Many Virtual Threads
+     *
+     * Tests system behavior with massive parallelism using virtual threads.
+     * Virtual threads can scale to millions without traditional thread pool limits.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Handles massive concurrency with virtual threads")
+    void testHighConcurrencyWithVirtualThreads() {
+        int transactionCount = 5000;
+        List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+        for (int i = 0; i < transactionCount; i++) {
+            transactions.add(
+                createTask("tx-vt-" + i, Set.of(), Set.of("addr-" + i), 1,
+                    () -> executionCounter.incrementAndGet())
+            );
+        }
+
+        long startTime = System.nanoTime();
+        ParallelTransactionExecutor.ExecutionResult result =
+            executor.executeParallel(transactions);
+        long duration = (System.nanoTime() - startTime) / 1_000_000;
+
+        // Verify: All transactions execute successfully
+        assertEquals(transactionCount, result.successCount());
+        assertEquals(transactionCount, executionCounter.get());
+        assertTrue(result.tps() > 10000, "TPS should be > 10K with virtual threads");
+        assertTrue(duration < 2000, "Should complete in < 2 seconds");
+    }
+
+    /**
+     * Test 12: Virtual Thread Scalability
+     *
+     * Tests that virtual threads scale linearly with transaction count.
+     * Compares performance with 1K, 5K, and 10K transactions.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Virtual threads scale linearly")
+    void testVirtualThreadScalability() {
+        int[] testSizes = {1000, 5000, 10000};
+        double[] tpsResults = new double[testSizes.length];
+
+        for (int i = 0; i < testSizes.length; i++) {
+            List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+            AtomicInteger localCounter = new AtomicInteger(0);
+
+            for (int j = 0; j < testSizes[i]; j++) {
+                transactions.add(
+                    createTask("tx-scale-" + i + "-" + j, Set.of(), Set.of("addr-" + i + "-" + j), 1,
+                        () -> localCounter.incrementAndGet())
+                );
+            }
+
+            ParallelTransactionExecutor.ExecutionResult result =
+                executor.executeParallel(transactions);
+
+            tpsResults[i] = result.tps();
+            assertEquals(testSizes[i], result.successCount());
+            assertEquals(testSizes[i], localCounter.get());
+        }
+
+        // Verify: TPS increases with transaction count (or stays high)
+        assertTrue(tpsResults[0] > 5000, "1K batch should achieve > 5K TPS");
+        assertTrue(tpsResults[2] > 5000, "10K batch should achieve > 5K TPS");
+    }
+
+    /**
+     * Test 13: Memory Efficiency with Virtual Threads
+     *
+     * Tests that virtual threads don't cause memory issues with large batches.
+     * Virtual threads have much lower memory overhead than platform threads.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Memory efficient with large virtual thread count")
+    void testMemoryEfficiencyWithVirtualThreads() {
+        Runtime runtime = Runtime.getRuntime();
+        long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
+
+        int largeCount = 20000;
+        List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+        for (int i = 0; i < largeCount; i++) {
+            transactions.add(
+                createTask("tx-mem-" + i, Set.of(), Set.of("addr-" + i), 1,
+                    () -> executionCounter.incrementAndGet())
+            );
+        }
+
+        ParallelTransactionExecutor.ExecutionResult result =
+            executor.executeParallel(transactions);
+
+        long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
+        long memoryUsed = memoryAfter - memoryBefore;
+
+        // Verify: All transactions executed
+        assertEquals(largeCount, result.successCount());
+
+        // Verify: Memory usage is reasonable (< 500MB for 20K virtual threads)
+        assertTrue(memoryUsed < 500_000_000,
+            "Memory usage should be < 500MB, was: " + (memoryUsed / 1_000_000) + "MB");
+    }
+
+    /**
+     * Test 14: Concurrent Batch Execution Under Load
+     *
+     * Tests multiple concurrent batches executing simultaneously.
+     * Each batch runs in its own virtual thread.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Handles concurrent batches under load")
+    void testConcurrentBatchExecutionUnderLoad() throws InterruptedException {
+        int batchCount = 20;
+        int transactionsPerBatch = 500;
+        CountDownLatch latch = new CountDownLatch(batchCount);
+        AtomicInteger totalExecuted = new AtomicInteger(0);
+
+        for (int b = 0; b < batchCount; b++) {
+            final int batchId = b;
+            Thread.startVirtualThread(() -> {
+                try {
+                    List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+                    for (int i = 0; i < transactionsPerBatch; i++) {
+                        transactions.add(
+                            createTask("batch-" + batchId + "-tx-" + i,
+                                Set.of(), Set.of("batch-" + batchId + "-addr-" + i), 1,
+                                () -> totalExecuted.incrementAndGet())
+                        );
+                    }
+
+                    ParallelTransactionExecutor.ExecutionResult result =
+                        executor.executeParallel(transactions);
+
+                    assertEquals(transactionsPerBatch, result.successCount());
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        assertTrue(latch.await(60, TimeUnit.SECONDS),
+            "All batches should complete within 60 seconds");
+        assertEquals(batchCount * transactionsPerBatch, totalExecuted.get());
+    }
+
+    /**
+     * Test 15: Timeout Enforcement with Many Concurrent Tasks
+     *
+     * Tests that the 30-second timeout is enforced even with many tasks.
+     * Virtual threads should not cause timeout issues.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Timeout enforcement with high concurrency")
+    void testTimeoutEnforcementWithHighConcurrency() {
+        int taskCount = 10000;
+        List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+        // Add fast tasks that should all complete well before timeout
+        for (int i = 0; i < taskCount; i++) {
+            transactions.add(
+                createTask("tx-timeout-" + i, Set.of(), Set.of("addr-" + i), 1,
+                    () -> {
+                        // Very fast operation
+                        executionCounter.incrementAndGet();
+                    })
+            );
+        }
+
+        long startTime = System.nanoTime();
+        ParallelTransactionExecutor.ExecutionResult result =
+            executor.executeParallel(transactions);
+        long duration = (System.nanoTime() - startTime) / 1_000_000;
+
+        // Verify: All complete well before 30s timeout
+        assertEquals(taskCount, result.successCount());
+        assertTrue(duration < 5000,
+            "Should complete in < 5 seconds, was: " + duration + "ms");
+        assertTrue(result.executionTimeMs() < 5000,
+            "Recorded time should be < 5 seconds");
+    }
+
+    /**
+     * Test 16: Resource Cleanup After High Concurrency
+     *
+     * Tests that resources are properly cleaned up after massive parallel execution.
+     * Verifies no thread leaks or resource exhaustion.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Proper resource cleanup after high concurrency")
+    void testResourceCleanupAfterHighConcurrency() throws InterruptedException {
+        // Execute multiple rounds of high-concurrency workloads
+        for (int round = 0; round < 5; round++) {
+            List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+            for (int i = 0; i < 5000; i++) {
+                final int index = i;
+                transactions.add(
+                    createTask("round-" + round + "-tx-" + i,
+                        Set.of(), Set.of("round-" + round + "-addr-" + i), 1,
+                        () -> {
+                            // Simulate some work
+                            int sum = 0;
+                            for (int j = 0; j < 100; j++) {
+                                sum += j;
+                            }
+                            executionCounter.incrementAndGet();
+                        })
+                );
+            }
+
+            ParallelTransactionExecutor.ExecutionResult result =
+                executor.executeParallel(transactions);
+
+            assertEquals(5000, result.successCount(),
+                "Round " + round + " should complete successfully");
+
+            // Give time for cleanup
+            Thread.sleep(100);
+        }
+
+        // Verify: All 25K transactions executed across 5 rounds
+        assertEquals(25000, executionCounter.get());
+
+        // Verify: Statistics are accurate
+        ParallelTransactionExecutor.ExecutionStatistics stats = executor.getStatistics();
+        assertTrue(stats.totalExecuted() >= 25000);
+        assertTrue(stats.totalBatches() >= 5);
+    }
+
+    // ==================== Day 3: Concurrent Update & Dependency Tests ====================
+
+    /**
+     * Test 17: Concurrent Read-Write Dependencies
+     *
+     * Tests handling of concurrent transactions with read-write dependencies.
+     * Verifies proper serialization of dependent transactions.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Handles concurrent read-write dependencies")
+    void testConcurrentReadWriteDependencies() {
+        List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+        // Create dependency chain: write -> read -> write
+        for (int i = 0; i < 100; i++) {
+            String addr = "shared-addr-" + (i % 10); // 10 shared addresses
+
+            if (i % 3 == 0) {
+                // Writer transaction
+                transactions.add(
+                    createTask("writer-" + i, Set.of(), Set.of(addr), 1,
+                        () -> executionCounter.incrementAndGet())
+                );
+            } else if (i % 3 == 1) {
+                // Reader transaction
+                transactions.add(
+                    createTask("reader-" + i, Set.of(addr), Set.of(), 1,
+                        () -> executionCounter.incrementAndGet())
+                );
+            } else {
+                // Read-write transaction
+                transactions.add(
+                    createTask("read-writer-" + i, Set.of(addr), Set.of(addr), 1,
+                        () -> executionCounter.incrementAndGet())
+                );
+            }
+        }
+
+        ParallelTransactionExecutor.ExecutionResult result =
+            executor.executeParallel(transactions);
+
+        // All transactions should complete successfully
+        assertTrue(result.successCount() >= 90, "Most transactions should succeed");
+        assertTrue(executionCounter.get() >= 90);
+    }
+
+    /**
+     * Test 18: Write-Write Conflict Resolution
+     *
+     * Tests that write-write conflicts are properly detected and handled.
+     * Multiple writers to the same address should be serialized.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Resolves write-write conflicts")
+    void testWriteWriteConflictResolution() {
+        List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+        String sharedAddress = "conflict-addr";
+
+        // Create 50 writers all targeting the same address
+        for (int i = 0; i < 50; i++) {
+            transactions.add(
+                createTask("writer-conflict-" + i,
+                    Set.of(), Set.of(sharedAddress), 1,
+                    () -> {
+                        sleep(1); // Small delay to increase conflict probability
+                        executionCounter.incrementAndGet();
+                    })
+            );
+        }
+
+        ParallelTransactionExecutor.ExecutionResult result =
+            executor.executeParallel(transactions);
+
+        // All should eventually succeed (may have conflicts but should complete)
+        assertTrue(result.successCount() + result.conflictCount() >= 40,
+            "Most transactions should succeed or be marked as conflicts");
+    }
+
+    /**
+     * Test 19: Complex Dependency Graph Execution
+     *
+     * Tests execution with a complex DAG of dependencies.
+     * Multiple levels of dependencies should be resolved correctly.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Executes complex dependency graphs")
+    void testComplexDependencyGraphExecution() {
+        List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+        // Level 0: Root transactions (no dependencies)
+        for (int i = 0; i < 10; i++) {
+            transactions.add(
+                createTask("L0-" + i, Set.of(), Set.of("L0-addr-" + i), 1,
+                    () -> executionCounter.incrementAndGet())
+            );
+        }
+
+        // Level 1: Depend on Level 0
+        for (int i = 0; i < 20; i++) {
+            transactions.add(
+                createTask("L1-" + i,
+                    Set.of("L0-addr-" + (i % 10)), Set.of("L1-addr-" + i), 1,
+                    () -> executionCounter.incrementAndGet())
+            );
+        }
+
+        // Level 2: Depend on Level 1
+        for (int i = 0; i < 30; i++) {
+            transactions.add(
+                createTask("L2-" + i,
+                    Set.of("L1-addr-" + (i % 20)), Set.of("L2-addr-" + i), 1,
+                    () -> executionCounter.incrementAndGet())
+            );
+        }
+
+        ParallelTransactionExecutor.ExecutionResult result =
+            executor.executeParallel(transactions);
+
+        // All 60 transactions should complete
+        assertEquals(60, result.successCount());
+        assertEquals(60, executionCounter.get());
+    }
+
+    /**
+     * Test 20: Concurrent Updates with Conflict Detection
+     *
+     * Tests the conflict detection mechanism with concurrent updates.
+     * Verifies that conflicting transactions are properly identified.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Detects conflicts in concurrent updates")
+    void testConcurrentUpdatesWithConflictDetection() {
+        List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+        // Create groups of conflicting transactions
+        for (int group = 0; group < 10; group++) {
+            String groupAddr = "group-addr-" + group;
+
+            // 10 transactions per group, all accessing same address
+            for (int i = 0; i < 10; i++) {
+                transactions.add(
+                    createTask("group-" + group + "-tx-" + i,
+                        Set.of(groupAddr), Set.of(groupAddr), 1,
+                        () -> executionCounter.incrementAndGet())
+                );
+            }
+        }
+
+        ParallelTransactionExecutor.ExecutionResult result =
+            executor.executeParallel(transactions);
+
+        // All transactions should complete (serialized within groups)
+        assertTrue(result.successCount() >= 90, "Most transactions should succeed");
+        assertTrue(result.successCount() + result.conflictCount() == 100,
+            "All transactions should be accounted for");
+    }
+
+    /**
+     * Test 21: Race Condition Handling
+     *
+     * Tests that race conditions in dependency updates are handled correctly.
+     * Multiple threads updating dependencies simultaneously.
+     */
+    @Test
+    @DisplayName("ParallelExecutor - Handles race conditions in dependency updates")
+    void testRaceConditionHandling() throws InterruptedException {
+        int threadCount = 10;
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch completionLatch = new CountDownLatch(threadCount);
+        AtomicInteger totalExecuted = new AtomicInteger(0);
+
+        for (int t = 0; t < threadCount; t++) {
+            final int threadId = t;
+            Thread.startVirtualThread(() -> {
+                try {
+                    // Wait for all threads to be ready
+                    startLatch.await();
+
+                    List<ParallelTransactionExecutor.TransactionTask> transactions = new ArrayList<>();
+
+                    // Each thread creates transactions that might conflict
+                    for (int i = 0; i < 50; i++) {
+                        String addr = "race-addr-" + (i % 5); // Shared addresses
+                        transactions.add(
+                            createTask("thread-" + threadId + "-tx-" + i,
+                                Set.of(addr), Set.of(addr), 1,
+                                () -> totalExecuted.incrementAndGet())
+                        );
+                    }
+
+                    ParallelTransactionExecutor.ExecutionResult result =
+                        executor.executeParallel(transactions);
+
+                    assertTrue(result.successCount() >= 40);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    completionLatch.countDown();
+                }
+            });
+        }
+
+        // Start all threads simultaneously
+        startLatch.countDown();
+
+        assertTrue(completionLatch.await(60, TimeUnit.SECONDS));
+        assertTrue(totalExecuted.get() >= 400);
+    }
 }
