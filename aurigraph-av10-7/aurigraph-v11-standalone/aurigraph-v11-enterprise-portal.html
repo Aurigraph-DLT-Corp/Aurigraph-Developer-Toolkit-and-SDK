@@ -3808,8 +3808,14 @@ contract MySmartContract {
 
                     <div class="form-group">
                         <label class="form-label">Machine-Readable Terms (JSON)</label>
-                        <textarea class="form-textarea" id="ricardianMachineTerms" rows="8" placeholder='{"parties": [...], "terms": {...}, "conditions": [...]}' required></textarea>
-                        <small style="color: #a0a0b0;">AI will auto-generate this from legal text if left empty</small>
+                        <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+                            <textarea class="form-textarea" id="ricardianMachineTerms" rows="8" placeholder='{"parties": [...], "terms": {...}, "conditions": [...]}' required style="flex: 1;"></textarea>
+                            <button type="button" class="btn btn-primary" onclick="convertTextToJSON()" style="white-space: nowrap; height: fit-content;">
+                                🤖 Convert to JSON
+                            </button>
+                        </div>
+                        <small style="color: #a0a0b0;">AI will auto-generate this from legal text • Click "Convert to JSON" to transform human-readable text above</small>
+                        <div id="conversionStatus" style="margin-top: 0.5rem; display: none;"></div>
                     </div>
 
                     <div class="grid grid-3 gap-2">
@@ -3826,6 +3832,175 @@ contract MySmartContract {
                 </div>
             </div>
 
+
+            <!-- Contract Parameter Approval Section -->
+            <div id="contractApprovalSection" class="card" style="display: none; border: 2px solid #00ff88;">
+                <div class="card-header" style="background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,212,255,0.1));">
+                    <h3 class="card-title">✅ Review & Approve Contract Parameters</h3>
+                    <span class="card-badge" style="background: #00ff88; color: #0a0e27;">Requires Approval</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div style="background: rgba(251,191,36,0.1); border: 1px solid #fbbf24; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #fbbf24;">
+                            <span style="font-size: 1.5rem;">⚠️</span>
+                            <div>
+                                <strong>Important:</strong> Please review all extracted parameters below. Edit any field that needs correction before approving the contract.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Section -->
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h4 style="color: #00d4ff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            📋 Contract Metadata
+                            <button type="button" class="btn" onclick="toggleApprovalSection('metadata')" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: auto;">
+                                <span id="metadata-toggle">▼</span>
+                            </button>
+                        </h4>
+                        <div id="approval-metadata" class="grid grid-2 gap-2">
+                            <div class="form-group">
+                                <label class="form-label">Contract Type</label>
+                                <input type="text" class="form-input" id="approve-contractType" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Jurisdiction</label>
+                                <input type="text" class="form-input" id="approve-jurisdiction" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Effective Date</label>
+                                <input type="text" class="form-input" id="approve-effectiveDate" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Expiration Date</label>
+                                <input type="text" class="form-input" id="approve-expirationDate" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parties Section -->
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h4 style="color: #00ff88; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            👥 Parties
+                            <button type="button" class="btn" onclick="toggleApprovalSection('parties')" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: auto;">
+                                <span id="parties-toggle">▼</span>
+                            </button>
+                        </h4>
+                        <div id="approval-parties"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addApprovalParty()" style="margin-top: 0.5rem;">
+                            + Add Party
+                        </button>
+                    </div>
+
+                    <!-- Obligations Section -->
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h4 style="color: #a78bfa; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            📜 Obligations
+                            <button type="button" class="btn" onclick="toggleApprovalSection('obligations')" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: auto;">
+                                <span id="obligations-toggle">▼</span>
+                            </button>
+                        </h4>
+                        <div id="approval-obligations"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addApprovalObligation()" style="margin-top: 0.5rem;">
+                            + Add Obligation
+                        </button>
+                    </div>
+
+                    <!-- Terms Section -->
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h4 style="color: #fbbf24; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            📝 Terms & Conditions
+                            <button type="button" class="btn" onclick="toggleApprovalSection('terms')" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: auto;">
+                                <span id="terms-toggle">▼</span>
+                            </button>
+                        </h4>
+                        <div id="approval-terms" class="grid grid-2 gap-2">
+                            <div class="form-group">
+                                <label class="form-label">Payment Terms</label>
+                                <input type="text" class="form-input" id="approve-paymentTerms" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Governing Law</label>
+                                <input type="text" class="form-input" id="approve-governingLaw" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Dispute Resolution</label>
+                                <input type="text" class="form-input" id="approve-disputeResolution" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amendments</label>
+                                <input type="text" class="form-input" id="approve-amendments" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monetary Provisions -->
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h4 style="color: #f472b6; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            💰 Monetary Provisions
+                            <button type="button" class="btn" onclick="toggleApprovalSection('monetary')" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: auto;">
+                                <span id="monetary-toggle">▼</span>
+                            </button>
+                        </h4>
+                        <div id="approval-monetary"></div>
+                    </div>
+
+                    <!-- Blockchain Configuration -->
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: #00d4ff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            ⛓️ Blockchain Configuration
+                            <button type="button" class="btn" onclick="toggleApprovalSection('blockchain')" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: auto;">
+                                <span id="blockchain-toggle">▼</span>
+                            </button>
+                        </h4>
+                        <div id="approval-blockchain" class="grid grid-2 gap-2">
+                            <div class="form-group">
+                                <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="approve-tokenizable" checked />
+                                    Tokenizable
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="approve-smartContractEnabled" checked />
+                                    Smart Contract Enabled
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="approve-autoExecutable" />
+                                    Auto-Executable
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Raw JSON View -->
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: #94a3b8; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            🔧 Raw JSON
+                            <button type="button" class="btn" onclick="toggleApprovalSection('json')" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: auto;">
+                                <span id="json-toggle">▶</span>
+                            </button>
+                        </h4>
+                        <div id="approval-json" style="display: none;">
+                            <textarea class="form-textarea" id="approve-rawJSON" rows="15" style="font-family: monospace; font-size: 0.85rem;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary" onclick="approveAndCreateContract()" style="flex: 1; min-width: 200px;">
+                            ✅ Approve & Create Smart Contract
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="updateJSONFromApproval()" style="flex: 1; min-width: 200px;">
+                            🔄 Update JSON from Fields
+                        </button>
+                        <button type="button" class="btn" onclick="cancelApproval()" style="flex: 1; min-width: 200px; background: #64748b;">
+                            ❌ Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
             <!-- Contract Tokenization & Blockchain Storage -->
             <div class="card">
                 <div class="card-header">
@@ -11436,6 +11611,504 @@ contract MyNFT {
             previewDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
+
+        // Convert Human-Readable Legal Text to Machine-Readable JSON
+        function convertTextToJSON() {
+            const legalText = document.getElementById('ricardianLegalText').value;
+            const statusDiv = document.getElementById('conversionStatus');
+
+            if (!legalText || legalText.trim() === '') {
+                statusDiv.innerHTML = '<span style="color: #ff3366;">⚠️ Please enter legal text first</span>';
+                statusDiv.style.display = 'block';
+                setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+                return;
+            }
+
+            // Show processing status
+            statusDiv.innerHTML = '<span style="color: #00d4ff;">🤖 AI analyzing legal text...</span>';
+            statusDiv.style.display = 'block';
+
+            // Simulate processing delay
+            setTimeout(() => {
+                try {
+                    const contractData = parseLegalText(legalText);
+                    const jsonOutput = JSON.stringify(contractData, null, 2);
+
+                    document.getElementById('ricardianMachineTerms').value = jsonOutput;
+
+                    statusDiv.innerHTML = '<span style="color: #00ff88;">✅ Successfully converted to JSON</span>';
+                    setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+                } catch (error) {
+                    statusDiv.innerHTML = '<span style="color: #ff3366;">❌ Conversion error: ' + error.message + '</span>';
+                    setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+                }
+            }, 1500);
+        }
+
+        // Parse legal text and extract structured information
+        function parseLegalText(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const lowerText = text.toLowerCase();
+
+            // Extract parties
+            const parties = extractParties(text);
+
+            // Extract dates
+            const dates = extractDates(text);
+
+            // Extract monetary values
+            const monetaryValues = extractMonetaryValues(text);
+
+            // Extract obligations
+            const obligations = extractObligations(text, parties);
+
+            // Extract conditions
+            const conditions = extractConditions(text);
+
+            // Extract terms and clauses
+            const terms = extractTerms(text, monetaryValues, dates);
+
+            // Determine contract type
+            const contractType = determineContractType(lowerText);
+
+            // Extract jurisdiction
+            const jurisdiction = extractJurisdiction(text);
+
+            // Build structured JSON
+            const structuredData = {
+                metadata: {
+                    contractType: contractType,
+                    jurisdiction: jurisdiction,
+                    effectiveDate: dates.effectiveDate || "TBD",
+                    expirationDate: dates.expirationDate || null,
+                    createdDate: new Date().toISOString(),
+                    version: "1.0",
+                    language: "en-US"
+                },
+                parties: parties,
+                terms: terms,
+                obligations: obligations,
+                conditions: conditions,
+                monetaryProvisions: monetaryValues,
+                dates: dates,
+                clauses: extractClauses(text),
+                signatures: {
+                    required: parties.length,
+                    collected: 0,
+                    signatories: parties.map(p => ({
+                        party: p.name,
+                        role: p.role,
+                        signed: false,
+                        signatureHash: null,
+                        timestamp: null
+                    }))
+                },
+                blockchain: {
+                    tokenizable: true,
+                    smartContractEnabled: true,
+                    autoExecutable: checkAutoExecutability(text),
+                    complianceFlags: determineComplianceFlags(text)
+                }
+            };
+
+            return structuredData;
+        }
+
+        // Extract parties from legal text
+        function extractParties(text) {
+            const parties = [];
+            const partyPatterns = [
+                /(?:party|parties|between|among)\s*[:\-]?\s*([A-Z][A-Za-z\s&,\.]+?)(?:\s*\(|,|\sand\s)/gi,
+                /(?:^|\n)([A-Z][A-Za-z\s&,\.]+?),?\s+(?:a|an)\s+(?:corporation|company|individual|entity|partnership)/gim,
+                /(?:"([^"]+)"|'([^']+)')/g
+            ];
+
+            const foundNames = new Set();
+            partyPatterns.forEach(pattern => {
+                const matches = text.matchAll(pattern);
+                for (const match of matches) {
+                    const name = (match[1] || match[2] || match[0]).trim();
+                    if (name.length > 3 && name.length < 100 && /[A-Z]/.test(name)) {
+                        foundNames.add(name);
+                    }
+                }
+            });
+
+            const namesArray = Array.from(foundNames).slice(0, 10); // Limit to 10 parties
+
+            namesArray.forEach((name, index) => {
+                const role = inferPartyRole(name, text, index);
+                parties.push({
+                    id: `party_${index + 1}`,
+                    name: name,
+                    role: role,
+                    type: inferEntityType(name),
+                    address: "TBD",
+                    contact: "TBD"
+                });
+            });
+
+            // If no parties found, add placeholders
+            if (parties.length === 0) {
+                parties.push(
+                    { id: "party_1", name: "Party A", role: "First Party", type: "entity", address: "TBD", contact: "TBD" },
+                    { id: "party_2", name: "Party B", role: "Second Party", type: "entity", address: "TBD", contact: "TBD" }
+                );
+            }
+
+            return parties;
+        }
+
+        // Extract dates from text
+        function extractDates(text) {
+            const datePatterns = [
+                /(?:dated?|effective|commencing|starting|beginning)\s+(?:on|as of)?\s*:?\s*([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})/gi,
+                /(\d{1,2}\/\d{1,2}\/\d{4})/g,
+                /(\d{4}-\d{2}-\d{2})/g,
+                /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}/gi
+            ];
+
+            const dates = {
+                effectiveDate: null,
+                expirationDate: null,
+                noticePeriod: null,
+                milestones: []
+            };
+
+            const foundDates = [];
+            datePatterns.forEach(pattern => {
+                const matches = text.matchAll(pattern);
+                for (const match of matches) {
+                    foundDates.push(match[0]);
+                }
+            });
+
+            if (foundDates.length > 0) {
+                dates.effectiveDate = foundDates[0];
+                if (foundDates.length > 1) {
+                    dates.expirationDate = foundDates[1];
+                }
+            }
+
+            // Extract duration/term
+            const termMatch = text.match(/(?:term|duration|period)\s+of\s+(\d+)\s+(day|week|month|year)s?/i);
+            if (termMatch) {
+                dates.termLength = `${termMatch[1]} ${termMatch[2]}s`;
+            }
+
+            return dates;
+        }
+
+        // Extract monetary values
+        function extractMonetaryValues(text) {
+            const monetaryValues = [];
+            const moneyPatterns = [
+                /\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g,
+                /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:USD|dollars)/gi,
+                /(?:amount|value|price|fee|payment|compensation)\s*:?\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/gi
+            ];
+
+            moneyPatterns.forEach(pattern => {
+                const matches = text.matchAll(pattern);
+                for (const match of matches) {
+                    const amount = match[1] || match[0];
+                    monetaryValues.push({
+                        amount: amount.replace(/[^\d.,]/g, ''),
+                        currency: "USD",
+                        context: extractContext(text, match.index, 50)
+                    });
+                }
+            });
+
+            return monetaryValues.slice(0, 10); // Limit to 10 values
+        }
+
+        // Extract obligations
+        function extractObligations(text, parties) {
+            const obligations = [];
+            const obligationKeywords = ['shall', 'must', 'will', 'agrees to', 'obligated to', 'required to', 'responsible for'];
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+
+            sentences.forEach((sentence, index) => {
+                const lowerSentence = sentence.toLowerCase();
+                obligationKeywords.forEach(keyword => {
+                    if (lowerSentence.includes(keyword)) {
+                        obligations.push({
+                            id: `obligation_${obligations.length + 1}`,
+                            description: sentence.trim(),
+                            responsibleParty: inferResponsibleParty(sentence, parties),
+                            type: classifyObligation(sentence),
+                            enforceable: true,
+                            deadline: extractDeadlineFromSentence(sentence)
+                        });
+                    }
+                });
+            });
+
+            return obligations.slice(0, 15); // Limit to 15 obligations
+        }
+
+        // Extract conditions
+        function extractConditions(text) {
+            const conditions = [];
+            const conditionKeywords = ['if', 'unless', 'provided that', 'in the event', 'upon', 'subject to', 'conditional'];
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+
+            sentences.forEach((sentence, index) => {
+                const lowerSentence = sentence.toLowerCase();
+                conditionKeywords.forEach(keyword => {
+                    if (lowerSentence.includes(keyword)) {
+                        conditions.push({
+                            id: `condition_${conditions.length + 1}`,
+                            description: sentence.trim(),
+                            type: classifyCondition(sentence),
+                            triggerable: true
+                        });
+                    }
+                });
+            });
+
+            return conditions.slice(0, 10); // Limit to 10 conditions
+        }
+
+        // Extract terms
+        function extractTerms(text, monetaryValues, dates) {
+            return {
+                paymentTerms: extractPaymentTerms(text),
+                deliverables: extractDeliverables(text),
+                warranties: extractWarranties(text),
+                termination: extractTerminationClauses(text),
+                disputeResolution: extractDisputeResolution(text),
+                confidentiality: text.toLowerCase().includes('confidential') || text.toLowerCase().includes('nda'),
+                governingLaw: extractGoverningLaw(text),
+                amendments: extractAmendmentProvisions(text)
+            };
+        }
+
+        // Extract clauses
+        function extractClauses(text) {
+            const clauses = [];
+            const clausePatterns = [
+                /(?:^|\n)\s*(?:\d+\.|\([a-z]\)|\([0-9]+\))\s*([^\n]+)/gim,
+                /(?:SECTION|ARTICLE|CLAUSE)\s+\d+[:\-]?\s*([^\n]+)/gi
+            ];
+
+            clausePatterns.forEach(pattern => {
+                const matches = text.matchAll(pattern);
+                for (const match of matches) {
+                    if (match[1] && match[1].trim().length > 10) {
+                        clauses.push({
+                            title: match[1].trim().substring(0, 100),
+                            number: clauses.length + 1,
+                            mandatory: match[1].toLowerCase().includes('shall') || match[1].toLowerCase().includes('must')
+                        });
+                    }
+                }
+            });
+
+            return clauses.slice(0, 20); // Limit to 20 clauses
+        }
+
+        // Helper functions
+        function inferPartyRole(name, text, index) {
+            const roles = ['First Party', 'Second Party', 'Third Party', 'Seller', 'Buyer', 'Provider', 'Client', 'Employer', 'Employee', 'Lessor', 'Lessee'];
+            const lowerText = text.toLowerCase();
+            const lowerName = name.toLowerCase();
+
+            if (lowerText.includes(lowerName + ' (seller)') || lowerText.includes(lowerName + ', seller')) return 'Seller';
+            if (lowerText.includes(lowerName + ' (buyer)') || lowerText.includes(lowerName + ', buyer')) return 'Buyer';
+            if (lowerText.includes(lowerName + ' (provider)') || lowerText.includes(lowerName + ', provider')) return 'Provider';
+            if (lowerText.includes(lowerName + ' (client)') || lowerText.includes(lowerName + ', client')) return 'Client';
+
+            return roles[index] || `Party ${index + 1}`;
+        }
+
+        function inferEntityType(name) {
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes('inc') || lowerName.includes('llc') || lowerName.includes('ltd') || lowerName.includes('corp')) {
+                return 'corporation';
+            }
+            if (lowerName.includes('partnership') || lowerName.includes('lp')) {
+                return 'partnership';
+            }
+            return 'entity';
+        }
+
+        function determineContractType(lowerText) {
+            const types = {
+                'purchase': ['purchase', 'buy', 'sale', 'acquisition'],
+                'service': ['service', 'consulting', 'professional service'],
+                'employment': ['employment', 'employee', 'hire', 'job'],
+                'lease': ['lease', 'rent', 'tenancy'],
+                'loan': ['loan', 'credit', 'financing', 'borrow'],
+                'nda': ['non-disclosure', 'confidential', 'nda', 'confidentiality'],
+                'partnership': ['partnership', 'joint venture', 'collaboration'],
+                'licensing': ['license', 'licensing', 'intellectual property']
+            };
+
+            for (const [type, keywords] of Object.entries(types)) {
+                if (keywords.some(keyword => lowerText.includes(keyword))) {
+                    return type;
+                }
+            }
+
+            return 'general';
+        }
+
+        function extractJurisdiction(text) {
+            const jurisdictionPatterns = [
+                /(?:governed by|jurisdiction of|laws of)\s+(?:the\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/gi,
+                /(?:State of|Province of)\s+([A-Z][a-z]+)/gi
+            ];
+
+            for (const pattern of jurisdictionPatterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    return match[0];
+                }
+            }
+
+            return 'Not specified';
+        }
+
+        function extractContext(text, index, length) {
+            const start = Math.max(0, index - length);
+            const end = Math.min(text.length, index + length);
+            return text.substring(start, end).trim();
+        }
+
+        function inferResponsibleParty(sentence, parties) {
+            for (const party of parties) {
+                if (sentence.includes(party.name)) {
+                    return party.id;
+                }
+            }
+            return parties[0]?.id || 'party_1';
+        }
+
+        function classifyObligation(sentence) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('pay')) return 'payment';
+            if (lowerSentence.includes('deliver')) return 'delivery';
+            if (lowerSentence.includes('perform')) return 'performance';
+            if (lowerSentence.includes('maintain')) return 'maintenance';
+            if (lowerSentence.includes('provide')) return 'provision';
+            return 'general';
+        }
+
+        function classifyCondition(sentence) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('breach') || lowerSentence.includes('default')) return 'breach';
+            if (lowerSentence.includes('terminate')) return 'termination';
+            if (lowerSentence.includes('renew')) return 'renewal';
+            return 'general';
+        }
+
+        function extractDeadlineFromSentence(sentence) {
+            const deadlinePatterns = [
+                /within\s+(\d+)\s+(day|week|month|year)s?/i,
+                /by\s+([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})/i,
+                /no later than\s+([^\.,]+)/i
+            ];
+
+            for (const pattern of deadlinePatterns) {
+                const match = sentence.match(pattern);
+                if (match) {
+                    return match[0];
+                }
+            }
+
+            return null;
+        }
+
+        function extractPaymentTerms(text) {
+            const paymentMatch = text.match(/(?:payment|paid)\s+(?:within|in)\s+(\d+)\s+(day|week|month)s?/i);
+            if (paymentMatch) {
+                return `Net ${paymentMatch[1]} ${paymentMatch[2]}s`;
+            }
+            if (text.toLowerCase().includes('net 30')) return 'Net 30';
+            if (text.toLowerCase().includes('net 60')) return 'Net 60';
+            if (text.toLowerCase().includes('upon delivery')) return 'Upon delivery';
+            return 'As agreed';
+        }
+
+        function extractDeliverables(text) {
+            const deliverables = [];
+            const deliverableKeywords = ['deliver', 'provide', 'supply', 'furnish'];
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+
+            sentences.forEach(sentence => {
+                deliverableKeywords.forEach(keyword => {
+                    if (sentence.toLowerCase().includes(keyword)) {
+                        deliverables.push(sentence.trim());
+                    }
+                });
+            });
+
+            return deliverables.slice(0, 5);
+        }
+
+        function extractWarranties(text) {
+            if (text.toLowerCase().includes('warrant')) {
+                return ['Warranties as specified in contract text'];
+            }
+            return ['No explicit warranties found'];
+        }
+
+        function extractTerminationClauses(text) {
+            const terminationMatch = text.match(/(?:terminate|termination)[^.!?]*[.!?]/gi);
+            if (terminationMatch) {
+                return terminationMatch.slice(0, 3).map(m => m.trim());
+            }
+            return ['See contract for termination provisions'];
+        }
+
+        function extractDisputeResolution(text) {
+            if (text.toLowerCase().includes('arbitration')) return 'Arbitration';
+            if (text.toLowerCase().includes('mediation')) return 'Mediation';
+            if (text.toLowerCase().includes('litigation')) return 'Litigation';
+            return 'As per governing law';
+        }
+
+        function extractGoverningLaw(text) {
+            const lawMatch = text.match(/(?:governed by|laws of)\s+(?:the\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i);
+            if (lawMatch) {
+                return lawMatch[1];
+            }
+            return 'Not specified';
+        }
+
+        function extractAmendmentProvisions(text) {
+            if (text.toLowerCase().includes('amendment') || text.toLowerCase().includes('modify')) {
+                return 'Amendments allowed as specified';
+            }
+            return 'Written consent required';
+        }
+
+        function checkAutoExecutability(text) {
+            const autoExecutableKeywords = ['automatic', 'auto-execute', 'self-executing', 'trigger'];
+            return autoExecutableKeywords.some(keyword => text.toLowerCase().includes(keyword));
+        }
+
+        function determineComplianceFlags(text) {
+            const flags = [];
+            if (text.toLowerCase().includes('gdpr') || text.toLowerCase().includes('data protection')) {
+                flags.push('GDPR');
+            }
+            if (text.toLowerCase().includes('hipaa') || text.toLowerCase().includes('health')) {
+                flags.push('HIPAA');
+            }
+            if (text.toLowerCase().includes('sox') || text.toLowerCase().includes('sarbanes')) {
+                flags.push('SOX');
+            }
+            if (text.toLowerCase().includes('kyc') || text.toLowerCase().includes('know your customer')) {
+                flags.push('KYC');
+            }
+            if (text.toLowerCase().includes('aml') || text.toLowerCase().includes('anti-money laundering')) {
+                flags.push('AML');
+            }
+            return flags.length > 0 ? flags : ['General'];
+        }
         function createRicardianContract(event) {
             event.preventDefault();
 
@@ -11484,6 +12157,375 @@ contract MyNFT {
             showNotification(`📄 Opening contract ${tokenId}...\n\n🔍 Contract Details:\n• Token ID: ${tokenId}\n• Status: Active\n• Blockchain: Verified ✅\n• IPFS: Accessible ✅\n\n[View full contract in new window]`, 'info');
         }
 
+
+        // Global variable to store parsed contract data for approval
+        let pendingContractData = null;
+
+        // Show approval section with parsed data
+        function showApprovalSection(contractData) {
+            pendingContractData = contractData;
+            const approvalSection = document.getElementById('contractApprovalSection');
+
+            // Populate metadata fields
+            document.getElementById('approve-contractType').value = contractData.metadata.contractType || '';
+            document.getElementById('approve-jurisdiction').value = contractData.metadata.jurisdiction || '';
+            document.getElementById('approve-effectiveDate').value = contractData.metadata.effectiveDate || '';
+            document.getElementById('approve-expirationDate').value = contractData.metadata.expirationDate || '';
+
+            // Populate parties
+            populateApprovalParties(contractData.parties);
+
+            // Populate obligations
+            populateApprovalObligations(contractData.obligations);
+
+            // Populate terms
+            document.getElementById('approve-paymentTerms').value = contractData.terms.paymentTerms || '';
+            document.getElementById('approve-governingLaw').value = contractData.terms.governingLaw || '';
+            document.getElementById('approve-disputeResolution').value = contractData.terms.disputeResolution || '';
+            document.getElementById('approve-amendments').value = contractData.terms.amendments || '';
+
+            // Populate monetary provisions
+            populateApprovalMonetary(contractData.monetaryProvisions);
+
+            // Populate blockchain config
+            document.getElementById('approve-tokenizable').checked = contractData.blockchain.tokenizable;
+            document.getElementById('approve-smartContractEnabled').checked = contractData.blockchain.smartContractEnabled;
+            document.getElementById('approve-autoExecutable').checked = contractData.blockchain.autoExecutable;
+
+            // Populate raw JSON
+            document.getElementById('approve-rawJSON').value = JSON.stringify(contractData, null, 2);
+
+            // Show approval section
+            approvalSection.style.display = 'block';
+            approvalSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Populate parties in approval UI
+        function populateApprovalParties(parties) {
+            const container = document.getElementById('approval-parties');
+            container.innerHTML = '';
+
+            parties.forEach((party, index) => {
+                const partyDiv = document.createElement('div');
+                partyDiv.className = 'grid grid-3 gap-2';
+                partyDiv.style.marginBottom = '1rem';
+                partyDiv.style.padding = '1rem';
+                partyDiv.style.background = 'rgba(0,255,136,0.05)';
+                partyDiv.style.borderRadius = '8px';
+                partyDiv.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">Party ${index + 1} Name</label>
+                        <input type="text" class="form-input" data-party-index="${index}" data-field="name" value="${party.name}" onchange="updatePartyField(this)" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <input type="text" class="form-input" data-party-index="${index}" data-field="role" value="${party.role}" onchange="updatePartyField(this)" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" data-party-index="${index}" data-field="type" onchange="updatePartyField(this)">
+                            <option value="corporation" ${party.type === 'corporation' ? 'selected' : ''}>Corporation</option>
+                            <option value="individual" ${party.type === 'individual' ? 'selected' : ''}>Individual</option>
+                            <option value="partnership" ${party.type === 'partnership' ? 'selected' : ''}>Partnership</option>
+                            <option value="entity" ${party.type === 'entity' ? 'selected' : ''}>Entity</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Address</label>
+                        <input type="text" class="form-input" data-party-index="${index}" data-field="address" value="${party.address}" onchange="updatePartyField(this)" />
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button type="button" class="btn" onclick="removeParty(${index})" style="background: #ff3366; width: 100%;">
+                            🗑️ Remove
+                        </button>
+                    </div>
+                `;
+                container.appendChild(partyDiv);
+            });
+        }
+
+        // Populate obligations in approval UI
+        function populateApprovalObligations(obligations) {
+            const container = document.getElementById('approval-obligations');
+            container.innerHTML = '';
+
+            obligations.forEach((obligation, index) => {
+                const obligationDiv = document.createElement('div');
+                obligationDiv.style.marginBottom = '1rem';
+                obligationDiv.style.padding = '1rem';
+                obligationDiv.style.background = 'rgba(167,139,250,0.05)';
+                obligationDiv.style.borderRadius = '8px';
+                obligationDiv.innerHTML = `
+                    <div class="grid grid-2 gap-2">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Obligation ${index + 1}</label>
+                            <textarea class="form-textarea" rows="2" data-obligation-index="${index}" data-field="description" onchange="updateObligationField(this)">${obligation.description}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Responsible Party</label>
+                            <input type="text" class="form-input" data-obligation-index="${index}" data-field="responsibleParty" value="${obligation.responsibleParty}" onchange="updateObligationField(this)" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" data-obligation-index="${index}" data-field="type" onchange="updateObligationField(this)">
+                                <option value="payment" ${obligation.type === 'payment' ? 'selected' : ''}>Payment</option>
+                                <option value="delivery" ${obligation.type === 'delivery' ? 'selected' : ''}>Delivery</option>
+                                <option value="performance" ${obligation.type === 'performance' ? 'selected' : ''}>Performance</option>
+                                <option value="maintenance" ${obligation.type === 'maintenance' ? 'selected' : ''}>Maintenance</option>
+                                <option value="provision" ${obligation.type === 'provision' ? 'selected' : ''}>Provision</option>
+                                <option value="general" ${obligation.type === 'general' ? 'selected' : ''}>General</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Deadline</label>
+                            <input type="text" class="form-input" data-obligation-index="${index}" data-field="deadline" value="${obligation.deadline || 'N/A'}" onchange="updateObligationField(this)" />
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button type="button" class="btn" onclick="removeObligation(${index})" style="background: #ff3366; width: 100%;">
+                                🗑️ Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(obligationDiv);
+            });
+        }
+
+        // Populate monetary provisions
+        function populateApprovalMonetary(monetaryProvisions) {
+            const container = document.getElementById('approval-monetary');
+            container.innerHTML = '';
+
+            monetaryProvisions.forEach((provision, index) => {
+                const provisionDiv = document.createElement('div');
+                provisionDiv.style.marginBottom = '1rem';
+                provisionDiv.style.padding = '1rem';
+                provisionDiv.style.background = 'rgba(244,114,182,0.05)';
+                provisionDiv.style.borderRadius = '8px';
+                provisionDiv.innerHTML = `
+                    <div class="grid grid-3 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Amount ${index + 1}</label>
+                            <input type="text" class="form-input" data-monetary-index="${index}" data-field="amount" value="${provision.amount}" onchange="updateMonetaryField(this)" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currency</label>
+                            <input type="text" class="form-input" data-monetary-index="${index}" data-field="currency" value="${provision.currency}" onchange="updateMonetaryField(this)" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Context</label>
+                            <input type="text" class="form-input" data-monetary-index="${index}" data-field="context" value="${provision.context}" onchange="updateMonetaryField(this)" />
+                        </div>
+                    </div>
+                `;
+                container.appendChild(provisionDiv);
+            });
+        }
+
+        // Update party field
+        function updatePartyField(element) {
+            const index = parseInt(element.dataset.partyIndex);
+            const field = element.dataset.field;
+            const value = element.value;
+
+            if (pendingContractData && pendingContractData.parties[index]) {
+                pendingContractData.parties[index][field] = value;
+            }
+        }
+
+        // Update obligation field
+        function updateObligationField(element) {
+            const index = parseInt(element.dataset.obligationIndex);
+            const field = element.dataset.field;
+            const value = element.value;
+
+            if (pendingContractData && pendingContractData.obligations[index]) {
+                pendingContractData.obligations[index][field] = value;
+            }
+        }
+
+        // Update monetary field
+        function updateMonetaryField(element) {
+            const index = parseInt(element.dataset.monetaryIndex);
+            const field = element.dataset.field;
+            const value = element.value;
+
+            if (pendingContractData && pendingContractData.monetaryProvisions[index]) {
+                pendingContractData.monetaryProvisions[index][field] = value;
+            }
+        }
+
+        // Remove party
+        function removeParty(index) {
+            if (confirm('Remove this party?')) {
+                pendingContractData.parties.splice(index, 1);
+                populateApprovalParties(pendingContractData.parties);
+                updateJSONFromApproval();
+            }
+        }
+
+        // Remove obligation
+        function removeObligation(index) {
+            if (confirm('Remove this obligation?')) {
+                pendingContractData.obligations.splice(index, 1);
+                populateApprovalObligations(pendingContractData.obligations);
+                updateJSONFromApproval();
+            }
+        }
+
+        // Add new party
+        function addApprovalParty() {
+            if (!pendingContractData) return;
+
+            const newParty = {
+                id: `party_${pendingContractData.parties.length + 1}`,
+                name: "New Party",
+                role: "Party Role",
+                type: "entity",
+                address: "TBD",
+                contact: "TBD"
+            };
+
+            pendingContractData.parties.push(newParty);
+            populateApprovalParties(pendingContractData.parties);
+            updateJSONFromApproval();
+        }
+
+        // Add new obligation
+        function addApprovalObligation() {
+            if (!pendingContractData) return;
+
+            const newObligation = {
+                id: `obligation_${pendingContractData.obligations.length + 1}`,
+                description: "New obligation description",
+                responsibleParty: "party_1",
+                type: "general",
+                enforceable: true,
+                deadline: null
+            };
+
+            pendingContractData.obligations.push(newObligation);
+            populateApprovalObligations(pendingContractData.obligations);
+            updateJSONFromApproval();
+        }
+
+        // Toggle approval section
+        function toggleApprovalSection(sectionName) {
+            const section = document.getElementById(`approval-${sectionName}`);
+            const toggle = document.getElementById(`${sectionName}-toggle`);
+
+            if (section.style.display === 'none') {
+                section.style.display = 'grid';
+                toggle.textContent = '▼';
+            } else {
+                section.style.display = 'none';
+                toggle.textContent = '▶';
+            }
+        }
+
+        // Update JSON from approval fields
+        function updateJSONFromApproval() {
+            if (!pendingContractData) return;
+
+            // Update metadata
+            pendingContractData.metadata.contractType = document.getElementById('approve-contractType').value;
+            pendingContractData.metadata.jurisdiction = document.getElementById('approve-jurisdiction').value;
+            pendingContractData.metadata.effectiveDate = document.getElementById('approve-effectiveDate').value;
+            pendingContractData.metadata.expirationDate = document.getElementById('approve-expirationDate').value;
+
+            // Update terms
+            pendingContractData.terms.paymentTerms = document.getElementById('approve-paymentTerms').value;
+            pendingContractData.terms.governingLaw = document.getElementById('approve-governingLaw').value;
+            pendingContractData.terms.disputeResolution = document.getElementById('approve-disputeResolution').value;
+            pendingContractData.terms.amendments = document.getElementById('approve-amendments').value;
+
+            // Update blockchain config
+            pendingContractData.blockchain.tokenizable = document.getElementById('approve-tokenizable').checked;
+            pendingContractData.blockchain.smartContractEnabled = document.getElementById('approve-smartContractEnabled').checked;
+            pendingContractData.blockchain.autoExecutable = document.getElementById('approve-autoExecutable').checked;
+
+            // Update raw JSON display
+            const jsonTextarea = document.getElementById('approve-rawJSON');
+            jsonTextarea.value = JSON.stringify(pendingContractData, null, 2);
+
+            // Also update the main machine terms field
+            document.getElementById('ricardianMachineTerms').value = JSON.stringify(pendingContractData, null, 2);
+
+            showNotification('✅ JSON updated from approval fields', 'success');
+        }
+
+        // Approve and create contract
+        function approveAndCreateContract() {
+            if (!pendingContractData) {
+                showNotification('❌ No contract data to approve', 'error');
+                return;
+            }
+
+            // Final update from all fields
+            updateJSONFromApproval();
+
+            // Close approval section
+            document.getElementById('contractApprovalSection').style.display = 'none';
+
+            // Show success message
+            showNotification('✅ Contract parameters approved!\n\nProceeding to create smart contract...', 'success');
+
+            // Trigger the actual contract creation
+            // The form already has the updated JSON in ricardianMachineTerms field
+            setTimeout(() => {
+                const form = document.querySelector('form[onsubmit*="createRicardianContract"]');
+                if (form) {
+                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                }
+            }, 1000);
+        }
+
+        // Cancel approval
+        function cancelApproval() {
+            if (confirm('Cancel approval? All changes will be lost.')) {
+                document.getElementById('contractApprovalSection').style.display = 'none';
+                pendingContractData = null;
+                showNotification('Approval cancelled', 'info');
+            }
+        }
+
+        // Modify the convertTextToJSON function to show approval section
+        const originalConvertTextToJSON = convertTextToJSON;
+        convertTextToJSON = function() {
+            const legalText = document.getElementById('ricardianLegalText').value;
+            const statusDiv = document.getElementById('conversionStatus');
+
+            if (!legalText || legalText.trim() === '') {
+                statusDiv.innerHTML = '<span style="color: #ff3366;">⚠️ Please enter legal text first</span>';
+                statusDiv.style.display = 'block';
+                setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+                return;
+            }
+
+            // Show processing status
+            statusDiv.innerHTML = '<span style="color: #00d4ff;">🤖 AI analyzing legal text...</span>';
+            statusDiv.style.display = 'block';
+
+            // Simulate processing delay
+            setTimeout(() => {
+                try {
+                    const contractData = parseLegalText(legalText);
+                    const jsonOutput = JSON.stringify(contractData, null, 2);
+
+                    document.getElementById('ricardianMachineTerms').value = jsonOutput;
+
+                    statusDiv.innerHTML = '<span style="color: #00ff88;">✅ Successfully converted to JSON - Review parameters below</span>';
+
+                    // Show approval section
+                    showApprovalSection(contractData);
+
+                    setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+                } catch (error) {
+                    statusDiv.innerHTML = '<span style="color: #ff3366;">❌ Conversion error: ' + error.message + '</span>';
+                    setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+                }
+            }, 1500);
+        };
         // Demo App Functions
         function showTab(tabId) {
             switchTab(tabId);
