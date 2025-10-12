@@ -1379,6 +1379,191 @@
                 </div>
             </div>
 
+
+            <!-- Slim Agent & External Data Feeds Section -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">🤖 Slim Agents & External Data Feeds</h3>
+                    <span class="card-badge">Real-time Data Integration</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div style="background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(167,139,250,0.1)); border: 1px solid #00d4ff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: #00d4ff; margin-bottom: 0.5rem;">📡 Data Feed Ecosystem</h4>
+                        <p style="color: #94a3b8; margin-bottom: 1rem;">
+                            Deploy slim agents to consume external data feeds (Market Data, Oracles, IoT Sensors, Weather). Agents earn tokens based on data throughput and quality.
+                        </p>
+                        <div class="grid grid-4 gap-2">
+                            <div style="text-align: center;">
+                                <div id="active-slim-agents" style="font-size: 1.75rem; color: #a78bfa; font-weight: 600;">0</div>
+                                <div style="color: #94a3b8; font-size: 0.75rem;">Active Slim Agents</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div id="active-data-feeds" style="font-size: 1.75rem; color: #00d4ff; font-weight: 600;">0</div>
+                                <div style="color: #94a3b8; font-size: 0.75rem;">Active Data Feeds</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div id="data-throughput-rate" style="font-size: 1.75rem; color: #00ff88; font-weight: 600;">0</div>
+                                <div style="color: #94a3b8; font-size: 0.75rem;">Msgs/sec Throughput</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div id="tokens-earned" style="font-size: 1.75rem; color: #fbbf24; font-weight: 600;">0</div>
+                                <div style="color: #94a3b8; font-size: 0.75rem;">Tokens Earned</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Feed Management -->
+                    <div class="grid grid-2 gap-2">
+                        <!-- Available Data Feeds -->
+                        <div>
+                            <h4 style="color: #00d4ff; margin-bottom: 1rem;">📊 Available Data Feeds</h4>
+                            <div id="available-feeds-list" style="max-height: 400px; overflow-y: auto;">
+                                <!-- Feed cards will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Deployed Slim Agents -->
+                        <div>
+                            <h4 style="color: #a78bfa; margin-bottom: 1rem;">🤖 Deployed Slim Agents</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <button class="btn btn-primary" onclick="deploySlimAgent()" style="width: 100%;">
+                                    + Deploy New Slim Agent
+                                </button>
+                            </div>
+                            <div id="deployed-agents-list" style="max-height: 350px; overflow-y: auto;">
+                                <div style="text-align: center; padding: 2rem; color: #64748b;">
+                                    No agents deployed yet. Click "Deploy New Slim Agent" to start.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Data Flow Visualization -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">🌊 Live Data Flow Visualization</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn" onclick="toggleDataFlow()" id="dataFlowToggle" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">
+                            ⏸️ Pause
+                        </button>
+                        <button class="btn" onclick="clearDataFlowLog()" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">
+                            🗑️ Clear
+                        </button>
+                    </div>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <!-- Data Flow Diagram -->
+                    <div style="background: linear-gradient(135deg, #0a1628 0%, #111827 100%); border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; min-height: 250px; position: relative; overflow: hidden;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; align-items: center;">
+                            <!-- External Sources -->
+                            <div>
+                                <div style="text-align: center; color: #00d4ff; font-weight: 600; margin-bottom: 1rem;">External Sources</div>
+                                <div id="data-sources-visual" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <!-- Source nodes will be added here -->
+                                </div>
+                            </div>
+
+                            <!-- Data Flow Arrows -->
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                <div id="flow-animation" style="text-align: center;">
+                                    <div style="font-size: 3rem; color: #00ff88; animation: pulse 2s infinite;">→→→</div>
+                                    <div style="color: #94a3b8; font-size: 0.875rem; margin-top: 0.5rem;">
+                                        <span id="flow-rate">0</span> msgs/sec
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slim Agents -->
+                            <div>
+                                <div style="text-align: center; color: #a78bfa; font-weight: 600; margin-bottom: 1rem;">Slim Agents</div>
+                                <div id="agents-visual" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <!-- Agent nodes will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Animated particles for data flow -->
+                        <canvas id="dataFlowCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+                    </div>
+
+                    <!-- Real-time Data Log -->
+                    <div>
+                        <h4 style="color: #00ff88; margin-bottom: 1rem;">📜 Real-time Data Log</h4>
+                        <div id="data-flow-log" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
+                            <div style="color: #64748b;">Waiting for data flow...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Configuration Modal -->
+            <div id="agentConfigModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;">
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="color: #00d4ff;">🤖 Deploy Slim Agent</h3>
+                        <button onclick="closeAgentModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">×</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Agent Name</label>
+                        <input type="text" class="form-input" id="newAgentName" placeholder="My Slim Agent" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Data Feed</label>
+                        <select class="form-select" id="newAgentFeed">
+                            <option value="">-- Choose a feed --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Update Frequency</label>
+                        <select class="form-select" id="newAgentFrequency">
+                            <option value="1000">1 second</option>
+                            <option value="5000">5 seconds</option>
+                            <option value="10000">10 seconds</option>
+                            <option value="30000" selected>30 seconds</option>
+                            <option value="60000">1 minute</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="newAgentAutoStart" checked />
+                            Auto-start agent after deployment
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="confirmDeployAgent()" style="flex: 1;">
+                            ✅ Deploy Agent
+                        </button>
+                        <button class="btn" onclick="closeAgentModal()" style="flex: 1; background: #64748b;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feed Details Modal -->
+            <div id="feedDetailsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;">
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="color: #00d4ff;">📡 Data Feed Details</h3>
+                        <button onclick="closeFeedModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">×</button>
+                    </div>
+
+                    <div id="feedDetailsContent"></div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="subscribeFeedFromModal()" style="width: 100%;">
+                            🔔 Subscribe Agent to This Feed
+                        </button>
+                    </div>
+                </div>
+            </div>
             <!-- API Access Information -->
             <div class="card">
                 <div class="card-header">
@@ -13043,6 +13228,518 @@ function resetDemoConfig() {
     updateConsensusAlgo();
 }
 
+
+        // Slim Agent & Data Feeds State
+        const dataFeedState = {
+            feeds: [],
+            agents: [],
+            dataFlowActive: true,
+            logEntries: [],
+            maxLogEntries: 50,
+            totalThroughput: 0,
+            totalTokens: 0,
+            flowInterval: null,
+            animationFrame: null
+        };
+
+        // Initialize available data feeds
+        function initializeDataFeeds() {
+            dataFeedState.feeds = [
+                {
+                    id: 'feed_market_001',
+                    name: 'Crypto Market Data',
+                    type: 'MARKET_DATA',
+                    source: 'CoinGecko API',
+                    endpoint: 'https://api.coingecko.com/api/v3/simple/price',
+                    status: 'ACTIVE',
+                    frequency: '30s',
+                    subscribers: 0,
+                    throughput: 120,
+                    icon: '💰',
+                    color: '#00ff88',
+                    description: 'Real-time cryptocurrency prices and market cap data'
+                },
+                {
+                    id: 'feed_oracle_001',
+                    name: 'Chainlink Oracle',
+                    type: 'ORACLE',
+                    source: 'Chainlink Network',
+                    endpoint: 'https://chain.link/data-feeds',
+                    status: 'ACTIVE',
+                    frequency: '60s',
+                    subscribers: 0,
+                    throughput: 85,
+                    icon: '🔗',
+                    color: '#00d4ff',
+                    description: 'Decentralized oracle price feeds for DeFi'
+                },
+                {
+                    id: 'feed_iot_001',
+                    name: 'IoT Sensor Network',
+                    type: 'IOT_SENSOR',
+                    source: 'ThingSpeak API',
+                    endpoint: 'https://api.thingspeak.com/channels',
+                    status: 'ACTIVE',
+                    frequency: '15s',
+                    subscribers: 0,
+                    throughput: 250,
+                    icon: '📡',
+                    color: '#a78bfa',
+                    description: 'Temperature, humidity, and environmental sensors'
+                },
+                {
+                    id: 'feed_weather_001',
+                    name: 'Weather Data',
+                    type: 'WEATHER',
+                    source: 'OpenWeather API',
+                    endpoint: 'https://api.openweathermap.org/data/2.5',
+                    status: 'ACTIVE',
+                    frequency: '300s',
+                    subscribers: 0,
+                    throughput: 45,
+                    icon: '🌤️',
+                    color: '#fbbf24',
+                    description: 'Global weather conditions and forecasts'
+                },
+                {
+                    id: 'feed_custom_001',
+                    name: 'Custom API Feed',
+                    type: 'CUSTOM',
+                    source: 'Custom Endpoint',
+                    endpoint: 'https://api.example.com/data',
+                    status: 'ACTIVE',
+                    frequency: '20s',
+                    subscribers: 0,
+                    throughput: 180,
+                    icon: '⚙️',
+                    color: '#f472b6',
+                    description: 'User-defined custom data source'
+                }
+            ];
+
+            renderDataFeeds();
+        }
+
+        // Render available data feeds
+        function renderDataFeeds() {
+            const container = document.getElementById('available-feeds-list');
+            if (!container) return;
+
+            container.innerHTML = dataFeedState.feeds.map(feed => `
+                <div class="card" style="margin-bottom: 1rem; border-left: 3px solid ${feed.color}; cursor: pointer;" onclick="showFeedDetails('${feed.id}')">
+                    <div style="padding: 1rem;">
+                        <div style="display: flex; justify-content: between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 1.5rem;">${feed.icon}</span>
+                                    <strong style="color: ${feed.color};">${feed.name}</strong>
+                                </div>
+                                <div style="color: #94a3b8; font-size: 0.75rem;">${feed.description}</div>
+                            </div>
+                            <span class="card-badge" style="background: ${feed.status === 'ACTIVE' ? '#00ff88' : '#64748b'}; margin-left: 0.5rem;">
+                                ${feed.status}
+                            </span>
+                        </div>
+                        <div class="grid grid-3 gap-1" style="margin-top: 0.75rem;">
+                            <div style="font-size: 0.75rem;">
+                                <div style="color: #64748b;">Type</div>
+                                <div style="color: #e2e8f0; font-weight: 600;">${feed.type}</div>
+                            </div>
+                            <div style="font-size: 0.75rem;">
+                                <div style="color: #64748b;">Update</div>
+                                <div style="color: #e2e8f0; font-weight: 600;">${feed.frequency}</div>
+                            </div>
+                            <div style="font-size: 0.75rem;">
+                                <div style="color: #64748b;">Throughput</div>
+                                <div style="color: #00ff88; font-weight: 600;">${feed.throughput}/s</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('active-data-feeds').textContent = dataFeedState.feeds.filter(f => f.status === 'ACTIVE').length;
+        }
+
+        // Deploy new slim agent
+        function deploySlimAgent() {
+            const modal = document.getElementById('agentConfigModal');
+            const select = document.getElementById('newAgentFeed');
+
+            // Populate feed options
+            select.innerHTML = '<option value="">-- Choose a feed --</option>' +
+                dataFeedState.feeds.map(feed => `
+                    <option value="${feed.id}">${feed.icon} ${feed.name}</option>
+                `).join('');
+
+            modal.style.display = 'flex';
+        }
+
+        // Close agent modal
+        function closeAgentModal() {
+            document.getElementById('agentConfigModal').style.display = 'none';
+            document.getElementById('newAgentName').value = '';
+            document.getElementById('newAgentFeed').value = '';
+        }
+
+        // Confirm agent deployment
+        function confirmDeployAgent() {
+            const name = document.getElementById('newAgentName').value;
+            const feedId = document.getElementById('newAgentFeed').value;
+            const frequency = parseInt(document.getElementById('newAgentFrequency').value);
+            const autoStart = document.getElementById('newAgentAutoStart').checked;
+
+            if (!name || !feedId) {
+                alert('Please provide agent name and select a feed');
+                return;
+            }
+
+            const feed = dataFeedState.feeds.find(f => f.id === feedId);
+            if (!feed) return;
+
+            const agent = {
+                id: `agent_${Date.now()}`,
+                name: name,
+                feedId: feedId,
+                feedName: feed.name,
+                feedIcon: feed.icon,
+                feedColor: feed.color,
+                frequency: frequency,
+                status: autoStart ? 'RUNNING' : 'STOPPED',
+                messagesProcessed: 0,
+                tokensEarned: 0,
+                uptime: 0,
+                lastUpdate: new Date(),
+                interval: null
+            };
+
+            dataFeedState.agents.push(agent);
+            feed.subscribers++;
+
+            if (autoStart) {
+                startAgent(agent);
+            }
+
+            renderAgents();
+            renderDataFeeds();
+            updateStatistics();
+            closeAgentModal();
+
+            showNotification(`✅ Slim agent "${name}" deployed successfully!\n\n${autoStart ? '▶️ Agent is now running' : '⏸️ Agent is stopped - click Start to begin'}`, 'success');
+        }
+
+        // Render deployed agents
+        function renderAgents() {
+            const container = document.getElementById('deployed-agents-list');
+            if (!container) return;
+
+            if (dataFeedState.agents.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #64748b;">
+                        No agents deployed yet. Click "Deploy New Slim Agent" to start.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = dataFeedState.agents.map(agent => `
+                <div class="card" style="margin-bottom: 1rem; border-left: 3px solid ${agent.feedColor};">
+                    <div style="padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 1.25rem;">${agent.feedIcon}</span>
+                                    <strong style="color: ${agent.feedColor};">${agent.name}</strong>
+                                </div>
+                                <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 0.25rem;">
+                                    Feed: ${agent.feedName}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.25rem;">
+                                <button onclick="toggleAgent('${agent.id}')" class="btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background: ${agent.status === 'RUNNING' ? '#fbbf24' : '#00ff88'};">
+                                    ${agent.status === 'RUNNING' ? '⏸️' : '▶️'}
+                                </button>
+                                <button onclick="removeAgent('${agent.id}')" class="btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background: #ff3366;">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <div class="grid grid-3 gap-1">
+                            <div style="font-size: 0.75rem;">
+                                <div style="color: #64748b;">Status</div>
+                                <div style="color: ${agent.status === 'RUNNING' ? '#00ff88' : '#64748b'}; font-weight: 600;">${agent.status}</div>
+                            </div>
+                            <div style="font-size: 0.75rem;">
+                                <div style="color: #64748b;">Messages</div>
+                                <div style="color: #00d4ff; font-weight: 600;">${agent.messagesProcessed.toLocaleString()}</div>
+                            </div>
+                            <div style="font-size: 0.75rem;">
+                                <div style="color: #64748b;">Tokens</div>
+                                <div style="color: #fbbf24; font-weight: 600;">${agent.tokensEarned.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('active-slim-agents').textContent = dataFeedState.agents.filter(a => a.status === 'RUNNING').length;
+        }
+
+        // Start agent
+        function startAgent(agent) {
+            if (agent.interval) return;
+
+            agent.interval = setInterval(() => {
+                // Simulate data processing
+                const messagesInBatch = Math.floor(Math.random() * 10) + 5;
+                agent.messagesProcessed += messagesInBatch;
+                agent.tokensEarned += messagesInBatch * 0.001; // 0.001 tokens per message
+                agent.lastUpdate = new Date();
+
+                // Add to data flow log
+                addDataFlowLog(agent);
+
+                // Update visualizations
+                renderAgents();
+                updateStatistics();
+                updateDataFlowVisuals();
+            }, agent.frequency);
+        }
+
+        // Stop agent
+        function stopAgent(agent) {
+            if (agent.interval) {
+                clearInterval(agent.interval);
+                agent.interval = null;
+            }
+        }
+
+        // Toggle agent status
+        function toggleAgent(agentId) {
+            const agent = dataFeedState.agents.find(a => a.id === agentId);
+            if (!agent) return;
+
+            if (agent.status === 'RUNNING') {
+                agent.status = 'STOPPED';
+                stopAgent(agent);
+            } else {
+                agent.status = 'RUNNING';
+                startAgent(agent);
+            }
+
+            renderAgents();
+            updateStatistics();
+        }
+
+        // Remove agent
+        function removeAgent(agentId) {
+            if (!confirm('Remove this agent?')) return;
+
+            const agent = dataFeedState.agents.find(a => a.id === agentId);
+            if (!agent) return;
+
+            stopAgent(agent);
+
+            const feed = dataFeedState.feeds.find(f => f.id === agent.feedId);
+            if (feed) feed.subscribers--;
+
+            dataFeedState.agents = dataFeedState.agents.filter(a => a.id !== agentId);
+
+            renderAgents();
+            renderDataFeeds();
+            updateStatistics();
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const runningAgents = dataFeedState.agents.filter(a => a.status === 'RUNNING');
+            const totalMessages = dataFeedState.agents.reduce((sum, a) => sum + a.messagesProcessed, 0);
+            const totalTokens = dataFeedState.agents.reduce((sum, a) => sum + a.tokensEarned, 0);
+
+            // Calculate throughput (messages per second)
+            const throughput = runningAgents.length > 0
+                ? runningAgents.reduce((sum, a) => {
+                    const feed = dataFeedState.feeds.find(f => f.id === a.feedId);
+                    return sum + (feed ? feed.throughput / (a.frequency / 1000) : 0);
+                }, 0)
+                : 0;
+
+            document.getElementById('active-slim-agents').textContent = runningAgents.length;
+            document.getElementById('data-throughput-rate').textContent = Math.floor(throughput);
+            document.getElementById('tokens-earned').textContent = totalTokens.toFixed(2);
+            document.getElementById('flow-rate').textContent = Math.floor(throughput);
+
+            dataFeedState.totalThroughput = throughput;
+            dataFeedState.totalTokens = totalTokens;
+        }
+
+        // Add data flow log entry
+        function addDataFlowLog(agent) {
+            if (!dataFeedState.dataFlowActive) return;
+
+            const timestamp = new Date().toLocaleTimeString();
+            const feed = dataFeedState.feeds.find(f => f.id === agent.feedId);
+
+            const logEntry = {
+                timestamp: timestamp,
+                agent: agent.name,
+                feed: feed.name,
+                messages: Math.floor(Math.random() * 10) + 5,
+                icon: agent.feedIcon,
+                color: agent.feedColor
+            };
+
+            dataFeedState.logEntries.unshift(logEntry);
+            if (dataFeedState.logEntries.length > dataFeedState.maxLogEntries) {
+                dataFeedState.logEntries.pop();
+            }
+
+            updateDataFlowLog();
+        }
+
+        // Update data flow log display
+        function updateDataFlowLog() {
+            const logDiv = document.getElementById('data-flow-log');
+            if (!logDiv) return;
+
+            if (dataFeedState.logEntries.length === 0) {
+                logDiv.innerHTML = '<div style="color: #64748b;">Waiting for data flow...</div>';
+                return;
+            }
+
+            logDiv.innerHTML = dataFeedState.logEntries.map(entry => `
+                <div style="color: ${entry.color}; margin-bottom: 0.5rem; border-left: 2px solid ${entry.color}; padding-left: 0.5rem;">
+                    <span style="color: #64748b;">[${entry.timestamp}]</span>
+                    <span>${entry.icon}</span>
+                    <span style="color: #e2e8f0;">${entry.agent}</span>
+                    <span style="color: #64748b;">→</span>
+                    <span style="color: #00d4ff;">${entry.feed}</span>
+                    <span style="color: #64748b;">:</span>
+                    <span style="color: #00ff88;">${entry.messages} msgs</span>
+                </div>
+            `).join('');
+        }
+
+        // Update data flow visuals
+        function updateDataFlowVisuals() {
+            // Update sources
+            const sourcesDiv = document.getElementById('data-sources-visual');
+            if (sourcesDiv) {
+                const activeFeeds = [...new Set(dataFeedState.agents.map(a => a.feedId))];
+                sourcesDiv.innerHTML = activeFeeds.map(feedId => {
+                    const feed = dataFeedState.feeds.find(f => f.id === feedId);
+                    return `
+                        <div style="background: rgba(0,212,255,0.1); border: 1px solid ${feed.color}; border-radius: 8px; padding: 0.5rem; text-align: center;">
+                            <div style="font-size: 1.5rem;">${feed.icon}</div>
+                            <div style="color: ${feed.color}; font-size: 0.75rem; font-weight: 600;">${feed.name}</div>
+                        </div>
+                    `;
+                }).join('') || '<div style="color: #64748b; text-align: center; padding: 1rem;">No active feeds</div>';
+            }
+
+            // Update agents
+            const agentsDiv = document.getElementById('agents-visual');
+            if (agentsDiv) {
+                const runningAgents = dataFeedState.agents.filter(a => a.status === 'RUNNING');
+                agentsDiv.innerHTML = runningAgents.map(agent => `
+                    <div style="background: rgba(167,139,250,0.1); border: 1px solid ${agent.feedColor}; border-radius: 8px; padding: 0.5rem; text-align: center;">
+                        <div style="font-size: 1.5rem;">🤖</div>
+                        <div style="color: #a78bfa; font-size: 0.75rem; font-weight: 600;">${agent.name}</div>
+                    </div>
+                `).join('') || '<div style="color: #64748b; text-align: center; padding: 1rem;">No running agents</div>';
+            }
+        }
+
+        // Toggle data flow
+        function toggleDataFlow() {
+            dataFeedState.dataFlowActive = !dataFeedState.dataFlowActive;
+            const button = document.getElementById('dataFlowToggle');
+            button.textContent = dataFeedState.dataFlowActive ? '⏸️ Pause' : '▶️ Resume';
+        }
+
+        // Clear data flow log
+        function clearDataFlowLog() {
+            dataFeedState.logEntries = [];
+            updateDataFlowLog();
+        }
+
+        // Show feed details modal
+        function showFeedDetails(feedId) {
+            const feed = dataFeedState.feeds.find(f => f.id === feedId);
+            if (!feed) return;
+
+            const modal = document.getElementById('feedDetailsModal');
+            const content = document.getElementById('feedDetailsContent');
+
+            content.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <span style="font-size: 3rem;">${feed.icon}</span>
+                        <div>
+                            <h4 style="color: ${feed.color}; margin-bottom: 0.25rem;">${feed.name}</h4>
+                            <div style="color: #94a3b8;">${feed.type}</div>
+                        </div>
+                    </div>
+                    <p style="color: #e2e8f0; margin-bottom: 1rem;">${feed.description}</p>
+                </div>
+
+                <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <h5 style="color: #00d4ff; margin-bottom: 0.75rem;">Feed Details</h5>
+                    <div class="grid grid-2 gap-2">
+                        <div>
+                            <div style="color: #64748b; font-size: 0.875rem;">Source</div>
+                            <div style="color: #e2e8f0; font-weight: 600;">${feed.source}</div>
+                        </div>
+                        <div>
+                            <div style="color: #64748b; font-size: 0.875rem;">Status</div>
+                            <div style="color: #00ff88; font-weight: 600;">${feed.status}</div>
+                        </div>
+                        <div>
+                            <div style="color: #64748b; font-size: 0.875rem;">Update Frequency</div>
+                            <div style="color: #e2e8f0; font-weight: 600;">${feed.frequency}</div>
+                        </div>
+                        <div>
+                            <div style="color: #64748b; font-size: 0.875rem;">Throughput</div>
+                            <div style="color: #00ff88; font-weight: 600;">${feed.throughput} msgs/sec</div>
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <div style="color: #64748b; font-size: 0.875rem;">Endpoint</div>
+                            <div style="color: #a78bfa; font-weight: 600; font-family: monospace; font-size: 0.85rem; word-break: break-all;">${feed.endpoint}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,255,136,0.1); border: 1px solid #00ff88; border-radius: 8px; padding: 1rem;">
+                    <h5 style="color: #00ff88; margin-bottom: 0.5rem;">Active Subscribers</h5>
+                    <div style="font-size: 1.5rem; font-weight: 600; color: #00ff88;">${feed.subscribers}</div>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+            modal.dataset.feedId = feedId;
+        }
+
+        // Close feed modal
+        function closeFeedModal() {
+            document.getElementById('feedDetailsModal').style.display = 'none';
+        }
+
+        // Subscribe feed from modal
+        function subscribeFeedFromModal() {
+            const feedId = document.getElementById('feedDetailsModal').dataset.feedId;
+            closeFeedModal();
+
+            // Open agent deployment with pre-selected feed
+            deploySlimAgent();
+            document.getElementById('newAgentFeed').value = feedId;
+        }
+
+        // Initialize slim agent & data feeds when demo app tab loads
+        function initializeSlimAgentDemo() {
+            initializeDataFeeds();
+            updateStatistics();
+            updateDataFlowVisuals();
+        }
 // Initialize demo app when tab is loaded
 function initializeDemoApp() {
     // Set up event listeners
@@ -13064,6 +13761,9 @@ function initializeDemoApp() {
             document.getElementById('topology-health').textContent = health.toFixed(2) + '%';
         }, 3000);
     }
+
+    // Initialize slim agent & data feeds
+    initializeSlimAgentDemo();
 }
     </script>
 
