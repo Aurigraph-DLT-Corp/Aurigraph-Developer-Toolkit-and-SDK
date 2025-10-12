@@ -19,12 +19,10 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Aurigraph V11 Legacy REST Resource
+ * Aurigraph V11 Primary REST Resource
  * High-performance Java/Quarkus implementation
- *
- * Note: This is the legacy endpoint. Use V11ApiResource (/api/v11) for new integrations.
  */
-@Path("/api/v11/legacy")
+@Path("/api/v11")
 @ApplicationScoped
 public class AurigraphResource {
 

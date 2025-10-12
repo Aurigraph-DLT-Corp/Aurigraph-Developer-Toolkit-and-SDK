@@ -35,9 +35,10 @@ class AurigraphResourceTest {
             .when().get("/api/v11/info")
             .then()
                 .statusCode(200)
-                .body("name", is("Aurigraph V11 Java Nexus"))
-                .body("version", is("11.0.0"))
-                .body("framework", is("Quarkus Native Ready"));
+                .body("platform.name", is("Aurigraph V11"))
+                .body("platform.version", is("11.1.0"))
+                .body("features.consensus", is("HyperRAFT++"))
+                .body("features.api_version", is("v11"));
     }
     
     @Test

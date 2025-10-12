@@ -531,7 +531,7 @@ public class TransactionService {
             runtime.availableProcessors(),
             shardCount,
             consensusEnabled,
-            "HyperRAFT++ V2",
+            "HyperRAFT++",
             maxVirtualThreads,
             Thread.activeCount(),
             currentMetrics.p99LatencyMs,
