@@ -8588,13 +8588,252 @@ console.log('Bridge transaction:', bridge.id);`
 
         function displayResponse(elementId, data) {
             const element = document.getElementById(elementId);
-            element.innerHTML = `
+
+            // Auto-detect best visualization based on data structure
+            if (Array.isArray(data)) {
+                displayTable(elementId, data, 'Response Data');
+            } else if (typeof data === 'object' && data !== null) {
+                // Check if it's metrics/performance data (has numeric values)
+                const keys = Object.keys(data);
+                const hasMetrics = keys.some(k => typeof data[k] === 'number' || k.includes('TPS') || k.includes('Latency'));
+
+                if (hasMetrics && keys.length > 3) {
+                    displayMetricsCards(elementId, data, 'Response Data');
+                } else if (data.transactions || data.validators || data.services) {
+                    // Has nested arrays/objects - show as formatted structure
+                    displayStructuredData(elementId, data);
+                } else {
+                    // Simple key-value data - show as table
+                    displayKeyValueTable(elementId, data, 'Response');
+                }
+            } else {
+                // Fallback to JSON for primitive types
+                displayJSON(elementId, data);
+            }
+        }
+
+        function displayMetricsCards(elementId, data, title = 'Metrics') {
+            const element = document.getElementById(elementId);
+
+            let html = `
+                <div class="response-header">
+                    <span class="text-success">${title}</span>
+                    <button class="btn btn-secondary" onclick="displayJSON('${elementId}', ${JSON.stringify(data).replace(/'/g, "\\'")}); return false;">View JSON</button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            `;
+
+            // Format each metric as a card
+            for (const [key, value] of Object.entries(data)) {
+                if (key === 'timestamp') continue; // Skip timestamp
+
+                const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                let displayValue = value;
+
+                if (typeof value === 'number') {
+                    if (key.includes('TPS') || key.includes('Transaction')) {
+                        displayValue = formatNumber(value);
+                    } else if (key.includes('Latency') || key.includes('Time')) {
+                        displayValue = value.toFixed(2) + ' ms';
+                    } else if (key.includes('Rate') || key.includes('Percent') || key.includes('Efficiency')) {
+                        displayValue = (value * 100).toFixed(1) + '%';
+                    } else {
+                        displayValue = value.toLocaleString();
+                    }
+                } else if (typeof value === 'object') {
+                    displayValue = JSON.stringify(value);
+                }
+
+                html += `
+                    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 1rem; border-radius: 8px; border: 1px solid #334155;">
+                        <div style="color: #94a3b8; font-size: 0.75rem; margin-bottom: 0.5rem;">${label}</div>
+                        <div style="color: #e2e8f0; font-size: 1.5rem; font-weight: 600;">${displayValue}</div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            element.innerHTML = html;
+        }
+
+        function displayKeyValueTable(elementId, data, title = 'Data') {
+            const element = document.getElementById(elementId);
+
+            let html = `
+                <div class="response-header">
+                    <span class="text-success">${title}</span>
+                    <button class="btn btn-secondary" onclick="displayJSON('${elementId}', ${JSON.stringify(data).replace(/'/g, "\\'")}); return false;">View JSON</button>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; background: #1e293b; border-radius: 8px; overflow: hidden;">
+                    <thead>
+                        <tr style="background: #334155;">
+                            <th style="padding: 0.75rem; text-align: left; color: #94a3b8; font-weight: 600;">Property</th>
+                            <th style="padding: 0.75rem; text-align: left; color: #94a3b8; font-weight: 600;">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (const [key, value] of Object.entries(data)) {
+                if (key === 'timestamp') continue;
+
+                const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                let displayValue = value;
+
+                if (typeof value === 'object' && value !== null) {
+                    displayValue = JSON.stringify(value, null, 2);
+                } else if (typeof value === 'boolean') {
+                    displayValue = value ? '✅ Yes' : '❌ No';
+                }
+
+                html += `
+                    <tr style="border-top: 1px solid #334155;">
+                        <td style="padding: 0.75rem; color: #cbd5e1;">${label}</td>
+                        <td style="padding: 0.75rem; color: #e2e8f0; font-family: monospace;">${displayValue}</td>
+                    </tr>
+                `;
+            }
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            element.innerHTML = html;
+        }
+
+        function displayTable(elementId, data, title = 'Data') {
+            const element = document.getElementById(elementId);
+
+            if (!data || data.length === 0) {
+                element.innerHTML = '<div class="text-muted">No data available</div>';
+                return;
+            }
+
+            const columns = Object.keys(data[0]);
+
+            let html = `
+                <div class="response-header">
+                    <span class="text-success">${title} (${data.length} rows)</span>
+                    <button class="btn btn-secondary" onclick="displayJSON('${elementId}', ${JSON.stringify(data).replace(/'/g, "\\'")}); return false;">View JSON</button>
+                </div>
+                <div style="overflow-x: auto; margin-top: 1rem;">
+                    <table style="width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #334155;">
+            `;
+
+            columns.forEach(col => {
+                const label = col.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                html += `<th style="padding: 0.75rem; text-align: left; color: #94a3b8; font-weight: 600;">${label}</th>`;
+            });
+
+            html += `
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach((row, idx) => {
+                html += '<tr style="border-top: 1px solid #334155;">';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (typeof value === 'boolean') {
+                        value = value ? '✅' : '❌';
+                    } else if (typeof value === 'object') {
+                        value = JSON.stringify(value);
+                    }
+                    html += `<td style="padding: 0.75rem; color: #e2e8f0;">${value}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            element.innerHTML = html;
+        }
+
+        function displayStructuredData(elementId, data) {
+            const element = document.getElementById(elementId);
+
+            let html = `
                 <div class="response-header">
                     <span class="text-success">Response</span>
-                    <button class="btn btn-secondary" onclick="copyToClipboard('${elementId}')">Copy JSON</button>
+                    <button class="btn btn-secondary" onclick="displayJSON('${elementId}', ${JSON.stringify(data).replace(/'/g, "\\'")}); return false;">View JSON</button>
                 </div>
-                <pre class="response-json">${JSON.stringify(data, null, 2)}</pre>
+                <div style="margin-top: 1rem;">
             `;
+
+            for (const [key, value] of Object.entries(data)) {
+                if (key === 'timestamp') continue;
+
+                const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+                if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+                    // Display as table
+                    html += `<h4 style="color: #94a3b8; margin: 1rem 0 0.5rem 0;">${label}</h4>`;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.id = 'temp-' + Date.now();
+                    html += `<div id="nested-${key}"></div>`;
+                    setTimeout(() => displayTable('nested-' + key, value, ''), 0);
+                } else if (typeof value === 'object' && value !== null) {
+                    // Display as key-value
+                    html += `
+                        <div style="background: #1e293b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #334155;">
+                            <h4 style="color: #94a3b8; margin: 0 0 0.75rem 0;">${label}</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem;">
+                    `;
+                    for (const [k, v] of Object.entries(value)) {
+                        html += `
+                            <div>
+                                <div style="color: #64748b; font-size: 0.75rem;">${k}</div>
+                                <div style="color: #e2e8f0; font-weight: 500;">${v}</div>
+                            </div>
+                        `;
+                    }
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div style="background: #1e293b; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #334155;">
+                            <span style="color: #94a3b8;">${label}:</span>
+                            <span style="color: #e2e8f0; margin-left: 0.5rem; font-weight: 500;">${value}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            html += '</div>';
+            element.innerHTML = html;
+        }
+
+        function displayJSON(elementId, data) {
+            const element = document.getElementById(elementId);
+            const jsonString = JSON.stringify(data, null, 2);
+            element.innerHTML = `
+                <div class="response-header">
+                    <span class="text-success">JSON Response</span>
+                    <button class="btn btn-secondary" onclick="copyJSONToClipboard('${elementId}')">Copy JSON</button>
+                </div>
+                <pre class="response-json" style="background: #1e293b; padding: 1rem; border-radius: 8px; overflow-x: auto; color: #e2e8f0;">${jsonString}</pre>
+            `;
+        }
+
+        function copyJSONToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const jsonText = element.querySelector('.response-json').textContent;
+
+            navigator.clipboard.writeText(jsonText).then(() => {
+                showNotification('JSON copied to clipboard', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy', 'error');
+            });
         }
 
         function displayError(elementId, error) {
