@@ -795,7 +795,7 @@
                     <button class="nav-dropdown-item" data-tab="hms-full">HMS Full Suite</button>
                     <button class="nav-dropdown-item" data-tab="hms-provider">HMS Provider</button>
                     <button class="nav-dropdown-item" data-tab="smart-contracts">Smart Contracts</button>
-                    <button class="nav-dropdown-item" data-tab="ricardian">Ricardian Contracts</button>
+                    <button class="nav-dropdown-item" data-tab="activecontracts">Aurigraph ActiveContracts ©</button>
                     <button class="nav-dropdown-item" data-tab="system-integration">System Integration</button>
                 </div>
             </div>
@@ -1294,9 +1294,9 @@
                     </div>
                 </div>
 
-                <div class="card" style="cursor: pointer; transition: transform 0.2s;" onclick="showTab('ricardian')">
+                <div class="card" style="cursor: pointer; transition: transform 0.2s;" onclick="showTab('activecontracts')">
                     <div class="card-header" style="background: linear-gradient(135deg, #1e293b, #334155);">
-                        <h3 class="card-title">📄 Ricardian Contracts</h3>
+                        <h3 class="card-title">📄 Aurigraph ActiveContracts ©</h3>
                         <span class="card-badge">Legal + Smart</span>
                     </div>
                     <div style="padding: 1.5rem;">
@@ -1372,8 +1372,8 @@
                             <p style="color: #94a3b8;">Use the Transactions tab to create sample transactions and monitor their progress through consensus.</p>
                         </div>
                         <div>
-                            <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">4. Try Ricardian Contracts</h4>
-                            <p style="color: #94a3b8;">Upload a legal document and watch AI convert it to a blockchain-verified Ricardian contract.</p>
+                            <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">4. Try Aurigraph ActiveContracts ©</h4>
+                            <p style="color: #94a3b8;">Upload a legal document and watch AI convert it to a blockchain-verified ActiveContract.</p>
                         </div>
                     </div>
                 </div>
@@ -3864,14 +3864,14 @@ contract MySmartContract {
             </div>
         </div>
 
-        <!-- Ricardian Contracts Tab -->
-        <div id="ricardian" class="tab-content">
-            <h2 class="mb-3">Ricardian Contracts & Legal Document Tokenization</h2>
+        <!-- Aurigraph ActiveContracts Tab -->
+        <div id="activecontracts" class="tab-content">
+            <h2 class="mb-3">Aurigraph ActiveContracts © & Legal Document Tokenization</h2>
 
             <!-- Overview Stats -->
             <div class="grid grid-4 gap-2 mb-3">
                 <div class="stat-card">
-                    <div class="stat-value" id="ricardianContractsCount">127</div>
+                    <div class="stat-value" id="activeContractsCount">127</div>
                     <div class="stat-label">Active Contracts</div>
                     <div class="stat-change" style="color: #00ff88;">+12 this week</div>
                 </div>
@@ -3944,21 +3944,21 @@ contract MySmartContract {
                 </div>
             </div>
 
-            <!-- Ricardian Contract Creation -->
+            <!-- ActiveContract Creation -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Create Ricardian Contract</h3>
+                    <h3 class="card-title">Create ActiveContract</h3>
                     <span class="card-badge">Machine + Human Readable</span>
                 </div>
-                <form onsubmit="createRicardianContract(event)">
+                <form onsubmit="createActiveContract(event)">
                     <div class="grid grid-2 gap-2">
                         <div class="form-group">
                             <label class="form-label">Contract Name</label>
-                            <input type="text" class="form-input" id="ricardianName" placeholder="Supply Agreement 2025-001" required>
+                            <input type="text" class="form-input" id="activeContractName" placeholder="Supply Agreement 2025-001" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Contract Type</label>
-                            <select class="form-select" id="ricardianType" required>
+                            <select class="form-select" id="activeContractType" required>
                                 <option value="purchase">Purchase Agreement</option>
                                 <option value="service">Service Agreement</option>
                                 <option value="employment">Employment Contract</option>
@@ -3971,11 +3971,11 @@ contract MySmartContract {
                         </div>
                         <div class="form-group">
                             <label class="form-label">Contract Value (USD)</label>
-                            <input type="number" class="form-input" id="ricardianValue" placeholder="500000" min="0" required>
+                            <input type="number" class="form-input" id="activeContractValue" placeholder="500000" min="0" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Jurisdiction</label>
-                            <select class="form-select" id="ricardianJurisdiction" required>
+                            <select class="form-select" id="activeContractJurisdiction" required>
                                 <option value="us-de">United States - Delaware</option>
                                 <option value="us-ny">United States - New York</option>
                                 <option value="uk">United Kingdom</option>
@@ -3988,13 +3988,13 @@ contract MySmartContract {
 
                     <div class="form-group">
                         <label class="form-label">Legal Text (Human-Readable)</label>
-                        <textarea class="form-textarea" id="ricardianLegalText" rows="6" placeholder="Enter the legal contract text here..." required></textarea>
+                        <textarea class="form-textarea" id="activeContractLegalText" rows="6" placeholder="Enter the legal contract text here..." required></textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Machine-Readable Terms (JSON)</label>
                         <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
-                            <textarea class="form-textarea" id="ricardianMachineTerms" rows="8" placeholder='{"parties": [...], "terms": {...}, "conditions": [...]}' required style="flex: 1;"></textarea>
+                            <textarea class="form-textarea" id="activeContractMachineTerms" rows="8" placeholder='{"parties": [...], "terms": {...}, "conditions": [...]}' required style="flex: 1;"></textarea>
                             <button type="button" class="btn btn-primary" onclick="convertTextToJSON()" style="white-space: nowrap; height: fit-content;">
                                 🤖 Convert to JSON
                             </button>
@@ -4004,14 +4004,14 @@ contract MySmartContract {
                     </div>
 
                     <div class="grid grid-3 gap-2">
-                        <button type="button" class="btn btn-secondary" onclick="validateRicardianContract()">🔍 Validate Contract</button>
-                        <button type="button" class="btn btn-secondary" onclick="previewRicardianContract()">👁️ Preview</button>
+                        <button type="button" class="btn btn-secondary" onclick="validateActiveContract()">🔍 Validate Contract</button>
+                        <button type="button" class="btn btn-secondary" onclick="previewActiveContract()">👁️ Preview</button>
                         <button type="submit" class="btn btn-primary">✨ Create & Tokenize Contract</button>
                     </div>
                 </form>
 
                 <!-- Contract Preview -->
-                <div id="ricardianPreview" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: rgba(0,255,136,0.05); border: 1px solid #00ff88; border-radius: 8px;">
+                <div id="activeContractPreview" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: rgba(0,255,136,0.05); border: 1px solid #00ff88; border-radius: 8px;">
                     <h4 style="color: #00ff88; margin-bottom: 1rem;">📋 Contract Preview</h4>
                     <div id="previewContent" style="color: #fff;"></div>
                 </div>
@@ -4226,10 +4226,10 @@ contract MySmartContract {
                 </div>
             </div>
 
-            <!-- Active Ricardian Contracts Registry -->
+            <!-- Active ActiveContracts Registry -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Ricardian Contracts Registry</h3>
+                    <h3 class="card-title">ActiveContracts Registry</h3>
                     <span class="card-badge">127 Active</span>
                 </div>
                 <div class="mb-2">
@@ -11695,7 +11695,7 @@ contract MyNFT {
             }, 2500);
         }
 
-        // ==================== RICARDIAN CONTRACTS FUNCTIONS ====================
+        // ==================== AURIGRAPH ACTIVECONTRACTS FUNCTIONS ====================
 
         function analyzeLegalDocument(event) {
             const file = event.target.files[0];
@@ -11716,9 +11716,9 @@ contract MyNFT {
                 document.getElementById('docEffectiveDate').textContent = new Date().toLocaleDateString();
 
                 // Auto-fill contract creation form
-                document.getElementById('ricardianLegalText').value = `This agreement, entered into on ${new Date().toLocaleDateString()}, represents a legally binding contract between the parties.\n\nTerms and conditions extracted from uploaded document:\n1. Payment terms: Net 30 days\n2. Service duration: 12 months\n3. Automatic renewal clause applies\n4. Governing law: State of Delaware`;
+                document.getElementById('activeContractLegalText').value = `This agreement, entered into on ${new Date().toLocaleDateString()}, represents a legally binding contract between the parties.\n\nTerms and conditions extracted from uploaded document:\n1. Payment terms: Net 30 days\n2. Service duration: 12 months\n3. Automatic renewal clause applies\n4. Governing law: State of Delaware`;
 
-                document.getElementById('ricardianMachineTerms').value = JSON.stringify({
+                document.getElementById('activeContractMachineTerms').value = JSON.stringify({
                     "parties": ["Company A", "Company B"],
                     "effectiveDate": new Date().toISOString(),
                     "terms": {
@@ -11740,10 +11740,10 @@ contract MyNFT {
             }, 2000);
         }
 
-        function validateRicardianContract() {
-            const name = document.getElementById('ricardianName').value;
-            const legalText = document.getElementById('ricardianLegalText').value;
-            const machineTerms = document.getElementById('ricardianMachineTerms').value;
+        function validateActiveContract() {
+            const name = document.getElementById('activeContractName').value;
+            const legalText = document.getElementById('activeContractLegalText').value;
+            const machineTerms = document.getElementById('activeContractMachineTerms').value;
 
             if (!name || !legalText || !machineTerms) {
                 showNotification('⚠️ Please fill in all required fields before validation', 'error');
@@ -11762,19 +11762,19 @@ contract MyNFT {
             }, 1500);
         }
 
-        function previewRicardianContract() {
-            const name = document.getElementById('ricardianName').value;
-            const type = document.getElementById('ricardianType').value;
-            const value = document.getElementById('ricardianValue').value;
-            const jurisdiction = document.getElementById('ricardianJurisdiction').value;
-            const legalText = document.getElementById('ricardianLegalText').value;
+        function previewActiveContract() {
+            const name = document.getElementById('activeContractName').value;
+            const type = document.getElementById('activeContractType').value;
+            const value = document.getElementById('activeContractValue').value;
+            const jurisdiction = document.getElementById('activeContractJurisdiction').value;
+            const legalText = document.getElementById('activeContractLegalText').value;
 
             if (!name || !legalText) {
                 showNotification('⚠️ Please enter contract name and legal text to preview', 'error');
                 return;
             }
 
-            const previewDiv = document.getElementById('ricardianPreview');
+            const previewDiv = document.getElementById('activeContractPreview');
             const previewContent = document.getElementById('previewContent');
 
             previewContent.innerHTML = `
@@ -11799,7 +11799,7 @@ contract MyNFT {
 
         // Convert Human-Readable Legal Text to Machine-Readable JSON
         function convertTextToJSON() {
-            const legalText = document.getElementById('ricardianLegalText').value;
+            const legalText = document.getElementById('activeContractLegalText').value;
             const statusDiv = document.getElementById('conversionStatus');
 
             if (!legalText || legalText.trim() === '') {
@@ -11819,7 +11819,7 @@ contract MyNFT {
                     const contractData = parseLegalText(legalText);
                     const jsonOutput = JSON.stringify(contractData, null, 2);
 
-                    document.getElementById('ricardianMachineTerms').value = jsonOutput;
+                    document.getElementById('activeContractMachineTerms').value = jsonOutput;
 
                     statusDiv.innerHTML = '<span style="color: #00ff88;">✅ Successfully converted to JSON</span>';
                     setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
@@ -12294,17 +12294,17 @@ contract MyNFT {
             }
             return flags.length > 0 ? flags : ['General'];
         }
-        function createRicardianContract(event) {
+        function createActiveContract(event) {
             event.preventDefault();
 
-            const name = document.getElementById('ricardianName').value;
-            const type = document.getElementById('ricardianType').value;
-            const value = document.getElementById('ricardianValue').value;
-            const jurisdiction = document.getElementById('ricardianJurisdiction').value;
-            const legalText = document.getElementById('ricardianLegalText').value;
-            const machineTerms = document.getElementById('ricardianMachineTerms').value;
+            const name = document.getElementById('activeContractName').value;
+            const type = document.getElementById('activeContractType').value;
+            const value = document.getElementById('activeContractValue').value;
+            const jurisdiction = document.getElementById('activeContractJurisdiction').value;
+            const legalText = document.getElementById('activeContractLegalText').value;
+            const machineTerms = document.getElementById('activeContractMachineTerms').value;
 
-            showNotification('⏳ Creating Ricardian contract and tokenizing on blockchain...', 'info');
+            showNotification('⏳ Creating ActiveContract and tokenizing on blockchain...', 'info');
 
             // Simulate contract creation and blockchain storage
             setTimeout(() => {
@@ -12324,17 +12324,17 @@ contract MyNFT {
                 tokenizationDiv.scrollIntoView({ behavior: 'smooth' });
 
                 // Update stats
-                const contractsCount = document.getElementById('ricardianContractsCount');
+                const contractsCount = document.getElementById('activeContractsCount');
                 contractsCount.textContent = parseInt(contractsCount.textContent) + 1;
 
                 const documentsCount = document.getElementById('tokenizedDocumentsCount');
                 documentsCount.textContent = (parseInt(documentsCount.textContent.replace(/,/g, '')) + 1).toLocaleString();
 
-                showNotification(`🎉 Ricardian contract successfully created and tokenized!\n\n📋 Contract: ${name}\n🔑 Token ID: ${tokenId}\n⛓️ Stored on blockchain with IPFS backup\n✅ Auto-execution enabled`, 'success');
+                showNotification(`🎉 ActiveContract successfully created and tokenized!\n\n📋 Contract: ${name}\n🔑 Token ID: ${tokenId}\n⛓️ Stored on blockchain with IPFS backup\n✅ Auto-execution enabled`, 'success');
 
                 // Reset form
                 event.target.reset();
-                document.getElementById('ricardianPreview').style.display = 'none';
+                document.getElementById('activeContractPreview').style.display = 'none';
             }, 3000);
         }
 
@@ -12634,7 +12634,7 @@ contract MyNFT {
             jsonTextarea.value = JSON.stringify(pendingContractData, null, 2);
 
             // Also update the main machine terms field
-            document.getElementById('ricardianMachineTerms').value = JSON.stringify(pendingContractData, null, 2);
+            document.getElementById('activeContractMachineTerms').value = JSON.stringify(pendingContractData, null, 2);
 
             showNotification('✅ JSON updated from approval fields', 'success');
         }
@@ -12656,9 +12656,9 @@ contract MyNFT {
             showNotification('✅ Contract parameters approved!\n\nProceeding to create smart contract...', 'success');
 
             // Trigger the actual contract creation
-            // The form already has the updated JSON in ricardianMachineTerms field
+            // The form already has the updated JSON in activeContractMachineTerms field
             setTimeout(() => {
-                const form = document.querySelector('form[onsubmit*="createRicardianContract"]');
+                const form = document.querySelector('form[onsubmit*="createActiveContract"]');
                 if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
                 }
@@ -12677,7 +12677,7 @@ contract MyNFT {
         // Modify the convertTextToJSON function to show approval section
         const originalConvertTextToJSON = convertTextToJSON;
         convertTextToJSON = function() {
-            const legalText = document.getElementById('ricardianLegalText').value;
+            const legalText = document.getElementById('activeContractLegalText').value;
             const statusDiv = document.getElementById('conversionStatus');
 
             if (!legalText || legalText.trim() === '') {
@@ -12697,7 +12697,7 @@ contract MyNFT {
                     const contractData = parseLegalText(legalText);
                     const jsonOutput = JSON.stringify(contractData, null, 2);
 
-                    document.getElementById('ricardianMachineTerms').value = jsonOutput;
+                    document.getElementById('activeContractMachineTerms').value = jsonOutput;
 
                     statusDiv.innerHTML = '<span style="color: #00ff88;">✅ Successfully converted to JSON - Review parameters below</span>';
 
@@ -12733,7 +12733,7 @@ contract MyNFT {
                 { icon: '🔄', text: 'Consensus achieved: Block #5,432,100', time: '5 seconds ago', color: '#00ff88' },
                 { icon: '🔐', text: 'Quantum encryption: Message secured with Kyber-1024', time: '8 seconds ago', color: '#a78bfa' },
                 { icon: '🌉', text: 'Cross-chain transfer: ETH → AUR completed', time: '12 seconds ago', color: '#fbbf24' },
-                { icon: '📄', text: 'Ricardian contract tokenized: RC-2025-0x7f8a...', time: '15 seconds ago', color: '#00d4ff' },
+                { icon: '📄', text: 'ActiveContract tokenized: RC-2025-0x7f8a...', time: '15 seconds ago', color: '#00d4ff' },
                 { icon: '🤖', text: 'AI optimization: Consensus efficiency improved by 2.3%', time: '20 seconds ago', color: '#a78bfa' },
                 { icon: '🏥', text: 'HMS record added: Patient consent verified on-chain', time: '25 seconds ago', color: '#34d399' },
             ];
