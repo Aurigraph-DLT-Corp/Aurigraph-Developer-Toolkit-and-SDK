@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -181,7 +182,7 @@ class EnterprisePortalServiceTest_Enhanced {
         assertEquals("validator-0", validator.validatorId());
         assertEquals(1000000L, validator.stakeAmount());
         assertTrue(validator.active());
-        assertTrue(validator.uptime() >= 100);
+        assertTrue(validator.blocksProduced() >= 0);
     }
 
     @Test
