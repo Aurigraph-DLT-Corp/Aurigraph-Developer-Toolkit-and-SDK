@@ -6,8 +6,10 @@ library aurigraph_sdk;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:crypto/crypto.dart';
 import 'package:local_auth/local_auth.dart';
@@ -21,6 +23,9 @@ part 'src/transaction_manager.dart';
 part 'src/bridge_manager.dart';
 part 'src/crypto_manager.dart';
 part 'src/network_manager.dart';
+part 'src/business_node_models.dart';
+part 'src/business_node_manager.dart';
+part 'src/business_node_widgets.dart';
 
 /// Main Aurigraph SDK class
 class AurigraphSDK {
@@ -39,6 +44,7 @@ class AurigraphSDK {
   late BridgeManager _bridgeManager;
   late CryptoManager _cryptoManager;
   late NetworkManager _networkManager;
+  late BusinessNodeManager _businessNodeManager;
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
@@ -63,13 +69,17 @@ class AurigraphSDK {
     _walletManager = WalletManager(_cryptoManager);
     _transactionManager = TransactionManager(_networkManager, _cryptoManager);
     _bridgeManager = BridgeManager(_networkManager);
+    _businessNodeManager = BusinessNodeManager(_networkManager);
 
     // Initialize platform-specific implementations
     await _platform.initialize(configuration.toMap());
     
     // Connect to network
     await _networkManager.connect();
-    
+
+    // Load business nodes
+    await _businessNodeManager.loadNodes();
+
     _isInitialized = true;
     
     if (kDebugMode) {
@@ -105,6 +115,12 @@ class AurigraphSDK {
   NetworkManager get network {
     _ensureInitialized();
     return _networkManager;
+  }
+
+  /// Get business node manager instance
+  BusinessNodeManager get businessNodeManager {
+    _ensureInitialized();
+    return _businessNodeManager;
   }
 
   /// Check biometric availability
@@ -168,12 +184,13 @@ class AurigraphSDK {
   Future<void> shutdown() async {
     if (!_isInitialized) return;
 
+    await _businessNodeManager.dispose();
     await _networkManager.disconnect();
     await _platform.shutdown();
-    
+
     _isInitialized = false;
     _configuration = null;
-    
+
     if (kDebugMode) {
       print('Aurigraph SDK shut down');
     }

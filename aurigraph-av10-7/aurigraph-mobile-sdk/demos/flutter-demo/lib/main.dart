@@ -258,6 +258,7 @@ class _DemoHomePageState extends State<DemoHomePage> {
                       _buildWalletTab(),
                       _buildBridgeTab(),
                       _buildAnalyticsTab(),
+                      const BusinessNodeListView(),
                     ],
                   ),
         bottomNavigationBar: !_isInitialized
@@ -265,6 +266,7 @@ class _DemoHomePageState extends State<DemoHomePage> {
             : BottomNavigationBar(
                 currentIndex: _selectedIndex,
                 onTap: (index) => setState(() => _selectedIndex = index),
+                type: BottomNavigationBarType.fixed,
                 items: const [
                   BottomNavigationBarItem(
                     icon: Icon(Icons.account_balance_wallet),
@@ -277,6 +279,10 @@ class _DemoHomePageState extends State<DemoHomePage> {
                   BottomNavigationBarItem(
                     icon: Icon(Icons.analytics),
                     label: 'Analytics',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.dns),
+                    label: 'Nodes',
                   ),
                 ],
               ),
