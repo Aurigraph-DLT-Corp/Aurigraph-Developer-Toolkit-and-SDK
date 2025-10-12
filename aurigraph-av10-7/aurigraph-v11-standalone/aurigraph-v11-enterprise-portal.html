@@ -124,6 +124,85 @@
             50% { opacity: 0.5; }
         }
 
+        /* Demo App Network Node Animations */
+        @keyframes blink-green {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88; }
+            50% { opacity: 0.3; box-shadow: 0 0 5px #00ff88; }
+        }
+
+        @keyframes blink-blue {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff; }
+            50% { opacity: 0.3; box-shadow: 0 0 5px #00d4ff; }
+        }
+
+        @keyframes blink-purple {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px #a78bfa, 0 0 20px #a78bfa; }
+            50% { opacity: 0.3; box-shadow: 0 0 5px #a78bfa; }
+        }
+
+        @keyframes blink-yellow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 15px #fbbf24, 0 0 30px #fbbf24; }
+            50% { opacity: 0.4; box-shadow: 0 0 8px #fbbf24; }
+        }
+
+        @keyframes pulse-connection {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: 20; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .demo-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .demo-node:hover {
+            transform: scale(1.5);
+        }
+
+        .demo-node-validator {
+            background: #00ff88;
+            animation: blink-green 2s infinite;
+        }
+
+        .demo-node-business {
+            background: #00d4ff;
+            animation: blink-blue 2s infinite 0.3s;
+        }
+
+        .demo-node-slim {
+            background: #a78bfa;
+            animation: blink-purple 2s infinite 0.6s;
+        }
+
+        .demo-connection-line {
+            stroke: rgba(100, 116, 139, 0.3);
+            stroke-width: 1;
+            stroke-dasharray: 5, 5;
+            animation: pulse-connection 2s linear infinite;
+        }
+
+        .demo-metric-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            transition: all 0.3s;
+        }
+
+        .demo-metric-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
         .api-selector {
             padding: 0.5rem 1rem;
             background: var(--bg-card);
@@ -872,6 +951,288 @@
                     <div style="text-align: center;">
                         <div style="font-size: 2rem; color: #00ff88; font-weight: 600;">99.99%</div>
                         <div style="color: #94a3b8; font-size: 0.875rem;">System Uptime</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Configuration Panel -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">⚙️ Network Configuration</h3>
+                    <span class="card-badge">Interactive</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div class="grid grid-2 gap-2">
+                        <!-- Left Column: Configuration Controls -->
+                        <div>
+                            <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Configure Network Parameters</h4>
+
+                            <!-- Channel Configuration -->
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: #94a3b8; font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">
+                                    Channel Configuration
+                                </label>
+                                <select id="demo-channel-config" style="width: 100%; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; border-radius: 4px; color: #e2e8f0;">
+                                    <option value="default">Default Channel</option>
+                                    <option value="high-throughput">High Throughput Channel</option>
+                                    <option value="low-latency">Low Latency Channel</option>
+                                    <option value="balanced">Balanced Channel</option>
+                                </select>
+                            </div>
+
+                            <!-- Validator Nodes -->
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: #94a3b8; font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">
+                                    Validator Nodes: <span id="demo-validator-count" style="color: #00ff88; font-weight: 600;">10</span>
+                                </label>
+                                <input type="range" id="demo-validator-slider" min="3" max="100" value="10"
+                                    style="width: 100%;" oninput="updateDemoConfig('validators', this.value)">
+                                <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 0.75rem;">
+                                    <span>3</span>
+                                    <span>100</span>
+                                </div>
+                            </div>
+
+                            <!-- Business Nodes -->
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: #94a3b8; font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">
+                                    Business Nodes: <span id="demo-business-count" style="color: #00ff88; font-weight: 600;">50</span>
+                                </label>
+                                <input type="range" id="demo-business-slider" min="0" max="200" value="50"
+                                    style="width: 100%;" oninput="updateDemoConfig('business', this.value)">
+                                <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 0.75rem;">
+                                    <span>0</span>
+                                    <span>200</span>
+                                </div>
+                            </div>
+
+                            <!-- Slim Nodes -->
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: #94a3b8; font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">
+                                    Slim Nodes: <span id="demo-slim-count" style="color: #00ff88; font-weight: 600;">100</span>
+                                </label>
+                                <input type="range" id="demo-slim-slider" min="0" max="500" value="100"
+                                    style="width: 100%;" oninput="updateDemoConfig('slim', this.value)">
+                                <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 0.75rem;">
+                                    <span>0</span>
+                                    <span>500</span>
+                                </div>
+                            </div>
+
+                            <!-- Batch Size -->
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: #94a3b8; font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">
+                                    Batch Size: <span id="demo-batch-count" style="color: #00ff88; font-weight: 600;">10,000</span>
+                                </label>
+                                <input type="range" id="demo-batch-slider" min="100" max="50000" value="10000" step="100"
+                                    style="width: 100%;" oninput="updateDemoConfig('batch', this.value)">
+                                <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 0.75rem;">
+                                    <span>100</span>
+                                    <span>50,000</span>
+                                </div>
+                            </div>
+
+                            <!-- Consensus Options -->
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: #94a3b8; font-size: 0.875rem; display: block; margin-bottom: 0.5rem;">
+                                    Consensus Algorithm
+                                </label>
+                                <select id="demo-consensus-algo" style="width: 100%; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; border-radius: 4px; color: #e2e8f0;">
+                                    <option value="hyperraft">HyperRAFT++ (Default)</option>
+                                    <option value="pbft">Practical BFT</option>
+                                    <option value="hotstuff">HotStuff</option>
+                                    <option value="tendermint">Tendermint</option>
+                                </select>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                                <button class="btn btn-primary" onclick="runDemoPerformanceTest()" style="flex: 1;">
+                                    ▶️ Run Performance Test
+                                </button>
+                                <button class="btn" onclick="resetDemoConfig()" style="flex: 1; background: #334155;">
+                                    🔄 Reset Defaults
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Current Configuration Summary -->
+                        <div>
+                            <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Current Configuration</h4>
+                            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem;">
+                                <div style="display: grid; gap: 0.75rem;">
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(0,212,255,0.05); border-radius: 4px;">
+                                        <span style="color: #94a3b8;">Total Nodes:</span>
+                                        <span id="demo-total-nodes" style="color: #00d4ff; font-weight: 600;">160</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(0,255,136,0.05); border-radius: 4px;">
+                                        <span style="color: #94a3b8;">Validator Nodes:</span>
+                                        <span id="demo-summary-validators" style="color: #00ff88; font-weight: 600;">10</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(0,255,136,0.05); border-radius: 4px;">
+                                        <span style="color: #94a3b8;">Business Nodes:</span>
+                                        <span id="demo-summary-business" style="color: #00ff88; font-weight: 600;">50</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(0,255,136,0.05); border-radius: 4px;">
+                                        <span style="color: #94a3b8;">Slim Nodes:</span>
+                                        <span id="demo-summary-slim" style="color: #00ff88; font-weight: 600;">100</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(147,51,234,0.05); border-radius: 4px;">
+                                        <span style="color: #94a3b8;">Batch Size:</span>
+                                        <span id="demo-summary-batch" style="color: #a78bfa; font-weight: 600;">10,000</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(236,72,153,0.05); border-radius: 4px;">
+                                        <span style="color: #94a3b8;">Consensus:</span>
+                                        <span id="demo-summary-consensus" style="color: #f472b6; font-weight: 600;">HyperRAFT++</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(34,197,94,0.05); border-radius: 4px;">
+                                        <span style="color: #94a3b8;">Channel:</span>
+                                        <span id="demo-summary-channel" style="color: #4ade80; font-weight: 600;">Default</span>
+                                    </div>
+                                </div>
+
+                                <!-- Estimated Performance -->
+                                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #334155;">
+                                    <h5 style="color: #00d4ff; margin-bottom: 0.75rem; font-size: 0.875rem;">Estimated Performance</h5>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: #94a3b8; font-size: 0.875rem;">Expected TPS:</span>
+                                        <span id="demo-estimated-tps" style="color: #00ff88; font-weight: 600;">~876K</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: #94a3b8; font-size: 0.875rem;">Expected Latency:</span>
+                                        <span id="demo-estimated-latency" style="color: #00ff88; font-weight: 600;">~150ms</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="color: #94a3b8; font-size: 0.875rem;">Throughput Rating:</span>
+                                        <span id="demo-throughput-rating" style="color: #00ff88; font-weight: 600;">EXCELLENT</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spatial Throughput Visualization -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Spatial Throughput Metrics</h3>
+                    <span class="card-badge">Real-time</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div id="demo-spatial-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+                        <!-- Metrics cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphical Throughput Visualization -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Graphical Throughput Visualization</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn" onclick="toggleDemoChart('tps')" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">TPS</button>
+                        <button class="btn" onclick="toggleDemoChart('latency')" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">Latency</button>
+                        <button class="btn" onclick="toggleDemoChart('throughput')" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">Throughput</button>
+                        <button class="btn" onclick="toggleDemoChart('all')" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">All</button>
+                    </div>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <!-- TPS Chart -->
+                    <div id="demo-chart-tps" style="margin-bottom: 2rem;">
+                        <h4 style="color: #00d4ff; margin-bottom: 1rem; font-size: 1rem;">Transactions Per Second (TPS)</h4>
+                        <div style="background: #1e293b; border-radius: 8px; padding: 1rem; height: 200px; position: relative;">
+                            <canvas id="demo-tps-canvas" width="800" height="160"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Latency Chart -->
+                    <div id="demo-chart-latency" style="margin-bottom: 2rem; display: none;">
+                        <h4 style="color: #a78bfa; margin-bottom: 1rem; font-size: 1rem;">Average Latency (ms)</h4>
+                        <div style="background: #1e293b; border-radius: 8px; padding: 1rem; height: 200px; position: relative;">
+                            <canvas id="demo-latency-canvas" width="800" height="160"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Throughput Chart -->
+                    <div id="demo-chart-throughput" style="margin-bottom: 2rem; display: none;">
+                        <h4 style="color: #00ff88; margin-bottom: 1rem; font-size: 1rem;">Network Throughput (MB/s)</h4>
+                        <div style="background: #1e293b; border-radius: 8px; padding: 1rem; height: 200px; position: relative;">
+                            <canvas id="demo-throughput-canvas" width="800" height="160"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Test Status -->
+                    <div id="demo-test-status" style="padding: 1rem; background: rgba(0,212,255,0.1); border: 1px solid #00d4ff; border-radius: 8px; display: none;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 24px; height: 24px; border: 3px solid #00d4ff; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <div>
+                                <div style="color: #00d4ff; font-weight: 600;">Performance Test Running...</div>
+                                <div style="color: #94a3b8; font-size: 0.875rem;">Testing configuration with <span id="demo-test-config"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Topology Visualization with Animated Nodes -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">🌐 Live Network Topology</h3>
+                    <span class="card-badge">Animated</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <!-- Legend -->
+                    <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; background: #00ff88; animation: blink-green 2s infinite;"></div>
+                            <span style="color: #94a3b8; font-size: 0.875rem;">Validator Nodes</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5;">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; background: #00d4ff; animation: blink-blue 2s infinite 0.3s;"></div>
+                            <span style="color: #94a3b8; font-size: 0.875rem;">Business Nodes</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; background: #a78bfa; animation: blink-purple 2s infinite 0.6s;"></div>
+                            <span style="color: #94a3b8; font-size: 0.875rem;">Slim Nodes</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; background: #fbbf24; animation: blink-yellow 1.5s infinite;"></div>
+                            <span style="color: #94a3b8; font-size: 0.875rem;">Active Transaction</span>
+                        </div>
+                    </div>
+
+                    <!-- Topology Canvas -->
+                    <div id="demo-topology-container" style="background: linear-gradient(135deg, #0a1628 0%, #111827 50%, #0a1628 100%); border: 1px solid #334155; border-radius: 8px; min-height: 400px; position: relative; overflow: hidden;">
+                        <!-- Nodes will be dynamically rendered here -->
+                    </div>
+
+                    <!-- Network Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                        <div style="background: rgba(0,255,136,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(0,255,136,0.3);">
+                            <div style="color: #00ff88; font-size: 1.5rem; font-weight: 600;" id="topology-validator-count">10</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem;">Validators Active</div>
+                        </div>
+                        <div style="background: rgba(0,212,255,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(0,212,255,0.3);">
+                            <div style="color: #00d4ff; font-size: 1.5rem; font-weight: 600;" id="topology-business-count">50</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem;">Business Nodes</div>
+                        </div>
+                        <div style="background: rgba(167,139,250,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(167,139,250,0.3);">
+                            <div style="color: #a78bfa; font-size: 1.5rem; font-weight: 600;" id="topology-slim-count">100</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem;">Slim Nodes</div>
+                        </div>
+                        <div style="background: rgba(251,191,36,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(251,191,36,0.3);">
+                            <div style="color: #fbbf24; font-size: 1.5rem; font-weight: 600;" id="topology-active-tx">0</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem;">Active Transactions</div>
+                        </div>
+                        <div style="background: rgba(244,114,182,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(244,114,182,0.3);">
+                            <div style="color: #f472b6; font-size: 1.5rem; font-weight: 600;" id="topology-connections">320</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem;">Active Connections</div>
+                        </div>
+                        <div style="background: rgba(34,197,94,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.3);">
+                            <div style="color: #4ade80; font-size: 1.5rem; font-weight: 600;" id="topology-health">100%</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem;">Network Health</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -7256,6 +7617,7 @@ contract MySmartContract {
                     refreshDashboard();
                     break;
                 case 'demo-app':
+                    initializeDemoApp();
                     startDemoActivityFeed();
                     break;
                 case 'platform':
@@ -11190,6 +11552,477 @@ contract MyNFT {
                 }
             }, 5000); // New activity every 5 seconds
         }
+// Demo App Configuration and Visualization Functions
+
+// Global demo state
+const demoState = {
+    validators: 10,
+    business: 50,
+    slim: 100,
+    batchSize: 10000,
+    channel: 'default',
+    consensus: 'hyperraft',
+    tpsHistory: [],
+    latencyHistory: [],
+    throughputHistory: [],
+    maxHistoryLength: 50,
+    chartInterval: null,
+    topologyInterval: null
+};
+
+// Update demo configuration
+function updateDemoConfig(type, value) {
+    const numValue = parseInt(value);
+
+    switch(type) {
+        case 'validators':
+            demoState.validators = numValue;
+            document.getElementById('demo-validator-count').textContent = numValue;
+            document.getElementById('demo-summary-validators').textContent = numValue;
+            document.getElementById('topology-validator-count').textContent = numValue;
+            break;
+        case 'business':
+            demoState.business = numValue;
+            document.getElementById('demo-business-count').textContent = numValue;
+            document.getElementById('demo-summary-business').textContent = numValue;
+            document.getElementById('topology-business-count').textContent = numValue;
+            break;
+        case 'slim':
+            demoState.slim = numValue;
+            document.getElementById('demo-slim-count').textContent = numValue;
+            document.getElementById('demo-summary-slim').textContent = numValue;
+            document.getElementById('topology-slim-count').textContent = numValue;
+            break;
+        case 'batch':
+            demoState.batchSize = numValue;
+            document.getElementById('demo-batch-count').textContent = numValue.toLocaleString();
+            document.getElementById('demo-summary-batch').textContent = numValue.toLocaleString();
+            break;
+    }
+
+    // Update total nodes
+    const totalNodes = demoState.validators + demoState.business + demoState.slim;
+    document.getElementById('demo-total-nodes').textContent = totalNodes;
+
+    // Update estimated performance
+    updateEstimatedPerformance();
+
+    // Re-render topology
+    renderNetworkTopology();
+
+    // Update connections estimate
+    const connections = Math.floor(totalNodes * 2); // Each node connects to ~2 others on average
+    document.getElementById('topology-connections').textContent = connections;
+}
+
+// Update channel configuration
+function updateChannelConfig() {
+    const channelSelect = document.getElementById('demo-channel-config');
+    demoState.channel = channelSelect.value;
+    document.getElementById('demo-summary-channel').textContent = channelSelect.options[channelSelect.selectedIndex].text;
+    updateEstimatedPerformance();
+}
+
+// Update consensus algorithm
+function updateConsensusAlgo() {
+    const consensusSelect = document.getElementById('demo-consensus-algo');
+    demoState.consensus = consensusSelect.value;
+    document.getElementById('demo-summary-consensus').textContent = consensusSelect.options[consensusSelect.selectedIndex].text;
+    updateEstimatedPerformance();
+}
+
+// Calculate and update estimated performance
+function updateEstimatedPerformance() {
+    // Base TPS calculation
+    let baseTPS = 500000; // Base 500K TPS
+
+    // Validator multiplier (more validators = higher throughput up to a point)
+    const validatorMultiplier = Math.min(1 + (demoState.validators - 10) * 0.05, 2.5);
+
+    // Batch size multiplier
+    const batchMultiplier = Math.min(demoState.batchSize / 10000, 3);
+
+    // Channel multiplier
+    const channelMultipliers = {
+        'default': 1.0,
+        'high-throughput': 1.5,
+        'low-latency': 0.8,
+        'balanced': 1.2
+    };
+    const channelMultiplier = channelMultipliers[demoState.channel] || 1.0;
+
+    // Consensus multiplier
+    const consensusMultipliers = {
+        'hyperraft': 1.0,
+        'pbft': 0.7,
+        'hotstuff': 0.9,
+        'tendermint': 0.85
+    };
+    const consensusMultiplier = consensusMultipliers[demoState.consensus] || 1.0;
+
+    // Calculate estimated TPS
+    const estimatedTPS = Math.floor(baseTPS * validatorMultiplier * batchMultiplier * channelMultiplier * consensusMultiplier);
+
+    // Calculate estimated latency (inversely proportional to TPS)
+    const baseLatency = 150; // 150ms base
+    const estimatedLatency = Math.floor(baseLatency / (channelMultiplier * consensusMultiplier));
+
+    // Determine throughput rating
+    let rating = 'GOOD';
+    if (estimatedTPS > 1000000) rating = 'EXCELLENT';
+    else if (estimatedTPS > 750000) rating = 'VERY GOOD';
+    else if (estimatedTPS < 400000) rating = 'FAIR';
+
+    // Update UI
+    document.getElementById('demo-estimated-tps').textContent = '~' + formatNumber(estimatedTPS);
+    document.getElementById('demo-estimated-latency').textContent = '~' + estimatedLatency + 'ms';
+    document.getElementById('demo-throughput-rating').textContent = rating;
+
+    // Color code the rating
+    const ratingElement = document.getElementById('demo-throughput-rating');
+    if (rating === 'EXCELLENT') ratingElement.style.color = '#00ff88';
+    else if (rating === 'VERY GOOD') ratingElement.style.color = '#4ade80';
+    else if (rating === 'GOOD') ratingElement.style.color = '#fbbf24';
+    else ratingElement.style.color = '#f87171';
+}
+
+// Render network topology with animated nodes
+function renderNetworkTopology() {
+    const container = document.getElementById('demo-topology-container');
+    if (!container) return;
+
+    // Clear existing nodes
+    container.innerHTML = '';
+
+    const width = container.clientWidth || 800;
+    const height = 400;
+
+    // Create SVG for connection lines
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+    svg.style.position = 'absolute';
+    svg.style.top = '0';
+    svg.style.left = '0';
+    svg.style.pointerEvents = 'none';
+    container.appendChild(svg);
+
+    const nodes = [];
+
+    // Helper function to create a node
+    function createNode(type, index, total, color) {
+        const node = document.createElement('div');
+        node.className = `demo-node demo-node-${type}`;
+
+        // Arrange nodes in a circular pattern based on type
+        let angle, radius, centerX, centerY;
+
+        if (type === 'validator') {
+            // Validators in center circle
+            radius = 80;
+            centerX = width / 2;
+            centerY = height / 2;
+            angle = (index / total) * 2 * Math.PI;
+        } else if (type === 'business') {
+            // Business nodes in middle ring
+            radius = 150;
+            centerX = width / 2;
+            centerY = height / 2;
+            angle = (index / total) * 2 * Math.PI;
+        } else {
+            // Slim nodes in outer ring
+            radius = 180;
+            centerX = width / 2;
+            centerY = height / 2;
+            angle = (index / total) * 2 * Math.PI;
+        }
+
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+
+        node.style.left = (x - 6) + 'px';
+        node.style.top = (y - 6) + 'px';
+
+        // Add tooltip
+        node.title = `${type.charAt(0).toUpperCase() + type.slice(1)} Node #${index + 1}`;
+
+        container.appendChild(node);
+
+        return { x, y, type };
+    }
+
+    // Create validator nodes
+    for (let i = 0; i < demoState.validators; i++) {
+        nodes.push(createNode('validator', i, demoState.validators, '#00ff88'));
+    }
+
+    // Create business nodes
+    for (let i = 0; i < Math.min(demoState.business, 100); i++) {
+        nodes.push(createNode('business', i, Math.min(demoState.business, 100), '#00d4ff'));
+    }
+
+    // Create slim nodes
+    for (let i = 0; i < Math.min(demoState.slim, 100); i++) {
+        nodes.push(createNode('slim', i, Math.min(demoState.slim, 100), '#a78bfa'));
+    }
+
+    // Draw connection lines between nodes (simplified)
+    for (let i = 0; i < Math.min(nodes.length, 50); i++) {
+        const node1 = nodes[i];
+        const node2 = nodes[(i + 1) % nodes.length];
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', node1.x);
+        line.setAttribute('y1', node1.y);
+        line.setAttribute('x2', node2.x);
+        line.setAttribute('y2', node2.y);
+        line.classList.add('demo-connection-line');
+        svg.appendChild(line);
+    }
+}
+
+// Update spatial throughput metrics
+function updateSpatialMetrics() {
+    const container = document.getElementById('demo-spatial-metrics');
+    if (!container) return;
+
+    const currentTPS = demoState.tpsHistory.length > 0
+        ? demoState.tpsHistory[demoState.tpsHistory.length - 1]
+        : 876543;
+
+    const currentLatency = demoState.latencyHistory.length > 0
+        ? demoState.latencyHistory[demoState.latencyHistory.length - 1]
+        : 0.15;
+
+    const currentThroughput = demoState.throughputHistory.length > 0
+        ? demoState.throughputHistory[demoState.throughputHistory.length - 1]
+        : 1250;
+
+    const metrics = [
+        { label: 'Current TPS', value: formatNumber(currentTPS), color: '#00ff88' },
+        { label: 'Peak TPS', value: formatNumber(Math.max(...demoState.tpsHistory, 1092707)), color: '#00d4ff' },
+        { label: 'Average TPS', value: formatNumber(Math.floor(demoState.tpsHistory.reduce((a, b) => a + b, 0) / demoState.tpsHistory.length || 439794)), color: '#a78bfa' },
+        { label: 'Current Latency', value: currentLatency.toFixed(2) + ' ms', color: '#fbbf24' },
+        { label: 'Throughput', value: currentThroughput.toFixed(0) + ' MB/s', color: '#f472b6' },
+        { label: 'Active Nodes', value: (demoState.validators + demoState.business + demoState.slim).toString(), color: '#4ade80' }
+    ];
+
+    container.innerHTML = metrics.map(metric => `
+        <div class="demo-metric-card">
+            <div style="color: #94a3b8; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; margin-bottom: 0.5rem;">
+                ${metric.label}
+            </div>
+            <div style="color: ${metric.color}; font-size: 1.75rem; font-weight: 600;">
+                ${metric.value}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Draw real-time charts
+function drawDemoChart(canvasId, data, color, label) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    if (data.length < 2) return;
+
+    // Find min and max for scaling
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+
+    // Draw grid lines
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.2)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = (height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+
+    // Draw data line
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const step = width / (data.length - 1);
+
+    data.forEach((value, index) => {
+        const x = index * step;
+        const y = height - ((value - min) / range) * height;
+
+        if (index === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+
+    // Draw filled area under line
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, color + '40');
+    gradient.addColorStop(1, color + '00');
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Draw current value label
+    const currentValue = data[data.length - 1];
+    ctx.fillStyle = color;
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(label + ': ' + formatChartValue(canvasId, currentValue), width - 10, 20);
+}
+
+function formatChartValue(canvasId, value) {
+    if (canvasId === 'demo-tps-canvas') {
+        return formatNumber(value);
+    } else if (canvasId === 'demo-latency-canvas') {
+        return value.toFixed(2) + ' ms';
+    } else if (canvasId === 'demo-throughput-canvas') {
+        return value.toFixed(0) + ' MB/s';
+    }
+    return value.toString();
+}
+
+// Toggle chart visibility
+function toggleDemoChart(chart) {
+    const tpsChart = document.getElementById('demo-chart-tps');
+    const latencyChart = document.getElementById('demo-chart-latency');
+    const throughputChart = document.getElementById('demo-chart-throughput');
+
+    if (chart === 'all') {
+        tpsChart.style.display = 'block';
+        latencyChart.style.display = 'block';
+        throughputChart.style.display = 'block';
+    } else {
+        tpsChart.style.display = chart === 'tps' ? 'block' : 'none';
+        latencyChart.style.display = chart === 'latency' ? 'block' : 'none';
+        throughputChart.style.display = chart === 'throughput' ? 'block' : 'none';
+    }
+}
+
+// Run performance test
+function runDemoPerformanceTest() {
+    // Show test status
+    const statusDiv = document.getElementById('demo-test-status');
+    const configSpan = document.getElementById('demo-test-config');
+
+    statusDiv.style.display = 'block';
+    configSpan.textContent = `${demoState.validators} validators, ${demoState.business} business nodes, ${demoState.slim} slim nodes, batch size ${demoState.batchSize}`;
+
+    // Clear existing data
+    demoState.tpsHistory = [];
+    demoState.latencyHistory = [];
+    demoState.throughputHistory = [];
+
+    // Clear existing interval
+    if (demoState.chartInterval) {
+        clearInterval(demoState.chartInterval);
+    }
+
+    // Start generating data
+    let counter = 0;
+    demoState.chartInterval = setInterval(() => {
+        counter++;
+
+        // Generate realistic data based on configuration
+        const baseTPS = 500000;
+        const validatorMultiplier = Math.min(1 + (demoState.validators - 10) * 0.05, 2.5);
+        const batchMultiplier = Math.min(demoState.batchSize / 10000, 3);
+
+        // Add some randomness and trends
+        const trendFactor = 1 + Math.sin(counter / 10) * 0.2;
+        const randomFactor = 0.85 + Math.random() * 0.3;
+
+        const tps = Math.floor(baseTPS * validatorMultiplier * batchMultiplier * trendFactor * randomFactor);
+        const latency = 0.1 + (Math.random() * 0.3) + (demoState.validators > 50 ? 0.1 : 0);
+        const throughput = (tps * 500) / 1024 / 1024; // Approx MB/s
+
+        // Add to history
+        demoState.tpsHistory.push(tps);
+        demoState.latencyHistory.push(latency);
+        demoState.throughputHistory.push(throughput);
+
+        // Limit history length
+        if (demoState.tpsHistory.length > demoState.maxHistoryLength) {
+            demoState.tpsHistory.shift();
+            demoState.latencyHistory.shift();
+            demoState.throughputHistory.shift();
+        }
+
+        // Update active transactions count
+        document.getElementById('topology-active-tx').textContent = Math.floor(50 + Math.random() * 200);
+
+        // Update charts
+        drawDemoChart('demo-tps-canvas', demoState.tpsHistory, '#00d4ff', 'TPS');
+        drawDemoChart('demo-latency-canvas', demoState.latencyHistory, '#a78bfa', 'Latency');
+        drawDemoChart('demo-throughput-canvas', demoState.throughputHistory, '#00ff88', 'Throughput');
+
+        // Update spatial metrics
+        updateSpatialMetrics();
+
+        // Stop after 50 data points
+        if (counter >= 50) {
+            clearInterval(demoState.chartInterval);
+            statusDiv.style.display = 'none';
+        }
+    }, 500); // Update every 500ms
+}
+
+// Reset configuration to defaults
+function resetDemoConfig() {
+    document.getElementById('demo-validator-slider').value = 10;
+    document.getElementById('demo-business-slider').value = 50;
+    document.getElementById('demo-slim-slider').value = 100;
+    document.getElementById('demo-batch-slider').value = 10000;
+    document.getElementById('demo-channel-config').value = 'default';
+    document.getElementById('demo-consensus-algo').value = 'hyperraft';
+
+    updateDemoConfig('validators', 10);
+    updateDemoConfig('business', 50);
+    updateDemoConfig('slim', 100);
+    updateDemoConfig('batch', 10000);
+    updateChannelConfig();
+    updateConsensusAlgo();
+}
+
+// Initialize demo app when tab is loaded
+function initializeDemoApp() {
+    // Set up event listeners
+    document.getElementById('demo-channel-config')?.addEventListener('change', updateChannelConfig);
+    document.getElementById('demo-consensus-algo')?.addEventListener('change', updateConsensusAlgo);
+
+    // Render initial topology
+    renderNetworkTopology();
+
+    // Update initial metrics
+    updateEstimatedPerformance();
+    updateSpatialMetrics();
+
+    // Start topology animation (subtle node movements)
+    if (!demoState.topologyInterval) {
+        demoState.topologyInterval = setInterval(() => {
+            // Update network health randomly
+            const health = 98 + Math.random() * 2;
+            document.getElementById('topology-health').textContent = health.toFixed(2) + '%';
+        }, 3000);
+    }
+}
     </script>
 
     <!-- Footer -->
