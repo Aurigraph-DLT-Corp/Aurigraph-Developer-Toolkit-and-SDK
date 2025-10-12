@@ -670,22 +670,23 @@
                         </goals>
                         <configuration>
                             <rules>
-                                <!-- Overall Project Coverage -->
+                                <!-- Overall Project Coverage - ENHANCED FOR CI/CD -->
                                 <rule>
                                     <element>BUNDLE</element>
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.50</minimum>
+                                            <minimum>0.95</minimum>
                                         </limit>
                                         <limit>
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.45</minimum>
+                                            <minimum>0.90</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
+
                                 <!-- Critical Crypto Package -->
                                 <rule>
                                     <element>PACKAGE</element>
@@ -705,11 +706,92 @@
                                         </limit>
                                     </limits>
                                 </rule>
+
                                 <!-- Critical Consensus Package -->
                                 <rule>
                                     <element>PACKAGE</element>
                                     <includes>
                                         <include>io.aurigraph.v11.consensus.*</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.95</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.90</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+
+                                <!-- Sprint 14-20: Parallel Transaction Executor -->
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>io.aurigraph.v11.parallel.ParallelTransactionExecutor</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.95</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.90</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+
+                                <!-- Sprint 14-20: Ethereum Bridge Service -->
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>io.aurigraph.v11.bridge.EthereumBridgeService</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.95</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.90</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+
+                                <!-- Sprint 14-20: System Monitoring Service -->
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>io.aurigraph.v11.monitoring.SystemMonitoringService</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.95</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.90</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+
+                                <!-- Sprint 14-20: Enterprise Portal Service -->
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>io.aurigraph.v11.portal.EnterprisePortalService</include>
                                     </includes>
                                     <limits>
                                         <limit>
