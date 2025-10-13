@@ -6,10 +6,13 @@ import java.util.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Ricardian Contract entity - combines legal prose with executable code
+ * Aurigraph ActiveContract entity - combines legal prose with executable code
  * Features quantum-safe signatures and multi-party execution
+ *
+ * ActiveContracts (formerly Ricardian Contracts) are self-executing agreements
+ * that link legal text with smart contract code for automated enforcement.
  */
-public class RicardianContract {
+public class ActiveContract {
     
     @JsonProperty("contractId")
     private String contractId;
@@ -19,12 +22,30 @@ public class RicardianContract {
     
     @JsonProperty("version")
     private String version = "1.0.0";
-    
+
+    @JsonProperty("owner")
+    private String owner; // Contract owner/deployer address
+
     @JsonProperty("legalText")
     private String legalText; // Human-readable legal prose
-    
+
     @JsonProperty("executableCode")
-    private String executableCode; // Smart contract code
+    private String executableCode; // Smart contract code (alias for 'code')
+
+    @JsonProperty("code")
+    private String code; // Smart contract code (SDK field)
+
+    @JsonProperty("language")
+    private ContractLanguage language; // Contract programming language
+
+    @JsonProperty("abi")
+    private String abi; // Application Binary Interface (JSON)
+
+    @JsonProperty("bytecode")
+    private String bytecode; // Compiled bytecode
+
+    @JsonProperty("state")
+    private Map<String, Object> state; // Contract state variables
     
     @JsonProperty("contractType")
     private String contractType; // RWA, Carbon, RealEstate, etc.
@@ -52,13 +73,16 @@ public class RicardianContract {
     
     @JsonProperty("createdAt")
     private Instant createdAt;
-    
+
+    @JsonProperty("deployedAt")
+    private Instant deployedAt; // When contract was deployed to network
+
     @JsonProperty("updatedAt")
     private Instant updatedAt;
-    
+
     @JsonProperty("activatedAt")
     private Instant activatedAt;
-    
+
     @JsonProperty("lastExecutedAt")
     private Instant lastExecutedAt;
     
@@ -87,15 +111,28 @@ public class RicardianContract {
     private boolean quantumSafe = true; // All contracts use quantum-safe crypto
 
     // Default constructor
-    public RicardianContract() {
+    public ActiveContract() {
         this.signatures = new ArrayList<>();
         this.metadata = new HashMap<>();
+        this.state = new HashMap<>();
         this.executionCount = 0;
     }
 
+    // Constructor with basic fields (SDK compatibility)
+    public ActiveContract(String name, String code, ContractLanguage language, String owner) {
+        this();
+        this.name = name;
+        this.code = code;
+        this.executableCode = code; // Sync both fields
+        this.language = language;
+        this.owner = owner;
+        this.status = ContractStatus.DRAFT;
+        this.createdAt = Instant.now();
+    }
+
     // Builder pattern
-    public static RicardianContractBuilder builder() {
-        return new RicardianContractBuilder();
+    public static ActiveContractBuilder builder() {
+        return new ActiveContractBuilder();
     }
 
     // Getters and setters
@@ -107,13 +144,37 @@ public class RicardianContract {
     
     public String getVersion() { return version; }
     public void setVersion(String version) { this.version = version; }
-    
+
+    public String getOwner() { return owner; }
+    public void setOwner(String owner) { this.owner = owner; }
+
     public String getLegalText() { return legalText; }
     public void setLegalText(String legalText) { this.legalText = legalText; }
     
     public String getExecutableCode() { return executableCode; }
-    public void setExecutableCode(String executableCode) { this.executableCode = executableCode; }
-    
+    public void setExecutableCode(String executableCode) {
+        this.executableCode = executableCode;
+        this.code = executableCode; // Keep both fields in sync
+    }
+
+    public String getCode() { return code; }
+    public void setCode(String code) {
+        this.code = code;
+        this.executableCode = code; // Keep both fields in sync
+    }
+
+    public ContractLanguage getLanguage() { return language; }
+    public void setLanguage(ContractLanguage language) { this.language = language; }
+
+    public String getAbi() { return abi; }
+    public void setAbi(String abi) { this.abi = abi; }
+
+    public String getBytecode() { return bytecode; }
+    public void setBytecode(String bytecode) { this.bytecode = bytecode; }
+
+    public Map<String, Object> getState() { return state; }
+    public void setState(Map<String, Object> state) { this.state = state; }
+
     public String getContractType() { return contractType; }
     public void setContractType(String contractType) { this.contractType = contractType; }
     
@@ -140,10 +201,13 @@ public class RicardianContract {
     
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    
+
+    public Instant getDeployedAt() { return deployedAt; }
+    public void setDeployedAt(Instant deployedAt) { this.deployedAt = deployedAt; }
+
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
-    
+
     public Instant getActivatedAt() { return activatedAt; }
     public void setActivatedAt(Instant activatedAt) { this.activatedAt = activatedAt; }
     
@@ -263,7 +327,7 @@ public class RicardianContract {
 
     @Override
     public String toString() {
-        return String.format("RicardianContract{id='%s', type='%s', status=%s, parties=%d, signatures=%d}",
+        return String.format("ActiveContract{id='%s', type='%s', status=%s, parties=%d, signatures=%d}",
             contractId, contractType, status, parties != null ? parties.size() : 0, signatures.size());
     }
 
@@ -271,7 +335,7 @@ public class RicardianContract {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RicardianContract that = (RicardianContract) o;
+        ActiveContract that = (ActiveContract) o;
         return Objects.equals(contractId, that.contractId);
     }
 
@@ -281,70 +345,112 @@ public class RicardianContract {
     }
 
     // Builder class
-    public static class RicardianContractBuilder {
-        private RicardianContract contract = new RicardianContract();
-        
-        public RicardianContractBuilder contractId(String contractId) {
+    public static class ActiveContractBuilder {
+        private ActiveContract contract = new ActiveContract();
+
+        public ActiveContractBuilder contractId(String contractId) {
             contract.contractId = contractId;
             return this;
         }
-        
-        public RicardianContractBuilder legalText(String legalText) {
+
+        public ActiveContractBuilder name(String name) {
+            contract.name = name;
+            return this;
+        }
+
+        public ActiveContractBuilder owner(String owner) {
+            contract.owner = owner;
+            return this;
+        }
+
+        public ActiveContractBuilder legalText(String legalText) {
             contract.legalText = legalText;
             return this;
         }
-        
-        public RicardianContractBuilder executableCode(String executableCode) {
+
+        public ActiveContractBuilder executableCode(String executableCode) {
             contract.executableCode = executableCode;
+            contract.code = executableCode; // Keep both in sync
             return this;
         }
-        
-        public RicardianContractBuilder contractType(String contractType) {
+
+        public ActiveContractBuilder code(String code) {
+            contract.code = code;
+            contract.executableCode = code; // Keep both in sync
+            return this;
+        }
+
+        public ActiveContractBuilder language(ContractLanguage language) {
+            contract.language = language;
+            return this;
+        }
+
+        public ActiveContractBuilder abi(String abi) {
+            contract.abi = abi;
+            return this;
+        }
+
+        public ActiveContractBuilder bytecode(String bytecode) {
+            contract.bytecode = bytecode;
+            return this;
+        }
+
+        public ActiveContractBuilder state(Map<String, Object> state) {
+            contract.state = state;
+            return this;
+        }
+
+        public ActiveContractBuilder contractType(String contractType) {
             contract.contractType = contractType;
             return this;
         }
-        
-        public RicardianContractBuilder parties(List<ContractParty> parties) {
+
+        public ActiveContractBuilder parties(List<ContractParty> parties) {
             contract.parties = parties;
             return this;
         }
-        
-        public RicardianContractBuilder signatures(List<ContractSignature> signatures) {
+
+        public ActiveContractBuilder signatures(List<ContractSignature> signatures) {
             contract.signatures = signatures;
             return this;
         }
-        
-        public RicardianContractBuilder status(ContractStatus status) {
+
+        public ActiveContractBuilder status(ContractStatus status) {
             contract.status = status;
             return this;
         }
-        
-        public RicardianContractBuilder createdAt(Instant createdAt) {
+
+        public ActiveContractBuilder createdAt(Instant createdAt) {
             contract.createdAt = createdAt;
             return this;
         }
-        
-        public RicardianContractBuilder activatedAt(Instant activatedAt) {
+
+        public ActiveContractBuilder deployedAt(Instant deployedAt) {
+            contract.deployedAt = deployedAt;
+            return this;
+        }
+
+        public ActiveContractBuilder activatedAt(Instant activatedAt) {
             contract.activatedAt = activatedAt;
             return this;
         }
-        
-        public RicardianContractBuilder templateId(String templateId) {
+
+        public ActiveContractBuilder templateId(String templateId) {
             contract.templateId = templateId;
             return this;
         }
-        
-        public RicardianContractBuilder metadata(Map<String, String> metadata) {
+
+        public ActiveContractBuilder metadata(Map<String, String> metadata) {
             contract.metadata = metadata;
             return this;
         }
-        
-        public RicardianContractBuilder version(String version) {
+
+        public ActiveContractBuilder version(String version) {
             contract.version = version;
             return this;
         }
-        
-        public RicardianContract build() {
+
+        public ActiveContract build() {
             // Validate required fields
             if (contract.contractId == null || contract.contractId.trim().isEmpty()) {
                 throw new IllegalArgumentException("Contract ID is required");
@@ -376,6 +482,18 @@ public class RicardianContract {
             return contract;
         }
     }
+}
+
+/**
+ * Contract programming language enum
+ */
+enum ContractLanguage {
+    SOLIDITY,    // Ethereum-compatible smart contracts
+    JAVA,        // Native Quarkus/GraalVM contracts
+    JAVASCRIPT,  // V8-based execution
+    WASM,        // WebAssembly high-performance contracts
+    PYTHON,      // AI/ML-focused contracts
+    CUSTOM       // Aurigraph-specific DSL
 }
 
 /**

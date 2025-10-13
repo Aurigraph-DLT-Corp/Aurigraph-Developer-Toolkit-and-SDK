@@ -1,518 +1,620 @@
 package io.aurigraph.v11.contracts;
 
-import io.aurigraph.v11.contracts.models.ActiveContract;
-import io.aurigraph.v11.contracts.models.ActiveContract.ActiveContractStatus;
+import io.aurigraph.v11.contracts.models.*;
+import io.aurigraph.v11.crypto.QuantumCryptoService;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import org.jboss.logging.Logger;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
- * Active Contract Service for Aurigraph V11
+ * Aurigraph ActiveContracts Service
  *
- * Manages the lifecycle of active contracts including:
- * - Contract creation and activation
- * - Party management
- * - Event tracking and logging
- * - Status transitions
- * - Expiration management
- * - Notification handling
+ * Unified smart contract service combining:
+ * - Legal contracts (Ricardian-style with legal prose)
+ * - Smart contract SDK (multi-language, gas metering)
+ * - RWA tokenization (Carbon Credits, Real Estate, etc.)
+ * - Quantum-safe signatures (CRYSTALS-Dilithium)
+ * - Multi-party execution
  *
- * @version 3.8.0 (Phase 2 Day 10)
- * @author Aurigraph V11 Development Team
+ * @version 11.3.0
+ * @since 2025-10-13
  */
 @ApplicationScoped
 public class ActiveContractService {
 
-    private static final Logger LOG = Logger.getLogger(ActiveContractService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActiveContractService.class);
 
     @Inject
-    ActiveContractRepository repository;
+    QuantumCryptoService cryptoService;
+
+    @Inject
+    ContractRepository contractRepository;
+
+    @Inject
+    ContractCompiler contractCompiler;
+
+    @Inject
+    ContractVerifier contractVerifier;
+
+    @ConfigProperty(name = "smartcontract.gas.default-limit", defaultValue = "1000000")
+    Long defaultGasLimit;
+
+    @ConfigProperty(name = "smartcontract.execution.timeout-ms", defaultValue = "30000")
+    Long executionTimeoutMs;
+
+    // In-memory storage (will be migrated to LevelDB)
+    private final Map<String, ActiveContract> contracts = new ConcurrentHashMap<>();
+    private final Map<String, ContractExecution> executions = new ConcurrentHashMap<>();
+    private final Map<String, List<ContractExecution>> contractExecutionHistory = new ConcurrentHashMap<>();
 
     // Performance metrics
-    private final AtomicLong contractsCreated = new AtomicLong(0);
-    private final AtomicLong contractsActivated = new AtomicLong(0);
-    private final AtomicLong contractsCompleted = new AtomicLong(0);
-    private final AtomicLong contractsTerminated = new AtomicLong(0);
-    private final AtomicLong eventsRecorded = new AtomicLong(0);
+    private final AtomicLong contractsDeployed = new AtomicLong(0);
+    private final AtomicLong contractsExecuted = new AtomicLong(0);
+    private final AtomicLong rwaTokenized = new AtomicLong(0);
 
     // Virtual thread executor for high concurrency
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
-    // ==================== CONTRACT LIFECYCLE ====================
-
     /**
-     * Create a new active contract
+     * Deploy a new active contract
+     *
+     * @param contract The contract to deploy
+     * @return Deployed contract with assigned ID and metadata
      */
-    @Transactional
-    public Uni<ActiveContract> createContract(ContractCreationRequest request) {
+    public Uni<ActiveContract> deployContract(ActiveContract contract) {
         return Uni.createFrom().item(() -> {
-            LOG.infof("Creating active contract: %s", request.name());
+            LOGGER.info("Deploying ActiveContract: {}", contract.getName());
 
-            ActiveContract contract = new ActiveContract();
-            contract.setContractId(generateContractId());
-            contract.setName(request.name());
-            contract.setCreatorAddress(request.creatorAddress());
-            contract.setContractType(request.contractType());
-            contract.setDescription(request.description());
-            contract.setMetadata(request.metadata());
-            contract.setExpiresAt(request.expiresAt());
-            contract.setNotificationEnabled(request.notificationEnabled() != null ? request.notificationEnabled() : true);
-            contract.setNotificationRecipients(request.notificationRecipients());
+            // Validate contract
+            validateContract(contract);
 
-            // Add initial parties
-            if (request.parties() != null && !request.parties().isEmpty()) {
-                request.parties().forEach(contract::addParty);
+            // Generate contract ID if not set
+            if (contract.getContractId() == null || contract.getContractId().isEmpty()) {
+                contract.setContractId(generateContractId());
             }
 
-            // Always include creator as a party
-            contract.addParty(request.creatorAddress());
+            // Compile contract if needed
+            if (contract.getLanguage() != null && contract.getCode() != null) {
+                compileContract(contract);
+            }
 
-            repository.persist(contract);
-            contractsCreated.incrementAndGet();
+            // Set deployment metadata
+            contract.setStatus(ContractStatus.DEPLOYED);
+            contract.setDeployedAt(Instant.now());
+            contract.setUpdatedAt(Instant.now());
+            if (contract.getCreatedAt() == null) {
+                contract.setCreatedAt(Instant.now());
+            }
 
-            LOG.infof("Active contract created: %s", contract.getContractId());
+            // Initialize state if not present
+            if (contract.getState() == null) {
+                contract.setState(new HashMap<>());
+            }
+
+            // Calculate enforceability score for legal contracts
+            if (contract.getLegalText() != null && !contract.getLegalText().isEmpty()) {
+                contract.setEnforceabilityScore(calculateEnforceabilityScore(contract));
+                performLegalAnalysis(contract);
+            }
+
+            // Store contract
+            contracts.put(contract.getContractId(), contract);
+            contractExecutionHistory.put(contract.getContractId(), new ArrayList<>());
+
+            // Update metrics
+            contractsDeployed.incrementAndGet();
+
+            // Add audit trail entry
+            contract.addAuditEntry("Contract deployed at " + Instant.now());
+
+            LOGGER.info("ActiveContract deployed successfully: {}", contract.getContractId());
             return contract;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).runSubscriptionOn(executor);
     }
 
     /**
-     * Activate a contract
+     * Activate a deployed contract (multi-party signed contracts)
+     *
+     * @param contractId Contract ID
+     * @return Activated contract
      */
-    @Transactional
-    public Uni<ContractStatusResult> activateContract(String contractId) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Activating contract: %s", contractId);
+    public Uni<ActiveContract> activateContract(String contractId) {
+        return getContract(contractId)
+            .map(contract -> {
+                LOGGER.info("Activating contract: {}", contractId);
 
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
+                // Verify all required signatures are present
+                if (!contract.isFullySigned()) {
+                    throw new ContractValidationException("Contract must be fully signed before activation");
+                }
 
-            contract.activate();
-            repository.persist(contract);
-            contractsActivated.incrementAndGet();
+                // Verify all signatures
+                for (ContractSignature signature : contract.getSignatures()) {
+                    if (!verifySignature(contract, signature)) {
+                        throw new ContractValidationException("Invalid signature from: " + signature.getSignerAddress());
+                    }
+                }
 
-            // Record activation event
-            contract.recordEvent();
-            repository.persist(contract);
-            eventsRecorded.incrementAndGet();
+                contract.setStatus(ContractStatus.ACTIVE);
+                contract.setActivatedAt(Instant.now());
+                contract.setUpdatedAt(Instant.now());
+                contract.addAuditEntry("Contract activated at " + Instant.now());
 
-            LOG.infof("Contract activated: %s", contractId);
-            return new ContractStatusResult(
-                    contractId,
-                    ActiveContractStatus.ACTIVE,
-                    contract.getActivatedAt(),
-                    "Contract activated successfully"
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                contracts.put(contractId, contract);
+                LOGGER.info("Contract activated: {}", contractId);
+                return contract;
+            });
     }
 
     /**
-     * Complete a contract
+     * Execute a contract method
+     *
+     * @param contractId Contract ID
+     * @param method Method name
+     * @param parameters Method parameters
+     * @param caller Caller address
+     * @return Execution result
      */
-    @Transactional
-    public Uni<ContractStatusResult> completeContract(String contractId, String completionMessage) {
+    public Uni<ContractExecution> executeContract(
+            String contractId,
+            String method,
+            Map<String, Object> parameters,
+            String caller
+    ) {
         return Uni.createFrom().item(() -> {
-            LOG.infof("Completing contract: %s", contractId);
+            LOGGER.info("Executing contract: {}, method: {}", contractId, method);
 
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
+            // Get contract
+            ActiveContract contract = contracts.get(contractId);
+            if (contract == null) {
+                throw new ContractNotFoundException("Contract not found: " + contractId);
+            }
 
-            contract.complete();
-            repository.persist(contract);
-            contractsCompleted.incrementAndGet();
+            // Check if contract is active
+            if (contract.getStatus() != ContractStatus.ACTIVE &&
+                contract.getStatus() != ContractStatus.DEPLOYED) {
+                throw new ContractValidationException("Contract is not active: " + contract.getStatus());
+            }
 
-            // Record completion event
-            contract.recordEvent();
-            repository.persist(contract);
-            eventsRecorded.incrementAndGet();
+            // Create execution record
+            ContractExecution execution = new ContractExecution();
+            execution.setExecutionId(generateExecutionId());
+            execution.setContractId(contractId);
+            execution.setMethod(method);
+            execution.setParameters(parameters);
+            execution.setCaller(caller);
+            execution.setTimestamp(Instant.now());
+            execution.setStatus(ContractExecution.ExecutionStatus.PENDING);
 
-            LOG.infof("Contract completed: %s", contractId);
-            return new ContractStatusResult(
-                    contractId,
-                    ActiveContractStatus.COMPLETED,
-                    contract.getCompletedAt(),
-                    completionMessage != null ? completionMessage : "Contract completed successfully"
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+            long startTime = System.currentTimeMillis();
+
+            try {
+                // Execute contract logic
+                Object result = performContractExecution(contract, method, parameters, caller);
+
+                long executionTime = System.currentTimeMillis() - startTime;
+
+                // Calculate gas used
+                long gasUsed = calculateGasUsed(contract, method, parameters, executionTime);
+
+                // Update execution record
+                execution.setStatus(ContractExecution.ExecutionStatus.SUCCESS);
+                execution.setResult(result);
+                execution.setGasUsed(gasUsed);
+                execution.setExecutionTimeMs(executionTime);
+
+                // Update contract
+                contract.setLastExecutedAt(Instant.now());
+                contract.setExecutionCount(contract.getExecutionCount() + 1);
+                contract.addExecution(new ExecutionResult(execution.getExecutionId(), method, Instant.now(), "SUCCESS"));
+                contract.addAuditEntry(String.format("Method '%s' executed by %s at %s", method, caller, Instant.now()));
+
+                // Store execution
+                executions.put(execution.getExecutionId(), execution);
+                contractExecutionHistory.computeIfAbsent(contractId, k -> new ArrayList<>()).add(execution);
+
+                // Update metrics
+                contractsExecuted.incrementAndGet();
+
+                LOGGER.info("Contract execution successful: {}", execution.getExecutionId());
+                return execution;
+
+            } catch (Exception e) {
+                long executionTime = System.currentTimeMillis() - startTime;
+                execution.setStatus(ContractExecution.ExecutionStatus.FAILED);
+                execution.setError(e.getMessage());
+                execution.setExecutionTimeMs(executionTime);
+
+                executions.put(execution.getExecutionId(), execution);
+                contractExecutionHistory.computeIfAbsent(contractId, k -> new ArrayList<>()).add(execution);
+
+                LOGGER.error("Contract execution failed: {}", e.getMessage());
+                throw new ContractExecutionException("Execution failed: " + e.getMessage(), e);
+            }
+        }).runSubscriptionOn(executor);
     }
 
     /**
-     * Terminate a contract
+     * Sign a contract (multi-party contracts)
+     *
+     * @param contractId Contract ID
+     * @param signature Contract signature
+     * @return Updated contract
      */
-    @Transactional
-    public Uni<ContractStatusResult> terminateContract(String contractId, String reason) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Terminating contract: %s with reason: %s", contractId, reason);
+    public Uni<ActiveContract> signContract(String contractId, ContractSignature signature) {
+        return getContract(contractId)
+            .map(contract -> {
+                LOGGER.info("Adding signature to contract: {}", contractId);
 
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
+                // Verify signature
+                if (!verifySignature(contract, signature)) {
+                    throw new ContractValidationException("Invalid signature");
+                }
 
-            contract.terminate(reason);
-            repository.persist(contract);
-            contractsTerminated.incrementAndGet();
+                // Add signature
+                contract.addSignature(signature);
+                contract.setUpdatedAt(Instant.now());
+                contract.addAuditEntry(String.format("Signature added by %s at %s",
+                    signature.getSignerAddress(), Instant.now()));
 
-            // Record termination event
-            contract.recordEvent();
-            repository.persist(contract);
-            eventsRecorded.incrementAndGet();
+                contracts.put(contractId, contract);
+                LOGGER.info("Signature added to contract: {}", contractId);
+                return contract;
+            });
+    }
 
-            LOG.infof("Contract terminated: %s", contractId);
-            return new ContractStatusResult(
-                    contractId,
-                    ActiveContractStatus.TERMINATED,
-                    contract.getTerminatedAt(),
-                    reason
+    /**
+     * Verify a signature
+     *
+     * @param contract Contract
+     * @param signature Signature to verify
+     * @return true if valid
+     */
+    private boolean verifySignature(ActiveContract contract, ContractSignature signature) {
+        try {
+            // Use quantum-safe crypto service to verify
+            return cryptoService.verifyDilithiumSignature(
+                contract.getContractId(),
+                signature.getSignature(),
+                signature.getPublicKey()
             );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        } catch (Exception e) {
+            LOGGER.error("Signature verification failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get contract by ID
+     *
+     * @param contractId Contract ID
+     * @return Contract
+     */
+    public Uni<ActiveContract> getContract(String contractId) {
+        return Uni.createFrom().item(() -> {
+            ActiveContract contract = contracts.get(contractId);
+            if (contract == null) {
+                throw new ContractNotFoundException("Contract not found: " + contractId);
+            }
+            return contract;
+        });
+    }
+
+    /**
+     * List all contracts
+     *
+     * @return List of all contracts
+     */
+    public Uni<List<ActiveContract>> listContracts() {
+        return Uni.createFrom().item(() -> new ArrayList<>(contracts.values()));
+    }
+
+    /**
+     * List contracts by owner
+     *
+     * @param owner Owner address
+     * @return List of contracts
+     */
+    public Uni<List<ActiveContract>> listContractsByOwner(String owner) {
+        return Uni.createFrom().item(() ->
+            contracts.values().stream()
+                .filter(c -> owner.equals(c.getOwner()))
+                .collect(Collectors.toList())
+        );
+    }
+
+    /**
+     * List contracts by type (for RWA filtering)
+     *
+     * @param contractType Contract type
+     * @return List of contracts
+     */
+    public Uni<List<ActiveContract>> listContractsByType(String contractType) {
+        return Uni.createFrom().item(() ->
+            contracts.values().stream()
+                .filter(c -> contractType.equals(c.getContractType()))
+                .collect(Collectors.toList())
+        );
+    }
+
+    /**
+     * Get execution history for a contract
+     *
+     * @param contractId Contract ID
+     * @return List of executions
+     */
+    public Uni<List<ContractExecution>> getExecutionHistory(String contractId) {
+        return Uni.createFrom().item(() -> {
+            List<ContractExecution> history = contractExecutionHistory.get(contractId);
+            return history != null ? new ArrayList<>(history) : new ArrayList<>();
+        });
+    }
+
+    /**
+     * Update contract state
+     *
+     * @param contractId Contract ID
+     * @param newState New state
+     * @return Updated contract
+     */
+    public Uni<ActiveContract> updateContractState(String contractId, Map<String, Object> newState) {
+        return getContract(contractId)
+            .map(contract -> {
+                contract.getState().putAll(newState);
+                contract.setUpdatedAt(Instant.now());
+                contract.addAuditEntry("State updated at " + Instant.now());
+                contracts.put(contractId, contract);
+                return contract;
+            });
     }
 
     /**
      * Pause a contract
+     *
+     * @param contractId Contract ID
+     * @return Paused contract
      */
-    @Transactional
-    public Uni<ContractStatusResult> pauseContract(String contractId) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Pausing contract: %s", contractId);
-
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
-
-            contract.pause();
-            contract.recordEvent();
-            repository.persist(contract);
-            eventsRecorded.incrementAndGet();
-
-            LOG.infof("Contract paused: %s", contractId);
-            return new ContractStatusResult(
-                    contractId,
-                    ActiveContractStatus.PAUSED,
-                    Instant.now(),
-                    "Contract paused"
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    public Uni<ActiveContract> pauseContract(String contractId) {
+        return getContract(contractId)
+            .map(contract -> {
+                contract.setStatus(ContractStatus.PAUSED);
+                contract.setUpdatedAt(Instant.now());
+                contract.addAuditEntry("Contract paused at " + Instant.now());
+                contracts.put(contractId, contract);
+                LOGGER.info("Contract paused: {}", contractId);
+                return contract;
+            });
     }
 
     /**
      * Resume a paused contract
+     *
+     * @param contractId Contract ID
+     * @return Resumed contract
      */
-    @Transactional
-    public Uni<ContractStatusResult> resumeContract(String contractId) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Resuming contract: %s", contractId);
-
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
-
-            contract.resume();
-            contract.recordEvent();
-            repository.persist(contract);
-            eventsRecorded.incrementAndGet();
-
-            LOG.infof("Contract resumed: %s", contractId);
-            return new ContractStatusResult(
-                    contractId,
-                    ActiveContractStatus.ACTIVE,
-                    Instant.now(),
-                    "Contract resumed"
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    // ==================== PARTY MANAGEMENT ====================
-
-    /**
-     * Add a party to a contract
-     */
-    @Transactional
-    public Uni<PartyManagementResult> addParty(String contractId, String partyAddress) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Adding party %s to contract %s", partyAddress, contractId);
-
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
-
-            int sizeBefore = contract.getParties().size();
-            contract.addParty(partyAddress);
-            contract.recordEvent();
-            repository.persist(contract);
-
-            boolean added = contract.getParties().size() > sizeBefore;
-            if (added) {
-                eventsRecorded.incrementAndGet();
-            }
-
-            LOG.infof("Party %s to contract %s", added ? "added" : "already exists in", contractId);
-            return new PartyManagementResult(
-                    contractId,
-                    partyAddress,
-                    added ? "ADDED" : "EXISTS",
-                    contract.getParties(),
-                    Instant.now()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    public Uni<ActiveContract> resumeContract(String contractId) {
+        return getContract(contractId)
+            .map(contract -> {
+                if (contract.getStatus() != ContractStatus.PAUSED) {
+                    throw new ContractValidationException("Contract is not paused");
+                }
+                contract.setStatus(ContractStatus.ACTIVE);
+                contract.setUpdatedAt(Instant.now());
+                contract.addAuditEntry("Contract resumed at " + Instant.now());
+                contracts.put(contractId, contract);
+                LOGGER.info("Contract resumed: {}", contractId);
+                return contract;
+            });
     }
 
     /**
-     * Remove a party from a contract
+     * Tokenize an asset (RWA feature)
+     *
+     * @param contractId Contract ID
+     * @param request Tokenization request
+     * @return Tokenized contract
      */
-    @Transactional
-    public Uni<PartyManagementResult> removeParty(String contractId, String partyAddress) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Removing party %s from contract %s", partyAddress, contractId);
+    public Uni<ActiveContract> tokenizeAsset(String contractId, AssetTokenizationRequest request) {
+        return getContract(contractId)
+            .map(contract -> {
+                LOGGER.info("Tokenizing asset for contract: {}", contractId);
 
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
+                // Set RWA metadata
+                contract.setAssetType(request.getAssetType());
+                contract.setContractType("RWA");
 
-            // Don't allow removing the creator
-            if (partyAddress.equals(contract.getCreatorAddress())) {
-                throw new IllegalArgumentException("Cannot remove contract creator");
-            }
+                // Add tokenization metadata
+                contract.getMetadata().put("assetId", request.getAssetId());
+                contract.getMetadata().put("valuation", String.valueOf(request.getValuation()));
+                contract.getMetadata().put("tokenSupply", String.valueOf(request.getTokenSupply()));
+                contract.getMetadata().put("tokenPrice", String.valueOf(request.getTokenPrice()));
+                contract.getMetadata().put("tokenizedAt", Instant.now().toString());
 
-            int sizeBefore = contract.getParties().size();
-            contract.removeParty(partyAddress);
-            contract.recordEvent();
-            repository.persist(contract);
+                contract.setUpdatedAt(Instant.now());
+                contract.addAuditEntry(String.format("Asset tokenized: %s at %s",
+                    request.getAssetId(), Instant.now()));
 
-            boolean removed = contract.getParties().size() < sizeBefore;
-            if (removed) {
-                eventsRecorded.incrementAndGet();
-            }
+                contracts.put(contractId, contract);
+                rwaTokenized.incrementAndGet();
 
-            LOG.infof("Party %s from contract %s", removed ? "removed" : "not found in", contractId);
-            return new PartyManagementResult(
-                    contractId,
-                    partyAddress,
-                    removed ? "REMOVED" : "NOT_FOUND",
-                    contract.getParties(),
-                    Instant.now()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                LOGGER.info("Asset tokenized successfully: {}", contractId);
+                return contract;
+            });
     }
 
     /**
-     * Get all parties in a contract
+     * Get contract state
+     *
+     * @param contractId Contract ID
+     * @return Contract state
      */
-    public Uni<List<String>> getParties(String contractId) {
-        return Uni.createFrom().item(() -> {
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
-            return List.copyOf(contract.getParties());
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    // ==================== EVENT MANAGEMENT ====================
-
-    /**
-     * Record a contract event
-     */
-    @Transactional
-    public Uni<EventRecordResult> recordEvent(String contractId, String eventType, String eventData) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Recording event for contract %s: %s", contractId, eventType);
-
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
-
-            contract.recordEvent();
-            repository.persist(contract);
-            eventsRecorded.incrementAndGet();
-
-            LOG.infof("Event recorded for contract %s", contractId);
-            return new EventRecordResult(
-                    contractId,
-                    eventType,
-                    eventData,
-                    contract.getEventCount(),
-                    Instant.now()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    public Uni<Map<String, Object>> getContractState(String contractId) {
+        return getContract(contractId)
+            .map(ActiveContract::getState);
     }
 
     /**
-     * Record a contract execution
+     * Check if contract is fully signed
+     *
+     * @param contractId Contract ID
+     * @return true if fully signed
      */
-    @Transactional
-    public Uni<ExecutionRecordResult> recordExecution(String contractId, String executionStatus, String executionData) {
-        return Uni.createFrom().item(() -> {
-            LOG.infof("Recording execution for contract %s: %s", contractId, executionStatus);
-
-            ActiveContract contract = repository.findByContractId(contractId)
-                    .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId));
-
-            contract.recordExecution(executionStatus);
-            repository.persist(contract);
-
-            LOG.infof("Execution recorded for contract %s", contractId);
-            return new ExecutionRecordResult(
-                    contractId,
-                    executionStatus,
-                    executionData,
-                    contract.getExecutionCount(),
-                    contract.getLastExecutionAt()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    // ==================== QUERY OPERATIONS ====================
-
-    /**
-     * Get contract by ID
-     */
-    public Uni<ActiveContract> getContract(String contractId) {
-        return Uni.createFrom().item(() ->
-                repository.findByContractId(contractId)
-                        .orElseThrow(() -> new IllegalArgumentException("Contract not found: " + contractId))
-        ).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    public Uni<Boolean> isFullySigned(String contractId) {
+        return getContract(contractId)
+            .map(ActiveContract::isFullySigned);
     }
 
     /**
-     * List contracts with pagination
+     * Get performance metrics
+     *
+     * @return Metrics map
      */
-    public Uni<List<ActiveContract>> listContracts(int page, int size) {
-        return Uni.createFrom().item(() -> {
-            return repository.findAll()
-                    .page(page, size)
-                    .list();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    public Map<String, Long> getMetrics() {
+        Map<String, Long> metrics = new HashMap<>();
+        metrics.put("contractsDeployed", contractsDeployed.get());
+        metrics.put("contractsExecuted", contractsExecuted.get());
+        metrics.put("rwaTokenized", rwaTokenized.get());
+        metrics.put("totalContracts", (long) contracts.size());
+        metrics.put("totalExecutions", (long) executions.size());
+        return metrics;
     }
 
-    /**
-     * Get contracts by status
-     */
-    public Uni<List<ActiveContract>> getContractsByStatus(ActiveContractStatus status, int limit) {
-        return Uni.createFrom().item(() -> {
-            return repository.findByStatus(status)
-                    .stream()
-                    .limit(limit)
-                    .toList();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    // ========== Private Helper Methods ==========
+
+    private void validateContract(ActiveContract contract) {
+        if (contract.getName() == null || contract.getName().trim().isEmpty()) {
+            throw new ContractValidationException("Contract name is required");
+        }
+        if (contract.getOwner() == null || contract.getOwner().trim().isEmpty()) {
+            throw new ContractValidationException("Contract owner is required");
+        }
+        // At least one of code or legalText must be present
+        if ((contract.getCode() == null || contract.getCode().trim().isEmpty()) &&
+            (contract.getLegalText() == null || contract.getLegalText().trim().isEmpty())) {
+            throw new ContractValidationException("Contract must have code or legal text");
+        }
     }
 
-    /**
-     * Get contracts by party
-     */
-    public Uni<List<ActiveContract>> getContractsByParty(String partyAddress) {
-        return Uni.createFrom().item(() -> {
-            return repository.findByParty(partyAddress);
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    private void compileContract(ActiveContract contract) {
+        // Compilation logic based on language
+        LOGGER.info("Compiling contract: {} ({})", contract.getName(), contract.getLanguage());
+
+        // TODO: Implement actual compilation based on language
+        // For now, just set status to compiled
+        contract.setStatus(ContractStatus.DEPLOYED);
     }
 
-    /**
-     * Get active contracts by party
-     */
-    public Uni<List<ActiveContract>> getActiveContractsByParty(String partyAddress) {
-        return Uni.createFrom().item(() -> {
-            return repository.findActiveByParty(partyAddress);
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    private double calculateEnforceabilityScore(ActiveContract contract) {
+        // Calculate enforceability score based on:
+        // - Completeness of legal text
+        // - Number of parties
+        // - Jurisdiction specified
+        // - Terms defined
+        double score = 0.5; // Base score
+
+        if (contract.getLegalText() != null && contract.getLegalText().length() > 100) {
+            score += 0.2;
+        }
+        if (contract.getParties() != null && !contract.getParties().isEmpty()) {
+            score += 0.1;
+        }
+        if (contract.getJurisdiction() != null && !contract.getJurisdiction().isEmpty()) {
+            score += 0.1;
+        }
+        if (contract.getTerms() != null && !contract.getTerms().isEmpty()) {
+            score += 0.1;
+        }
+
+        return Math.min(score, 1.0);
     }
 
-    /**
-     * Get expired contracts
-     */
-    public Uni<List<ActiveContract>> getExpiredContracts() {
-        return Uni.createFrom().item(() -> {
-            return repository.findExpiredContracts();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    private void performLegalAnalysis(ActiveContract contract) {
+        // Perform AI-driven legal analysis
+        LOGGER.info("Performing legal analysis for contract: {}", contract.getContractId());
+
+        // TODO: Implement AI-based legal analysis
+        // For now, just add a basic risk assessment
+        contract.setRiskAssessment("MEDIUM");
     }
 
-    /**
-     * Get contracts expiring soon
-     */
-    public Uni<List<ActiveContract>> getExpiringContracts(long secondsAhead) {
-        return Uni.createFrom().item(() -> {
-            Instant expiryThreshold = Instant.now().plusSeconds(secondsAhead);
-            return repository.findExpiringBefore(expiryThreshold);
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    private Object performContractExecution(
+            ActiveContract contract,
+            String method,
+            Map<String, Object> parameters,
+            String caller
+    ) {
+        // Execute contract logic based on language
+        LOGGER.info("Performing execution: {} - {}", contract.getLanguage(), method);
+
+        // TODO: Implement actual execution engine for each language
+        // For now, return mock result
+        Map<String, Object> result = new HashMap<>();
+        result.put("status", "success");
+        result.put("method", method);
+        result.put("caller", caller);
+        result.put("timestamp", Instant.now().toString());
+        result.put("data", parameters);
+
+        return result;
     }
 
-    // ==================== STATISTICS ====================
+    private long calculateGasUsed(
+            ActiveContract contract,
+            String method,
+            Map<String, Object> parameters,
+            long executionTimeMs
+    ) {
+        // Calculate gas based on:
+        // - Code complexity
+        // - Execution time
+        // - Parameter size
+        // - State changes
 
-    /**
-     * Get service statistics
-     */
-    public Uni<Map<String, Object>> getStatistics() {
-        return Uni.createFrom().item(() -> {
-            Map<String, Object> stats = new HashMap<>();
+        long baseGas = 21000; // Base transaction cost
+        long computeGas = executionTimeMs * 10; // 10 gas per ms
+        long parameterGas = parameters.size() * 1000; // 1000 gas per parameter
+        long codeGas = contract.getCode() != null ? contract.getCode().length() : 0;
 
-            stats.put("contractsCreated", contractsCreated.get());
-            stats.put("contractsActivated", contractsActivated.get());
-            stats.put("contractsCompleted", contractsCompleted.get());
-            stats.put("contractsTerminated", contractsTerminated.get());
-            stats.put("eventsRecorded", eventsRecorded.get());
-
-            ActiveContractRepository.ContractStatistics contractStats = repository.getStatistics();
-            stats.put("contractStatistics", Map.of(
-                    "totalContracts", contractStats.totalContracts(),
-                    "pendingContracts", contractStats.pendingContracts(),
-                    "activeContracts", contractStats.activeContracts(),
-                    "pausedContracts", contractStats.pausedContracts(),
-                    "completedContracts", contractStats.completedContracts(),
-                    "terminatedContracts", contractStats.terminatedContracts(),
-                    "totalExecutions", contractStats.totalExecutions(),
-                    "totalEvents", contractStats.totalEvents()
-            ));
-
-            stats.put("timestamp", Instant.now());
-
-            return stats;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        return baseGas + computeGas + parameterGas + (codeGas / 10);
     }
-
-    // ==================== HELPER METHODS ====================
 
     private String generateContractId() {
-        return "AC_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8);
+        return "AC-" + UUID.randomUUID().toString();
     }
 
-    // ==================== DATA MODELS ====================
+    private String generateExecutionId() {
+        return "EX-" + UUID.randomUUID().toString();
+    }
 
-    public record ContractCreationRequest(
-            String name,
-            String creatorAddress,
-            String contractType,
-            String description,
-            String metadata,
-            Instant expiresAt,
-            List<String> parties,
-            Boolean notificationEnabled,
-            String notificationRecipients
-    ) {}
+    // ========== Custom Exceptions ==========
 
-    public record ContractStatusResult(
-            String contractId,
-            ActiveContractStatus status,
-            Instant timestamp,
-            String message
-    ) {}
+    public static class ContractNotFoundException extends RuntimeException {
+        public ContractNotFoundException(String message) {
+            super(message);
+        }
+    }
 
-    public record PartyManagementResult(
-            String contractId,
-            String partyAddress,
-            String action,
-            List<String> currentParties,
-            Instant timestamp
-    ) {}
+    public static class ContractValidationException extends RuntimeException {
+        public ContractValidationException(String message) {
+            super(message);
+        }
+    }
 
-    public record EventRecordResult(
-            String contractId,
-            String eventType,
-            String eventData,
-            Long totalEvents,
-            Instant timestamp
-    ) {}
-
-    public record ExecutionRecordResult(
-            String contractId,
-            String executionStatus,
-            String executionData,
-            Long totalExecutions,
-            Instant timestamp
-    ) {}
+    public static class ContractExecutionException extends RuntimeException {
+        public ContractExecutionException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }
