@@ -32,6 +32,12 @@ public enum TransactionStatus {
     PROCESSING,
 
     /**
+     * Transaction is in the mempool waiting for processing
+     * Added for BUG-005 fix
+     */
+    IN_MEMPOOL,
+
+    /**
      * Transaction has been committed to the blockchain
      */
     COMMITTED,
@@ -40,6 +46,12 @@ public enum TransactionStatus {
      * Transaction confirmed on the blockchain
      */
     CONFIRMED,
+
+    /**
+     * Transaction has been finalized and cannot be reverted
+     * Added for BUG-005 fix
+     */
+    FINALIZED,
 
     /**
      * Transaction processing failed
@@ -62,6 +74,7 @@ public enum TransactionStatus {
     public boolean isFinal() {
         return this == COMMITTED ||
                this == CONFIRMED ||
+               this == FINALIZED ||
                this == FAILED ||
                this == EXPIRED ||
                this == REJECTED;
@@ -73,6 +86,7 @@ public enum TransactionStatus {
     public boolean isProcessing() {
         return this == PENDING ||
                this == VALIDATING ||
+               this == IN_MEMPOOL ||
                this == PROCESSING;
     }
 }

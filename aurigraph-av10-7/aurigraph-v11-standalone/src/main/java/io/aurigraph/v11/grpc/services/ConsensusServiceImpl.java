@@ -1,6 +1,24 @@
 package io.aurigraph.v11.grpc.services;
 
-import io.aurigraph.v11.grpc.consensus.*;
+// Explicit imports from proto-generated consensus package
+import io.aurigraph.v11.grpc.consensus.AppendEntriesRequest;
+import io.aurigraph.v11.grpc.consensus.AppendEntriesResponse;
+import io.aurigraph.v11.grpc.consensus.BlockProposal;
+import io.aurigraph.v11.grpc.consensus.ConsensusEvent;
+import io.aurigraph.v11.grpc.consensus.ConsensusService;
+import io.aurigraph.v11.grpc.consensus.ConsensusState;
+import io.aurigraph.v11.grpc.consensus.EventStreamRequest;
+import io.aurigraph.v11.grpc.consensus.EventType;
+import io.aurigraph.v11.grpc.consensus.LogEntry;
+import io.aurigraph.v11.grpc.consensus.NodeRole;
+import io.aurigraph.v11.grpc.consensus.PeerState;
+import io.aurigraph.v11.grpc.consensus.ProposalResponse;
+import io.aurigraph.v11.grpc.consensus.SnapshotRequest;
+import io.aurigraph.v11.grpc.consensus.SnapshotResponse;
+import io.aurigraph.v11.grpc.consensus.StateRequest;
+import io.aurigraph.v11.grpc.consensus.VoteRequest;
+import io.aurigraph.v11.grpc.consensus.VoteResponse;
+
 import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.Multi;

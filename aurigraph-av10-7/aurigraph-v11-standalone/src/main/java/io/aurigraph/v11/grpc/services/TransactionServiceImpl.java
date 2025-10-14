@@ -1,10 +1,20 @@
 package io.aurigraph.v11.grpc.services;
 
-import io.aurigraph.v11.grpc.transaction.*;
+import io.aurigraph.v11.grpc.consensus.ConsensusService;
+import io.aurigraph.v11.grpc.transaction.TransactionService;
+import io.aurigraph.v11.grpc.transaction.TransactionRequest;
+import io.aurigraph.v11.grpc.transaction.TransactionResponse;
+import io.aurigraph.v11.grpc.transaction.TransactionStatus;
+import io.aurigraph.v11.grpc.transaction.TransactionDetail;
+import io.aurigraph.v11.grpc.transaction.TransactionBatchRequest;
+import io.aurigraph.v11.grpc.transaction.TransactionBatchResponse;
+import io.aurigraph.v11.grpc.transaction.TransactionStatusResponse;
+import io.aurigraph.v11.grpc.transaction.TransactionQuery;
+import io.aurigraph.v11.grpc.transaction.ValidationResponse;
 import io.quarkus.grpc.GrpcService;
+import io.quarkus.grpc.GrpcClient;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.Multi;
-import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
@@ -29,8 +39,8 @@ public class TransactionServiceImpl implements TransactionService {
     // In-memory transaction storage (will be replaced with persistent storage)
     private final Map<String, TransactionDetail> transactionStore = new ConcurrentHashMap<>();
 
-    @Inject
-    ConsensusServiceClient consensusClient;
+    @GrpcClient("consensus")
+    ConsensusService consensusClient;
 
     /**
      * Submit a single transaction
@@ -43,7 +53,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         return Uni.createFrom().item(() -> {
             // Validate transaction
-            if (!validateTransaction(request)) {
+            if (!isValidTransaction(request)) {
                 return TransactionResponse.newBuilder()
                     .setTransactionId(request.getTransactionId())
                     .setStatus(TransactionStatus.REJECTED)
@@ -232,9 +242,17 @@ public class TransactionServiceImpl implements TransactionService {
 
     // Helper methods
 
-    private boolean validateTransaction(TransactionRequest request) {
-        ValidationResponse validation = validateTransaction(request).await().indefinitely();
-        return validation.getValid();
+    /**
+     * Internal helper method for quick validation
+     * Returns true if transaction is valid, false otherwise
+     */
+    private boolean isValidTransaction(TransactionRequest request) {
+        if (request.getAmount() <= 0) return false;
+        if (request.getFromAddress().isEmpty()) return false;
+        if (request.getToAddress().isEmpty()) return false;
+        if (request.getSignature().isEmpty()) return false;
+        if (request.getNonce() < 0) return false;
+        return true;
     }
 
     private long calculateEstimatedGas(TransactionRequest request) {

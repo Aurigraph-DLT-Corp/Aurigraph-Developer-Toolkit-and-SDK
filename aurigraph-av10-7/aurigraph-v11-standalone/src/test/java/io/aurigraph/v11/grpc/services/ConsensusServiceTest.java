@@ -1,8 +1,20 @@
 package io.aurigraph.v11.grpc.services;
 
-import io.aurigraph.v11.grpc.consensus.*;
+import io.aurigraph.v11.grpc.consensus.VoteRequest;
+import io.aurigraph.v11.grpc.consensus.VoteResponse;
+import io.aurigraph.v11.grpc.consensus.AppendEntriesRequest;
+import io.aurigraph.v11.grpc.consensus.AppendEntriesResponse;
+import io.aurigraph.v11.grpc.consensus.LogEntry;
+import io.aurigraph.v11.grpc.consensus.SnapshotRequest;
+import io.aurigraph.v11.grpc.consensus.SnapshotResponse;
+import io.aurigraph.v11.grpc.consensus.StateRequest;
+import io.aurigraph.v11.grpc.consensus.ConsensusState;
+import io.aurigraph.v11.grpc.consensus.BlockProposal;
+import io.aurigraph.v11.grpc.consensus.ProposalResponse;
+import io.aurigraph.v11.grpc.consensus.EventStreamRequest;
+import io.aurigraph.v11.grpc.consensus.ConsensusEvent;
+import io.aurigraph.v11.grpc.consensus.NodeRole;
 import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,13 +32,16 @@ import java.time.Duration;
  * - Snapshot management
  *
  * Target: 95% coverage
+ *
+ * NOTE: Using direct instantiation instead of CDI injection because
+ * @GrpcService beans cannot be injected in unit tests with @Inject.
  */
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ConsensusServiceTest {
 
-    @Inject
-    ConsensusServiceImpl consensusService;
+    // Direct instantiation for unit testing gRPC services
+    private ConsensusServiceImpl consensusService;
 
     private VoteRequest voteRequest;
     private AppendEntriesRequest heartbeatRequest;
@@ -34,6 +49,9 @@ class ConsensusServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Instantiate service for testing
+        consensusService = new ConsensusServiceImpl();
+
         voteRequest = VoteRequest.newBuilder()
             .setCandidateId("candidate-1")
             .setTerm(1)
@@ -52,7 +70,7 @@ class ConsensusServiceTest {
         LogEntry entry = LogEntry.newBuilder()
             .setIndex(1)
             .setTerm(1)
-            .setCommand("test-command")
+            .setCommand(ByteString.copyFromUtf8("test-command"))
             .setCommandType("TEST")
             .setTimestamp(System.currentTimeMillis())
             .build();
@@ -173,7 +191,7 @@ class ConsensusServiceTest {
             batchBuilder.addEntries(LogEntry.newBuilder()
                 .setIndex(i)
                 .setTerm(1)
-                .setCommand("batch-command-" + i)
+                .setCommand(ByteString.copyFromUtf8("batch-command-" + i))
                 .setCommandType("BATCH_TEST")
                 .setTimestamp(System.currentTimeMillis())
                 .build());
@@ -269,7 +287,7 @@ class ConsensusServiceTest {
         BlockProposal proposal = BlockProposal.newBuilder()
             .setBlockNumber(1)
             .setProposerId(consensusService.getNodeId())
-            .setBlockData("block-data-1")
+            .setBlockData(ByteString.copyFromUtf8("block-data-1"))
             .addTransactionIds("tx-1")
             .addTransactionIds("tx-2")
             .build();
@@ -319,7 +337,6 @@ class ConsensusServiceTest {
     @DisplayName("Consensus event stream - should stream events")
     void testStreamConsensusEvents() {
         EventStreamRequest request = EventStreamRequest.newBuilder()
-            .setIncludeHeartbeats(true)
             .build();
 
         // Subscribe to stream and collect first 5 events
@@ -357,7 +374,7 @@ class ConsensusServiceTest {
             builder.addEntries(LogEntry.newBuilder()
                 .setIndex(i)
                 .setTerm(1)
-                .setCommand("load-test-command-" + i)
+                .setCommand(ByteString.copyFromUtf8("load-test-command-" + i))
                 .setCommandType("LOAD_TEST")
                 .setTimestamp(System.currentTimeMillis())
                 .build());

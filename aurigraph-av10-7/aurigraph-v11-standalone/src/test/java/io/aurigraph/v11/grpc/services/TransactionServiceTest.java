@@ -1,9 +1,15 @@
 package io.aurigraph.v11.grpc.services;
 
-import io.aurigraph.v11.grpc.transaction.*;
+import io.aurigraph.v11.grpc.transaction.TransactionRequest;
+import io.aurigraph.v11.grpc.transaction.TransactionResponse;
+import io.aurigraph.v11.grpc.transaction.TransactionStatus;
+import io.aurigraph.v11.grpc.transaction.TransactionDetail;
+import io.aurigraph.v11.grpc.transaction.TransactionBatchRequest;
+import io.aurigraph.v11.grpc.transaction.TransactionBatchResponse;
+import io.aurigraph.v11.grpc.transaction.TransactionStatusResponse;
+import io.aurigraph.v11.grpc.transaction.TransactionQuery;
+import io.aurigraph.v11.grpc.transaction.ValidationResponse;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,19 +25,25 @@ import java.time.Duration;
  *
  * Tests transaction processing, validation, and batch operations.
  * Target: 95% coverage
+ *
+ * NOTE: Using direct instantiation instead of CDI injection because
+ * @GrpcService beans cannot be injected in unit tests with @Inject.
  */
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionServiceTest {
 
-    @Inject
-    TransactionServiceImpl transactionService;
+    // Direct instantiation for unit testing gRPC services
+    private TransactionServiceImpl transactionService;
 
     private TransactionRequest validTransaction;
     private TransactionRequest invalidTransaction;
 
     @BeforeEach
     void setUp() {
+        // Instantiate service for testing
+        transactionService = new TransactionServiceImpl();
+
         validTransaction = TransactionRequest.newBuilder()
             .setTransactionId("tx-test-001")
             .setFromAddress("0x1234567890abcdef")
@@ -39,7 +51,7 @@ class TransactionServiceTest {
             .setAmount(1000000)
             .setFee(1000)
             .setNonce(1)
-            .setSignature("valid-signature-data")
+            .setSignature(ByteString.copyFromUtf8("valid-signature-data"))
             .build();
 
         invalidTransaction = TransactionRequest.newBuilder()

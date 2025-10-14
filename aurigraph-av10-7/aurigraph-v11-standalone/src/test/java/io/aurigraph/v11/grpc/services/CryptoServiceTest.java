@@ -2,7 +2,6 @@ package io.aurigraph.v11.grpc.services;
 
 import io.aurigraph.v11.grpc.crypto.*;
 import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,13 +23,16 @@ import java.util.List;
  * - SHA3 hashing
  *
  * Target: 98% coverage (critical security module)
+ *
+ * NOTE: Using direct instantiation instead of CDI injection because
+ * @GrpcService beans cannot be injected in unit tests with @Inject.
  */
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CryptoServiceTest {
 
-    @Inject
-    CryptoServiceImpl cryptoService;
+    // Direct instantiation for unit testing gRPC services
+    private CryptoServiceImpl cryptoService;
 
     private KeyGenRequest keyGenRequest;
     private byte[] testData;
@@ -38,6 +40,9 @@ class CryptoServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Instantiate service for testing
+        cryptoService = new CryptoServiceImpl();
+
         keyGenRequest = KeyGenRequest.newBuilder()
             .setAlgorithm(CryptoAlgorithm.DILITHIUM5)
             .setSecurityLevel(SecurityLevel.NIST_LEVEL_5)
