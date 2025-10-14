@@ -1,6 +1,20 @@
 package io.aurigraph.v11.grpc.services;
 
-import io.aurigraph.v11.grpc.blockchain.*;
+// Explicit imports from proto-generated blockchain package
+import io.aurigraph.v11.grpc.blockchain.Block;
+import io.aurigraph.v11.grpc.blockchain.BlockList;
+import io.aurigraph.v11.grpc.blockchain.BlockQuery;
+import io.aurigraph.v11.grpc.blockchain.BlockRangeQuery;
+import io.aurigraph.v11.grpc.blockchain.BlockStreamRequest;
+import io.aurigraph.v11.grpc.blockchain.BlockchainInfo;
+import io.aurigraph.v11.grpc.blockchain.BlockchainService;
+import io.aurigraph.v11.grpc.blockchain.ChainStatistics;
+import io.aurigraph.v11.grpc.blockchain.InfoRequest;
+import io.aurigraph.v11.grpc.blockchain.LatestBlockRequest;
+import io.aurigraph.v11.grpc.blockchain.StatsRequest;
+import io.aurigraph.v11.grpc.blockchain.Transaction;
+import io.aurigraph.v11.grpc.blockchain.ValidatorInfo;
+
 import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.Multi;
@@ -178,7 +192,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
         // Stream blocks every second
         return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
-            .onItem().transformToMulti(tick -> {
+            .onItem().transformToMultiAndMerge(tick -> {
                 List<Block> newBlocks = new ArrayList<>();
                 long latest = latestBlockNumber.get();
 

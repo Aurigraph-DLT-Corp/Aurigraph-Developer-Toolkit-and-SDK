@@ -1,8 +1,18 @@
 package io.aurigraph.v11.grpc.services;
 
-import io.aurigraph.v11.grpc.blockchain.*;
+import io.aurigraph.v11.grpc.blockchain.BlockQuery;
+import io.aurigraph.v11.grpc.blockchain.Block;
+import io.aurigraph.v11.grpc.blockchain.LatestBlockRequest;
+import io.aurigraph.v11.grpc.blockchain.InfoRequest;
+import io.aurigraph.v11.grpc.blockchain.BlockchainInfo;
+import io.aurigraph.v11.grpc.blockchain.ValidatorInfo;
+import io.aurigraph.v11.grpc.blockchain.BlockRangeQuery;
+import io.aurigraph.v11.grpc.blockchain.BlockList;
+import io.aurigraph.v11.grpc.blockchain.Transaction;
+import io.aurigraph.v11.grpc.blockchain.StatsRequest;
+import io.aurigraph.v11.grpc.blockchain.ChainStatistics;
+import io.aurigraph.v11.grpc.blockchain.BlockStreamRequest;
 import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,13 +30,22 @@ import java.util.List;
  * - Chain statistics
  *
  * Target: 95% coverage
+ *
+ * NOTE: Using direct instantiation instead of CDI injection because
+ * @GrpcService beans cannot be injected in unit tests with @Inject.
  */
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class BlockchainServiceTest {
 
-    @Inject
-    BlockchainServiceImpl blockchainService;
+    // Direct instantiation for unit testing gRPC services
+    private BlockchainServiceImpl blockchainService;
+
+    @BeforeEach
+    void setUp() {
+        // Instantiate service for testing
+        blockchainService = new BlockchainServiceImpl();
+    }
 
     @Test
     @Order(1)

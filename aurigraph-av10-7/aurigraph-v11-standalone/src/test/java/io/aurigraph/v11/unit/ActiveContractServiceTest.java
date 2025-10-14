@@ -6,7 +6,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;
-import java.util.Map;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -33,45 +33,47 @@ class ActiveContractServiceTest {
 
     @Test
     @Order(2)
-    @DisplayName("UT-ACS-02: Should get service statistics")
-    void testGetStatistics() {
-        Map<String, Object> stats = contractService.getStatistics()
-                .await().atMost(Duration.ofSeconds(5));
-
-        assertThat(stats).isNotNull();
-        assertThat(stats).containsKeys("contractsCreated", "contractStatistics");
+    @DisplayName("UT-ACS-02: Should list all contracts")
+    void testListContracts() {
+        assertThatNoException().isThrownBy(() -> {
+            var contracts = contractService.listContracts()
+                    .await().atMost(Duration.ofSeconds(5));
+            assertThat(contracts).isNotNull();
+            assertThat(contracts).isInstanceOf(List.class);
+        });
     }
 
     @Test
     @Order(3)
-    @DisplayName("UT-ACS-03: Should list contracts")
-    void testListContracts() {
+    @DisplayName("UT-ACS-03: Should list contracts by owner")
+    void testListContractsByOwner() {
         assertThatNoException().isThrownBy(() -> {
-            var contracts = contractService.listContracts(0, 10)
+            var contracts = contractService.listContractsByOwner("test-owner")
                     .await().atMost(Duration.ofSeconds(5));
             assertThat(contracts).isNotNull();
+            assertThat(contracts).isInstanceOf(List.class);
         });
     }
 
     @Test
     @Order(4)
-    @DisplayName("UT-ACS-04: Should get expired contracts")
-    void testGetExpiredContracts() {
+    @DisplayName("UT-ACS-04: Should list contracts by type")
+    void testListContractsByType() {
         assertThatNoException().isThrownBy(() -> {
-            var contracts = contractService.getExpiredContracts()
+            var contracts = contractService.listContractsByType("RICARDIAN")
                     .await().atMost(Duration.ofSeconds(5));
             assertThat(contracts).isNotNull();
+            assertThat(contracts).isInstanceOf(List.class);
         });
     }
 
     @Test
     @Order(5)
-    @DisplayName("UT-ACS-05: Should get expiring contracts")
-    void testGetExpiringContracts() {
-        assertThatNoException().isThrownBy(() -> {
-            var contracts = contractService.getExpiringContracts(3600L)
+    @DisplayName("UT-ACS-05: Should get contract by ID")
+    void testGetContract() {
+        assertThatCode(() -> {
+            contractService.getContract("non-existent-id")
                     .await().atMost(Duration.ofSeconds(5));
-            assertThat(contracts).isNotNull();
-        });
+        }).doesNotThrowAnyException(); // Will be empty for non-existent contract
     }
 }

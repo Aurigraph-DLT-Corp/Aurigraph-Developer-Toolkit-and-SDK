@@ -7,7 +7,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.reactive.MultipartForm;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 
@@ -63,11 +62,12 @@ public class RicardianContractResource {
      * POST /api/v11/contracts/ricardian/upload
      *
      * AV11-289: Enhanced validation for contract upload
+     * Updated to use Jakarta EE 10 multipart handling (removed deprecated @MultipartForm)
      */
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> uploadDocument(@MultipartForm DocumentUploadForm form) {
+    public Uni<Response> uploadDocument(DocumentUploadForm form) {
         LOG.infof("Uploading document: %s, type: %s, jurisdiction: %s",
                 form.fileName, form.contractType, form.jurisdiction);
 

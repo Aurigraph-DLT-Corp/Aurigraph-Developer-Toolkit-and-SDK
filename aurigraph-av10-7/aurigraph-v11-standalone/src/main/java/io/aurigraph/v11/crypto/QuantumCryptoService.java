@@ -600,8 +600,9 @@ public class QuantumCryptoService {
 
     /**
      * Verify real CRYSTALS-Dilithium signature
+     * Made public for BUG-004 fix
      */
-    private boolean verifyDilithiumSignature(String data, String signatureBase64, String publicKeyBase64) {
+    public boolean verifyDilithiumSignature(String data, String signatureBase64, String publicKeyBase64) {
         try {
             // Decode keys and signature
             byte[] publicKeyBytes = Base64.getDecoder().decode(publicKeyBase64);

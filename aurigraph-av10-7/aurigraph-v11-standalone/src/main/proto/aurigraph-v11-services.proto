@@ -8,7 +8,6 @@ option java_multiple_files = true;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/any.proto";
 
 // ================== MAIN AURIGRAPH V11 SERVICES ==================
 

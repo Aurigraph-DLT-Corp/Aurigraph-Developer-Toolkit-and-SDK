@@ -106,10 +106,22 @@ public class ActiveContractResource {
     ) {
         LOGGER.info("REST: Execute contract - {} method: {}", contractId, request.getMethod());
 
+        // Convert Object[] parameters to Map<String, Object> if needed
+        Map<String, Object> parametersMap = new HashMap<>();
+        if (request.getExecutionParameters() != null) {
+            parametersMap = request.getExecutionParameters();
+        } else if (request.getParameters() != null) {
+            // Convert Object[] to Map with indexed keys
+            Object[] params = request.getParameters();
+            for (int i = 0; i < params.length; i++) {
+                parametersMap.put("param" + i, params[i]);
+            }
+        }
+
         return contractService.executeContract(
                 contractId,
                 request.getMethod(),
-                request.getParameters(),
+                parametersMap,
                 request.getCaller()
             )
             .map(execution -> Response.ok(execution).build())
