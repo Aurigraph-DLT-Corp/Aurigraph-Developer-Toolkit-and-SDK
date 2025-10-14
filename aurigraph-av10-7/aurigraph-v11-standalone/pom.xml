@@ -965,5 +965,152 @@
                 </quarkus.native.additional-build-args>
             </properties>
         </profile>
+
+        <!-- Performance Testing Profile -->
+        <profile>
+            <id>performance-test</id>
+            <activation>
+                <property>
+                    <name>performance-test</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <skipTests>false</skipTests>
+                <!-- Performance test timeout (10 minutes) -->
+                <surefire.timeout>600</surefire.timeout>
+                <!-- Enable performance test suite -->
+                <performance.test.enabled>true</performance.test.enabled>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Surefire plugin for running performance tests -->
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                                <include>**/Performance*.java</include>
+                                <include>**/*PerformanceTest.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <maven.home>${maven.home}</maven.home>
+                                <performance.test.enabled>true</performance.test.enabled>
+                            </systemPropertyVariables>
+                            <argLine>-Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=100</argLine>
+                        </configuration>
+                    </plugin>
+
+                    <!-- JaCoCo plugin for test coverage reporting -->
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.8</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>coverage-check</id>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <rule>
+                                            <element>PACKAGE</element>
+                                            <limits>
+                                                <limit>
+                                                    <counter>LINE</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.80</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Exec Maven Plugin for running performance test scripts -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>run-performance-tests</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>./run-performance-tests.sh</executable>
+                                    <workingDirectory>${project.basedir}</workingDirectory>
+                                    <skip>${skipITs}</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Full Test Suite Profile (Unit + Integration + Performance) -->
+        <profile>
+            <id>full-test</id>
+            <activation>
+                <property>
+                    <name>full-test</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <skipTests>false</skipTests>
+                <performance.test.enabled>true</performance.test.enabled>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                                <include>**/*IT.java</include>
+                            </includes>
+                            <argLine>-Xmx4g -XX:+UseG1GC</argLine>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.8</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
