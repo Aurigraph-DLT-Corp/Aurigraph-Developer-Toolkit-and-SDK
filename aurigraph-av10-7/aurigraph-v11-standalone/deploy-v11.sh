@@ -2,7 +2,7 @@
 
 # Deployment Script for Aurigraph V11 to Remote Server
 # Target: dlt.aurigraph.io:2235
-# Version: 11.1.0
+# Version: 11.3.0
 
 set -e
 
@@ -18,7 +18,7 @@ REMOTE_HOST="dlt.aurigraph.io"
 REMOTE_PORT="22"
 REMOTE_USER="subbu"
 REMOTE_DIR="/home/subbu/aurigraph-v11"
-JAR_FILE="target/aurigraph-v11-standalone-11.1.0-runner.jar"
+JAR_FILE="target/aurigraph-v11-standalone-11.3.0-runner.jar"
 APP_PORT="9003"
 GRPC_PORT="9004"
 
@@ -69,9 +69,9 @@ if [ $JAR_SIZE -gt $MAX_SIZE ]; then
     echo -e "${YELLOW}🔧 Reassembling JAR on remote server...${NC}"
     ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << EOF
         cd $REMOTE_DIR
-        cat aurigraph-v11-standalone-11.1.0-runner.jar.part* > aurigraph-v11-standalone-11.1.0-runner.jar
-        rm -f aurigraph-v11-standalone-11.1.0-runner.jar.part*
-        chmod +x aurigraph-v11-standalone-11.1.0-runner.jar
+        cat aurigraph-v11-standalone-11.3.0-runner.jar.part* > aurigraph-v11-standalone-11.3.0-runner.jar
+        rm -f aurigraph-v11-standalone-11.3.0-runner.jar.part*
+        chmod +x aurigraph-v11-standalone-11.3.0-runner.jar
         echo "✅ JAR reassembled"
 EOF
 
@@ -94,7 +94,7 @@ nohup java -Xms1g -Xmx4g \
     -Dquarkus.log.level=INFO \
     -Dquarkus.log.file.enable=true \
     -Dquarkus.log.file.path=logs/aurigraph-v11.log \
-    -jar aurigraph-v11-standalone-11.1.0-runner.jar \
+    -jar aurigraph-v11-standalone-11.3.0-runner.jar \
     > logs/console.log 2>&1 &
 echo $! > v11.pid
 echo "✅ Aurigraph V11 started (PID: $(cat v11.pid))"
