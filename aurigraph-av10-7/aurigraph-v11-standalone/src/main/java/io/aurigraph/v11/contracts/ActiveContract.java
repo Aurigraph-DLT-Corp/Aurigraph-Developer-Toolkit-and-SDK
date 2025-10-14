@@ -487,7 +487,7 @@ public class ActiveContract {
 /**
  * Contract programming language enum
  */
-enum ContractLanguage {
+public enum ContractLanguage {
     SOLIDITY,    // Ethereum-compatible smart contracts
     JAVA,        // Native Quarkus/GraalVM contracts
     JAVASCRIPT,  // V8-based execution
