@@ -29,7 +29,7 @@ import java.util.Map;
  * - GET /api/v11/oracles/summary - Get oracle summary
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @Path("/api/v11/oracles")
 @Produces(MediaType.APPLICATION_JSON)

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * - GET /api/v11/security/hsm/operations - Get operation statistics
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @Path("/api/v11/security/hsm")
 @Produces(MediaType.APPLICATION_JSON)

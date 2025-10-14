@@ -16,7 +16,7 @@ import java.util.List;
  * Provides real-time price aggregation from multiple oracle sources
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @ApplicationScoped
 public class PriceFeedService {

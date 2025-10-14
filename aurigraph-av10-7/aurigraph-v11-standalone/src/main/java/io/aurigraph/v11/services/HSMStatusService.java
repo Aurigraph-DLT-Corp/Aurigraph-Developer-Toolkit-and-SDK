@@ -14,7 +14,7 @@ import java.util.*;
  * Provides Hardware Security Module health and status information
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @ApplicationScoped
 public class HSMStatusService {

@@ -36,7 +36,7 @@ class AurigraphResourceTest {
             .then()
                 .statusCode(200)
                 .body("platform.name", is("Aurigraph V11"))
-                .body("platform.version", is("11.1.0"))
+                .body("platform.version", is("11.3.0"))
                 .body("features.consensus", is("HyperRAFT++"))
                 .body("features.api_version", is("v11"));
     }

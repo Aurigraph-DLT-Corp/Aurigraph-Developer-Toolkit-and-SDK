@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * Provides cross-chain bridge transaction history with pagination and filtering
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @ApplicationScoped
 public class BridgeHistoryService {

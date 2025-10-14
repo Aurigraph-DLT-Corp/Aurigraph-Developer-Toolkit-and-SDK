@@ -11,7 +11,7 @@ import java.util.List;
  * Used by /api/v11/bridge/history endpoint
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 public class BridgeTransaction {
 

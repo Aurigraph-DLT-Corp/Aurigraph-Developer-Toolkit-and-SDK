@@ -16,7 +16,7 @@ import java.util.Map;
  * Provides enterprise features overview and multi-tenancy management
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @ApplicationScoped
 public class EnterpriseService {

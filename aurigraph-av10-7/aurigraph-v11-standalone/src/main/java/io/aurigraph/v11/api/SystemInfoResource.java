@@ -29,7 +29,7 @@ import java.util.Map;
  * - GET /api/v11/info/health - Get quick health status
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @Path("/api/v11/info")
 @Produces(MediaType.APPLICATION_JSON)

@@ -16,7 +16,7 @@ import java.util.Map;
  * Provides oracle service health monitoring and performance metrics
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @ApplicationScoped
 public class OracleStatusService {

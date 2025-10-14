@@ -8,7 +8,7 @@ import java.util.List;
  * Used for paginated transaction history responses
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 public class BridgeTransactionHistory {
 

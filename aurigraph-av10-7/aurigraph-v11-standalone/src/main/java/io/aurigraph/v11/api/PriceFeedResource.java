@@ -29,7 +29,7 @@ import java.util.Map;
  * - GET /api/v11/datafeeds/sources - Get price source status
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @Path("/api/v11/datafeeds")
 @Produces(MediaType.APPLICATION_JSON)

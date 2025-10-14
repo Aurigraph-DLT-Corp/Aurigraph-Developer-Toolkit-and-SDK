@@ -27,7 +27,7 @@ import java.util.Map;
  * - GET /api/v11/live/network - Get real-time network metrics
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @Path("/api/v11/live/network")
 @Produces(MediaType.APPLICATION_JSON)

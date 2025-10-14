@@ -30,7 +30,7 @@ import java.util.Map;
  * - GET /api/v11/enterprise/usage - Get usage metrics
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @Path("/api/v11/enterprise")
 @Produces(MediaType.APPLICATION_JSON)

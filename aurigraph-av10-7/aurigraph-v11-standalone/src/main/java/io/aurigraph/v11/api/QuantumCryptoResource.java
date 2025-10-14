@@ -28,7 +28,7 @@ import java.util.Map;
  * - GET /api/v11/security/quantum/algorithms - Get supported algorithms
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @Path("/api/v11/security/quantum")
 @Produces(MediaType.APPLICATION_JSON)

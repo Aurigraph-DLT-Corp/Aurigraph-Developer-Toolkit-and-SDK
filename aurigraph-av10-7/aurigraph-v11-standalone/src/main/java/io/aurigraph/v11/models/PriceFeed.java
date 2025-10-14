@@ -12,7 +12,7 @@ import java.util.Map;
  * Used by /api/v11/datafeeds/prices endpoint
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 public class PriceFeed {
 

@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Provides real-time network metrics and health status
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @ApplicationScoped
 public class LiveNetworkService {

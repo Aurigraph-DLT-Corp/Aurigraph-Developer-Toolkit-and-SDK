@@ -18,7 +18,7 @@ import java.util.Map;
  * Provides platform version and configuration details
  *
  * @author Aurigraph V11
- * @version 11.1.0
+ * @version 11.3.0
  */
 @ApplicationScoped
 public class SystemInfoService {
@@ -63,7 +63,7 @@ public class SystemInfoService {
     private SystemInfo.PlatformInfo buildPlatformInfo() {
         return new SystemInfo.PlatformInfo(
                 "Aurigraph V11",
-                "11.1.0",
+                "11.3.0",
                 "High-performance blockchain platform with quantum-resistant cryptography",
                 getEnvironment()
         );
@@ -154,7 +154,7 @@ public class SystemInfoService {
     private SystemInfo.BuildInfo buildBuildInfo() {
         SystemInfo.BuildInfo build = new SystemInfo.BuildInfo();
 
-        build.setVersion("11.1.0");
+        build.setVersion("11.3.0");
         build.setBuildTimestamp(Instant.now().toString());
         build.setCommitHash(getGitCommitHash());
         build.setBranch("main");
