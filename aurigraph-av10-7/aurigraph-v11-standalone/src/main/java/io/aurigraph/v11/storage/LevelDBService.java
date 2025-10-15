@@ -1,9 +1,13 @@
 package io.aurigraph.v11.storage;
 
+import io.aurigraph.v11.security.LevelDBEncryptionService;
+import io.aurigraph.v11.security.LevelDBValidator;
+import io.aurigraph.v11.security.LevelDBAccessControl;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.iq80.leveldb.*;
 import org.iq80.leveldb.impl.Iq80DBFactory;
@@ -47,6 +51,15 @@ public class LevelDBService {
 
     @ConfigProperty(name = "leveldb.compression.enabled", defaultValue = "true")
     boolean compressionEnabled;
+
+    @Inject
+    LevelDBEncryptionService encryptionService;
+
+    @Inject
+    LevelDBValidator validator;
+
+    @Inject
+    LevelDBAccessControl accessControl;
 
     private DB db;
     private Options options;
@@ -109,47 +122,97 @@ public class LevelDBService {
     // ==================== BASIC OPERATIONS ====================
 
     /**
-     * Put a key-value pair
+     * Put a key-value pair (with encryption and validation)
      */
     public Uni<Void> put(String key, String value) {
         return Uni.createFrom().item(() -> {
-            db.put(bytes(key), bytes(value));
-            writeCount.incrementAndGet();
+            // Validate input
+            validator.validateKey(key);
+            validator.validateValue(value);
+
+            // Check write permission
+            accessControl.checkWritePermission(key);
+
             return null;
-        });
+        }).flatMap(v ->
+            // Encrypt value
+            encryptionService.encryptString(value)
+        ).flatMap(encryptedValue ->
+            // Store encrypted value
+            Uni.createFrom().item(() -> {
+                db.put(bytes(key), encryptedValue);
+                writeCount.incrementAndGet();
+                return null;
+            })
+        );
     }
 
     /**
-     * Put a key-value pair (bytes)
+     * Put a key-value pair (bytes with encryption)
      */
     public Uni<Void> put(byte[] key, byte[] value) {
         return Uni.createFrom().item(() -> {
-            db.put(key, value);
-            writeCount.incrementAndGet();
+            // Validate input
+            String keyStr = asString(key);
+            validator.validateKey(keyStr);
+            validator.validateValueBytes(value);
+
+            // Check write permission
+            accessControl.checkWritePermission(keyStr);
+
             return null;
-        });
+        }).flatMap(v ->
+            // Encrypt value
+            encryptionService.encrypt(value)
+        ).flatMap(encryptedValue ->
+            // Store encrypted value
+            Uni.createFrom().item(() -> {
+                db.put(key, encryptedValue);
+                writeCount.incrementAndGet();
+                return null;
+            })
+        );
     }
 
     /**
-     * Get value by key
+     * Get value by key (with decryption and access control)
      */
     public Uni<String> get(String key) {
         return Uni.createFrom().item(() -> {
-            byte[] value = db.get(bytes(key));
+            // Check read permission
+            accessControl.checkReadPermission(key);
+
+            // Retrieve encrypted value
+            byte[] encryptedValue = db.get(bytes(key));
             readCount.incrementAndGet();
-            return value != null ? asString(value) : null;
-        });
+            return encryptedValue;
+        }).flatMap(encryptedValue ->
+            // Decrypt value if present
+            encryptedValue != null
+                ? encryptionService.decryptString(encryptedValue)
+                : Uni.createFrom().nullItem()
+        );
     }
 
     /**
-     * Get value by key (bytes)
+     * Get value by key (bytes with decryption)
      */
     public Uni<byte[]> getBytes(byte[] key) {
         return Uni.createFrom().item(() -> {
-            byte[] value = db.get(key);
+            // Check read permission
+            String keyStr = asString(key);
+            accessControl.checkReadPermission(keyStr);
+
+            // Retrieve encrypted value
+            byte[] encryptedValue = db.get(key);
             readCount.incrementAndGet();
-            return value;
-        });
+            return encryptedValue;
+        }).flatMap(encryptedValue ->
+            // Decrypt value if present
+            encryptedValue != null
+                ? encryptionService.decrypt(encryptedValue)
+                : Uni.createFrom().nullItem()
+        );
     }
 
     /**

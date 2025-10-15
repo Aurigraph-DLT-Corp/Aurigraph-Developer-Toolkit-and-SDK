@@ -525,6 +525,21 @@ public class SecurityAuditService {
     }
 
     /**
+     * Log a security event (public method for other services)
+     */
+    public void logSecurityEvent(String eventType, String description) {
+        recordSecurityEvent(eventType, description, SecurityEventLevel.INFO, "");
+    }
+
+    /**
+     * Log a security violation (public method for other services)
+     */
+    public void logSecurityViolation(String eventType, String principal, String details) {
+        recordSecurityEvent(eventType, "Security violation by " + principal,
+                           SecurityEventLevel.HIGH, details);
+    }
+
+    /**
      * Get security audit status and metrics
      */
     @GET
