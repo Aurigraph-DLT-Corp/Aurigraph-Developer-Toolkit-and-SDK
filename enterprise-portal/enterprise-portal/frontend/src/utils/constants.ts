@@ -3,9 +3,11 @@
  */
 
 // API Configuration
-// NOTE: Using port 9010 for Token Management V11 backend
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9010';
-export const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:9010';
+// NOTE: Integrated with Aurigraph DLT V11.3.0 backend (HTTPS)
+// Production: https://dlt.aurigraph.io:9443
+// Development: https://localhost:9443
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:9443';
+export const WS_URL = import.meta.env.VITE_WS_URL || 'wss://localhost:9443';
 
 // Performance Settings
 export const CHART_UPDATE_INTERVAL = 1000; // ms
