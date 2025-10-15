@@ -1,6 +1,6 @@
 {
   "name": "aurigraph-enterprise-portal",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "private": true,
   "type": "module",
   "description": "Aurigraph DLT Enterprise Portal with integrated demo app",
