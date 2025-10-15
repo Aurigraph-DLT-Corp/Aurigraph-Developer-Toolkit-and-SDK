@@ -15,8 +15,8 @@ import {
   Gavel, AttachMoney, AccountTree, Functions, BugReport, CheckCircle
 } from '@mui/icons-material';
 // Syntax highlighting removed for build compatibility
-import ChannelService from '../services/ChannelService';
-import { contractsApi, Contract as ApiContract } from '../services/contractsApi';
+import { channelService } from '../../services/ChannelService';
+import { contractsApi, Contract as ApiContract } from '../../services/contractsApi';
 
 // Smart Contract Types
 interface SmartContract {
@@ -308,7 +308,7 @@ const SmartContractRegistry: React.FC = () => {
     return matchesSearch && matchesChannel && matchesStatus;
   });
 
-  const channels = ChannelService.getAllChannels();
+  const channels = channelService.getAllChannels();
 
   return (
     <Box sx={{ p: 3 }}>
