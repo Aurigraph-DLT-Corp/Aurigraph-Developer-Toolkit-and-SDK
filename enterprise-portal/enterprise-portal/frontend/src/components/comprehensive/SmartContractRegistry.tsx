@@ -3,16 +3,15 @@ import {
   Box, Grid, Card, CardContent, Typography, Button, TextField, IconButton,
   Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Paper,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Chip, Alert, FormControl, InputLabel, Select, MenuItem, Badge, Tooltip,
-  List, ListItem, ListItemText, ListItemSecondaryAction, ListItemIcon,
-  Accordion, AccordionSummary, AccordionDetails, LinearProgress, Switch,
-  FormControlLabel, Checkbox, InputAdornment, CircularProgress
+  Chip, Alert, FormControl, InputLabel, Select, MenuItem, Tooltip,
+  List, ListItem, ListItemText, ListItemIcon, Switch,
+  FormControlLabel, InputAdornment, CircularProgress
 } from '@mui/material';
 import {
-  Code, Upload, PlayArrow, Stop, Check, Close, Warning, Info,
-  ExpandMore, Search, FilterList, Download, Security, Speed,
-  Storage, VerifiedUser, Description, History, GitHub, ContentCopy,
-  Gavel, AttachMoney, AccountTree, Functions, BugReport, CheckCircle
+  Upload, Close, Warning, Info,
+  Search, Security,
+  VerifiedUser, GitHub,
+  Functions, CheckCircle
 } from '@mui/icons-material';
 // Syntax highlighting removed for build compatibility
 import { channelService } from '../../services/ChannelService';
@@ -171,7 +170,7 @@ const SmartContractRegistry: React.FC = () => {
   const [selectedContract, setSelectedContract] = useState<SmartContract | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [deployDialogOpen, setDeployDialogOpen] = useState(false);
-  const [auditDialogOpen, setAuditDialogOpen] = useState(false);
+  const [_auditDialogOpen, setAuditDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(contractTemplates[0]);
   const [deploymentForm, setDeploymentForm] = useState({
     name: '',

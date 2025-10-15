@@ -24,11 +24,14 @@ import {
   DollarOutlined,
   FileAddOutlined,
   ApiOutlined,
+  BankOutlined,
+  HomeOutlined,
 } from '@ant-design/icons';
 import { Header, Sidebar, Footer } from '@components/layout';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
 import { selectThemeMode } from './store/selectors';
+import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import Monitoring from './components/Monitoring';
 import DemoApp from './components/demo-app/DemoApp';
@@ -44,13 +47,14 @@ import TokenizationRegistry from './components/comprehensive/TokenizationRegistr
 import Tokenization from './components/comprehensive/Tokenization';
 import RicardianContractUpload from './components/comprehensive/RicardianContractUpload';
 import ExternalAPITokenization from './components/comprehensive/ExternalAPITokenization';
+import RWATRegistry from './components/comprehensive/RWATRegistry';
 
 const { Content } = Layout;
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('spatial-dashboard');
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('home');
 
   // Redux state and actions
   const dispatch = useAppDispatch();
@@ -131,6 +135,16 @@ function App() {
               size="large"
               style={{ padding: '0 24px' }}
               items={[
+                {
+                  key: 'home',
+                  label: (
+                    <span>
+                      <HomeOutlined />
+                      Home
+                    </span>
+                  ),
+                  children: <LandingPage />,
+                },
                 {
                   key: 'dashboard',
                   label: (
@@ -260,6 +274,16 @@ function App() {
                     </span>
                   ),
                   children: <ExternalAPITokenization />,
+                },
+                {
+                  key: 'rwat',
+                  label: (
+                    <span>
+                      <BankOutlined />
+                      RWAT Registry
+                    </span>
+                  ),
+                  children: <RWATRegistry />,
                 },
                 {
                   key: 'monitoring',

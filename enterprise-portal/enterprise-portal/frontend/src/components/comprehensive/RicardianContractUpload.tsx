@@ -5,7 +5,7 @@ import {
   Alert, List, ListItem, ListItemText, ListItemIcon, Chip, Grid,
   LinearProgress, IconButton, Tooltip, FormControl, InputLabel, Select, MenuItem,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar,
-  FormControlLabel, Checkbox
+  FormControlLabel, Checkbox, SelectChangeEvent
 } from '@mui/material';
 import {
   CloudUpload, Description,
@@ -158,7 +158,7 @@ export const RicardianContractUpload: React.FC = () => {
     if (!convertedContract) return;
 
     const updatedParties = [...convertedContract.parties];
-    updatedParties[index] = { ...updatedParties[index], [field]: value };
+    updatedParties[index] = { ...updatedParties[index], [field]: value } as ContractParty;
     setConvertedContract({ ...convertedContract, parties: updatedParties });
   };
 
@@ -379,7 +379,7 @@ export const RicardianContractUpload: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <Box display="flex" align Items="center" gap={1}>
+                        <Box display="flex" alignItems="center" gap={1}>
                           <LinearProgress
                             variant="determinate"
                             value={contract.enforceabilityScore}
@@ -488,7 +488,7 @@ export const RicardianContractUpload: React.FC = () => {
                     <Select
                       value={contractType}
                       label="Contract Type"
-                      onChange={(e: React.ChangeEvent<{ value: unknown }>) => setContractType(e.target.value as string)}
+                      onChange={(e: SelectChangeEvent<string>) => setContractType(e.target.value)}
                     >
                       <MenuItem value="REAL_ESTATE">Real Estate</MenuItem>
                       <MenuItem value="SUPPLY_CHAIN">Supply Chain</MenuItem>
@@ -505,7 +505,7 @@ export const RicardianContractUpload: React.FC = () => {
                     <Select
                       value={jurisdiction}
                       label="Jurisdiction"
-                      onChange={(e: React.ChangeEvent<{ value: unknown }>) => setJurisdiction(e.target.value as string)}
+                      onChange={(e: SelectChangeEvent<string>) => setJurisdiction(e.target.value)}
                     >
                       <MenuItem value="California">California, USA</MenuItem>
                       <MenuItem value="NewYork">New York, USA</MenuItem>
@@ -605,7 +605,7 @@ export const RicardianContractUpload: React.FC = () => {
                           <Select
                             value={party.role}
                             label="Role"
-                            onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateParty(index, 'role', e.target.value as string)}
+                            onChange={(e: SelectChangeEvent<string>) => updateParty(index, 'role', e.target.value)}
                           >
                             <MenuItem value="BUYER">Buyer</MenuItem>
                             <MenuItem value="SELLER">Seller</MenuItem>
