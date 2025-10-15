@@ -40,7 +40,6 @@ export interface RealWorldAsset {
   compliance: ComplianceInfo;
   metadata: AssetMetadata;
   documents: AssetDocument[];
-  hmsIntegration?: HMSIntegrationStatus;
 }
 
 export interface AssetMetadata {
@@ -78,14 +77,6 @@ export interface AssetDocument {
   verifiedAt?: string;
 }
 
-export interface HMSIntegrationStatus {
-  enabled: boolean;
-  hmsAssetId?: string;
-  lastSyncAt?: string;
-  syncStatus: 'synced' | 'pending' | 'failed';
-  syncError?: string;
-}
-
 export interface AssetTokenizeRequest {
   name: string;
   category: AssetCategory;
@@ -103,7 +94,6 @@ export interface AssetTokenizeRequest {
     name: string;
     url: string;
   }[];
-  enableHMSIntegration?: boolean;
 }
 
 export interface AssetTransfer {
@@ -139,7 +129,6 @@ export interface RWATStats {
   totalHolders: number;
   totalTransfers: number;
   verifiedAssets: number;
-  hmsIntegratedAssets: number;
   avgAssetValue: number;
 }
 
