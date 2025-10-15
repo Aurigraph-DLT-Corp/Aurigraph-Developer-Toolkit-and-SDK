@@ -39,7 +39,8 @@ import AIOptimizationControls from './components/comprehensive/AIOptimizationCon
 import QuantumSecurityPanel from './components/comprehensive/QuantumSecurityPanel';
 import CrossChainBridge from './components/comprehensive/CrossChainBridge';
 import ActiveContracts from './components/comprehensive/ActiveContracts';
-import SmartContractRegistry from './components/comprehensive/SmartContractRegistry';
+// TODO: Fix missing dependencies (ChannelService, contractsApi) before enabling
+// import SmartContractRegistry from './components/comprehensive/SmartContractRegistry';
 import TokenizationRegistry from './components/comprehensive/TokenizationRegistry';
 import Tokenization from './components/comprehensive/Tokenization';
 import RicardianContractUpload from './components/comprehensive/RicardianContractUpload';
@@ -209,7 +210,9 @@ function App() {
                       Smart Contracts
                     </span>
                   ),
-                  children: <SmartContractRegistry />,
+                  children: <div style={{padding: '20px'}}>Smart Contract Registry - Under Development</div>,
+                  // TODO: Re-enable when dependencies are fixed
+                  // children: <SmartContractRegistry />,
                 },
                 {
                   key: 'document-converter',
