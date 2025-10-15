@@ -18,7 +18,7 @@ class V11BackendService {
   private baseUrl: string;
   private demoMode: boolean;
 
-  constructor(baseUrl: string = API_BASE_URL, demoMode: boolean = true) {
+  constructor(baseUrl: string = API_BASE_URL, demoMode: boolean = false) {
     this.baseUrl = baseUrl;
     this.demoMode = demoMode;
   }

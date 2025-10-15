@@ -20,9 +20,10 @@ class TokenService {
   private baseUrl: string;
   private demoMode: boolean;
 
-  constructor(baseUrl: string = API_BASE_URL, demoMode: boolean = true) {
+  constructor(baseUrl: string = API_BASE_URL, demoMode: boolean = false) {
     this.baseUrl = baseUrl;
     this.demoMode = demoMode;
+    console.log(`TokenService initialized with baseUrl: ${baseUrl}, demoMode: ${demoMode}`);
   }
 
   setDemoMode(enabled: boolean) {
@@ -181,7 +182,7 @@ class TokenService {
     return names.map((name, i) => ({
       id: `token-${i + 1}`,
       name,
-      symbol: symbols[i],
+      symbol: symbols[i] ?? 'UNKNOWN',
       decimals: 18,
       totalSupply: Math.floor(Math.random() * 10000000) + 100000,
       currentSupply: Math.floor(Math.random() * 9000000) + 90000,

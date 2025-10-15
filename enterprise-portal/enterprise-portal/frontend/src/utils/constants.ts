@@ -3,8 +3,9 @@
  */
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9003';
-export const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:9003';
+// NOTE: Using port 9010 for Token Management V11 backend
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9010';
+export const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:9010';
 
 // Performance Settings
 export const CHART_UPDATE_INTERVAL = 1000; // ms

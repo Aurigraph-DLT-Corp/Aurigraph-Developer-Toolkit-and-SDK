@@ -1,7 +1,6 @@
 package io.aurigraph.v11.api;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -10,8 +9,6 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
-
-import io.aurigraph.v11.hms.HMSIntegrationService;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -37,9 +34,6 @@ import java.util.*;
 public class RWAApiResource {
 
     private static final Logger LOG = Logger.getLogger(RWAApiResource.class);
-
-    @Inject
-    HMSIntegrationService hmsService;
 
     // ==================== ASSET TOKENIZATION ====================
 

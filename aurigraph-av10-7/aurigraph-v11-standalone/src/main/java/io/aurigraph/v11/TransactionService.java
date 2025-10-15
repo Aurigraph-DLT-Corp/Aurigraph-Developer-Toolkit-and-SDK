@@ -81,22 +81,22 @@ public class TransactionService {
         Executors.newScheduledThreadPool(1, virtualThreadFactory);
     private final ForkJoinPool processingPool = ForkJoinPool.commonPool();
     
-    @ConfigProperty(name = "aurigraph.transaction.shards", defaultValue = "128")
+    @ConfigProperty(name = "aurigraph.transaction.shards", defaultValue = "2048")
     int shardCount;
-    
+
     @ConfigProperty(name = "aurigraph.consensus.enabled", defaultValue = "true")
     boolean consensusEnabled;
-    
-    @ConfigProperty(name = "aurigraph.virtual.threads.max", defaultValue = "100000")
+
+    @ConfigProperty(name = "aurigraph.virtual.threads.max", defaultValue = "1000000")
     int maxVirtualThreads;
-    
+
     @ConfigProperty(name = "aurigraph.batch.processing.enabled", defaultValue = "true")
     boolean batchProcessingEnabled;
-    
-    @ConfigProperty(name = "aurigraph.batch.size.optimal", defaultValue = "50000")
+
+    @ConfigProperty(name = "aurigraph.batch.size.optimal", defaultValue = "100000")
     int optimalBatchSize;
-    
-    @ConfigProperty(name = "aurigraph.processing.parallelism", defaultValue = "512")
+
+    @ConfigProperty(name = "aurigraph.processing.parallelism", defaultValue = "1024")
     int processingParallelism;
     
     @ConfigProperty(name = "aurigraph.cache.size.max", defaultValue = "1000000")

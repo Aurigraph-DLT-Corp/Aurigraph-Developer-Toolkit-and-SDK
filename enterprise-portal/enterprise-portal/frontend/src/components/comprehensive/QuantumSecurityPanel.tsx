@@ -2,7 +2,7 @@
  * Quantum Security Panel Component
  *
  * Quantum-resistant crypto status, key management, and security metrics
- * Connects to crypto/QuantumCryptoService.java backend API
+ * Connects to crypto/QuantumCryptoService.java backend API - NO MOCK DATA
  */
 
 import React, { useState, useEffect } from 'react';
@@ -22,6 +22,7 @@ import {
   Typography,
   Tabs,
   Modal,
+  message,
 } from 'antd';
 import {
   SafetyOutlined,
@@ -33,6 +34,7 @@ import {
   ExclamationCircleOutlined,
   SecurityScanOutlined,
   ThunderboltOutlined,
+  SyncOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type {
@@ -41,6 +43,7 @@ import type {
   SecurityMetrics,
   SecurityAudit,
 } from '../../types/comprehensive';
+import { comprehensivePortalService } from '../../services/ComprehensivePortalService';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
@@ -52,18 +55,34 @@ const QuantumSecurityPanel: React.FC = () => {
   const [audits, setAudits] = useState<SecurityAudit[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [rotateKeyModalVisible, setRotateKeyModalVisible] = useState<boolean>(false);
+  const [scanModalVisible, setScanModalVisible] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch security data
+  // Fetch security data from REAL backend API
   const fetchSecurityData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // TODO: Replace with actual API calls to QuantumCryptoService.java
-      setSecurityStatus(generateMockSecurityStatus());
-      setKeys(generateMockKeys(10));
-      setMetrics(generateMockMetrics());
-      setAudits(generateMockAudits(5));
-    } catch (error) {
-      console.error('Error fetching security data:', error);
+      // Fetch data from REAL backend APIs - NO MOCK DATA
+      const [statusData, keysData, metricsData, auditsData] = await Promise.all([
+        comprehensivePortalService.getSecurityStatus(),
+        comprehensivePortalService.getCryptoKeys(),
+        comprehensivePortalService.getSecurityMetrics(),
+        comprehensivePortalService.getSecurityAudits(),
+      ]);
+
+      setSecurityStatus(statusData);
+      setKeys(keysData);
+      setMetrics(metricsData);
+      setAudits(auditsData);
+
+      message.success('Security data loaded from backend');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch security data';
+      setError(errorMessage);
+      message.error(`Backend API error: ${errorMessage}`);
+      console.error('Error fetching security data:', err);
     } finally {
       setLoading(false);
     }
@@ -74,20 +93,68 @@ const QuantumSecurityPanel: React.FC = () => {
 
     const interval = setInterval(() => {
       fetchSecurityData();
-    }, 10000);
+    }, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
   }, []);
 
-  // Handle key rotation
+  // Handle key rotation - REAL backend API call
   const handleKeyRotation = () => {
     setRotateKeyModalVisible(true);
   };
 
-  const confirmKeyRotation = () => {
-    console.log('Rotating keys...');
-    // TODO: Implement key rotation API call
-    setRotateKeyModalVisible(false);
+  const confirmKeyRotation = async () => {
+    try {
+      setLoading(true);
+      await comprehensivePortalService.rotateKeys();
+      message.success('Keys rotated successfully');
+      setRotateKeyModalVisible(false);
+      // Refresh data after rotation
+      await fetchSecurityData();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Key rotation failed';
+      message.error(`Key rotation failed: ${errorMessage}`);
+      console.error('Key rotation error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle vulnerability scan - REAL backend API call
+  const handleVulnerabilityScan = () => {
+    setScanModalVisible(true);
+  };
+
+  const confirmVulnerabilityScan = async () => {
+    try {
+      setIsScanning(true);
+      setScanModalVisible(false);
+      message.loading('Running vulnerability scan...', 0);
+
+      // Call REAL backend vulnerability scan API
+      const response = await fetch('http://localhost:9003/api/v11/security/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      message.destroy();
+      message.success(`Vulnerability scan completed: ${result.findings || 'No issues found'}`);
+
+      // Refresh audits after scan
+      await fetchSecurityData();
+    } catch (err) {
+      message.destroy();
+      const errorMessage = err instanceof Error ? err.message : 'Vulnerability scan failed';
+      message.error(`Scan failed: ${errorMessage}`);
+      console.error('Vulnerability scan error:', err);
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   // Key table columns
@@ -214,17 +281,54 @@ const QuantumSecurityPanel: React.FC = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={2}>Quantum Security Panel</Title>
-      <Text type="secondary">Post-quantum cryptography monitoring and key management</Text>
+      <Row justify="space-between" align="middle" style={{ marginBottom: '16px' }}>
+        <Col>
+          <Title level={2}>Quantum Security Panel</Title>
+          <Text type="secondary">Post-quantum cryptography monitoring and key management</Text>
+        </Col>
+        <Col>
+          <Space>
+            <Button
+              icon={<SyncOutlined />}
+              onClick={fetchSecurityData}
+              loading={loading}
+            >
+              Refresh
+            </Button>
+            <Button
+              type="primary"
+              danger
+              icon={<SecurityScanOutlined />}
+              onClick={handleVulnerabilityScan}
+              loading={isScanning}
+            >
+              Run Vulnerability Scan
+            </Button>
+          </Space>
+        </Col>
+      </Row>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert
+          message="Backend API Error"
+          description={error}
+          type="error"
+          showIcon
+          closable
+          onClose={() => setError(null)}
+          style={{ marginBottom: '24px' }}
+        />
+      )}
 
       {/* Security Status Alert */}
       {securityStatus && (
         <Alert
-          message={`Security Status: ${securityStatus.status.toUpperCase()}`}
+          message={`Security Status: ${securityStatus.status?.toUpperCase() || 'UNKNOWN'}`}
           description={
             <Space direction="vertical">
               <Text>
-                <strong>Algorithm:</strong> {securityStatus.algorithm} (NIST Level {securityStatus.securityLevel})
+                <strong>Algorithm:</strong> {securityStatus.algorithm || 'N/A'} (NIST Level {securityStatus.securityLevel || 'N/A'})
               </Text>
               <Text>
                 <strong>Quantum Resistant:</strong>{' '}
@@ -232,9 +336,9 @@ const QuantumSecurityPanel: React.FC = () => {
                 {securityStatus.quantumResistant ? 'Yes' : 'No'}
               </Text>
               <Text>
-                <strong>Last Audit:</strong> {new Date(securityStatus.lastAudit).toLocaleDateString()}
+                <strong>Last Audit:</strong> {securityStatus.lastAudit ? new Date(securityStatus.lastAudit).toLocaleDateString() : 'Never'}
               </Text>
-              {securityStatus.vulnerabilities > 0 && (
+              {(securityStatus.vulnerabilities || 0) > 0 && (
                 <Text type="danger">
                   <ExclamationCircleOutlined /> {securityStatus.vulnerabilities} vulnerabilities detected
                 </Text>
@@ -255,7 +359,7 @@ const QuantumSecurityPanel: React.FC = () => {
             <Card>
               <Statistic
                 title="Total Signatures"
-                value={metrics.totalSignatures}
+                value={metrics.totalSignatures || 0}
                 prefix={<KeyOutlined />}
                 valueStyle={{ color: '#1890ff' }}
               />
@@ -265,7 +369,7 @@ const QuantumSecurityPanel: React.FC = () => {
             <Card>
               <Statistic
                 title="Avg Signature Time"
-                value={metrics.avgSignatureTime}
+                value={metrics.avgSignatureTime || 0}
                 precision={2}
                 suffix="ms"
                 prefix={<ThunderboltOutlined />}
@@ -277,9 +381,9 @@ const QuantumSecurityPanel: React.FC = () => {
             <Card>
               <Statistic
                 title="Failed Verifications"
-                value={metrics.failedVerifications}
+                value={metrics.failedVerifications || 0}
                 prefix={<ExclamationCircleOutlined />}
-                valueStyle={{ color: metrics.failedVerifications > 0 ? '#ff4d4f' : '#52c41a' }}
+                valueStyle={{ color: (metrics.failedVerifications || 0) > 0 ? '#ff4d4f' : '#52c41a' }}
               />
             </Card>
           </Col>
@@ -287,7 +391,7 @@ const QuantumSecurityPanel: React.FC = () => {
             <Card>
               <Statistic
                 title="Attacks Blocked"
-                value={metrics.quantumAttemptsBlocked}
+                value={metrics.quantumAttemptsBlocked || 0}
                 prefix={<SafetyOutlined />}
                 valueStyle={{ color: '#722ed1' }}
               />
@@ -302,14 +406,14 @@ const QuantumSecurityPanel: React.FC = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12}>
               <Space direction="vertical" style={{ width: '100%' }}>
-                <Text>Average Encryption Time: {metrics.avgEncryptionTime.toFixed(2)}ms</Text>
-                <Progress percent={Math.min((50 / metrics.avgEncryptionTime) * 100, 100)} strokeColor="#1890ff" />
+                <Text>Average Encryption Time: {(metrics.avgEncryptionTime || 0).toFixed(2)}ms</Text>
+                <Progress percent={Math.min((50 / (metrics.avgEncryptionTime || 1)) * 100, 100)} strokeColor="#1890ff" />
               </Space>
             </Col>
             <Col xs={24} sm={12}>
               <Space direction="vertical" style={{ width: '100%' }}>
-                <Text>Average Verification Time: {metrics.avgVerificationTime.toFixed(2)}ms</Text>
-                <Progress percent={Math.min((30 / metrics.avgVerificationTime) * 100, 100)} strokeColor="#52c41a" />
+                <Text>Average Verification Time: {(metrics.avgVerificationTime || 0).toFixed(2)}ms</Text>
+                <Progress percent={Math.min((30 / (metrics.avgVerificationTime || 1)) * 100, 100)} strokeColor="#52c41a" />
               </Space>
             </Col>
           </Row>
@@ -321,7 +425,7 @@ const QuantumSecurityPanel: React.FC = () => {
         <Tabs defaultActiveKey="keys">
           <TabPane tab="Cryptographic Keys" key="keys">
             <Space direction="vertical" style={{ width: '100%', marginBottom: '16px' }}>
-              <Button type="primary" icon={<LockOutlined />} onClick={handleKeyRotation}>
+              <Button type="primary" icon={<LockOutlined />} onClick={handleKeyRotation} loading={loading}>
                 Rotate All Keys
               </Button>
               <Alert
@@ -353,7 +457,7 @@ const QuantumSecurityPanel: React.FC = () => {
                   <div style={{ padding: '16px' }}>
                     <Title level={5}>Recommendations</Title>
                     <ul>
-                      {record.recommendations.map((rec, i) => (
+                      {(record.recommendations || []).map((rec, i) => (
                         <li key={i}>{rec}</li>
                       ))}
                     </ul>
@@ -400,6 +504,7 @@ const QuantumSecurityPanel: React.FC = () => {
         onCancel={() => setRotateKeyModalVisible(false)}
         okText="Confirm Rotation"
         okButtonProps={{ danger: true }}
+        confirmLoading={loading}
       >
         <Alert
           message="Warning"
@@ -411,71 +516,29 @@ const QuantumSecurityPanel: React.FC = () => {
         />
         <Text>Are you sure you want to proceed with key rotation?</Text>
       </Modal>
+
+      {/* Vulnerability Scan Confirmation Modal */}
+      <Modal
+        title="Run Vulnerability Scan"
+        open={scanModalVisible}
+        onOk={confirmVulnerabilityScan}
+        onCancel={() => setScanModalVisible(false)}
+        okText="Start Scan"
+        okButtonProps={{ danger: true }}
+        confirmLoading={isScanning}
+      >
+        <Alert
+          message="Security Scan"
+          description="This will perform a comprehensive vulnerability scan of all quantum cryptographic implementations, checking for known vulnerabilities, weak keys, and security misconfigurations."
+          type="info"
+          showIcon
+          icon={<SecurityScanOutlined />}
+          style={{ marginBottom: '16px' }}
+        />
+        <Text>The scan may take several minutes to complete. Do you want to proceed?</Text>
+      </Modal>
     </div>
   );
-};
-
-// Mock data generators
-const generateMockSecurityStatus = (): QuantumSecurityStatus => ({
-  algorithm: 'CRYSTALS-Dilithium',
-  securityLevel: 5,
-  keyStrength: 256,
-  quantumResistant: true,
-  lastAudit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  vulnerabilities: Math.random() > 0.9 ? 1 : 0,
-  status: Math.random() > 0.95 ? 'warning' : 'secure',
-});
-
-const generateMockKeys = (count: number): CryptoKey[] => {
-  const types: CryptoKey['type'][] = ['signing', 'encryption', 'hybrid'];
-  const algorithms = ['CRYSTALS-Dilithium', 'CRYSTALS-Kyber', 'SPHINCS+'];
-  const statuses: CryptoKey['status'][] = ['active', 'active', 'active', 'expired'];
-
-  return Array.from({ length: count }, (_, i) => ({
-    id: `key-${Math.random().toString(36).substring(2, 15)}`,
-    type: (types[i % types.length] || 'signing') as CryptoKey['type'],
-    algorithm: algorithms[i % algorithms.length] || 'CRYSTALS-Dilithium',
-    publicKey: `0x${Math.random().toString(16).substring(2)}...`,
-    createdAt: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(),
-    expiresAt: Math.random() > 0.3 ? new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString() : undefined,
-    status: (statuses[Math.floor(Math.random() * statuses.length)] || 'active') as CryptoKey['status'],
-    usageCount: Math.floor(Math.random() * 100000),
-    lastUsed: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
-  }));
-};
-
-const generateMockMetrics = (): SecurityMetrics => ({
-  totalSignatures: Math.floor(Math.random() * 1000000) + 500000,
-  totalEncryptions: Math.floor(Math.random() * 500000) + 250000,
-  avgSignatureTime: 2 + Math.random() * 3,
-  avgEncryptionTime: 5 + Math.random() * 5,
-  avgVerificationTime: 1.5 + Math.random() * 2,
-  avgDecryptionTime: 4 + Math.random() * 4,
-  failedVerifications: Math.floor(Math.random() * 10),
-  quantumAttemptsBlocked: Math.floor(Math.random() * 50),
-});
-
-const generateMockAudits = (count: number): SecurityAudit[] => {
-  const types: SecurityAudit['type'][] = ['key-rotation', 'vulnerability-scan', 'penetration-test', 'compliance'];
-  const statuses: SecurityAudit['status'][] = ['passed', 'passed', 'warning'];
-
-  return Array.from({ length: count }, (_, i) => ({
-    id: `audit-${i + 1}`,
-    timestamp: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    type: types[i % types.length] as SecurityAudit['type'],
-    status: statuses[Math.floor(Math.random() * statuses.length)] as SecurityAudit['status'],
-    findings: {
-      critical: Math.floor(Math.random() * 2),
-      high: Math.floor(Math.random() * 3),
-      medium: Math.floor(Math.random() * 5),
-      low: Math.floor(Math.random() * 10),
-    },
-    recommendations: [
-      'Update key rotation policy to 60 days',
-      'Implement additional monitoring for quantum attacks',
-      'Review access control policies',
-    ],
-  }));
 };
 
 export default QuantumSecurityPanel;

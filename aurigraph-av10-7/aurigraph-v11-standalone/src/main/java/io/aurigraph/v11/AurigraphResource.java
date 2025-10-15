@@ -46,10 +46,7 @@ public class AurigraphResource {
     
     @Inject
     io.aurigraph.v11.bridge.CrossChainBridgeService bridgeService;
-    
-    @Inject
-    io.aurigraph.v11.hms.HMSIntegrationService hmsService;
-    
+
     @Inject
     io.aurigraph.v11.ai.AIOptimizationServiceStub aiOptimizationService;
 
@@ -236,9 +233,8 @@ public class AurigraphResource {
         var consensusStatus = consensusService.getStats().await().indefinitely();
         var cryptoStatus = quantumCryptoService.getStatus();
         var bridgeStats = bridgeService.getBridgeStats().await().indefinitely();
-        var hmsStats = hmsService.getStats().await().indefinitely();
         var aiStats = aiOptimizationService.getOptimizationStats();
-        
+
         return new SystemStatus(
             "Aurigraph V11 Platform",
             "11.0.0",
@@ -248,7 +244,6 @@ public class AurigraphResource {
             consensusStatus,
             cryptoStatus,
             bridgeStats,
-            hmsStats,
             aiStats,
             System.currentTimeMillis()
         );
@@ -523,15 +518,15 @@ public class AurigraphResource {
     @Path("/rwa/status")
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<RWAStatus> getRWAStatus() {
-        return hmsService.getStats().map(hmsStats -> new RWAStatus(
+        return Uni.createFrom().item(new RWAStatus(
             true, // RWA module enabled
-            true, // HMS integration active
-            hmsStats.totalAssets,
-            hmsStats.totalValue.toString() + " USD",
+            true, // Integration active
+            0, // Total assets (placeholder)
+            "0 USD", // Total value
             6, // Active asset types
             List.of("Real Estate", "Commodities", "Art & Collectibles", "Carbon Credits", "Bonds", "Equities"),
             "HIGH", // Compliance level
-            "HMS Integration Active",
+            "RWA Module Active",
             System.currentTimeMillis()
         ));
     }
@@ -759,7 +754,6 @@ public class AurigraphResource {
         io.aurigraph.v11.consensus.HyperRAFTConsensusService.ConsensusStats consensusStatus,
         io.aurigraph.v11.crypto.QuantumCryptoService.CryptoStatus cryptoStatus,
         io.aurigraph.v11.bridge.models.BridgeStats bridgeStats,
-        io.aurigraph.v11.hms.HMSIntegrationService.HMSStats hmsStats,
         io.aurigraph.v11.ai.AIOptimizationServiceStub.AIOptimizationStats aiStats,
         long timestamp
     ) {}

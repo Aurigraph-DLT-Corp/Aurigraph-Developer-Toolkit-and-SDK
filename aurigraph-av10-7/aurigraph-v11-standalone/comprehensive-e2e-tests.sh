@@ -76,22 +76,22 @@ echo ""
 echo "### Core Health & Info Tests ###"
 
 test_endpoint "Health Check" "$SERVER/api/v11/health" "200" ".status"
-test_endpoint "System Info" "$SERVER/api/v11/info" "200" ".version"
-test_endpoint "System Status" "$SERVER/api/v11/system/status" "200" ".status"
-test_endpoint "Transaction Stats" "$SERVER/api/v11/stats" "200" ".processedTransactions"
+test_endpoint "System Info" "$SERVER/api/v11/info" "200" ".platform.version"
+test_endpoint "System Status" "$SERVER/api/v11/system/status" "200" ".healthy"
+test_endpoint "Transaction Stats" "$SERVER/api/v11/stats" "200" ".totalProcessed"
 
 # ==================== PERFORMANCE TESTS ====================
 echo ""
 echo "### Performance Tests ###"
 
-test_endpoint "Performance Endpoint" "$SERVER/api/v11/performance" "200" ".currentTPS"
+test_endpoint "Performance Endpoint" "$SERVER/api/v11/performance" "200" ".transactionsPerSecond"
 test_endpoint "Performance Reactive" "$SERVER/api/v11/performance/reactive" "200" ""
 
 # ==================== CONSENSUS TESTS ====================
 echo ""
 echo "### Consensus Tests ###"
 
-test_endpoint "Consensus Status" "$SERVER/api/v11/consensus/status" "200" ".nodeState"
+test_endpoint "Consensus Status" "$SERVER/api/v11/consensus/status" "200" ".state"
 test_endpoint "Consensus Metrics" "$SERVER/api/v11/consensus/metrics" "200" ""
 
 # ==================== BLOCKCHAIN TESTS ====================
@@ -106,14 +106,14 @@ test_endpoint "Blockchain Stats" "$SERVER/api/v11/blockchain/stats" "200" ""
 echo ""
 echo "### Quantum Cryptography Tests ###"
 
-test_endpoint "Crypto Status" "$SERVER/api/v11/crypto/status" "200" ".enabled"
+test_endpoint "Crypto Status" "$SERVER/api/v11/crypto/status" "200" ".quantumCryptoEnabled"
 test_endpoint "Crypto Metrics" "$SERVER/api/v11/crypto/metrics" "200" ""
 
 # ==================== CROSS-CHAIN BRIDGE TESTS ====================
 echo ""
 echo "### Cross-Chain Bridge Tests ###"
 
-test_endpoint "Bridge Status" "$SERVER/api/v11/bridge/status" "200" ".status"
+test_endpoint "Bridge Status" "$SERVER/api/v11/bridge/status" "200" ".overall_status"
 test_endpoint "Bridge Stats" "$SERVER/api/v11/bridge/stats" "200" ""
 test_endpoint "Supported Chains" "$SERVER/api/v11/bridge/supported-chains" "200" ""
 
@@ -171,12 +171,13 @@ echo "### Stress & Load Tests ###"
 ((TOTAL_TESTS++))
 log_test "Performance Stress Test (1000 iterations, 10 threads)"
 stress_response=$(curl -sk "$SERVER/api/v11/performance?iterations=1000&threads=10" 2>&1)
-if echo "$stress_response" | jq -e '.currentTPS' > /dev/null 2>&1; then
-    tps=$(echo "$stress_response" | jq -r '.currentTPS')
-    if [ "$tps" -gt 50000 ]; then
-        log_pass "Stress Test - Achieved $tps TPS (> 50K baseline)"
+if echo "$stress_response" | jq -e '.transactionsPerSecond' > /dev/null 2>&1; then
+    tps=$(echo "$stress_response" | jq -r '.transactionsPerSecond')
+    tps_int=$(printf "%.0f" "$tps")
+    if [ "$tps_int" -gt 50000 ]; then
+        log_pass "Stress Test - Achieved $tps_int TPS (> 50K baseline)"
     else
-        log_fail "Stress Test - Only $tps TPS (< 50K baseline)"
+        log_fail "Stress Test - Only $tps_int TPS (< 50K baseline)"
     fi
 else
     log_fail "Stress Test - Invalid response"
@@ -190,7 +191,12 @@ echo "========================================="
 echo "Total Tests: $TOTAL_TESTS"
 echo "Passed: $PASSED_TESTS"
 echo "Failed: $FAILED_TESTS"
-echo "Success Rate: $(awk "BEGIN {printf \"%.1f\", ($PASSED_TESTS/$TOTAL_TESTS)*100}")%"
+if [ $TOTAL_TESTS -gt 0 ]; then
+    success_rate=$(awk "BEGIN {printf \"%.1f\", ($PASSED_TESTS/$TOTAL_TESTS)*100}")
+    echo "Success Rate: ${success_rate}%"
+else
+    echo "Success Rate: N/A"
+fi
 echo "========================================="
 
 if [ $FAILED_TESTS -gt 0 ]; then

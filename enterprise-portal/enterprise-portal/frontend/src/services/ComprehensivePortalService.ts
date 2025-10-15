@@ -25,7 +25,7 @@ class ComprehensivePortalService {
   private baseUrl: string;
   private demoMode: boolean;
 
-  constructor(baseUrl: string = 'http://localhost:9003', demoMode: boolean = true) {
+  constructor(baseUrl: string = 'http://localhost:9003', demoMode: boolean = false) {
     this.baseUrl = baseUrl;
     this.demoMode = demoMode;
   }

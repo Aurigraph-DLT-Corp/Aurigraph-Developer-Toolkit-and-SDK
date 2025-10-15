@@ -18,6 +18,12 @@ import {
   RobotOutlined,
   SafetyOutlined,
   SwapOutlined,
+  FileTextOutlined,
+  GoldOutlined,
+  AppstoreOutlined,
+  DollarOutlined,
+  FileAddOutlined,
+  ApiOutlined,
 } from '@ant-design/icons';
 import { Header, Sidebar, Footer } from '@components/layout';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
@@ -32,6 +38,12 @@ import ValidatorDashboard from './components/comprehensive/ValidatorDashboard';
 import AIOptimizationControls from './components/comprehensive/AIOptimizationControls';
 import QuantumSecurityPanel from './components/comprehensive/QuantumSecurityPanel';
 import CrossChainBridge from './components/comprehensive/CrossChainBridge';
+import ActiveContracts from './components/comprehensive/ActiveContracts';
+import SmartContractRegistry from './components/comprehensive/SmartContractRegistry';
+import TokenizationRegistry from './components/comprehensive/TokenizationRegistry';
+import Tokenization from './components/comprehensive/Tokenization';
+import RicardianContractUpload from './components/comprehensive/RicardianContractUpload';
+import ExternalAPITokenization from './components/comprehensive/ExternalAPITokenization';
 
 const { Content } = Layout;
 
@@ -188,6 +200,66 @@ function App() {
                     </span>
                   ),
                   children: <CrossChainBridge />,
+                },
+                {
+                  key: 'contracts',
+                  label: (
+                    <span>
+                      <FileTextOutlined />
+                      Smart Contracts
+                    </span>
+                  ),
+                  children: <SmartContractRegistry />,
+                },
+                {
+                  key: 'document-converter',
+                  label: (
+                    <span>
+                      <FileAddOutlined />
+                      Document Converter
+                    </span>
+                  ),
+                  children: <RicardianContractUpload />,
+                },
+                {
+                  key: 'active-contracts',
+                  label: (
+                    <span>
+                      <AppstoreOutlined />
+                      Active Contracts
+                    </span>
+                  ),
+                  children: <ActiveContracts />,
+                },
+                {
+                  key: 'tokenization',
+                  label: (
+                    <span>
+                      <GoldOutlined />
+                      Tokenization
+                    </span>
+                  ),
+                  children: <Tokenization />,
+                },
+                {
+                  key: 'token-registry',
+                  label: (
+                    <span>
+                      <DollarOutlined />
+                      Token Registry
+                    </span>
+                  ),
+                  children: <TokenizationRegistry />,
+                },
+                {
+                  key: 'api-tokenization',
+                  label: (
+                    <span>
+                      <ApiOutlined />
+                      API Tokenization
+                    </span>
+                  ),
+                  children: <ExternalAPITokenization />,
                 },
                 {
                   key: 'monitoring',
