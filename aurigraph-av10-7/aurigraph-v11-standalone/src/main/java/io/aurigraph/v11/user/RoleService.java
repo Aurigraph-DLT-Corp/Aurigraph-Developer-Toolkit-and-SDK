@@ -3,6 +3,8 @@ package io.aurigraph.v11.user;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import org.jboss.logging.Logger;
@@ -24,6 +26,9 @@ public class RoleService {
 
     private static final Logger LOG = Logger.getLogger(RoleService.class);
 
+    @Inject
+    EntityManager em;
+
     /**
      * Initialize default roles on application startup
      */
@@ -35,8 +40,32 @@ public class RoleService {
 
     /**
      * Create default roles if they don't exist
+     *
+     * CRITICAL FIX (AV11-2025-10-16): Added table existence check to prevent
+     * "Table ROLES not found" error on fresh database installations.
+     *
+     * When the application starts with an empty database, Hibernate creates the
+     * schema AFTER this @Observes StartupEvent runs. This caused the app to crash
+     * when Role.findByName() tried to query a non-existent table.
+     *
+     * Solution: Check if table exists first. If not, log warning and return.
+     * Hibernate will create the schema, and roles will be initialized on next restart.
      */
     private void initializeDefaultRoles() {
+        try {
+            // Check if ROLES table exists by attempting a count query
+            // If table doesn't exist, this will throw an exception
+            em.createNativeQuery("SELECT COUNT(*) FROM ROLES").getSingleResult();
+            LOG.debug("ROLES table exists, proceeding with initialization...");
+        } catch (Exception e) {
+            // Table doesn't exist yet - Hibernate is still creating schema
+            LOG.warn("ROLES table not yet created. This is normal on first startup. " +
+                     "Hibernate will create the schema, and roles will be initialized on next restart or application reload.");
+            LOG.debug("Schema initialization exception: " + e.getMessage());
+            return; // Exit early - let Hibernate create schema first
+        }
+
+        // Table exists, proceed with role initialization
         // ADMIN role
         if (Role.findByName(Role.DefaultRoles.ADMIN) == null) {
             Role admin = new Role();

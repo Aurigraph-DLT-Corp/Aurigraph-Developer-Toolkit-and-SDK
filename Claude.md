@@ -373,16 +373,19 @@ public class MyGrpcService implements MyService {
 
 #### JIRA API Configuration
 
-- **JIRA Email**: `subbu@aurigraph.io`
-- **JIRA API Token**: `ATATT3xFfGF0c79X44m_ecHcP5d2F-jx5ljisCVB11tCEl5jB0Cx_FaapQt_u44IqcmBwfq8Gl8CsMFdtu9mqV8SgzcUwjZ2TiHRJo9eh718fUYw7ptk5ZFOzc-aLV2FH_ywq2vSsJ5gLvSorz-eB4JeKxUSLyYiGS9Y05-WhlEWa0cgFUdhUI4=0BECD4F5`
+**SECURITY WARNING**: Credentials must be loaded from environment variables or secure credential store.
+
+- **JIRA Email**: `${JIRA_EMAIL}` (required)
+- **JIRA API Token**: `${JIRA_API_TOKEN}` (required - see doc/Credentials.md)
 - **JIRA Base URL**: `https://aurigraphdlt.atlassian.net`
 - **Project Key**: `AV11`
 
 **Usage in Scripts:**
 
 ```bash
-export JIRA_EMAIL="subbu@aurigraph.io"
-export JIRA_API_TOKEN="ATATT3xFfGF0c79X44m_ecHcP5d2F-jx5ljisCVB11tCEl5jB0Cx_FaapQt_u44IqcmBwfq8Gl8CsMFdtu9mqV8SgzcUwjZ2TiHRJo9eh718fUYw7ptk5ZFOzc-aLV2FH_ywq2vSsJ5gLvSorz-eB4JeKxUSLyYiGS9Y05-WhlEWa0cgFUdhUI4=0BECD4F5"
+# Load from secure credential store (see doc/Credentials.md)
+export JIRA_EMAIL="${JIRA_EMAIL}"
+export JIRA_API_TOKEN="${JIRA_API_TOKEN}"
 export JIRA_BASE_URL="https://aurigraphdlt.atlassian.net"
 export JIRA_PROJECT_KEY="AV11"
 ```
@@ -413,20 +416,13 @@ Use these scripts to build and deploy HMS in future:
 - **Local Testing**: `./performance-benchmark.sh` (comprehensive)
 - **Load Testing**: `./run-performance-tests.sh` (JMeter integration)
 - **Target Metrics**: 2M+ TPS, <1s startup, <256MB memory
-- memorize remote server for Aurigraph DLT :#AURDLT
-  Domain Name: dlt.aurigraph.io
-  SSH:- ssh subbu@dlt.aurigraph.io
-  UID: subbu
-  pwd: subbuFuture@2025
 
---- System Info ---
-System OS: Linux
-OS Version: Ubuntu 24.04.3 LTS
-RAM: 49Gi
-VCPU: 16
-CPU Model: Intel Xeon Processor (Skylake, IBRS) pc-i440fx-8.2 CPU @ 2.0GHz
-Total Disk Space: 133G
---- Docker Info ---
-Installed Docker Version: 28.4.0
+#### Remote Server Configuration
 
-- memorize
+**SECURITY WARNING**: Server credentials must be loaded from environment variables or secure credential store.
+
+- **Domain**: dlt.aurigraph.io
+- **SSH Access**: `ssh ${REMOTE_USER}@dlt.aurigraph.io` (credentials in doc/Credentials.md)
+- **System**: Linux Ubuntu 24.04.3 LTS
+- **Resources**: 49Gi RAM, 16 vCPU, 133G disk
+- **Docker**: Version 28.4.0
