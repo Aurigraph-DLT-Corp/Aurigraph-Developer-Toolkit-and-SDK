@@ -1,16 +1,54 @@
 import React, { useState, useCallback } from 'react';
 import {
-  Box, Card, CardContent, Typography, Button, TextField, Paper,
-  Dialog, DialogTitle, DialogContent, DialogActions, Stepper, Step, StepLabel,
-  Alert, List, ListItem, ListItemText, ListItemIcon, Chip, Grid,
-  LinearProgress, IconButton, Tooltip, FormControl, InputLabel, Select, MenuItem,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar,
-  FormControlLabel, Checkbox, SelectChangeEvent
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  TextField,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Stepper,
+  Step,
+  StepLabel,
+  Alert,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Chip,
+  Grid,
+  LinearProgress,
+  IconButton,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Avatar,
+  FormControlLabel,
+  Checkbox,
+  SelectChangeEvent,
 } from '@mui/material';
 import {
-  CloudUpload, Description,
-  CheckCircle, Warning, Person, Code, Security,
-  Visibility, Edit
+  CloudUpload,
+  Description,
+  CheckCircle,
+  Warning,
+  Person,
+  Code,
+  Security,
+  Visibility,
+  Edit,
 } from '@mui/icons-material';
 
 interface ContractParty {
@@ -69,9 +107,12 @@ export const RicardianContractUpload: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type
-      const validTypes = ['application/pdf', 'application/msword',
-                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                         'text/plain'];
+      const validTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+      ];
 
       if (!validTypes.includes(file.type)) {
         alert('Please upload a PDF, DOC, DOCX, or TXT file');
@@ -102,10 +143,13 @@ export const RicardianContractUpload: React.FC = () => {
       formData.append('jurisdiction', jurisdiction);
 
       // Call backend API
-      const response = await fetch('https://dlt.aurigraph.io:8443/api/v11/contracts/ricardian/upload', {
-        method: 'POST',
-        body: formData
-      });
+      const response = await fetch(
+        'https://dlt.aurigraph.io:8443/api/v11/contracts/ricardian/upload',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to convert document');
@@ -123,7 +167,7 @@ export const RicardianContractUpload: React.FC = () => {
             address: '0x' + Math.random().toString(16).substr(2, 40),
             kycVerified: false,
             signatureRequired: true,
-            signed: false
+            signed: false,
           },
           {
             id: 'party_2',
@@ -132,15 +176,15 @@ export const RicardianContractUpload: React.FC = () => {
             address: '0x' + Math.random().toString(16).substr(2, 40),
             kycVerified: false,
             signatureRequired: true,
-            signed: false
-          }
+            signed: false,
+          },
         ];
       }
 
       contract.uploadedDocument = {
         fileName: uploadedFile.name,
         fileSize: uploadedFile.size,
-        uploadedAt: new Date()
+        uploadedAt: new Date(),
       };
 
       setConvertedContract(contract);
@@ -173,12 +217,12 @@ export const RicardianContractUpload: React.FC = () => {
       address: '0x' + Math.random().toString(16).substr(2, 40),
       kycVerified: false,
       signatureRequired: true,
-      signed: false
+      signed: false,
     };
 
     setConvertedContract({
       ...convertedContract,
-      parties: [...convertedContract.parties, newParty]
+      parties: [...convertedContract.parties, newParty],
     });
   };
 
@@ -191,7 +235,7 @@ export const RicardianContractUpload: React.FC = () => {
       const response = await fetch('https://dlt.aurigraph.io:8443/api/v11/contracts/ricardian', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(convertedContract)
+        body: JSON.stringify(convertedContract),
       });
 
       if (!response.ok) {
@@ -219,14 +263,14 @@ export const RicardianContractUpload: React.FC = () => {
       partyId,
       signature: '0x' + Math.random().toString(16).substr(2, 128),
       algorithm: 'CRYSTALS-Dilithium',
-      signedAt: new Date()
+      signedAt: new Date(),
     };
 
     // Update contract
-    const updated = contracts.map(c => {
+    const updated = contracts.map((c) => {
       if (c.id === contractId) {
         // Update party signature status
-        const updatedParties = c.parties.map(p => {
+        const updatedParties = c.parties.map((p) => {
           if (p.id === partyId) {
             return { ...p, signed: true, signedAt: new Date() };
           }
@@ -234,16 +278,14 @@ export const RicardianContractUpload: React.FC = () => {
         });
 
         // Check if all required signatures collected
-        const allSigned = updatedParties
-          .filter(p => p.signatureRequired)
-          .every(p => p.signed);
+        const allSigned = updatedParties.filter((p) => p.signatureRequired).every((p) => p.signed);
 
         return {
           ...c,
           parties: updatedParties,
           signatures: [...c.signatures, signature],
-          status: allSigned ? 'active' as const : c.status,
-          activatedAt: allSigned ? new Date() : c.activatedAt
+          status: allSigned ? ('active' as const) : c.status,
+          activatedAt: allSigned ? new Date() : c.activatedAt,
         };
       }
       return c;
@@ -285,7 +327,9 @@ export const RicardianContractUpload: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total Contracts</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Total Contracts
+              </Typography>
               <Typography variant="h4">{contracts.length}</Typography>
             </CardContent>
           </Card>
@@ -293,9 +337,11 @@ export const RicardianContractUpload: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Active Contracts</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Active Contracts
+              </Typography>
               <Typography variant="h4">
-                {contracts.filter(c => c.status === 'active').length}
+                {contracts.filter((c) => c.status === 'active').length}
               </Typography>
             </CardContent>
           </Card>
@@ -303,9 +349,11 @@ export const RicardianContractUpload: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Pending Signatures</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Pending Signatures
+              </Typography>
               <Typography variant="h4">
-                {contracts.filter(c => c.status === 'pending_signatures').length}
+                {contracts.filter((c) => c.status === 'pending_signatures').length}
               </Typography>
             </CardContent>
           </Card>
@@ -318,7 +366,10 @@ export const RicardianContractUpload: React.FC = () => {
               </Typography>
               <Typography variant="h4">
                 {contracts.length > 0
-                  ? Math.round(contracts.reduce((sum, c) => sum + c.enforceabilityScore, 0) / contracts.length)
+                  ? Math.round(
+                      contracts.reduce((sum, c) => sum + c.enforceabilityScore, 0) /
+                        contracts.length
+                    )
                   : 0}
                 %
               </Typography>
@@ -344,9 +395,9 @@ export const RicardianContractUpload: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {contracts.map(contract => {
-                  const signedCount = contract.parties.filter(p => p.signed).length;
-                  const requiredCount = contract.parties.filter(p => p.signatureRequired).length;
+                {contracts.map((contract) => {
+                  const signedCount = contract.parties.filter((p) => p.signed).length;
+                  const requiredCount = contract.parties.filter((p) => p.signatureRequired).length;
 
                   return (
                     <TableRow key={contract.id}>
@@ -371,9 +422,11 @@ export const RicardianContractUpload: React.FC = () => {
                         <Chip
                           label={contract.status.replace('_', ' ')}
                           color={
-                            contract.status === 'active' ? 'success' :
-                            contract.status === 'pending_signatures' ? 'warning' :
-                            'default'
+                            contract.status === 'active'
+                              ? 'success'
+                              : contract.status === 'pending_signatures'
+                                ? 'warning'
+                                : 'default'
                           }
                           size="small"
                         />
@@ -385,26 +438,30 @@ export const RicardianContractUpload: React.FC = () => {
                             value={contract.enforceabilityScore}
                             sx={{ width: 100 }}
                           />
-                          <Typography variant="caption">
-                            {contract.enforceabilityScore}%
-                          </Typography>
+                          <Typography variant="caption">{contract.enforceabilityScore}%</Typography>
                         </Box>
                       </TableCell>
                       <TableCell>
                         <Tooltip title="View Details">
-                          <IconButton size="small" onClick={() => {
-                            setSelectedContract(contract);
-                            setViewDialogOpen(true);
-                          }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSelectedContract(contract);
+                              setViewDialogOpen(true);
+                            }}
+                          >
                             <Visibility />
                           </IconButton>
                         </Tooltip>
                         {contract.status === 'pending_signatures' && (
                           <Tooltip title="Sign Contract">
-                            <IconButton size="small" onClick={() => {
-                              setSelectedContract(contract);
-                              setSignDialogOpen(true);
-                            }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setSelectedContract(contract);
+                                setSignDialogOpen(true);
+                              }}
+                            >
                               <Edit />
                             </IconButton>
                           </Tooltip>
@@ -432,11 +489,16 @@ export const RicardianContractUpload: React.FC = () => {
       </Card>
 
       {/* Upload & Convert Dialog */}
-      <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Create Ricardian Contract from Document</DialogTitle>
         <DialogContent>
           <Stepper activeStep={activeStep} sx={{ my: 3 }}>
-            {steps.map(label => (
+            {steps.map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
               </Step>
@@ -446,7 +508,8 @@ export const RicardianContractUpload: React.FC = () => {
           {activeStep === 0 && (
             <Box>
               <Alert severity="info" sx={{ mb: 3 }}>
-                Upload a legal contract (PDF, DOC, DOCX) and we'll convert it into an executable Ricardian contract.
+                Upload a legal contract (PDF, DOC, DOCX) and we'll convert it into an executable
+                Ricardian contract.
               </Alert>
 
               <Paper
@@ -455,7 +518,7 @@ export const RicardianContractUpload: React.FC = () => {
                   border: '2px dashed #ccc',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  '&:hover': { borderColor: 'primary.main' }
+                  '&:hover': { borderColor: 'primary.main' },
                 }}
                 onClick={() => document.getElementById('file-upload')?.click()}
               >
@@ -474,10 +537,7 @@ export const RicardianContractUpload: React.FC = () => {
                   PDF, DOC, DOCX, or TXT (max 10MB)
                 </Typography>
                 {uploadedFile && (
-                  <Chip
-                    label={`${(uploadedFile.size / 1024).toFixed(1)} KB`}
-                    sx={{ mt: 2 }}
-                  />
+                  <Chip label={`${(uploadedFile.size / 1024).toFixed(1)} KB`} sx={{ mt: 2 }} />
                 )}
               </Paper>
 
@@ -539,7 +599,9 @@ export const RicardianContractUpload: React.FC = () => {
                 fullWidth
                 label="Contract Name"
                 value={convertedContract.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConvertedContract({ ...convertedContract, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setConvertedContract({ ...convertedContract, name: e.target.value })
+                }
                 margin="normal"
               />
 
@@ -549,7 +611,9 @@ export const RicardianContractUpload: React.FC = () => {
                 multiline
                 rows={6}
                 value={convertedContract.legalText}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConvertedContract({ ...convertedContract, legalText: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setConvertedContract({ ...convertedContract, legalText: e.target.value })
+                }
                 margin="normal"
               />
 
@@ -568,11 +632,7 @@ export const RicardianContractUpload: React.FC = () => {
                   label={`Enforceability: ${convertedContract.enforceabilityScore}%`}
                   color="primary"
                 />
-                <Chip
-                  icon={<Code />}
-                  label="Quantum-Safe Signatures"
-                  color="success"
-                />
+                <Chip icon={<Code />} label="Quantum-Safe Signatures" color="success" />
               </Box>
             </Box>
           )}
@@ -595,7 +655,9 @@ export const RicardianContractUpload: React.FC = () => {
                           fullWidth
                           label="Name"
                           value={party.name}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateParty(index, 'name', e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            updateParty(index, 'name', e.target.value)
+                          }
                           size="small"
                         />
                       </Grid>
@@ -605,7 +667,9 @@ export const RicardianContractUpload: React.FC = () => {
                           <Select
                             value={party.role}
                             label="Role"
-                            onChange={(e: SelectChangeEvent<string>) => updateParty(index, 'role', e.target.value)}
+                            onChange={(e: SelectChangeEvent<string>) =>
+                              updateParty(index, 'role', e.target.value)
+                            }
                           >
                             <MenuItem value="BUYER">Buyer</MenuItem>
                             <MenuItem value="SELLER">Seller</MenuItem>
@@ -620,7 +684,9 @@ export const RicardianContractUpload: React.FC = () => {
                           fullWidth
                           label="Wallet Address"
                           value={party.address}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateParty(index, 'address', e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            updateParty(index, 'address', e.target.value)
+                          }
                           size="small"
                         />
                       </Grid>
@@ -629,7 +695,9 @@ export const RicardianContractUpload: React.FC = () => {
                           control={
                             <Checkbox
                               checked={party.signatureRequired}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateParty(index, 'signatureRequired', e.target.checked)}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                updateParty(index, 'signatureRequired', e.target.checked)
+                              }
                             />
                           }
                           label="Signature Required"
@@ -640,11 +708,7 @@ export const RicardianContractUpload: React.FC = () => {
                 </Card>
               ))}
 
-              <Button
-                startIcon={<Person />}
-                onClick={addParty}
-                sx={{ mt: 1 }}
-              >
+              <Button startIcon={<Person />} onClick={addParty} sx={{ mt: 1 }}>
                 Add Another Party
               </Button>
             </Box>
@@ -657,47 +721,61 @@ export const RicardianContractUpload: React.FC = () => {
               </Alert>
 
               <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                <Typography variant="subtitle2" gutterBottom>Contract Summary</Typography>
-                <Typography><strong>Name:</strong> {convertedContract.name}</Typography>
-                <Typography><strong>Type:</strong> {convertedContract.type}</Typography>
-                <Typography><strong>Jurisdiction:</strong> {convertedContract.jurisdiction}</Typography>
-                <Typography><strong>Parties:</strong> {convertedContract.parties.length}</Typography>
-                <Typography><strong>Enforceability:</strong> {convertedContract.enforceabilityScore}%</Typography>
+                <Typography variant="subtitle2" gutterBottom>
+                  Contract Summary
+                </Typography>
+                <Typography>
+                  <strong>Name:</strong> {convertedContract.name}
+                </Typography>
+                <Typography>
+                  <strong>Type:</strong> {convertedContract.type}
+                </Typography>
+                <Typography>
+                  <strong>Jurisdiction:</strong> {convertedContract.jurisdiction}
+                </Typography>
+                <Typography>
+                  <strong>Parties:</strong> {convertedContract.parties.length}
+                </Typography>
+                <Typography>
+                  <strong>Enforceability:</strong> {convertedContract.enforceabilityScore}%
+                </Typography>
               </Paper>
 
-              <Typography variant="subtitle2" mt={3} mb={1}>Signature Workflow</Typography>
+              <Typography variant="subtitle2" mt={3} mb={1}>
+                Signature Workflow
+              </Typography>
               <List>
-                {convertedContract.parties.filter(p => p.signatureRequired).map((party, index) => (
-                  <ListItem key={party.id}>
-                    <ListItemIcon>
-                      <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-                        {index + 1}
-                      </Avatar>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={`${party.name} (${party.role})`}
-                      secondary={party.address}
-                    />
-                  </ListItem>
-                ))}
+                {convertedContract.parties
+                  .filter((p) => p.signatureRequired)
+                  .map((party, index) => (
+                    <ListItem key={party.id}>
+                      <ListItemIcon>
+                        <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+                          {index + 1}
+                        </Avatar>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={`${party.name} (${party.role})`}
+                        secondary={party.address}
+                      />
+                    </ListItem>
+                  ))}
               </List>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            setUploadDialogOpen(false);
-            setActiveStep(0);
-            setUploadedFile(null);
-            setConvertedContract(null);
-          }}>
+          <Button
+            onClick={() => {
+              setUploadDialogOpen(false);
+              setActiveStep(0);
+              setUploadedFile(null);
+              setConvertedContract(null);
+            }}
+          >
             Cancel
           </Button>
-          {activeStep > 0 && (
-            <Button onClick={() => setActiveStep(activeStep - 1)}>
-              Back
-            </Button>
-          )}
+          {activeStep > 0 && <Button onClick={() => setActiveStep(activeStep - 1)}>Back</Button>}
           {activeStep === 0 && (
             <Button
               variant="contained"
@@ -708,19 +786,12 @@ export const RicardianContractUpload: React.FC = () => {
             </Button>
           )}
           {activeStep > 0 && activeStep < steps.length - 1 && (
-            <Button
-              variant="contained"
-              onClick={() => setActiveStep(activeStep + 1)}
-            >
+            <Button variant="contained" onClick={() => setActiveStep(activeStep + 1)}>
               Next
             </Button>
           )}
           {activeStep === steps.length - 1 && (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={deployContract}
-            >
+            <Button variant="contained" color="primary" onClick={deployContract}>
               Deploy Contract
             </Button>
           )}
@@ -728,7 +799,12 @@ export const RicardianContractUpload: React.FC = () => {
       </Dialog>
 
       {/* View Contract Dialog */}
-      <Dialog open={viewDialogOpen} onClose={() => setViewDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         {selectedContract && (
           <>
             <DialogTitle>
@@ -741,33 +817,60 @@ export const RicardianContractUpload: React.FC = () => {
               />
             </DialogTitle>
             <DialogContent>
-              <Typography variant="subtitle2" gutterBottom>Legal Text</Typography>
-              <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2, maxHeight: 200, overflow: 'auto' }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Legal Text
+              </Typography>
+              <Paper
+                sx={{
+                  p: 2,
+                  bgcolor: 'background.default',
+                  mb: 2,
+                  maxHeight: 200,
+                  overflow: 'auto',
+                }}
+              >
                 <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
                   {selectedContract.legalText}
                 </Typography>
               </Paper>
 
-              <Typography variant="subtitle2" gutterBottom>Executable Code</Typography>
-              <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2, maxHeight: 200, overflow: 'auto' }}>
-                <Typography variant="body2" component="pre" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Executable Code
+              </Typography>
+              <Paper
+                sx={{
+                  p: 2,
+                  bgcolor: 'background.default',
+                  mb: 2,
+                  maxHeight: 200,
+                  overflow: 'auto',
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  component="pre"
+                  style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                >
                   {selectedContract.executableCode}
                 </Typography>
               </Paper>
 
-              <Typography variant="subtitle2" gutterBottom>Signatures</Typography>
+              <Typography variant="subtitle2" gutterBottom>
+                Signatures
+              </Typography>
               <List>
-                {selectedContract.parties.map(party => (
+                {selectedContract.parties.map((party) => (
                   <ListItem key={party.id}>
                     <ListItemIcon>
-                      {party.signed ?
-                        <CheckCircle color="success" /> :
-                        <Warning color="warning" />
-                      }
+                      {party.signed ? <CheckCircle color="success" /> : <Warning color="warning" />}
                     </ListItemIcon>
                     <ListItemText
                       primary={`${party.name} (${party.role})`}
-                      secondary={party.signed ? `Signed on ${party.signedAt?.toLocaleDateString()}` : 'Pending signature'}
+                      secondary={
+                        party.signed
+                          ? `Signed on ${party.signedAt?.toLocaleDateString()}`
+                          : 'Pending signature'
+                      }
                     />
                   </ListItem>
                 ))}
@@ -781,31 +884,39 @@ export const RicardianContractUpload: React.FC = () => {
       </Dialog>
 
       {/* Sign Contract Dialog */}
-      <Dialog open={signDialogOpen} onClose={() => setSignDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={signDialogOpen}
+        onClose={() => setSignDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         {selectedContract && (
           <>
             <DialogTitle>Sign Contract: {selectedContract.name}</DialogTitle>
             <DialogContent>
               <Alert severity="info" sx={{ mb: 2 }}>
-                Select your identity to sign this contract with quantum-safe CRYSTALS-Dilithium signature
+                Select your identity to sign this contract with quantum-safe CRYSTALS-Dilithium
+                signature
               </Alert>
 
               <List>
-                {selectedContract.parties.filter(p => !p.signed).map(party => (
-                  <ListItem
-                    key={party.id}
-                    button
-                    onClick={() => signContract(selectedContract.id, party.id)}
-                  >
-                    <ListItemIcon>
-                      <Person />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={`Sign as ${party.name}`}
-                      secondary={`${party.role} - ${party.address.substring(0, 20)}...`}
-                    />
-                  </ListItem>
-                ))}
+                {selectedContract.parties
+                  .filter((p) => !p.signed)
+                  .map((party) => (
+                    <ListItem
+                      key={party.id}
+                      button
+                      onClick={() => signContract(selectedContract.id, party.id)}
+                    >
+                      <ListItemIcon>
+                        <Person />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={`Sign as ${party.name}`}
+                        secondary={`${party.role} - ${party.address.substring(0, 20)}...`}
+                      />
+                    </ListItem>
+                  ))}
               </List>
             </DialogContent>
             <DialogActions>

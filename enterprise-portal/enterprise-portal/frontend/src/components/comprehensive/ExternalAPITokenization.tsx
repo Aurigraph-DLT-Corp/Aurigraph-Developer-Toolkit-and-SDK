@@ -134,7 +134,7 @@ const ExternalAPITokenization: React.FC = () => {
             name: 'Stock Market Feed',
             url: 'https://api.example.com/stocks/AAPL',
             method: 'GET',
-            headers: { 'Authorization': 'Bearer xxx' },
+            headers: { Authorization: 'Bearer xxx' },
             channel: 'stock-prices',
             status: 'active',
             pollInterval: 30,
@@ -169,7 +169,9 @@ const ExternalAPITokenization: React.FC = () => {
   // Fetch tokenized transactions
   const fetchTokenizedTransactions = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:9003/api/v11/tokenization/transactions?limit=50');
+      const response = await fetch(
+        'http://localhost:9003/api/v11/tokenization/transactions?limit=50'
+      );
       if (!response.ok) {
         // Use mock data
         const mockTxs: TokenizedTransaction[] = [
@@ -261,10 +263,11 @@ const ExternalAPITokenization: React.FC = () => {
   // Calculate statistics
   useEffect(() => {
     const totalSources = apiSources.length;
-    const activeSources = apiSources.filter(s => s.status === 'active').length;
+    const activeSources = apiSources.filter((s) => s.status === 'active').length;
     const totalTokenized = apiSources.reduce((sum, s) => sum + s.totalTokenized, 0);
-    const totalStored = tokenizedTxs.filter(tx => tx.status === 'stored').length;
-    const errorRate = apiSources.reduce((sum, s) => sum + s.errorCount, 0) / (totalTokenized || 1) * 100;
+    const totalStored = tokenizedTxs.filter((tx) => tx.status === 'stored').length;
+    const errorRate =
+      (apiSources.reduce((sum, s) => sum + s.errorCount, 0) / (totalTokenized || 1)) * 100;
 
     setStats({
       totalSources,
@@ -292,7 +295,13 @@ const ExternalAPITokenization: React.FC = () => {
     }
 
     return undefined;
-  }, [realTimeEnabled, refreshInterval, fetchAPISources, fetchTokenizedTransactions, fetchChannelStats]);
+  }, [
+    realTimeEnabled,
+    refreshInterval,
+    fetchAPISources,
+    fetchTokenizedTransactions,
+    fetchChannelStats,
+  ]);
 
   // Add new API source
   const handleAddSource = async (values: any) => {
@@ -320,7 +329,9 @@ const ExternalAPITokenization: React.FC = () => {
       form.resetFields();
       await fetchAPISources();
     } catch (error) {
-      message.error(`Failed to add API source: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      message.error(
+        `Failed to add API source: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     } finally {
       setLoading(false);
     }
@@ -330,11 +341,14 @@ const ExternalAPITokenization: React.FC = () => {
   const toggleSourceStatus = async (sourceId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     try {
-      const response = await fetch(`http://localhost:9003/api/v11/tokenization/sources/${sourceId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
+      const response = await fetch(
+        `http://localhost:9003/api/v11/tokenization/sources/${sourceId}/status`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to update source status');
@@ -343,7 +357,9 @@ const ExternalAPITokenization: React.FC = () => {
       message.success(`Source ${newStatus === 'active' ? 'activated' : 'paused'}`);
       await fetchAPISources();
     } catch (error) {
-      message.error(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      message.error(
+        `Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   };
 
@@ -351,14 +367,18 @@ const ExternalAPITokenization: React.FC = () => {
   const deleteSource = async (sourceId: string) => {
     Modal.confirm({
       title: 'Delete API Source',
-      content: 'Are you sure you want to delete this API source? All tokenized data will remain in the blockchain.',
+      content:
+        'Are you sure you want to delete this API source? All tokenized data will remain in the blockchain.',
       okText: 'Delete',
       okType: 'danger',
       onOk: async () => {
         try {
-          const response = await fetch(`http://localhost:9003/api/v11/tokenization/sources/${sourceId}`, {
-            method: 'DELETE',
-          });
+          const response = await fetch(
+            `http://localhost:9003/api/v11/tokenization/sources/${sourceId}`,
+            {
+              method: 'DELETE',
+            }
+          );
 
           if (!response.ok) {
             throw new Error('Failed to delete source');
@@ -367,7 +387,9 @@ const ExternalAPITokenization: React.FC = () => {
           message.success('API source deleted successfully');
           await fetchAPISources();
         } catch (error) {
-          message.error(`Failed to delete source: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          message.error(
+            `Failed to delete source: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
         }
       },
     });
@@ -403,7 +425,9 @@ const ExternalAPITokenization: React.FC = () => {
       dataIndex: 'method',
       key: 'method',
       render: (method: string) => (
-        <Tag color={method === 'GET' ? 'blue' : method === 'POST' ? 'green' : 'orange'}>{method}</Tag>
+        <Tag color={method === 'GET' ? 'blue' : method === 'POST' ? 'green' : 'orange'}>
+          {method}
+        </Tag>
       ),
     },
     {
@@ -418,7 +442,15 @@ const ExternalAPITokenization: React.FC = () => {
       key: 'status',
       render: (status: string) => (
         <Tag
-          icon={status === 'active' ? <CheckCircleOutlined /> : status === 'paused' ? <PauseCircleOutlined /> : <CloseCircleOutlined />}
+          icon={
+            status === 'active' ? (
+              <CheckCircleOutlined />
+            ) : status === 'paused' ? (
+              <PauseCircleOutlined />
+            ) : (
+              <CloseCircleOutlined />
+            )
+          }
           color={status === 'active' ? 'success' : status === 'paused' ? 'default' : 'error'}
         >
           {status.toUpperCase()}
@@ -441,9 +473,7 @@ const ExternalAPITokenization: React.FC = () => {
       title: 'Errors',
       dataIndex: 'errorCount',
       key: 'errorCount',
-      render: (count: number) => (
-        <Tag color={count > 0 ? 'error' : 'success'}>{count}</Tag>
-      ),
+      render: (count: number) => <Tag color={count > 0 ? 'error' : 'success'}>{count}</Tag>,
     },
     {
       title: 'Actions',
@@ -457,7 +487,12 @@ const ExternalAPITokenization: React.FC = () => {
           >
             {record.status === 'active' ? 'Pause' : 'Start'}
           </Button>
-          <Button size="small" icon={<DeleteOutlined />} danger onClick={() => deleteSource(record.id)}>
+          <Button
+            size="small"
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => deleteSource(record.id)}
+          >
             Delete
           </Button>
         </Space>
@@ -503,7 +538,15 @@ const ExternalAPITokenization: React.FC = () => {
       key: 'status',
       render: (status: string) => (
         <Tag
-          icon={status === 'stored' ? <CheckCircleOutlined /> : status === 'pending' ? <ClockCircleOutlined /> : <CloseCircleOutlined />}
+          icon={
+            status === 'stored' ? (
+              <CheckCircleOutlined />
+            ) : status === 'pending' ? (
+              <ClockCircleOutlined />
+            ) : (
+              <CloseCircleOutlined />
+            )
+          }
           color={status === 'stored' ? 'success' : status === 'pending' ? 'processing' : 'error'}
         >
           {status.toUpperCase()}
@@ -528,7 +571,8 @@ const ExternalAPITokenization: React.FC = () => {
           <ApiOutlined /> External API Tokenization
         </h1>
         <p style={{ color: '#666', marginBottom: 0 }}>
-          Tokenize external API data, feed to channels, and store in LevelDB with real-time monitoring
+          Tokenize external API data, feed to channels, and store in LevelDB with real-time
+          monitoring
         </p>
       </div>
 
@@ -621,12 +665,24 @@ const ExternalAPITokenization: React.FC = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultActiveKey="sources">
-        <TabPane tab={<span><ApiOutlined />API Sources</span>} key="sources">
+        <TabPane
+          tab={
+            <span>
+              <ApiOutlined />
+              API Sources
+            </span>
+          }
+          key="sources"
+        >
           <div style={{ marginBottom: '16px' }}>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>
               Add API Source
             </Button>
-            <Button icon={<ReloadOutlined />} style={{ marginLeft: '8px' }} onClick={() => fetchAPISources()}>
+            <Button
+              icon={<ReloadOutlined />}
+              style={{ marginLeft: '8px' }}
+              onClick={() => fetchAPISources()}
+            >
               Refresh
             </Button>
           </div>
@@ -639,7 +695,15 @@ const ExternalAPITokenization: React.FC = () => {
           />
         </TabPane>
 
-        <TabPane tab={<span><DatabaseOutlined />Tokenized Transactions</span>} key="transactions">
+        <TabPane
+          tab={
+            <span>
+              <DatabaseOutlined />
+              Tokenized Transactions
+            </span>
+          }
+          key="transactions"
+        >
           <div style={{ marginBottom: '16px' }}>
             <Button icon={<ReloadOutlined />} onClick={() => fetchTokenizedTransactions()}>
               Refresh
@@ -654,7 +718,15 @@ const ExternalAPITokenization: React.FC = () => {
           />
         </TabPane>
 
-        <TabPane tab={<span><LineChartOutlined />Channel Statistics</span>} key="channels">
+        <TabPane
+          tab={
+            <span>
+              <LineChartOutlined />
+              Channel Statistics
+            </span>
+          }
+          key="channels"
+        >
           <Row gutter={16}>
             {channelStats.map((channel) => (
               <Col span={8} key={channel.channelId} style={{ marginBottom: '16px' }}>
@@ -668,9 +740,15 @@ const ExternalAPITokenization: React.FC = () => {
                 >
                   <Descriptions column={1} size="small">
                     <Descriptions.Item label="Channel ID">{channel.channelId}</Descriptions.Item>
-                    <Descriptions.Item label="Transactions">{channel.transactionCount.toLocaleString()}</Descriptions.Item>
-                    <Descriptions.Item label="Total Size">{(channel.totalSize / 1024 / 1024).toFixed(2)} MB</Descriptions.Item>
-                    <Descriptions.Item label="Last Updated">{new Date(channel.lastUpdated).toLocaleString()}</Descriptions.Item>
+                    <Descriptions.Item label="Transactions">
+                      {channel.transactionCount.toLocaleString()}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Total Size">
+                      {(channel.totalSize / 1024 / 1024).toFixed(2)} MB
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Last Updated">
+                      {new Date(channel.lastUpdated).toLocaleString()}
+                    </Descriptions.Item>
                   </Descriptions>
                 </Card>
               </Col>
@@ -678,10 +756,21 @@ const ExternalAPITokenization: React.FC = () => {
           </Row>
         </TabPane>
 
-        <TabPane tab={<span><SettingOutlined />Configuration</span>} key="config">
+        <TabPane
+          tab={
+            <span>
+              <SettingOutlined />
+              Configuration
+            </span>
+          }
+          key="config"
+        >
           <Card title="Tokenization Configuration">
             <Form layout="vertical">
-              <Form.Item label="Default Poll Interval (seconds)" help="How often to fetch data from APIs">
+              <Form.Item
+                label="Default Poll Interval (seconds)"
+                help="How often to fetch data from APIs"
+              >
                 <InputNumber min={1} max={3600} defaultValue={60} style={{ width: '200px' }} />
               </Form.Item>
 
@@ -754,11 +843,7 @@ const ExternalAPITokenization: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            label="Headers (JSON)"
-            name="headers"
-            help="Enter HTTP headers as JSON object"
-          >
+          <Form.Item label="Headers (JSON)" name="headers" help="Enter HTTP headers as JSON object">
             <TextArea
               rows={3}
               placeholder='{"Content-Type": "application/json", "Authorization": "Bearer xxx"}'
@@ -787,10 +872,12 @@ const ExternalAPITokenization: React.FC = () => {
               <Button type="primary" htmlType="submit" loading={loading}>
                 Add Source
               </Button>
-              <Button onClick={() => {
-                setModalVisible(false);
-                form.resetFields();
-              }}>
+              <Button
+                onClick={() => {
+                  setModalVisible(false);
+                  form.resetFields();
+                }}
+              >
                 Cancel
               </Button>
             </Space>
@@ -828,8 +915,22 @@ const ExternalAPITokenization: React.FC = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Status">
               <Tag
-                icon={selectedTransaction.status === 'stored' ? <CheckCircleOutlined /> : selectedTransaction.status === 'pending' ? <ClockCircleOutlined /> : <CloseCircleOutlined />}
-                color={selectedTransaction.status === 'stored' ? 'success' : selectedTransaction.status === 'pending' ? 'processing' : 'error'}
+                icon={
+                  selectedTransaction.status === 'stored' ? (
+                    <CheckCircleOutlined />
+                  ) : selectedTransaction.status === 'pending' ? (
+                    <ClockCircleOutlined />
+                  ) : (
+                    <CloseCircleOutlined />
+                  )
+                }
+                color={
+                  selectedTransaction.status === 'stored'
+                    ? 'success'
+                    : selectedTransaction.status === 'pending'
+                      ? 'processing'
+                      : 'error'
+                }
               >
                 {selectedTransaction.status.toUpperCase()}
               </Tag>

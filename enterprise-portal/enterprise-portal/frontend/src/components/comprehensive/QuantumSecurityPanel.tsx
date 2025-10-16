@@ -197,7 +197,11 @@ const QuantumSecurityPanel: React.FC = () => {
           expired: { icon: <ClockCircleOutlined />, color: 'error' },
           revoked: { icon: <ExclamationCircleOutlined />, color: 'warning' },
         };
-        return <Tag icon={config[status].icon} color={config[status].color}>{status.toUpperCase()}</Tag>;
+        return (
+          <Tag icon={config[status].icon} color={config[status].color}>
+            {status.toUpperCase()}
+          </Tag>
+        );
       },
     },
     {
@@ -263,10 +267,18 @@ const QuantumSecurityPanel: React.FC = () => {
       width: 200,
       render: (_, record) => (
         <Space>
-          {record.findings.critical > 0 && <Badge count={record.findings.critical} style={{ backgroundColor: '#ff4d4f' }} />}
-          {record.findings.high > 0 && <Badge count={record.findings.high} style={{ backgroundColor: '#ff7a45' }} />}
-          {record.findings.medium > 0 && <Badge count={record.findings.medium} style={{ backgroundColor: '#ffa940' }} />}
-          {record.findings.low > 0 && <Badge count={record.findings.low} style={{ backgroundColor: '#1890ff' }} />}
+          {record.findings.critical > 0 && (
+            <Badge count={record.findings.critical} style={{ backgroundColor: '#ff4d4f' }} />
+          )}
+          {record.findings.high > 0 && (
+            <Badge count={record.findings.high} style={{ backgroundColor: '#ff7a45' }} />
+          )}
+          {record.findings.medium > 0 && (
+            <Badge count={record.findings.medium} style={{ backgroundColor: '#ffa940' }} />
+          )}
+          {record.findings.low > 0 && (
+            <Badge count={record.findings.low} style={{ backgroundColor: '#1890ff' }} />
+          )}
         </Space>
       ),
     },
@@ -288,11 +300,7 @@ const QuantumSecurityPanel: React.FC = () => {
         </Col>
         <Col>
           <Space>
-            <Button
-              icon={<SyncOutlined />}
-              onClick={fetchSecurityData}
-              loading={loading}
-            >
+            <Button icon={<SyncOutlined />} onClick={fetchSecurityData} loading={loading}>
               Refresh
             </Button>
             <Button
@@ -328,24 +336,39 @@ const QuantumSecurityPanel: React.FC = () => {
           description={
             <Space direction="vertical">
               <Text>
-                <strong>Algorithm:</strong> {securityStatus.algorithm || 'N/A'} (NIST Level {securityStatus.securityLevel || 'N/A'})
+                <strong>Algorithm:</strong> {securityStatus.algorithm || 'N/A'} (NIST Level{' '}
+                {securityStatus.securityLevel || 'N/A'})
               </Text>
               <Text>
                 <strong>Quantum Resistant:</strong>{' '}
-                {securityStatus.quantumResistant ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : <WarningOutlined style={{ color: '#ff4d4f' }} />}{' '}
+                {securityStatus.quantumResistant ? (
+                  <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                ) : (
+                  <WarningOutlined style={{ color: '#ff4d4f' }} />
+                )}{' '}
                 {securityStatus.quantumResistant ? 'Yes' : 'No'}
               </Text>
               <Text>
-                <strong>Last Audit:</strong> {securityStatus.lastAudit ? new Date(securityStatus.lastAudit).toLocaleDateString() : 'Never'}
+                <strong>Last Audit:</strong>{' '}
+                {securityStatus.lastAudit
+                  ? new Date(securityStatus.lastAudit).toLocaleDateString()
+                  : 'Never'}
               </Text>
               {(securityStatus.vulnerabilities || 0) > 0 && (
                 <Text type="danger">
-                  <ExclamationCircleOutlined /> {securityStatus.vulnerabilities} vulnerabilities detected
+                  <ExclamationCircleOutlined /> {securityStatus.vulnerabilities} vulnerabilities
+                  detected
                 </Text>
               )}
             </Space>
           }
-          type={securityStatus.status === 'secure' ? 'success' : securityStatus.status === 'warning' ? 'warning' : 'error'}
+          type={
+            securityStatus.status === 'secure'
+              ? 'success'
+              : securityStatus.status === 'warning'
+                ? 'warning'
+                : 'error'
+          }
           showIcon
           icon={<SecurityScanOutlined />}
           style={{ marginTop: '24px', marginBottom: '24px' }}
@@ -383,7 +406,9 @@ const QuantumSecurityPanel: React.FC = () => {
                 title="Failed Verifications"
                 value={metrics.failedVerifications || 0}
                 prefix={<ExclamationCircleOutlined />}
-                valueStyle={{ color: (metrics.failedVerifications || 0) > 0 ? '#ff4d4f' : '#52c41a' }}
+                valueStyle={{
+                  color: (metrics.failedVerifications || 0) > 0 ? '#ff4d4f' : '#52c41a',
+                }}
               />
             </Card>
           </Col>
@@ -406,14 +431,24 @@ const QuantumSecurityPanel: React.FC = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12}>
               <Space direction="vertical" style={{ width: '100%' }}>
-                <Text>Average Encryption Time: {(metrics.avgEncryptionTime || 0).toFixed(2)}ms</Text>
-                <Progress percent={Math.min((50 / (metrics.avgEncryptionTime || 1)) * 100, 100)} strokeColor="#1890ff" />
+                <Text>
+                  Average Encryption Time: {(metrics.avgEncryptionTime || 0).toFixed(2)}ms
+                </Text>
+                <Progress
+                  percent={Math.min((50 / (metrics.avgEncryptionTime || 1)) * 100, 100)}
+                  strokeColor="#1890ff"
+                />
               </Space>
             </Col>
             <Col xs={24} sm={12}>
               <Space direction="vertical" style={{ width: '100%' }}>
-                <Text>Average Verification Time: {(metrics.avgVerificationTime || 0).toFixed(2)}ms</Text>
-                <Progress percent={Math.min((30 / (metrics.avgVerificationTime || 1)) * 100, 100)} strokeColor="#52c41a" />
+                <Text>
+                  Average Verification Time: {(metrics.avgVerificationTime || 0).toFixed(2)}ms
+                </Text>
+                <Progress
+                  percent={Math.min((30 / (metrics.avgVerificationTime || 1)) * 100, 100)}
+                  strokeColor="#52c41a"
+                />
               </Space>
             </Col>
           </Row>
@@ -425,7 +460,12 @@ const QuantumSecurityPanel: React.FC = () => {
         <Tabs defaultActiveKey="keys">
           <TabPane tab="Cryptographic Keys" key="keys">
             <Space direction="vertical" style={{ width: '100%', marginBottom: '16px' }}>
-              <Button type="primary" icon={<LockOutlined />} onClick={handleKeyRotation} loading={loading}>
+              <Button
+                type="primary"
+                icon={<LockOutlined />}
+                onClick={handleKeyRotation}
+                loading={loading}
+              >
                 Rotate All Keys
               </Button>
               <Alert
@@ -472,22 +512,42 @@ const QuantumSecurityPanel: React.FC = () => {
               <Col xs={24} md={12}>
                 <Card title="CRYSTALS-Dilithium" size="small">
                   <Space direction="vertical">
-                    <Text><strong>Type:</strong> Digital Signature</Text>
-                    <Text><strong>Security Level:</strong> NIST Level 5</Text>
-                    <Text><strong>Key Size:</strong> 2592 bytes (public), 4864 bytes (private)</Text>
-                    <Text><strong>Signature Size:</strong> 4627 bytes</Text>
-                    <Text><strong>Performance:</strong> Fast signing and verification</Text>
+                    <Text>
+                      <strong>Type:</strong> Digital Signature
+                    </Text>
+                    <Text>
+                      <strong>Security Level:</strong> NIST Level 5
+                    </Text>
+                    <Text>
+                      <strong>Key Size:</strong> 2592 bytes (public), 4864 bytes (private)
+                    </Text>
+                    <Text>
+                      <strong>Signature Size:</strong> 4627 bytes
+                    </Text>
+                    <Text>
+                      <strong>Performance:</strong> Fast signing and verification
+                    </Text>
                   </Space>
                 </Card>
               </Col>
               <Col xs={24} md={12}>
                 <Card title="CRYSTALS-Kyber" size="small">
                   <Space direction="vertical">
-                    <Text><strong>Type:</strong> Key Encapsulation</Text>
-                    <Text><strong>Security Level:</strong> NIST Level 5</Text>
-                    <Text><strong>Public Key:</strong> 1568 bytes</Text>
-                    <Text><strong>Ciphertext:</strong> 1568 bytes</Text>
-                    <Text><strong>Performance:</strong> Efficient encryption/decryption</Text>
+                    <Text>
+                      <strong>Type:</strong> Key Encapsulation
+                    </Text>
+                    <Text>
+                      <strong>Security Level:</strong> NIST Level 5
+                    </Text>
+                    <Text>
+                      <strong>Public Key:</strong> 1568 bytes
+                    </Text>
+                    <Text>
+                      <strong>Ciphertext:</strong> 1568 bytes
+                    </Text>
+                    <Text>
+                      <strong>Performance:</strong> Efficient encryption/decryption
+                    </Text>
                   </Space>
                 </Card>
               </Col>

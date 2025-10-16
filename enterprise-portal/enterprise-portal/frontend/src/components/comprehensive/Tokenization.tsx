@@ -1,15 +1,37 @@
 import React, { useState } from 'react';
 import {
-  Box, Card, CardContent, Typography, Grid, Button, TextField,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Chip, Tabs, Tab, Dialog, DialogTitle, DialogContent,
-  DialogActions, FormControl, InputLabel, Select, MenuItem,
-  Avatar, List, ListItem, ListItemAvatar, ListItemText
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Tabs,
+  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Avatar,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from '@mui/material';
-import {
-  Token, Add, TrendingUp,
-  Image, AttachMoney, Lock
-} from '@mui/icons-material';
+import { Token, Add, TrendingUp, Image, AttachMoney, Lock } from '@mui/icons-material';
 
 interface TokenData {
   id: string;
@@ -46,7 +68,7 @@ export const Tokenization: React.FC = () => {
       decimals: 18,
       price: 0.5,
       marketCap: 500000000,
-      holders: 10000
+      holders: 10000,
     },
     {
       id: 't2',
@@ -57,8 +79,8 @@ export const Tokenization: React.FC = () => {
       decimals: 6,
       price: 100,
       marketCap: 10000000,
-      holders: 500
-    }
+      holders: 500,
+    },
   ]);
 
   const [nfts] = useState<NFTData[]>([
@@ -69,8 +91,8 @@ export const Tokenization: React.FC = () => {
       owner: '0x123...abc',
       price: 1000,
       image: '/api/placeholder/200/200',
-      attributes: { rarity: 'Legendary', edition: 1 }
-    }
+      attributes: { rarity: 'Legendary', edition: 1 },
+    },
   ]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -79,7 +101,7 @@ export const Tokenization: React.FC = () => {
     symbol: '',
     type: 'fungible',
     supply: 1000000,
-    decimals: 18
+    decimals: 18,
   });
 
   const createToken = () => {
@@ -92,7 +114,7 @@ export const Tokenization: React.FC = () => {
       decimals: tokenForm.decimals,
       price: 0,
       marketCap: 0,
-      holders: 0
+      holders: 0,
     };
     setTokens([...tokens, newToken]);
     setDialogOpen(false);
@@ -101,19 +123,23 @@ export const Tokenization: React.FC = () => {
   const defiPools = [
     { name: 'AUR/USDC', tvl: 5000000, apy: 12.5 },
     { name: 'RET/AUR', tvl: 2000000, apy: 25.3 },
-    { name: 'Staking Pool', tvl: 10000000, apy: 8.2 }
+    { name: 'Staking Pool', tvl: 10000000, apy: 8.2 },
   ];
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>Tokenization Platform</Typography>
+      <Typography variant="h5" gutterBottom>
+        Tokenization Platform
+      </Typography>
 
       {/* Stats */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total Tokens</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Total Tokens
+              </Typography>
               <Typography variant="h4">{tokens.length}</Typography>
             </CardContent>
           </Card>
@@ -121,7 +147,9 @@ export const Tokenization: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total Market Cap</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Total Market Cap
+              </Typography>
               <Typography variant="h4">
                 ${tokens.reduce((sum, t) => sum + t.marketCap, 0).toLocaleString()}
               </Typography>
@@ -131,15 +159,19 @@ export const Tokenization: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>NFT Collections</Typography>
-              <Typography variant="h4">{new Set(nfts.map(n => n.collection)).size}</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                NFT Collections
+              </Typography>
+              <Typography variant="h4">{new Set(nfts.map((n) => n.collection)).size}</Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total TVL</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Total TVL
+              </Typography>
               <Typography variant="h4">
                 ${defiPools.reduce((sum, p) => sum + p.tvl, 0).toLocaleString()}
               </Typography>
@@ -151,7 +183,10 @@ export const Tokenization: React.FC = () => {
       <Card>
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Tabs value={activeTab} onChange={(_event: React.SyntheticEvent, value: number) => setActiveTab(value)}>
+            <Tabs
+              value={activeTab}
+              onChange={(_event: React.SyntheticEvent, value: number) => setActiveTab(value)}
+            >
               <Tab label="Tokens" />
               <Tab label="NFTs" />
               <Tab label="DeFi" />
@@ -178,13 +213,11 @@ export const Tokenization: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tokens.map(token => (
+                  {tokens.map((token) => (
                     <TableRow key={token.id}>
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
-                          <Avatar sx={{ width: 24, height: 24 }}>
-                            {token.symbol[0]}
-                          </Avatar>
+                          <Avatar sx={{ width: 24, height: 24 }}>{token.symbol[0]}</Avatar>
                           <Box>
                             <Typography variant="body2">{token.name}</Typography>
                             <Typography variant="caption" color="textSecondary">
@@ -214,10 +247,18 @@ export const Tokenization: React.FC = () => {
           {/* NFTs Tab */}
           {activeTab === 1 && (
             <Grid container spacing={2}>
-              {nfts.map(nft => (
+              {nfts.map((nft) => (
                 <Grid item xs={12} md={3} key={nft.id}>
                   <Card>
-                    <Box sx={{ height: 200, bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Box
+                      sx={{
+                        height: 200,
+                        bgcolor: 'grey.200',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       <Image fontSize="large" />
                     </Box>
                     <CardContent>
@@ -241,7 +282,7 @@ export const Tokenization: React.FC = () => {
           {/* DeFi Tab */}
           {activeTab === 2 && (
             <Grid container spacing={3}>
-              {defiPools.map(pool => (
+              {defiPools.map((pool) => (
                 <Grid item xs={12} md={4} key={pool.name}>
                   <Card>
                     <CardContent>
@@ -250,9 +291,7 @@ export const Tokenization: React.FC = () => {
                         <Typography variant="body2" color="textSecondary">
                           Total Value Locked
                         </Typography>
-                        <Typography variant="h5">
-                          ${pool.tvl.toLocaleString()}
-                        </Typography>
+                        <Typography variant="h5">${pool.tvl.toLocaleString()}</Typography>
                       </Box>
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="body2" color="textSecondary">
@@ -276,7 +315,9 @@ export const Tokenization: React.FC = () => {
           {activeTab === 3 && (
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom>Quick Token Creation</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Quick Token Creation
+                </Typography>
                 <Card>
                   <CardContent>
                     <Grid container spacing={2}>
@@ -321,36 +362,35 @@ export const Tokenization: React.FC = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom>Token Templates</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Token Templates
+                </Typography>
                 <List>
                   <ListItem>
                     <ListItemAvatar>
-                      <Avatar><Token /></Avatar>
+                      <Avatar>
+                        <Token />
+                      </Avatar>
                     </ListItemAvatar>
-                    <ListItemText
-                      primary="Governance Token"
-                      secondary="DAO voting and proposals"
-                    />
+                    <ListItemText primary="Governance Token" secondary="DAO voting and proposals" />
                     <Button size="small">Use Template</Button>
                   </ListItem>
                   <ListItem>
                     <ListItemAvatar>
-                      <Avatar><AttachMoney /></Avatar>
+                      <Avatar>
+                        <AttachMoney />
+                      </Avatar>
                     </ListItemAvatar>
-                    <ListItemText
-                      primary="Stablecoin"
-                      secondary="Pegged to fiat currency"
-                    />
+                    <ListItemText primary="Stablecoin" secondary="Pegged to fiat currency" />
                     <Button size="small">Use Template</Button>
                   </ListItem>
                   <ListItem>
                     <ListItemAvatar>
-                      <Avatar><TrendingUp /></Avatar>
+                      <Avatar>
+                        <TrendingUp />
+                      </Avatar>
                     </ListItemAvatar>
-                    <ListItemText
-                      primary="Yield Token"
-                      secondary="Auto-compounding rewards"
-                    />
+                    <ListItemText primary="Yield Token" secondary="Auto-compounding rewards" />
                     <Button size="small">Use Template</Button>
                   </ListItem>
                 </List>
@@ -368,7 +408,7 @@ export const Tokenization: React.FC = () => {
             <InputLabel>Token Type</InputLabel>
             <Select
               value={tokenForm.type}
-              onChange={(e: any) => setTokenForm({...tokenForm, type: e.target.value})}
+              onChange={(e: any) => setTokenForm({ ...tokenForm, type: e.target.value })}
             >
               <MenuItem value="fungible">Fungible (ERC-20)</MenuItem>
               <MenuItem value="nft">Non-Fungible (ERC-721)</MenuItem>
@@ -379,14 +419,18 @@ export const Tokenization: React.FC = () => {
             fullWidth
             label="Token Name"
             value={tokenForm.name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTokenForm({...tokenForm, name: e.target.value})}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTokenForm({ ...tokenForm, name: e.target.value })
+            }
             margin="normal"
           />
           <TextField
             fullWidth
             label="Token Symbol"
             value={tokenForm.symbol}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTokenForm({...tokenForm, symbol: e.target.value})}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTokenForm({ ...tokenForm, symbol: e.target.value })
+            }
             margin="normal"
           />
           <TextField
@@ -394,7 +438,9 @@ export const Tokenization: React.FC = () => {
             label="Total Supply"
             type="number"
             value={tokenForm.supply}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTokenForm({...tokenForm, supply: parseInt(e.target.value)})}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTokenForm({ ...tokenForm, supply: parseInt(e.target.value) })
+            }
             margin="normal"
           />
           <TextField
@@ -402,13 +448,17 @@ export const Tokenization: React.FC = () => {
             label="Decimals"
             type="number"
             value={tokenForm.decimals}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTokenForm({...tokenForm, decimals: parseInt(e.target.value)})}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTokenForm({ ...tokenForm, decimals: parseInt(e.target.value) })
+            }
             margin="normal"
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={createToken}>Create Token</Button>
+          <Button variant="contained" onClick={createToken}>
+            Create Token
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

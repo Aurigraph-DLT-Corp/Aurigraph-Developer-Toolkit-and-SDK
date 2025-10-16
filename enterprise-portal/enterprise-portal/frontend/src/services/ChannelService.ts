@@ -123,7 +123,7 @@ class ChannelService {
    */
   async getChannel(channelId: string): Promise<Channel | null> {
     if (this.demoMode) {
-      return this.generateMockChannels().find(c => c.id === channelId) || null;
+      return this.generateMockChannels().find((c) => c.id === channelId) || null;
     }
 
     try {
@@ -297,7 +297,7 @@ class ChannelService {
     const channels = this.generateMockChannels();
     return {
       totalChannels: channels.length,
-      activeChannels: channels.filter(c => c.status === 'active').length,
+      activeChannels: channels.filter((c) => c.status === 'active').length,
       totalTransactions: channels.reduce((sum, c) => sum + c.transactionCount, 0),
       avgLatency: 12.5 + Math.random() * 5,
     };

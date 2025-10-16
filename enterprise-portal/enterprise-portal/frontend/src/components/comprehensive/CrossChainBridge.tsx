@@ -90,8 +90,7 @@ const CrossChainBridge: React.FC = () => {
     setTransferModalVisible(true);
   };
 
-  const handleTransferSubmit = async (values: any) => {
-    console.log('Creating transfer:', values);
+  const handleTransferSubmit = async (_values: any) => {
     // TODO: Implement transfer creation API call
     setTransferModalVisible(false);
     transferForm.resetFields();
@@ -139,7 +138,11 @@ const CrossChainBridge: React.FC = () => {
           maintenance: { icon: <SyncOutlined spin />, color: 'processing' },
           offline: { icon: <WarningOutlined />, color: 'error' },
         };
-        return <Tag icon={config[status].icon} color={config[status].color}>{status.toUpperCase()}</Tag>;
+        return (
+          <Tag icon={config[status].icon} color={config[status].color}>
+            {status.toUpperCase()}
+          </Tag>
+        );
       },
     },
     {
@@ -169,7 +172,11 @@ const CrossChainBridge: React.FC = () => {
       title: 'Avg Time',
       dataIndex: 'averageTransferTime',
       key: 'averageTransferTime',
-      render: (time: number) => <Text>{Math.floor(time / 60)}m {time % 60}s</Text>,
+      render: (time: number) => (
+        <Text>
+          {Math.floor(time / 60)}m {time % 60}s
+        </Text>
+      ),
     },
   ];
 
@@ -222,7 +229,11 @@ const CrossChainBridge: React.FC = () => {
           failed: { color: 'error', icon: <WarningOutlined /> },
           refunded: { color: 'warning', icon: <WarningOutlined /> },
         };
-        return <Tag icon={config[status].icon} color={config[status].color}>{status.toUpperCase()}</Tag>;
+        return (
+          <Tag icon={config[status].icon} color={config[status].color}>
+            {status.toUpperCase()}
+          </Tag>
+        );
       },
     },
     {
@@ -233,7 +244,11 @@ const CrossChainBridge: React.FC = () => {
         const progress = (record.confirmations / record.requiredConfirmations) * 100;
         return (
           <Tooltip title={`${record.confirmations}/${record.requiredConfirmations} confirmations`}>
-            <Progress percent={progress} size="small" status={record.status === 'completed' ? 'success' : 'active'} />
+            <Progress
+              percent={progress}
+              size="small"
+              status={record.status === 'completed' ? 'success' : 'active'}
+            />
           </Tooltip>
         );
       },
@@ -283,7 +298,11 @@ const CrossChainBridge: React.FC = () => {
           disconnected: { color: 'error', icon: <WarningOutlined /> },
           syncing: { color: 'processing', icon: <SyncOutlined spin /> },
         };
-        return <Tag icon={config[status].icon} color={config[status].color}>{status.toUpperCase()}</Tag>;
+        return (
+          <Tag icon={config[status].icon} color={config[status].color}>
+            {status.toUpperCase()}
+          </Tag>
+        );
       },
     },
     {
@@ -478,7 +497,10 @@ const CrossChainBridge: React.FC = () => {
       >
         {selectedTransfer && (
           <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <Steps current={getTransferStep(selectedTransfer.status)} status={selectedTransfer.status === 'failed' ? 'error' : 'process'}>
+            <Steps
+              current={getTransferStep(selectedTransfer.status)}
+              status={selectedTransfer.status === 'failed' ? 'error' : 'process'}
+            >
               <Step title="Initiated" description="Transfer started" />
               <Step title="Locked" description="Funds locked" />
               <Step title="Verified" description="Transaction verified" />
@@ -487,21 +509,48 @@ const CrossChainBridge: React.FC = () => {
 
             <Card size="small">
               <Space direction="vertical" style={{ width: '100%' }}>
-                <Text><strong>Transfer ID:</strong> <Text copyable>{selectedTransfer.id}</Text></Text>
-                <Text><strong>Route:</strong> {selectedTransfer.sourceChain} → {selectedTransfer.targetChain}</Text>
-                <Text><strong>Amount:</strong> {selectedTransfer.amount.toFixed(4)} {selectedTransfer.token}</Text>
-                <Text><strong>Fee:</strong> {selectedTransfer.fee.toFixed(4)} {selectedTransfer.token}</Text>
-                <Text><strong>Status:</strong> <Tag>{selectedTransfer.status.toUpperCase()}</Tag></Text>
-                <Text><strong>Progress:</strong> {selectedTransfer.confirmations}/{selectedTransfer.requiredConfirmations} confirmations</Text>
+                <Text>
+                  <strong>Transfer ID:</strong> <Text copyable>{selectedTransfer.id}</Text>
+                </Text>
+                <Text>
+                  <strong>Route:</strong> {selectedTransfer.sourceChain} →{' '}
+                  {selectedTransfer.targetChain}
+                </Text>
+                <Text>
+                  <strong>Amount:</strong> {selectedTransfer.amount.toFixed(4)}{' '}
+                  {selectedTransfer.token}
+                </Text>
+                <Text>
+                  <strong>Fee:</strong> {selectedTransfer.fee.toFixed(4)} {selectedTransfer.token}
+                </Text>
+                <Text>
+                  <strong>Status:</strong> <Tag>{selectedTransfer.status.toUpperCase()}</Tag>
+                </Text>
+                <Text>
+                  <strong>Progress:</strong> {selectedTransfer.confirmations}/
+                  {selectedTransfer.requiredConfirmations} confirmations
+                </Text>
                 {selectedTransfer.sourceTransaction && (
-                  <Text><strong>Source TX:</strong> <Text copyable>{selectedTransfer.sourceTransaction}</Text></Text>
+                  <Text>
+                    <strong>Source TX:</strong>{' '}
+                    <Text copyable>{selectedTransfer.sourceTransaction}</Text>
+                  </Text>
                 )}
                 {selectedTransfer.targetTransaction && (
-                  <Text><strong>Target TX:</strong> <Text copyable>{selectedTransfer.targetTransaction}</Text></Text>
+                  <Text>
+                    <strong>Target TX:</strong>{' '}
+                    <Text copyable>{selectedTransfer.targetTransaction}</Text>
+                  </Text>
                 )}
-                <Text><strong>Initiated:</strong> {new Date(selectedTransfer.initiatedAt).toLocaleString()}</Text>
+                <Text>
+                  <strong>Initiated:</strong>{' '}
+                  {new Date(selectedTransfer.initiatedAt).toLocaleString()}
+                </Text>
                 {selectedTransfer.estimatedCompletionTime && (
-                  <Text><strong>Estimated Completion:</strong> {new Date(selectedTransfer.estimatedCompletionTime).toLocaleString()}</Text>
+                  <Text>
+                    <strong>Estimated Completion:</strong>{' '}
+                    {new Date(selectedTransfer.estimatedCompletionTime).toLocaleString()}
+                  </Text>
                 )}
               </Space>
             </Card>
@@ -570,15 +619,18 @@ const generateMockTransfers = (count: number): CrossChainTransfer[] => {
       sourceChain: chains[sourceChainIndex] || 'Aurigraph',
       targetChain: chains[targetChainIndex] || 'Ethereum',
       sourceTransaction: `0x${Math.random().toString(16).substring(2)}`,
-      targetTransaction: Math.random() > 0.5 ? `0x${Math.random().toString(16).substring(2)}` : undefined,
-      status: (statuses[Math.floor(Math.random() * statuses.length)] || 'initiated') as CrossChainTransfer['status'],
+      targetTransaction:
+        Math.random() > 0.5 ? `0x${Math.random().toString(16).substring(2)}` : undefined,
+      status: (statuses[Math.floor(Math.random() * statuses.length)] ||
+        'initiated') as CrossChainTransfer['status'],
       token: tokens[Math.floor(Math.random() * tokens.length)] || 'AUR',
       amount: Math.random() * 100 + 1,
       sender: `0x${Math.random().toString(16).substring(2, 42)}`,
       recipient: `0x${Math.random().toString(16).substring(2, 42)}`,
       fee: Math.random() * 0.5,
       initiatedAt: new Date(Date.now() - i * 300000).toISOString(),
-      completedAt: Math.random() > 0.5 ? new Date(Date.now() - i * 300000 + 600000).toISOString() : undefined,
+      completedAt:
+        Math.random() > 0.5 ? new Date(Date.now() - i * 300000 + 600000).toISOString() : undefined,
       confirmations: Math.floor(Math.random() * 30),
       requiredConfirmations: 30,
     };

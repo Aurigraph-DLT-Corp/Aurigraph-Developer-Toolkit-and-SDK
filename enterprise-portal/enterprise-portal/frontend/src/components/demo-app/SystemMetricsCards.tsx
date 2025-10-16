@@ -92,7 +92,12 @@ export const SystemMetricsCards = () => {
             value={health.text}
             prefix={<CheckCircleOutlined />}
             valueStyle={{
-              color: health.color === 'success' ? '#52c41a' : health.color === 'warning' ? '#faad14' : '#f5222d',
+              color:
+                health.color === 'success'
+                  ? '#52c41a'
+                  : health.color === 'warning'
+                    ? '#faad14'
+                    : '#f5222d',
             }}
           />
           <div style={{ marginTop: 8, fontSize: '12px' }}>

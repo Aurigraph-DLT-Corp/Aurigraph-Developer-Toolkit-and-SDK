@@ -104,8 +104,7 @@ const ValidatorDashboard: React.FC = () => {
     setStakeModalVisible(true);
   };
 
-  const handleStakeSubmit = async (values: any) => {
-    console.log('Staking:', values);
+  const handleStakeSubmit = async (_values: any) => {
     // TODO: Implement staking API call
     setStakeModalVisible(false);
     stakeForm.resetFields();
@@ -320,8 +319,7 @@ const ValidatorDashboard: React.FC = () => {
         description={
           <Space direction="vertical" size="small">
             <Text>
-              <strong>Minimum Stake:</strong>{' '}
-              {stakingInfo.minStakeRequired.toLocaleString()} AUR
+              <strong>Minimum Stake:</strong> {stakingInfo.minStakeRequired.toLocaleString()} AUR
             </Text>
             <Text>
               <strong>Unbonding Period:</strong> {stakingInfo.unbondingPeriod} days
@@ -431,7 +429,14 @@ const ValidatorDashboard: React.FC = () => {
 
 // Mock data generator
 const generateMockValidators = (count: number): Validator[] => {
-  const statuses: Validator['status'][] = ['active', 'active', 'active', 'active', 'inactive', 'jailed'];
+  const statuses: Validator['status'][] = [
+    'active',
+    'active',
+    'active',
+    'active',
+    'inactive',
+    'jailed',
+  ];
 
   return Array.from({ length: count }, (_, i) => {
     const totalStake = Math.random() * 10000000 + 1000000;

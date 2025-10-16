@@ -422,9 +422,7 @@ class ComprehensivePortalService {
       return { success: true, timestamp: new Date().toISOString() };
     }
 
-    return this.fetchWithRetry<ApiResponse<CrossChainTransfer>>(
-      `/api/v11/bridge/transfers/${id}`
-    );
+    return this.fetchWithRetry<ApiResponse<CrossChainTransfer>>(`/api/v11/bridge/transfers/${id}`);
   }
 }
 

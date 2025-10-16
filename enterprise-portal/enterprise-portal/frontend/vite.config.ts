@@ -43,7 +43,6 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'redux-vendor': ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
-          'query-vendor': ['@tanstack/react-query'],
           'antd-vendor': ['antd', '@ant-design/icons'],
           'chart-vendor': ['recharts'],
         },

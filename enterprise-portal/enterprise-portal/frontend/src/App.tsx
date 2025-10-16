@@ -24,8 +24,6 @@ import {
   DollarOutlined,
   FileAddOutlined,
   ApiOutlined,
-  BankOutlined,
-  HomeOutlined,
 } from '@ant-design/icons';
 import { Header, Sidebar, Footer } from '@components/layout';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
@@ -47,14 +45,14 @@ import TokenizationRegistry from './components/comprehensive/TokenizationRegistr
 import Tokenization from './components/comprehensive/Tokenization';
 import RicardianContractUpload from './components/comprehensive/RicardianContractUpload';
 import ExternalAPITokenization from './components/comprehensive/ExternalAPITokenization';
-import RWATRegistry from './components/comprehensive/RWATRegistry';
 
 const { Content } = Layout;
 
 function App() {
+  const [showPortal, setShowPortal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('spatial-dashboard');
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Redux state and actions
   const dispatch = useAppDispatch();
@@ -79,21 +77,40 @@ function App() {
   };
 
   const handleSettingsClick = () => {
-    console.log('Settings clicked');
     // Toggle theme as a demo of Redux integration
     dispatch(toggleThemeMode());
   };
 
   const handleLogoutClick = () => {
-    console.log('Logout clicked');
     // TODO: Implement logout
   };
 
   const handleNotificationsClick = () => {
-    console.log('Notifications clicked');
     // TODO: Open notifications drawer
   };
 
+  const handleEnterPortal = () => {
+    setShowPortal(true);
+  };
+
+  // Show landing page if portal not accessed yet
+  if (!showPortal) {
+    return (
+      <ConfigProvider
+        theme={{
+          algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+          token: {
+            colorPrimary: '#1890ff',
+            borderRadius: 8,
+          },
+        }}
+      >
+        <LandingPage onEnterPortal={handleEnterPortal} />
+      </ConfigProvider>
+    );
+  }
+
+  // Show full portal
   return (
     <ConfigProvider
       theme={{
@@ -135,16 +152,6 @@ function App() {
               size="large"
               style={{ padding: '0 24px' }}
               items={[
-                {
-                  key: 'home',
-                  label: (
-                    <span>
-                      <HomeOutlined />
-                      Home
-                    </span>
-                  ),
-                  children: <LandingPage />,
-                },
                 {
                   key: 'dashboard',
                   label: (
@@ -274,16 +281,6 @@ function App() {
                     </span>
                   ),
                   children: <ExternalAPITokenization />,
-                },
-                {
-                  key: 'rwat',
-                  label: (
-                    <span>
-                      <BankOutlined />
-                      RWAT Registry
-                    </span>
-                  ),
-                  children: <RWATRegistry />,
                 },
                 {
                   key: 'monitoring',

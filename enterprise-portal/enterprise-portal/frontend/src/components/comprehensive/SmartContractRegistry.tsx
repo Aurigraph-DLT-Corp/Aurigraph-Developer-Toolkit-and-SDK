@@ -1,17 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Grid, Card, CardContent, Typography, Button, TextField, IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Paper,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Chip, Alert, FormControl, InputLabel, Select, MenuItem, Tooltip,
-  List, ListItem, ListItemText, ListItemIcon, Switch,
-  FormControlLabel, InputAdornment, CircularProgress
+  Box,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  TextField,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tabs,
+  Tab,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tooltip,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Switch,
+  FormControlLabel,
+  InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 import {
-  Upload, Close, Warning, Info,
-  Search, Security,
-  VerifiedUser, GitHub,
-  Functions, CheckCircle
+  Upload,
+  Close,
+  Warning,
+  Info,
+  Search,
+  Security,
+  VerifiedUser,
+  GitHub,
+  Functions,
+  CheckCircle,
 } from '@mui/icons-material';
 // Syntax highlighting removed for build compatibility
 import { channelService } from '../../services/ChannelService';
@@ -101,7 +137,7 @@ contract ERC20Token {
         balances[to] += amount;
         return true;
     }
-}`
+}`,
   },
   {
     id: 'erc721',
@@ -128,7 +164,7 @@ contract NFTCollection {
         balances[to]++;
         return tokenId;
     }
-}`
+}`,
   },
   {
     id: 'multisig',
@@ -161,8 +197,8 @@ contract MultiSigWallet {
         owners = _owners;
         required = _required;
     }
-}`
-  }
+}`,
+  },
 ];
 
 const SmartContractRegistry: React.FC = () => {
@@ -178,7 +214,7 @@ const SmartContractRegistry: React.FC = () => {
     language: 'solidity' as const,
     sourceCode: '',
     compile: true,
-    verify: true
+    verify: true,
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [filterChannel, setFilterChannel] = useState('all');
@@ -216,15 +252,19 @@ const SmartContractRegistry: React.FC = () => {
         sourceCode: c.code,
         verified: c.verified || false,
         audited: c.audited || false,
-        auditReports: c.auditReport ? [{
-          id: 'audit_' + c.id,
-          auditor: 'System Audit',
-          date: new Date(c.deployedAt),
-          severity: 'low' as const,
-          issues: 0,
-          status: 'passed' as const,
-          report: JSON.stringify(c.auditReport)
-        }] : [],
+        auditReports: c.auditReport
+          ? [
+              {
+                id: 'audit_' + c.id,
+                auditor: 'System Audit',
+                date: new Date(c.deployedAt),
+                severity: 'low' as const,
+                issues: 0,
+                status: 'passed' as const,
+                report: JSON.stringify(c.auditReport),
+              },
+            ]
+          : [],
         gasUsed: c.metrics?.gasUsed || 0,
         tags: [],
         methods: [],
@@ -233,8 +273,8 @@ const SmartContractRegistry: React.FC = () => {
           totalCalls: c.metrics?.transactions || 0,
           dailyCalls: Math.floor((c.metrics?.transactions || 0) / 30),
           uniqueUsers: c.metrics?.holders || 0,
-          gasSpent: c.metrics?.totalValue || 0
-        }
+          gasSpent: c.metrics?.totalValue || 0,
+        },
       }));
 
       setContracts(transformedContracts);
@@ -255,7 +295,7 @@ const SmartContractRegistry: React.FC = () => {
         name: deploymentForm.name,
         channelId: deploymentForm.channelId,
         deployedBy: '0xCurrentUser',
-        parameters: {}
+        parameters: {},
       });
 
       if (data.success) {
@@ -283,25 +323,28 @@ const SmartContractRegistry: React.FC = () => {
         severity: 'low',
         issues: Math.floor(Math.random() * 5),
         status: Math.random() > 0.3 ? 'passed' : 'failed',
-        report: 'Automated security scan completed'
+        report: 'Automated security scan completed',
       };
 
-      setContracts(prev => prev.map(c =>
-        c.id === contract.id
-          ? {
-              ...c,
-              audited: true,
-              auditReports: [...(c.auditReports || []), auditReport]
-            }
-          : c
-      ));
+      setContracts((prev) =>
+        prev.map((c) =>
+          c.id === contract.id
+            ? {
+                ...c,
+                audited: true,
+                auditReports: [...(c.auditReports || []), auditReport],
+              }
+            : c
+        )
+      );
       setAuditDialogOpen(false);
     }, 3000);
   };
 
-  const filteredContracts = contracts.filter(contract => {
-    const matchesSearch = contract.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          contract.address?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredContracts = contracts.filter((contract) => {
+    const matchesSearch =
+      contract.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.address?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesChannel = filterChannel === 'all' || contract.channelId === filterChannel;
     const matchesStatus = filterStatus === 'all' || contract.status === filterStatus;
     return matchesSearch && matchesChannel && matchesStatus;
@@ -311,7 +354,9 @@ const SmartContractRegistry: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Smart Contract Registry</Typography>
+      <Typography variant="h4" gutterBottom>
+        Smart Contract Registry
+      </Typography>
 
       {/* Header Actions */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
@@ -320,7 +365,11 @@ const SmartContractRegistry: React.FC = () => {
           value={searchTerm}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           InputProps={{
-            startAdornment: <InputAdornment position="start"><Search /></InputAdornment>
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
           }}
           sx={{ flexGrow: 1, maxWidth: 400 }}
         />
@@ -329,7 +378,9 @@ const SmartContractRegistry: React.FC = () => {
           <Select value={filterChannel} onChange={(e: any) => setFilterChannel(e.target.value)}>
             <MenuItem value="all">All Channels</MenuItem>
             {channels.map((ch: any) => (
-              <MenuItem key={ch.id} value={ch.id}>{ch.name}</MenuItem>
+              <MenuItem key={ch.id} value={ch.id}>
+                {ch.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -343,7 +394,11 @@ const SmartContractRegistry: React.FC = () => {
             <MenuItem value="failed">Failed</MenuItem>
           </Select>
         </FormControl>
-        <Button variant="contained" startIcon={<Upload />} onClick={() => setDeployDialogOpen(true)}>
+        <Button
+          variant="contained"
+          startIcon={<Upload />}
+          onClick={() => setDeployDialogOpen(true)}
+        >
           Deploy Contract
         </Button>
       </Box>
@@ -353,7 +408,9 @@ const SmartContractRegistry: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom>Total Contracts</Typography>
+              <Typography color="text.secondary" gutterBottom>
+                Total Contracts
+              </Typography>
               <Typography variant="h4">{contracts.length}</Typography>
             </CardContent>
           </Card>
@@ -361,9 +418,11 @@ const SmartContractRegistry: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom>Deployed</Typography>
+              <Typography color="text.secondary" gutterBottom>
+                Deployed
+              </Typography>
               <Typography variant="h4" color="success.main">
-                {contracts.filter(c => c.status === 'deployed').length}
+                {contracts.filter((c) => c.status === 'deployed').length}
               </Typography>
             </CardContent>
           </Card>
@@ -371,9 +430,11 @@ const SmartContractRegistry: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom>Audited</Typography>
+              <Typography color="text.secondary" gutterBottom>
+                Audited
+              </Typography>
               <Typography variant="h4" color="primary">
-                {contracts.filter(c => c.audited).length}
+                {contracts.filter((c) => c.audited).length}
               </Typography>
             </CardContent>
           </Card>
@@ -381,7 +442,9 @@ const SmartContractRegistry: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom>Total Gas Used</Typography>
+              <Typography color="text.secondary" gutterBottom>
+                Total Gas Used
+              </Typography>
               <Typography variant="h4">
                 {(contracts.reduce((sum, c) => sum + (c.gasUsed || 0), 0) / 1000000).toFixed(1)}M
               </Typography>
@@ -427,16 +490,26 @@ const SmartContractRegistry: React.FC = () => {
                   </Tooltip>
                 </TableCell>
                 <TableCell>
-                  <Chip label={channels.find((c: any) => c.id === contract.channelId)?.name || contract.channelId} size="small" />
+                  <Chip
+                    label={
+                      channels.find((c: any) => c.id === contract.channelId)?.name ||
+                      contract.channelId
+                    }
+                    size="small"
+                  />
                 </TableCell>
                 <TableCell>
                   <Chip
                     label={contract.status}
                     size="small"
                     color={
-                      contract.status === 'deployed' ? 'success' :
-                      contract.status === 'pending' ? 'warning' :
-                      contract.status === 'auditing' ? 'info' : 'error'
+                      contract.status === 'deployed'
+                        ? 'success'
+                        : contract.status === 'pending'
+                          ? 'warning'
+                          : contract.status === 'auditing'
+                            ? 'info'
+                            : 'error'
                     }
                   />
                 </TableCell>
@@ -481,7 +554,12 @@ const SmartContractRegistry: React.FC = () => {
       </TableContainer>
 
       {/* Deploy Contract Dialog */}
-      <Dialog open={deployDialogOpen} onClose={() => setDeployDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={deployDialogOpen}
+        onClose={() => setDeployDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Deploy Smart Contract</DialogTitle>
         <DialogContent>
           <Tabs value={activeTab} onChange={(_: any, v: number) => setActiveTab(v)} sx={{ mb: 2 }}>
@@ -493,20 +571,20 @@ const SmartContractRegistry: React.FC = () => {
           {activeTab === 0 && (
             <Box>
               <Grid container spacing={2}>
-                {contractTemplates.map(template => (
+                {contractTemplates.map((template) => (
                   <Grid item xs={12} md={4} key={template.id}>
                     <Card
                       sx={{
                         cursor: 'pointer',
                         border: selectedTemplate?.id === template.id ? 2 : 0,
-                        borderColor: 'primary.main'
+                        borderColor: 'primary.main',
                       }}
                       onClick={() => {
                         setSelectedTemplate(template);
                         setDeploymentForm({
                           ...deploymentForm,
                           sourceCode: template.code,
-                          language: template.language as any
+                          language: template.language as any,
                         });
                       }}
                     >
@@ -524,7 +602,14 @@ const SmartContractRegistry: React.FC = () => {
               {selectedTemplate && (
                 <Box sx={{ mt: 2, maxHeight: 300, overflow: 'auto' }}>
                   <Paper sx={{ p: 2, bgcolor: '#1e1e1e' }}>
-                    <pre style={{ color: '#d4d4d4', fontFamily: 'monospace', fontSize: '12px', overflow: 'auto' }}>
+                    <pre
+                      style={{
+                        color: '#d4d4d4',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        overflow: 'auto',
+                      }}
+                    >
                       <code>{selectedTemplate?.code}</code>
                     </pre>
                   </Paper>
@@ -539,17 +624,23 @@ const SmartContractRegistry: React.FC = () => {
                 fullWidth
                 label="Contract Name"
                 value={deploymentForm.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeploymentForm({ ...deploymentForm, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setDeploymentForm({ ...deploymentForm, name: e.target.value })
+                }
                 margin="normal"
               />
               <FormControl fullWidth margin="normal">
                 <InputLabel>Channel</InputLabel>
                 <Select
                   value={deploymentForm.channelId}
-                  onChange={(e: any) => setDeploymentForm({ ...deploymentForm, channelId: e.target.value })}
+                  onChange={(e: any) =>
+                    setDeploymentForm({ ...deploymentForm, channelId: e.target.value })
+                  }
                 >
                   {channels.map((ch: any) => (
-                    <MenuItem key={ch.id} value={ch.id}>{ch.name}</MenuItem>
+                    <MenuItem key={ch.id} value={ch.id}>
+                      {ch.name}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -557,7 +648,9 @@ const SmartContractRegistry: React.FC = () => {
                 <InputLabel>Language</InputLabel>
                 <Select
                   value={deploymentForm.language}
-                  onChange={(e: any) => setDeploymentForm({ ...deploymentForm, language: e.target.value as any })}
+                  onChange={(e: any) =>
+                    setDeploymentForm({ ...deploymentForm, language: e.target.value as any })
+                  }
                 >
                   <MenuItem value="solidity">Solidity</MenuItem>
                   <MenuItem value="vyper">Vyper</MenuItem>
@@ -572,7 +665,9 @@ const SmartContractRegistry: React.FC = () => {
                 rows={10}
                 label="Source Code"
                 value={deploymentForm.sourceCode}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDeploymentForm({ ...deploymentForm, sourceCode: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setDeploymentForm({ ...deploymentForm, sourceCode: e.target.value })
+                }
                 margin="normal"
               />
               <Box sx={{ mt: 2 }}>
@@ -580,7 +675,9 @@ const SmartContractRegistry: React.FC = () => {
                   control={
                     <Switch
                       checked={deploymentForm.compile}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeploymentForm({ ...deploymentForm, compile: e.target.checked })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setDeploymentForm({ ...deploymentForm, compile: e.target.checked })
+                      }
                     />
                   }
                   label="Compile before deployment"
@@ -589,7 +686,9 @@ const SmartContractRegistry: React.FC = () => {
                   control={
                     <Switch
                       checked={deploymentForm.verify}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeploymentForm({ ...deploymentForm, verify: e.target.checked })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setDeploymentForm({ ...deploymentForm, verify: e.target.checked })
+                      }
                     />
                   }
                   label="Verify contract source"
@@ -640,19 +739,25 @@ const SmartContractRegistry: React.FC = () => {
           <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" gutterBottom>Contract Address</Typography>
+                <Typography variant="subtitle2" gutterBottom>
+                  Contract Address
+                </Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2 }}>
                   {selectedContract.address}
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" gutterBottom>Deployed By</Typography>
+                <Typography variant="subtitle2" gutterBottom>
+                  Deployed By
+                </Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2 }}>
                   {selectedContract.deployedBy}
                 </Typography>
               </Grid>
               <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom>Methods</Typography>
+                <Typography variant="subtitle2" gutterBottom>
+                  Methods
+                </Typography>
                 <List dense>
                   {selectedContract.methods.map((method, idx) => (
                     <ListItem key={idx}>
@@ -660,7 +765,7 @@ const SmartContractRegistry: React.FC = () => {
                         <Functions />
                       </ListItemIcon>
                       <ListItemText
-                        primary={`${method.name}(${method.inputs.map(i => i.type).join(', ')})`}
+                        primary={`${method.name}(${method.inputs.map((i) => i.type).join(', ')})`}
                         secondary={`${method.visibility} • ${method.stateMutability}`}
                       />
                     </ListItem>
@@ -668,7 +773,9 @@ const SmartContractRegistry: React.FC = () => {
                 </List>
               </Grid>
               <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom>Audit Reports</Typography>
+                <Typography variant="subtitle2" gutterBottom>
+                  Audit Reports
+                </Typography>
                 {selectedContract.auditReports?.map((report, idx) => (
                   <Alert
                     key={idx}

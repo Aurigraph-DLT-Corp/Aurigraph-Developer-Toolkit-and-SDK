@@ -125,12 +125,7 @@ export type AnyDataSource =
   | CryptoDataSource
   | CustomDataSource;
 
-export type AnyDataPayload =
-  | WeatherData
-  | AlpacaData
-  | NewsData
-  | TwitterData
-  | CryptoData;
+export type AnyDataPayload = WeatherData | AlpacaData | NewsData | TwitterData | CryptoData;
 
 // Network Configuration
 export interface NetworkConfig {

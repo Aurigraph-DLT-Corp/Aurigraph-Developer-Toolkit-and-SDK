@@ -321,10 +321,7 @@ export const comprehensivePortalSlice = createSlice({
       state.supportedChains = action.payload;
     },
 
-    setBridgeMetrics: (
-      state,
-      action: PayloadAction<ComprehensivePortalState['bridgeMetrics']>
-    ) => {
+    setBridgeMetrics: (state, action: PayloadAction<ComprehensivePortalState['bridgeMetrics']>) => {
       state.bridgeMetrics = action.payload;
     },
 

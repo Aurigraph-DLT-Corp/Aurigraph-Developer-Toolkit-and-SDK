@@ -232,9 +232,7 @@ const TransactionExplorer: React.FC = () => {
       width: 180,
       sorter: (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
       render: (timestamp: string) => (
-        <Tooltip title={new Date(timestamp).toLocaleString()}>
-          {dayjs(timestamp).fromNow()}
-        </Tooltip>
+        <Tooltip title={new Date(timestamp).toLocaleString()}>{dayjs(timestamp).fromNow()}</Tooltip>
       ),
     },
     {
@@ -243,11 +241,7 @@ const TransactionExplorer: React.FC = () => {
       width: 100,
       fixed: 'right',
       render: (_, record) => (
-        <Button
-          type="link"
-          icon={<EyeOutlined />}
-          onClick={() => showTransactionDetail(record)}
-        >
+        <Button type="link" icon={<EyeOutlined />} onClick={() => showTransactionDetail(record)}>
           Details
         </Button>
       ),
@@ -361,12 +355,7 @@ const TransactionExplorer: React.FC = () => {
               />
             </Col>
             <Col xs={24} sm={12} lg={2}>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={fetchTransactions}
-                loading={loading}
-                block
-              >
+              <Button icon={<ReloadOutlined />} onClick={fetchTransactions} loading={loading} block>
                 Refresh
               </Button>
             </Col>

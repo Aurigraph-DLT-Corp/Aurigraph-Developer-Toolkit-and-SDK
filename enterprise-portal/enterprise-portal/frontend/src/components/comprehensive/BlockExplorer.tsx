@@ -205,9 +205,7 @@ const BlockExplorer: React.FC = () => {
       key: 'timestamp',
       width: 150,
       render: (timestamp: string) => (
-        <Tooltip title={new Date(timestamp).toLocaleString()}>
-          {dayjs(timestamp).fromNow()}
-        </Tooltip>
+        <Tooltip title={new Date(timestamp).toLocaleString()}>{dayjs(timestamp).fromNow()}</Tooltip>
       ),
     },
     {
@@ -337,7 +335,14 @@ const BlockExplorer: React.FC = () => {
       </Card>
 
       {/* Recent Blocks Table */}
-      <Card title="Recent Blocks" extra={<Button icon={<SyncOutlined />} onClick={fetchBlocks} loading={loading}>Refresh</Button>}>
+      <Card
+        title="Recent Blocks"
+        extra={
+          <Button icon={<SyncOutlined />} onClick={fetchBlocks} loading={loading}>
+            Refresh
+          </Button>
+        }
+      >
         <Table
           columns={columns}
           dataSource={blocks}
@@ -349,7 +354,12 @@ const BlockExplorer: React.FC = () => {
       </Card>
 
       {/* Block Detail Drawer */}
-      <Drawer title="Block Details" width={720} open={drawerVisible} onClose={() => setDrawerVisible(false)}>
+      <Drawer
+        title="Block Details"
+        width={720}
+        open={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+      >
         {selectedBlock && (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Descriptions bordered column={1} size="small">
@@ -399,7 +409,10 @@ const BlockExplorer: React.FC = () => {
                 </Space>
               </Descriptions.Item>
               <Descriptions.Item label="Finality Time">
-                <Text strong style={{ color: selectedBlock.finalityMs < 300 ? '#52c41a' : '#faad14' }}>
+                <Text
+                  strong
+                  style={{ color: selectedBlock.finalityMs < 300 ? '#52c41a' : '#faad14' }}
+                >
                   {selectedBlock.finalityMs.toFixed(0)}ms
                 </Text>
               </Descriptions.Item>
@@ -425,7 +438,9 @@ const BlockExplorer: React.FC = () => {
                       <>
                         <Text>Block #{selectedBlock.height - 1}</Text>
                         <br />
-                        <Text type="secondary">{selectedBlock.previousHash.substring(0, 16)}...</Text>
+                        <Text type="secondary">
+                          {selectedBlock.previousHash.substring(0, 16)}...
+                        </Text>
                       </>
                     ),
                   },

@@ -1,20 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Grid, Card, CardContent, Typography, Button, TextField, IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Paper, Stepper, Step,
-  StepLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Chip, Alert, FormControl, InputLabel, Select, MenuItem, Avatar,
-  List, ListItem, ListItemText, ListItemAvatar, LinearProgress,
-  Switch, FormControlLabel, InputAdornment, CircularProgress,
-  ToggleButton, ToggleButtonGroup
+  Box,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  TextField,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tabs,
+  Tab,
+  Paper,
+  Stepper,
+  Step,
+  StepLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  LinearProgress,
+  Switch,
+  FormControlLabel,
+  InputAdornment,
+  CircularProgress,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import {
-  Token, Home, Agriculture, Palette, MusicNote, HealthAndSafety,
-  Business, Gavel, DirectionsCar, TrendingUp, Analytics, SwapHoriz,
-  Upload, Search, Add
+  Token,
+  Home,
+  Agriculture,
+  Palette,
+  MusicNote,
+  HealthAndSafety,
+  Business,
+  Gavel,
+  DirectionsCar,
+  TrendingUp,
+  Analytics,
+  SwapHoriz,
+  Upload,
+  Search,
+  Add,
 } from '@mui/icons-material';
-import { PieChart, Pie, Cell, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as ChartTooltip,
+  ResponsiveContainer,
+} from 'recharts';
 // import ChannelService from '../services/ChannelService';
 
 // const API_BASE = 'http://localhost:9003/api/v11';
@@ -81,7 +138,14 @@ interface ComplianceInfo {
 }
 
 interface AssetBacking {
-  type: 'real-estate' | 'commodity' | 'equity' | 'debt' | 'art' | 'intellectual-property' | 'carbon-credits';
+  type:
+    | 'real-estate'
+    | 'commodity'
+    | 'equity'
+    | 'debt'
+    | 'art'
+    | 'intellectual-property'
+    | 'carbon-credits';
   description: string;
   valuation: number;
   verifier: string;
@@ -98,7 +162,7 @@ const rwaCategories = [
   { id: 'carbon', name: 'Carbon Credits', icon: HealthAndSafety, color: '#00BCD4' },
   { id: 'ip', name: 'Intellectual Property', icon: Gavel, color: '#FF5722' },
   { id: 'vehicle', name: 'Vehicles', icon: DirectionsCar, color: '#795548' },
-  { id: 'music', name: 'Music Rights', icon: MusicNote, color: '#E91E63' }
+  { id: 'music', name: 'Music Rights', icon: MusicNote, color: '#E91E63' },
 ];
 
 // Token Creation Wizard Steps
@@ -158,16 +222,16 @@ const TokenizationRegistry: React.FC = () => {
       dividends: false,
       voting: false,
       wrapped: false,
-      collateralized: false
+      collateralized: false,
     },
     compliance: {
       kycRequired: false,
       amlCompliant: true,
       accreditedOnly: false,
       jurisdictions: [],
-      licenses: []
+      licenses: [],
     },
-    assetBacking: undefined as AssetBacking | undefined
+    assetBacking: undefined as AssetBacking | undefined,
   });
 
   // Market statistics
@@ -177,7 +241,7 @@ const TokenizationRegistry: React.FC = () => {
     totalTokens: 0,
     activeTokens: 0,
     totalHolders: 0,
-    totalTransfers: 0
+    totalTransfers: 0,
   });
 
   useEffect(() => {
@@ -208,7 +272,7 @@ const TokenizationRegistry: React.FC = () => {
           image: '/aurigraph-token.png',
           website: 'https://aurigraph.io',
           tags: ['utility', 'governance', 'staking'],
-          category: 'Platform'
+          category: 'Platform',
         },
         features: {
           mintable: false,
@@ -220,11 +284,11 @@ const TokenizationRegistry: React.FC = () => {
           dividends: false,
           voting: true,
           wrapped: false,
-          collateralized: false
+          collateralized: false,
         },
         createdAt: new Date('2024-01-01'),
         createdBy: '0xFounder...',
-        status: 'active'
+        status: 'active',
       },
       {
         id: 'token_002',
@@ -246,7 +310,7 @@ const TokenizationRegistry: React.FC = () => {
           description: 'Tokenized commercial real estate in Manhattan',
           image: '/manhattan-tower.jpg',
           tags: ['real-estate', 'commercial', 'reit'],
-          category: 'Real Estate'
+          category: 'Real Estate',
         },
         features: {
           mintable: false,
@@ -258,14 +322,14 @@ const TokenizationRegistry: React.FC = () => {
           dividends: true,
           voting: true,
           wrapped: false,
-          collateralized: true
+          collateralized: true,
         },
         compliance: {
           kycRequired: true,
           amlCompliant: true,
           accreditedOnly: true,
           jurisdictions: ['US', 'EU'],
-          licenses: ['SEC-REG-D']
+          licenses: ['SEC-REG-D'],
         },
         assetBacking: {
           type: 'real-estate',
@@ -273,11 +337,11 @@ const TokenizationRegistry: React.FC = () => {
           valuation: 10000000,
           verifier: 'KPMG Real Estate Valuations',
           documents: ['deed.pdf', 'valuation-report.pdf', 'insurance.pdf'],
-          lastAudit: new Date('2024-03-01')
+          lastAudit: new Date('2024-03-01'),
         },
         createdAt: new Date('2024-02-15'),
         createdBy: '0xRealEstate...',
-        status: 'active'
+        status: 'active',
       },
       {
         id: 'token_003',
@@ -299,7 +363,7 @@ const TokenizationRegistry: React.FC = () => {
           description: 'Each token represents 1 gram of 99.99% pure gold stored in Swiss vaults',
           image: '/gold-token.png',
           tags: ['commodity', 'gold', 'precious-metals'],
-          category: 'Commodities'
+          category: 'Commodities',
         },
         features: {
           mintable: true,
@@ -311,14 +375,14 @@ const TokenizationRegistry: React.FC = () => {
           dividends: false,
           voting: false,
           wrapped: false,
-          collateralized: true
+          collateralized: true,
         },
         compliance: {
           kycRequired: true,
           amlCompliant: true,
           accreditedOnly: false,
           jurisdictions: ['Global'],
-          licenses: ['LBMA-CERTIFIED']
+          licenses: ['LBMA-CERTIFIED'],
         },
         assetBacking: {
           type: 'commodity',
@@ -326,11 +390,11 @@ const TokenizationRegistry: React.FC = () => {
           valuation: 6543000,
           verifier: 'SGS Inspection Services',
           documents: ['storage-cert.pdf', 'insurance.pdf', 'audit.pdf'],
-          lastAudit: new Date('2024-03-15')
+          lastAudit: new Date('2024-03-15'),
         },
         createdAt: new Date('2024-01-20'),
         createdBy: '0xGoldVault...',
-        status: 'active'
+        status: 'active',
       },
       {
         id: 'token_004',
@@ -350,7 +414,7 @@ const TokenizationRegistry: React.FC = () => {
           description: 'Curated collection of digital artworks by renowned artists',
           image: '/art-gallery.png',
           tags: ['nft', 'art', 'collectibles'],
-          category: 'Art'
+          category: 'Art',
         },
         features: {
           mintable: true,
@@ -362,11 +426,11 @@ const TokenizationRegistry: React.FC = () => {
           dividends: false,
           voting: false,
           wrapped: false,
-          collateralized: false
+          collateralized: false,
         },
         createdAt: new Date('2024-03-01'),
         createdBy: '0xArtist...',
-        status: 'active'
+        status: 'active',
       },
       {
         id: 'token_005',
@@ -387,7 +451,7 @@ const TokenizationRegistry: React.FC = () => {
           description: 'Verified carbon offset credits from renewable energy projects',
           image: '/carbon-credits.png',
           tags: ['carbon', 'sustainability', 'green'],
-          category: 'Carbon Credits'
+          category: 'Carbon Credits',
         },
         features: {
           mintable: true,
@@ -399,14 +463,14 @@ const TokenizationRegistry: React.FC = () => {
           dividends: false,
           voting: false,
           wrapped: false,
-          collateralized: false
+          collateralized: false,
         },
         compliance: {
           kycRequired: false,
           amlCompliant: true,
           accreditedOnly: false,
           jurisdictions: ['Global'],
-          licenses: ['VERRA-VERIFIED']
+          licenses: ['VERRA-VERIFIED'],
         },
         assetBacking: {
           type: 'carbon-credits',
@@ -414,32 +478,35 @@ const TokenizationRegistry: React.FC = () => {
           valuation: 15750000,
           verifier: 'Verra Registry',
           documents: ['vcu-certificate.pdf', 'project-report.pdf'],
-          lastAudit: new Date('2024-02-28')
+          lastAudit: new Date('2024-02-28'),
         },
         createdAt: new Date('2024-02-01'),
         createdBy: '0xGreenEnergy...',
-        status: 'active'
-      }
+        status: 'active',
+      },
     ];
     setTokens(sampleTokens);
   };
 
   const calculateMarketStats = () => {
-    const stats = tokens.reduce((acc, token) => ({
-      totalMarketCap: acc.totalMarketCap + (token.marketCap || 0),
-      total24hVolume: acc.total24hVolume + (token.volume24h || 0),
-      totalTokens: acc.totalTokens + 1,
-      activeTokens: acc.activeTokens + (token.status === 'active' ? 1 : 0),
-      totalHolders: acc.totalHolders + token.holders,
-      totalTransfers: acc.totalTransfers + token.transfers24h
-    }), {
-      totalMarketCap: 0,
-      total24hVolume: 0,
-      totalTokens: 0,
-      activeTokens: 0,
-      totalHolders: 0,
-      totalTransfers: 0
-    });
+    const stats = tokens.reduce(
+      (acc, token) => ({
+        totalMarketCap: acc.totalMarketCap + (token.marketCap || 0),
+        total24hVolume: acc.total24hVolume + (token.volume24h || 0),
+        totalTokens: acc.totalTokens + 1,
+        activeTokens: acc.activeTokens + (token.status === 'active' ? 1 : 0),
+        totalHolders: acc.totalHolders + token.holders,
+        totalTransfers: acc.totalTransfers + token.transfers24h,
+      }),
+      {
+        totalMarketCap: 0,
+        total24hVolume: 0,
+        totalTokens: 0,
+        activeTokens: 0,
+        totalHolders: 0,
+        totalTransfers: 0,
+      }
+    );
     setMarketStats(stats);
   };
 
@@ -467,33 +534,32 @@ const TokenizationRegistry: React.FC = () => {
         metadata: {
           description: newToken.description,
           tags: [],
-          category: newToken.category
+          category: newToken.category,
         },
         features: newToken.features,
         compliance: newToken.compliance,
         assetBacking: newToken.assetBacking,
         createdAt: new Date(),
         createdBy: '0xCurrentUser...',
-        status: 'pending'
+        status: 'pending',
       };
 
-      setTokens(prev => [token, ...prev]);
+      setTokens((prev) => [token, ...prev]);
       setIsDeploying(false);
       setCreateDialogOpen(false);
       setWizardStep(0);
 
       // Simulate activation
       setTimeout(() => {
-        setTokens(prev => prev.map(t =>
-          t.id === token.id ? { ...t, status: 'active' } : t
-        ));
+        setTokens((prev) => prev.map((t) => (t.id === token.id ? { ...t, status: 'active' } : t)));
       }, 3000);
     }, 2000);
   };
 
-  const filteredTokens = tokens.filter(token => {
-    const matchesSearch = token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         token.symbol.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredTokens = tokens.filter((token) => {
+    const matchesSearch =
+      token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      token.symbol.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || token.type === filterType;
     return matchesSearch && matchesType;
   });
@@ -517,14 +583,14 @@ const TokenizationRegistry: React.FC = () => {
   const channels = [
     { id: 'main', name: 'Main Channel' },
     { id: 'private-1', name: 'Private Channel 1' },
-    { id: 'consortium-1', name: 'Consortium Channel 1' }
+    { id: 'consortium-1', name: 'Consortium Channel 1' },
   ];
 
-  const chartData = tokens.map(t => ({
+  const chartData = tokens.map((t) => ({
     name: t.symbol,
     value: t.marketCap || 0,
     holders: t.holders,
-    volume: t.volume24h || 0
+    volume: t.volume24h || 0,
   }));
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
@@ -546,23 +612,33 @@ const TokenizationRegistry: React.FC = () => {
         <Grid item xs={12} md={2}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" variant="caption">Total Market Cap</Typography>
-              <Typography variant="h6">${(marketStats.totalMarketCap / 1000000).toFixed(2)}M</Typography>
+              <Typography color="text.secondary" variant="caption">
+                Total Market Cap
+              </Typography>
+              <Typography variant="h6">
+                ${(marketStats.totalMarketCap / 1000000).toFixed(2)}M
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={2}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" variant="caption">24h Volume</Typography>
-              <Typography variant="h6">${(marketStats.total24hVolume / 1000000).toFixed(2)}M</Typography>
+              <Typography color="text.secondary" variant="caption">
+                24h Volume
+              </Typography>
+              <Typography variant="h6">
+                ${(marketStats.total24hVolume / 1000000).toFixed(2)}M
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={2}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" variant="caption">Total Tokens</Typography>
+              <Typography color="text.secondary" variant="caption">
+                Total Tokens
+              </Typography>
               <Typography variant="h6">{marketStats.totalTokens}</Typography>
             </CardContent>
           </Card>
@@ -570,7 +646,9 @@ const TokenizationRegistry: React.FC = () => {
         <Grid item xs={12} md={2}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" variant="caption">Active Tokens</Typography>
+              <Typography color="text.secondary" variant="caption">
+                Active Tokens
+              </Typography>
               <Typography variant="h6">{marketStats.activeTokens}</Typography>
             </CardContent>
           </Card>
@@ -578,7 +656,9 @@ const TokenizationRegistry: React.FC = () => {
         <Grid item xs={12} md={2}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" variant="caption">Total Holders</Typography>
+              <Typography color="text.secondary" variant="caption">
+                Total Holders
+              </Typography>
               <Typography variant="h6">{marketStats.totalHolders.toLocaleString()}</Typography>
             </CardContent>
           </Card>
@@ -586,7 +666,9 @@ const TokenizationRegistry: React.FC = () => {
         <Grid item xs={12} md={2}>
           <Card>
             <CardContent>
-              <Typography color="text.secondary" variant="caption">24h Transfers</Typography>
+              <Typography color="text.secondary" variant="caption">
+                24h Transfers
+              </Typography>
               <Typography variant="h6">{marketStats.totalTransfers.toLocaleString()}</Typography>
             </CardContent>
           </Card>
@@ -601,13 +683,20 @@ const TokenizationRegistry: React.FC = () => {
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><Search /></InputAdornment>
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
             }}
             sx={{ flexGrow: 1, maxWidth: 400 }}
           />
           <FormControl sx={{ minWidth: 150 }}>
             <InputLabel>Type</InputLabel>
-            <Select value={filterType} onChange={(e: any) => setFilterType(e.target.value as string)}>
+            <Select
+              value={filterType}
+              onChange={(e: any) => setFilterType(e.target.value as string)}
+            >
               <MenuItem value="all">All Types</MenuItem>
               <MenuItem value="fungible">Fungible</MenuItem>
               <MenuItem value="non-fungible">Non-Fungible</MenuItem>
@@ -624,7 +713,13 @@ const TokenizationRegistry: React.FC = () => {
               <MenuItem value="price">Price</MenuItem>
             </Select>
           </FormControl>
-          <ToggleButtonGroup value={viewMode} exclusive onChange={(_: React.MouseEvent<HTMLElement>, v: 'grid' | 'list' | null) => v && setViewMode(v)}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_: React.MouseEvent<HTMLElement>, v: 'grid' | 'list' | null) =>
+              v && setViewMode(v)
+            }
+          >
             <ToggleButton value="grid">Grid</ToggleButton>
             <ToggleButton value="list">List</ToggleButton>
           </ToggleButtonGroup>
@@ -632,7 +727,11 @@ const TokenizationRegistry: React.FC = () => {
       </Paper>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onChange={(_: React.SyntheticEvent, v: number) => setActiveTab(v)} sx={{ mb: 3 }}>
+      <Tabs
+        value={activeTab}
+        onChange={(_: React.SyntheticEvent, v: number) => setActiveTab(v)}
+        sx={{ mb: 3 }}
+      >
         <Tab label="All Tokens" />
         <Tab label="Real World Assets" />
         <Tab label="Market Analysis" />
@@ -640,10 +739,10 @@ const TokenizationRegistry: React.FC = () => {
       </Tabs>
 
       {/* Tab Content */}
-      {activeTab === 0 && (
-        viewMode === 'grid' ? (
+      {activeTab === 0 &&
+        (viewMode === 'grid' ? (
           <Grid container spacing={3}>
-            {sortedTokens.map(token => (
+            {sortedTokens.map((token) => (
               <Grid item xs={12} md={4} key={token.id}>
                 <Card>
                   <CardContent>
@@ -653,7 +752,9 @@ const TokenizationRegistry: React.FC = () => {
                       </Avatar>
                       <Box sx={{ flexGrow: 1 }}>
                         <Typography variant="h6">{token.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">{token.symbol}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {token.symbol}
+                        </Typography>
                       </Box>
                       <Chip
                         label={token.status}
@@ -664,24 +765,35 @@ const TokenizationRegistry: React.FC = () => {
 
                     <Grid container spacing={1}>
                       <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">Price</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Price
+                        </Typography>
                         <Typography variant="body2">${token.price?.toFixed(2)}</Typography>
                       </Grid>
                       <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">24h Change</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          24h Change
+                        </Typography>
                         <Typography
                           variant="body2"
                           color={(token.priceChange24h || 0) >= 0 ? 'success.main' : 'error.main'}
                         >
-                          {(token.priceChange24h || 0) >= 0 ? '+' : ''}{token.priceChange24h?.toFixed(2)}%
+                          {(token.priceChange24h || 0) >= 0 ? '+' : ''}
+                          {token.priceChange24h?.toFixed(2)}%
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">Market Cap</Typography>
-                        <Typography variant="body2">${((token.marketCap || 0) / 1000000).toFixed(2)}M</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Market Cap
+                        </Typography>
+                        <Typography variant="body2">
+                          ${((token.marketCap || 0) / 1000000).toFixed(2)}M
+                        </Typography>
                       </Grid>
                       <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">Holders</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Holders
+                        </Typography>
                         <Typography variant="body2">{token.holders.toLocaleString()}</Typography>
                       </Grid>
                     </Grid>
@@ -691,13 +803,21 @@ const TokenizationRegistry: React.FC = () => {
                       <Chip label={token.standard} size="small" variant="outlined" />
                       {token.features.governance && <Chip label="Governance" size="small" />}
                       {token.features.staking && <Chip label="Staking" size="small" />}
-                      {token.compliance?.kycRequired && <Chip label="KYC" size="small" color="warning" />}
+                      {token.compliance?.kycRequired && (
+                        <Chip label="KYC" size="small" color="warning" />
+                      )}
                     </Box>
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                      <Button size="small" onClick={() => setSelectedToken(token)}>Details</Button>
-                      <Button size="small" startIcon={<SwapHoriz />}>Trade</Button>
-                      <Button size="small" startIcon={<Analytics />}>Analytics</Button>
+                      <Button size="small" onClick={() => setSelectedToken(token)}>
+                        Details
+                      </Button>
+                      <Button size="small" startIcon={<SwapHoriz />}>
+                        Trade
+                      </Button>
+                      <Button size="small" startIcon={<Analytics />}>
+                        Analytics
+                      </Button>
                     </Box>
                   </CardContent>
                 </Card>
@@ -721,7 +841,7 @@ const TokenizationRegistry: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedTokens.map(token => (
+                {sortedTokens.map((token) => (
                   <TableRow key={token.id}>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -730,7 +850,9 @@ const TokenizationRegistry: React.FC = () => {
                         </Avatar>
                         <Box>
                           <Typography variant="body2">{token.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">{token.symbol}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {token.symbol}
+                          </Typography>
                         </Box>
                       </Box>
                     </TableCell>
@@ -739,8 +861,11 @@ const TokenizationRegistry: React.FC = () => {
                     </TableCell>
                     <TableCell>${token.price?.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Typography color={(token.priceChange24h || 0) >= 0 ? 'success.main' : 'error.main'}>
-                        {(token.priceChange24h || 0) >= 0 ? '+' : ''}{token.priceChange24h?.toFixed(2)}%
+                      <Typography
+                        color={(token.priceChange24h || 0) >= 0 ? 'success.main' : 'error.main'}
+                      >
+                        {(token.priceChange24h || 0) >= 0 ? '+' : ''}
+                        {token.priceChange24h?.toFixed(2)}%
                       </Typography>
                     </TableCell>
                     <TableCell>${((token.marketCap || 0) / 1000000).toFixed(2)}M</TableCell>
@@ -763,83 +888,108 @@ const TokenizationRegistry: React.FC = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        )
-      )}
+        ))}
 
       {activeTab === 1 && (
         <Grid container spacing={3}>
-          {sortedTokens.filter(t => t.type === 'rwa').map(token => (
-            <Grid item xs={12} md={6} key={token.id}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Avatar sx={{ bgcolor: 'secondary.main', mr: 2, width: 56, height: 56 }}>
-                      {rwaCategories.find(c => c.id === token.assetBacking?.type)?.icon &&
-                        React.createElement(rwaCategories.find(c => c.id === token.assetBacking?.type)!.icon)}
-                    </Avatar>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6">{token.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">{token.symbol}</Typography>
+          {sortedTokens
+            .filter((t) => t.type === 'rwa')
+            .map((token) => (
+              <Grid item xs={12} md={6} key={token.id}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar sx={{ bgcolor: 'secondary.main', mr: 2, width: 56, height: 56 }}>
+                        {rwaCategories.find((c) => c.id === token.assetBacking?.type)?.icon &&
+                          React.createElement(
+                            rwaCategories.find((c) => c.id === token.assetBacking?.type)!.icon
+                          )}
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6">{token.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {token.symbol}
+                        </Typography>
+                      </Box>
+                      {token.compliance?.kycRequired && (
+                        <Chip label="KYC Required" color="warning" size="small" />
+                      )}
                     </Box>
-                    {token.compliance?.kycRequired && (
-                      <Chip label="KYC Required" color="warning" size="small" />
+
+                    {token.assetBacking && (
+                      <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Asset Backing
+                        </Typography>
+                        <Typography variant="body2">{token.assetBacking.description}</Typography>
+                        <Box sx={{ mt: 1, display: 'flex', gap: 2 }}>
+                          <Typography variant="caption">
+                            Valuation: ${(token.assetBacking.valuation / 1000000).toFixed(2)}M
+                          </Typography>
+                          <Typography variant="caption">
+                            Verifier: {token.assetBacking.verifier}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            Last Audit: {token.assetBacking.lastAudit.toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                      </Paper>
                     )}
-                  </Box>
 
-                  {token.assetBacking && (
-                    <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>Asset Backing</Typography>
-                      <Typography variant="body2">{token.assetBacking.description}</Typography>
-                      <Box sx={{ mt: 1, display: 'flex', gap: 2 }}>
-                        <Typography variant="caption">
-                          Valuation: ${(token.assetBacking.valuation / 1000000).toFixed(2)}M
-                        </Typography>
-                        <Typography variant="caption">
-                          Verifier: {token.assetBacking.verifier}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ mt: 1 }}>
+                    <Grid container spacing={1}>
+                      <Grid item xs={6}>
                         <Typography variant="caption" color="text.secondary">
-                          Last Audit: {token.assetBacking.lastAudit.toLocaleDateString()}
+                          Total Supply
                         </Typography>
-                      </Box>
-                    </Paper>
-                  )}
+                        <Typography variant="body2">
+                          {token.totalSupply.toLocaleString()}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          Price per Token
+                        </Typography>
+                        <Typography variant="body2">${token.price?.toFixed(2)}</Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          Market Cap
+                        </Typography>
+                        <Typography variant="body2">
+                          ${((token.marketCap || 0) / 1000000).toFixed(2)}M
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          Holders
+                        </Typography>
+                        <Typography variant="body2">{token.holders}</Typography>
+                      </Grid>
+                    </Grid>
 
-                  <Grid container spacing={1}>
-                    <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">Total Supply</Typography>
-                      <Typography variant="body2">{token.totalSupply.toLocaleString()}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">Price per Token</Typography>
-                      <Typography variant="body2">${token.price?.toFixed(2)}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">Market Cap</Typography>
-                      <Typography variant="body2">${((token.marketCap || 0) / 1000000).toFixed(2)}M</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">Holders</Typography>
-                      <Typography variant="body2">{token.holders}</Typography>
-                    </Grid>
-                  </Grid>
+                    {token.features.dividends && (
+                      <Alert severity="info" sx={{ mt: 2 }}>
+                        This token pays dividends to holders
+                      </Alert>
+                    )}
 
-                  {token.features.dividends && (
-                    <Alert severity="info" sx={{ mt: 2 }}>
-                      This token pays dividends to holders
-                    </Alert>
-                  )}
-
-                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                    <Button variant="contained" size="small">Invest</Button>
-                    <Button variant="outlined" size="small">View Documents</Button>
-                    <Button variant="outlined" size="small">Audit Report</Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                      <Button variant="contained" size="small">
+                        Invest
+                      </Button>
+                      <Button variant="outlined" size="small">
+                        View Documents
+                      </Button>
+                      <Button variant="outlined" size="small">
+                        Audit Report
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
         </Grid>
       )}
 
@@ -848,7 +998,9 @@ const TokenizationRegistry: React.FC = () => {
           <Grid item xs={12} md={8}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Market Distribution</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Market Distribution
+                </Typography>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -874,22 +1026,21 @@ const TokenizationRegistry: React.FC = () => {
           <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Top Performers (24h)</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Top Performers (24h)
+                </Typography>
                 <List>
                   {sortedTokens
                     .sort((a, b) => (b.priceChange24h || 0) - (a.priceChange24h || 0))
                     .slice(0, 5)
-                    .map(token => (
+                    .map((token) => (
                       <ListItem key={token.id}>
                         <ListItemAvatar>
                           <Avatar sx={{ width: 32, height: 32 }}>
                             <TrendingUp />
                           </Avatar>
                         </ListItemAvatar>
-                        <ListItemText
-                          primary={token.symbol}
-                          secondary={token.name}
-                        />
+                        <ListItemText primary={token.symbol} secondary={token.name} />
                         <Typography color="success.main">
                           +{token.priceChange24h?.toFixed(2)}%
                         </Typography>
@@ -902,7 +1053,9 @@ const TokenizationRegistry: React.FC = () => {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Volume Trends</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Volume Trends
+                </Typography>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -920,10 +1073,9 @@ const TokenizationRegistry: React.FC = () => {
 
       {activeTab === 3 && (
         <Grid container spacing={3}>
-          {rwaCategories.map(category => {
-            const categoryTokens = tokens.filter(t =>
-              t.assetBacking?.type === category.id ||
-              t.metadata.category === category.name
+          {rwaCategories.map((category) => {
+            const categoryTokens = tokens.filter(
+              (t) => t.assetBacking?.type === category.id || t.metadata.category === category.name
             );
             return (
               <Grid item xs={12} md={3} key={category.id}>
@@ -941,9 +1093,15 @@ const TokenizationRegistry: React.FC = () => {
                       </Box>
                     </Box>
                     <Typography variant="h5">
-                      ${(categoryTokens.reduce((sum, t) => sum + (t.marketCap || 0), 0) / 1000000).toFixed(2)}M
+                      $
+                      {(
+                        categoryTokens.reduce((sum, t) => sum + (t.marketCap || 0), 0) / 1000000
+                      ).toFixed(2)}
+                      M
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">Total Market Cap</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Total Market Cap
+                    </Typography>
                     <LinearProgress
                       variant="determinate"
                       value={(categoryTokens.length / tokens.length) * 100}
@@ -958,7 +1116,12 @@ const TokenizationRegistry: React.FC = () => {
       )}
 
       {/* Create Token Dialog */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Create New Token</DialogTitle>
         <DialogContent>
           <Stepper activeStep={wizardStep} sx={{ mb: 3 }}>
@@ -975,21 +1138,30 @@ const TokenizationRegistry: React.FC = () => {
                 fullWidth
                 label="Token Name"
                 value={newToken.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({ ...newToken, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewToken({ ...newToken, name: e.target.value })
+                }
                 margin="normal"
               />
               <TextField
                 fullWidth
                 label="Token Symbol"
                 value={newToken.symbol}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({ ...newToken, symbol: e.target.value.toUpperCase() })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewToken({ ...newToken, symbol: e.target.value.toUpperCase() })
+                }
                 margin="normal"
               />
               <FormControl fullWidth margin="normal">
                 <InputLabel>Token Type</InputLabel>
                 <Select
                   value={newToken.type}
-                  onChange={(e: any) => setNewToken({ ...newToken, type: e.target.value as 'fungible' | 'non-fungible' | 'semi-fungible' | 'rwa' })}
+                  onChange={(e: any) =>
+                    setNewToken({
+                      ...newToken,
+                      type: e.target.value as 'fungible' | 'non-fungible' | 'semi-fungible' | 'rwa',
+                    })
+                  }
                 >
                   <MenuItem value="fungible">Fungible (ERC-20)</MenuItem>
                   <MenuItem value="non-fungible">Non-Fungible (ERC-721)</MenuItem>
@@ -1001,10 +1173,14 @@ const TokenizationRegistry: React.FC = () => {
                 <InputLabel>Channel</InputLabel>
                 <Select
                   value={newToken.channelId}
-                  onChange={(e: any) => setNewToken({ ...newToken, channelId: e.target.value as string })}
+                  onChange={(e: any) =>
+                    setNewToken({ ...newToken, channelId: e.target.value as string })
+                  }
                 >
-                  {channels.map(ch => (
-                    <MenuItem key={ch.id} value={ch.id}>{ch.name}</MenuItem>
+                  {channels.map((ch) => (
+                    <MenuItem key={ch.id} value={ch.id}>
+                      {ch.name}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -1014,7 +1190,9 @@ const TokenizationRegistry: React.FC = () => {
                 rows={3}
                 label="Description"
                 value={newToken.description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({ ...newToken, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewToken({ ...newToken, description: e.target.value })
+                }
                 margin="normal"
               />
             </Box>
@@ -1027,7 +1205,9 @@ const TokenizationRegistry: React.FC = () => {
                 label="Total Supply"
                 type="number"
                 value={newToken.totalSupply}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({ ...newToken, totalSupply: parseInt(e.target.value) })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewToken({ ...newToken, totalSupply: parseInt(e.target.value) })
+                }
                 margin="normal"
               />
               {newToken.type === 'fungible' && (
@@ -1036,7 +1216,9 @@ const TokenizationRegistry: React.FC = () => {
                   label="Decimals"
                   type="number"
                   value={newToken.decimals}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({ ...newToken, decimals: parseInt(e.target.value) })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setNewToken({ ...newToken, decimals: parseInt(e.target.value) })
+                  }
                   margin="normal"
                 />
               )}
@@ -1045,10 +1227,12 @@ const TokenizationRegistry: React.FC = () => {
                 label="Initial Price (USD)"
                 type="number"
                 value={newToken.price}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({ ...newToken, price: parseFloat(e.target.value) })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewToken({ ...newToken, price: parseFloat(e.target.value) })
+                }
                 margin="normal"
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">$</InputAdornment>
+                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
                 }}
               />
               <Typography variant="h6" sx={{ mt: 2 }}>
@@ -1059,7 +1243,9 @@ const TokenizationRegistry: React.FC = () => {
 
           {wizardStep === 2 && (
             <Box>
-              <Typography variant="h6" gutterBottom>Token Features</Typography>
+              <Typography variant="h6" gutterBottom>
+                Token Features
+              </Typography>
               <Grid container spacing={2}>
                 {Object.entries(newToken.features).map(([key, value]) => (
                   <Grid item xs={12} md={6} key={key}>
@@ -1067,10 +1253,12 @@ const TokenizationRegistry: React.FC = () => {
                       control={
                         <Switch
                           checked={value}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({
-                            ...newToken,
-                            features: { ...newToken.features, [key]: e.target.checked }
-                          })}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setNewToken({
+                              ...newToken,
+                              features: { ...newToken.features, [key]: e.target.checked },
+                            })
+                          }
                         />
                       }
                       label={key.charAt(0).toUpperCase() + key.slice(1)}
@@ -1083,15 +1271,19 @@ const TokenizationRegistry: React.FC = () => {
 
           {wizardStep === 3 && (
             <Box>
-              <Typography variant="h6" gutterBottom>Compliance Settings</Typography>
+              <Typography variant="h6" gutterBottom>
+                Compliance Settings
+              </Typography>
               <FormControlLabel
                 control={
                   <Switch
                     checked={newToken.compliance.kycRequired}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({
-                      ...newToken,
-                      compliance: { ...newToken.compliance, kycRequired: e.target.checked }
-                    })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewToken({
+                        ...newToken,
+                        compliance: { ...newToken.compliance, kycRequired: e.target.checked },
+                      })
+                    }
                   />
                 }
                 label="KYC Required"
@@ -1100,10 +1292,12 @@ const TokenizationRegistry: React.FC = () => {
                 control={
                   <Switch
                     checked={newToken.compliance.accreditedOnly}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewToken({
-                      ...newToken,
-                      compliance: { ...newToken.compliance, accreditedOnly: e.target.checked }
-                    })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewToken({
+                        ...newToken,
+                        compliance: { ...newToken.compliance, accreditedOnly: e.target.checked },
+                      })
+                    }
                   />
                 }
                 label="Accredited Investors Only"
@@ -1122,23 +1316,35 @@ const TokenizationRegistry: React.FC = () => {
                 Review your token configuration before deployment
               </Alert>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>{newToken.name} ({newToken.symbol})</Typography>
+                <Typography variant="h6" gutterBottom>
+                  {newToken.name} ({newToken.symbol})
+                </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Type</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Type
+                    </Typography>
                     <Typography>{newToken.type}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Total Supply</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Total Supply
+                    </Typography>
                     <Typography>{newToken.totalSupply.toLocaleString()}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Initial Price</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Initial Price
+                    </Typography>
                     <Typography>${newToken.price}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Market Cap</Typography>
-                    <Typography>${(newToken.totalSupply * newToken.price).toLocaleString()}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Market Cap
+                    </Typography>
+                    <Typography>
+                      ${(newToken.totalSupply * newToken.price).toLocaleString()}
+                    </Typography>
                   </Grid>
                 </Grid>
               </Paper>
@@ -1148,10 +1354,10 @@ const TokenizationRegistry: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
           {wizardStep > 0 && (
-            <Button onClick={() => setWizardStep(prev => prev - 1)}>Back</Button>
+            <Button onClick={() => setWizardStep((prev) => prev - 1)}>Back</Button>
           )}
           {wizardStep < wizardSteps.length - 1 ? (
-            <Button variant="contained" onClick={() => setWizardStep(prev => prev + 1)}>
+            <Button variant="contained" onClick={() => setWizardStep((prev) => prev + 1)}>
               Next
             </Button>
           ) : (
@@ -1189,50 +1395,72 @@ const TokenizationRegistry: React.FC = () => {
           <DialogContent>
             <Grid container spacing={3}>
               <Grid item xs={12} md={8}>
-                <Typography variant="h6" gutterBottom>Token Information</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Token Information
+                </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Contract Address</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Contract Address
+                    </Typography>
                     <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                       {selectedToken.contractAddress}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Created By</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Created By
+                    </Typography>
                     <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                       {selectedToken.createdBy}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Created At</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Created At
+                    </Typography>
                     <Typography variant="body2">
                       {selectedToken.createdAt.toLocaleDateString()}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Channel</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Channel
+                    </Typography>
                     <Typography variant="body2">
-                      {channels.find(c => c.id === selectedToken.channelId)?.name}
+                      {channels.find((c) => c.id === selectedToken.channelId)?.name}
                     </Typography>
                   </Grid>
                 </Grid>
 
                 {selectedToken.assetBacking && (
                   <Box sx={{ mt: 3 }}>
-                    <Typography variant="h6" gutterBottom>Asset Backing</Typography>
+                    <Typography variant="h6" gutterBottom>
+                      Asset Backing
+                    </Typography>
                     <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                      <Typography variant="body2">{selectedToken.assetBacking.description}</Typography>
+                      <Typography variant="body2">
+                        {selectedToken.assetBacking.description}
+                      </Typography>
                       <Grid container spacing={2} sx={{ mt: 1 }}>
                         <Grid item xs={4}>
-                          <Typography variant="caption" color="text.secondary">Type</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Type
+                          </Typography>
                           <Typography>{selectedToken.assetBacking.type}</Typography>
                         </Grid>
                         <Grid item xs={4}>
-                          <Typography variant="caption" color="text.secondary">Valuation</Typography>
-                          <Typography>${selectedToken.assetBacking.valuation.toLocaleString()}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Valuation
+                          </Typography>
+                          <Typography>
+                            ${selectedToken.assetBacking.valuation.toLocaleString()}
+                          </Typography>
                         </Grid>
                         <Grid item xs={4}>
-                          <Typography variant="caption" color="text.secondary">Verifier</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Verifier
+                          </Typography>
                           <Typography>{selectedToken.assetBacking.verifier}</Typography>
                         </Grid>
                       </Grid>
@@ -1241,19 +1469,33 @@ const TokenizationRegistry: React.FC = () => {
                 )}
               </Grid>
               <Grid item xs={12} md={4}>
-                <Typography variant="h6" gutterBottom>Market Data</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Market Data
+                </Typography>
                 <List>
                   <ListItem>
-                    <ListItemText primary="Price" secondary={`$${selectedToken.price?.toFixed(2)}`} />
+                    <ListItemText
+                      primary="Price"
+                      secondary={`$${selectedToken.price?.toFixed(2)}`}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="Market Cap" secondary={`$${selectedToken.marketCap?.toLocaleString()}`} />
+                    <ListItemText
+                      primary="Market Cap"
+                      secondary={`$${selectedToken.marketCap?.toLocaleString()}`}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="24h Volume" secondary={`$${selectedToken.volume24h?.toLocaleString()}`} />
+                    <ListItemText
+                      primary="24h Volume"
+                      secondary={`$${selectedToken.volume24h?.toLocaleString()}`}
+                    />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primary="Holders" secondary={selectedToken.holders.toLocaleString()} />
+                    <ListItemText
+                      primary="Holders"
+                      secondary={selectedToken.holders.toLocaleString()}
+                    />
                   </ListItem>
                 </List>
               </Grid>
@@ -1261,7 +1503,9 @@ const TokenizationRegistry: React.FC = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setSelectedToken(null)}>Close</Button>
-            <Button variant="contained" startIcon={<SwapHoriz />}>Trade</Button>
+            <Button variant="contained" startIcon={<SwapHoriz />}>
+              Trade
+            </Button>
           </DialogActions>
         </Dialog>
       )}

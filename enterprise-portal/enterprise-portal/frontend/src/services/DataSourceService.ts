@@ -156,7 +156,11 @@ class DataSourceService {
       'Investors optimistic about future prospects',
     ];
     const sources = ['Reuters', 'Bloomberg', 'CNBC', 'WSJ', 'Financial Times'];
-    const sentiments: Array<'positive' | 'negative' | 'neutral'> = ['positive', 'negative', 'neutral'];
+    const sentiments: Array<'positive' | 'negative' | 'neutral'> = [
+      'positive',
+      'negative',
+      'neutral',
+    ];
     const randomTitle = titles[Math.floor(Math.random() * titles.length)] || 'Market news';
     const randomSource = sources[Math.floor(Math.random() * sources.length)] || 'Reuters';
     const randomSentiment = sentiments[Math.floor(Math.random() * sentiments.length)] || 'neutral';
@@ -179,7 +183,13 @@ class DataSourceService {
       'Crypto adoption continues to grow worldwide',
       'Tech stocks leading market gains',
     ];
-    const authors = ['@TechNews', '@MarketWatch', '@CryptoInsider', '@FinanceDaily', '@BlockchainPro'];
+    const authors = [
+      '@TechNews',
+      '@MarketWatch',
+      '@CryptoInsider',
+      '@FinanceDaily',
+      '@BlockchainPro',
+    ];
     const randomTweet = tweets[Math.floor(Math.random() * tweets.length)] || 'Blockchain news';
     const randomAuthor = authors[Math.floor(Math.random() * authors.length)] || '@TechNews';
 

@@ -23,7 +23,6 @@ class TokenService {
   constructor(baseUrl: string = API_BASE_URL, demoMode: boolean = false) {
     this.baseUrl = baseUrl;
     this.demoMode = demoMode;
-    console.log(`TokenService initialized with baseUrl: ${baseUrl}, demoMode: ${demoMode}`);
   }
 
   setDemoMode(enabled: boolean) {
@@ -89,7 +88,15 @@ class TokenService {
    */
   async getToken(tokenId: string): Promise<Token> {
     if (this.demoMode) {
-      return this.generateMockToken({ name: 'Demo Token', symbol: 'DMO', decimals: 18, initialSupply: 1000000, mintable: true, burnable: true, pausable: false });
+      return this.generateMockToken({
+        name: 'Demo Token',
+        symbol: 'DMO',
+        decimals: 18,
+        initialSupply: 1000000,
+        mintable: true,
+        burnable: true,
+        pausable: false,
+      });
     }
     return this.fetchWithRetry<Token>(`/api/v11/tokens/${tokenId}`);
   }
@@ -198,7 +205,10 @@ class TokenService {
     }));
   }
 
-  private generateMockTransaction(type: 'mint' | 'burn' | 'transfer', request: any): TokenTransaction {
+  private generateMockTransaction(
+    type: 'mint' | 'burn' | 'transfer',
+    request: any
+  ): TokenTransaction {
     return {
       id: `tx-${Date.now()}`,
       tokenId: request.tokenId,
@@ -208,7 +218,8 @@ class TokenService {
       amount: request.amount,
       timestamp: new Date().toISOString(),
       blockHeight: Math.floor(Math.random() * 1000000) + 1000000,
-      transactionHash: '0x' + Math.random().toString(16).substring(2) + Math.random().toString(16).substring(2),
+      transactionHash:
+        '0x' + Math.random().toString(16).substring(2) + Math.random().toString(16).substring(2),
       status: 'confirmed',
       memo: request.memo,
     };

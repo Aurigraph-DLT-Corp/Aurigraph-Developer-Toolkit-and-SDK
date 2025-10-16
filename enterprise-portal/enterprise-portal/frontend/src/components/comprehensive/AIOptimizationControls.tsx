@@ -32,7 +32,11 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import type { AIModel, AIOptimizationMetrics, PredictiveAnalytics } from '../../types/comprehensive';
+import type {
+  AIModel,
+  AIOptimizationMetrics,
+  PredictiveAnalytics,
+} from '../../types/comprehensive';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
@@ -80,8 +84,7 @@ const AIOptimizationControls: React.FC = () => {
   }, []);
 
   // Handle model retraining
-  const handleRetrain = (modelId: string) => {
-    console.log('Retraining model:', modelId);
+  const handleRetrain = (_modelId: string) => {
     // TODO: Implement retraining API call
   };
 
@@ -109,7 +112,11 @@ const AIOptimizationControls: React.FC = () => {
           training: { color: 'processing', icon: <SyncOutlined spin /> },
           disabled: { color: 'default', icon: <WarningOutlined /> },
         };
-        return <Tag icon={config[status].icon} color={config[status].color}>{status.toUpperCase()}</Tag>;
+        return (
+          <Tag icon={config[status].icon} color={config[status].color}>
+            {status.toUpperCase()}
+          </Tag>
+        );
       },
     },
     {
@@ -138,7 +145,11 @@ const AIOptimizationControls: React.FC = () => {
       title: 'Action',
       key: 'action',
       render: (_, record) => (
-        <Button size="small" onClick={() => handleRetrain(record.id)} disabled={record.status === 'training'}>
+        <Button
+          size="small"
+          onClick={() => handleRetrain(record.id)}
+          disabled={record.status === 'training'}
+        >
           Retrain
         </Button>
       ),
@@ -148,7 +159,9 @@ const AIOptimizationControls: React.FC = () => {
   return (
     <div style={{ padding: '24px' }}>
       <Title level={2}>AI Optimization Controls</Title>
-      <Text type="secondary">Machine learning models for consensus optimization and predictive analytics</Text>
+      <Text type="secondary">
+        Machine learning models for consensus optimization and predictive analytics
+      </Text>
 
       {/* AI Status Overview */}
       <Row gutter={[16, 16]} style={{ marginTop: '24px', marginBottom: '24px' }}>
@@ -211,12 +224,21 @@ const AIOptimizationControls: React.FC = () => {
               </Text>
               <Text>
                 <strong>Network Load:</strong>{' '}
-                <Tag color={predictions.predictions.networkLoad === 'low' ? 'green' : predictions.predictions.networkLoad === 'high' ? 'orange' : 'red'}>
+                <Tag
+                  color={
+                    predictions.predictions.networkLoad === 'low'
+                      ? 'green'
+                      : predictions.predictions.networkLoad === 'high'
+                        ? 'orange'
+                        : 'red'
+                  }
+                >
                   {predictions.predictions.networkLoad.toUpperCase()}
                 </Tag>
               </Text>
               <Text>
-                <strong>Consensus Stability:</strong> {(predictions.predictions.consensusStability * 100).toFixed(1)}%
+                <strong>Consensus Stability:</strong>{' '}
+                {(predictions.predictions.consensusStability * 100).toFixed(1)}%
               </Text>
               {predictions.predictions.suggestedActions.length > 0 && (
                 <div>
@@ -253,10 +275,15 @@ const AIOptimizationControls: React.FC = () => {
                       {metrics && (
                         <>
                           <Text type="secondary">
-                            Leader Selection Accuracy: {(metrics.consensusOptimization.leaderSelectionAccuracy * 100).toFixed(1)}%
+                            Leader Selection Accuracy:{' '}
+                            {(metrics.consensusOptimization.leaderSelectionAccuracy * 100).toFixed(
+                              1
+                            )}
+                            %
                           </Text>
                           <Text type="secondary">
-                            Consensus Latency Reduction: {metrics.consensusOptimization.consensusLatencyReduction.toFixed(1)}%
+                            Consensus Latency Reduction:{' '}
+                            {metrics.consensusOptimization.consensusLatencyReduction.toFixed(1)}%
                           </Text>
                         </>
                       )}
@@ -267,9 +294,18 @@ const AIOptimizationControls: React.FC = () => {
                   <Card size="small" title="Transaction Ordering">
                     {metrics && (
                       <Space direction="vertical" style={{ width: '100%' }}>
-                        <Text>Throughput Increase: +{metrics.transactionOrdering.throughputIncrease.toFixed(1)}%</Text>
-                        <Text>Latency Reduction: -{metrics.transactionOrdering.latencyReduction.toFixed(1)}%</Text>
-                        <Text>Ordering Accuracy: {(metrics.transactionOrdering.orderingAccuracy * 100).toFixed(1)}%</Text>
+                        <Text>
+                          Throughput Increase: +
+                          {metrics.transactionOrdering.throughputIncrease.toFixed(1)}%
+                        </Text>
+                        <Text>
+                          Latency Reduction: -
+                          {metrics.transactionOrdering.latencyReduction.toFixed(1)}%
+                        </Text>
+                        <Text>
+                          Ordering Accuracy:{' '}
+                          {(metrics.transactionOrdering.orderingAccuracy * 100).toFixed(1)}%
+                        </Text>
                       </Space>
                     )}
                   </Card>
@@ -280,11 +316,23 @@ const AIOptimizationControls: React.FC = () => {
                 <Row gutter={[16, 16]}>
                   <Col span={12}>
                     <Text>Learning Rate: {learningRate}</Text>
-                    <Slider min={0.0001} max={0.01} step={0.0001} value={learningRate} onChange={setLearningRate} />
+                    <Slider
+                      min={0.0001}
+                      max={0.01}
+                      step={0.0001}
+                      value={learningRate}
+                      onChange={setLearningRate}
+                    />
                   </Col>
                   <Col span={12}>
                     <Text>Batch Size: {batchSize}</Text>
-                    <Slider min={16} max={256} step={16} value={batchSize} onChange={setBatchSize} />
+                    <Slider
+                      min={16}
+                      max={256}
+                      step={16}
+                      value={batchSize}
+                      onChange={setBatchSize}
+                    />
                   </Col>
                 </Row>
               </Card>
@@ -301,17 +349,31 @@ const AIOptimizationControls: React.FC = () => {
                 <Row gutter={[16, 16]}>
                   <Col xs={24} sm={8}>
                     <Card>
-                      <Statistic title="Anomalies Detected" value={metrics.anomalyDetection.anomaliesDetected} prefix={<WarningOutlined />} />
+                      <Statistic
+                        title="Anomalies Detected"
+                        value={metrics.anomalyDetection.anomaliesDetected}
+                        prefix={<WarningOutlined />}
+                      />
                     </Card>
                   </Col>
                   <Col xs={24} sm={8}>
                     <Card>
-                      <Statistic title="False Positive Rate" value={metrics.anomalyDetection.falsePositiveRate} precision={2} suffix="%" />
+                      <Statistic
+                        title="False Positive Rate"
+                        value={metrics.anomalyDetection.falsePositiveRate}
+                        precision={2}
+                        suffix="%"
+                      />
                     </Card>
                   </Col>
                   <Col xs={24} sm={8}>
                     <Card>
-                      <Statistic title="Detection Latency" value={metrics.anomalyDetection.detectionLatency} precision={0} suffix="ms" />
+                      <Statistic
+                        title="Detection Latency"
+                        value={metrics.anomalyDetection.detectionLatency}
+                        precision={0}
+                        suffix="ms"
+                      />
                     </Card>
                   </Col>
                 </Row>
@@ -329,17 +391,30 @@ const AIOptimizationControls: React.FC = () => {
                 <Row gutter={[16, 16]}>
                   <Col xs={24} sm={8}>
                     <Card>
-                      <Statistic title="Node Utilization" value={metrics.loadBalancing.nodeUtilization * 100} precision={1} suffix="%" />
+                      <Statistic
+                        title="Node Utilization"
+                        value={metrics.loadBalancing.nodeUtilization * 100}
+                        precision={1}
+                        suffix="%"
+                      />
                     </Card>
                   </Col>
                   <Col xs={24} sm={8}>
                     <Card>
-                      <Statistic title="Distribution Efficiency" value={metrics.loadBalancing.distributionEfficiency * 100} precision={1} suffix="%" />
+                      <Statistic
+                        title="Distribution Efficiency"
+                        value={metrics.loadBalancing.distributionEfficiency * 100}
+                        precision={1}
+                        suffix="%"
+                      />
                     </Card>
                   </Col>
                   <Col xs={24} sm={8}>
                     <Card>
-                      <Statistic title="Rebalance Events" value={metrics.loadBalancing.rebalanceEvents} />
+                      <Statistic
+                        title="Rebalance Events"
+                        value={metrics.loadBalancing.rebalanceEvents}
+                      />
                     </Card>
                   </Col>
                 </Row>
@@ -348,7 +423,13 @@ const AIOptimizationControls: React.FC = () => {
           </TabPane>
 
           <TabPane tab="Model Management" key="models">
-            <Table columns={columns} dataSource={models} loading={loading} rowKey="id" pagination={false} />
+            <Table
+              columns={columns}
+              dataSource={models}
+              loading={loading}
+              rowKey="id"
+              pagination={false}
+            />
           </TabPane>
         </Tabs>
       </Card>
@@ -430,7 +511,10 @@ const generateMockPredictions = (): PredictiveAnalytics => ({
   predictions: {
     nextHourTps: 2200000 + Math.random() * 300000,
     nextHourLatency: 10 + Math.random() * 5,
-    networkLoad: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as 'low' | 'medium' | 'high',
+    networkLoad: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as
+      | 'low'
+      | 'medium'
+      | 'high',
     consensusStability: 0.92 + Math.random() * 0.07,
     suggestedActions: [
       'Consider scaling validator count to handle predicted load',

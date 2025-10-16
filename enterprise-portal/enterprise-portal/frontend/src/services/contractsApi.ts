@@ -96,7 +96,7 @@ class ContractsApiService {
         if (response.ok) {
           const result = await response.json();
           // Remove controller after successful fetch
-          this.abortControllers = this.abortControllers.filter(c => c !== controller);
+          this.abortControllers = this.abortControllers.filter((c) => c !== controller);
           return result;
         }
 
@@ -109,7 +109,7 @@ class ContractsApiService {
           await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000));
         } else {
           // Remove controller after all retries failed
-          this.abortControllers = this.abortControllers.filter(c => c !== controller);
+          this.abortControllers = this.abortControllers.filter((c) => c !== controller);
           throw error;
         }
       }
@@ -121,7 +121,7 @@ class ContractsApiService {
    * Cancel all pending requests
    */
   cancelAll() {
-    this.abortControllers.forEach(controller => controller.abort());
+    this.abortControllers.forEach((controller) => controller.abort());
     this.abortControllers = [];
   }
 
@@ -154,7 +154,7 @@ class ContractsApiService {
   async getContract(contractId: string): Promise<Contract | null> {
     if (this.demoMode) {
       const contracts = this.generateMockContracts();
-      return contracts.find(c => c.id === contractId) || null;
+      return contracts.find((c) => c.id === contractId) || null;
     }
 
     try {
@@ -195,16 +195,22 @@ class ContractsApiService {
   /**
    * Verify contract source code
    */
-  async verifyContract(contractId: string, sourceCode: string): Promise<{ success: boolean; verified?: boolean }> {
+  async verifyContract(
+    contractId: string,
+    sourceCode: string
+  ): Promise<{ success: boolean; verified?: boolean }> {
     if (this.demoMode) {
       return { success: true, verified: true };
     }
 
     try {
-      return await this.fetchWithRetry<{ success: boolean; verified: boolean }>(`/api/v11/contracts/${contractId}/verify`, {
-        method: 'POST',
-        body: JSON.stringify({ sourceCode }),
-      });
+      return await this.fetchWithRetry<{ success: boolean; verified: boolean }>(
+        `/api/v11/contracts/${contractId}/verify`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ sourceCode }),
+        }
+      );
     } catch (error) {
       console.error(`Failed to verify contract ${contractId}:`, error);
       return { success: false };
@@ -228,9 +234,12 @@ class ContractsApiService {
     }
 
     try {
-      return await this.fetchWithRetry<{ success: boolean; auditReport: any }>(`/api/v11/contracts/${contractId}/audit`, {
-        method: 'POST',
-      });
+      return await this.fetchWithRetry<{ success: boolean; auditReport: any }>(
+        `/api/v11/contracts/${contractId}/audit`,
+        {
+          method: 'POST',
+        }
+      );
     } catch (error) {
       console.error(`Failed to audit contract ${contractId}:`, error);
       return { success: false };
@@ -279,7 +288,13 @@ class ContractsApiService {
     ];
 
     const channels = ['main', 'finance', 'supply-chain', 'iot', 'governance'];
-    const statuses: ('deployed' | 'pending' | 'failed' | 'auditing')[] = ['deployed', 'deployed', 'deployed', 'pending', 'auditing'];
+    const statuses: ('deployed' | 'pending' | 'failed' | 'auditing')[] = [
+      'deployed',
+      'deployed',
+      'deployed',
+      'pending',
+      'auditing',
+    ];
 
     return names.map((name, i) => ({
       id: `contract-${i + 1}`,
@@ -292,12 +307,15 @@ class ContractsApiService {
       code: `pragma solidity ^0.8.0;\n\ncontract ${name.replace(/\s+/g, '')} {\n    // Contract implementation\n}`,
       verified: i % 2 === 0,
       audited: i % 3 === 0,
-      auditReport: i % 3 === 0 ? {
-        status: 'passed' as const,
-        issues: Math.floor(Math.random() * 3),
-        severity: 'low' as const,
-        details: 'Security audit completed successfully',
-      } : undefined,
+      auditReport:
+        i % 3 === 0
+          ? {
+              status: 'passed' as const,
+              issues: Math.floor(Math.random() * 3),
+              severity: 'low' as const,
+              details: 'Security audit completed successfully',
+            }
+          : undefined,
       metrics: {
         transactions: Math.floor(Math.random() * 10000) + 500,
         gasUsed: Math.floor(Math.random() * 1000000) + 50000,

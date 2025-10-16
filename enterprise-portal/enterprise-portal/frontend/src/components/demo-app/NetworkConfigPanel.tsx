@@ -137,8 +137,8 @@ export const NetworkConfigPanel = () => {
 
       message.success(
         `Network configured: ${networkConfig.channels} channel(s), ${networkConfig.validators} validator(s), ` +
-        `${networkConfig.businessNodes} business node(s), ${networkConfig.slimNodes} slim node(s), ` +
-        `${networkConfig.dataSources.length} data source(s)`
+          `${networkConfig.businessNodes} business node(s), ${networkConfig.slimNodes} slim node(s), ` +
+          `${networkConfig.dataSources.length} data source(s)`
       );
 
       // TODO: Actually generate nodes based on configuration
@@ -172,7 +172,13 @@ export const NetworkConfigPanel = () => {
         {/* Node Count Configuration */}
         <Title level={5}>Node Topology</Title>
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <Form.Item label={<Space><NodeIndexOutlined /> Channel Nodes</Space>}>
+          <Form.Item
+            label={
+              <Space>
+                <NodeIndexOutlined /> Channel Nodes
+              </Space>
+            }
+          >
             <InputNumber
               min={1}
               max={10}
@@ -182,7 +188,13 @@ export const NetworkConfigPanel = () => {
             />
           </Form.Item>
 
-          <Form.Item label={<Space><SafetyOutlined /> Validator Nodes</Space>}>
+          <Form.Item
+            label={
+              <Space>
+                <SafetyOutlined /> Validator Nodes
+              </Space>
+            }
+          >
             <InputNumber
               min={1}
               max={20}
@@ -192,7 +204,13 @@ export const NetworkConfigPanel = () => {
             />
           </Form.Item>
 
-          <Form.Item label={<Space><ShopOutlined /> Business Nodes</Space>}>
+          <Form.Item
+            label={
+              <Space>
+                <ShopOutlined /> Business Nodes
+              </Space>
+            }
+          >
             <InputNumber
               min={0}
               max={50}
@@ -202,7 +220,13 @@ export const NetworkConfigPanel = () => {
             />
           </Form.Item>
 
-          <Form.Item label={<Space><ApiOutlined /> Slim Nodes</Space>}>
+          <Form.Item
+            label={
+              <Space>
+                <ApiOutlined /> Slim Nodes
+              </Space>
+            }
+          >
             <InputNumber
               min={0}
               max={100}
@@ -235,11 +259,7 @@ export const NetworkConfigPanel = () => {
                   </Option>
                 ))}
               </Select>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAddDataSource}
-              >
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleAddDataSource}>
                 Add
               </Button>
             </Space.Compact>
@@ -266,9 +286,7 @@ export const NetworkConfigPanel = () => {
                       <Space>
                         {DATA_SOURCE_ICONS[dataSource.type]}
                         <Text strong>{dataSource.name}</Text>
-                        <Tag color={DATA_SOURCE_COLORS[dataSource.type]}>
-                          {dataSource.type}
-                        </Tag>
+                        <Tag color={DATA_SOURCE_COLORS[dataSource.type]}>{dataSource.type}</Tag>
                       </Space>
                       <Text type="secondary" style={{ fontSize: 12 }}>
                         {dataSource.description}
@@ -305,15 +323,21 @@ export const NetworkConfigPanel = () => {
         </Button>
 
         {/* Configuration Summary */}
-        <Card
-          size="small"
-          style={{ marginTop: 16, background: '#f0f2f5' }}
-        >
+        <Card size="small" style={{ marginTop: 16, background: '#f0f2f5' }}>
           <Space direction="vertical" size="small">
             <Text strong>Configuration Summary:</Text>
-            <Text>• Total Nodes: {networkConfig.channels + networkConfig.validators + networkConfig.businessNodes + networkConfig.slimNodes}</Text>
+            <Text>
+              • Total Nodes:{' '}
+              {networkConfig.channels +
+                networkConfig.validators +
+                networkConfig.businessNodes +
+                networkConfig.slimNodes}
+            </Text>
             <Text>• Data Sources: {networkConfig.dataSources.length}</Text>
-            <Text>• Slim Nodes with Data: {networkConfig.slimNodes > 0 && networkConfig.dataSources.length > 0 ? 'Yes' : 'No'}</Text>
+            <Text>
+              • Slim Nodes with Data:{' '}
+              {networkConfig.slimNodes > 0 && networkConfig.dataSources.length > 0 ? 'Yes' : 'No'}
+            </Text>
           </Space>
         </Card>
       </Form>

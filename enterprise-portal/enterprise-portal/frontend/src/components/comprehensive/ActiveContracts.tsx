@@ -1,9 +1,30 @@
 import React, { useState } from 'react';
 import {
-  Box, Card, CardContent, Typography, Grid, Button, TextField,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Chip, Tabs, Tab, Dialog, DialogTitle, DialogContent,
-  DialogActions, Alert, Stepper, Step, StepLabel
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Tabs,
+  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Stepper,
+  Step,
+  StepLabel,
 } from '@mui/material';
 import { Add, Description, Check, Close } from '@mui/icons-material';
 
@@ -42,8 +63,8 @@ export const ActiveContracts: React.FC = () => {
       value: 500000,
       createdAt: new Date(),
       terms: 'Monthly delivery of 1000 units',
-      legalText: 'This agreement is entered into...'
-    }
+      legalText: 'This agreement is entered into...',
+    },
   ]);
 
   const [entries] = useState<TripleEntry[]>([
@@ -54,8 +75,8 @@ export const ActiveContracts: React.FC = () => {
       amount: 10000,
       contractId: 'ac1',
       timestamp: new Date(),
-      verified: true
-    }
+      verified: true,
+    },
   ]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -67,7 +88,7 @@ export const ActiveContracts: React.FC = () => {
     value: 0,
     terms: '',
     legalText: '',
-    code: ''
+    code: '',
   });
 
   const steps = ['Basic Info', 'Legal Terms', 'Smart Code', 'Review & Deploy'];
@@ -83,7 +104,7 @@ export const ActiveContracts: React.FC = () => {
       createdAt: new Date(),
       terms: contractForm.terms,
       legalText: contractForm.legalText,
-      code: contractForm.code
+      code: contractForm.code,
     };
     setContracts([...contracts, newContract]);
     setDialogOpen(false);
@@ -92,29 +113,41 @@ export const ActiveContracts: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>ActiveContracts© Management</Typography>
+      <Typography variant="h5" gutterBottom>
+        ActiveContracts© Management
+      </Typography>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Active Contracts</Typography>
-              <Typography variant="h4">{contracts.filter(c => c.status === 'active').length}</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Active Contracts
+              </Typography>
+              <Typography variant="h4">
+                {contracts.filter((c) => c.status === 'active').length}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total Value Locked</Typography>
-              <Typography variant="h4">${contracts.reduce((sum, c) => sum + c.value, 0).toLocaleString()}</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Total Value Locked
+              </Typography>
+              <Typography variant="h4">
+                ${contracts.reduce((sum, c) => sum + c.value, 0).toLocaleString()}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Triple Entries</Typography>
+              <Typography color="textSecondary" gutterBottom>
+                Triple Entries
+              </Typography>
               <Typography variant="h4">{entries.length}</Typography>
             </CardContent>
           </Card>
@@ -124,7 +157,10 @@ export const ActiveContracts: React.FC = () => {
       <Card>
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Tabs value={activeTab} onChange={(_: React.SyntheticEvent, v: number) => setActiveTab(v)}>
+            <Tabs
+              value={activeTab}
+              onChange={(_: React.SyntheticEvent, v: number) => setActiveTab(v)}
+            >
               <Tab label="Contracts" />
               <Tab label="Triple-Entry Ledger" />
               <Tab label="Templates" />
@@ -148,7 +184,7 @@ export const ActiveContracts: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {contracts.map(contract => (
+                  {contracts.map((contract) => (
                     <TableRow key={contract.id}>
                       <TableCell>{contract.name}</TableCell>
                       <TableCell>
@@ -188,7 +224,7 @@ export const ActiveContracts: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {entries.map(entry => (
+                  {entries.map((entry) => (
                     <TableRow key={entry.id}>
                       <TableCell>{entry.id}</TableCell>
                       <TableCell>{entry.debit}</TableCell>
@@ -250,7 +286,7 @@ export const ActiveContracts: React.FC = () => {
         <DialogTitle>Create ActiveContract</DialogTitle>
         <DialogContent>
           <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-            {steps.map(label => (
+            {steps.map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
               </Step>
@@ -263,14 +299,18 @@ export const ActiveContracts: React.FC = () => {
                 fullWidth
                 label="Contract Name"
                 value={contractForm.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContractForm({...contractForm, name: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setContractForm({ ...contractForm, name: e.target.value })
+                }
                 margin="normal"
               />
               <TextField
                 fullWidth
                 label="Parties (comma-separated)"
                 value={contractForm.parties}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContractForm({...contractForm, parties: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setContractForm({ ...contractForm, parties: e.target.value })
+                }
                 margin="normal"
               />
               <TextField
@@ -278,7 +318,9 @@ export const ActiveContracts: React.FC = () => {
                 label="Contract Value"
                 type="number"
                 value={contractForm.value}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContractForm({...contractForm, value: parseInt(e.target.value)})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setContractForm({ ...contractForm, value: parseInt(e.target.value) })
+                }
                 margin="normal"
               />
             </Box>
@@ -291,7 +333,9 @@ export const ActiveContracts: React.FC = () => {
               multiline
               rows={10}
               value={contractForm.legalText}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContractForm({...contractForm, legalText: e.target.value})}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setContractForm({ ...contractForm, legalText: e.target.value })
+              }
               margin="normal"
             />
           )}
@@ -303,7 +347,9 @@ export const ActiveContracts: React.FC = () => {
               multiline
               rows={10}
               value={contractForm.code}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContractForm({...contractForm, code: e.target.value})}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setContractForm({ ...contractForm, code: e.target.value })
+              }
               margin="normal"
               placeholder="// Solidity or JavaScript code"
             />
@@ -311,19 +357,22 @@ export const ActiveContracts: React.FC = () => {
 
           {activeStep === 3 && (
             <Alert severity="info">
-              Review your contract details before deployment. Once deployed, the contract will be immutable on the blockchain.
+              Review your contract details before deployment. Once deployed, the contract will be
+              immutable on the blockchain.
             </Alert>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          {activeStep > 0 && (
-            <Button onClick={() => setActiveStep(activeStep - 1)}>Back</Button>
-          )}
+          {activeStep > 0 && <Button onClick={() => setActiveStep(activeStep - 1)}>Back</Button>}
           {activeStep < steps.length - 1 ? (
-            <Button variant="contained" onClick={() => setActiveStep(activeStep + 1)}>Next</Button>
+            <Button variant="contained" onClick={() => setActiveStep(activeStep + 1)}>
+              Next
+            </Button>
           ) : (
-            <Button variant="contained" color="primary" onClick={deployContract}>Deploy</Button>
+            <Button variant="contained" color="primary" onClick={deployContract}>
+              Deploy
+            </Button>
           )}
         </DialogActions>
       </Dialog>

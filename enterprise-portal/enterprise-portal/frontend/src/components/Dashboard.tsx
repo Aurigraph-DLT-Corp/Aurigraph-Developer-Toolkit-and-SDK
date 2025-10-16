@@ -65,9 +65,7 @@ const Dashboard: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Tag color={status === 'success' ? 'green' : 'blue'}>
-          {status.toUpperCase()}
-        </Tag>
+        <Tag color={status === 'success' ? 'green' : 'blue'}>{status.toUpperCase()}</Tag>
       ),
     },
   ];
@@ -116,9 +114,7 @@ const Dashboard: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Tag color={status === 'active' ? 'green' : 'orange'}>
-          {status.toUpperCase()}
-        </Tag>
+        <Tag color={status === 'active' ? 'green' : 'orange'}>{status.toUpperCase()}</Tag>
       ),
     },
     {
@@ -196,7 +192,10 @@ const Dashboard: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Tag color={status === 'healthy' ? 'green' : 'blue'} icon={status === 'syncing' ? <SyncOutlined spin /> : undefined}>
+        <Tag
+          color={status === 'healthy' ? 'green' : 'blue'}
+          icon={status === 'syncing' ? <SyncOutlined spin /> : undefined}
+        >
           {status.toUpperCase()}
         </Tag>
       ),
@@ -207,8 +206,8 @@ const Dashboard: React.FC = () => {
     <div style={{ padding: '24px' }}>
       <h1>Enterprise Portal Dashboard</h1>
       <p style={{ marginBottom: '24px', color: '#666' }}>
-        Welcome to the Aurigraph V11 Enterprise Portal. Monitor your blockchain
-        platform performance and manage your infrastructure.
+        Welcome to the Aurigraph V11 Enterprise Portal. Monitor your blockchain platform performance
+        and manage your infrastructure.
       </p>
 
       {/* System Status Cards */}
@@ -359,7 +358,8 @@ const Dashboard: React.FC = () => {
             />
             <div style={{ marginTop: '12px' }}>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                <FileTextOutlined /> Ricardian contracts are human-readable legal agreements that are automatically converted to executable smart contracts.
+                <FileTextOutlined /> Ricardian contracts are human-readable legal agreements that
+                are automatically converted to executable smart contracts.
               </Text>
             </div>
           </Card>
@@ -377,7 +377,8 @@ const Dashboard: React.FC = () => {
             }
             extra={
               <Tag color="blue">
-                {registries.reduce((sum, r) => sum + r.totalRecords, 0).toLocaleString()} Total Records
+                {registries.reduce((sum, r) => sum + r.totalRecords, 0).toLocaleString()} Total
+                Records
               </Tag>
             }
             bordered={false}
@@ -406,7 +407,9 @@ const Dashboard: React.FC = () => {
                 <Card size="small">
                   <Statistic
                     title="Identity Records"
-                    value={registries.find((r) => r.name === 'Identity Registry')?.totalRecords || 0}
+                    value={
+                      registries.find((r) => r.name === 'Identity Registry')?.totalRecords || 0
+                    }
                     valueStyle={{ color: '#722ed1' }}
                   />
                 </Card>
@@ -429,7 +432,8 @@ const Dashboard: React.FC = () => {
             />
             <div style={{ marginTop: '12px' }}>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                <DatabaseOutlined /> Registries provide immutable records for assets, identities, tokens, and contracts across the Aurigraph platform.
+                <DatabaseOutlined /> Registries provide immutable records for assets, identities,
+                tokens, and contracts across the Aurigraph platform.
               </Text>
             </div>
           </Card>

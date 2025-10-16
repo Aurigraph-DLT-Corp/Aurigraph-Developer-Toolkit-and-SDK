@@ -300,7 +300,10 @@ export const demoAppSlice = createSlice({
     /**
      * Update network configuration
      */
-    updateNetworkConfig: (state, action: PayloadAction<Partial<import('../types/dataSources').NetworkConfig>>) => {
+    updateNetworkConfig: (
+      state,
+      action: PayloadAction<Partial<import('../types/dataSources').NetworkConfig>>
+    ) => {
       if (state.networkConfig) {
         state.networkConfig = {
           ...state.networkConfig,
@@ -336,10 +339,15 @@ export const demoAppSlice = createSlice({
      */
     updateDataSource: (
       state,
-      action: PayloadAction<{ id: string; updates: Partial<import('../types/dataSources').AnyDataSource> }>
+      action: PayloadAction<{
+        id: string;
+        updates: Partial<import('../types/dataSources').AnyDataSource>;
+      }>
     ) => {
       if (state.networkConfig) {
-        const index = state.networkConfig.dataSources.findIndex((ds) => ds.id === action.payload.id);
+        const index = state.networkConfig.dataSources.findIndex(
+          (ds) => ds.id === action.payload.id
+        );
         if (index !== -1) {
           state.networkConfig.dataSources[index] = {
             ...state.networkConfig.dataSources[index],
