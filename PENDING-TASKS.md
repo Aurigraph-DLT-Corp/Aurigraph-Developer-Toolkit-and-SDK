@@ -100,8 +100,8 @@
 
 ---
 
-### 3. Update Bridge Error Messages (AV11-375)
-**Status**: ❌ NOT STARTED
+### 2. Update Bridge Error Messages (AV11-375)
+**Status**: ✅ CODED & COMMITTED (❌ Deployment blocked by DB schema issue)
 **Priority**: HIGH
 **Impact**: $24.45M in failed transfers, poor UX
 
@@ -138,15 +138,46 @@
 - Requires liquidity pool expansion
 - Risk assessment needed
 
-**Failed Transactions Example**:
-- btx-04ee71c2: Ethereum → Polygon ($447K) ❌
-- btx-91a9080a: Polygon → Ethereum ($4.2M) ❌
-- btx-02fd0d96: Aurigraph → BSC ($15M) ❌
-- btx-25632df7: Polygon → BSC ($4.8M) ❌
+**Completed Work** (October 16, 2025):
+1. ✅ **BridgeHistoryService.java**: Updated error generation with chain-specific limits
+   - 80% of errors now show "TRANSFER_LIMIT_EXCEEDED" with specific limits
+   - 10% show actual liquidity errors (rare)
+   - 10% show other errors (gas spikes, validator timeout, reorgs)
+   - Error messages include:
+     * Actual transfer amount
+     * Maximum allowed limit for chain
+     * Suggested split amount (95% of max)
 
-**Effort**: 1-2 days for immediate fixes, 1-2 weeks for complete solution
+2. ✅ **CrossChainBridgeService.java**: Added pre-flight validation
+   - New `TransferLimitExceededException` class
+   - Validates both source and target chain limits before initiating
+   - Prevents failed transactions with helpful error messages
 
-**Success Metric**: Failure rate reduction from 20% to <5%
+3. ✅ **Chain-Specific Max Limits**:
+   - Ethereum: $404K max
+   - BSC: $101K max
+   - Polygon: $250K max
+   - Avalanche: $300K max
+   - Aurigraph: $1M max
+
+4. ✅ **Compiled and committed to Git** (commit: 1d6e9cf2)
+
+**Deployment Status**: ❌ BLOCKED
+- **Issue**: H2 database schema not initialized (Table "ROLES" not found)
+- **Error**: Application fails to start due to missing database tables
+- **Root Cause**: RoleService attempts to query ROLES table before schema creation
+- **Resolution Required**: Fix database initialization order or add schema auto-creation
+- **Priority**: Must fix before deploying bridge error message improvements
+
+**Next Steps**:
+1. Fix database schema initialization issue
+2. Re-deploy with bridge error message fixes
+3. Monitor failure rate reduction (target: 20% → <5%)
+
+**Expected Impact After Deployment**:
+- Users see accurate error messages
+- Clear guidance to split large transfers
+- Reduced support tickets for bridge failures
 
 ---
 
