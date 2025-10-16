@@ -179,28 +179,28 @@ public class AurigraphResource {
     public Uni<PerformanceStats> reactivePerformanceTest(@DefaultValue("100000") @QueryParam("iterations") int iterations) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
-            
+
             // Use reactive streams for better performance
             List<TransactionService.TransactionRequest> requests = new ArrayList<>();
             for (int i = 0; i < iterations; i++) {
                 requests.add(new TransactionService.TransactionRequest(
                     "tx_reactive_" + i, Math.random() * 1000));
             }
-            
+
             // Process reactively
             List<String> results = transactionService.batchProcessTransactions(requests)
                 .collect().asList()
                 .await().atMost(java.time.Duration.ofSeconds(30));
-            
+
             long endTime = System.nanoTime();
             long durationNs = endTime - startTime;
             double durationMs = durationNs / 1_000_000.0;
             double tps = (iterations * 1000.0) / durationMs;
             boolean targetAchieved = tps >= targetTPS;
-            
-            LOG.infof("Reactive performance test: %d transactions in %.2fms (%.0f TPS) - Results: %d", 
+
+            LOG.infof("Reactive performance test: %d transactions in %.2fms (%.0f TPS) - Results: %d",
                      iterations, durationMs, tps, results.size());
-            
+
             return new PerformanceStats(
                 iterations,
                 durationMs,
@@ -211,7 +211,22 @@ public class AurigraphResource {
                 targetTPS,
                 targetAchieved
             );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        })
+        .runSubscriptionOn(r -> Thread.startVirtualThread(r))
+        .onFailure().invoke(throwable ->
+            LOG.errorf("Reactive performance test failed: %s", throwable.getMessage(), throwable))
+        .onFailure().recoverWithItem(throwable ->
+            new PerformanceStats(
+                iterations,
+                0.0,
+                0.0,
+                0.0,
+                "ERROR - " + throwable.getMessage(),
+                1,
+                targetTPS,
+                false
+            )
+        );
     }
     
     @GET
