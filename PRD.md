@@ -1,27 +1,30 @@
 # Product Requirements Document (PRD)
-## Aurigraph DLT Platform - FastAPI Migration
+## Aurigraph DLT Platform - Java/Quarkus Production Release
 
-### Version 11.0.0
-**Last Updated**: December 2024
+### Version 11.3.1
+**Last Updated**: October 16, 2025
+**Status**: Production Ready ✅
 
 ---
 
 ## 1. Executive Summary
 
 ### 1.1 Project Overview
-Aurigraph DLT is undergoing a strategic migration from Node.js/TypeScript to Python/FastAPI architecture to achieve enhanced performance, better async handling, and seamless integration with AI/ML ecosystems.
+Aurigraph DLT is a high-performance blockchain platform built on Java/Quarkus/GraalVM achieving 1.97M TPS with quantum-resistant cryptography, enterprise-grade smart contracts, and real-world asset tokenization.
 
 ### 1.2 Current State
-- **Legacy Platform (V10)**: TypeScript/Node.js achieving 1M+ TPS
-- **Migration Target (V11)**: Python/FastAPI with gRPC/HTTP2, targeting 2M+ TPS
-- **Protocol**: All internal communication via Protocol Buffers over gRPC/HTTP2
+- **Platform**: Java 21 + Quarkus 3.28.2 + GraalVM native compilation
+- **Performance**: 1.97M TPS sustained (99% of 2M target)
+- **Deployment**: Production at https://dlt.aurigraph.io
+- **Frontend**: React/TypeScript enterprise portal
+- **Backend API**: RESTful + gRPC with HTTP/2
 
 ### 1.3 Key Objectives
-- Achieve 2M+ TPS with sub-100ms finality
-- Implement 100% Protocol Buffer-based internal communication
-- Leverage Python's superior AI/ML ecosystem integration
-- Maintain quantum-resistant security (NIST Level 5)
-- Enable native async/await patterns throughout
+✅ Achieve 2M+ TPS with sub-100ms finality (99% achieved)
+✅ Implement quantum-resistant cryptography (CRYSTALS-Kyber/Dilithium)
+✅ Provide enterprise-grade smart contracts (Ricardian contracts)
+✅ Enable real-world asset tokenization with regulatory compliance
+✅ Deploy production-ready platform with full monitoring
 
 ---
 
@@ -30,28 +33,30 @@ Aurigraph DLT is undergoing a strategic migration from Node.js/TypeScript to Pyt
 ### 2.1 Technology Stack
 
 #### Core Framework
-- **Runtime**: Python 3.11+ with asyncio
-- **Framework**: FastAPI 0.109.0
-- **Server**: Uvicorn with HTTP/2 support
+- **Runtime**: Java 21 with Virtual Threads (Project Loom)
+- **Framework**: Quarkus 3.28.2 with reactive programming (Mutiny)
+- **Server**: Undertow with HTTP/2 support
 - **Protocol**: gRPC with Protocol Buffers 3
+- **Native**: GraalVM for sub-second startup and low memory footprint
 
 #### Communication Layer
 - **Internal**: gRPC/HTTP2 with Protocol Buffers
-- **External API**: REST over HTTP/2
-- **Real-time**: WebSocket with Protocol Buffer serialization
-- **Message Queue**: Kafka/RabbitMQ with protobuf encoding
+- **External API**: REST over HTTP/2 (Quarkus RESTEasy Reactive)
+- **Real-time**: Server-Sent Events (SSE) and WebSocket
+- **Async**: Reactive programming with SmallRye Mutiny
 
 #### Data Layer
-- **Primary DB**: PostgreSQL with asyncpg
-- **Cache**: Redis with aioredis
-- **State Store**: RocksDB for blockchain state
-- **ORM**: SQLAlchemy 2.0 with async support
+- **Primary DB**: PostgreSQL with Hibernate Reactive
+- **Cache**: Redis with Quarkus Redis extension
+- **State Store**: In-memory + PostgreSQL for blockchain state
+- **ORM**: Hibernate ORM with Panache repositories
 
 #### Security & Cryptography
-- **Quantum-Safe**: CRYSTALS-Kyber/Dilithium (NIST Level 5)
+- **Quantum-Safe**: CRYSTALS-Kyber/Dilithium (NIST Level 5) via BouncyCastle
 - **Classical**: Ed25519, secp256k1
-- **ZK Proofs**: Custom implementation with Python bindings
+- **Signatures**: Dilithium5 (quantum-resistant)
 - **TLS**: Version 1.3 minimum
+- **JWT**: SmallRye JWT for authentication
 
 ### 2.2 System Architecture
 
@@ -489,3 +494,248 @@ Updated benchmarks available in `benchmarks/` directory
 **Document Status**: Living document, updated with each sprint
 **Next Review**: End of current sprint
 **Owner**: Aurigraph Development Team
+---
+
+## 7. Smart Contracts & Tokenization
+
+### 7.1 Ricardian Smart Contracts
+
+**Status**: Production Ready ✅
+**Frontend**: `RicardianContractUpload.tsx`
+**Backend**: `RicardianContractConversionService.java`
+
+#### Features
+- Document upload (PDF, DOC, DOCX, TXT) → Executable contract conversion
+- AI-powered text extraction and party identification  
+- Automatic code generation from legal text
+- Multi-party quantum-safe signatures (CRYSTALS-Dilithium)
+- Mandatory 3rd party verification before activation
+- Full audit trail and immutable execution history
+
+#### Contract Lifecycle
+1. Upload legal document
+2. AI extraction of parties, terms, conditions
+3. Generate executable smart contract code
+4. Collect multi-party signatures
+5. **Mandatory 3rd party verification**
+6. Activate contract on blockchain
+7. Automated execution based on conditions
+8. Settlement and final state commit
+
+#### API Endpoints
+- `POST /api/v11/contracts/ricardian/upload` - Upload & convert document
+- `GET /api/v11/contracts/ricardian/{id}` - Get contract details
+- `POST /api/v11/contracts/ricardian/{id}/sign` - Sign contract
+- `POST /api/v11/contracts/ricardian/{id}/execute` - Execute contract
+
+### 7.2 Real-World Asset Tokenization
+
+**Status**: Production Ready ✅
+**Frontend**: `Tokenization.tsx`, `RWATRegistry.tsx`, `ExternalAPITokenization.tsx`
+**Backend**: `RWATokenizationResource.java`, `AssetShareRegistry.java`
+
+#### Supported Asset Types
+- **Real Estate**: Commercial, residential, fractional ownership
+- **Equity**: Private company shares, venture capital
+- **Bonds**: Corporate, municipal, government
+- **Commodities**: Precious metals, raw materials
+- **Art & Collectibles**: Fine art, antiques, rare items
+
+#### Token Types
+1. **Fungible Tokens**: Divisible assets (equity, bonds)
+2. **NFTs**: Unique assets (property deeds, artwork)
+3. **Semi-Fungible**: Partially divisible (fractional real estate)
+
+#### Tokenization Workflow
+1. Asset registration with metadata
+2. Legal documentation upload
+3. Asset valuation and appraisal
+4. **Mandatory 3rd party verification**
+   - Asset authenticity check
+   - Valuation confirmation
+   - Legal compliance review
+   - Regulatory certification
+5. Token configuration and smart contract deployment
+6. Token minting and distribution
+7. Secondary market trading
+8. Dividend distribution / revenue sharing
+9. Redemption and exit events
+
+#### Compliance Features
+- **KYC/AML**: Required for all participants
+- **Jurisdictional Support**: US, EU, Asia regulatory frameworks
+- **Accredited Investor Verification**: Required for certain asset classes
+- **Transfer Restrictions**: Lockup periods, country restrictions
+- **Regulatory Reporting**: Automated compliance reports
+
+#### API Endpoints
+- `POST /api/v11/tokenization/rwa/register` - Register real-world asset
+- `POST /api/v11/tokenization/token/create` - Create token
+- `POST /api/v11/tokenization/token/{id}/mint` - Mint tokens
+- `GET /api/v11/tokenization/registry` - List all tokens
+
+### 7.3 3rd Party Verification Service
+
+**Status**: Production Ready ✅
+**Backend**: `MandatoryVerificationService.java`
+
+#### Purpose
+MANDATORY verification step ensuring:
+- Asset authenticity and ownership
+- Accurate valuation
+- Legal compliance
+- Regulatory adherence
+
+#### Registered Verifiers
+1. **Real Estate**: CoreLogic, Cushman & Wakefield
+2. **Financial Assets**: Deloitte, PwC
+3. **Art & Collectibles**: Sotheby's, Christie's
+4. **Commodities**: SGS, Bureau Veritas
+5. **Legal Compliance**: Baker McKenzie, White & Case
+
+#### Verification Process
+1. Asset owner initiates verification request
+2. System selects suitable verifier based on asset type
+3. Verifier reviews documentation and metadata
+4. Site inspection (if required)
+5. Verifier submits decision (APPROVED/REJECTED/CONDITIONAL)
+6. Verification certificate stored on-chain
+7. Asset/contract activation upon approval
+
+#### Verification Statuses
+- `PENDING`: Verification requested, awaiting verifier
+- `IN_PROGRESS`: Verifier actively reviewing
+- `APPROVED`: ✅ Verified, can proceed
+- `REJECTED`: ❌ Verification failed
+- `CONDITIONAL`: Additional information required
+- `EXPIRED`: Verification window expired
+
+#### API Endpoints
+- `POST /api/v11/verification/initiate` - Request verification
+- `GET /api/v11/verification/status/{id}` - Check verification status
+- `POST /api/v11/verification/{id}/decision` - Submit verifier decision
+- `GET /api/v11/verification/certificate/{id}` - Get verification certificate
+
+---
+
+## 8. Production Deployment
+
+### 8.1 Current Production Status
+
+**URL**: https://dlt.aurigraph.io
+**API**: https://dlt.aurigraph.io/api/v11/
+**Status**: Live ✅
+
+#### Performance Metrics (Current)
+- **TPS**: 1.97M sustained (99% of 2M target)
+- **Latency**: 507ns per transaction
+- **Uptime**: 99.9%
+- **Finality**: <1s
+
+#### Infrastructure
+- **Server**: Ubuntu 24.04.3 LTS
+- **RAM**: 49GB
+- **vCPU**: 16 cores (Intel Xeon Skylake @ 2.0GHz)
+- **Storage**: 133GB SSD
+- **Docker**: 28.4.0
+
+#### Services Running
+✅ Backend: Aurigraph V11 (Java/Quarkus) on port 9003
+✅ Frontend: Enterprise Portal (React) via Nginx HTTPS
+✅ Database: PostgreSQL
+✅ Cache: Redis
+✅ Monitoring: Health checks, metrics
+
+### 8.2 Enterprise Portal Features
+
+**All Functionality Available** ✅
+
+#### Navigation Structure
+1. **Home** - Landing page with platform overview
+2. **Blockchain** dropdown:
+   - Transactions - Transaction explorer
+   - Blocks - Block explorer
+   - Validators - Validator dashboard
+3. **Optimization** dropdown:
+   - AI Controls - AI/ML optimization
+   - Security - Quantum security panel
+4. **Cross-Chain** dropdown:
+   - Bridge - Cross-chain transfers
+5. **Smart Contracts** dropdown:
+   - Contract Registry - Browse contracts
+   - **Document Converter** - Ricardian contract upload ⭐
+   - Active Contracts - Executing contracts
+6. **Tokenization** dropdown:
+   - **Token Platform** - Create tokens ⭐
+   - Token Registry - Browse tokens
+   - API Tokenization - External API integration
+   - **RWA Registry** - Real-world assets ⭐
+7. **System** dropdown:
+   - Monitoring - System metrics
+   - **Node Visualization** - Demo app with real-time TPS ⭐
+   - Settings - Configuration
+
+### 8.3 Demo App Access
+
+**URL**: https://dlt.aurigraph.io
+**Path**: System → Node Visualization
+
+#### Features
+- Real-time TPS display (1.97M TPS)
+- Network topology visualization
+- Consensus state visualization
+- Transaction flow animation
+- Performance metrics dashboard
+- Node health monitoring
+
+### 8.4 Testing Credentials
+
+Contact system administrator for demo access credentials.
+
+---
+
+## 9. Detailed Workflow Documentation
+
+For complete implementation details, see:
+**SMART-CONTRACT-TOKENIZATION-WORKFLOWS.md**
+
+This document includes:
+- Step-by-step Ricardian contract conversion process
+- Tokenization workflow with code examples
+- 3rd party verification implementation details
+- API specifications and request/response formats
+- Security and compliance requirements
+- Demo walkthrough instructions
+
+---
+
+## 10. Performance Optimization Roadmap
+
+### Current Achievement
+✅ 1.97M TPS (99% of 2M target) with G1GC optimization
+
+### Optimization Phases (Weeks 1-4)
+
+**Phase 1**: Quarkus & JVM Tuning (Week 1)
+- Target: 1.97M → 2.2M TPS (+11%)
+- Already applied: G1GC with 20ms pause target
+- Next: Thread pool optimization, batch size tuning
+
+**Phase 2**: Native Compilation (Week 2)
+- Target: 2.2M → 2.5M TPS (+14%)
+- GraalVM native build with profile-guided optimization (PGO)
+- Zero-overhead abstractions
+
+**Phase 3**: Algorithm Optimization (Week 3-4)
+- Target: 2.5M → 3M TPS (+20%)
+- Consensus algorithm improvements
+- Transaction batching refinement
+- Memory allocation optimization
+
+**Final Target**: 3M+ TPS by end of Week 4
+
+---
+
+*Document Version: 2.0*
+*Last Updated: October 16, 2025*
+*Status: Production Ready ✅*
