@@ -318,7 +318,7 @@ function App() {
                 color: isDarkMode ? '#8c8c8c' : '#595959',
               }}
             >
-              Enterprise Portal v4.2.0
+              Enterprise Portal v4.3.0
             </div>
           </div>
 
@@ -385,7 +385,7 @@ function App() {
           }}
         >
           <div>
-            Aurigraph DLT Enterprise Portal v4.2.0 | System Status:{' '}
+            Aurigraph DLT Enterprise Portal v4.3.0 | System Status:{' '}
             <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Healthy</span>
           </div>
           <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '4px' }}>
