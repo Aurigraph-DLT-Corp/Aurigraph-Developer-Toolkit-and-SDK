@@ -445,87 +445,27 @@ public class AurigraphResource {
 
     // ==================== METRICS ENDPOINTS (AV11-368) ====================
 
-    /**
-     * Get consensus performance metrics
-     * AV11-368: Implement missing metrics endpoints
+    // ==================== REFACTORED TO SEPARATE API RESOURCES ====================
+    // The following endpoints have been moved to dedicated API resource classes:
+    // - /api/v11/consensus/metrics -> ConsensusApiResource.java
+    // - /api/v11/crypto/metrics -> CryptoApiResource.java
+    // - /api/v11/bridge/supported-chains -> BridgeApiResource.java
+    // Commented out to avoid duplicate endpoint errors during build
+
+    /*
+     * DEPRECATED: Moved to ConsensusApiResource.java
+     * GET /api/v11/consensus/metrics
      */
-    @GET
-    @Path("/consensus/metrics")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<ConsensusMetrics> getConsensusMetrics() {
-        return consensusService.getStats().map(stats -> new ConsensusMetrics(
-            stats.state.name(),
-            stats.currentTerm,
-            stats.commitIndex,
-            stats.commitIndex, // Using commitIndex for lastApplied
-            0, // votesReceived - not available in current implementation
-            4, // totalVotesNeeded - majority of 7 nodes
-            stats.leaderId,
-            (double) stats.consensusLatency,
-            stats.commitIndex, // Using commitIndex as rounds completed
-            99.5, // Success rate - hardcoded for now
-            "HyperRAFT++",
-            System.currentTimeMillis()
-        ));
-    }
 
-    /**
-     * Get cryptography performance metrics
-     * AV11-368: Implement missing metrics endpoints
+    /*
+     * DEPRECATED: Moved to CryptoApiResource.java
+     * GET /api/v11/crypto/metrics
      */
-    @GET
-    @Path("/crypto/metrics")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<CryptoMetrics> getCryptoMetrics() {
-        return Uni.createFrom().item(() -> {
-            var cryptoStatus = quantumCryptoService.getStatus();
 
-            return new CryptoMetrics(
-                cryptoStatus.quantumCryptoEnabled(),
-                cryptoStatus.algorithms(),
-                cryptoStatus.kyberSecurityLevel(),
-                cryptoStatus.totalOperations(),
-                cryptoStatus.encryptions(),
-                cryptoStatus.decryptions(),
-                cryptoStatus.signatures(),
-                cryptoStatus.verifications(),
-                cryptoStatus.totalOperations() > 0 ? 1000.0 / cryptoStatus.totalOperations() : 0.0, // avg encryption time (ms)
-                cryptoStatus.totalOperations() > 0 ? 1000.0 / cryptoStatus.totalOperations() : 0.0, // avg decryption time (ms)
-                "CRYSTALS-Kyber + CRYSTALS-Dilithium",
-                System.currentTimeMillis()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    // ==================== BRIDGE ENDPOINTS (AV11-369) ====================
-
-    /**
-     * Get supported blockchain chains for cross-chain bridge
-     * AV11-369: Implement bridge supported chains endpoint
+    /*
+     * DEPRECATED: Moved to BridgeApiResource.java
+     * GET /api/v11/bridge/supported-chains
      */
-    @GET
-    @Path("/bridge/supported-chains")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<SupportedChains> getSupportedChains() {
-        return Uni.createFrom().item(() -> {
-            List<ChainInfo> chains = List.of(
-                new ChainInfo("ethereum", "Ethereum", "mainnet", true, 15_000_000L, "0x...abc123"),
-                new ChainInfo("binance", "Binance Smart Chain", "mainnet", true, 25_000_000L, "0x...def456"),
-                new ChainInfo("polygon", "Polygon", "mainnet", true, 38_000_000L, "0x...ghi789"),
-                new ChainInfo("avalanche", "Avalanche C-Chain", "mainnet", true, 28_000_000L, "0x...jkl012"),
-                new ChainInfo("arbitrum", "Arbitrum One", "mainnet", true, 82_000_000L, "0x...mno345"),
-                new ChainInfo("optimism", "Optimism", "mainnet", true, 95_000_000L, "0x...pqr678"),
-                new ChainInfo("base", "Base", "mainnet", true, 8_500_000L, "0x...stu901")
-            );
-
-            return new SupportedChains(
-                chains.size(),
-                chains,
-                "Cross-Chain Bridge v2.0",
-                System.currentTimeMillis()
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
 
     // ==================== RWA ENDPOINTS (AV11-370) ====================
 
