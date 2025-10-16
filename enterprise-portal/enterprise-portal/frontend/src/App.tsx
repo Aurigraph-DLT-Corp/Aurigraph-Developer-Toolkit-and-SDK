@@ -1,12 +1,13 @@
 /**
  * Main Application Component
  *
- * Root component that sets up the application layout with Ant Design Layout system
- * Integrates with Redux for state management
+ * Root component with dropdown navigation menu
+ * No sidebar - clean top navigation bar with organized dropdowns
  */
 
 import { useState } from 'react';
-import { Layout, ConfigProvider, theme, Tabs } from 'antd';
+import { Layout, ConfigProvider, theme, Menu, Dropdown, Space, Avatar, Badge, Button } from 'antd';
+import type { MenuProps } from 'antd';
 import {
   DashboardOutlined,
   LineChartOutlined,
@@ -26,8 +27,11 @@ import {
   ApiOutlined,
   BankOutlined,
   HomeOutlined,
+  UserOutlined,
+  BellOutlined,
+  LogoutOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
-import { Header, Sidebar, Footer } from '@components/layout';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
 import { selectThemeMode } from './store/selectors';
@@ -49,12 +53,10 @@ import RicardianContractUpload from './components/comprehensive/RicardianContrac
 import ExternalAPITokenization from './components/comprehensive/ExternalAPITokenization';
 import RWATRegistry from './components/comprehensive/RWATRegistry';
 
-const { Content } = Layout;
+const { Header, Content, Footer } = Layout;
 
 function App() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState('spatial-dashboard');
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeKey, setActiveKey] = useState('home');
 
   // Redux state and actions
   const dispatch = useAppDispatch();
@@ -66,32 +68,212 @@ function App() {
     role: 'System Administrator',
   };
 
-  const handleMenuClick = (key: string) => {
-    setActiveView(key);
-    // Map sidebar menu to tabs
-    if (key === 'spatial-dashboard' || key === 'vizor-dashboard') {
-      setActiveTab('demo');
-    } else if (key === 'performance-metrics') {
-      setActiveTab('monitoring');
-    } else {
-      setActiveTab('dashboard');
+  // User menu dropdown
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'theme',
+      icon: <SettingOutlined />,
+      label: 'Toggle Theme',
+      onClick: () => dispatch(toggleThemeMode()),
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Logout',
+      onClick: () => console.log('Logout clicked'),
+    },
+  ];
+
+  // Main navigation menu items
+  const navMenuItems: MenuProps['items'] = [
+    {
+      key: 'home',
+      icon: <HomeOutlined />,
+      label: 'Home',
+    },
+    {
+      key: 'blockchain',
+      icon: <BlockOutlined />,
+      label: 'Blockchain',
+      children: [
+        {
+          key: 'dashboard',
+          icon: <DashboardOutlined />,
+          label: 'Dashboard',
+        },
+        {
+          key: 'transactions',
+          icon: <ThunderboltOutlined />,
+          label: 'Transactions',
+        },
+        {
+          key: 'blocks',
+          icon: <BlockOutlined />,
+          label: 'Blocks',
+        },
+        {
+          key: 'validators',
+          icon: <NodeIndexOutlined />,
+          label: 'Validators',
+        },
+      ],
+    },
+    {
+      key: 'ai-security',
+      icon: <SafetyOutlined />,
+      label: 'AI & Security',
+      children: [
+        {
+          key: 'ai',
+          icon: <RobotOutlined />,
+          label: 'AI Optimization',
+        },
+        {
+          key: 'security',
+          icon: <SafetyOutlined />,
+          label: 'Quantum Security',
+        },
+      ],
+    },
+    {
+      key: 'contracts',
+      icon: <FileTextOutlined />,
+      label: 'Smart Contracts',
+      children: [
+        {
+          key: 'contracts-registry',
+          icon: <FileTextOutlined />,
+          label: 'Contract Registry',
+        },
+        {
+          key: 'document-converter',
+          icon: <FileAddOutlined />,
+          label: 'Document Converter',
+        },
+        {
+          key: 'active-contracts',
+          icon: <AppstoreOutlined />,
+          label: 'Active Contracts',
+        },
+      ],
+    },
+    {
+      key: 'assets',
+      icon: <GoldOutlined />,
+      label: 'Asset Management',
+      children: [
+        {
+          key: 'tokenization',
+          icon: <GoldOutlined />,
+          label: 'Tokenization',
+        },
+        {
+          key: 'token-registry',
+          icon: <DollarOutlined />,
+          label: 'Token Registry',
+        },
+        {
+          key: 'rwat',
+          icon: <BankOutlined />,
+          label: 'RWAT Registry',
+        },
+      ],
+    },
+    {
+      key: 'integration',
+      icon: <SwapOutlined />,
+      label: 'Integration',
+      children: [
+        {
+          key: 'bridge',
+          icon: <SwapOutlined />,
+          label: 'Cross-Chain Bridge',
+        },
+        {
+          key: 'api-tokenization',
+          icon: <ApiOutlined />,
+          label: 'API Tokenization',
+        },
+      ],
+    },
+    {
+      key: 'system',
+      icon: <ExperimentOutlined />,
+      label: 'System',
+      children: [
+        {
+          key: 'monitoring',
+          icon: <LineChartOutlined />,
+          label: 'Monitoring',
+        },
+        {
+          key: 'demo',
+          icon: <ExperimentOutlined />,
+          label: 'Node Visualization',
+        },
+        {
+          key: 'settings',
+          icon: <SettingOutlined />,
+          label: 'Settings',
+        },
+      ],
+    },
+  ];
+
+  const handleMenuClick = (e: { key: string }) => {
+    setActiveKey(e.key);
+  };
+
+  // Render content based on active key
+  const renderContent = () => {
+    switch (activeKey) {
+      case 'home':
+        return <LandingPage />;
+      case 'dashboard':
+        return <Dashboard />;
+      case 'transactions':
+        return <TransactionExplorer />;
+      case 'blocks':
+        return <BlockExplorer />;
+      case 'validators':
+        return <ValidatorDashboard />;
+      case 'ai':
+        return <AIOptimizationControls />;
+      case 'security':
+        return <QuantumSecurityPanel />;
+      case 'bridge':
+        return <CrossChainBridge />;
+      case 'contracts-registry':
+        return <SmartContractRegistry />;
+      case 'document-converter':
+        return <RicardianContractUpload />;
+      case 'active-contracts':
+        return <ActiveContracts />;
+      case 'tokenization':
+        return <Tokenization />;
+      case 'token-registry':
+        return <TokenizationRegistry />;
+      case 'api-tokenization':
+        return <ExternalAPITokenization />;
+      case 'rwat':
+        return <RWATRegistry />;
+      case 'monitoring':
+        return <Monitoring />;
+      case 'demo':
+        return <DemoApp />;
+      case 'settings':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Settings</h1>
+            <p>Portal settings and configuration options will appear here.</p>
+          </div>
+        );
+      default:
+        return <LandingPage />;
     }
-  };
-
-  const handleSettingsClick = () => {
-    console.log('Settings clicked');
-    // Toggle theme as a demo of Redux integration
-    dispatch(toggleThemeMode());
-  };
-
-  const handleLogoutClick = () => {
-    console.log('Logout clicked');
-    // TODO: Implement logout
-  };
-
-  const handleNotificationsClick = () => {
-    console.log('Notifications clicked');
-    // TODO: Open notifications drawer
   };
 
   return (
@@ -105,227 +287,111 @@ function App() {
       }}
     >
       <Layout style={{ minHeight: '100vh' }}>
-        <Sidebar
-          collapsed={collapsed}
-          onCollapse={setCollapsed}
-          activeKey={activeView}
-          onMenuClick={handleMenuClick}
-        />
+        {/* Top Navigation Header */}
+        <Header
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 24px',
+            background: isDarkMode ? '#001529' : '#fff',
+            borderBottom: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`,
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000,
+          }}
+        >
+          {/* Logo and Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div
+              style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+                color: '#1890ff',
+              }}
+            >
+              Aurigraph DLT
+            </div>
+            <div
+              style={{
+                fontSize: '12px',
+                color: isDarkMode ? '#8c8c8c' : '#595959',
+              }}
+            >
+              Enterprise Portal v4.2.0
+            </div>
+          </div>
 
-        <Layout style={{ marginLeft: collapsed ? 80 : 250, transition: 'all 0.2s' }}>
-          <Header
-            user={user}
-            notificationCount={3}
-            onSettingsClick={handleSettingsClick}
-            onLogoutClick={handleLogoutClick}
-            onNotificationsClick={handleNotificationsClick}
+          {/* Navigation Menu */}
+          <Menu
+            mode="horizontal"
+            selectedKeys={[activeKey]}
+            items={navMenuItems}
+            onClick={handleMenuClick}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              border: 'none',
+              background: 'transparent',
+              marginLeft: '24px',
+            }}
           />
 
-          <Content
+          {/* User Actions */}
+          <Space size="large">
+            <Badge count={3}>
+              <Button
+                type="text"
+                icon={<BellOutlined style={{ fontSize: '18px' }} />}
+                onClick={() => console.log('Notifications clicked')}
+              />
+            </Badge>
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <Space style={{ cursor: 'pointer' }}>
+                <Avatar icon={<UserOutlined />} />
+                <span>{user.name}</span>
+                <DownOutlined />
+              </Space>
+            </Dropdown>
+          </Space>
+        </Header>
+
+        {/* Main Content */}
+        <Content
+          style={{
+            padding: '24px',
+            minHeight: 280,
+            background: isDarkMode ? '#141414' : '#f0f2f5',
+          }}
+        >
+          <div
             style={{
-              margin: '24px 16px',
-              minHeight: 280,
-              background: isDarkMode ? '#141414' : '#fff',
+              background: isDarkMode ? '#1f1f1f' : '#fff',
+              padding: '24px',
               borderRadius: '8px',
+              minHeight: 'calc(100vh - 170px)',
             }}
           >
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              size="large"
-              style={{ padding: '0 24px' }}
-              items={[
-                {
-                  key: 'home',
-                  label: (
-                    <span>
-                      <HomeOutlined />
-                      Home
-                    </span>
-                  ),
-                  children: <LandingPage />,
-                },
-                {
-                  key: 'dashboard',
-                  label: (
-                    <span>
-                      <DashboardOutlined />
-                      Dashboard
-                    </span>
-                  ),
-                  children: <Dashboard />,
-                },
-                {
-                  key: 'transactions',
-                  label: (
-                    <span>
-                      <ThunderboltOutlined />
-                      Transactions
-                    </span>
-                  ),
-                  children: <TransactionExplorer />,
-                },
-                {
-                  key: 'blocks',
-                  label: (
-                    <span>
-                      <BlockOutlined />
-                      Blocks
-                    </span>
-                  ),
-                  children: <BlockExplorer />,
-                },
-                {
-                  key: 'validators',
-                  label: (
-                    <span>
-                      <NodeIndexOutlined />
-                      Validators
-                    </span>
-                  ),
-                  children: <ValidatorDashboard />,
-                },
-                {
-                  key: 'ai',
-                  label: (
-                    <span>
-                      <RobotOutlined />
-                      AI Optimization
-                    </span>
-                  ),
-                  children: <AIOptimizationControls />,
-                },
-                {
-                  key: 'security',
-                  label: (
-                    <span>
-                      <SafetyOutlined />
-                      Security
-                    </span>
-                  ),
-                  children: <QuantumSecurityPanel />,
-                },
-                {
-                  key: 'bridge',
-                  label: (
-                    <span>
-                      <SwapOutlined />
-                      Bridge
-                    </span>
-                  ),
-                  children: <CrossChainBridge />,
-                },
-                {
-                  key: 'contracts',
-                  label: (
-                    <span>
-                      <FileTextOutlined />
-                      Smart Contracts
-                    </span>
-                  ),
-                  children: <SmartContractRegistry />,
-                },
-                {
-                  key: 'document-converter',
-                  label: (
-                    <span>
-                      <FileAddOutlined />
-                      Document Converter
-                    </span>
-                  ),
-                  children: <RicardianContractUpload />,
-                },
-                {
-                  key: 'active-contracts',
-                  label: (
-                    <span>
-                      <AppstoreOutlined />
-                      Active Contracts
-                    </span>
-                  ),
-                  children: <ActiveContracts />,
-                },
-                {
-                  key: 'tokenization',
-                  label: (
-                    <span>
-                      <GoldOutlined />
-                      Tokenization
-                    </span>
-                  ),
-                  children: <Tokenization />,
-                },
-                {
-                  key: 'token-registry',
-                  label: (
-                    <span>
-                      <DollarOutlined />
-                      Token Registry
-                    </span>
-                  ),
-                  children: <TokenizationRegistry />,
-                },
-                {
-                  key: 'api-tokenization',
-                  label: (
-                    <span>
-                      <ApiOutlined />
-                      API Tokenization
-                    </span>
-                  ),
-                  children: <ExternalAPITokenization />,
-                },
-                {
-                  key: 'rwat',
-                  label: (
-                    <span>
-                      <BankOutlined />
-                      RWAT Registry
-                    </span>
-                  ),
-                  children: <RWATRegistry />,
-                },
-                {
-                  key: 'monitoring',
-                  label: (
-                    <span>
-                      <LineChartOutlined />
-                      Monitoring
-                    </span>
-                  ),
-                  children: <Monitoring />,
-                },
-                {
-                  key: 'demo',
-                  label: (
-                    <span>
-                      <ExperimentOutlined />
-                      Node Visualization
-                    </span>
-                  ),
-                  children: <DemoApp />,
-                },
-                {
-                  key: 'settings',
-                  label: (
-                    <span>
-                      <SettingOutlined />
-                      Settings
-                    </span>
-                  ),
-                  children: (
-                    <div style={{ padding: '24px' }}>
-                      <h1>Settings</h1>
-                      <p>Portal settings and configuration options will appear here.</p>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          </Content>
+            {renderContent()}
+          </div>
+        </Content>
 
-          <Footer version="4.1.0" systemStatus="healthy" />
-        </Layout>
+        {/* Footer */}
+        <Footer
+          style={{
+            textAlign: 'center',
+            background: isDarkMode ? '#001529' : '#fff',
+            borderTop: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`,
+          }}
+        >
+          <div>
+            Aurigraph DLT Enterprise Portal v4.2.0 | System Status:{' '}
+            <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Healthy</span>
+          </div>
+          <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '4px' }}>
+            © 2025 Aurigraph DLT. Enterprise Blockchain Platform v11.3.1
+          </div>
+        </Footer>
       </Layout>
     </ConfigProvider>
   );
