@@ -14,6 +14,8 @@ import org.jboss.logging.Logger;
 import io.aurigraph.v11.bridge.CrossChainBridgeService;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,6 +73,117 @@ public class BridgeApiResource {
                     .entity(Map.of("error", e.getMessage())).build();
             }
         });
+    }
+
+    /**
+     * AV11-369: Get supported blockchain chains
+     * Returns list of all blockchain chains supported by the cross-chain bridge
+     */
+    @GET
+    @Path("/supported-chains")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Get supported blockchain chains",
+        description = "Retrieve list of blockchain chains supported by the cross-chain bridge with their capabilities and configurations"
+    )
+    @APIResponse(responseCode = "200", description = "Supported chains retrieved successfully")
+    public Uni<Response> getSupportedChains() {
+        return Uni.createFrom().item(() -> {
+            // Use helper method to avoid Map.of() 10-parameter limit
+            var chains = List.of(
+                createChainMap("aurigraph", "Aurigraph", "mainnet", "ACTIVE",
+                    List.of("SEND", "RECEIVE", "LOCK", "MINT", "BURN"),
+                    List.of("AUR", "USDT", "USDC", "ETH", "BTC"),
+                    1, 2, "10000000", "0.01", "0.001",
+                    "0xAurigraph_Bridge_V11_2025", "AUR", 18),
+
+                createChainMap("ethereum", "Ethereum", "mainnet", "ACTIVE",
+                    List.of("SEND", "RECEIVE", "LOCK", "MINT"),
+                    List.of("ETH", "USDT", "USDC", "DAI", "WBTC"),
+                    12, 13, "1000000", "0.01", "0.005",
+                    "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb", "ETH", 18),
+
+                createChainMap("bsc", "Binance Smart Chain", "mainnet", "ACTIVE",
+                    List.of("SEND", "RECEIVE", "LOCK", "MINT"),
+                    List.of("BNB", "USDT", "BUSD", "ETH", "BTCB"),
+                    15, 3, "500000", "0.001", "0.002",
+                    "0x8894E0a0c962CB723c1976a4421c95949bE2D4E3", "BNB", 18),
+
+                createChainMap("polygon", "Polygon", "mainnet", "ACTIVE",
+                    List.of("SEND", "RECEIVE", "LOCK", "MINT"),
+                    List.of("MATIC", "USDT", "USDC", "DAI", "WETH"),
+                    128, 2, "750000", "0.01", "0.001",
+                    "0x1234567890abcdef1234567890abcdef12345678", "MATIC", 18),
+
+                createChainMap("avalanche", "Avalanche C-Chain", "mainnet", "ACTIVE",
+                    List.of("SEND", "RECEIVE", "LOCK", "MINT"),
+                    List.of("AVAX", "USDT", "USDC", "DAI.e", "WETH.e"),
+                    20, 2, "500000", "0.01", "0.002",
+                    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd", "AVAX", 18),
+
+                createChainMap("arbitrum", "Arbitrum One", "mainnet", "ACTIVE",
+                    List.of("SEND", "RECEIVE", "LOCK", "MINT"),
+                    List.of("ETH", "USDT", "USDC", "ARB", "GMX"),
+                    15, 0.25, "800000", "0.01", "0.0015",
+                    "0xdef123def123def123def123def123def123def1", "ETH", 18),
+
+                createChainMap("optimism", "Optimism", "mainnet", "ACTIVE",
+                    List.of("SEND", "RECEIVE", "LOCK", "MINT"),
+                    List.of("ETH", "USDT", "USDC", "DAI", "OP"),
+                    15, 2, "800000", "0.01", "0.0015",
+                    "0x9876543210fedcba9876543210fedcba98765432", "ETH", 18),
+
+                createChainMap("solana", "Solana", "mainnet", "BETA",
+                    List.of("SEND", "RECEIVE", "LOCK"),
+                    List.of("SOL", "USDT", "USDC"),
+                    32, 0.4, "300000", "0.01", "0.003",
+                    "SolBridgeXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "SOL", 9)
+            );
+
+            var response = Map.of(
+                "totalChains", chains.size(),
+                "activeChains", 7,
+                "betaChains", 1,
+                "chains", chains,
+                "bridgeVersion", "11.0.0",
+                "lastUpdated", System.currentTimeMillis()
+            );
+
+            LOG.debugf("Supported chains retrieved: %d total chains", chains.size());
+            return Response.ok(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Helper method to create chain map (avoids Map.of() 10-parameter limit)
+     */
+    private Map<String, Object> createChainMap(
+            String chainId, String chainName, String networkType, String status,
+            List<String> capabilities, List<String> supportedAssets,
+            int confirmationsRequired, double averageBlockTime,
+            String maxTransferLimit, String minTransferLimit, String transferFee,
+            String bridgeContract, String currencySymbol, int currencyDecimals) {
+
+        Map<String, Object> chain = new HashMap<>();
+        chain.put("chainId", chainId);
+        chain.put("chainName", chainName);
+        chain.put("networkType", networkType);
+        chain.put("status", status);
+        chain.put("capabilities", capabilities);
+        chain.put("supportedAssets", supportedAssets);
+        chain.put("confirmationsRequired", confirmationsRequired);
+        chain.put("averageBlockTime", averageBlockTime);
+        chain.put("maxTransferLimit", maxTransferLimit);
+        chain.put("minTransferLimit", minTransferLimit);
+        chain.put("transferFee", transferFee);
+        chain.put("bridgeContract", bridgeContract);
+        chain.put("nativeCurrency", Map.of(
+            "symbol", currencySymbol,
+            "decimals", currencyDecimals
+        ));
+        return chain;
     }
 
     // ==================== DATA MODELS ====================
