@@ -18,6 +18,17 @@ import ChannelManagement from './components/ChannelManagement'
 import Tokenization from './components/Tokenization'
 import ErrorBoundary from './components/ErrorBoundary'
 import { useAppSelector } from './hooks'
+import {
+  SystemHealth,
+  BlockchainOperations,
+  ConsensusMonitoring,
+  ExternalAPIIntegration,
+  OracleService,
+  PerformanceMetrics,
+  SecurityAudit,
+  DeveloperDashboard,
+  RicardianContracts,
+} from './pages/dashboards'
 
 function App() {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
@@ -45,6 +56,16 @@ function App() {
           <Route path="tokens" element={<TokenizationRegistry />} />
           <Route path="tokenization" element={<Tokenization />} />
           <Route path="channel-management" element={<ChannelManagement />} />
+          {/* Dashboard Routes */}
+          <Route path="dashboards/system-health" element={<SystemHealth />} />
+          <Route path="dashboards/blockchain-operations" element={<BlockchainOperations />} />
+          <Route path="dashboards/consensus-monitoring" element={<ConsensusMonitoring />} />
+          <Route path="dashboards/external-api" element={<ExternalAPIIntegration />} />
+          <Route path="dashboards/oracle-service" element={<OracleService />} />
+          <Route path="dashboards/performance-metrics" element={<PerformanceMetrics />} />
+          <Route path="dashboards/security-audit" element={<SecurityAudit />} />
+          <Route path="dashboards/developer" element={<DeveloperDashboard />} />
+          <Route path="dashboards/ricardian-contracts" element={<RicardianContracts />} />
         </Route>
       </Routes>
       </Box>

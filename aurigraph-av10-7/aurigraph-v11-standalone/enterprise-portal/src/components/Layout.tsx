@@ -2,7 +2,8 @@ import { Outlet } from 'react-router-dom'
 import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Divider, Chip } from '@mui/material'
 import { Dashboard, Receipt, Speed, Hub, Analytics, Settings, Logout, PlayCircleOutline,
   AccountTree, Code, Token, Gavel, SwapHoriz, Inventory, AccountBalance, ShowChart,
-  VerifiedUser, Assessment, TrendingUp } from '@mui/icons-material'
+  VerifiedUser, Assessment, TrendingUp, HealthAndSafety, Storage, Schema, Api,
+  Security, DeveloperBoard, Description, Insights } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../hooks'
 import { logout } from '../store/authSlice'
@@ -30,6 +31,16 @@ const menuItems = [
   { text: 'Asset Valuation', icon: <ShowChart />, path: '/rwa/valuation' },
   { text: 'Dividends', icon: <Assessment />, path: '/rwa/dividends' },
   { text: 'Compliance', icon: <VerifiedUser />, path: '/rwa/compliance' },
+  { divider: true, label: 'Dashboards', badge: 'NEW' },
+  { text: 'System Health', icon: <HealthAndSafety />, path: '/dashboards/system-health', badge: 'NEW' },
+  { text: 'Blockchain Ops', icon: <Storage />, path: '/dashboards/blockchain-operations', badge: 'NEW' },
+  { text: 'Consensus', icon: <Schema />, path: '/dashboards/consensus-monitoring', badge: 'NEW' },
+  { text: 'External APIs', icon: <Api />, path: '/dashboards/external-api', badge: 'NEW' },
+  { text: 'Oracles', icon: <Insights />, path: '/dashboards/oracle-service', badge: 'NEW' },
+  { text: 'Performance', icon: <Speed />, path: '/dashboards/performance-metrics', badge: 'NEW' },
+  { text: 'Security', icon: <Security />, path: '/dashboards/security-audit', badge: 'NEW' },
+  { text: 'Developer', icon: <DeveloperBoard />, path: '/dashboards/developer', badge: 'NEW' },
+  { text: 'Ricardian', icon: <Description />, path: '/dashboards/ricardian-contracts', badge: 'NEW' },
   { divider: true, label: 'Management' },
   { text: 'Channel Config', icon: <Inventory />, path: '/channel-management' },
   { text: 'Settings', icon: <Settings />, path: '/settings' },
