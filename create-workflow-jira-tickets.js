@@ -91,7 +91,7 @@ async function createStory(summary, description, epicKey = null) {
       fields.parent = { key: epicKey };
     }
 
-    const result = await jiraRequest('POST', '/rest/api/3/issue', fields);
+    const result = await jiraRequest('POST', '/rest/api/3/issue', { fields });
     console.log(`✅ Created Story: ${result.key} - ${summary}`);
     return result.key;
   } catch (error) {
@@ -120,7 +120,7 @@ async function createTask(summary, description, parentKey = null) {
       fields.parent = { key: parentKey };
     }
 
-    const result = await jiraRequest('POST', '/rest/api/3/issue', fields);
+    const result = await jiraRequest('POST', '/rest/api/3/issue', { fields });
     console.log(`✅ Created Task: ${result.key} - ${summary}`);
     return result.key;
   } catch (error) {
