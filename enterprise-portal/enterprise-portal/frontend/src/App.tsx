@@ -231,7 +231,7 @@ function App() {
   const renderContent = () => {
     switch (activeKey) {
       case 'home':
-        return <LandingPage />;
+        return <LandingPage onAccessPortal={() => setActiveKey('dashboard')} />;
       case 'dashboard':
         return <Dashboard />;
       case 'transactions':

@@ -15,12 +15,17 @@ import {
   GlobalOutlined,
   BankOutlined,
   CheckCircleOutlined,
+  DashboardOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
 const { Title, Paragraph, Text } = Typography;
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  onAccessPortal?: () => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
   const [tpsCounter, setTpsCounter] = useState(0);
 
   // Animate TPS counter from 0 to 2M
@@ -269,8 +274,27 @@ const LandingPage: React.FC = () => {
           <Paragraph>
             Explore our comprehensive enterprise portal with real-time monitoring,
             advanced analytics, and complete blockchain management capabilities.
-            Navigate through the tabs above to access all features.
           </Paragraph>
+          <div className="cta-buttons" style={{ marginTop: '24px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
+            <Button
+              type="primary"
+              size="large"
+              icon={<DashboardOutlined />}
+              onClick={onAccessPortal}
+              style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
+            >
+              Access Enterprise Portal
+            </Button>
+            <Button
+              size="large"
+              icon={<RocketOutlined />}
+              href="https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT"
+              target="_blank"
+              style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
+            >
+              View on GitHub
+            </Button>
+          </div>
         </Card>
       </div>
 
