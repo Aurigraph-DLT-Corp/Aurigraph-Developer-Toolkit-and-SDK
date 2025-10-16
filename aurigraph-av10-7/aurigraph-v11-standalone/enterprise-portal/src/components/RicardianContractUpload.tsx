@@ -376,7 +376,7 @@ export const RicardianContractUpload: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <Box display="flex" align Items="center" gap={1}>
+                        <Box display="flex" alignItems="center" gap={1}>
                           <LinearProgress
                             variant="determinate"
                             value={contract.enforceabilityScore}
