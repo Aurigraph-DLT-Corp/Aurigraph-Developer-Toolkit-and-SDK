@@ -1,5 +1,6 @@
 package io.aurigraph.v11;
 
+import io.aurigraph.v11.ratelimit.RateLimited;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -88,10 +89,12 @@ public class AurigraphResource {
     /**
      * Performance test endpoint with timeout protection (AV11-371: FIXED)
      * Limits: max 500K iterations, max 64 threads, 2-minute timeout
+     * Rate Limited: 60 requests/minute per IP (prevents abuse of compute-intensive endpoint)
      */
     @GET
     @Path("/performance")
     @Produces(MediaType.APPLICATION_JSON)
+    @RateLimited(requestsPerMinute = 60)
     public Uni<PerformanceStats> performanceTest(@DefaultValue("100000") @QueryParam("iterations") int iterations,
                                           @DefaultValue("1") @QueryParam("threads") int threadCount) {
         return Uni.createFrom().item(() -> {
@@ -176,6 +179,7 @@ public class AurigraphResource {
     @GET
     @Path("/performance/reactive")
     @Produces(MediaType.APPLICATION_JSON)
+    @RateLimited(requestsPerMinute = 60)
     public Uni<PerformanceStats> reactivePerformanceTest(@DefaultValue("100000") @QueryParam("iterations") int iterations) {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
