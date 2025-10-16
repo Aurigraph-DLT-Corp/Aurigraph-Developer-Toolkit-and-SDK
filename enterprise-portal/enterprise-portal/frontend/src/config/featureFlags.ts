@@ -92,7 +92,7 @@ export const defaultFeatureFlags: FeatureFlags = {
 export const isFeatureEnabled = (feature: keyof FeatureFlags): boolean => {
   // Check environment variable override first
   const envKey = `REACT_APP_FEATURE_${feature.toUpperCase()}`;
-  const envValue = process.env[envKey];
+  const envValue = import.meta.env[envKey] as string | undefined;
 
   if (envValue !== undefined) {
     return envValue === 'true';

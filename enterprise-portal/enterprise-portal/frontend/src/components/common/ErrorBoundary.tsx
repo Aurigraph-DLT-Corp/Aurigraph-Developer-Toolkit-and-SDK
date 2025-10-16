@@ -5,7 +5,7 @@
  * Prevents entire app crashes due to component errors
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { Result, Button, Typography, Card } from 'antd';
 import { WarningOutlined, ReloadOutlined } from '@ant-design/icons';
 
@@ -108,7 +108,7 @@ class ErrorBoundary extends Component<Props, State> {
                     {this.state.error.toString()}
                   </pre>
                 </Paragraph>
-                {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+                {import.meta.env.DEV && this.state.errorInfo && (
                   <Paragraph>
                     <Text strong>Component Stack:</Text>
                     <pre style={{

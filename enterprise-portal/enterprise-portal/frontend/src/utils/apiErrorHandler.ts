@@ -36,7 +36,7 @@ export const parseApiError = (error: unknown): ApiError => {
 
     // Parse HTTP status from error message
     const statusMatch = errorMessage.match(/HTTP (\d+):/);
-    const status = statusMatch ? parseInt(statusMatch[1], 10) : 500;
+    const status = statusMatch && statusMatch[1] ? parseInt(statusMatch[1], 10) : 500;
 
     // 404 - Not Found
     if (status === 404) {
@@ -120,12 +120,7 @@ export const handleApiError = (
       });
     } else if (parsedError.retryable) {
       message.error({
-        content: (
-          <div>
-            <div>{errorMessage}</div>
-            <div style={{ fontSize: '12px', marginTop: '4px' }}>{parsedError.details}</div>
-          </div>
-        ),
+        content: `${errorMessage}${parsedError.details ? '\n' + parsedError.details : ''}`,
         duration: 6,
       });
     } else {

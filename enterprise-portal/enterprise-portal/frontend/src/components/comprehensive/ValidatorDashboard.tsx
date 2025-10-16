@@ -108,6 +108,7 @@ const ValidatorDashboard: React.FC = () => {
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isFeatureAvailable]);
 
   // Handle staking
@@ -520,45 +521,6 @@ const ValidatorDashboard: React.FC = () => {
       </div>
     </ErrorBoundary>
   );
-};
-
-// Mock data generator - DEPRECATED (kept for reference only)
-// CRITICAL: This is NOT used anymore - all data comes from real backend API
-const generateMockValidators = (count: number): Validator[] => {
-  const statuses: Validator['status'][] = [
-    'active',
-    'active',
-    'active',
-    'active',
-    'inactive',
-    'jailed',
-  ];
-
-  return Array.from({ length: count }, (_, i) => {
-    const totalStake = Math.random() * 10000000 + 1000000;
-    const votingPower = (totalStake / 50000000) * 100;
-
-    return {
-      id: `validator-${i.toString().padStart(2, '0')}`,
-      address: `0x${Math.random().toString(16).substring(2, 42)}`,
-      name: `Validator ${i + 1}`,
-      status: statuses[Math.floor(Math.random() * statuses.length)] as Validator['status'],
-      votingPower,
-      commission: Math.floor(Math.random() * 10) + 5,
-      totalStake,
-      selfStake: totalStake * (0.1 + Math.random() * 0.3),
-      delegatorCount: Math.floor(Math.random() * 500) + 50,
-      uptime: 95 + Math.random() * 4.9,
-      blocksProposed: Math.floor(Math.random() * 10000) + 1000,
-      blocksSigned: Math.floor(Math.random() * 50000) + 10000,
-      missedBlocks: Math.floor(Math.random() * 100),
-      slashingEvents: Math.floor(Math.random() * 3),
-      joinedAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-      lastActiveAt: new Date().toISOString(),
-      apr: 10 + Math.random() * 10,
-      rank: i + 1,
-    };
-  });
 };
 
 export default ValidatorDashboard;

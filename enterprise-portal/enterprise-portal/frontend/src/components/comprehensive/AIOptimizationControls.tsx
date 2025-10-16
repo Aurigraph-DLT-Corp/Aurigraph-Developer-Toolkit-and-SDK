@@ -27,7 +27,7 @@ import {
   ThunderboltOutlined,
   LineChartOutlined,
   CheckCircleOutlined,
-  WarningOutlined as WarningIcon,
+  WarningOutlined,
   RiseOutlined,
   SyncOutlined,
   ReloadOutlined,
@@ -107,6 +107,7 @@ const AIOptimizationControls: React.FC = () => {
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isFeatureAvailable]);
 
   // Handle model retraining
@@ -275,7 +276,7 @@ const AIOptimizationControls: React.FC = () => {
             description="Unable to fetch latest AI data. Showing cached data."
             type="warning"
             showIcon
-            icon={<WarningIcon />}
+            icon={<WarningOutlined />}
             closable
             style={{ marginTop: '16px' }}
             action={
@@ -560,92 +561,5 @@ const AIOptimizationControls: React.FC = () => {
     </ErrorBoundary>
   );
 };
-
-// Mock data generators - DEPRECATED (kept for reference only)
-// CRITICAL: This is NOT used anymore - all data comes from real backend API
-const generateMockModels = (): AIModel[] => [
-  {
-    id: 'model-1',
-    name: 'Consensus Optimizer',
-    type: 'consensus',
-    status: 'active',
-    accuracy: 0.95 + Math.random() * 0.04,
-    lastTrainedAt: new Date(Date.now() - 3600000).toISOString(),
-    version: 'v2.3.1',
-    parameters: { learningRate: 0.001, batchSize: 64 },
-  },
-  {
-    id: 'model-2',
-    name: 'Transaction Ordering AI',
-    type: 'transaction-ordering',
-    status: 'active',
-    accuracy: 0.92 + Math.random() * 0.05,
-    lastTrainedAt: new Date(Date.now() - 7200000).toISOString(),
-    version: 'v1.8.5',
-    parameters: { learningRate: 0.001, batchSize: 128 },
-  },
-  {
-    id: 'model-3',
-    name: 'Anomaly Detector',
-    type: 'anomaly-detection',
-    status: 'active',
-    accuracy: 0.97 + Math.random() * 0.02,
-    lastTrainedAt: new Date(Date.now() - 1800000).toISOString(),
-    version: 'v3.1.0',
-    parameters: { learningRate: 0.0005, batchSize: 32 },
-  },
-  {
-    id: 'model-4',
-    name: 'Load Balancer',
-    type: 'load-balancing',
-    status: 'training',
-    accuracy: 0.88 + Math.random() * 0.08,
-    lastTrainedAt: new Date(Date.now() - 10800000).toISOString(),
-    version: 'v1.5.2',
-    parameters: { learningRate: 0.001, batchSize: 64 },
-  },
-];
-
-const generateMockMetrics = (): AIOptimizationMetrics => ({
-  consensusOptimization: {
-    predictedTps: 2300000 + Math.random() * 200000,
-    optimizationGain: 15 + Math.random() * 10,
-    leaderSelectionAccuracy: 0.95 + Math.random() * 0.04,
-    consensusLatencyReduction: 20 + Math.random() * 10,
-  },
-  transactionOrdering: {
-    throughputIncrease: 12 + Math.random() * 8,
-    latencyReduction: 18 + Math.random() * 7,
-    orderingAccuracy: 0.93 + Math.random() * 0.05,
-  },
-  anomalyDetection: {
-    anomaliesDetected: Math.floor(Math.random() * 50) + 10,
-    falsePositiveRate: Math.random() * 2,
-    detectionLatency: 50 + Math.random() * 30,
-    threatsBlocked: Math.floor(Math.random() * 20) + 5,
-  },
-  loadBalancing: {
-    nodeUtilization: 0.75 + Math.random() * 0.2,
-    distributionEfficiency: 0.85 + Math.random() * 0.1,
-    rebalanceEvents: Math.floor(Math.random() * 100) + 50,
-  },
-});
-
-const generateMockPredictions = (): PredictiveAnalytics => ({
-  timestamp: new Date().toISOString(),
-  predictions: {
-    nextHourTps: 2200000 + Math.random() * 300000,
-    nextHourLatency: 10 + Math.random() * 5,
-    networkLoad: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as
-      | 'low'
-      | 'medium'
-      | 'high',
-    consensusStability: 0.92 + Math.random() * 0.07,
-    suggestedActions: [
-      'Consider scaling validator count to handle predicted load',
-      'Monitor network latency in next 30 minutes',
-    ],
-  },
-});
 
 export default AIOptimizationControls;
