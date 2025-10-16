@@ -15,17 +15,12 @@ import {
   GlobalOutlined,
   BankOutlined,
   CheckCircleOutlined,
-  ArrowRightOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
 const { Title, Paragraph, Text } = Typography;
 
-interface LandingPageProps {
-  onEnterPortal: () => void;
-}
-
-const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal }) => {
+const LandingPage: React.FC = () => {
   const [tpsCounter, setTpsCounter] = useState(0);
 
   // Animate TPS counter from 0 to 2M
@@ -162,15 +157,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal }) => {
 
               <div className="hero-cta">
                 <Button
-                  type="primary"
-                  size="large"
-                  icon={<ArrowRightOutlined />}
-                  onClick={onEnterPortal}
-                  className="portal-button"
-                >
-                  Access Enterprise Portal
-                </Button>
-                <Button
                   size="large"
                   icon={<RocketOutlined />}
                   href="https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT"
@@ -281,18 +267,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal }) => {
         <Card className="cta-card">
           <Title level={3}>Ready to Experience the Future of Blockchain?</Title>
           <Paragraph>
-            Access the Enterprise Portal to explore our platform's capabilities,
-            monitor real-time performance, and manage your blockchain infrastructure.
+            Explore our comprehensive enterprise portal with real-time monitoring,
+            advanced analytics, and complete blockchain management capabilities.
+            Navigate through the tabs above to access all features.
           </Paragraph>
-          <Button
-            type="primary"
-            size="large"
-            icon={<ArrowRightOutlined />}
-            onClick={onEnterPortal}
-            className="cta-button"
-          >
-            Enter Enterprise Portal
-          </Button>
         </Card>
       </div>
 
