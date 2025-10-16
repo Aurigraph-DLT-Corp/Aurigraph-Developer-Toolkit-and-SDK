@@ -35,18 +35,29 @@ import {
   CloseCircleOutlined,
   PauseCircleOutlined,
   LockOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { Validator, StakingInfo } from '../../types/comprehensive';
+import ErrorBoundary from '../common/ErrorBoundary';
+import { StatsCardSkeleton, TableSkeleton } from '../common/LoadingSkeleton';
+import { UnderDevelopmentEmpty, ApiErrorEmpty } from '../common/EmptyState';
+import { isFeatureEnabled } from '../../config/featureFlags';
+import { handleApiError, isNotFoundError, type ApiError } from '../../utils/apiErrorHandler';
+import { comprehensivePortalService } from '../../services/ComprehensivePortalService';
 
 const { Text, Title } = Typography;
 
 const ValidatorDashboard: React.FC = () => {
   const [validators, setValidators] = useState<Validator[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<ApiError | null>(null);
   const [stakeModalVisible, setStakeModalVisible] = useState<boolean>(false);
   const [selectedValidator, setSelectedValidator] = useState<Validator | null>(null);
   const [stakeForm] = Form.useForm();
+
+  // Feature flag check
+  const isFeatureAvailable = isFeatureEnabled('validatorDashboard');
 
   // Staking information
   const [stakingInfo, setStakingInfo] = useState<StakingInfo>({
@@ -62,41 +73,42 @@ const ValidatorDashboard: React.FC = () => {
   // Fetch validators from backend
   const fetchValidators = async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      // TODO: Replace with actual API call to Phase2ValidatorResource.java
-      // const response = await fetch('/api/v11/validators');
-      // const data = await response.json();
+      // CRITICAL: NO MOCK DATA - Only real backend API calls
+      const validatorsData = await comprehensivePortalService.getValidators();
+      const stakingInfoData = await comprehensivePortalService.getStakingInfo();
 
-      const mockValidators = generateMockValidators(15);
-      setValidators(mockValidators);
-
-      // Update staking info
-      const totalStake = mockValidators.reduce((sum, v) => sum + v.totalStake, 0);
-      setStakingInfo({
-        totalStaked: totalStake,
-        totalValidators: mockValidators.length,
-        activeValidators: mockValidators.filter((v) => v.status === 'active').length,
-        minStakeRequired: 100000,
-        unbondingPeriod: 21,
-        averageApr: 12.5 + Math.random() * 2,
-        stakingRatio: 0.65,
+      setValidators(validatorsData);
+      setStakingInfo(stakingInfoData as StakingInfo);
+    } catch (err) {
+      const apiError = handleApiError(err, {
+        customMessage: 'Failed to load validator data',
       });
-    } catch (error) {
-      console.error('Error fetching validators:', error);
+      setError(apiError);
+
+      // If 404, feature is not available yet
+      if (isNotFoundError(apiError)) {
+        console.warn('Validator API endpoints not implemented yet');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchValidators();
-
-    const interval = setInterval(() => {
+    // Only fetch if feature is enabled
+    if (isFeatureAvailable) {
       fetchValidators();
-    }, 10000);
 
-    return () => clearInterval(interval);
-  }, []);
+      const interval = setInterval(() => {
+        fetchValidators();
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isFeatureAvailable]);
 
   // Handle staking
   const handleStake = (validator: Validator) => {
@@ -257,13 +269,95 @@ const ValidatorDashboard: React.FC = () => {
     },
   ];
 
-  return (
-    <div style={{ padding: '24px' }}>
-      <Title level={2}>Validator Dashboard</Title>
-      <Text type="secondary">Manage validators and stake your tokens to earn rewards</Text>
+  // Feature not available
+  if (!isFeatureAvailable) {
+    return (
+      <ErrorBoundary>
+        <div style={{ padding: '24px' }}>
+          <Title level={2}>Validator Dashboard</Title>
+          <Text type="secondary">Manage validators and stake your tokens to earn rewards</Text>
+          <Card style={{ marginTop: '24px' }}>
+            <UnderDevelopmentEmpty
+              title="Validator Dashboard Under Development"
+              description="The Validator Dashboard backend API is currently being developed. This feature will be available in an upcoming release."
+            />
+          </Card>
+        </div>
+      </ErrorBoundary>
+    );
+  }
 
-      {/* Staking Overview */}
-      <Row gutter={[16, 16]} style={{ marginTop: '24px', marginBottom: '24px' }}>
+  // Loading state
+  if (loading && validators.length === 0) {
+    return (
+      <ErrorBoundary>
+        <div style={{ padding: '24px' }}>
+          <Title level={2}>Validator Dashboard</Title>
+          <Text type="secondary">Manage validators and stake your tokens to earn rewards</Text>
+          <div style={{ marginTop: '24px' }}>
+            <StatsCardSkeleton count={4} />
+            <Card style={{ marginTop: '24px' }}>
+              <TableSkeleton rows={10} columns={8} />
+            </Card>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // Error state with retry
+  if (error && !loading) {
+    return (
+      <ErrorBoundary>
+        <div style={{ padding: '24px' }}>
+          <Title level={2}>Validator Dashboard</Title>
+          <Text type="secondary">Manage validators and stake your tokens to earn rewards</Text>
+          <Card style={{ marginTop: '24px' }}>
+            {isNotFoundError(error) ? (
+              <UnderDevelopmentEmpty
+                title="Validator API Not Available"
+                description="The backend API endpoint for validator data is not yet implemented. This feature is coming soon."
+                onRetry={fetchValidators}
+              />
+            ) : (
+              <ApiErrorEmpty
+                title="Failed to Load Validators"
+                description={error.details || 'Unable to fetch validator data from the backend API.'}
+                onRetry={fetchValidators}
+              />
+            )}
+          </Card>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+      <div style={{ padding: '24px' }}>
+        <Title level={2}>Validator Dashboard</Title>
+        <Text type="secondary">Manage validators and stake your tokens to earn rewards</Text>
+
+        {/* Error Alert (non-blocking) */}
+        {error && validators.length > 0 && (
+          <Alert
+            message="Connection Issue"
+            description="Unable to fetch latest validator data. Showing cached data."
+            type="warning"
+            showIcon
+            icon={<WarningOutlined />}
+            closable
+            style={{ marginTop: '16px' }}
+            action={
+              <Button size="small" onClick={fetchValidators}>
+                Retry
+              </Button>
+            }
+          />
+        )}
+
+        {/* Staking Overview */}
+        <Row gutter={[16, 16]} style={{ marginTop: '24px', marginBottom: '24px' }}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
@@ -423,11 +517,13 @@ const ValidatorDashboard: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 
-// Mock data generator
+// Mock data generator - DEPRECATED (kept for reference only)
+// CRITICAL: This is NOT used anymore - all data comes from real backend API
 const generateMockValidators = (count: number): Validator[] => {
   const statuses: Validator['status'][] = [
     'active',

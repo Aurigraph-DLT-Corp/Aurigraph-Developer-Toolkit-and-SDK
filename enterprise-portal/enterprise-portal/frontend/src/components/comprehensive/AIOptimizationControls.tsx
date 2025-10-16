@@ -27,9 +27,10 @@ import {
   ThunderboltOutlined,
   LineChartOutlined,
   CheckCircleOutlined,
-  WarningOutlined,
+  WarningOutlined as WarningIcon,
   RiseOutlined,
   SyncOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type {
@@ -37,6 +38,12 @@ import type {
   AIOptimizationMetrics,
   PredictiveAnalytics,
 } from '../../types/comprehensive';
+import ErrorBoundary from '../common/ErrorBoundary';
+import { StatsCardSkeleton, CardSkeleton } from '../common/LoadingSkeleton';
+import { UnderDevelopmentEmpty, ApiErrorEmpty } from '../common/EmptyState';
+import { isFeatureEnabled } from '../../config/featureFlags';
+import { handleApiError, isNotFoundError, type ApiError } from '../../utils/apiErrorHandler';
+import { comprehensivePortalService } from '../../services/ComprehensivePortalService';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
@@ -46,6 +53,10 @@ const AIOptimizationControls: React.FC = () => {
   const [metrics, setMetrics] = useState<AIOptimizationMetrics | null>(null);
   const [predictions, setPredictions] = useState<PredictiveAnalytics | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<ApiError | null>(null);
+
+  // Feature flag check
+  const isFeatureAvailable = isFeatureEnabled('aiOptimization');
 
   // AI model configurations
   const [consensusOptEnabled, setConsensusOptEnabled] = useState<boolean>(true);
@@ -57,31 +68,46 @@ const AIOptimizationControls: React.FC = () => {
   // Fetch AI models and metrics
   const fetchAIData = async () => {
     setLoading(true);
-    try {
-      // TODO: Replace with actual API calls to AIOptimizationService.java
-      const mockModels = generateMockModels();
-      const mockMetrics = generateMockMetrics();
-      const mockPredictions = generateMockPredictions();
+    setError(null);
 
-      setModels(mockModels);
-      setMetrics(mockMetrics);
-      setPredictions(mockPredictions);
-    } catch (error) {
-      console.error('Error fetching AI data:', error);
+    try {
+      // CRITICAL: NO MOCK DATA - Only real backend API calls
+      const [modelsData, metricsData, predictionsData] = await Promise.all([
+        comprehensivePortalService.getAIModels(),
+        comprehensivePortalService.getAIMetrics(),
+        comprehensivePortalService.getPredictiveAnalytics(),
+      ]);
+
+      setModels(modelsData);
+      setMetrics(metricsData);
+      setPredictions(predictionsData as PredictiveAnalytics);
+    } catch (err) {
+      const apiError = handleApiError(err, {
+        customMessage: 'Failed to load AI optimization data',
+      });
+      setError(apiError);
+
+      // If 404, feature is not available yet
+      if (isNotFoundError(apiError)) {
+        console.warn('AI Optimization API endpoints not implemented yet');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAIData();
-
-    const interval = setInterval(() => {
+    // Only fetch if feature is enabled
+    if (isFeatureAvailable) {
       fetchAIData();
-    }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
+      const interval = setInterval(() => {
+        fetchAIData();
+      }, 30000); // Reduced frequency to 30s for AI data
+
+      return () => clearInterval(interval);
+    }
+  }, [isFeatureAvailable]);
 
   // Handle model retraining
   const handleRetrain = (_modelId: string) => {
@@ -156,15 +182,112 @@ const AIOptimizationControls: React.FC = () => {
     },
   ];
 
-  return (
-    <div style={{ padding: '24px' }}>
-      <Title level={2}>AI Optimization Controls</Title>
-      <Text type="secondary">
-        Machine learning models for consensus optimization and predictive analytics
-      </Text>
+  // Feature not available
+  if (!isFeatureAvailable) {
+    return (
+      <ErrorBoundary>
+        <div style={{ padding: '24px' }}>
+          <Title level={2}>AI Optimization Controls</Title>
+          <Text type="secondary">
+            Machine learning models for consensus optimization and predictive analytics
+          </Text>
+          <Card style={{ marginTop: '24px' }}>
+            <UnderDevelopmentEmpty
+              title="AI Optimization Under Development"
+              description="The AI Optimization backend API is currently being developed. Machine learning features will be available in an upcoming release."
+            />
+          </Card>
+        </div>
+      </ErrorBoundary>
+    );
+  }
 
-      {/* AI Status Overview */}
-      <Row gutter={[16, 16]} style={{ marginTop: '24px', marginBottom: '24px' }}>
+  // Loading state
+  if (loading && models.length === 0) {
+    return (
+      <ErrorBoundary>
+        <div style={{ padding: '24px' }}>
+          <Title level={2}>AI Optimization Controls</Title>
+          <Text type="secondary">
+            Machine learning models for consensus optimization and predictive analytics
+          </Text>
+          <div style={{ marginTop: '24px' }}>
+            <StatsCardSkeleton count={4} />
+            <Card style={{ marginTop: '24px' }}>
+              <CardSkeleton />
+            </Card>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // Error state with retry
+  if (error && !loading && models.length === 0) {
+    return (
+      <ErrorBoundary>
+        <div style={{ padding: '24px' }}>
+          <Title level={2}>AI Optimization Controls</Title>
+          <Text type="secondary">
+            Machine learning models for consensus optimization and predictive analytics
+          </Text>
+          <Card style={{ marginTop: '24px' }}>
+            {isNotFoundError(error) ? (
+              <UnderDevelopmentEmpty
+                title="AI Optimization API Not Available"
+                description="The backend API endpoint for AI optimization is not yet implemented. This feature is coming soon."
+                onRetry={fetchAIData}
+              />
+            ) : (
+              <ApiErrorEmpty
+                title="Failed to Load AI Data"
+                description={error.details || 'Unable to fetch AI optimization data from the backend API.'}
+                onRetry={fetchAIData}
+              />
+            )}
+          </Card>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+      <div style={{ padding: '24px' }}>
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Title level={2}>AI Optimization Controls</Title>
+            <Text type="secondary">
+              Machine learning models for consensus optimization and predictive analytics
+            </Text>
+          </Col>
+          <Col>
+            <Button icon={<ReloadOutlined />} onClick={fetchAIData} loading={loading}>
+              Refresh
+            </Button>
+          </Col>
+        </Row>
+
+        {/* Error Alert (non-blocking) */}
+        {error && models.length > 0 && (
+          <Alert
+            message="Connection Issue"
+            description="Unable to fetch latest AI data. Showing cached data."
+            type="warning"
+            showIcon
+            icon={<WarningIcon />}
+            closable
+            style={{ marginTop: '16px' }}
+            action={
+              <Button size="small" onClick={fetchAIData}>
+                Retry
+              </Button>
+            }
+          />
+        )}
+
+        {/* AI Status Overview */}
+        <Row gutter={[16, 16]} style={{ marginTop: '24px', marginBottom: '24px' }}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
@@ -433,11 +556,13 @@ const AIOptimizationControls: React.FC = () => {
           </TabPane>
         </Tabs>
       </Card>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 
-// Mock data generators
+// Mock data generators - DEPRECATED (kept for reference only)
+// CRITICAL: This is NOT used anymore - all data comes from real backend API
 const generateMockModels = (): AIModel[] => [
   {
     id: 'model-1',
