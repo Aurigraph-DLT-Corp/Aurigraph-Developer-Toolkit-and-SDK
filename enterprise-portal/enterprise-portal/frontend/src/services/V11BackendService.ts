@@ -18,16 +18,20 @@ class V11BackendService {
   private baseUrl: string;
   private demoMode: boolean;
 
-  constructor(baseUrl: string = API_BASE_URL, demoMode: boolean = false) {
+  constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    this.demoMode = demoMode;
+    // CRITICAL: Demo mode is ALWAYS disabled - only use real backend API
+    this.demoMode = false;
   }
 
   /**
    * Enable or disable demo mode
+   * DISABLED: Demo mode is permanently disabled - only real API data allowed
    */
-  setDemoMode(enabled: boolean) {
-    this.demoMode = enabled;
+  setDemoMode(_enabled: boolean) {
+    // Demo mode is permanently disabled
+    this.demoMode = false;
+    console.warn('Demo mode is permanently disabled. Only real backend API data is used.');
   }
 
   /**

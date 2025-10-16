@@ -3,11 +3,11 @@
  */
 
 // API Configuration
-// NOTE: Integrated with Aurigraph DLT V11.3.0 backend (HTTPS)
-// Production: https://dlt.aurigraph.io:9443
-// Development: https://localhost:9443
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:9443';
-export const WS_URL = import.meta.env.VITE_WS_URL || 'wss://localhost:9443';
+// NOTE: Integrated with Aurigraph DLT V11.3.1 backend via NGINX HTTPS proxy
+// Backend API is proxied through NGINX at /api/v11/
+// Uses relative paths - works on both production and development
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+export const WS_URL = import.meta.env.VITE_WS_URL || `wss://${window.location.host}`;
 
 // Performance Settings
 export const CHART_UPDATE_INTERVAL = 1000; // ms
