@@ -31,6 +31,15 @@ public class BridgeHistoryService {
     private static final String[] ASSETS = {"AUR", "ETH", "BNB", "MATIC", "AVAX", "USDT", "USDC", "DAI"};
     private static final String[] STATUSES = {"completed", "completed", "completed", "pending", "processing", "failed"};
 
+    // Chain-specific max transfer limits (in USD)
+    private static final Map<String, Double> CHAIN_MAX_LIMITS = Map.of(
+        "Ethereum", 404000.0,    // $404K max
+        "BSC", 101000.0,         // $101K max
+        "Polygon", 250000.0,     // $250K max
+        "Avalanche", 300000.0,   // $300K max
+        "Aurigraph", 1000000.0   // $1M max
+    );
+
     public BridgeHistoryService() {
         initializeTransactionHistory();
     }
@@ -99,12 +108,54 @@ public class BridgeHistoryService {
 
         // Error (only for failed transactions)
         if ("failed".equals(status)) {
-            tx.setError(new TransactionError("INSUFFICIENT_LIQUIDITY", "Insufficient liquidity on target chain"));
+            TransactionError error = generateRealisticError(tx.getAmountUsd(), targetChain);
+            tx.setError(error);
             tx.getError().setRetryCount(random.nextInt(3));
-            tx.getError().setCanRetry(true);
+
+            // Only allow retry for non-limit errors
+            tx.getError().setCanRetry(!error.getErrorCode().equals("TRANSFER_LIMIT_EXCEEDED"));
         }
 
         return tx;
+    }
+
+    /**
+     * Generate realistic error messages based on transfer amount and chain limits
+     */
+    private TransactionError generateRealisticError(double amountUsd, String targetChain) {
+        Double maxLimit = CHAIN_MAX_LIMITS.get(targetChain);
+
+        // 80% of errors are due to transfer limits being exceeded
+        if (random.nextDouble() < 0.8 && maxLimit != null && amountUsd > maxLimit * 0.8) {
+            String errorMessage = String.format(
+                "Transfer amount ($%,.2f) exceeds maximum limit ($%,.2f) for %s. " +
+                "Please split into smaller transfers or contact support for assistance.",
+                amountUsd, maxLimit, targetChain
+            );
+            return new TransactionError("TRANSFER_LIMIT_EXCEEDED", errorMessage);
+        }
+
+        // 10% are actual liquidity issues (rare)
+        if (random.nextDouble() < 0.5) {
+            return new TransactionError(
+                "INSUFFICIENT_LIQUIDITY",
+                "Temporarily insufficient liquidity on target chain. Please retry in a few minutes."
+            );
+        }
+
+        // 10% are other errors
+        int errorType = random.nextInt(3);
+        switch (errorType) {
+            case 0:
+                return new TransactionError("GAS_PRICE_TOO_HIGH",
+                    "Gas price spike on target chain. Please retry when network congestion reduces.");
+            case 1:
+                return new TransactionError("VALIDATOR_TIMEOUT",
+                    "Bridge validators did not reach consensus in time. Transaction will be auto-retried.");
+            default:
+                return new TransactionError("CHAIN_REORGANIZATION",
+                    "Blockchain reorganization detected. Please retry the transaction.");
+        }
     }
 
     /**

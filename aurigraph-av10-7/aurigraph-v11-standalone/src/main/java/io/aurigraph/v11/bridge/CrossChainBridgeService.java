@@ -35,7 +35,15 @@ public class CrossChainBridgeService {
     // Configuration
     private static final int REQUIRED_CONFIRMATIONS = 12;
     private static final double BRIDGE_FEE_PERCENTAGE = 0.1;
-    private static final BigDecimal MAX_BRIDGE_AMOUNT = new BigDecimal("1000000");
+
+    // Chain-specific max transfer limits (USD equivalent)
+    private static final Map<String, BigDecimal> CHAIN_MAX_LIMITS = Map.of(
+        "ethereum", new BigDecimal("404000"),    // $404K max
+        "bsc", new BigDecimal("101000"),         // $101K max
+        "polygon", new BigDecimal("250000"),     // $250K max
+        "avalanche", new BigDecimal("300000"),   // $300K max
+        "aurigraph", new BigDecimal("1000000")   // $1M max
+    );
 
     @ConfigProperty(name = "bridge.processing.delay.min", defaultValue = "5000")
     long processingDelayMin;
@@ -206,21 +214,39 @@ public class CrossChainBridgeService {
         if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Bridge amount must be positive");
         }
-        
-        if (request.getAmount().compareTo(MAX_BRIDGE_AMOUNT) > 0) {
-            throw new IllegalArgumentException("Bridge amount exceeds maximum limit");
-        }
-        
+
         if (!supportedChains.containsKey(request.getSourceChain())) {
             throw new UnsupportedChainException("Unsupported source chain: " + request.getSourceChain());
         }
-        
+
         if (!supportedChains.containsKey(request.getTargetChain())) {
             throw new UnsupportedChainException("Unsupported target chain: " + request.getTargetChain());
         }
-        
+
         if (request.getSourceChain().equals(request.getTargetChain())) {
             throw new IllegalArgumentException("Source and target chains cannot be the same");
+        }
+
+        // Check chain-specific max limits
+        BigDecimal sourceMaxLimit = CHAIN_MAX_LIMITS.get(request.getSourceChain());
+        BigDecimal targetMaxLimit = CHAIN_MAX_LIMITS.get(request.getTargetChain());
+
+        if (sourceMaxLimit != null && request.getAmount().compareTo(sourceMaxLimit) > 0) {
+            throw new TransferLimitExceededException(
+                String.format("Transfer amount ($%s) exceeds maximum limit ($%s) for %s. " +
+                             "Please split into smaller transfers (recommended: $%s per transfer) or contact support.",
+                             request.getAmount(), sourceMaxLimit, request.getSourceChain(),
+                             sourceMaxLimit.multiply(new BigDecimal("0.95")))
+            );
+        }
+
+        if (targetMaxLimit != null && request.getAmount().compareTo(targetMaxLimit) > 0) {
+            throw new TransferLimitExceededException(
+                String.format("Transfer amount ($%s) exceeds maximum limit ($%s) for target chain %s. " +
+                             "Please split into smaller transfers (recommended: $%s per transfer) or contact support.",
+                             request.getAmount(), targetMaxLimit, request.getTargetChain(),
+                             targetMaxLimit.multiply(new BigDecimal("0.95")))
+            );
         }
     }
 
@@ -286,5 +312,9 @@ public class CrossChainBridgeService {
 
     public static class UnsupportedChainException extends RuntimeException {
         public UnsupportedChainException(String message) { super(message); }
+    }
+
+    public static class TransferLimitExceededException extends IllegalArgumentException {
+        public TransferLimitExceededException(String message) { super(message); }
     }
 }
