@@ -52,6 +52,7 @@ import Tokenization from './components/comprehensive/Tokenization';
 import RicardianContractUpload from './components/comprehensive/RicardianContractUpload';
 import ExternalAPITokenization from './components/comprehensive/ExternalAPITokenization';
 import RWATRegistry from './components/comprehensive/RWATRegistry';
+import Whitepaper from './components/comprehensive/Whitepaper';
 
 const { Header, Content, Footer } = Layout;
 
@@ -264,6 +265,8 @@ function App() {
         return <Monitoring />;
       case 'demo':
         return <DemoApp />;
+      case 'whitepaper':
+        return <Whitepaper />;
       case 'settings':
         return (
           <div style={{ padding: '24px' }}>

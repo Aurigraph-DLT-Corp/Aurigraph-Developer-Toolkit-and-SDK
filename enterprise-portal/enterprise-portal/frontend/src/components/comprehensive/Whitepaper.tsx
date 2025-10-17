@@ -125,7 +125,7 @@ const Whitepaper: React.FC = () => {
             <Card className="goal-card">
               <ThunderboltOutlined className="goal-icon" />
               <Title level={5}>Ultra-High Performance</Title>
-              <Text>2M+ TPS with <100ms finality for demanding enterprise workloads</Text>
+              <Text>{'2M+ TPS with <100ms finality for demanding enterprise workloads'}</Text>
             </Card>
           </Col>
           <Col span={8}>
@@ -343,7 +343,7 @@ const Whitepaper: React.FC = () => {
                 <strong>Type:</strong> Autoencoder Neural Network<br />
                 <strong>Input:</strong> Real-time transaction patterns, network behavior<br />
                 <strong>Output:</strong> Anomaly score and threat classification<br />
-                <strong>Performance:</strong> 99.7% accuracy, <5ms inference time
+                <strong>Performance:</strong> 99.7% accuracy, {'<5ms'} inference time
               </Paragraph>
             </Card>
           </Col>
