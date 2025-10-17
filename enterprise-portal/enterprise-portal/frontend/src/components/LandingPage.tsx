@@ -16,13 +16,14 @@ import {
   BankOutlined,
   CheckCircleOutlined,
   DashboardOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
 const { Title, Paragraph, Text } = Typography;
 
 interface LandingPageProps {
-  onAccessPortal?: () => void;
+  onAccessPortal?: (targetKey?: string) => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
@@ -163,12 +164,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
               <div className="hero-cta">
                 <Button
                   size="large"
-                  icon={<RocketOutlined />}
-                  href="https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT"
-                  target="_blank"
+                  icon={<FileTextOutlined />}
+                  onClick={() => onAccessPortal?.('whitepaper')}
                   className="docs-button"
                 >
-                  View Documentation
+                  Whitepaper
                 </Button>
               </div>
             </div>
@@ -280,7 +280,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
               type="primary"
               size="large"
               icon={<DashboardOutlined />}
-              onClick={onAccessPortal}
+              onClick={() => onAccessPortal?.('dashboard')}
               style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
             >
               Access Enterprise Portal
