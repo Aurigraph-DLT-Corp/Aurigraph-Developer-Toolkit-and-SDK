@@ -72,14 +72,14 @@ export const defaultFeatureFlags: FeatureFlags = {
   crossChainBridge: false,
   bridgeTransfers: false,
 
-  // Smart Contract - DISABLED (API endpoints not implemented yet)
-  smartContracts: false,
-  ricardianContracts: false,
+  // Smart Contract - ENABLED (API endpoints available)
+  smartContracts: true,
+  ricardianContracts: true,
 
-  // Tokenization - DISABLED (API endpoints not implemented yet)
-  tokenization: false,
-  rwaRegistry: false,
-  externalApiTokenization: false,
+  // Tokenization - ENABLED (API endpoints available)
+  tokenization: true,
+  rwaRegistry: true,
+  externalApiTokenization: true,
 
   // Real-time - DISABLED (WebSocket not implemented yet)
   realtimeUpdates: false,
