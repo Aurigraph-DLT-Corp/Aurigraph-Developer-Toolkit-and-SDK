@@ -63,7 +63,7 @@ Agents work in parallel across multiple workstreams:
 - ✅ REST API and health endpoints
 - ✅ Native compilation with optimized profiles
 - ✅ AI optimization services (ML-based consensus)
-- ✅ HMS integration for real-world asset tokenization
+- ✅ Real-world asset tokenization registry (Merkle tree-based)
 - 🚧 gRPC service implementation
 - 🚧 Performance optimization (currently 776K TPS)
 - 📋 Full consensus migration from TypeScript
@@ -147,11 +147,12 @@ aurigraph-v11-standalone/
 │   │   ├── bridge/                      # Cross-chain bridge
 │   │   │   ├── CrossChainBridgeService.java
 │   │   │   └── adapters/                # Chain-specific adapters
-│   │   └── hms/                        # HMS integration
-│   │       └── HMSIntegrationService.java # Real-world asset tokenization
+│   │   ├── registry/                    # Asset registry services
+│   │   │   └── RWATRegistryService.java # Real-world asset token registry
+│   │   └── merkle/                      # Merkle tree infrastructure
+│   │       └── MerkleTreeRegistry.java  # Cryptographic verification
 │   ├── proto/
-│   │   ├── aurigraph-v11.proto          # V11 protocol definitions
-│   │   └── hms-integration.proto        # HMS protocol definitions
+│   │   └── aurigraph-v11.proto          # V11 protocol definitions
 │   └── resources/
 │       ├── application.properties        # Quarkus configuration
 │       └── META-INF/native-image/       # Native compilation configs
@@ -256,9 +257,9 @@ consensus.parallel.threads=256                # Processing threads
 ai.optimization.enabled=true                  # Enable ML optimization
 ai.optimization.target.tps=3000000           # AI TPS target
 
-# HMS integration
-hms.performance.target.tps=100000            # HMS TPS target
-hms.grpc.port=9005                           # HMS gRPC port
+# Real-world asset tokenization
+rwat.registry.enabled=true                   # Enable RWAT registry
+rwat.merkle.enabled=true                     # Enable Merkle tree verification
 ```
 
 ## Migration Status & Critical Requirements
@@ -278,7 +279,7 @@ hms.grpc.port=9005                           # HMS gRPC port
 - ✅ Transaction processing service (`TransactionService.java`)
 - ✅ AI optimization framework (ML-based consensus tuning)
 - ✅ Native compilation with 3 optimization profiles
-- ✅ HMS integration for real-world asset tokenization
+- ✅ RWAT registry with Merkle tree cryptographic verification
 - 🚧 gRPC service implementation (`HighPerformanceGrpcService.java`)
 - 🚧 HyperRAFT++ consensus migration (`HyperRAFTConsensusService.java`)
 - 🚧 Performance optimization (776K → 2M+ TPS target)
@@ -390,9 +391,9 @@ export JIRA_BASE_URL="https://aurigraphdlt.atlassian.net"
 export JIRA_PROJECT_KEY="AV11"
 ```
 
-#### Build & Deploy Scripts for HMS
+#### Build & Deploy Scripts
 
-Use these scripts to build and deploy HMS in future:
+Use these scripts for deployment:
 
 **@remote_dev4.sh** - Remote development deployment script
 **@deploy_dev4_complete.sh** - Complete dev4 deployment automation
