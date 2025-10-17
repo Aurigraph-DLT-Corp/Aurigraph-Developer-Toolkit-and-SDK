@@ -5,7 +5,6 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/portal/', // Set base path for deployment to /portal/ subdirectory
 
   resolve: {
     alias: {
