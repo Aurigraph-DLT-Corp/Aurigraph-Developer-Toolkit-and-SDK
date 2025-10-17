@@ -31,6 +31,7 @@ import {
   BellOutlined,
   LogoutOutlined,
   DownOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
@@ -53,6 +54,7 @@ import RicardianContractUpload from './components/comprehensive/RicardianContrac
 import ExternalAPITokenization from './components/comprehensive/ExternalAPITokenization';
 import RWATRegistry from './components/comprehensive/RWATRegistry';
 import Whitepaper from './components/comprehensive/Whitepaper';
+import UserManagement from './components/UserManagement';
 
 const { Header, Content, Footer } = Layout;
 
@@ -216,6 +218,11 @@ function App() {
           label: 'Node Visualization',
         },
         {
+          key: 'users',
+          icon: <TeamOutlined />,
+          label: 'User Management',
+        },
+        {
           key: 'settings',
           icon: <SettingOutlined />,
           label: 'Settings',
@@ -267,6 +274,8 @@ function App() {
         return <DemoApp />;
       case 'whitepaper':
         return <Whitepaper />;
+      case 'users':
+        return <UserManagement />;
       case 'settings':
         return (
           <div style={{ padding: '24px' }}>
