@@ -75,6 +75,51 @@
 
 **Status**: Ready for next phase - AI optimization integration and performance testing
 
+### 🔧 **AI Optimization Integration Plan**
+
+**Objective**: Integrate MLLoadBalancer and PredictiveTransactionOrdering into transaction processing pipeline
+
+**Integration Points Identified**:
+
+1. **Transaction Service** (`TransactionService.java:168`)
+   - **Current**: Simple hash-based shard selection: `int shard = fastHash(id) % shardCount;`
+   - **Planned**: ML-based shard selection via MLLoadBalancer
+   - **Code**:
+     ```java
+     @Inject
+     MLLoadBalancer mlLoadBalancer;
+
+     // In processTransactionOptimized():
+     int shard = mlLoadBalancer.selectShard(id, amount, txMetadata);
+     ```
+   - **Expected Improvement**: 15-20% better load distribution, <10% utilization variance
+
+2. **Consensus Service** (`HyperRAFTConsensusService.java`)
+   - **Current**: Random throughput simulation (100K-150K TPS)
+   - **Planned**: Use PredictiveTransactionOrdering for transaction batch optimization
+   - **Expected Improvement**: 15% throughput increase, <5ms ordering latency
+
+3. **Transaction Batching**
+   - **Location**: Add to TransactionService batch processing
+   - **Component**: PredictiveTransactionOrdering.orderTransactions()
+   - **Benefits**: Parallel execution optimization, dependency resolution
+
+**Implementation Status**:
+- ✅ MLLoadBalancer service implemented (505 lines)
+- ✅ PredictiveTransactionOrdering service implemented (421 lines)
+- ✅ AI model classes implemented (ConsensusMetrics, OptimizationResult)
+- 📋 Pending: Inject services into TransactionService
+- 📋 Pending: Replace shard selection logic
+- 📋 Pending: Add transaction ordering to batch processing
+- 📋 Pending: Performance benchmarking with AI enabled
+
+**Next Steps**:
+1. Integrate MLLoadBalancer into TransactionService (2-3 hours)
+2. Add PredictiveTransactionOrdering to batch processing (2-3 hours)
+3. Run performance benchmarks to measure improvement
+4. Fine-tune ML parameters based on results
+5. Document performance improvements in TODO.md
+
 ---
 
 ## 🎊 **PHASES 1-3 EXECUTION COMPLETE - 76 TICKETS CLOSED**
