@@ -1,5 +1,7 @@
 package io.aurigraph.v11.registry;
 
+import io.aurigraph.v11.merkle.MerkleProof;
+import io.aurigraph.v11.merkle.MerkleTreeRegistry;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
@@ -7,25 +9,36 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * RWAT Registry Service
+ * RWAT Registry Service with Merkle Tree Support
  *
- * Public registry for Real-World Asset Tokens.
- * Provides searchability, discoverability, and analytics for tokenized assets.
+ * Backend service for Real-World Asset Tokens registry.
+ * Provides searchability, discoverability, analytics, and cryptographic verification.
  *
- * @version 11.4.0
+ * Note: REST endpoints are exposed via RegistryResource, not directly by this service.
+ *
+ * @version 11.4.1
  * @since 2025-10-13
  */
 @ApplicationScoped
-public class RWATRegistryService {
+public class RWATRegistryService extends MerkleTreeRegistry<RWATRegistry> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RWATRegistryService.class);
 
-    // In-memory storage (will be migrated to database)
-    private final Map<String, RWATRegistry> rwats = new ConcurrentHashMap<>();
+    @Override
+    protected String serializeValue(RWATRegistry rwat) {
+        return String.format("%s|%s|%s|%d|%s|%.2f|%s",
+            rwat.getRwatId(),
+            rwat.getAssetName(),
+            rwat.getAssetType(),
+            rwat.getTokenSupply(),
+            rwat.getVerificationStatus(),
+            rwat.getTotalValue(),
+            rwat.getOwner()
+        );
+    }
 
     /**
      * Register a new RWAT
@@ -42,35 +55,63 @@ public class RWATRegistryService {
             // Calculate completeness score
             rwat.setCompletenessScore(calculateCompletenessScore(rwat));
 
-            // Store RWAT
-            rwats.put(rwat.getRwatId(), rwat);
-
-            LOGGER.info("RWAT registered: {}", rwat.getRwatId());
             return rwat;
-        });
+        }).flatMap(r -> add(r.getRwatId(), r).map(success -> r));
     }
 
     /**
      * Get RWAT by ID
      */
     public Uni<RWATRegistry> getRWAT(String rwatId) {
-        return Uni.createFrom().item(() -> {
-            RWATRegistry rwat = rwats.get(rwatId);
-            if (rwat == null) {
-                throw new RWATNotFoundException("RWAT not found: " + rwatId);
-            }
-            return rwat;
-        });
+        return get(rwatId).onItem().ifNull().failWith(() ->
+            new RWATNotFoundException("RWAT not found: " + rwatId));
+    }
+
+    /**
+     * Generate Merkle proof for an RWAT
+     */
+    public Uni<MerkleProof.ProofData> getProof(String rwatId) {
+        return generateProof(rwatId).map(MerkleProof::toProofData);
+    }
+
+    /**
+     * Verify a Merkle proof
+     */
+    public Uni<VerificationResponse> verifyMerkleProof(MerkleProof.ProofData proofData) {
+        return verifyProof(proofData.toMerkleProof()).map(valid ->
+            new VerificationResponse(valid, valid ? "Proof verified successfully" : "Invalid proof")
+        );
+    }
+
+    /**
+     * Get current Merkle root hash
+     */
+    public Uni<RootHashResponse> getMerkleRootHash() {
+        return getRootHash().flatMap(rootHash ->
+            getTreeStats().map(stats -> new RootHashResponse(
+                rootHash,
+                Instant.now(),
+                stats.getEntryCount(),
+                stats.getTreeHeight()
+            ))
+        );
+    }
+
+    /**
+     * Get Merkle tree statistics
+     */
+    public Uni<MerkleTreeStats> getMerkleTreeStats() {
+        return getTreeStats();
     }
 
     /**
      * Search RWATs by keyword
      */
     public Uni<List<RWATRegistry>> searchRWATs(String keyword) {
-        return Uni.createFrom().item(() ->
-                rwats.values().stream()
-                        .filter(r -> matchesKeyword(r, keyword))
-                        .collect(Collectors.toList())
+        return getAll().map(rwats ->
+            rwats.stream()
+                .filter(r -> matchesKeyword(r, keyword))
+                .collect(Collectors.toList())
         );
     }
 
@@ -78,10 +119,10 @@ public class RWATRegistryService {
      * List RWATs by asset type
      */
     public Uni<List<RWATRegistry>> listByAssetType(RWATRegistry.AssetType assetType) {
-        return Uni.createFrom().item(() ->
-                rwats.values().stream()
-                        .filter(r -> r.getAssetType() == assetType)
-                        .collect(Collectors.toList())
+        return getAll().map(rwats ->
+            rwats.stream()
+                .filter(r -> r.getAssetType() == assetType)
+                .collect(Collectors.toList())
         );
     }
 
@@ -89,10 +130,10 @@ public class RWATRegistryService {
      * List verified RWATs
      */
     public Uni<List<RWATRegistry>> listVerifiedRWATs() {
-        return Uni.createFrom().item(() ->
-                rwats.values().stream()
-                        .filter(r -> r.getVerificationStatus() == RWATRegistry.VerificationStatus.VERIFIED)
-                        .collect(Collectors.toList())
+        return getAll().map(rwats ->
+            rwats.stream()
+                .filter(r -> r.getVerificationStatus() == RWATRegistry.VerificationStatus.VERIFIED)
+                .collect(Collectors.toList())
         );
     }
 
@@ -100,10 +141,10 @@ public class RWATRegistryService {
      * List RWATs by location
      */
     public Uni<List<RWATRegistry>> listByLocation(String location) {
-        return Uni.createFrom().item(() ->
-                rwats.values().stream()
-                        .filter(r -> r.getLocation() != null && r.getLocation().contains(location))
-                        .collect(Collectors.toList())
+        return getAll().map(rwats ->
+            rwats.stream()
+                .filter(r -> r.getLocation() != null && r.getLocation().contains(location))
+                .collect(Collectors.toList())
         );
     }
 
@@ -111,11 +152,11 @@ public class RWATRegistryService {
      * List recently listed RWATs
      */
     public Uni<List<RWATRegistry>> listRecentRWATs(int limit) {
-        return Uni.createFrom().item(() ->
-                rwats.values().stream()
-                        .sorted((a, b) -> b.getListedAt().compareTo(a.getListedAt()))
-                        .limit(limit)
-                        .collect(Collectors.toList())
+        return getAll().map(rwats ->
+            rwats.stream()
+                .sorted((a, b) -> b.getListedAt().compareTo(a.getListedAt()))
+                .limit(limit)
+                .collect(Collectors.toList())
         );
     }
 
@@ -123,11 +164,11 @@ public class RWATRegistryService {
      * List top RWATs by trading volume
      */
     public Uni<List<RWATRegistry>> listTopByVolume(int limit) {
-        return Uni.createFrom().item(() ->
-                rwats.values().stream()
-                        .sorted((a, b) -> Double.compare(b.getTradingVolume(), a.getTradingVolume()))
-                        .limit(limit)
-                        .collect(Collectors.toList())
+        return getAll().map(rwats ->
+            rwats.stream()
+                .sorted((a, b) -> Double.compare(b.getTradingVolume(), a.getTradingVolume()))
+                .limit(limit)
+                .collect(Collectors.toList())
         );
     }
 
@@ -143,7 +184,7 @@ public class RWATRegistryService {
             rwat.setVerificationStatus(status);
             rwat.setVerifiedBy(verifierId);
             rwat.setVerifiedAt(Instant.now());
-            rwats.put(rwatId, rwat);
+            registry.put(rwatId, rwat);
             LOGGER.info("RWAT verification updated: {} - {}", rwatId, status);
             return rwat;
         });
@@ -156,7 +197,7 @@ public class RWATRegistryService {
         return getRWAT(rwatId).map(rwat -> {
             rwat.setTradingVolume(rwat.getTradingVolume() + transactionValue);
             rwat.setTransactionCount(rwat.getTransactionCount() + 1);
-            rwats.put(rwatId, rwat);
+            registry.put(rwatId, rwat);
             return rwat;
         });
     }
@@ -167,25 +208,25 @@ public class RWATRegistryService {
     public Map<String, Object> getStatistics() {
         Map<String, Object> stats = new HashMap<>();
 
-        stats.put("totalRWATs", rwats.size());
-        stats.put("activeRWATs", rwats.values().stream().filter(RWATRegistry::isActive).count());
-        stats.put("verifiedRWATs", rwats.values().stream()
+        stats.put("totalRWATs", registry.size());
+        stats.put("activeRWATs", registry.values().stream().filter(RWATRegistry::isActive).count());
+        stats.put("verifiedRWATs", registry.values().stream()
                 .filter(r -> r.getVerificationStatus() == RWATRegistry.VerificationStatus.VERIFIED).count());
 
         // Total value locked (TVL)
-        double tvl = rwats.values().stream()
+        double tvl = registry.values().stream()
                 .mapToDouble(RWATRegistry::getTotalValue)
                 .sum();
         stats.put("totalValueLocked", tvl);
 
         // Total trading volume
-        double totalVolume = rwats.values().stream()
+        double totalVolume = registry.values().stream()
                 .mapToDouble(RWATRegistry::getTradingVolume)
                 .sum();
         stats.put("totalTradingVolume", totalVolume);
 
         // Count by asset type
-        Map<String, Long> byType = rwats.values().stream()
+        Map<String, Long> byType = registry.values().stream()
                 .collect(Collectors.groupingBy(
                         r -> r.getAssetType().name(),
                         Collectors.counting()
@@ -193,7 +234,7 @@ public class RWATRegistryService {
         stats.put("assetsByType", byType);
 
         // Average completeness score
-        double avgCompleteness = rwats.values().stream()
+        double avgCompleteness = registry.values().stream()
                 .mapToDouble(RWATRegistry::getCompletenessScore)
                 .average()
                 .orElse(0.0);
@@ -240,6 +281,55 @@ public class RWATRegistryService {
     public static class RWATNotFoundException extends RuntimeException {
         public RWATNotFoundException(String message) {
             super(message);
+        }
+    }
+
+    // Response Classes
+    public static class VerificationResponse {
+        private final boolean valid;
+        private final String message;
+
+        public VerificationResponse(boolean valid, String message) {
+            this.valid = valid;
+            this.message = message;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
+    public static class RootHashResponse {
+        private final String rootHash;
+        private final Instant timestamp;
+        private final int entryCount;
+        private final int treeHeight;
+
+        public RootHashResponse(String rootHash, Instant timestamp, int entryCount, int treeHeight) {
+            this.rootHash = rootHash;
+            this.timestamp = timestamp;
+            this.entryCount = entryCount;
+            this.treeHeight = treeHeight;
+        }
+
+        public String getRootHash() {
+            return rootHash;
+        }
+
+        public Instant getTimestamp() {
+            return timestamp;
+        }
+
+        public int getEntryCount() {
+            return entryCount;
+        }
+
+        public int getTreeHeight() {
+            return treeHeight;
         }
     }
 }

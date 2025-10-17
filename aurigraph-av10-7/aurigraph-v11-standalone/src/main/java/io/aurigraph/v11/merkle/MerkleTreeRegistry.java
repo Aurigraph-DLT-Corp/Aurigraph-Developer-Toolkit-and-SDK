@@ -99,7 +99,8 @@ public abstract class MerkleTreeRegistry<T> {
         return Uni.createFrom().item(() -> {
             treeLock.readLock().lock();
             try {
-                return new ArrayList<>(registry.values());
+                List<T> result = new ArrayList<>(registry.values());
+                return result;
             } finally {
                 treeLock.readLock().unlock();
             }
