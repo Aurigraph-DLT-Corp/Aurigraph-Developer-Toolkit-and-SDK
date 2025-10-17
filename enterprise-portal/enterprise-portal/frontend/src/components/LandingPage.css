@@ -1,13 +1,13 @@
-/* Landing Page Styles */
+/* Landing Page Styles - Enterprise Portal Theme */
 
 .landing-page {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #0a1929 0%, #132f4c 50%, #1a3a52 100%);
 }
 
-/* Animated Background */
+/* Animated Background - Subtle Enterprise Grid */
 .blockchain-grid {
   position: fixed;
   top: 0;
@@ -15,8 +15,8 @@
   right: 0;
   bottom: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    linear-gradient(rgba(96, 165, 250, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 165, 250, 0.05) 1px, transparent 1px);
   background-size: 50px 50px;
   animation: gridMove 20s linear infinite;
   pointer-events: none;
@@ -32,11 +32,11 @@
   }
 }
 
-/* Pulsing Circles */
+/* Pulsing Circles - Enterprise Subtle Theme */
 .pulse-circle {
   position: fixed;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent);
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.1), transparent);
   animation: pulse 4s ease-in-out infinite;
   pointer-events: none;
   z-index: 0;
@@ -174,25 +174,28 @@
 }
 
 .portal-button {
-  background: linear-gradient(135deg, #faad14 0%, #ff7a45 100%) !important;
+  background: linear-gradient(135deg, #0066cc 0%, #004c99 100%) !important;
   border: none !important;
-  box-shadow: 0 4px 15px rgba(250, 173, 20, 0.4) !important;
+  box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4) !important;
+  color: white !important;
 }
 
 .portal-button:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(250, 173, 20, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(0, 102, 204, 0.6) !important;
+  background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%) !important;
 }
 
 .docs-button {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
   backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
   color: white !important;
 }
 
 .docs-button:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -399,14 +402,16 @@
   padding: 0 48px !important;
   border-radius: 8px !important;
   font-weight: 600 !important;
-  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%) !important;
+  background: linear-gradient(135deg, #0066cc 0%, #004c99 100%) !important;
   border: none !important;
-  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.4) !important;
+  box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4) !important;
+  color: white !important;
 }
 
 .cta-button:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(0, 102, 204, 0.6) !important;
+  background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%) !important;
 }
 
 /* Footer */

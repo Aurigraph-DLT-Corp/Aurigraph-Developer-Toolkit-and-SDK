@@ -301,7 +301,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
       {/* Footer */}
       <div className="landing-footer">
         <Paragraph className="footer-text">
-          © 2025 Aurigraph DLT. Enterprise Blockchain Platform v11.3.1
+          © 2025 Aurigraph DLT. Enterprise Blockchain Platform v11.3.2
         </Paragraph>
         <Paragraph className="footer-links">
           <a href="https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT" target="_blank" rel="noopener noreferrer">
