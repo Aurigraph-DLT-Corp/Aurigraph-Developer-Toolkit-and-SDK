@@ -109,6 +109,10 @@ public class TransactionService {
     @Inject
     io.aurigraph.v11.ai.PredictiveTransactionOrdering predictiveOrdering;
 
+    // ML optimization enabled flag
+    @ConfigProperty(name = "ai.optimization.enabled", defaultValue = "true")
+    boolean aiOptimizationEnabled;
+
     // High-performance lock for concurrent operations
     private final StampedLock performanceLock = new StampedLock();
     
@@ -148,6 +152,96 @@ public class TransactionService {
         startAdaptivePerformanceTuning();
     }
 
+    // ==================== ML OPTIMIZATION ADAPTER METHODS ====================
+
+    /**
+     * Get optimal shard using ML-based load balancing with fallback
+     * @param txId Transaction ID
+     * @param amount Transaction amount
+     * @return Optimal shard ID
+     */
+    private int getOptimalShardML(String txId, double amount) {
+        if (!aiOptimizationEnabled) {
+            return fastHash(txId) % shardCount;
+        }
+
+        try {
+            // Create ML transaction context
+            io.aurigraph.v11.ai.MLLoadBalancer.TransactionContext context =
+                new io.aurigraph.v11.ai.MLLoadBalancer.TransactionContext(
+                    txId,
+                    (long) amount,  // size approximation
+                    100000,         // gasLimit default
+                    1,              // priority default
+                    "local",        // region default
+                    null            // no specific capability required
+                );
+
+            // Get ML-based shard assignment (blocks on Uni)
+            io.aurigraph.v11.ai.MLLoadBalancer.ShardAssignment assignment =
+                mlLoadBalancer.assignShard(context)
+                    .await().atMost(java.time.Duration.ofMillis(50)); // 50ms timeout
+
+            LOG.debugf("ML shard selection: tx=%s, shard=%d, confidence=%.2f",
+                      txId.substring(0, Math.min(8, txId.length())), assignment.getShardId(), assignment.getConfidence());
+
+            return assignment.getShardId();
+
+        } catch (Exception e) {
+            // Fallback to hash-based sharding on any error
+            LOG.debugf("ML shard selection failed for %s, using hash fallback: %s",
+                      txId.substring(0, Math.min(8, txId.length())), e.getMessage());
+            return fastHash(txId) % shardCount;
+        }
+    }
+
+    /**
+     * Order transactions using ML-based optimization with fallback
+     * @param requests List of transaction requests to order
+     * @return Ordered list of transaction requests
+     */
+    private List<TransactionRequest> orderTransactionsML(List<TransactionRequest> requests) {
+        if (!aiOptimizationEnabled || requests.size() < 100) {
+            return requests; // Skip ML for small batches
+        }
+
+        try {
+            // Convert to ML transaction format (uses io.aurigraph.v11.models.Transaction)
+            List<io.aurigraph.v11.models.Transaction> mlTransactions =
+                requests.stream()
+                    .map(req -> {
+                        io.aurigraph.v11.models.Transaction tx = new io.aurigraph.v11.models.Transaction();
+                        tx.setId(req.id());
+                        tx.setAmount((long) req.amount());
+                        tx.setTimestamp(java.time.Instant.now());
+                        tx.setGasPrice(0L);
+                        tx.setFromAddress("0x" + req.id());
+                        return tx;
+                    })
+                    .toList();
+
+            // Apply ML-based ordering
+            List<io.aurigraph.v11.models.Transaction> orderedML =
+                predictiveOrdering.orderTransactions(mlTransactions)
+                    .await().atMost(java.time.Duration.ofMillis(100)); // 100ms timeout
+
+            // Convert back to TransactionRequest
+            List<TransactionRequest> ordered = orderedML.stream()
+                .map(tx -> new TransactionRequest(tx.getId(), tx.getAmount()))
+                .toList();
+
+            LOG.debugf("ML transaction ordering: %d transactions reordered", ordered.size());
+            return ordered;
+
+        } catch (Exception e) {
+            // Fallback to original order on any error
+            LOG.debugf("ML transaction ordering failed, using original order: %s", e.getMessage());
+            return requests;
+        }
+    }
+
+    // ==================== END ML OPTIMIZATION ADAPTERS ====================
+
     /**
      * Process a transaction with high performance using virtual threads
      * Target: 3M+ TPS with <50ms P99 latency
@@ -163,15 +257,14 @@ public class TransactionService {
     }
     
     /**
-     * Ultra-optimized transaction processing for 2M+ TPS with ML-based optimization
-     * NOTE: ML services (MLLoadBalancer, PredictiveOrdering) are injected and ready for integration
+     * Ultra-optimized transaction processing for 3M+ TPS with ML-based optimization
+     * Uses MLLoadBalancer for intelligent shard selection with fallback to hash-based
      */
     public String processTransactionOptimized(String id, double amount) {
         long startTime = System.nanoTime();
 
-        // Pre-calculate shard to minimize hash operations with improved distribution
-        // TODO: Integrate ML-based shard selection using mlLoadBalancer.assignShard() for optimal load distribution
-        int shard = fastHash(id) % shardCount;
+        // ML-based shard selection with automatic fallback to hash-based on failure
+        int shard = getOptimalShardML(id, amount);
         
         // Create optimized transaction hash with zero-allocation string builder
         String hash = calculateHashOptimized(id, amount, startTime);
@@ -258,20 +351,20 @@ public class TransactionService {
     /**
      * Ultra-High-Throughput Batch Processing for 3M+ TPS Target
      * Implements advanced optimizations:
+     * - ML-based transaction ordering for optimal throughput
      * - Adaptive batch sizing based on CPU load
      * - Lock-free transaction ordering
      * - Cache-line optimized data structures
      * - NUMA-aware memory allocation simulation
-     * NOTE: ML services (PredictiveTransactionOrdering) are injected and ready for integration
      */
     public CompletableFuture<List<String>> processUltraHighThroughputBatch(List<TransactionRequest> requests) {
         return CompletableFuture.supplyAsync(() -> {
             long startTime = System.nanoTime();
 
-            // TODO: Integrate ML-based transaction ordering using predictiveOrdering.orderTransactions()
-            // for optimal throughput based on transaction dependencies and priority
+            // Apply ML-based transaction ordering for optimal throughput
+            List<TransactionRequest> orderedRequests = orderTransactionsML(requests);
 
-            int requestSize = requests.size();
+            int requestSize = orderedRequests.size();
             
             // Adaptive batch sizing based on current system performance
             int adaptiveBatchSize = calculateAdaptiveBatchSize(requestSize);
@@ -290,7 +383,7 @@ public class TransactionService {
             for (int i = 0; i < requestSize; i += chunkSize) {
                 final int start = i;
                 final int end = Math.min(i + chunkSize, requestSize);
-                List<TransactionRequest> chunk = requests.subList(start, end);
+                List<TransactionRequest> chunk = orderedRequests.subList(start, end);
                 
                 CompletableFuture<List<String>> chunkFuture = CompletableFuture.supplyAsync(() -> 
                     processChunkWithCacheOptimization(chunk), processingPool);
