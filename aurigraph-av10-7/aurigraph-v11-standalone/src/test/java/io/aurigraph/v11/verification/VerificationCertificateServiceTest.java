@@ -29,8 +29,8 @@ class VerificationCertificateServiceTest {
     void testGenerateCertificate() {
         // Mock signature service
         byte[] mockSignature = "mock-signature".getBytes();
-        Mockito.when(signatureService.signData(any(byte[].class)))
-            .thenReturn(Uni.createFrom().item(mockSignature));
+        Mockito.when(signatureService.sign(any(byte[].class), any()))
+            .thenReturn(mockSignature);
 
         // Create certificate request
         Map<String, Object> verificationData = new HashMap<>();
@@ -68,8 +68,8 @@ class VerificationCertificateServiceTest {
     void testGetCertificate() {
         // Mock signature service
         byte[] mockSignature = "mock-signature".getBytes();
-        Mockito.when(signatureService.signData(any(byte[].class)))
-            .thenReturn(Uni.createFrom().item(mockSignature));
+        Mockito.when(signatureService.sign(any(byte[].class), any()))
+            .thenReturn(mockSignature);
 
         // Generate a certificate
         Map<String, Object> verificationData = new HashMap<>();
@@ -111,8 +111,8 @@ class VerificationCertificateServiceTest {
     void testRevokeCertificate() {
         // Mock signature service
         byte[] mockSignature = "mock-signature".getBytes();
-        Mockito.when(signatureService.signData(any(byte[].class)))
-            .thenReturn(Uni.createFrom().item(mockSignature));
+        Mockito.when(signatureService.sign(any(byte[].class), any()))
+            .thenReturn(mockSignature);
 
         // Generate a certificate
         Map<String, Object> verificationData = new HashMap<>();
@@ -143,8 +143,8 @@ class VerificationCertificateServiceTest {
     void testGetCertificatesByEntity() {
         // Mock signature service
         byte[] mockSignature = "mock-signature".getBytes();
-        Mockito.when(signatureService.signData(any(byte[].class)))
-            .thenReturn(Uni.createFrom().item(mockSignature));
+        Mockito.when(signatureService.sign(any(byte[].class), any()))
+            .thenReturn(mockSignature);
 
         String entityId = "entity-multi-cert";
 
@@ -178,8 +178,8 @@ class VerificationCertificateServiceTest {
     void testGetStatistics() {
         // Mock signature service
         byte[] mockSignature = "mock-signature".getBytes();
-        Mockito.when(signatureService.signData(any(byte[].class)))
-            .thenReturn(Uni.createFrom().item(mockSignature));
+        Mockito.when(signatureService.sign(any(byte[].class), any()))
+            .thenReturn(mockSignature);
 
         // Generate some certificates
         for (int i = 0; i < 5; i++) {
@@ -212,10 +212,10 @@ class VerificationCertificateServiceTest {
     void testVerifyCertificate() {
         // Mock signature service
         byte[] mockSignature = "mock-signature".getBytes();
-        Mockito.when(signatureService.signData(any(byte[].class)))
-            .thenReturn(Uni.createFrom().item(mockSignature));
-        Mockito.when(signatureService.verifySignature(any(byte[].class), any(byte[].class)))
-            .thenReturn(Uni.createFrom().item(true));
+        Mockito.when(signatureService.sign(any(byte[].class), any()))
+            .thenReturn(mockSignature);
+        Mockito.when(signatureService.verify(any(byte[].class), any(byte[].class), any()))
+            .thenReturn(true);
 
         // Generate certificate
         Map<String, Object> verificationData = new HashMap<>();

@@ -352,120 +352,13 @@ public class AurigraphResource {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    // ==================== BLOCKCHAIN ENDPOINTS (AV11-367) ====================
-
-    /**
-     * Get latest block information
-     * AV11-367: Implement blockchain query endpoints
-     */
-    @GET
-    @Path("/blockchain/latest")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BlockInfo> getLatestBlock() {
-        return Uni.createFrom().item(() -> {
-            long blockHeight = networkStatsService.getCurrentBlockHeight();
-
-            return new BlockInfo(
-                blockHeight,
-                "block_hash_" + blockHeight + "_" + System.currentTimeMillis(),
-                "block_hash_" + (blockHeight - 1),
-                System.currentTimeMillis(),
-                (int) (Math.random() * 10000) + 5000, // Random tx count
-                "validator_" + (blockHeight % 121),
-                2000.0, // 2 second block time
-                "HyperRAFT++",
-                true
-            );
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Get block by ID
-     * AV11-367: Implement blockchain query endpoints
-     */
-    @GET
-    @Path("/blockchain/block/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BlockInfo> getBlockById(@PathParam("id") String blockId) {
-        return Uni.createFrom().item(() -> {
-            try {
-                long id = Long.parseLong(blockId);
-                long currentHeight = networkStatsService.getCurrentBlockHeight();
-
-                if (id < 0 || id > currentHeight) {
-                    throw new NotFoundException("Block not found: " + id);
-                }
-
-                return new BlockInfo(
-                    id,
-                    "block_hash_" + id + "_" + (System.currentTimeMillis() - (currentHeight - id) * 2000),
-                    id > 0 ? "block_hash_" + (id - 1) : "genesis",
-                    System.currentTimeMillis() - (currentHeight - id) * 2000,
-                    (int) (Math.random() * 10000) + 5000,
-                    "validator_" + (id % 121),
-                    2000.0,
-                    "HyperRAFT++",
-                    true
-                );
-            } catch (NumberFormatException e) {
-                throw new BadRequestException("Invalid block ID: " + blockId);
-            }
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Get blockchain statistics
-     * AV11-367: Implement blockchain query endpoints
-     */
-    @GET
-    @Path("/blockchain/stats")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<BlockchainStats> getBlockchainStats() {
-        return networkStatsService.getNetworkStatistics().map(networkStats -> {
-            long blockHeight = networkStats.totalBlocks();
-            long totalTx = networkStats.totalTransactions();
-
-            return new BlockchainStats(
-                blockHeight,
-                totalTx,
-                networkStats.currentTPS(),
-                networkStats.averageBlockTime(),
-                totalTx / Math.max(1, blockHeight), // Average tx per block
-                networkStats.activeValidators(),
-                networkStats.totalNodes(),
-                networkStats.networkHashRate(),
-                networkStats.networkLatency(),
-                "HyperRAFT++ Consensus",
-                networkStats.getNetworkStatus(),
-                networkStats.getHealthScore(),
-                System.currentTimeMillis()
-            );
-        });
-    }
-
-    // ==================== METRICS ENDPOINTS (AV11-368) ====================
-
-    // ==================== REFACTORED TO SEPARATE API RESOURCES ====================
-    // The following endpoints have been moved to dedicated API resource classes:
-    // - /api/v11/consensus/metrics -> ConsensusApiResource.java
-    // - /api/v11/crypto/metrics -> CryptoApiResource.java
-    // - /api/v11/bridge/supported-chains -> BridgeApiResource.java
-    // Commented out to avoid duplicate endpoint errors during build
-
-    /*
-     * DEPRECATED: Moved to ConsensusApiResource.java
-     * GET /api/v11/consensus/metrics
-     */
-
-    /*
-     * DEPRECATED: Moved to CryptoApiResource.java
-     * GET /api/v11/crypto/metrics
-     */
-
-    /*
-     * DEPRECATED: Moved to BridgeApiResource.java
-     * GET /api/v11/bridge/supported-chains
-     */
+    // ==================== BLOCKCHAIN, METRICS, AND BRIDGE ENDPOINTS ====================
+    // NOTE: These endpoints are now implemented in specialized API resources:
+    // - BlockchainApiResource: /blockchain/latest, /blockchain/block/{id}, /blockchain/stats
+    // - ConsensusApiResource: /consensus/metrics
+    // - CryptoApiResource: /crypto/metrics
+    // - BridgeApiResource: /bridge/supported-chains
+    // Removed duplicate implementations to prevent endpoint conflicts (Oct 17, 2025)
 
     // ==================== RWA ENDPOINTS (AV11-370) ====================
 
