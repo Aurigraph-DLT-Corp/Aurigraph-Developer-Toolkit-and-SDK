@@ -31,6 +31,13 @@ import {
   RicardianContracts,
 } from './pages/dashboards'
 import MLPerformanceDashboard from './pages/dashboards/MLPerformanceDashboard'
+import {
+  TokenizeAsset,
+  Portfolio,
+  Valuation,
+  Dividends,
+  Compliance,
+} from './pages/rwa'
 
 function App() {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
@@ -70,6 +77,12 @@ function App() {
           <Route path="dashboards/security-audit" element={<SecurityAudit />} />
           <Route path="dashboards/developer" element={<DeveloperDashboard />} />
           <Route path="dashboards/ricardian-contracts" element={<RicardianContracts />} />
+          {/* RWA Routes */}
+          <Route path="rwa/tokenize" element={<TokenizeAsset />} />
+          <Route path="rwa/portfolio" element={<Portfolio />} />
+          <Route path="rwa/valuation" element={<Valuation />} />
+          <Route path="rwa/dividends" element={<Dividends />} />
+          <Route path="rwa/compliance" element={<Compliance />} />
         </Route>
       </Routes>
       </Box>

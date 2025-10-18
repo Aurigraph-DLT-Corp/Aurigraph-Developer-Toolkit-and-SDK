@@ -51,13 +51,15 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://dlt.aurigraph.io'
 const REFRESH_INTERVAL = Number(process.env.REACT_APP_REFRESH_INTERVAL) || 5000
 const TPS_TARGET = Number(process.env.REACT_APP_TPS_TARGET) || 2000000
 
+// Initial placeholder values - REPLACED by real backend API data on first fetch
 const INITIAL_METRICS: Metrics = {
-  tps: 776000,
-  blockHeight: 1234567,
-  activeNodes: 24,
-  transactionVolume: '2.3B'
+  tps: 0,
+  blockHeight: 0,
+  activeNodes: 0,
+  transactionVolume: '0'
 }
 
+// Initial placeholder values - REPLACED by real backend API data on first fetch
 const INITIAL_CONTRACT_STATS: ContractStats = {
   totalContracts: 0,
   totalDeployed: 0,
@@ -94,6 +96,13 @@ const calculateTPSProgress = (tps: number): number => (tps / TPS_TARGET) * 100
 
 const formatBlockHeight = (height: number | undefined): string => height ? `#${height.toLocaleString()}` : '#0'
 
+const formatTransactionVolume = (total: number): string => {
+  if (total >= 1_000_000_000) return `${(total / 1_000_000_000).toFixed(1)}B`
+  if (total >= 1_000_000) return `${(total / 1_000_000).toFixed(1)}M`
+  if (total >= 1_000) return `${(total / 1_000).toFixed(1)}K`
+  return total.toString()
+}
+
 // ============================================================================
 // CUSTOM HOOKS
 // ============================================================================
@@ -109,12 +118,23 @@ const useMetrics = () => {
     try {
       const data = await apiService.getMetrics()
       if (data) {
-        setMetrics(data)
+        // Map backend API response to Dashboard metrics format
+        setMetrics({
+          tps: data.currentThroughputMeasurement || 0,
+          blockHeight: data.totalProcessed || 0,
+          activeNodes: data.activeThreads || 0,
+          transactionVolume: formatTransactionVolume(data.totalProcessed || 0)
+        })
+        console.log('✅ Dashboard metrics updated from real backend API:', {
+          tps: data.currentThroughputMeasurement,
+          totalProcessed: data.totalProcessed,
+          activeThreads: data.activeThreads
+        })
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch metrics'
       setError(errorMessage)
-      console.error('Failed to fetch metrics:', err)
+      console.error('❌ Failed to fetch metrics from backend:', err)
     } finally {
       setLoading(false)
     }
@@ -141,17 +161,19 @@ const useContractStats = () => {
       const data = await response.json()
 
       if (data) {
-        setContractStats({
+        const stats = {
           totalContracts: data.totalContracts ?? 0,
           totalDeployed: data.totalDeployed ?? 0,
           totalVerified: data.totalVerified ?? 0,
           totalAudited: data.totalAudited ?? 0
-        })
+        }
+        setContractStats(stats)
+        console.log('✅ Contract stats updated from backend API:', stats)
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch contract stats'
       setError(errorMessage)
-      console.error('Failed to fetch contract stats:', err)
+      console.error('❌ Failed to fetch contract stats from backend:', err)
     } finally {
       setLoading(false)
     }
@@ -170,13 +192,31 @@ const usePerformanceData = () => {
     setError(null)
     try {
       const data = await apiService.getPerformance()
-      if (data && data.tpsHistory) {
-        setTpsHistory(data.tpsHistory)
+      if (data) {
+        // If backend provides tpsHistory array, use it
+        if (data.tpsHistory && Array.isArray(data.tpsHistory)) {
+          setTpsHistory(data.tpsHistory)
+          console.log('✅ TPS history updated from backend API:', data.tpsHistory.length, 'data points')
+        } else {
+          // Otherwise, create a single data point from current performance
+          const currentTime = new Date().toLocaleTimeString()
+          const tpsValue = data.transactionsPerSecond || 0
+
+          setTpsHistory(prev => {
+            const updated = [...prev, { time: currentTime, value: tpsValue }]
+            // Keep last 24 data points (24 hours if fetched hourly, or adjust as needed)
+            return updated.slice(-24)
+          })
+          console.log('✅ TPS data point added from backend API:', {
+            time: currentTime,
+            tps: tpsValue
+          })
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch performance data'
       setError(errorMessage)
-      console.error('Failed to fetch performance data:', err)
+      console.error('❌ Failed to fetch performance data from backend:', err)
     } finally {
       setLoading(false)
     }
@@ -195,13 +235,54 @@ const useSystemHealth = () => {
     setError(null)
     try {
       const data = await apiService.getSystemStatus()
-      if (data && data.components) {
-        setHealthItems(data.components)
+      if (data) {
+        // Map backend system status to health items format
+        const items: SystemHealthItem[] = []
+
+        // Consensus status
+        if (data.consensusStatus) {
+          items.push({
+            name: 'Consensus Layer',
+            status: data.consensusStatus.state || 'ACTIVE',
+            progress: data.consensusStatus.state === 'LEADER' ? 100 : 75
+          })
+        }
+
+        // Crypto status
+        if (data.cryptoStatus) {
+          const cryptoHealth = data.cryptoStatus.quantumCryptoEnabled ? 100 : 50
+          items.push({
+            name: 'Quantum Crypto',
+            status: data.cryptoStatus.quantumCryptoEnabled ? 'ENABLED' : 'DISABLED',
+            progress: cryptoHealth
+          })
+        }
+
+        // Bridge status
+        if (data.bridgeStats) {
+          items.push({
+            name: 'Cross-Chain Bridge',
+            status: data.bridgeStats.healthy ? 'HEALTHY' : 'DEGRADED',
+            progress: data.bridgeStats.successRate || 0
+          })
+        }
+
+        // AI status
+        if (data.aiStats) {
+          items.push({
+            name: 'AI Optimization',
+            status: data.aiStats.aiEnabled ? 'ACTIVE' : 'INACTIVE',
+            progress: data.aiStats.optimizationEfficiency || 0
+          })
+        }
+
+        setHealthItems(items)
+        console.log('✅ System health updated from backend API:', items.length, 'components')
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch system health'
       setError(errorMessage)
-      console.error('Failed to fetch system health:', err)
+      console.error('❌ Failed to fetch system health from backend:', err)
     } finally {
       setLoading(false)
     }
