@@ -6,8 +6,29 @@ import {
 import { TrendingUp, TrendingDown, Assessment, PieChart } from '@mui/icons-material';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+import { apiService } from '../services/api';
+
 const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('24h');
+  const [predictions, setPredictions] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetchMLPredictions();
+    const interval = setInterval(fetchMLPredictions, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchMLPredictions = async () => {
+    try {
+      const mlPredictions = await apiService.getMLPredictions();
+      setPredictions(mlPredictions);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch ML predictions:', error);
+      setLoading(false);
+    }
+  };
 
   const blockchainData = Array.from({ length: 30 }, (_, i) => ({
     day: `Day ${i + 1}`,
@@ -23,12 +44,9 @@ const Analytics: React.FC = () => {
     { name: 'Circulation', value: 20, color: '#ff7c7c' }
   ];
 
-  const predictions = {
-    nextDayTps: 850000,
-    weeklyGrowth: 12.5,
-    monthlyVolume: 50000000,
-    anomalyScore: 0.12
-  };
+  if (loading || !predictions) {
+    return <Box sx={{ p: 3 }}><Typography>Loading ML predictions...</Typography></Box>;
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -131,19 +149,19 @@ const Analytics: React.FC = () => {
             <Grid item xs={12} md={3}>
               <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'white' }}>
                 <Typography variant="subtitle2">Next Day TPS Forecast</Typography>
-                <Typography variant="h4">{predictions.nextDayTps.toLocaleString()}</Typography>
+                <Typography variant="h4">{predictions.nextDayTpsForecast.toLocaleString()}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={3}>
               <Paper sx={{ p: 2, bgcolor: 'success.light', color: 'white' }}>
                 <Typography variant="subtitle2">Weekly Growth Rate</Typography>
-                <Typography variant="h4">+{predictions.weeklyGrowth}%</Typography>
+                <Typography variant="h4">+{predictions.weeklyGrowthRate.toFixed(1)}%</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={3}>
               <Paper sx={{ p: 2, bgcolor: 'info.light', color: 'white' }}>
                 <Typography variant="subtitle2">Monthly Volume Prediction</Typography>
-                <Typography variant="h4">${predictions.monthlyVolume.toLocaleString()}</Typography>
+                <Typography variant="h4">{(predictions.monthlyVolumePrediction / 1e9).toFixed(1)}B</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={3}>

@@ -36,8 +36,10 @@ import {
   LocalShipping as ShippingIcon,
   Dashboard as DashboardIcon,
   Assessment as AssessmentIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import NodeConfiguration from './components/NodeConfiguration';
 
 // Live API configuration - connects to actual Aurigraph V11
 const API_BASE = window.location.protocol === 'https:'
@@ -80,12 +82,22 @@ export const DemoApp: React.FC = () => {
   const [wsConnected, setWsConnected] = useState(false);
   const [currentTPS, setCurrentTPS] = useState(0);
   const [targetTPS] = useState(2000000);
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
   // Transaction form state
   const [txFrom, setTxFrom] = useState('');
   const [txTo, setTxTo] = useState('');
   const [txAmount, setTxAmount] = useState('');
   const [txStatus, setTxStatus] = useState<string>('');
+
+  // Node configuration handler
+  const handleConfigSave = (config: any) => {
+    console.log('Network configuration saved:', config);
+    // TODO: Send config to backend API
+    // For now, just log and show success message
+    setTxStatus(`Network configured: ${config.validatorNodes.length} validators, ${config.businessNodes.length} business nodes, ${config.slimNodes.length} slim nodes`);
+    setTimeout(() => setTxStatus(''), 5000);
+  };
 
   // Live data fetching
   const fetchPlatformInfo = useCallback(async () => {
@@ -268,6 +280,16 @@ export const DemoApp: React.FC = () => {
             <Typography variant="body2" color="text.secondary">
               Connected to: {API_BASE}
             </Typography>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              onClick={() => setConfigDialogOpen(true)}
+              sx={{ mr: 2 }}
+            >
+              Network Config
+            </Button>
           </Grid>
           <Grid item>
             <Chip
@@ -552,6 +574,13 @@ export const DemoApp: React.FC = () => {
           </Grid>
         </Grid>
       )}
+
+      {/* Network Configuration Dialog */}
+      <NodeConfiguration
+        open={configDialogOpen}
+        onClose={() => setConfigDialogOpen(false)}
+        onSave={handleConfigSave}
+      />
     </Box>
   );
 };

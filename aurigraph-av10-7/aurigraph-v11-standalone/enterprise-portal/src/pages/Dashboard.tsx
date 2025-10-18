@@ -92,7 +92,7 @@ const formatTPS = (tps: number): string => `${(tps / 1000).toFixed(0)}K`
 
 const calculateTPSProgress = (tps: number): number => (tps / TPS_TARGET) * 100
 
-const formatBlockHeight = (height: number): string => `#${height.toLocaleString()}`
+const formatBlockHeight = (height: number | undefined): string => height ? `#${height.toLocaleString()}` : '#0'
 
 // ============================================================================
 // CUSTOM HOOKS
@@ -499,9 +499,20 @@ export default function Dashboard() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-        Aurigraph V11 Enterprise Dashboard - Release 3.4
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+          Aurigraph V11 Enterprise Dashboard - Release 3.4
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={() => navigate('/demo')}
+          sx={{ px: 4, py: 1.5, fontWeight: 600 }}
+        >
+          Launch Demo
+        </Button>
+      </Box>
 
       {/* Metric Cards */}
       <Grid container spacing={3}>

@@ -97,6 +97,27 @@ export const apiService = {
     return response.data
   },
 
+  // ML & AI Optimization
+  async getMLMetrics() {
+    const response = await apiClient.get('/ai/metrics')
+    return response.data
+  },
+
+  async getMLPredictions() {
+    const response = await apiClient.get('/ai/predictions')
+    return response.data
+  },
+
+  async getMLPerformance() {
+    const response = await apiClient.get('/ai/performance')
+    return response.data
+  },
+
+  async getMLConfidence() {
+    const response = await apiClient.get('/ai/confidence')
+    return response.data
+  },
+
   async getChannelMetrics(id: string) {
     const response = await apiClient.get(`/channels/${id}/metrics`)
     return response.data
@@ -253,6 +274,27 @@ export const apiService = {
 
   async getSystemConfig() {
     const response = await apiClient.get('/system/config')
+    return response.data
+  },
+
+  // Merkle Tree Registry
+  async getMerkleRootHash() {
+    const response = await apiClient.get('/registry/rwat/merkle/root')
+    return response.data
+  },
+
+  async generateMerkleProof(rwatId: string) {
+    const response = await apiClient.get(`/registry/rwat/${rwatId}/merkle/proof`)
+    return response.data
+  },
+
+  async verifyMerkleProof(proofData: any) {
+    const response = await apiClient.post('/registry/rwat/merkle/verify', proofData)
+    return response.data
+  },
+
+  async getMerkleTreeStats() {
+    const response = await apiClient.get('/registry/rwat/merkle/stats')
     return response.data
   },
 }

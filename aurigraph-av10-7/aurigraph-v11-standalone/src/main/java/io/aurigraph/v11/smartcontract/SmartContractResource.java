@@ -356,9 +356,37 @@ public class SmartContractResource {
                     "execute", "POST /api/v11/contracts/{contractId}/execute",
                     "getContract", "GET /api/v11/contracts/{contractId}",
                     "listContracts", "GET /api/v11/contracts",
-                    "getExecutions", "GET /api/v11/contracts/{contractId}/executions"
+                    "getExecutions", "GET /api/v11/contracts/{contractId}/executions",
+                    "statistics", "GET /api/v11/contracts/statistics"
                 )
             )
         )).build();
+    }
+
+    /**
+     * Get contract statistics
+     *
+     * GET /api/v11/contracts/statistics
+     */
+    @GET
+    @Path("/statistics")
+    @Operation(
+        summary = "Get Contract Statistics",
+        description = "Retrieve statistics about deployed smart contracts"
+    )
+    public Uni<Response> getStatistics() {
+        LOGGER.info("API: Getting contract statistics");
+
+        return contractService.getStatistics()
+            .map(stats -> Response.ok(stats).build())
+            .onFailure().recoverWithItem(error -> {
+                LOGGER.warning("Failed to get statistics, returning defaults: " + error.getMessage());
+                return Response.ok(Map.of(
+                    "totalContracts", 0,
+                    "activeContracts", 0,
+                    "totalExecutions", 0,
+                    "successRate", 0.0
+                )).build();
+            });
     }
 }

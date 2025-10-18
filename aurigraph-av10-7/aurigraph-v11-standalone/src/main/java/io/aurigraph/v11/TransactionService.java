@@ -109,6 +109,9 @@ public class TransactionService {
     @Inject
     io.aurigraph.v11.ai.PredictiveTransactionOrdering predictiveOrdering;
 
+    @Inject
+    io.aurigraph.v11.ai.MLMetricsService mlMetricsService;
+
     // ML optimization enabled flag
     @ConfigProperty(name = "ai.optimization.enabled", defaultValue = "true")
     boolean aiOptimizationEnabled;
@@ -165,6 +168,7 @@ public class TransactionService {
             return fastHash(txId) % shardCount;
         }
 
+        long startNanos = System.nanoTime();
         try {
             // Create ML transaction context
             io.aurigraph.v11.ai.MLLoadBalancer.TransactionContext context =
@@ -182,6 +186,9 @@ public class TransactionService {
                 mlLoadBalancer.assignShard(context)
                     .await().atMost(java.time.Duration.ofMillis(50)); // 50ms timeout
 
+            long latencyNanos = System.nanoTime() - startNanos;
+            mlMetricsService.recordShardSelection(assignment.getConfidence(), latencyNanos, false);
+
             LOG.debugf("ML shard selection: tx=%s, shard=%d, confidence=%.2f",
                       txId.substring(0, Math.min(8, txId.length())), assignment.getShardId(), assignment.getConfidence());
 
@@ -189,6 +196,9 @@ public class TransactionService {
 
         } catch (Exception e) {
             // Fallback to hash-based sharding on any error
+            long latencyNanos = System.nanoTime() - startNanos;
+            mlMetricsService.recordShardSelection(0.0, latencyNanos, true);
+
             LOG.debugf("ML shard selection failed for %s, using hash fallback: %s",
                       txId.substring(0, Math.min(8, txId.length())), e.getMessage());
             return fastHash(txId) % shardCount;
@@ -205,6 +215,7 @@ public class TransactionService {
             return requests; // Skip ML for small batches
         }
 
+        long startNanos = System.nanoTime();
         try {
             // Convert to ML transaction format (uses io.aurigraph.v11.models.Transaction)
             List<io.aurigraph.v11.models.Transaction> mlTransactions =
@@ -225,6 +236,9 @@ public class TransactionService {
                 predictiveOrdering.orderTransactions(mlTransactions)
                     .await().atMost(java.time.Duration.ofMillis(100)); // 100ms timeout
 
+            long latencyNanos = System.nanoTime() - startNanos;
+            mlMetricsService.recordTransactionOrdering(orderedML.size(), latencyNanos, false);
+
             // Convert back to TransactionRequest
             List<TransactionRequest> ordered = orderedML.stream()
                 .map(tx -> new TransactionRequest(tx.getId(), tx.getAmount()))
@@ -235,6 +249,9 @@ public class TransactionService {
 
         } catch (Exception e) {
             // Fallback to original order on any error
+            long latencyNanos = System.nanoTime() - startNanos;
+            mlMetricsService.recordTransactionOrdering(requests.size(), latencyNanos, true);
+
             LOG.debugf("ML transaction ordering failed, using original order: %s", e.getMessage());
             return requests;
         }

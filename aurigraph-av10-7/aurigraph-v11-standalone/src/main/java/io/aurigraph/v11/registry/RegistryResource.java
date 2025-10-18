@@ -295,4 +295,78 @@ public class RegistryResource {
         Map<String, Object> stats = rwatRegistry.getStatistics();
         return Response.ok(stats).build();
     }
+
+    // ========== Merkle Tree Endpoints ==========
+
+    /**
+     * Get Merkle root hash for RWAT registry
+     *
+     * GET /api/v11/registry/rwat/merkle/root
+     */
+    @GET
+    @Path("/rwat/merkle/root")
+    public Uni<Response> getMerkleRootHash() {
+        LOGGER.info("REST: Get Merkle root hash");
+
+        return rwatRegistry.getMerkleRootHash()
+                .map(rootHashResponse -> Response.ok(rootHashResponse).build());
+    }
+
+    /**
+     * Generate Merkle proof for an RWAT
+     *
+     * GET /api/v11/registry/rwat/{rwatId}/merkle/proof
+     */
+    @GET
+    @Path("/rwat/{rwatId}/merkle/proof")
+    public Uni<Response> generateMerkleProof(@PathParam("rwatId") String rwatId) {
+        LOGGER.info("REST: Generate Merkle proof for RWAT - {}", rwatId);
+
+        return rwatRegistry.getProof(rwatId)
+                .map(proofData -> Response.ok(proofData).build())
+                .onFailure().recoverWithItem(error ->
+                        Response.status(Response.Status.NOT_FOUND)
+                                .entity(Map.of("error", error.getMessage()))
+                                .build()
+                );
+    }
+
+    /**
+     * Verify a Merkle proof
+     *
+     * POST /api/v11/registry/rwat/merkle/verify
+     */
+    @POST
+    @Path("/rwat/merkle/verify")
+    public Uni<Response> verifyMerkleProof(io.aurigraph.v11.merkle.MerkleProof.ProofData proofData) {
+        LOGGER.info("REST: Verify Merkle proof");
+
+        return rwatRegistry.verifyMerkleProof(proofData)
+                .map(verificationResponse -> Response.ok(verificationResponse).build())
+                .onFailure().recoverWithItem(error ->
+                        Response.status(Response.Status.BAD_REQUEST)
+                                .entity(Map.of("error", error.getMessage()))
+                                .build()
+                );
+    }
+
+    /**
+     * Get Merkle tree statistics
+     *
+     * GET /api/v11/registry/rwat/merkle/stats
+     */
+    @GET
+    @Path("/rwat/merkle/stats")
+    public Uni<Response> getMerkleTreeStats() {
+        LOGGER.info("REST: Get Merkle tree statistics");
+
+        return rwatRegistry.getTreeStats()
+                .map(stats -> Response.ok(Map.of(
+                        "rootHash", stats.getRootHash(),
+                        "entryCount", stats.getEntryCount(),
+                        "treeHeight", stats.getTreeHeight(),
+                        "lastUpdate", stats.getLastUpdate(),
+                        "rebuildCount", stats.getRebuildCount()
+                )).build());
+    }
 }

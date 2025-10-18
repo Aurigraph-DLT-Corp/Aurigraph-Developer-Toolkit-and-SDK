@@ -8,11 +8,14 @@ import {
 import { Speed, Memory, Storage, NetworkCheck, TrendingUp } from '@mui/icons-material';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+import { apiService } from '../services/api';
+
 const Performance: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [tps, setTps] = useState(776000);
   const [targetTps, setTargetTps] = useState(2000000);
   const [loading, setLoading] = useState(false);
+  const [mlPerformance, setMLPerformance] = useState<any>(null);
   const [metrics, setMetrics] = useState({
     cpu: 45,
     memory: 62,
@@ -21,6 +24,22 @@ const Performance: React.FC = () => {
     latency: 12,
     throughput: 850000
   });
+
+  React.useEffect(() => {
+    fetchMLPerformance();
+    const interval = setInterval(fetchMLPerformance, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchMLPerformance = async () => {
+    try {
+      const performance = await apiService.getMLPerformance();
+      setMLPerformance(performance);
+      setTps(performance.mlOptimizedTPS);
+    } catch (error) {
+      console.error('Failed to fetch ML performance:', error);
+    }
+  };
 
   const [testConfig, setTestConfig] = useState({
     duration: 60,
@@ -163,8 +182,13 @@ const Performance: React.FC = () => {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl component="fieldset">
-                    <Typography gutterBottom>Enable AI Optimization</Typography>
-                    <Switch defaultChecked />
+                    <Typography gutterBottom>AI Optimization Status</Typography>
+                    <Switch checked={mlPerformance?.mlOptimizedTPS > mlPerformance?.baselineTPS} disabled />
+                    {mlPerformance && (
+                      <Typography variant="caption" color="success.main">
+                        Active: +{mlPerformance.performanceGainPercent.toFixed(1)}% gain
+                      </Typography>
+                    )}
                   </FormControl>
                 </Grid>
               </Grid>

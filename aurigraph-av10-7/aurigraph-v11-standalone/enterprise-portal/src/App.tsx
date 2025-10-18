@@ -16,6 +16,7 @@ import TokenizationRegistry from './components/TokenizationRegistry'
 import ActiveContracts from './components/ActiveContracts'
 import ChannelManagement from './components/ChannelManagement'
 import Tokenization from './components/Tokenization'
+import MerkleTreeRegistry from './components/MerkleTreeRegistry'
 import ErrorBoundary from './components/ErrorBoundary'
 import { useAppSelector } from './hooks'
 import {
@@ -29,6 +30,7 @@ import {
   DeveloperDashboard,
   RicardianContracts,
 } from './pages/dashboards'
+import MLPerformanceDashboard from './pages/dashboards/MLPerformanceDashboard'
 
 function App() {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
@@ -48,6 +50,7 @@ function App() {
           <Route path="performance" element={<Performance />} />
           <Route path="nodes" element={<NodeManagement />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="ml-performance" element={<MLPerformanceDashboard />} />
           <Route path="settings" element={<Settings />} />
           <Route path="channels" element={<MultiChannelDashboard />} />
           <Route path="channels/:channelId/demo" element={<ChannelDemo channelId="main" />} />
@@ -55,6 +58,7 @@ function App() {
           <Route path="active-contracts" element={<ActiveContracts />} />
           <Route path="tokens" element={<TokenizationRegistry />} />
           <Route path="tokenization" element={<Tokenization />} />
+          <Route path="merkle-tree" element={<MerkleTreeRegistry />} />
           <Route path="channel-management" element={<ChannelManagement />} />
           {/* Dashboard Routes */}
           <Route path="dashboards/system-health" element={<SystemHealth />} />

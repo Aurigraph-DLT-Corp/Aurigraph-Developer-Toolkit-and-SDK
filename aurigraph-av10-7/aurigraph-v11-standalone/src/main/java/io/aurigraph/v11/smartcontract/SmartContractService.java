@@ -255,6 +255,43 @@ public class SmartContractService {
         });
     }
 
+    /**
+     * Get contract statistics
+     *
+     * @return Statistics about deployed smart contracts
+     */
+    public Uni<Map<String, Object>> getStatistics() {
+        return Uni.createFrom().item(() -> {
+            LOGGER.info("Calculating contract statistics");
+
+            long totalContracts = contracts.size();
+            long activeContracts = contracts.values().stream()
+                .filter(c -> c.getStatus() == SmartContract.ContractStatus.DEPLOYED ||
+                            c.getStatus() == SmartContract.ContractStatus.ACTIVE)
+                .count();
+
+            long totalExecutions = executions.size();
+            long successfulExecutions = executions.values().stream()
+                .filter(e -> e.getStatus() == ContractExecution.ExecutionStatus.SUCCESS)
+                .count();
+
+            double successRate = totalExecutions > 0
+                ? (successfulExecutions * 100.0 / totalExecutions)
+                : 0.0;
+
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalContracts", totalContracts);
+            stats.put("activeContracts", activeContracts);
+            stats.put("pausedContracts", totalContracts - activeContracts);
+            stats.put("totalExecutions", totalExecutions);
+            stats.put("successfulExecutions", successfulExecutions);
+            stats.put("successRate", Math.round(successRate * 100.0) / 100.0);
+            stats.put("timestamp", Instant.now().toString());
+
+            return stats;
+        });
+    }
+
     // Private helper methods
 
     private void validateContract(SmartContract contract) {
