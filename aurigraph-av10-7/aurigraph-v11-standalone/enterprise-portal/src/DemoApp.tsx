@@ -179,9 +179,21 @@ export const DemoApp: React.FC = () => {
     }
   };
 
-  // Load demos on mount
+  // Load demos on mount and periodically check for updates
   useEffect(() => {
-    setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+    const loadDemos = () => {
+      const allDemos = DemoService.getAllDemos();
+      console.log('📊 Loading demos:', allDemos.length, 'demos found');
+      setDemos(convertDemosForDisplay(allDemos));
+    };
+
+    // Initial load
+    loadDemos();
+
+    // Check again after 500ms in case async initialization is still running
+    const timeout = setTimeout(loadDemos, 500);
+
+    return () => clearTimeout(timeout);
   }, []);
 
   // Live data fetching from real backend
@@ -326,12 +338,15 @@ export const DemoApp: React.FC = () => {
       // return ws;
     };
 
-    // Fetch real-time data from backend API (polling every 2 seconds)
-    const interval = setInterval(async () => {
+    // Fetch real-time data from backend API
+    const fetchRealtimeData = async () => {
       if (!wsConnected) {
         try {
           // Fetch real blockchain stats
           const response = await fetch(`${API_BASE}/api/v11/blockchain/stats`);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
           const stats = await response.json();
 
           const newTPS = stats.transactionStats?.currentTPS || 0;
@@ -346,13 +361,21 @@ export const DemoApp: React.FC = () => {
             memory: 50 + Math.random() * 15, // Memory estimation
           }]);
           setBackendConnected(true);
+          console.log('✅ Backend connected - Real-time data:', { tps: newTPS, latency });
         } catch (error) {
-          console.error('Failed to fetch real-time stats:', error);
+          console.error('❌ Failed to fetch real-time stats:', error);
           setBackendConnected(false);
         }
       }
-    }, 2000);
+    };
 
+    // Initial fetch immediately
+    fetchRealtimeData();
+
+    // Then poll every 2 seconds
+    const interval = setInterval(fetchRealtimeData, 2000);
+
+    // Also fetch platform info immediately
     fetchPlatformInfo();
     const ws = connectWebSocket();
 
