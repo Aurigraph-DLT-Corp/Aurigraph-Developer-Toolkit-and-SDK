@@ -424,7 +424,11 @@ const Transactions: React.FC = () => {
 
   // REMOVED generateSampleTransactions() - NO STATIC DATA per #MEMORIZE requirement
 
-  const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const formatAddress = (address: string | undefined | null) => {
+    if (!address || typeof address !== 'string') return 'N/A';
+    if (address.length < 10) return address;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
   const copyToClipboard = (text: string) => navigator.clipboard.writeText(text);
 
   const getStatusIcon = (status: string) => {

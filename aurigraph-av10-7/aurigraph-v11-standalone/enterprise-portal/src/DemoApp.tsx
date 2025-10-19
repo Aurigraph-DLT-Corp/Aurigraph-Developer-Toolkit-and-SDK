@@ -182,13 +182,19 @@ export const DemoApp: React.FC = () => {
   // WebSocket for real-time updates
   useEffect(() => {
     const connectWebSocket = () => {
-      const wsUrl = API_BASE.replace('http', 'ws') + '/ws';
-      const ws = new WebSocket(wsUrl);
+      // WebSocket endpoint not yet implemented on backend
+      // TODO: Enable when /ws endpoint is available
+      console.log('WebSocket connection disabled - using polling fallback');
+      setWsConnected(false);
+      return;
 
-      ws.onopen = () => {
-        setWsConnected(true);
-        console.log('WebSocket connected');
-      };
+      // const wsUrl = API_BASE.replace('http', 'ws') + '/ws';
+      // const ws = new WebSocket(wsUrl);
+
+      // ws.onopen = () => {
+      //   setWsConnected(true);
+      //   console.log('WebSocket connected');
+      // };
 
       ws.onmessage = (event) => {
         try {
