@@ -76,6 +76,34 @@
 - Web Server: Nginx 1.24.0 with HTTP/2 + TLS 1.3
 - Backend: Quarkus V11 on port 9003
 
+### NGINX Proxy Configuration
+
+**Location**: `enterprise-portal/nginx/`
+**Configuration Files**:
+- `aurigraph-portal.conf` - Main NGINX configuration with security, rate limiting, firewall
+- `deploy-nginx.sh` - Automated deployment script with backup/rollback
+- `setup-firewall.sh` - UFW firewall configuration for production
+- `README.md` - Complete documentation (516 lines)
+- `QUICK_START.md` - Quick reference guide
+
+**Key Features**:
+- ✅ Reverse proxy for V11 backend (port 9003)
+- ✅ Rate limiting: 100 req/s API, 10 req/s admin, 5 req/m auth
+- ✅ IP-based firewall for admin endpoints
+- ✅ SSL/TLS 1.2/1.3 with modern cipher suites
+- ✅ Security headers (HSTS, CSP, X-Frame-Options)
+- ✅ Gzip compression for performance
+- ✅ Static asset caching (1 year)
+- ✅ WebSocket support for real-time updates
+
+**Deployment**:
+```bash
+cd enterprise-portal/nginx/
+./deploy-nginx.sh --test     # Test configuration
+./deploy-nginx.sh --deploy   # Deploy to production
+./deploy-nginx.sh --status   # Check status
+```
+
 ---
 
 ## 🗂️ PROJECT STRUCTURE
