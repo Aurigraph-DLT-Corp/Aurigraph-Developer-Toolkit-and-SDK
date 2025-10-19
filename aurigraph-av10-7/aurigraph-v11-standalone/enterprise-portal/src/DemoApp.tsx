@@ -616,23 +616,36 @@ export const DemoApp: React.FC = () => {
             onDelete={handleDeleteDemo}
           />
 
-          {/* Node Visualization (for selected demo or all demos) */}
+          {/* Selected Demo View */}
           {selectedDemo && (
             <Box sx={{ mt: 4 }}>
-              <Typography variant="h5" gutterBottom>
-                Network Topology: {selectedDemo.demoName}
-              </Typography>
-              <NodeVisualization
-                validators={DemoService.getDemo(selectedDemo.id)?.validators || []}
-                businessNodes={DemoService.getDemo(selectedDemo.id)?.businessNodes || []}
-                slimNodes={DemoService.getDemo(selectedDemo.id)?.slimNodes || []}
-                channels={selectedDemo.channels}
-              />
+              {/* Demo Status Banner */}
+              <Alert
+                severity={selectedDemo.status === 'running' ? 'success' : selectedDemo.status === 'stopped' ? 'warning' : 'info'}
+                sx={{ mb: 3 }}
+              >
+                <Typography variant="h6">
+                  Demo: {selectedDemo.demoName} - Status: {selectedDemo.status.toUpperCase()}
+                </Typography>
+                {selectedDemo.status === 'running' && (
+                  <Typography variant="body2">
+                    Live performance metrics and network topology displayed below
+                  </Typography>
+                )}
+                {selectedDemo.status !== 'running' && (
+                  <Typography variant="body2">
+                    Start this demo to see live performance metrics
+                  </Typography>
+                )}
+              </Alert>
 
-              {/* Throughput/Latency Dashboard for Selected Demo */}
-              <Box sx={{ mt: 4 }}>
-                <Typography variant="h5" gutterBottom>
-                  Performance Metrics: {selectedDemo.demoName}
+              {/* Throughput/Latency Dashboard - ALWAYS VISIBLE */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  📊 Performance Metrics: {selectedDemo.demoName}
+                  {selectedDemo.status === 'running' && (
+                    <Chip label="LIVE" color="success" size="small" />
+                  )}
                 </Typography>
                 <RealTimeTPSChart
                   currentTPS={currentTPS}
@@ -643,11 +656,27 @@ export const DemoApp: React.FC = () => {
               </Box>
 
               {/* Network Health Visualization */}
-              <Box sx={{ mt: 4 }}>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                  🏥 Network Health: {selectedDemo.demoName}
+                </Typography>
                 <NetworkHealthViz
                   validators={DemoService.getDemo(selectedDemo.id)?.validators || []}
                   businessNodes={DemoService.getDemo(selectedDemo.id)?.businessNodes || []}
                   slimNodes={DemoService.getDemo(selectedDemo.id)?.slimNodes || []}
+                />
+              </Box>
+
+              {/* Network Topology */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                  🌐 Network Topology: {selectedDemo.demoName}
+                </Typography>
+                <NodeVisualization
+                  validators={DemoService.getDemo(selectedDemo.id)?.validators || []}
+                  businessNodes={DemoService.getDemo(selectedDemo.id)?.businessNodes || []}
+                  slimNodes={DemoService.getDemo(selectedDemo.id)?.slimNodes || []}
+                  channels={selectedDemo.channels}
                 />
               </Box>
             </Box>
