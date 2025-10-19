@@ -47,6 +47,7 @@ import { DemoListView, DemoInstance } from './components/DemoListView';
 import { NodeVisualization } from './components/NodeVisualization';
 import { RealTimeTPSChart } from './components/RealTimeTPSChart';
 import { NetworkHealthViz } from './components/NetworkHealthViz';
+import MerkleTreeRegistry from './components/MerkleTreeRegistry';
 import { DemoService, DemoRegistration } from './services/DemoService';
 
 // Live API configuration - connects to actual Aurigraph V11
@@ -639,7 +640,7 @@ export const DemoApp: React.FC = () => {
                 )}
               </Alert>
 
-              {/* Throughput/Latency Dashboard - ALWAYS VISIBLE */}
+              {/* 1. Throughput/Latency Dashboard - TOP PRIORITY */}
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   📊 Performance Metrics: {selectedDemo.demoName}
@@ -655,7 +656,16 @@ export const DemoApp: React.FC = () => {
                 />
               </Box>
 
-              {/* Network Health Visualization */}
+              {/* 2. Merkle Tree Registry - SECOND */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  🌳 Merkle Tree Registry: {selectedDemo.demoName}
+                  <Chip label="SHA-256" color="info" size="small" />
+                </Typography>
+                <MerkleTreeRegistry />
+              </Box>
+
+              {/* 3. Network Health Visualization - THIRD */}
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h5" gutterBottom>
                   🏥 Network Health: {selectedDemo.demoName}
@@ -667,7 +677,7 @@ export const DemoApp: React.FC = () => {
                 />
               </Box>
 
-              {/* Network Topology */}
+              {/* 4. Network Topology - BOTTOM */}
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h5" gutterBottom>
                   🌐 Network Topology: {selectedDemo.demoName}
