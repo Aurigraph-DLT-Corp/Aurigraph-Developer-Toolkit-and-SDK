@@ -37,9 +37,17 @@ import {
   Dashboard as DashboardIcon,
   Assessment as AssessmentIcon,
   Settings as SettingsIcon,
+  Science as ScienceIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import NodeConfiguration from './components/NodeConfiguration';
+import { DemoRegistrationForm } from './components/DemoRegistration';
+import { DemoListView, DemoInstance } from './components/DemoListView';
+import { NodeVisualization } from './components/NodeVisualization';
+import { RealTimeTPSChart } from './components/RealTimeTPSChart';
+import { NetworkHealthViz } from './components/NetworkHealthViz';
+import { DemoService, DemoRegistration } from './services/DemoService';
 
 // Live API configuration - connects to actual Aurigraph V11
 const API_BASE = window.location.protocol === 'https:'
@@ -84,6 +92,11 @@ export const DemoApp: React.FC = () => {
   const [targetTPS] = useState(2000000);
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
+  // Demo system state
+  const [demos, setDemos] = useState<DemoInstance[]>([]);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [selectedDemo, setSelectedDemo] = useState<DemoInstance | null>(null);
+
   // Transaction form state
   const [txFrom, setTxFrom] = useState('');
   const [txTo, setTxTo] = useState('');
@@ -98,6 +111,75 @@ export const DemoApp: React.FC = () => {
     setTxStatus(`Network configured: ${config.validatorNodes.length} validators, ${config.businessNodes.length} business nodes, ${config.slimNodes.length} slim nodes`);
     setTimeout(() => setTxStatus(''), 5000);
   };
+
+  // Helper function to convert node arrays to counts
+  const convertDemosForDisplay = (demosFromService: any[]): DemoInstance[] => {
+    return demosFromService.map(demo => ({
+      ...demo,
+      validators: Array.isArray(demo.validators) ? demo.validators.length : demo.validators,
+      businessNodes: Array.isArray(demo.businessNodes) ? demo.businessNodes.length : demo.businessNodes,
+      slimNodes: Array.isArray(demo.slimNodes) ? demo.slimNodes.length : demo.slimNodes,
+    }));
+  };
+
+  // Demo system handlers
+  const handleDemoRegistration = async (registration: DemoRegistration) => {
+    try {
+      const newDemo = await DemoService.registerDemo(registration);
+      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+      setRegistrationOpen(false);
+      setTxStatus(`Demo "${newDemo.demoName}" registered successfully!`);
+      setTimeout(() => setTxStatus(''), 5000);
+    } catch (error) {
+      console.error('Failed to register demo:', error);
+      setTxStatus('Failed to register demo');
+      setTimeout(() => setTxStatus(''), 5000);
+    }
+  };
+
+  const handleStartDemo = async (demoId: string) => {
+    try {
+      await DemoService.startDemo(demoId);
+      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+    } catch (error) {
+      console.error('Failed to start demo:', error);
+    }
+  };
+
+  const handleStopDemo = async (demoId: string) => {
+    try {
+      await DemoService.stopDemo(demoId);
+      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+    } catch (error) {
+      console.error('Failed to stop demo:', error);
+    }
+  };
+
+  const handleViewDemo = (demoId: string) => {
+    const demo = DemoService.getDemo(demoId);
+    if (demo) {
+      setSelectedDemo(demo);
+      console.log('Viewing demo:', demo);
+    }
+  };
+
+  const handleDeleteDemo = async (demoId: string) => {
+    if (window.confirm('Are you sure you want to delete this demo?')) {
+      try {
+        await DemoService.deleteDemo(demoId);
+        setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+        setTxStatus('Demo deleted successfully');
+        setTimeout(() => setTxStatus(''), 5000);
+      } catch (error) {
+        console.error('Failed to delete demo:', error);
+      }
+    }
+  };
+
+  // Load demos on mount
+  useEffect(() => {
+    setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+  }, []);
 
   // Live data fetching
   const fetchPlatformInfo = useCallback(async () => {
@@ -313,6 +395,7 @@ export const DemoApp: React.FC = () => {
         <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
           <Tab label="Performance Monitor" icon={<SpeedIcon />} />
           <Tab label="Transaction Demo" icon={<SendIcon />} />
+          <Tab label="Demo System" icon={<ScienceIcon />} />
           <Tab label="Industry Solutions" icon={<DashboardIcon />} />
           <Tab label="Analytics" icon={<AssessmentIcon />} />
         </Tabs>
@@ -502,6 +585,99 @@ export const DemoApp: React.FC = () => {
       )}
 
       {activeTab === 2 && (
+        <Box>
+          {/* Demo System Header */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5">
+              Demo Management System
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => setRegistrationOpen(true)}
+            >
+              Register New Demo
+            </Button>
+          </Box>
+
+          {txStatus && (
+            <Alert severity={txStatus.includes('successfully') || txStatus.includes('registered') ? 'success' : 'info'} sx={{ mb: 3 }}>
+              {txStatus}
+            </Alert>
+          )}
+
+          {/* Demo List View */}
+          <DemoListView
+            demos={demos}
+            onStart={handleStartDemo}
+            onStop={handleStopDemo}
+            onView={handleViewDemo}
+            onDelete={handleDeleteDemo}
+          />
+
+          {/* Node Visualization (for selected demo or all demos) */}
+          {selectedDemo && (
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h5" gutterBottom>
+                Network Topology: {selectedDemo.demoName}
+              </Typography>
+              <NodeVisualization
+                validators={DemoService.getDemo(selectedDemo.id)?.validators || []}
+                businessNodes={DemoService.getDemo(selectedDemo.id)?.businessNodes || []}
+                slimNodes={DemoService.getDemo(selectedDemo.id)?.slimNodes || []}
+                channels={selectedDemo.channels}
+              />
+
+              {/* Throughput/Latency Dashboard for Selected Demo */}
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                  Performance Metrics: {selectedDemo.demoName}
+                </Typography>
+                <RealTimeTPSChart
+                  currentTPS={currentTPS}
+                  targetTPS={2000000}
+                  peakTPS={Math.max(currentTPS, 2050000)}
+                  averageTPS={Math.floor(currentTPS * 0.95)}
+                />
+              </Box>
+
+              {/* Network Health Visualization */}
+              <Box sx={{ mt: 4 }}>
+                <NetworkHealthViz
+                  validators={DemoService.getDemo(selectedDemo.id)?.validators || []}
+                  businessNodes={DemoService.getDemo(selectedDemo.id)?.businessNodes || []}
+                  slimNodes={DemoService.getDemo(selectedDemo.id)?.slimNodes || []}
+                />
+              </Box>
+            </Box>
+          )}
+
+          {/* Show all nodes if no demo selected but demos exist */}
+          {!selectedDemo && demos.length > 0 && (
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h5" gutterBottom>
+                All Network Nodes Across Demos
+              </Typography>
+              <NodeVisualization
+                validators={DemoService.getAllDemos().flatMap(d => d.validators)}
+                businessNodes={DemoService.getAllDemos().flatMap(d => d.businessNodes)}
+                slimNodes={DemoService.getAllDemos().flatMap(d => d.slimNodes)}
+                channels={DemoService.getAllDemos().flatMap(d => d.channels)}
+              />
+            </Box>
+          )}
+
+          {/* Demo Registration Dialog */}
+          <DemoRegistrationForm
+            open={registrationOpen}
+            onClose={() => setRegistrationOpen(false)}
+            onSubmit={handleDemoRegistration}
+          />
+        </Box>
+      )}
+
+      {activeTab === 3 && (
         <Grid container spacing={3}>
           {industryDemos.map((demo, index) => (
             <Grid item xs={12} md={6} key={index}>
@@ -540,7 +716,7 @@ export const DemoApp: React.FC = () => {
         </Grid>
       )}
 
-      {activeTab === 3 && (
+      {activeTab === 4 && (
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Card>
