@@ -34,7 +34,7 @@ export const apiService = {
 
   // Metrics
   async getMetrics() {
-    const response = await apiClient.get('/stats')
+    const response = await apiClient.get('/blockchain/stats')
     return response.data
   },
 
@@ -50,23 +50,23 @@ export const apiService = {
 
   // Transactions
   async getTransactions(params?: { limit?: number; offset?: number }) {
-    const response = await apiClient.get('/transactions', { params })
+    const response = await apiClient.get('/blockchain/transactions', { params })
     return response.data
   },
 
   async getTransaction(id: string) {
-    const response = await apiClient.get(`/transactions/${id}`)
+    const response = await apiClient.get(`/blockchain/transactions/${id}`)
     return response.data
   },
 
   // Blocks
   async getBlocks(params?: { limit?: number; offset?: number }) {
-    const response = await apiClient.get('/blocks', { params })
+    const response = await apiClient.get('/blockchain/blocks', { params })
     return response.data
   },
 
   async getBlock(height: number) {
-    const response = await apiClient.get(`/blocks/${height}`)
+    const response = await apiClient.get(`/blockchain/blocks/${height}`)
     return response.data
   },
 

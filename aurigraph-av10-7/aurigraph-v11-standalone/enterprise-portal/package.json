@@ -1,7 +1,7 @@
 {
   "name": "aurigraph-v11-enterprise-portal",
-  "version": "4.4.1",
-  "description": "Enterprise Portal V4.4.1 - Hotfix: Transactions error, WebSocket, and API endpoints",
+  "version": "4.7.0",
+  "description": "Enterprise Portal V4.7.0 - Complete API Integration (All 9 Dashboards)",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",

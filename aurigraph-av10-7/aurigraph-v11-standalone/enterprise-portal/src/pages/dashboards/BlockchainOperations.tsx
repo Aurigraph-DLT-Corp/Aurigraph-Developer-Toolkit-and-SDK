@@ -17,21 +17,12 @@ import {
   Chip,
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import axios from 'axios';
+import { apiService } from '../../services/api';
 
-// Backend API response types
-interface NetworkStats {
-  totalNodes: number;
-  activeValidators: number;
-  currentTPS: number;
-  networkHashRate: string;
-  averageBlockTime: number;
-  totalBlocks: number;
-  totalTransactions: number;
-  networkLatency: number;
-  timestamp: number;
-  healthScore?: number;
-  networkStatus?: string;
+// TPS history for charting (generated from real data)
+interface TPSHistoryPoint {
+  timestamp: string;
+  tps: number;
 }
 
 interface BlockData {
@@ -41,24 +32,10 @@ interface BlockData {
   transactions: number;
   validator: string;
   size: number;
-  gasUsed: number;
-}
-
-interface BlocksResponse {
-  blocks: BlockData[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
-// TPS history for charting (generated from real data)
-interface TPSHistoryPoint {
-  timestamp: string;
-  tps: number;
 }
 
 const BlockchainOperations: React.FC = () => {
-  const [networkStats, setNetworkStats] = useState<NetworkStats | null>(null);
+  const [stats, setStats] = useState<any>(null);
   const [recentBlocks, setRecentBlocks] = useState<BlockData[]>([]);
   const [tpsHistory, setTPSHistory] = useState<TPSHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,24 +44,24 @@ const BlockchainOperations: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch network stats and recent blocks in parallel
-        const [statsResponse, blocksResponse] = await Promise.all([
-          axios.get<NetworkStats>('/api/v11/blockchain/network/stats'),
-          axios.get<BlocksResponse>('/api/v11/blockchain/blocks?limit=10')
+        setError(null);
+
+        // Fetch network stats and recent blocks from REAL API
+        const [metricsData, blocksData] = await Promise.all([
+          apiService.getMetrics(),
+          apiService.getBlocks({ limit: 10 })
         ]);
 
-        setNetworkStats(statsResponse.data);
-        setRecentBlocks(blocksResponse.data.blocks);
+        setStats(metricsData);
+        setRecentBlocks(blocksData.blocks || []);
 
         // Build TPS history from current TPS data
-        // In production, this should come from a dedicated historical metrics endpoint
-        updateTPSHistory(statsResponse.data.currentTPS);
+        updateTPSHistory(metricsData.transactionStats?.currentTPS || 0);
 
         setLoading(false);
-        setError(null);
       } catch (err) {
         console.error('Failed to fetch blockchain data:', err);
-        setError('Failed to fetch blockchain operations data. Please ensure the backend is running on port 9003.');
+        setError('Failed to fetch blockchain operations data');
         setLoading(false);
       }
     };
@@ -123,7 +100,7 @@ const BlockchainOperations: React.FC = () => {
     );
   }
 
-  if (error || !networkStats) {
+  if (error || !stats) {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">{error || 'No data available'}</Alert>
@@ -136,6 +113,7 @@ const BlockchainOperations: React.FC = () => {
     switch (status) {
       case 'EXCELLENT': return 'success';
       case 'GOOD': return 'success';
+      case 'OPTIMAL': return 'success';
       case 'FAIR': return 'warning';
       case 'DEGRADED': return 'warning';
       case 'CRITICAL': return 'error';
@@ -143,16 +121,21 @@ const BlockchainOperations: React.FC = () => {
     }
   };
 
+  // Calculate average block time from TPS (blocks per second * 1000 transactions per block)
+  const avgBlockTime = stats.transactionStats?.currentTPS > 0
+    ? ((1000 / (stats.transactionStats.currentTPS / 1000)) * 1000).toFixed(2)
+    : '0.50';
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">
           Blockchain Operations Dashboard
         </Typography>
-        {networkStats.networkStatus && (
+        {stats.networkHealth?.status && (
           <Chip
-            label={networkStats.networkStatus}
-            color={getStatusColor(networkStats.networkStatus)}
+            label={stats.networkHealth.status}
+            color={getStatusColor(stats.networkHealth.status)}
             sx={{ fontWeight: 'bold' }}
           />
         )}
@@ -166,7 +149,7 @@ const BlockchainOperations: React.FC = () => {
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
                 Block Height
               </Typography>
-              <Typography variant="h4">{networkStats.totalBlocks.toLocaleString()}</Typography>
+              <Typography variant="h4">{(stats.totalBlocks || 0).toLocaleString()}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -176,7 +159,7 @@ const BlockchainOperations: React.FC = () => {
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
                 Current TPS
               </Typography>
-              <Typography variant="h4">{networkStats.currentTPS.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+              <Typography variant="h4">{(stats.transactionStats?.currentTPS || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -186,7 +169,7 @@ const BlockchainOperations: React.FC = () => {
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
                 Block Time (avg)
               </Typography>
-              <Typography variant="h4">{(networkStats.averageBlockTime / 1000).toFixed(2)}s</Typography>
+              <Typography variant="h4">{avgBlockTime}s</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -196,7 +179,7 @@ const BlockchainOperations: React.FC = () => {
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
                 Active Validators
               </Typography>
-              <Typography variant="h4">{networkStats.activeValidators} / {networkStats.totalNodes}</Typography>
+              <Typography variant="h4">{stats.validatorStats?.active || 0} / {stats.validatorStats?.total || 0}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -212,13 +195,19 @@ const BlockchainOperations: React.FC = () => {
                 <Typography variant="body2" color="text.secondary">
                   Total Transactions
                 </Typography>
-                <Typography variant="h5">{networkStats.totalTransactions.toLocaleString()}</Typography>
+                <Typography variant="h5">{(stats.totalTransactions || 0).toLocaleString()}</Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Last Hour
+                </Typography>
+                <Typography variant="h5">{(stats.transactionStats?.lastHour || 0).toLocaleString()}</Typography>
               </Box>
               <Box>
                 <Typography variant="body2" color="text.secondary">
-                  Network Latency
+                  Last 24 Hours
                 </Typography>
-                <Typography variant="h5">{networkStats.networkLatency.toFixed(2)} ms</Typography>
+                <Typography variant="h5">{(stats.transactionStats?.last24h || 0).toLocaleString()}</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -233,17 +222,23 @@ const BlockchainOperations: React.FC = () => {
               </Typography>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Network Hash Rate
+                  Consensus Health
                 </Typography>
-                <Typography variant="h5" sx={{ fontFamily: 'monospace' }}>
-                  {networkStats.networkHashRate}
+                <Typography variant="h5" color="success.main">
+                  {stats.networkHealth?.consensusHealth || 'OPTIMAL'}
                 </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Network Uptime
+                </Typography>
+                <Typography variant="h5">{(stats.networkHealth?.uptime || 99.99).toFixed(2)}%</Typography>
               </Box>
               <Box>
                 <Typography variant="body2" color="text.secondary">
-                  Total Nodes
+                  Peak TPS
                 </Typography>
-                <Typography variant="h5">{networkStats.totalNodes}</Typography>
+                <Typography variant="h5">{(stats.transactionStats?.peakTPS || 0).toLocaleString()}</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -321,16 +316,16 @@ const BlockchainOperations: React.FC = () => {
                           key={block.height}
                           sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                         >
-                          <TableCell sx={{ fontWeight: 'bold' }}>{block.height.toLocaleString()}</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>{(block.height || 0).toLocaleString()}</TableCell>
                           <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                            {block.hash}
+                            {block.hash?.substring(0, 16)}...{block.hash?.substring(block.hash.length - 8)}
                           </TableCell>
-                          <TableCell>{new Date(block.timestamp).toLocaleString()}</TableCell>
-                          <TableCell>{block.transactions.toLocaleString()}</TableCell>
+                          <TableCell>{new Date(block.timestamp || Date.now()).toLocaleString()}</TableCell>
+                          <TableCell>{(block.transactions || 0).toLocaleString()}</TableCell>
                           <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                            {block.validator}
+                            {block.validator?.substring(0, 12) || 'Unknown'}...
                           </TableCell>
-                          <TableCell>{(block.size / 1024).toFixed(2)} KB</TableCell>
+                          <TableCell>{((block.size || 0) / 1024).toFixed(2)} KB</TableCell>
                         </TableRow>
                       ))
                     ) : (

@@ -14,7 +14,6 @@ const navigationMenus = [
     title: 'Main',
     items: [
       { text: 'Dashboard', path: '/' },
-      { text: 'Live Demo', path: '/demo' },
     ]
   },
   {
@@ -107,11 +106,33 @@ export default function Layout() {
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: '#1A1F3A' }}>
         <Toolbar>
           <Typography variant="h6" noWrap component="div" sx={{ mr: 4 }}>
-            Aurigraph V11 Enterprise Portal - Release 4.3.2
+            Aurigraph V11 Enterprise Portal - v4.7.0
           </Typography>
 
           {/* Top Navigation Menus */}
           <Box sx={{ flexGrow: 1, display: 'flex', gap: 1 }}>
+            {/* Demo Tab - Direct Access */}
+            <Button
+              color="inherit"
+              onClick={() => navigate('/demo')}
+              startIcon={<PlayCircleOutline />}
+              sx={{
+                textTransform: 'none',
+                bgcolor: 'rgba(0, 191, 165, 0.15)',
+                '&:hover': { bgcolor: 'rgba(0, 191, 165, 0.25)' },
+                borderRadius: 1,
+                px: 2,
+              }}
+            >
+              Demo
+              <Chip
+                label="LIVE"
+                size="small"
+                color="success"
+                sx={{ ml: 1, height: 18, fontSize: '0.65rem', fontWeight: 'bold' }}
+              />
+            </Button>
+
             {navigationMenus.map((menu) => (
               <Box key={menu.title}>
                 <Button
