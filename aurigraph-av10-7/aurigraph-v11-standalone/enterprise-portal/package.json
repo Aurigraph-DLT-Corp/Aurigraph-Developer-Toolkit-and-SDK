@@ -1,7 +1,7 @@
 {
   "name": "aurigraph-v11-enterprise-portal",
-  "version": "4.3.2",
-  "description": "Enterprise Portal for Aurigraph V11.3.2 with Top Nav & Node Config - AV11-410",
+  "version": "4.4.0",
+  "description": "Enterprise Portal V4.4.0 - Production Release with Testing, CI/CD, OAuth & Monitoring",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
