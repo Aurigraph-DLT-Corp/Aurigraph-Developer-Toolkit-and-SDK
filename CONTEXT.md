@@ -134,19 +134,23 @@ curl http://localhost:9003/api/v11/health
 
 ## 🔄 Current System Architecture
 
-### Enterprise Portal V4.3.2
+### Enterprise Portal V4.4.0 ⭐ LATEST RELEASE
 **Status**: ✅ PRODUCTION
 **URL**: https://dlt.aurigraph.io
+**Version**: 4.4.0 (Released: October 19, 2025)
 **Technology**: React 18 + TypeScript + Material-UI v6 + Vite
 **Pages**: 23 pages across 6 categories
 **Testing**: 560+ tests, 85%+ coverage
+**Git Tag**: enterprise-portal-v4.4.0
 
-### Backend (V11 Quarkus)
+### Backend (V11 Quarkus) V11.3.3 ⭐ LATEST RELEASE
 **Status**: ✅ RUNNING
 **Port**: 9003
-**Process**: java -jar aurigraph-v11-standalone-11.3.2-runner.jar
-**Health**: HEALTHY (30+ hours uptime)
+**Version**: 11.3.3 (Released: October 19, 2025)
+**Process**: java -jar aurigraph-v11-standalone-11.3.3-runner.jar
+**Health**: HEALTHY (31+ hours uptime)
 **Performance**: 776K+ TPS
+**Git Tag**: dlt-platform-v11.3.3
 
 ### NGINX Configuration
 **Status**: ✅ CONFIGURED & VERIFIED
@@ -164,6 +168,8 @@ curl http://localhost:9003/api/v11/health
 ## 📊 Git Commit History (Recent)
 
 ```
+b96cbf96 - release: Enterprise Portal v4.4.0 & DLT Platform v11.3.3 ⭐ RELEASE
+128d22dd - docs: Enterprise Portal V4.3.2 - Next Steps Implementation Guides
 0a287ff2 - feat: Enterprise Portal V4.3.2 - Production Deployment Complete
 54ff8231 - feat: CI/CD Pipeline & Testing Summary
 472b0c00 - test: Sprint 3 - Blockchain Operations tests (60+ tests)
@@ -173,13 +179,16 @@ fa5fcaa4 - test: Sprint 2 - Security Audit tests (60+ tests) - SPRINT COMPLETE
 ff469b07 - test: Sprint 2 - Developer Dashboard tests (60+ tests)
 67068f63 - test: Sprint 2 - Node Management tests (55+ tests)
 7901fc80 - test: Sprint 2 - Analytics Dashboard tests (60+ tests)
-f78b52e9 - docs: Update CLAUDE.md with Enterprise Portal V4.3.2 information
-ea186740 - chore: Add coverage package @vitest/coverage-v8
-eb7d35ed - test: Enterprise Portal V4.3.2 - Sprint 1 Core Page Tests Complete
-db0f4a1c - feat: Enterprise Portal V4.3.2 - NGINX Proxy & Firewall Configuration
 ```
 
-**Total**: 13 commits implementing testing, CI/CD, and production deployment
+**Total**: 15 commits implementing testing, CI/CD, deployment, and release
+
+## 🏷️ Git Tags (Releases)
+
+```
+enterprise-portal-v4.4.0 - Enterprise Portal Production Release
+dlt-platform-v11.3.3 - DLT Platform Production Release
+```
 
 ---
 
@@ -195,6 +204,10 @@ db0f4a1c - feat: Enterprise Portal V4.3.2 - NGINX Proxy & Firewall Configuration
 - [x] Created OAuth 2.0 integration guide (OAUTH_SETUP.md)
 - [x] Created monitoring & alerting setup guide (MONITORING_SETUP.md)
 - [x] Created backup automation guide (BACKUP_AUTOMATION.md)
+- [x] **Released Enterprise Portal v4.4.0** ⭐
+- [x] **Released DLT Platform v11.3.3** ⭐
+- [x] Created comprehensive release notes (RELEASE_NOTES_v4.4.0.md)
+- [x] Pushed tags to GitHub
 - [x] All health checks passing
 
 ### Immediate (Implementation)
