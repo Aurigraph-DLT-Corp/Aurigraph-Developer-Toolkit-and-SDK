@@ -43,6 +43,11 @@ export const apiService = {
     return response.data
   },
 
+  async getAnalyticsPerformance() {
+    const response = await apiClient.get('/analytics/performance')
+    return response.data
+  },
+
   // Transactions
   async getTransactions(params?: { limit?: number; offset?: number }) {
     const response = await apiClient.get('/transactions', { params })
