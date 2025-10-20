@@ -177,7 +177,7 @@ public class TransactionService {
      */
     private int getOptimalShardML(String txId, double amount) {
         if (!aiOptimizationEnabled) {
-            return fastHash(txId) % shardCount;
+            return fastHashOptimized(txId) % shardCount;  // Fixed: use fastHashOptimized
         }
 
         long startNanos = System.nanoTime();
@@ -214,7 +214,7 @@ public class TransactionService {
 
             LOG.debugf("ML shard selection failed for %s, using hash fallback: %s",
                       txId.substring(0, Math.min(8, txId.length())), e.getMessage());
-            return fastHash(txId) % shardCount;
+            return fastHashOptimized(txId) % shardCount;  // Fixed: use fastHashOptimized
         }
     }
 
@@ -354,10 +354,10 @@ public class TransactionService {
 
     /**
      * Get transaction by ID (from sharded storage)
-     * FIXED: Use same hash function as storage (fastHash) to prevent data loss
+     * FIXED: Use same hash function as storage (fastHashOptimized) to prevent data loss
      */
     public Transaction getTransaction(String id) {
-        int shard = fastHash(id) % shardCount;  // Fixed: was using id.hashCode()
+        int shard = fastHashOptimized(id) % shardCount;  // Fixed: now using fastHashOptimized to match storage
         return transactionShards[shard].get(id);
     }
     
