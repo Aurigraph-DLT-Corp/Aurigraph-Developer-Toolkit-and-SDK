@@ -82,22 +82,22 @@ public class TransactionService {
         Executors.newScheduledThreadPool(1, virtualThreadFactory);
     private final ForkJoinPool processingPool = ForkJoinPool.commonPool();
     
-    @ConfigProperty(name = "aurigraph.transaction.shards", defaultValue = "2048")
+    @ConfigProperty(name = "aurigraph.transaction.shards", defaultValue = "4096")
     int shardCount;
 
     @ConfigProperty(name = "aurigraph.consensus.enabled", defaultValue = "true")
     boolean consensusEnabled;
 
-    @ConfigProperty(name = "aurigraph.virtual.threads.max", defaultValue = "1000000")
+    @ConfigProperty(name = "aurigraph.virtual.threads.max", defaultValue = "4000000")
     int maxVirtualThreads;
 
     @ConfigProperty(name = "aurigraph.batch.processing.enabled", defaultValue = "true")
     boolean batchProcessingEnabled;
 
-    @ConfigProperty(name = "aurigraph.batch.size.optimal", defaultValue = "100000")
+    @ConfigProperty(name = "aurigraph.batch.size.optimal", defaultValue = "200000")
     int optimalBatchSize;
 
-    @ConfigProperty(name = "aurigraph.processing.parallelism", defaultValue = "1024")
+    @ConfigProperty(name = "aurigraph.processing.parallelism", defaultValue = "2048")
     int processingParallelism;
     
     @ConfigProperty(name = "aurigraph.cache.size.max", defaultValue = "1000000")
@@ -113,9 +113,20 @@ public class TransactionService {
     @Inject
     io.aurigraph.v11.ai.MLMetricsService mlMetricsService;
 
+    // Performance Optimization Services (Sprint 5-6: 10M+ TPS)
+    @Inject
+    io.aurigraph.v11.performance.XXHashService xxHashService;
+
+    @Inject
+    io.aurigraph.v11.performance.LockFreeTransactionQueue lockFreeQueue;
+
     // ML optimization enabled flag
     @ConfigProperty(name = "ai.optimization.enabled", defaultValue = "true")
     boolean aiOptimizationEnabled;
+
+    // xxHash optimization enabled flag (Sprint 5-6)
+    @ConfigProperty(name = "xxhash.optimization.enabled", defaultValue = "true")
+    boolean xxHashOptimizationEnabled;
 
     // High-performance lock for concurrent operations
     private final StampedLock performanceLock = new StampedLock();
@@ -576,15 +587,23 @@ public class TransactionService {
     
     /**
      * Optimized hash calculation with reduced allocations
+     * Uses xxHash when enabled (10x+ faster than SHA-256)
+     * Falls back to SHA-256 for compatibility
      */
     private String calculateHashOptimized(String id, double amount, long nanoTime) {
+        if (xxHashOptimizationEnabled && xxHashService != null) {
+            // xxHash optimization (Sprint 5-6): 10x+ faster
+            return xxHashService.hashTransactionToHex(id, amount, nanoTime);
+        }
+
+        // Fallback to SHA-256 for compatibility
         MessageDigest digest = sha256.get();
         digest.reset();
-        
+
         // More efficient concatenation without string creation
         StringBuilder sb = new StringBuilder(64);
         sb.append(id).append(amount).append(nanoTime);
-        
+
         byte[] hash = digest.digest(sb.toString().getBytes());
         return HexFormat.of().formatHex(hash);
     }
@@ -921,8 +940,16 @@ public class TransactionService {
     
     /**
      * Fast hash function for improved shard distribution
+     * Uses xxHash when enabled (Sprint 5-6: 10M+ TPS optimization)
      */
     private int fastHash(String key) {
+        if (xxHashOptimizationEnabled && xxHashService != null) {
+            // xxHash optimization: superior distribution and speed
+            long hash = xxHashService.hashString(key);
+            return xxHashService.computeShardIndex(hash, shardCount);
+        }
+
+        // Fallback to simple hash
         int hash = 0;
         for (int i = 0; i < key.length(); i++) {
             hash = 31 * hash + key.charAt(i);
@@ -1025,9 +1052,17 @@ public class TransactionService {
     
     /**
      * Optimized fast hash with better distribution for ultra-scale
+     * Uses xxHash when enabled (Sprint 5-6: 10M+ TPS optimization)
      */
     private int fastHashOptimized(String key) {
-        int hash = 5381; // DJB2 hash algorithm - better distribution
+        if (xxHashOptimizationEnabled && xxHashService != null) {
+            // xxHash optimization: best-in-class distribution
+            long hash = xxHashService.hashString(key);
+            return xxHashService.computeShardIndex(hash, shardCount);
+        }
+
+        // Fallback to DJB2 hash algorithm
+        int hash = 5381;
         for (int i = 0; i < key.length(); i++) {
             hash = ((hash << 5) + hash) + key.charAt(i); // hash * 33 + c
         }
@@ -1036,20 +1071,27 @@ public class TransactionService {
     
     /**
      * Ultra-fast hash calculation with minimal allocations
+     * Uses xxHash when enabled (Sprint 5-6: 10M+ TPS optimization)
      */
     private String calculateHashUltraFast(String id, double amount, long nanoTime) {
+        if (xxHashOptimizationEnabled && xxHashService != null) {
+            // xxHash optimization: 10x+ faster than SHA-256
+            return xxHashService.hashTransactionToHex(id, amount, nanoTime);
+        }
+
+        // Fallback to SHA-256
         MessageDigest digest = sha256.get();
         digest.reset();
-        
+
         // Direct byte array manipulation without string creation
         byte[] idBytes = id.getBytes();
         byte[] amountBytes = Double.toString(amount).getBytes();
         byte[] timeBytes = Long.toString(nanoTime).getBytes();
-        
+
         digest.update(idBytes);
         digest.update(amountBytes);
         digest.update(timeBytes);
-        
+
         return HexFormat.of().formatHex(digest.digest());
     }
     
