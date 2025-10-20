@@ -52,7 +52,7 @@ export interface MerkleTreeInfo {
 }
 
 /**
- * Demo Service Class with Persistence and Timeout
+ * Demo Service Class with LocalStorage Persistence and Timeout
  */
 class DemoServiceClass {
   private demos: Map<string, DemoInstance> = new Map();
@@ -61,10 +61,68 @@ class DemoServiceClass {
 
   private readonly DEFAULT_DURATION_MINUTES = 10;
   private readonly MAX_ADMIN_DURATION_MINUTES = 1440; // 24 hours
+  private readonly STORAGE_KEY = 'aurigraph_demos';
 
   constructor() {
+    // Load demos from localStorage on startup
+    this.loadFromStorage();
+
     // Start timeout checker (runs every minute)
     setInterval(() => this.checkExpiredDemos(), 60000);
+
+    // Auto-save to localStorage every 30 seconds
+    setInterval(() => this.saveToStorage(), 30000);
+  }
+
+  /**
+   * Load demos from localStorage
+   */
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (!stored) return;
+
+      const data = JSON.parse(stored);
+      if (!data.demos || !Array.isArray(data.demos)) return;
+
+      // Restore demos
+      data.demos.forEach((demoData: any) => {
+        const demo: DemoInstance = {
+          ...demoData,
+          createdAt: new Date(demoData.createdAt),
+          lastActivity: new Date(demoData.lastActivity),
+          expiresAt: new Date(demoData.expiresAt),
+        };
+        this.demos.set(demo.id, demo);
+
+        // Reschedule expiration if not already expired
+        if (demo.status !== 'EXPIRED') {
+          this.scheduleExpiration(demo.id);
+        }
+      });
+
+      console.log(`📂 Loaded ${this.demos.size} demos from localStorage`);
+    } catch (error) {
+      console.error('Failed to load demos from storage:', error);
+    }
+  }
+
+  /**
+   * Save demos to localStorage
+   */
+  private saveToStorage(): void {
+    try {
+      const demosArray = Array.from(this.demos.values());
+      const data = {
+        demos: demosArray,
+        lastSaved: new Date().toISOString(),
+      };
+
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+      console.log(`💾 Saved ${demosArray.length} demos to localStorage`);
+    } catch (error) {
+      console.error('Failed to save demos to storage:', error);
+    }
   }
 
   /**
@@ -115,6 +173,9 @@ class DemoServiceClass {
     // Schedule expiration check
     this.scheduleExpiration(id);
 
+    // Save to localStorage
+    this.saveToStorage();
+
     console.log(`✅ Demo registered: ${demo.demoName} (ID: ${id})`);
     console.log(`⏱️ Duration: ${finalDuration} minutes (expires at ${expiresAt.toLocaleTimeString()})`);
     console.log(`🌳 Merkle root: ${root}`);
@@ -164,6 +225,9 @@ class DemoServiceClass {
       clearTimeout(timeout);
       this.timeoutIntervals.delete(id);
     }
+
+    // Save to localStorage
+    this.saveToStorage();
   }
 
   /**
@@ -199,6 +263,9 @@ class DemoServiceClass {
     // Reschedule expiration
     this.scheduleExpiration(id);
 
+    // Save to localStorage
+    this.saveToStorage();
+
     console.log(`⏱️ Demo extended: ${demo.demoName} - now expires at ${newExpiresAt.toLocaleTimeString()}`);
 
     return demo;
@@ -232,6 +299,9 @@ class DemoServiceClass {
     demo.status = 'RUNNING';
     demo.lastActivity = new Date();
 
+    // Save to localStorage
+    this.saveToStorage();
+
     console.log(`▶️ Demo started: ${demo.demoName}`);
 
     return demo;
@@ -248,6 +318,9 @@ class DemoServiceClass {
 
     demo.status = 'STOPPED';
     demo.lastActivity = new Date();
+
+    // Save to localStorage
+    this.saveToStorage();
 
     console.log(`⏸️ Demo stopped: ${demo.demoName}`);
 
@@ -271,6 +344,9 @@ class DemoServiceClass {
     // Remove demo and Merkle tree
     this.demos.delete(id);
     this.merkleTrees.delete(id);
+
+    // Save to localStorage
+    this.saveToStorage();
 
     console.log(`🗑️ Demo deleted: ${demo.demoName}`);
   }
