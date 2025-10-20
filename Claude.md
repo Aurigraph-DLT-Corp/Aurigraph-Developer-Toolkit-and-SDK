@@ -2,9 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📋 CRITICAL ENVIRONMENT FILES - ALWAYS LOAD AT RESUMPTION
+
+**IMPORTANT**: When resuming any session, Claude MUST read these critical planning documents first:
+
+1. **Sprint Plan**: `aurigraph-av10-7/aurigraph-v11-standalone/SPRINT_PLAN.md`
+   - Current sprint objectives and timeline
+   - Sprint allocation and task breakdown
+   - Story points and deliverables
+
+2. **Comprehensive Test Plan**: `aurigraph-av10-7/aurigraph-v11-standalone/COMPREHENSIVE-TEST-PLAN.md`
+   - Test coverage requirements (95% target)
+   - Test strategy by component
+   - Integration and E2E test plans
+
+3. **TODO Status**: `aurigraph-av10-7/aurigraph-v11-standalone/TODO.md`
+   - Current work status and progress
+   - Recent completions and achievements
+   - Pending tasks and priorities
+
+4. **Latest Sprint Report**: Check for most recent `SPRINT*.md` files
+   - Latest execution status
+   - Completed work and metrics
+   - Remaining work and blockers
+
+**Auto-Load Command**:
+```bash
+# Read these files at session start:
+cat aurigraph-av10-7/aurigraph-v11-standalone/SPRINT_PLAN.md
+cat aurigraph-av10-7/aurigraph-v11-standalone/COMPREHENSIVE-TEST-PLAN.md
+cat aurigraph-av10-7/aurigraph-v11-standalone/TODO.md
+ls -lt aurigraph-av10-7/aurigraph-v11-standalone/SPRINT*.md | head -3
+```
+
+---
+
 ## 🚀 ENHANCED DEVELOPMENT TEAM AGENTS
 
-**NEW**: Aurigraph now uses an enhanced multi-agent development team for parallel development and deployment. See [AURIGRAPH-TEAM-AGENTS.md](./AURIGRAPH-TEAM-AGENTS.md) for full details.
+**NEW**: Aurigraph uses an enhanced multi-agent development team for parallel development and deployment. See [AURIGRAPH-TEAM-AGENTS.md](./AURIGRAPH-TEAM-AGENTS.md) for full details.
 
 ### Quick Agent Reference
 
