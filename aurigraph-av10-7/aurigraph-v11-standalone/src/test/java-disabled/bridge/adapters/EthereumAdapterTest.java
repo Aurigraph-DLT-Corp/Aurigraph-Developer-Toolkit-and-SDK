@@ -90,8 +90,8 @@ public class EthereumAdapterTest {
         ethereumAdapter.initialize(testConfig).await().indefinitely();
 
         ChainTransaction tx = new ChainTransaction();
-        tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
-        tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed";
+        tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed0";
         tx.value = new BigDecimal("1000000000000000000"); // 1 ETH
         tx.gasLimit = new BigDecimal("21000");
         tx.gasPrice = new BigDecimal("25000000000"); // 25 Gwei
@@ -117,8 +117,8 @@ public class EthereumAdapterTest {
 
         // Send a transaction first
         ChainTransaction tx = new ChainTransaction();
-        tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
-        tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed";
+        tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed0";
         tx.value = new BigDecimal("1000000000000000000");
         tx.transactionType = TransactionType.TRANSFER;
 
@@ -139,7 +139,7 @@ public class EthereumAdapterTest {
     void testGetBalanceNative() {
         ethereumAdapter.initialize(testConfig).await().indefinitely();
 
-        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
+        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
         BigDecimal balance = ethereumAdapter.getBalance(address, null).await().indefinitely();
 
         assertNotNull(balance);
@@ -151,8 +151,8 @@ public class EthereumAdapterTest {
     void testGetBalanceERC20() {
         ethereumAdapter.initialize(testConfig).await().indefinitely();
 
-        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
-        String tokenAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // USDT
+        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        String tokenAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec70"; // USDT
         BigDecimal balance = ethereumAdapter.getBalance(address, tokenAddress).await().indefinitely();
 
         assertNotNull(balance);
@@ -164,11 +164,11 @@ public class EthereumAdapterTest {
     void testGetBalances() {
         ethereumAdapter.initialize(testConfig).await().indefinitely();
 
-        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
+        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
         List<String> assets = Arrays.asList(
             null, // ETH
-            "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
-            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"  // USDC
+            "0xdAC17F958D2ee523a2206206994597C13D831ec70", // USDT
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB480"  // USDC
         );
 
         List<AssetBalance> balances = ethereumAdapter.getBalances(address, assets)
@@ -223,7 +223,7 @@ public class EthereumAdapterTest {
         ethereumAdapter.initialize(testConfig).await().indefinitely();
 
         // Valid address
-        String validAddress = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
+        String validAddress = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
         AddressValidationResult validResult = ethereumAdapter.validateAddress(validAddress)
             .await().indefinitely();
 
@@ -257,7 +257,7 @@ public class EthereumAdapterTest {
         ContractDeployment deployment = new ContractDeployment();
         deployment.bytecode = "0x608060405234801561001057600080fd5b50";
         deployment.constructorData = "";
-        deployment.deployer = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
+        deployment.deployer = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
         deployment.gasLimit = new BigDecimal("2000000");
         deployment.verify = false;
 
@@ -276,7 +276,7 @@ public class EthereumAdapterTest {
         ethereumAdapter.initialize(testConfig).await().indefinitely();
 
         ContractFunctionCall call = new ContractFunctionCall();
-        call.contractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+        call.contractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec70";
         call.functionName = "totalSupply";
         call.functionArgs = Arrays.asList();
         call.isReadOnly = true;

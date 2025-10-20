@@ -1,6 +1,7 @@
 package io.aurigraph.v11.crypto;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.annotation.PostConstruct;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.jboss.logging.Logger;
@@ -49,6 +50,7 @@ public class DilithiumSignatureService {
     /**
      * Initialize Dilithium signature service with NIST Level 5 parameters
      */
+    @PostConstruct
     public void initialize() {
         try {
             // Ensure BouncyCastle PQC provider is available
@@ -113,39 +115,39 @@ public class DilithiumSignatureService {
      */
     public byte[] sign(byte[] data, PrivateKey privateKey) {
         long startTime = System.nanoTime();
-        
+
+        // Validate inputs BEFORE try block to avoid wrapping validation exceptions
+        if (data == null || data.length == 0) {
+            throw new IllegalArgumentException("Data to sign cannot be null or empty");
+        }
+
+        if (privateKey == null || !validatePrivateKey(privateKey)) {
+            throw new IllegalArgumentException("Invalid Dilithium private key");
+        }
+
         try {
-            // Validate inputs
-            if (data == null || data.length == 0) {
-                throw new IllegalArgumentException("Data to sign cannot be null or empty");
-            }
-            
-            if (privateKey == null || !validatePrivateKey(privateKey)) {
-                throw new IllegalArgumentException("Invalid Dilithium private key");
-            }
-            
             // Get or create signature instance
             Signature signer = getSignatureInstance();
             signer.initSign(privateKey);
             signer.update(data);
-            
+
             byte[] signature = signer.sign();
-            
+
             // Update performance metrics
             long duration = (System.nanoTime() - startTime) / 1_000_000;
             synchronized (this) {
                 signingCount++;
                 totalSigningTime += duration;
             }
-            
+
             LOG.debug("Dilithium signing completed in " + duration + "ms, signature size: " + signature.length);
-            
+
             if (duration > 50) {
                 LOG.warn("Dilithium signing took longer than expected: " + duration + "ms");
             }
-            
+
             return signature;
-            
+
         } catch (Exception e) {
             LOG.error("Dilithium signing failed", e);
             throw new RuntimeException("Signing operation failed", e);
@@ -162,46 +164,43 @@ public class DilithiumSignatureService {
      */
     public boolean verify(byte[] data, byte[] signature, PublicKey publicKey) {
         long startTime = System.nanoTime();
-        
+
+        // Validate inputs BEFORE try block to throw validation exceptions properly
+        if (data == null || data.length == 0) {
+            throw new IllegalArgumentException("Data to verify cannot be null or empty");
+        }
+
+        if (signature == null || signature.length == 0) {
+            throw new IllegalArgumentException("Signature cannot be null or empty");
+        }
+
+        if (publicKey == null || !validatePublicKey(publicKey)) {
+            throw new IllegalArgumentException("Invalid Dilithium public key");
+        }
+
         try {
-            // Validate inputs
-            if (data == null || data.length == 0) {
-                LOG.debug("Verification failed: data is null or empty");
-                return false;
-            }
-            
-            if (signature == null || signature.length == 0) {
-                LOG.debug("Verification failed: signature is null or empty");
-                return false;
-            }
-            
-            if (publicKey == null || !validatePublicKey(publicKey)) {
-                LOG.debug("Verification failed: invalid Dilithium public key");
-                return false;
-            }
-            
             // Get or create signature instance
             Signature verifier = getSignatureInstance();
             verifier.initVerify(publicKey);
             verifier.update(data);
-            
+
             boolean isValid = verifier.verify(signature);
-            
+
             // Update performance metrics
             long duration = (System.nanoTime() - startTime) / 1_000_000;
             synchronized (this) {
                 verificationCount++;
                 totalVerificationTime += duration;
             }
-            
+
             LOG.debug("Dilithium verification completed in " + duration + "ms, result: " + isValid);
-            
+
             if (duration > 10) {
                 LOG.warn("Dilithium verification exceeded 10ms target: " + duration + "ms");
             }
-            
+
             return isValid;
-            
+
         } catch (Exception e) {
             LOG.debug("Dilithium verification failed with exception: " + e.getMessage());
             return false;
@@ -287,7 +286,7 @@ public class DilithiumSignatureService {
     
     /**
      * Validate that a public key is a valid Dilithium public key
-     * 
+     *
      * @param publicKey The public key to validate
      * @return true if the key is a valid Dilithium public key
      */
@@ -296,23 +295,25 @@ public class DilithiumSignatureService {
             if (publicKey == null) {
                 return false;
             }
-            
-            if (!DILITHIUM_ALGORITHM.equals(publicKey.getAlgorithm())) {
+
+            // Accept both "Dilithium" and variant names like "DILITHIUM5"
+            String algorithm = publicKey.getAlgorithm();
+            if (algorithm == null || !algorithm.toUpperCase().contains("DILITHIUM")) {
                 return false;
             }
-            
+
             // Try to encode and decode the key to validate its format
             byte[] encoded = publicKey.getEncoded();
             if (encoded == null || encoded.length == 0) {
                 return false;
             }
-            
+
             KeyFactory keyFactory = KeyFactory.getInstance(DILITHIUM_ALGORITHM, PROVIDER);
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
             PublicKey reconstructed = keyFactory.generatePublic(keySpec);
-            
+
             return reconstructed != null;
-            
+
         } catch (Exception e) {
             LOG.debug("Public key validation failed: " + e.getMessage());
             return false;
@@ -321,7 +322,7 @@ public class DilithiumSignatureService {
     
     /**
      * Validate that a private key is a valid Dilithium private key
-     * 
+     *
      * @param privateKey The private key to validate
      * @return true if the key is a valid Dilithium private key
      */
@@ -330,23 +331,25 @@ public class DilithiumSignatureService {
             if (privateKey == null) {
                 return false;
             }
-            
-            if (!DILITHIUM_ALGORITHM.equals(privateKey.getAlgorithm())) {
+
+            // Accept both "Dilithium" and variant names like "DILITHIUM5"
+            String algorithm = privateKey.getAlgorithm();
+            if (algorithm == null || !algorithm.toUpperCase().contains("DILITHIUM")) {
                 return false;
             }
-            
+
             // Try to encode and decode the key to validate its format
             byte[] encoded = privateKey.getEncoded();
             if (encoded == null || encoded.length == 0) {
                 return false;
             }
-            
+
             KeyFactory keyFactory = KeyFactory.getInstance(DILITHIUM_ALGORITHM, PROVIDER);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
             PrivateKey reconstructed = keyFactory.generatePrivate(keySpec);
-            
+
             return reconstructed != null;
-            
+
         } catch (Exception e) {
             LOG.debug("Private key validation failed: " + e.getMessage());
             return false;

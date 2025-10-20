@@ -1,0 +1,1545 @@
+openapi: 3.0.3
+info:
+  title: Aurigraph V11 DLT Platform API
+  description: |
+    # Aurigraph V11 - High-Performance Blockchain Platform
+
+    Comprehensive REST API for the Aurigraph V11 distributed ledger technology platform.
+    Built with Java 21, Quarkus, and GraalVM for maximum performance and scalability.
+
+    ## Key Features
+
+    - **Ultra-High Performance**: 3M+ TPS with sub-100ms finality
+    - **Quantum-Resistant Cryptography**: CRYSTALS-Kyber/Dilithium (NIST Level 5)
+    - **AI-Driven Optimization**: Machine learning consensus optimization
+    - **HyperRAFT++ Consensus**: Advanced distributed consensus algorithm
+    - **Cross-Chain Bridge**: Multi-chain interoperability support
+    - **Real-World Asset Tokenization**: RWA compliance and verification
+
+    ## Architecture
+
+    - **Runtime**: Java 21 with Virtual Threads
+    - **Framework**: Quarkus 3.26.2 (reactive programming)
+    - **Native Compilation**: GraalVM for sub-second startup
+    - **Protocol**: HTTP/2 + gRPC with TLS 1.3
+    - **Database**: PostgreSQL + LevelDB (embedded state)
+
+    ## API Versioning
+
+    All endpoints are prefixed with `/api/v11` to maintain version compatibility.
+
+    ## Authentication
+
+    Authentication is handled via OAuth 2.0 / JWT tokens (to be implemented).
+    For development, most endpoints are accessible without authentication.
+
+    ## Rate Limiting
+
+    - Standard API endpoints: 100 requests/second
+    - Performance test endpoints: 60 requests/minute
+    - Admin endpoints: 10 requests/second
+    - Authentication endpoints: 5 requests/minute
+
+    ## Base URL
+
+    - Production: `https://dlt.aurigraph.io/api/v11`
+    - Development: `http://localhost:9003/api/v11`
+
+  version: 11.0.0
+  contact:
+    name: Aurigraph DLT Support
+    email: support@aurigraph.io
+    url: https://dlt.aurigraph.io
+  license:
+    name: Proprietary
+    url: https://aurigraph.io/license
+
+servers:
+  - url: https://dlt.aurigraph.io/api/v11
+    description: Production server
+  - url: http://localhost:9003/api/v11
+    description: Local development server
+  - url: http://localhost:9004/api/v11
+    description: V4 profile (3M+ TPS optimized)
+
+tags:
+  - name: Core Platform
+    description: Core platform health, info, and status endpoints
+  - name: Blockchain
+    description: Blockchain operations - transactions, blocks, validators
+  - name: Consensus
+    description: HyperRAFT++ consensus algorithm operations
+  - name: Cryptography
+    description: Quantum-resistant cryptography (CRYSTALS-Kyber/Dilithium)
+  - name: AI/ML
+    description: AI optimization and machine learning operations
+  - name: Bridge
+    description: Cross-chain bridge operations
+  - name: RWA
+    description: Real-World Asset tokenization
+  - name: Network
+    description: Network monitoring and statistics
+  - name: Performance
+    description: Performance testing and benchmarking
+
+paths:
+  # ==================== CORE PLATFORM ENDPOINTS ====================
+
+  /health:
+    get:
+      tags:
+        - Core Platform
+      summary: Health check
+      description: Returns platform health status and uptime metrics
+      operationId: getHealth
+      responses:
+        '200':
+          description: Platform is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: "HEALTHY"
+                version: "11.0.0-standalone"
+                uptimeSeconds: 86400
+                totalRequests: 12500000
+                platform: "Java/Quarkus/GraalVM"
+
+  /info:
+    get:
+      tags:
+        - Core Platform
+      summary: System information
+      description: Returns comprehensive system information
+      operationId: getSystemInfo
+      responses:
+        '200':
+          description: System information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemInfo'
+
+  /system/status:
+    get:
+      tags:
+        - Core Platform
+      summary: Comprehensive system status
+      description: Returns detailed status from all V11 services
+      operationId: getSystemStatus
+      responses:
+        '200':
+          description: System status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+
+  # ==================== PERFORMANCE ENDPOINTS ====================
+
+  /performance:
+    get:
+      tags:
+        - Performance
+      summary: Run performance test
+      description: |
+        Execute a performance benchmark test with configurable iterations and threads.
+        **Rate Limited**: 60 requests/minute per IP to prevent abuse.
+
+        **Limits**:
+        - Max iterations: 500,000
+        - Max threads: 64
+        - Timeout: 2 minutes
+      operationId: performanceTest
+      parameters:
+        - name: iterations
+          in: query
+          description: Number of transactions to process
+          schema:
+            type: integer
+            default: 100000
+            minimum: 1
+            maximum: 500000
+        - name: threads
+          in: query
+          description: Number of parallel threads
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            maximum: 64
+      responses:
+        '200':
+          description: Performance test completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceStats'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /performance/reactive:
+    get:
+      tags:
+        - Performance
+      summary: Reactive performance test
+      description: Execute reactive streams-based performance test
+      operationId: reactivePerformanceTest
+      parameters:
+        - name: iterations
+          in: query
+          schema:
+            type: integer
+            default: 100000
+      responses:
+        '200':
+          description: Reactive performance test completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceStats'
+
+  /performance/ultra-throughput:
+    post:
+      tags:
+        - Performance
+      summary: Ultra-high-throughput test
+      description: Execute ultra-high-throughput test targeting 3M+ TPS
+      operationId: ultraThroughputTest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UltraHighThroughputRequest'
+      responses:
+        '200':
+          description: Test completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UltraHighThroughputStats'
+
+  # ==================== BLOCKCHAIN ENDPOINTS ====================
+
+  /blockchain/transactions:
+    get:
+      tags:
+        - Blockchain
+      summary: List transactions
+      description: Retrieve paginated list of recent transactions
+      operationId: getTransactions
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Transactions retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionList'
+
+    post:
+      tags:
+        - Blockchain
+      summary: Process transaction
+      description: Submit a transaction for processing
+      operationId: processTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '201':
+          description: Transaction processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Invalid transaction data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /blockchain/transactions/batch:
+    post:
+      tags:
+        - Blockchain
+      summary: Process batch transactions
+      description: Submit multiple transactions for batch processing
+      operationId: processBatchTransactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchTransactionRequest'
+      responses:
+        '200':
+          description: Batch processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchTransactionResponse'
+
+  /blockchain/transactions/stats:
+    get:
+      tags:
+        - Blockchain
+      summary: Transaction statistics
+      description: Get current transaction processing statistics
+      operationId: getTransactionStats
+      responses:
+        '200':
+          description: Statistics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnhancedProcessingStats'
+
+  /blockchain/blocks:
+    get:
+      tags:
+        - Blockchain
+      summary: List blocks
+      description: Retrieve paginated list of recent blocks
+      operationId: getBlocks
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Blocks retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockList'
+
+  /blockchain/blocks/{height}:
+    get:
+      tags:
+        - Blockchain
+      summary: Get block by height
+      description: Retrieve block details by block height
+      operationId: getBlockByHeight
+      parameters:
+        - name: height
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Block retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+        '404':
+          description: Block not found
+
+  /blockchain/latest:
+    get:
+      tags:
+        - Blockchain
+      summary: Get latest block
+      description: Retrieve the most recent block in the blockchain
+      operationId: getLatestBlock
+      responses:
+        '200':
+          description: Latest block retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+
+  /blockchain/block/{id}:
+    get:
+      tags:
+        - Blockchain
+      summary: Get block by ID or hash
+      description: Retrieve block by numeric ID or hex hash
+      operationId: getBlockById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Block ID (height) or hash (0x...)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Block retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+
+  /blockchain/stats:
+    get:
+      tags:
+        - Blockchain
+      summary: Blockchain statistics
+      description: Get comprehensive blockchain statistics and metrics
+      operationId: getBlockchainStats
+      responses:
+        '200':
+          description: Statistics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockchainStats'
+
+  /blockchain/validators:
+    get:
+      tags:
+        - Blockchain
+      summary: List validators
+      description: Retrieve list of active validators
+      operationId: getValidators
+      responses:
+        '200':
+          description: Validators retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidatorList'
+
+  /blockchain/chain/info:
+    get:
+      tags:
+        - Blockchain
+      summary: Chain information
+      description: Get comprehensive blockchain information
+      operationId: getChainInfo
+      responses:
+        '200':
+          description: Chain info retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChainInfo'
+
+  /blockchain/network:
+    get:
+      tags:
+        - Network
+      summary: Network statistics
+      description: Get network topology and statistics
+      operationId: getNetworkStats
+      responses:
+        '200':
+          description: Network stats retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkStats'
+
+  /blockchain/network/stats:
+    get:
+      tags:
+        - Network
+      summary: Comprehensive network statistics
+      description: Detailed network health and performance metrics
+      operationId: getNetworkStatistics
+      responses:
+        '200':
+          description: Network statistics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkStats'
+
+  # ==================== CONSENSUS ENDPOINTS ====================
+
+  /consensus/status:
+    get:
+      tags:
+        - Consensus
+      summary: Consensus status
+      description: Get HyperRAFT++ consensus status
+      operationId: getConsensusStatus
+      responses:
+        '200':
+          description: Consensus status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusStats'
+
+  /consensus/propose:
+    post:
+      tags:
+        - Consensus
+      summary: Propose consensus entry
+      description: Submit a proposal to the consensus algorithm
+      operationId: proposeConsensusEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsensusProposal'
+      responses:
+        '200':
+          description: Proposal submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalResponse'
+
+  /consensus/nodes:
+    get:
+      tags:
+        - Consensus
+      summary: Consensus nodes
+      description: Get real-time HyperRAFT++ consensus node information
+      operationId: getConsensusNodes
+      responses:
+        '200':
+          description: Consensus nodes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusNodes'
+
+  /consensus/metrics:
+    get:
+      tags:
+        - Consensus
+      summary: Consensus metrics
+      description: Detailed HyperRAFT++ performance metrics
+      operationId: getConsensusMetrics
+      responses:
+        '200':
+          description: Consensus metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusMetrics'
+
+  # ==================== CRYPTOGRAPHY ENDPOINTS ====================
+
+  /crypto/status:
+    get:
+      tags:
+        - Cryptography
+      summary: Crypto status
+      description: Get quantum cryptography system status
+      operationId: getCryptoStatus
+      responses:
+        '200':
+          description: Crypto status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoStatus'
+
+  /crypto/algorithms:
+    get:
+      tags:
+        - Cryptography
+      summary: Supported algorithms
+      description: List supported quantum-resistant algorithms
+      operationId: getSupportedAlgorithms
+      responses:
+        '200':
+          description: Algorithms retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportedAlgorithms'
+
+  /crypto/security/quantum-status:
+    get:
+      tags:
+        - Cryptography
+      summary: Quantum security status
+      description: Get detailed quantum security compliance status
+      operationId: getQuantumSecurityStatus
+      responses:
+        '200':
+          description: Quantum security status retrieved
+
+  /crypto/keystore/generate:
+    post:
+      tags:
+        - Cryptography
+      summary: Generate key pair
+      description: Generate quantum-resistant key pair (Kyber/Dilithium)
+      operationId: generateKeyPair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyGenerationRequest'
+      responses:
+        '200':
+          description: Key pair generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyGenerationResult'
+
+  /crypto/encrypt:
+    post:
+      tags:
+        - Cryptography
+      summary: Encrypt data
+      description: Encrypt data using CRYSTALS-Kyber KEM
+      operationId: encryptData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncryptionRequest'
+      responses:
+        '200':
+          description: Data encrypted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptionResult'
+
+  /crypto/decrypt:
+    post:
+      tags:
+        - Cryptography
+      summary: Decrypt data
+      description: Decrypt data using CRYSTALS-Kyber KEM
+      operationId: decryptData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecryptionRequest'
+      responses:
+        '200':
+          description: Data decrypted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecryptionResult'
+
+  /crypto/sign:
+    post:
+      tags:
+        - Cryptography
+      summary: Sign data
+      description: Sign data using CRYSTALS-Dilithium
+      operationId: signData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignatureRequest'
+      responses:
+        '200':
+          description: Data signed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResult'
+
+  /crypto/verify:
+    post:
+      tags:
+        - Cryptography
+      summary: Verify signature
+      description: Verify CRYSTALS-Dilithium signature
+      operationId: verifySignature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+      responses:
+        '200':
+          description: Signature verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationResult'
+
+  /crypto/metrics:
+    get:
+      tags:
+        - Cryptography
+      summary: Crypto metrics
+      description: Detailed quantum cryptography performance metrics
+      operationId: getCryptoMetrics
+      responses:
+        '200':
+          description: Crypto metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoMetrics'
+
+  # ==================== AI/ML ENDPOINTS ====================
+
+  /ai/status:
+    get:
+      tags:
+        - AI/ML
+      summary: AI system status
+      description: Get comprehensive AI/ML system status
+      operationId: getAIStatus
+      responses:
+        '200':
+          description: AI status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIStatusResponse'
+
+  /ai/models:
+    get:
+      tags:
+        - AI/ML
+      summary: List AI models
+      description: Get list of all AI/ML models
+      operationId: listAIModels
+      responses:
+        '200':
+          description: Models retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIModelsResponse'
+
+  /ai/models/{id}:
+    get:
+      tags:
+        - AI/ML
+      summary: Get model details
+      description: Get detailed information about a specific AI model
+      operationId: getModelDetails
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIModelDetails'
+
+  /ai/models/{id}/retrain:
+    post:
+      tags:
+        - AI/ML
+      summary: Retrain model
+      description: Initiate retraining of an AI model
+      operationId: retrainModel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetrainRequest'
+      responses:
+        '202':
+          description: Retraining initiated
+
+  /ai/metrics:
+    get:
+      tags:
+        - AI/ML
+      summary: AI metrics
+      description: Get comprehensive AI system metrics
+      operationId: getAIMetrics
+      responses:
+        '200':
+          description: Metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIMetricsResponse'
+
+  /ai/predictions:
+    get:
+      tags:
+        - AI/ML
+      summary: AI predictions
+      description: Get current AI predictions for network behavior
+      operationId: getAIPredictions
+      responses:
+        '200':
+          description: Predictions retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIPredictionsResponse'
+
+  # ==================== RWA ENDPOINTS ====================
+
+  /rwa/status:
+    get:
+      tags:
+        - RWA
+      summary: RWA status
+      description: Get Real-World Asset tokenization status
+      operationId: getRWAStatus
+      responses:
+        '200':
+          description: RWA status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RWAStatus'
+
+# ==================== COMPONENTS ====================
+
+components:
+  schemas:
+    # Core Platform Schemas
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [HEALTHY, DEGRADED, UNHEALTHY]
+        version:
+          type: string
+        uptimeSeconds:
+          type: integer
+          format: int64
+        totalRequests:
+          type: integer
+          format: int64
+        platform:
+          type: string
+
+    SystemInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        javaVersion:
+          type: string
+        framework:
+          type: string
+        osName:
+          type: string
+        osArch:
+          type: string
+
+    SystemStatus:
+      type: object
+      properties:
+        platformName:
+          type: string
+        version:
+          type: string
+        uptimeMs:
+          type: integer
+          format: int64
+        healthy:
+          type: boolean
+        timestamp:
+          type: integer
+          format: int64
+
+    # Performance Schemas
+
+    PerformanceStats:
+      type: object
+      properties:
+        iterations:
+          type: integer
+        durationMs:
+          type: number
+          format: double
+        transactionsPerSecond:
+          type: number
+          format: double
+        nsPerTransaction:
+          type: number
+          format: double
+        optimizations:
+          type: string
+        threadCount:
+          type: integer
+        targetTPS:
+          type: integer
+          format: int64
+        targetAchieved:
+          type: boolean
+
+    UltraHighThroughputRequest:
+      type: object
+      required:
+        - iterations
+      properties:
+        iterations:
+          type: integer
+          minimum: 1000
+          maximum: 1000000
+          description: Number of transactions to process
+
+    UltraHighThroughputStats:
+      type: object
+      properties:
+        iterations:
+          type: integer
+        durationMs:
+          type: number
+          format: double
+        transactionsPerSecond:
+          type: number
+          format: double
+        nsPerTransaction:
+          type: number
+          format: double
+        performanceGrade:
+          type: string
+        ultraHighTarget:
+          type: boolean
+        highTarget:
+          type: boolean
+        baseTarget:
+          type: boolean
+        optimizations:
+          type: string
+        processedTransactions:
+          type: integer
+        timestamp:
+          type: integer
+          format: int64
+
+    # Transaction Schemas
+
+    TransactionRequest:
+      type: object
+      required:
+        - transactionId
+        - amount
+      properties:
+        transactionId:
+          type: string
+        amount:
+          type: number
+          format: double
+
+    TransactionResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        status:
+          type: string
+          enum: [PROCESSED, PENDING, FAILED]
+        amount:
+          type: number
+          format: double
+        timestamp:
+          type: integer
+          format: int64
+        message:
+          type: string
+
+    BatchTransactionRequest:
+      type: object
+      required:
+        - transactions
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionRequest'
+
+    BatchTransactionResponse:
+      type: object
+      properties:
+        requestedCount:
+          type: integer
+        processedCount:
+          type: integer
+        durationMs:
+          type: number
+          format: double
+        transactionsPerSecond:
+          type: number
+          format: double
+        status:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    TransactionList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            type: object
+        total:
+          type: integer
+          format: int64
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    EnhancedProcessingStats:
+      type: object
+      properties:
+        totalProcessed:
+          type: integer
+          format: int64
+        currentThroughputMeasurement:
+          type: number
+          format: double
+        adaptiveBatchSizeMultiplier:
+          type: number
+          format: double
+        throughputEfficiency:
+          type: number
+          format: double
+
+    # Block Schemas
+
+    Block:
+      type: object
+      properties:
+        height:
+          type: integer
+          format: int64
+        hash:
+          type: string
+        parentHash:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        transactions:
+          type: integer
+        validator:
+          type: string
+        size:
+          type: integer
+        gasUsed:
+          type: integer
+          format: int64
+        gasLimit:
+          type: integer
+          format: int64
+        difficulty:
+          type: string
+        totalDifficulty:
+          type: string
+
+    BlockList:
+      type: object
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Block'
+        total:
+          type: integer
+          format: int64
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    BlockchainStats:
+      type: object
+      properties:
+        currentHeight:
+          type: integer
+          format: int64
+        totalBlocks:
+          type: integer
+          format: int64
+        totalTransactions:
+          type: integer
+          format: int64
+        averageBlockTime:
+          type: number
+          format: double
+        timestamp:
+          type: integer
+          format: int64
+
+    # Validator Schemas
+
+    ValidatorList:
+      type: object
+      properties:
+        validators:
+          type: array
+          items:
+            type: object
+        totalValidators:
+          type: integer
+        activeValidators:
+          type: integer
+        totalStake:
+          type: string
+
+    # Chain Info
+
+    ChainInfo:
+      type: object
+      properties:
+        chainId:
+          type: string
+        chainName:
+          type: string
+        networkVersion:
+          type: string
+        blockHeight:
+          type: integer
+          format: int64
+        consensusAlgorithm:
+          type: string
+        quantumResistant:
+          type: boolean
+
+    # Network Schemas
+
+    NetworkStats:
+      type: object
+      properties:
+        peers:
+          type: integer
+        activePeers:
+          type: integer
+        avgLatency:
+          type: number
+          format: double
+        timestamp:
+          type: integer
+          format: int64
+
+    # Consensus Schemas
+
+    ConsensusStats:
+      type: object
+      properties:
+        algorithm:
+          type: string
+        nodeState:
+          type: string
+        currentTerm:
+          type: integer
+          format: int64
+        leaderNodeId:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ConsensusProposal:
+      type: object
+      required:
+        - proposalId
+        - data
+      properties:
+        proposalId:
+          type: string
+        data:
+          type: string
+
+    ProposalResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        proposalId:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ConsensusNodes:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+        totalNodes:
+          type: integer
+        leaderNode:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ConsensusMetrics:
+      type: object
+      properties:
+        algorithm:
+          type: string
+        status:
+          type: string
+        throughput:
+          type: object
+        latency:
+          type: object
+        voting:
+          type: object
+        timestamp:
+          type: integer
+          format: int64
+
+    # Cryptography Schemas
+
+    CryptoStatus:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        algorithm:
+          type: string
+        securityLevel:
+          type: integer
+        implementation:
+          type: string
+
+    SupportedAlgorithms:
+      type: object
+      properties:
+        keyEncapsulation:
+          type: array
+          items:
+            type: string
+        digitalSignature:
+          type: array
+          items:
+            type: string
+
+    KeyGenerationRequest:
+      type: object
+      required:
+        - keyId
+        - algorithm
+      properties:
+        keyId:
+          type: string
+        algorithm:
+          type: string
+          enum: [KYBER, DILITHIUM]
+
+    KeyGenerationResult:
+      type: object
+      properties:
+        keyId:
+          type: string
+        publicKey:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    EncryptionRequest:
+      type: object
+      required:
+        - keyId
+        - data
+      properties:
+        keyId:
+          type: string
+        data:
+          type: string
+          format: byte
+
+    EncryptionResult:
+      type: object
+      properties:
+        encryptedData:
+          type: string
+          format: byte
+        timestamp:
+          type: integer
+          format: int64
+
+    DecryptionRequest:
+      type: object
+      required:
+        - keyId
+        - encryptedData
+      properties:
+        keyId:
+          type: string
+        encryptedData:
+          type: string
+          format: byte
+
+    DecryptionResult:
+      type: object
+      properties:
+        data:
+          type: string
+          format: byte
+        timestamp:
+          type: integer
+          format: int64
+
+    SignatureRequest:
+      type: object
+      required:
+        - keyId
+        - data
+      properties:
+        keyId:
+          type: string
+        data:
+          type: string
+          format: byte
+
+    SignatureResult:
+      type: object
+      properties:
+        signature:
+          type: string
+          format: byte
+        timestamp:
+          type: integer
+          format: int64
+
+    VerificationRequest:
+      type: object
+      required:
+        - keyId
+        - data
+        - signature
+      properties:
+        keyId:
+          type: string
+        data:
+          type: string
+          format: byte
+        signature:
+          type: string
+          format: byte
+
+    VerificationResult:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        timestamp:
+          type: integer
+          format: int64
+
+    CryptoMetrics:
+      type: object
+      properties:
+        cryptoSystem:
+          type: string
+        algorithms:
+          type: object
+        encryption:
+          type: object
+        signatures:
+          type: object
+        timestamp:
+          type: integer
+          format: int64
+
+    # AI/ML Schemas
+
+    AIStatusResponse:
+      type: object
+      properties:
+        systemStatus:
+          type: string
+        aiEnabled:
+          type: boolean
+        totalModels:
+          type: integer
+        activeModels:
+          type: integer
+        timestamp:
+          type: integer
+          format: int64
+
+    AIModelsResponse:
+      type: object
+      properties:
+        totalModels:
+          type: integer
+        activeModels:
+          type: integer
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/AIModelSummary'
+        timestamp:
+          type: integer
+          format: int64
+
+    AIModelSummary:
+      type: object
+      properties:
+        modelId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        accuracy:
+          type: number
+          format: double
+        version:
+          type: string
+
+    AIModelDetails:
+      type: object
+      properties:
+        modelId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        accuracy:
+          type: number
+          format: double
+        version:
+          type: string
+        description:
+          type: string
+
+    RetrainRequest:
+      type: object
+      properties:
+        epochs:
+          type: integer
+        trainingDataSource:
+          type: string
+
+    AIMetricsResponse:
+      type: object
+      properties:
+        systemStatus:
+          type: string
+        totalModels:
+          type: integer
+        averageAccuracy:
+          type: number
+          format: double
+        timestamp:
+          type: integer
+          format: int64
+
+    AIPredictionsResponse:
+      type: object
+      properties:
+        nextBlock:
+          type: object
+        networkForecast:
+          type: object
+        timestamp:
+          type: integer
+          format: int64
+
+    # RWA Schemas
+
+    RWAStatus:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        hmsIntegrationActive:
+          type: boolean
+        totalAssetsTokenized:
+          type: integer
+          format: int64
+        totalValueLocked:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    # Error Schema
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token authentication (to be implemented)
+
+    OAuth2:
+      type: oauth2
+      description: OAuth 2.0 authentication (to be implemented)
+      flows:
+        authorizationCode:
+          authorizationUrl: https://dlt.aurigraph.io/oauth/authorize
+          tokenUrl: https://dlt.aurigraph.io/oauth/token
+          scopes:
+            read: Read access
+            write: Write access
+            admin: Admin access
+
+security:
+  - BearerAuth: []
+  - OAuth2: [read, write]

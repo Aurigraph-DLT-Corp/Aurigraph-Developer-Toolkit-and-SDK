@@ -3,6 +3,7 @@ package io.aurigraph.v11.contracts.enterprise.models;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.Builder;
 
 import java.time.Instant;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Map;
  * Report request model for enterprise dashboard
  */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReportRequest {
