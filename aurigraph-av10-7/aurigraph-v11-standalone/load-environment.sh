@@ -50,7 +50,18 @@ echo ""
 echo "Press Enter to continue..."
 read
 
-echo "📊 Phase 5: Latest Sprint Report"
+echo "🎯 Phase 5: SPARC Framework Plan"
+echo "================================"
+if [ -f "$BASE_DIR/SPARC-PROJECT-PLAN.md" ]; then
+    head -150 "$BASE_DIR/SPARC-PROJECT-PLAN.md"
+else
+    echo "❌ ERROR: SPARC-PROJECT-PLAN.md not found!"
+fi
+echo ""
+echo "Press Enter to continue..."
+read
+
+echo "📊 Phase 6: Latest Sprint Report"
 echo "================================"
 LATEST_SPRINT=$(ls -t "$BASE_DIR"/SPRINT*REPORT*.md "$BASE_DIR"/SPRINT*EXECUTION*.md 2>/dev/null | head -1)
 if [ -n "$LATEST_SPRINT" ]; then
@@ -76,6 +87,7 @@ echo "  - TODO.md: Current status loaded"
 echo "  - SPRINT_PLAN.md: Sprint objectives loaded"
 echo "  - COMPREHENSIVE-TEST-PLAN.md: Testing requirements loaded"
 echo "  - PARALLEL-SPRINT-EXECUTION-PLAN.md: Multi-team coordination loaded"
+echo "  - SPARC-PROJECT-PLAN.md: SPARC framework roadmap loaded"
 echo "  - Latest sprint report: Progress reviewed"
 echo ""
 echo "🎯 You are now ready to resume development!"

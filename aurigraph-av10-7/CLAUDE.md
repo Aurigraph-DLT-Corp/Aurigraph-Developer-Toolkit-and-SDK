@@ -31,6 +31,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - 5 concurrent workstreams
    - Agent coordination
 
+6. **SPARC Framework Plan**: `aurigraph-v11-standalone/SPARC-PROJECT-PLAN.md`
+   - Comprehensive project roadmap (Situation, Problem, Action, Result, Consequence)
+   - 10-day sprint plan with quality gates
+   - Multi-agent task allocation and coordination
+   - Success metrics and risk mitigation
+
 **Quick Load Sequence**:
 ```bash
 # At session start, read in order:
@@ -38,7 +44,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. SPRINT_PLAN.md - Sprint objectives
 3. COMPREHENSIVE-TEST-PLAN.md - Testing requirements
 4. PARALLEL-SPRINT-EXECUTION-PLAN.md - Parallel workstreams
-5. Most recent SPRINT_EXECUTION_REPORT.md - Latest progress
+5. SPARC-PROJECT-PLAN.md - SPARC framework roadmap
+6. Most recent SPRINT_EXECUTION_REPORT.md - Latest progress
 ```
 
 ---
