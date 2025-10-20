@@ -1,7 +1,7 @@
 {
   "name": "aurigraph-v11-enterprise-portal",
-  "version": "4.7.0",
-  "description": "Enterprise Portal V4.7.0 - Complete API Integration (All 9 Dashboards)",
+  "version": "4.7.1",
+  "description": "Enterprise Portal V4.7.1 - PostgreSQL Persistence & Demo Management",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -46,6 +46,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "deploy": "npm run build && docker build -t enterprise-portal .",
+    "demo:flows": "ts-node src/services/flows/test-focused-flows.ts",
+    "demo:flows:all": "ts-node src/services/flows/FlowExamples.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",

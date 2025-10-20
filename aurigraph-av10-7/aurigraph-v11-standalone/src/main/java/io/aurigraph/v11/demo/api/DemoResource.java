@@ -278,6 +278,27 @@ public class DemoResource {
         }
     }
 
+    /**
+     * Auto-generate transactions for RUNNING demos every 5 seconds
+     */
+    @Scheduled(every = "5s")
+    @Transactional
+    void autoGenerateTransactions() {
+        List<Demo> runningDemos = Demo.list("status = ?1 AND expiresAt > ?2",
+            Demo.DemoStatus.RUNNING,
+            java.time.LocalDateTime.now());
+
+        if (!runningDemos.isEmpty()) {
+            for (Demo demo : runningDemos) {
+                // Generate 1-5 random transactions per demo
+                int txCount = (int) (Math.random() * 5) + 1;
+                demo.addTransactions(txCount);
+                demo.persist();
+            }
+            LOG.debugf("📊 Auto-generated transactions for %d running demos", runningDemos.size());
+        }
+    }
+
     private void expireDemo(Demo demo) {
         demo.expire();
         demo.persist();

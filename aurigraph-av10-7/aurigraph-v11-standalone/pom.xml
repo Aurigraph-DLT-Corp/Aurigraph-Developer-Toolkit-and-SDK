@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.aurigraph</groupId>
     <artifactId>aurigraph-v11-standalone</artifactId>
-    <version>11.3.3</version>
+    <version>11.3.4</version>
 
     <properties>
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
@@ -420,10 +420,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
-        <!-- H2 in-memory database for now (migrate to LevelDB later) -->
+        <!-- PostgreSQL for production persistence -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-h2</artifactId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
 
         <!-- LevelDB for embedded key-value storage (one per node) -->

@@ -130,7 +130,8 @@ export const DemoApp: React.FC = () => {
   const handleDemoRegistration = async (registration: DemoRegistration) => {
     try {
       const newDemo = await DemoService.registerDemo(registration);
-      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+      const allDemos = await DemoService.getAllDemos();
+      setDemos(convertDemosForDisplay(allDemos));
       setRegistrationOpen(false);
       setTxStatus(`Demo "${newDemo.demoName}" registered successfully!`);
       setTimeout(() => setTxStatus(''), 5000);
@@ -144,7 +145,8 @@ export const DemoApp: React.FC = () => {
   const handleStartDemo = async (demoId: string) => {
     try {
       await DemoService.startDemo(demoId);
-      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+      const allDemos = await DemoService.getAllDemos();
+      setDemos(convertDemosForDisplay(allDemos));
     } catch (error) {
       console.error('Failed to start demo:', error);
     }
@@ -153,17 +155,22 @@ export const DemoApp: React.FC = () => {
   const handleStopDemo = async (demoId: string) => {
     try {
       await DemoService.stopDemo(demoId);
-      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+      const allDemos = await DemoService.getAllDemos();
+      setDemos(convertDemosForDisplay(allDemos));
     } catch (error) {
       console.error('Failed to stop demo:', error);
     }
   };
 
-  const handleViewDemo = (demoId: string) => {
-    const demo = DemoService.getDemo(demoId);
-    if (demo) {
-      setSelectedDemo(demo);
-      console.log('Viewing demo:', demo);
+  const handleViewDemo = async (demoId: string) => {
+    try {
+      const demo = await DemoService.getDemo(demoId);
+      if (demo) {
+        setSelectedDemo(demo);
+        console.log('Viewing demo:', demo);
+      }
+    } catch (error) {
+      console.error('Failed to load demo:', error);
     }
   };
 
@@ -171,7 +178,8 @@ export const DemoApp: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this demo?')) {
       try {
         await DemoService.deleteDemo(demoId);
-        setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+        const allDemos = await DemoService.getAllDemos();
+        setDemos(convertDemosForDisplay(allDemos));
         setTxStatus('Demo deleted successfully');
         setTimeout(() => setTxStatus(''), 5000);
       } catch (error) {
@@ -182,34 +190,47 @@ export const DemoApp: React.FC = () => {
 
   // Load demos on mount and periodically check for updates
   useEffect(() => {
-    const loadDemos = () => {
-      const allDemos = DemoService.getAllDemos();
-      console.log('📊 Loading demos:', allDemos.length, 'demos found');
-      setDemos(convertDemosForDisplay(allDemos));
+    const loadDemos = async () => {
+      try {
+        const allDemos = await DemoService.getAllDemos();
+        console.log('📊 Loading demos:', allDemos.length, 'demos found');
+        setDemos(convertDemosForDisplay(allDemos));
+      } catch (error) {
+        console.error('Failed to load demos:', error);
+      }
     };
 
     // Initial load
     loadDemos();
 
-    // Check again after 500ms in case async initialization is still running
-    const timeout = setTimeout(loadDemos, 500);
+    // Reload every 5 seconds to get updates from backend
+    const interval = setInterval(loadDemos, 5000);
 
-    return () => clearTimeout(timeout);
+    return () => clearInterval(interval);
   }, []);
 
   // Simulate transactions for running demos (grows Merkle tree)
   useEffect(() => {
-    const interval = setInterval(() => {
-      const allDemos = DemoService.getAllDemos();
-      allDemos.forEach(demo => {
-        if (demo.status === 'RUNNING') {
-          // Add 1-5 simulated transactions every 3 seconds
-          const txCount = Math.floor(Math.random() * 5) + 1;
-          DemoService.incrementTransactionCount(demo.id, txCount);
+    const interval = setInterval(async () => {
+      try {
+        const allDemos = await DemoService.getAllDemos();
+        for (const demo of allDemos) {
+          if (demo.status === 'RUNNING') {
+            // Add 1-5 simulated transactions every 3 seconds
+            const txCount = Math.floor(Math.random() * 5) + 1;
+            try {
+              await DemoService.addTransactions(demo.id, txCount);
+            } catch (error) {
+              console.warn(`Failed to add transactions to demo ${demo.id}:`, error);
+            }
+          }
         }
-      });
-      // Refresh demo list to show updated transaction counts
-      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+        // Refresh demo list to show updated transaction counts
+        const refreshedDemos = await DemoService.getAllDemos();
+        setDemos(convertDemosForDisplay(refreshedDemos));
+      } catch (error) {
+        console.error('Failed to update transactions:', error);
+      }
     }, 3000);
 
     return () => clearInterval(interval);
@@ -735,8 +756,8 @@ export const DemoApp: React.FC = () => {
               <Box sx={{ mb: 4 }}>
                 <LiveMerkleTreeViz
                   demoId={selectedDemo.id}
-                  transactionCount={DemoService.getDemo(selectedDemo.id)?.transactionCount || 0}
-                  merkleRoot={DemoService.getDemo(selectedDemo.id)?.merkleRoot || ''}
+                  transactionCount={DemoService.getCachedDemo(selectedDemo.id)?.transactionCount || 0}
+                  merkleRoot={DemoService.getCachedDemo(selectedDemo.id)?.merkleRoot || ''}
                 />
               </Box>
 
@@ -746,9 +767,9 @@ export const DemoApp: React.FC = () => {
                   🏥 Network Health: {selectedDemo.demoName}
                 </Typography>
                 <NetworkHealthViz
-                  validators={DemoService.getDemo(selectedDemo.id)?.validators || []}
-                  businessNodes={DemoService.getDemo(selectedDemo.id)?.businessNodes || []}
-                  slimNodes={DemoService.getDemo(selectedDemo.id)?.slimNodes || []}
+                  validators={DemoService.getCachedDemo(selectedDemo.id)?.validators || []}
+                  businessNodes={DemoService.getCachedDemo(selectedDemo.id)?.businessNodes || []}
+                  slimNodes={DemoService.getCachedDemo(selectedDemo.id)?.slimNodes || []}
                 />
               </Box>
 
@@ -758,9 +779,9 @@ export const DemoApp: React.FC = () => {
                   🌐 Network Topology: {selectedDemo.demoName}
                 </Typography>
                 <NodeVisualization
-                  validators={DemoService.getDemo(selectedDemo.id)?.validators || []}
-                  businessNodes={DemoService.getDemo(selectedDemo.id)?.businessNodes || []}
-                  slimNodes={DemoService.getDemo(selectedDemo.id)?.slimNodes || []}
+                  validators={DemoService.getCachedDemo(selectedDemo.id)?.validators || []}
+                  businessNodes={DemoService.getCachedDemo(selectedDemo.id)?.businessNodes || []}
+                  slimNodes={DemoService.getCachedDemo(selectedDemo.id)?.slimNodes || []}
                   channels={selectedDemo.channels}
                 />
               </Box>
@@ -774,10 +795,10 @@ export const DemoApp: React.FC = () => {
                 All Network Nodes Across Demos
               </Typography>
               <NodeVisualization
-                validators={DemoService.getAllDemos().flatMap(d => d.validators)}
-                businessNodes={DemoService.getAllDemos().flatMap(d => d.businessNodes)}
-                slimNodes={DemoService.getAllDemos().flatMap(d => d.slimNodes)}
-                channels={DemoService.getAllDemos().flatMap(d => d.channels)}
+                validators={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.validators || [])}
+                businessNodes={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.businessNodes || [])}
+                slimNodes={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.slimNodes || [])}
+                channels={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.channels || [])}
               />
             </Box>
           )}

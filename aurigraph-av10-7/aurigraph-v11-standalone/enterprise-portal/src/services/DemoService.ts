@@ -1,10 +1,15 @@
-// Demo Service - Handles demo registration, management, and Merkle tree verification
+// Demo Service - Handles demo registration, management with backend persistence
+import axios from 'axios';
 import {
   createDemoMerkleTree,
   verifyDemoIntegrity,
   MerkleProof,
   MerkleTree,
 } from '../utils/merkleTree';
+
+// API Configuration
+const API_BASE_URL = window.location.origin;
+const DEMO_API = `${API_BASE_URL}/api/demos`;
 
 export interface Channel {
   id: string;
@@ -38,9 +43,9 @@ export interface DemoInstance extends DemoRegistration {
   lastActivity: Date;
   transactionCount: number;
   merkleRoot: string;
-  durationMinutes: number; // Duration in minutes (default: 10)
-  expiresAt: Date; // When demo will auto-expire
-  isAdminDemo: boolean; // Can override default duration
+  durationMinutes: number;
+  expiresAt: Date;
+  isAdminDemo: boolean;
 }
 
 export interface MerkleTreeInfo {
@@ -52,310 +57,268 @@ export interface MerkleTreeInfo {
 }
 
 /**
- * Demo Service Class with LocalStorage Persistence and Timeout
+ * Demo Service Class with Backend API Persistence
  */
 class DemoServiceClass {
-  private demos: Map<string, DemoInstance> = new Map();
   private merkleTrees: Map<string, MerkleTree> = new Map();
-  private timeoutIntervals: Map<string, NodeJS.Timeout> = new Map();
-
-  private readonly DEFAULT_DURATION_MINUTES = 10;
-  private readonly MAX_ADMIN_DURATION_MINUTES = 1440; // 24 hours
-  private readonly STORAGE_KEY = 'aurigraph_demos';
-
-  constructor() {
-    // Load demos from localStorage on startup
-    this.loadFromStorage();
-
-    // Start timeout checker (runs every minute)
-    setInterval(() => this.checkExpiredDemos(), 60000);
-
-    // Auto-save to localStorage every 30 seconds
-    setInterval(() => this.saveToStorage(), 30000);
-  }
+  private demoCache: Map<string, DemoInstance> = new Map();
 
   /**
-   * Load demos from localStorage
+   * Map backend response to frontend DemoInstance
    */
-  private loadFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (!stored) return;
-
-      const data = JSON.parse(stored);
-      if (!data.demos || !Array.isArray(data.demos)) return;
-
-      // Restore demos
-      data.demos.forEach((demoData: any) => {
-        const demo: DemoInstance = {
-          ...demoData,
-          createdAt: new Date(demoData.createdAt),
-          lastActivity: new Date(demoData.lastActivity),
-          expiresAt: new Date(demoData.expiresAt),
-        };
-        this.demos.set(demo.id, demo);
-
-        // Reschedule expiration if not already expired
-        if (demo.status !== 'EXPIRED') {
-          this.scheduleExpiration(demo.id);
-        }
-      });
-
-      console.log(`📂 Loaded ${this.demos.size} demos from localStorage`);
-    } catch (error) {
-      console.error('Failed to load demos from storage:', error);
-    }
+  private mapBackendDemo(backendDemo: any): DemoInstance {
+    return {
+      id: backendDemo.id,
+      demoName: backendDemo.demoName,
+      userEmail: backendDemo.userEmail,
+      userName: backendDemo.userName,
+      description: backendDemo.description || '',
+      status: backendDemo.status,
+      createdAt: new Date(backendDemo.createdAt),
+      lastActivity: new Date(backendDemo.lastActivity),
+      expiresAt: new Date(backendDemo.expiresAt),
+      durationMinutes: backendDemo.durationMinutes,
+      isAdminDemo: backendDemo.isAdminDemo,
+      transactionCount: backendDemo.transactionCount,
+      merkleRoot: backendDemo.merkleRoot,
+      channels: JSON.parse(backendDemo.channelsJson || '[]'),
+      validators: JSON.parse(backendDemo.validatorsJson || '[]'),
+      businessNodes: JSON.parse(backendDemo.businessNodesJson || '[]'),
+      slimNodes: JSON.parse(backendDemo.slimNodesJson || '[]'),
+    };
   }
 
   /**
-   * Save demos to localStorage
-   */
-  private saveToStorage(): void {
-    try {
-      const demosArray = Array.from(this.demos.values());
-      const data = {
-        demos: demosArray,
-        lastSaved: new Date().toISOString(),
-      };
-
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-      console.log(`💾 Saved ${demosArray.length} demos to localStorage`);
-    } catch (error) {
-      console.error('Failed to save demos to storage:', error);
-    }
-  }
-
-  /**
-   * Register a new demo with optional duration
+   * Register a new demo with backend persistence
    */
   async registerDemo(
     registration: DemoRegistration,
     durationMinutes?: number,
     isAdmin: boolean = false
   ): Promise<DemoInstance> {
-    // Generate unique ID
-    const id = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const createdAt = new Date();
+    try {
+      // Prepare request body
+      const requestBody = {
+        demoName: registration.demoName,
+        userEmail: registration.userEmail,
+        userName: registration.userName,
+        description: registration.description,
+        channelsJson: JSON.stringify(registration.channels),
+        validatorsJson: JSON.stringify(registration.validators),
+        businessNodesJson: JSON.stringify(registration.businessNodes),
+        slimNodesJson: JSON.stringify(registration.slimNodes),
+        merkleRoot: '', // Will be updated after tree generation
+      };
 
-    // Validate and set duration
-    let finalDuration = durationMinutes || this.DEFAULT_DURATION_MINUTES;
-    if (!isAdmin && finalDuration > this.DEFAULT_DURATION_MINUTES) {
-      finalDuration = this.DEFAULT_DURATION_MINUTES;
-    }
-    if (isAdmin && finalDuration > this.MAX_ADMIN_DURATION_MINUTES) {
-      finalDuration = this.MAX_ADMIN_DURATION_MINUTES;
-    }
+      // Create demo via API
+      const params: any = {};
+      if (durationMinutes) params.durationMinutes = durationMinutes;
+      if (isAdmin) params.isAdmin = true;
 
-    const expiresAt = new Date(createdAt.getTime() + finalDuration * 60000);
+      const response = await axios.post(DEMO_API, requestBody, { params });
+      const demo = this.mapBackendDemo(response.data);
 
-    // Create demo instance
-    const demo: DemoInstance = {
-      ...registration,
-      id,
-      status: 'PENDING',
-      createdAt,
-      lastActivity: createdAt,
-      transactionCount: 0,
-      merkleRoot: '',
-      durationMinutes: finalDuration,
-      expiresAt,
-      isAdminDemo: isAdmin,
-    };
+      // Generate Merkle tree locally for visualization
+      const { tree, root } = await createDemoMerkleTree(demo);
+      this.merkleTrees.set(demo.id, tree);
 
-    // Generate Merkle tree and root
-    const { tree, root } = await createDemoMerkleTree(demo);
-    demo.merkleRoot = root;
-
-    // Store demo and Merkle tree
-    this.demos.set(id, demo);
-    this.merkleTrees.set(id, tree);
-
-    // Schedule expiration check
-    this.scheduleExpiration(id);
-
-    // Save to localStorage
-    this.saveToStorage();
-
-    console.log(`✅ Demo registered: ${demo.demoName} (ID: ${id})`);
-    console.log(`⏱️ Duration: ${finalDuration} minutes (expires at ${expiresAt.toLocaleTimeString()})`);
-    console.log(`🌳 Merkle root: ${root}`);
-
-    return demo;
-  }
-
-  /**
-   * Schedule demo expiration
-   */
-  private scheduleExpiration(id: string): void {
-    const demo = this.demos.get(id);
-    if (!demo) return;
-
-    const timeUntilExpiry = demo.expiresAt.getTime() - Date.now();
-    if (timeUntilExpiry <= 0) {
-      this.expireDemo(id);
-      return;
-    }
-
-    // Clear existing timeout if any
-    const existing = this.timeoutIntervals.get(id);
-    if (existing) clearTimeout(existing);
-
-    // Schedule new timeout
-    const timeout = setTimeout(() => {
-      this.expireDemo(id);
-    }, timeUntilExpiry);
-
-    this.timeoutIntervals.set(id, timeout);
-  }
-
-  /**
-   * Expire a demo
-   */
-  private expireDemo(id: string): void {
-    const demo = this.demos.get(id);
-    if (!demo) return;
-
-    console.log(`⏰ Demo expired: ${demo.demoName} (ID: ${id})`);
-    demo.status = 'EXPIRED';
-    demo.lastActivity = new Date();
-
-    // Clean up timeout
-    const timeout = this.timeoutIntervals.get(id);
-    if (timeout) {
-      clearTimeout(timeout);
-      this.timeoutIntervals.delete(id);
-    }
-
-    // Save to localStorage
-    this.saveToStorage();
-  }
-
-  /**
-   * Check for expired demos (runs periodically)
-   */
-  private checkExpiredDemos(): void {
-    const now = Date.now();
-    this.demos.forEach((demo, id) => {
-      if (demo.status !== 'EXPIRED' && demo.expiresAt.getTime() <= now) {
-        this.expireDemo(id);
+      // Update merkle root on backend if different
+      if (root !== demo.merkleRoot) {
+        await axios.put(`${DEMO_API}/${demo.id}`, { merkleRoot: root });
+        demo.merkleRoot = root;
       }
-    });
-  }
 
-  /**
-   * Extend demo duration (admin only)
-   */
-  async extendDemo(id: string, additionalMinutes: number, isAdmin: boolean): Promise<DemoInstance> {
-    const demo = this.demos.get(id);
-    if (!demo) {
-      throw new Error(`Demo not found: ${id}`);
+      // Cache demo
+      this.demoCache.set(demo.id, demo);
+
+      console.log(`✅ Demo registered: ${demo.demoName} (ID: ${demo.id})`);
+      console.log(`⏱️ Duration: ${demo.durationMinutes} minutes`);
+      console.log(`🌳 Merkle root: ${root}`);
+
+      return demo;
+    } catch (error: any) {
+      console.error('Failed to register demo:', error);
+      throw new Error(error.response?.data?.error || 'Failed to register demo');
     }
+  }
 
-    if (!isAdmin) {
-      throw new Error('Only admins can extend demo duration');
+  /**
+   * Get all demos from backend
+   */
+  async getAllDemos(): Promise<DemoInstance[]> {
+    try {
+      const response = await axios.get(DEMO_API);
+      const demos = response.data.map((d: any) => this.mapBackendDemo(d));
+
+      // Update cache
+      demos.forEach((demo: DemoInstance) => {
+        this.demoCache.set(demo.id, demo);
+      });
+
+      return demos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } catch (error) {
+      console.error('Failed to fetch demos:', error);
+      throw error;
     }
-
-    const newExpiresAt = new Date(demo.expiresAt.getTime() + additionalMinutes * 60000);
-    demo.expiresAt = newExpiresAt;
-    demo.durationMinutes += additionalMinutes;
-    demo.lastActivity = new Date();
-
-    // Reschedule expiration
-    this.scheduleExpiration(id);
-
-    // Save to localStorage
-    this.saveToStorage();
-
-    console.log(`⏱️ Demo extended: ${demo.demoName} - now expires at ${newExpiresAt.toLocaleTimeString()}`);
-
-    return demo;
   }
 
   /**
-   * Get all demos
+   * Get active demos (non-expired) from backend
    */
-  getAllDemos(): DemoInstance[] {
-    return Array.from(this.demos.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
+  async getActiveDemos(): Promise<DemoInstance[]> {
+    try {
+      const response = await axios.get(`${DEMO_API}/active`);
+      const demos = response.data.map((d: any) => this.mapBackendDemo(d));
+
+      // Update cache
+      demos.forEach((demo: DemoInstance) => {
+        this.demoCache.set(demo.id, demo);
+      });
+
+      return demos;
+    } catch (error) {
+      console.error('Failed to fetch active demos:', error);
+      throw error;
+    }
   }
 
   /**
-   * Get demo by ID
+   * Get demo by ID from backend
    */
-  getDemo(id: string): DemoInstance | undefined {
-    return this.demos.get(id);
+  async getDemo(id: string): Promise<DemoInstance | null> {
+    try {
+      const response = await axios.get(`${DEMO_API}/${id}`);
+      const demo = this.mapBackendDemo(response.data);
+
+      // Update cache
+      this.demoCache.set(demo.id, demo);
+
+      return demo;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      console.error(`Failed to fetch demo ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get demo from cache (for UI without backend call)
+   */
+  getCachedDemo(id: string): DemoInstance | undefined {
+    return this.demoCache.get(id);
   }
 
   /**
    * Start a demo
    */
   async startDemo(id: string): Promise<DemoInstance> {
-    const demo = this.demos.get(id);
-    if (!demo) {
-      throw new Error(`Demo not found: ${id}`);
+    try {
+      const response = await axios.post(`${DEMO_API}/${id}/start`);
+      const demo = this.mapBackendDemo(response.data);
+
+      // Update cache
+      this.demoCache.set(demo.id, demo);
+
+      console.log(`▶️ Demo started: ${demo.demoName}`);
+      return demo;
+    } catch (error: any) {
+      console.error(`Failed to start demo ${id}:`, error);
+      throw new Error(error.response?.data?.error || 'Failed to start demo');
     }
-
-    demo.status = 'RUNNING';
-    demo.lastActivity = new Date();
-
-    // Save to localStorage
-    this.saveToStorage();
-
-    console.log(`▶️ Demo started: ${demo.demoName}`);
-
-    return demo;
   }
 
   /**
    * Stop a demo
    */
   async stopDemo(id: string): Promise<DemoInstance> {
-    const demo = this.demos.get(id);
-    if (!demo) {
-      throw new Error(`Demo not found: ${id}`);
+    try {
+      const response = await axios.post(`${DEMO_API}/${id}/stop`);
+      const demo = this.mapBackendDemo(response.data);
+
+      // Update cache
+      this.demoCache.set(demo.id, demo);
+
+      console.log(`⏸️ Demo stopped: ${demo.demoName}`);
+      return demo;
+    } catch (error: any) {
+      console.error(`Failed to stop demo ${id}:`, error);
+      throw new Error(error.response?.data?.error || 'Failed to stop demo');
+    }
+  }
+
+  /**
+   * Extend demo duration (admin only)
+   */
+  async extendDemo(id: string, additionalMinutes: number, isAdmin: boolean): Promise<DemoInstance> {
+    if (!isAdmin) {
+      throw new Error('Only admins can extend demo duration');
     }
 
-    demo.status = 'STOPPED';
-    demo.lastActivity = new Date();
+    try {
+      const response = await axios.post(
+        `${DEMO_API}/${id}/extend`,
+        null,
+        { params: { minutes: additionalMinutes, isAdmin: true } }
+      );
+      const demo = this.mapBackendDemo(response.data);
 
-    // Save to localStorage
-    this.saveToStorage();
+      // Update cache
+      this.demoCache.set(demo.id, demo);
 
-    console.log(`⏸️ Demo stopped: ${demo.demoName}`);
+      console.log(`⏱️ Demo extended: ${demo.demoName} - now expires at ${demo.expiresAt.toLocaleString()}`);
+      return demo;
+    } catch (error: any) {
+      console.error(`Failed to extend demo ${id}:`, error);
+      throw new Error(error.response?.data?.error || 'Failed to extend demo');
+    }
+  }
 
-    return demo;
+  /**
+   * Add transactions to a demo
+   */
+  async addTransactions(id: string, count: number = 1, merkleRoot?: string): Promise<DemoInstance> {
+    try {
+      const params: any = { count };
+      if (merkleRoot) params.merkleRoot = merkleRoot;
+
+      const response = await axios.post(`${DEMO_API}/${id}/transactions`, null, { params });
+      const demo = this.mapBackendDemo(response.data);
+
+      // Update cache
+      this.demoCache.set(demo.id, demo);
+
+      return demo;
+    } catch (error: any) {
+      console.error(`Failed to add transactions to demo ${id}:`, error);
+      throw new Error(error.response?.data?.error || 'Failed to add transactions');
+    }
   }
 
   /**
    * Delete a demo
    */
   async deleteDemo(id: string): Promise<void> {
-    const demo = this.demos.get(id);
-    if (!demo) {
-      throw new Error(`Demo not found: ${id}`);
+    try {
+      await axios.delete(`${DEMO_API}/${id}`);
+
+      // Remove from cache and Merkle trees
+      this.demoCache.delete(id);
+      this.merkleTrees.delete(id);
+
+      console.log(`🗑️ Demo deleted: ${id}`);
+    } catch (error: any) {
+      console.error(`Failed to delete demo ${id}:`, error);
+      throw new Error(error.response?.data?.error || 'Failed to delete demo');
     }
-
-    // Stop demo if running
-    if (demo.status === 'RUNNING') {
-      await this.stopDemo(id);
-    }
-
-    // Remove demo and Merkle tree
-    this.demos.delete(id);
-    this.merkleTrees.delete(id);
-
-    // Save to localStorage
-    this.saveToStorage();
-
-    console.log(`🗑️ Demo deleted: ${demo.demoName}`);
   }
 
   /**
-   * Increment transaction count (simulated)
+   * Increment transaction count (local cache only, use addTransactions for backend)
    */
   incrementTransactionCount(id: string, count: number = 1): void {
-    const demo = this.demos.get(id);
+    const demo = this.demoCache.get(id);
     if (demo) {
       demo.transactionCount += count;
       demo.lastActivity = new Date();
@@ -363,7 +326,7 @@ class DemoServiceClass {
   }
 
   /**
-   * Get Merkle tree for a demo
+   * Get Merkle tree for a demo (local visualization)
    */
   getMerkleTree(id: string): MerkleTree | undefined {
     return this.merkleTrees.get(id);
@@ -373,7 +336,7 @@ class DemoServiceClass {
    * Get Merkle tree information
    */
   getMerkleTreeInfo(id: string): MerkleTreeInfo | null {
-    const demo = this.demos.get(id);
+    const demo = this.demoCache.get(id);
     const tree = this.merkleTrees.get(id);
 
     if (!demo || !tree) {
@@ -392,159 +355,138 @@ class DemoServiceClass {
   }
 
   /**
-   * Verify demo integrity
+   * Verify demo integrity using Merkle tree
    */
-  async verifyDemo(id: string): Promise<{ valid: boolean; message: string }> {
-    const demo = this.demos.get(id);
+  async verifyDemoIntegrity(id: string): Promise<boolean> {
+    const demo = this.demoCache.get(id);
     if (!demo) {
-      return { valid: false, message: 'Demo not found' };
+      return false;
     }
 
-    const expectedRoot = demo.merkleRoot;
-    const { valid, actualRoot } = await verifyDemoIntegrity(demo, expectedRoot);
-
-    if (valid) {
-      return {
-        valid: true,
-        message: 'Demo integrity verified successfully',
-      };
-    } else {
-      return {
-        valid: false,
-        message: `Integrity check failed. Expected: ${expectedRoot}, Got: ${actualRoot}`,
-      };
-    }
+    return verifyDemoIntegrity(demo);
   }
 
   /**
-   * Get Merkle proof for a specific component (channel or node)
+   * Get Merkle proof for demo verification
    */
-  async getMerkleProof(demoId: string, componentId: string): Promise<MerkleProof | null> {
-    const demo = this.demos.get(demoId);
-    const tree = this.merkleTrees.get(demoId);
+  getMerkleProof(id: string): MerkleProof | null {
+    const demo = this.demoCache.get(id);
+    const tree = this.merkleTrees.get(id);
 
     if (!demo || !tree) {
       return null;
     }
 
-    // Find the leaf index for the component
-    // This is simplified - in production, you'd maintain a mapping
-    const allComponents = [
-      { id: 'demo-config', type: 'config' },
-      { id: 'demo-metadata', type: 'metadata' },
-      ...demo.channels.map(c => ({ id: c.id, type: 'channel' })),
-      ...demo.validators.map(n => ({ id: n.id, type: 'validator' })),
-      ...demo.businessNodes.map(n => ({ id: n.id, type: 'business' })),
-      ...demo.slimNodes.map(n => ({ id: n.id, type: 'slim' })),
-    ];
+    const demoData = JSON.stringify({
+      id: demo.id,
+      demoName: demo.demoName,
+      userEmail: demo.userEmail,
+      createdAt: demo.createdAt.toISOString(),
+    });
 
-    const componentIndex = allComponents.findIndex(c => c.id === componentId);
-    if (componentIndex === -1) {
-      return null;
-    }
-
-    return tree.getProof(componentIndex);
-  }
-
-  /**
-   * Get demo statistics
-   */
-  getStatistics() {
-    const allDemos = this.getAllDemos();
+    const leaf = Buffer.from(demoData);
+    const proof = tree.getProof(leaf);
 
     return {
-      totalDemos: allDemos.length,
-      runningDemos: allDemos.filter(d => d.status === 'RUNNING').length,
-      stoppedDemos: allDemos.filter(d => d.status === 'STOPPED').length,
-      pendingDemos: allDemos.filter(d => d.status === 'PENDING').length,
-      totalNodes: allDemos.reduce(
-        (sum, d) => sum + d.validators.length + d.businessNodes.length + d.slimNodes.length,
-        0
-      ),
-      totalTransactions: allDemos.reduce((sum, d) => sum + d.transactionCount, 0),
-      totalChannels: allDemos.reduce((sum, d) => sum + d.channels.length, 0),
+      leaf: leaf.toString('hex'),
+      proof: proof.map((p) => ({
+        position: p.position,
+        data: p.data.toString('hex'),
+      })),
+      root: demo.merkleRoot,
     };
   }
 
   /**
-   * Initialize with sample demos (for testing)
+   * Initialize with sample data (for development/demo purposes)
    */
   async initializeSampleDemos(): Promise<void> {
-    // Sample Demo 1: Public Network
-    await this.registerDemo({
-      userName: 'Alice Johnson',
-      userEmail: 'alice@example.com',
-      demoName: 'Public Network Demo',
-      description: 'Demonstration of a public blockchain network with multiple validators',
-      channels: [
-        { id: 'ch1', name: 'Main Channel', type: 'PUBLIC' },
-      ],
-      validators: [
-        { id: 'v1', name: 'Validator-1', type: 'VALIDATOR', endpoint: 'https://val1.demo.io', channelId: 'ch1' },
-        { id: 'v2', name: 'Validator-2', type: 'VALIDATOR', endpoint: 'https://val2.demo.io', channelId: 'ch1' },
-        { id: 'v3', name: 'Validator-3', type: 'VALIDATOR', endpoint: 'https://val3.demo.io', channelId: 'ch1' },
-      ],
-      businessNodes: [
-        { id: 'b1', name: 'Business-1', type: 'BUSINESS', endpoint: 'https://biz1.demo.io', channelId: 'ch1' },
-        { id: 'b2', name: 'Business-2', type: 'BUSINESS', endpoint: 'https://biz2.demo.io', channelId: 'ch1' },
-      ],
-      slimNodes: [
-        { id: 's1', name: 'Slim-1', type: 'SLIM', endpoint: 'https://slim1.demo.io', channelId: 'ch1' },
-      ],
-    });
+    try {
+      console.log('📊 Initializing sample demos...');
 
-    // Sample Demo 2: Consortium Network
-    await this.registerDemo({
-      userName: 'Bob Smith',
-      userEmail: 'bob@example.com',
-      demoName: 'Consortium Network Demo',
-      description: 'Private consortium network for enterprise use',
-      channels: [
-        { id: 'ch2', name: 'Enterprise Channel', type: 'CONSORTIUM' },
-        { id: 'ch3', name: 'Finance Channel', type: 'PRIVATE' },
-      ],
-      validators: [
-        { id: 'v4', name: 'Enterprise-Validator-1', type: 'VALIDATOR', endpoint: 'https://ent-val1.demo.io', channelId: 'ch2' },
-        { id: 'v5', name: 'Enterprise-Validator-2', type: 'VALIDATOR', endpoint: 'https://ent-val2.demo.io', channelId: 'ch2' },
-      ],
-      businessNodes: [
-        { id: 'b3', name: 'Finance-Node-1', type: 'BUSINESS', endpoint: 'https://fin1.demo.io', channelId: 'ch3' },
-        { id: 'b4', name: 'Finance-Node-2', type: 'BUSINESS', endpoint: 'https://fin2.demo.io', channelId: 'ch3' },
-        { id: 'b5', name: 'Enterprise-Node', type: 'BUSINESS', endpoint: 'https://ent1.demo.io', channelId: 'ch2' },
-      ],
-      slimNodes: [
-        { id: 's2', name: 'Monitor-1', type: 'SLIM', endpoint: 'https://mon1.demo.io', channelId: 'ch2' },
-        { id: 's3', name: 'Monitor-2', type: 'SLIM', endpoint: 'https://mon2.demo.io', channelId: 'ch3' },
-      ],
-    });
+      const sampleDemos: DemoRegistration[] = [
+        {
+          demoName: 'Supply Chain Tracking Demo',
+          userName: 'Alice Johnson',
+          userEmail: 'alice.johnson@enterprise.com',
+          description: 'End-to-end supply chain visibility with real-time tracking',
+          channels: [
+            { id: 'ch1', name: 'Production Channel', type: 'PRIVATE' },
+            { id: 'ch2', name: 'Logistics Channel', type: 'CONSORTIUM' },
+          ],
+          validators: [
+            { id: 'v1', name: 'Validator Node 1', type: 'VALIDATOR', endpoint: 'https://validator1.demo', channelId: 'ch1' },
+            { id: 'v2', name: 'Validator Node 2', type: 'VALIDATOR', endpoint: 'https://validator2.demo', channelId: 'ch2' },
+          ],
+          businessNodes: [
+            { id: 'b1', name: 'Manufacturer Node', type: 'BUSINESS', endpoint: 'https://manufacturer.demo', channelId: 'ch1' },
+            { id: 'b2', name: 'Distributor Node', type: 'BUSINESS', endpoint: 'https://distributor.demo', channelId: 'ch2' },
+          ],
+          slimNodes: [
+            { id: 's1', name: 'Retailer Node', type: 'SLIM', endpoint: 'https://retailer.demo', channelId: 'ch2' },
+          ],
+        },
+        {
+          demoName: 'Healthcare Records Management',
+          userName: 'Dr. Robert Chen',
+          userEmail: 'robert.chen@healthorg.com',
+          description: 'Secure patient data sharing across healthcare providers',
+          channels: [
+            { id: 'hc1', name: 'Patient Records', type: 'PRIVATE' },
+          ],
+          validators: [
+            { id: 'hv1', name: 'Hospital Validator', type: 'VALIDATOR', endpoint: 'https://hospital-val.demo', channelId: 'hc1' },
+          ],
+          businessNodes: [
+            { id: 'hb1', name: 'Primary Care', type: 'BUSINESS', endpoint: 'https://primary-care.demo', channelId: 'hc1' },
+            { id: 'hb2', name: 'Specialist Clinic', type: 'BUSINESS', endpoint: 'https://specialist.demo', channelId: 'hc1' },
+          ],
+          slimNodes: [],
+        },
+        {
+          demoName: 'Financial Settlement Network',
+          userName: 'Sarah Martinez',
+          userEmail: 'sarah.martinez@fintech.com',
+          description: 'Real-time cross-border payment settlement',
+          channels: [
+            { id: 'fc1', name: 'Payment Channel', type: 'CONSORTIUM' },
+          ],
+          validators: [
+            { id: 'fv1', name: 'Bank Validator 1', type: 'VALIDATOR', endpoint: 'https://bank1-val.demo', channelId: 'fc1' },
+            { id: 'fv2', name: 'Bank Validator 2', type: 'VALIDATOR', endpoint: 'https://bank2-val.demo', channelId: 'fc1' },
+          ],
+          businessNodes: [
+            { id: 'fb1', name: 'Bank A Node', type: 'BUSINESS', endpoint: 'https://banka.demo', channelId: 'fc1' },
+            { id: 'fb2', name: 'Bank B Node', type: 'BUSINESS', endpoint: 'https://bankb.demo', channelId: 'fc1' },
+          ],
+          slimNodes: [
+            { id: 'fs1', name: 'Payment Provider', type: 'SLIM', endpoint: 'https://payment.demo', channelId: 'fc1' },
+          ],
+        },
+      ];
 
-    // Start first demo and simulate some transactions
-    const demos = this.getAllDemos();
-    if (demos.length > 0) {
-      await this.startDemo(demos[0].id);
-      this.incrementTransactionCount(demos[0].id, 1234);
+      // Register sample demos
+      for (const demoReg of sampleDemos) {
+        try {
+          await this.registerDemo(demoReg, 10, false);
+        } catch (error) {
+          console.warn(`Failed to create sample demo: ${demoReg.demoName}`, error);
+        }
+      }
+
+      console.log('✅ Sample demos initialized');
+    } catch (error) {
+      console.error('Failed to initialize sample demos:', error);
     }
-
-    console.log(`✅ Initialized ${demos.length} sample demos`);
-  }
-
-  /**
-   * Clear all demos (for testing)
-   */
-  clearAllDemos(): void {
-    this.demos.clear();
-    this.merkleTrees.clear();
-    console.log('🗑️ All demos cleared');
   }
 }
 
 // Export singleton instance
 export const DemoService = new DemoServiceClass();
 
-// Auto-initialize with sample data in both development and production
-// This ensures users have demos to view immediately
+// Auto-initialize with sample data on load
 DemoService.initializeSampleDemos().then(() => {
-  console.log('📊 Demo service initialized with sample data');
-}).catch(error => {
-  console.error('Failed to initialize demo service:', error);
+  console.log('📊 Demo service initialized');
+}).catch((error) => {
+  console.error('Demo service initialization failed:', error);
 });
