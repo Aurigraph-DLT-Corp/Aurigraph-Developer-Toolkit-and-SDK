@@ -426,6 +426,13 @@
             <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
 
+        <!-- H2 for in-memory testing (no external database required) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- LevelDB for embedded key-value storage (one per node) -->
         <dependency>
             <groupId>org.iq80.leveldb</groupId>
