@@ -209,8 +209,12 @@ public class LogReplication {
                 // Check log consistency
                 if (!isLogConsistent(request.prevLogIndex, request.prevLogTerm)) {
                     long conflictIndex = findConflictIndex(request.prevLogIndex);
-                    long conflictTerm = conflictIndex > 0 ?
-                            log.get((int) conflictIndex).term : 0;
+                    long conflictTerm = 0;
+
+                    // Only get conflict term if index is within bounds
+                    if (conflictIndex >= 0 && conflictIndex < log.size()) {
+                        conflictTerm = log.get((int) conflictIndex).term;
+                    }
 
                     LOG.debugf("Log inconsistency at index %d (expected term %d)",
                             request.prevLogIndex, request.prevLogTerm);
@@ -370,13 +374,16 @@ public class LogReplication {
                 return log.size();
             }
 
-            long conflictTerm = log.get((int) prevLogIndex).term;
-            for (int i = (int) prevLogIndex; i >= 0; i--) {
-                if (log.get(i).term != conflictTerm) {
-                    return i + 1;
+            // If prevLogIndex is within bounds, find conflict term
+            if (prevLogIndex >= 0 && prevLogIndex < log.size()) {
+                long conflictTerm = log.get((int) prevLogIndex).term;
+                for (int i = (int) prevLogIndex; i >= 0; i--) {
+                    if (log.get(i).term != conflictTerm) {
+                        return i + 1;
+                    }
                 }
             }
-            return 0;
+            return Math.min(prevLogIndex, log.size());
         }
 
         private void appendAndResolveConflicts(long prevLogIndex, List<LogEntry> entries) {

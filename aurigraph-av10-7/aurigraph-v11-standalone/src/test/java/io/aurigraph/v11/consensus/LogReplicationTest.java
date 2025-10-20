@@ -39,9 +39,11 @@ public class LogReplicationTest {
     @Test
     @DisplayName("Should append entries as leader")
     void testAppendEntriesAsLeader() {
-        // Given: Node is leader with term set
+        // Given: Node is leader with term set (must transition through CANDIDATE)
         state.setTermIfHigher(1);
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
+        assertEquals(RaftState.NodeState.LEADER, state.getCurrentState());
 
         // When: Append commands
         List<String> commands = List.of("cmd1", "cmd2", "cmd3");
@@ -49,8 +51,8 @@ public class LogReplicationTest {
                 .await().indefinitely();
 
         // Then: Entries should be appended
-        assertTrue(success);
-        assertTrue(logManager.getLogSize() >= 4); // sentinel + 3 commands
+        assertTrue(success, "Failed to append entries as leader");
+        assertTrue(logManager.getLogSize() >= 4, "Log size should be at least 4 (sentinel + 3 commands)");
     }
 
     @Test
@@ -187,6 +189,7 @@ public class LogReplicationTest {
     @DisplayName("Should handle conflicting entries")
     void testConflictResolution() {
         // Given: Follower with conflicting entries
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
         state.setTermIfHigher(5);
 
@@ -215,6 +218,7 @@ public class LogReplicationTest {
     void testGetEntriesFrom() {
         // Given: Log with multiple entries
         state.setTermIfHigher(1);
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
         List<String> commands = List.of("cmd1", "cmd2", "cmd3");
         logManager.appendEntriesAsLeader(commands).await().indefinitely();
@@ -253,6 +257,8 @@ public class LogReplicationTest {
     @DisplayName("Should initialize follower indices")
     void testInitializeFollowerIndices() {
         // Given: Leader with log
+        state.setTermIfHigher(1);
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
         List<String> commands = List.of("cmd1", "cmd2");
         logManager.appendEntriesAsLeader(commands).await().indefinitely();
@@ -269,6 +275,7 @@ public class LogReplicationTest {
     void testReplicationMetrics() {
         // Given: Some replication activity
         state.setTermIfHigher(1);
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
         List<String> commands = List.of("cmd1", "cmd2");
         logManager.appendEntriesAsLeader(commands).await().indefinitely();
@@ -297,6 +304,8 @@ public class LogReplicationTest {
     @DisplayName("Should handle multiple followers")
     void testMultipleFollowers() {
         // Given: Leader with multiple followers
+        state.setTermIfHigher(1);
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
 
         // When: Initialize multiple followers
@@ -387,6 +396,8 @@ public class LogReplicationTest {
     @DisplayName("Log replication performance - should replicate 1000 entries within 100ms")
     void testReplicationPerformance() {
         // Given: Leader with 1000 entries
+        state.setTermIfHigher(1);
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
         List<String> commands = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
@@ -408,6 +419,7 @@ public class LogReplicationTest {
     void testLogConsistency() {
         // Given: Multiple operations
         state.setTermIfHigher(1);
+        state.transitionTo(RaftState.NodeState.CANDIDATE);
         state.transitionTo(RaftState.NodeState.LEADER);
 
         // Get initial size
