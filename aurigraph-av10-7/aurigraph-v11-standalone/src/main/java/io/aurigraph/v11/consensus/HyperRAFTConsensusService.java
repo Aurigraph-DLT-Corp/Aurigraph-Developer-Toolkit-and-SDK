@@ -74,7 +74,8 @@ public class HyperRAFTConsensusService {
 
     // Enhanced features
     private final List<LogEntry> log = Collections.synchronizedList(new ArrayList<>());
-    private final BlockingQueue<LogEntry> batchQueue = new LinkedBlockingQueue<>(batchSize * 2);
+    // Initialize with default capacity, will be resized in @PostConstruct if needed
+    private BlockingQueue<LogEntry> batchQueue;
     private volatile Snapshot latestSnapshot;
     private volatile long lastHeartbeat = System.currentTimeMillis();
     private volatile long electionTimeout = 200; // Dynamic timeout
@@ -88,6 +89,12 @@ public class HyperRAFTConsensusService {
     @PostConstruct
     public void initialize() {
         LOG.info("Initializing HyperRAFT++ Consensus Service with AI optimization");
+
+        // Initialize batch queue with injected configuration value
+        // Use double the batch size for queue capacity to prevent blocking
+        int queueCapacity = Math.max(1000, batchSize * 2); // Minimum 1000, default 20000
+        batchQueue = new LinkedBlockingQueue<>(queueCapacity);
+        LOG.infof("Batch queue initialized with capacity: %d (batch size: %d)", queueCapacity, batchSize);
 
         // Set this node as leader
         leaderId = nodeId;
