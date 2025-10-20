@@ -48,6 +48,7 @@ import { NodeVisualization } from './components/NodeVisualization';
 import { RealTimeTPSChart } from './components/RealTimeTPSChart';
 import { NetworkHealthViz } from './components/NetworkHealthViz';
 import MerkleTreeRegistry from './components/MerkleTreeRegistry';
+import { LiveMerkleTreeViz } from './components/LiveMerkleTreeViz';
 import { DemoService, DemoRegistration } from './services/DemoService';
 
 // Live API configuration - connects to actual Aurigraph V11
@@ -194,6 +195,24 @@ export const DemoApp: React.FC = () => {
     const timeout = setTimeout(loadDemos, 500);
 
     return () => clearTimeout(timeout);
+  }, []);
+
+  // Simulate transactions for running demos (grows Merkle tree)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const allDemos = DemoService.getAllDemos();
+      allDemos.forEach(demo => {
+        if (demo.status === 'RUNNING') {
+          // Add 1-5 simulated transactions every 3 seconds
+          const txCount = Math.floor(Math.random() * 5) + 1;
+          DemoService.incrementTransactionCount(demo.id, txCount);
+        }
+      });
+      // Refresh demo list to show updated transaction counts
+      setDemos(convertDemosForDisplay(DemoService.getAllDemos()));
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Live data fetching from real backend
@@ -712,13 +731,13 @@ export const DemoApp: React.FC = () => {
                 />
               </Box>
 
-              {/* 2. Merkle Tree Registry - SECOND */}
+              {/* 2. Live Merkle Tree Visualization - SECOND */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  🌳 Merkle Tree Registry: {selectedDemo.demoName}
-                  <Chip label="SHA-256" color="info" size="small" />
-                </Typography>
-                <MerkleTreeRegistry />
+                <LiveMerkleTreeViz
+                  demoId={selectedDemo.id}
+                  transactionCount={DemoService.getDemo(selectedDemo.id)?.transactionCount || 0}
+                  merkleRoot={DemoService.getDemo(selectedDemo.id)?.merkleRoot || ''}
+                />
               </Box>
 
               {/* 3. Network Health Visualization - THIRD */}

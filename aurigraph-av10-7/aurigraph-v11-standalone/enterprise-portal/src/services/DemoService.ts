@@ -33,11 +33,14 @@ export interface DemoRegistration {
 
 export interface DemoInstance extends DemoRegistration {
   id: string;
-  status: 'RUNNING' | 'STOPPED' | 'PENDING' | 'ERROR';
+  status: 'RUNNING' | 'STOPPED' | 'PENDING' | 'ERROR' | 'EXPIRED';
   createdAt: Date;
   lastActivity: Date;
   transactionCount: number;
   merkleRoot: string;
+  durationMinutes: number; // Duration in minutes (default: 10)
+  expiresAt: Date; // When demo will auto-expire
+  isAdminDemo: boolean; // Can override default duration
 }
 
 export interface MerkleTreeInfo {
@@ -49,19 +52,43 @@ export interface MerkleTreeInfo {
 }
 
 /**
- * Demo Service Class
+ * Demo Service Class with Persistence and Timeout
  */
 class DemoServiceClass {
   private demos: Map<string, DemoInstance> = new Map();
   private merkleTrees: Map<string, MerkleTree> = new Map();
+  private timeoutIntervals: Map<string, NodeJS.Timeout> = new Map();
+
+  private readonly DEFAULT_DURATION_MINUTES = 10;
+  private readonly MAX_ADMIN_DURATION_MINUTES = 1440; // 24 hours
+
+  constructor() {
+    // Start timeout checker (runs every minute)
+    setInterval(() => this.checkExpiredDemos(), 60000);
+  }
 
   /**
-   * Register a new demo
+   * Register a new demo with optional duration
    */
-  async registerDemo(registration: DemoRegistration): Promise<DemoInstance> {
+  async registerDemo(
+    registration: DemoRegistration,
+    durationMinutes?: number,
+    isAdmin: boolean = false
+  ): Promise<DemoInstance> {
     // Generate unique ID
     const id = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const createdAt = new Date();
+
+    // Validate and set duration
+    let finalDuration = durationMinutes || this.DEFAULT_DURATION_MINUTES;
+    if (!isAdmin && finalDuration > this.DEFAULT_DURATION_MINUTES) {
+      finalDuration = this.DEFAULT_DURATION_MINUTES;
+    }
+    if (isAdmin && finalDuration > this.MAX_ADMIN_DURATION_MINUTES) {
+      finalDuration = this.MAX_ADMIN_DURATION_MINUTES;
+    }
+
+    const expiresAt = new Date(createdAt.getTime() + finalDuration * 60000);
 
     // Create demo instance
     const demo: DemoInstance = {
@@ -72,6 +99,9 @@ class DemoServiceClass {
       lastActivity: createdAt,
       transactionCount: 0,
       merkleRoot: '',
+      durationMinutes: finalDuration,
+      expiresAt,
+      isAdminDemo: isAdmin,
     };
 
     // Generate Merkle tree and root
@@ -82,8 +112,94 @@ class DemoServiceClass {
     this.demos.set(id, demo);
     this.merkleTrees.set(id, tree);
 
+    // Schedule expiration check
+    this.scheduleExpiration(id);
+
     console.log(`✅ Demo registered: ${demo.demoName} (ID: ${id})`);
+    console.log(`⏱️ Duration: ${finalDuration} minutes (expires at ${expiresAt.toLocaleTimeString()})`);
     console.log(`🌳 Merkle root: ${root}`);
+
+    return demo;
+  }
+
+  /**
+   * Schedule demo expiration
+   */
+  private scheduleExpiration(id: string): void {
+    const demo = this.demos.get(id);
+    if (!demo) return;
+
+    const timeUntilExpiry = demo.expiresAt.getTime() - Date.now();
+    if (timeUntilExpiry <= 0) {
+      this.expireDemo(id);
+      return;
+    }
+
+    // Clear existing timeout if any
+    const existing = this.timeoutIntervals.get(id);
+    if (existing) clearTimeout(existing);
+
+    // Schedule new timeout
+    const timeout = setTimeout(() => {
+      this.expireDemo(id);
+    }, timeUntilExpiry);
+
+    this.timeoutIntervals.set(id, timeout);
+  }
+
+  /**
+   * Expire a demo
+   */
+  private expireDemo(id: string): void {
+    const demo = this.demos.get(id);
+    if (!demo) return;
+
+    console.log(`⏰ Demo expired: ${demo.demoName} (ID: ${id})`);
+    demo.status = 'EXPIRED';
+    demo.lastActivity = new Date();
+
+    // Clean up timeout
+    const timeout = this.timeoutIntervals.get(id);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.timeoutIntervals.delete(id);
+    }
+  }
+
+  /**
+   * Check for expired demos (runs periodically)
+   */
+  private checkExpiredDemos(): void {
+    const now = Date.now();
+    this.demos.forEach((demo, id) => {
+      if (demo.status !== 'EXPIRED' && demo.expiresAt.getTime() <= now) {
+        this.expireDemo(id);
+      }
+    });
+  }
+
+  /**
+   * Extend demo duration (admin only)
+   */
+  async extendDemo(id: string, additionalMinutes: number, isAdmin: boolean): Promise<DemoInstance> {
+    const demo = this.demos.get(id);
+    if (!demo) {
+      throw new Error(`Demo not found: ${id}`);
+    }
+
+    if (!isAdmin) {
+      throw new Error('Only admins can extend demo duration');
+    }
+
+    const newExpiresAt = new Date(demo.expiresAt.getTime() + additionalMinutes * 60000);
+    demo.expiresAt = newExpiresAt;
+    demo.durationMinutes += additionalMinutes;
+    demo.lastActivity = new Date();
+
+    // Reschedule expiration
+    this.scheduleExpiration(id);
+
+    console.log(`⏱️ Demo extended: ${demo.demoName} - now expires at ${newExpiresAt.toLocaleTimeString()}`);
 
     return demo;
   }
