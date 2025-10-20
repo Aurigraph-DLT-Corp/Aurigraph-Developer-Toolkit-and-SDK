@@ -57,7 +57,8 @@ public class TransactionService {
     private final AtomicLong totalLatencyNanos = new AtomicLong(0);
     private final AtomicLong minLatencyNanos = new AtomicLong(Long.MAX_VALUE);
     private final AtomicLong maxLatencyNanos = new AtomicLong(0);
-    private final AtomicReference<Double> throughputTarget = new AtomicReference<>(2_500_000.0); // Optimized target to 2.5M TPS
+    // OPTIMIZED (Oct 20, 2025): Increased throughput target from 2.5M to 3M TPS
+    private final AtomicReference<Double> throughputTarget = new AtomicReference<>(3_000_000.0); // Optimized target to 3M TPS
     
     // Advanced performance metrics for 2M+ TPS optimization
     private final AtomicLong ultraHighThroughputProcessed = new AtomicLong(0);
@@ -182,9 +183,10 @@ public class TransactionService {
                 );
 
             // Get ML-based shard assignment (blocks on Uni)
+            // OPTIMIZED (Oct 20, 2025): Reduced timeout from 50ms to 30ms for 3M+ TPS
             io.aurigraph.v11.ai.MLLoadBalancer.ShardAssignment assignment =
                 mlLoadBalancer.assignShard(context)
-                    .await().atMost(java.time.Duration.ofMillis(50)); // 50ms timeout
+                    .await().atMost(java.time.Duration.ofMillis(30)); // 30ms timeout (was 50ms)
 
             long latencyNanos = System.nanoTime() - startNanos;
             mlMetricsService.recordShardSelection(assignment.getConfidence(), latencyNanos, false);
@@ -211,8 +213,9 @@ public class TransactionService {
      * @return Ordered list of transaction requests
      */
     private List<TransactionRequest> orderTransactionsML(List<TransactionRequest> requests) {
-        if (!aiOptimizationEnabled || requests.size() < 100) {
-            return requests; // Skip ML for small batches
+        // OPTIMIZED (Oct 20, 2025): Lowered threshold from 100 to 50 for earlier ML optimization
+        if (!aiOptimizationEnabled || requests.size() < 50) {
+            return requests; // Skip ML for small batches (threshold: 50, was 100)
         }
 
         long startNanos = System.nanoTime();
@@ -232,9 +235,10 @@ public class TransactionService {
                     .toList();
 
             // Apply ML-based ordering
+            // OPTIMIZED (Oct 20, 2025): Reduced timeout from 100ms to 75ms for 3M+ TPS
             List<io.aurigraph.v11.models.Transaction> orderedML =
                 predictiveOrdering.orderTransactions(mlTransactions)
-                    .await().atMost(java.time.Duration.ofMillis(100)); // 100ms timeout
+                    .await().atMost(java.time.Duration.ofMillis(75)); // 75ms timeout (was 100ms)
 
             long latencyNanos = System.nanoTime() - startNanos;
             mlMetricsService.recordTransactionOrdering(orderedML.size(), latencyNanos, false);
@@ -476,7 +480,8 @@ public class TransactionService {
         } else if (performanceRatio < 0.5) {
             // Low performance: decrease batch size
             baseBatchSize = (int) (baseBatchSize * 0.7);
-            adaptiveBatchSizeMultiplier.set(Math.max(0.5, adaptiveBatchSizeMultiplier.get() * 0.9));
+            // OPTIMIZED (Oct 20, 2025): Changed from 0.9 to 0.85 for more aggressive batching
+            adaptiveBatchSizeMultiplier.set(Math.max(0.5, adaptiveBatchSizeMultiplier.get() * 0.85));
         }
         
         // Clamp to reasonable bounds
