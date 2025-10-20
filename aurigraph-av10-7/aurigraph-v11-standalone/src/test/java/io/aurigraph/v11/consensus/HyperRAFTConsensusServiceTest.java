@@ -52,6 +52,10 @@ class HyperRAFTConsensusServiceTest extends ServiceTestBase {
     }
     
     private void resetConsensusService() {
+        // Reset consensus service to initial FOLLOWER state for each test
+        // This is necessary because Quarkus reuses the same service instance across tests
+        consensusService.resetToFollowerState();
+
         // Add some nodes to the cluster for testing
         consensusService.addNode("node-1");
         consensusService.addNode("node-2");

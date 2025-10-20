@@ -53,11 +53,17 @@ public class HyperRAFTConsensusService {
     @ConfigProperty(name = "consensus.ai.optimization.enabled", defaultValue = "true")
     boolean aiOptimizationEnabled;
 
+    @ConfigProperty(name = "consensus.auto.promote.leader", defaultValue = "true")
+    boolean autoPromoteLeader;
+
+    @ConfigProperty(name = "consensus.background.updates.enabled", defaultValue = "true")
+    boolean backgroundUpdatesEnabled;
+
     // Consensus state
-    private final AtomicReference<NodeState> currentState = new AtomicReference<>(NodeState.LEADER);
-    private final AtomicLong currentTerm = new AtomicLong(1);
-    private final AtomicLong commitIndex = new AtomicLong(145000);
-    private final AtomicLong lastApplied = new AtomicLong(145000);
+    private final AtomicReference<NodeState> currentState = new AtomicReference<>(NodeState.FOLLOWER);
+    private final AtomicLong currentTerm = new AtomicLong(0);
+    private final AtomicLong commitIndex = new AtomicLong(0);
+    private final AtomicLong lastApplied = new AtomicLong(0);
     private final AtomicLong votesReceived = new AtomicLong(0);
 
     // Node configuration
@@ -96,8 +102,18 @@ public class HyperRAFTConsensusService {
         batchQueue = new LinkedBlockingQueue<>(queueCapacity);
         LOG.infof("Batch queue initialized with capacity: %d (batch size: %d)", queueCapacity, batchSize);
 
-        // Set this node as leader
-        leaderId = nodeId;
+        // Perform initial election to become leader (production mode only)
+        // In test mode, service starts in FOLLOWER state
+        if (autoPromoteLeader) {
+            currentState.set(NodeState.LEADER);
+            currentTerm.set(1);
+            commitIndex.set(145000);
+            lastApplied.set(145000);
+            leaderId = nodeId;
+            LOG.info("Auto-promoted to LEADER (production mode)");
+        } else {
+            LOG.info("Starting in FOLLOWER state (test mode)");
+        }
 
         // Add 6 follower nodes to create a 7-node cluster
         for (int i = 0; i < 6; i++) {
@@ -107,17 +123,22 @@ public class HyperRAFTConsensusService {
         }
 
         LOG.infof("Initialized consensus cluster: %d nodes (1 leader + 6 followers)", clusterNodes.size() + 1);
-        LOG.infof("Configuration - AI optimization: %s, batch size: %d, heartbeat: %dms",
-                aiOptimizationEnabled, batchSize, heartbeatInterval);
+        LOG.infof("Configuration - AI optimization: %s, batch size: %d, heartbeat: %dms, background updates: %s",
+                aiOptimizationEnabled, batchSize, heartbeatInterval, backgroundUpdatesEnabled);
 
-        // Start background services
-        startLiveConsensusUpdates();
-        startHeartbeatService();
-        startElectionMonitor();
-        startBatchProcessor();
+        // Start background services (only in production mode)
+        if (backgroundUpdatesEnabled) {
+            startLiveConsensusUpdates();
+            startHeartbeatService();
+            startElectionMonitor();
+            startBatchProcessor();
 
-        if (aiOptimizationEnabled) {
-            startAIOptimization();
+            if (aiOptimizationEnabled) {
+                startAIOptimization();
+            }
+            LOG.info("Background consensus services started");
+        } else {
+            LOG.info("Background consensus services disabled (test mode)");
         }
     }
 
@@ -680,5 +701,15 @@ public class HyperRAFTConsensusService {
 
     public String getLeaderId() {
         return leaderId;
+    }
+
+    /**
+     * Reset service to initial FOLLOWER state (for testing only)
+     */
+    public void resetToFollowerState() {
+        currentState.set(NodeState.FOLLOWER);
+        currentTerm.set(0L);
+        leaderId = null;
+        LOG.debug("Service reset to FOLLOWER state");
     }
 }
