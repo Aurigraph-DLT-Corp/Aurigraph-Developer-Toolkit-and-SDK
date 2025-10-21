@@ -149,6 +149,12 @@ export const apiService = {
     return response.data
   },
 
+  // Ricardian Contracts
+  async getRicardianContracts(params?: { limit?: number; status?: string }) {
+    const response = await apiClient.get('/contracts/ricardian', { params })
+    return response.data
+  },
+
   async deployContract(request: any) {
     const response = await apiClient.post('/contracts/deploy', request)
     return response.data

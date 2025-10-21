@@ -93,69 +93,16 @@ const RicardianContracts: React.FC = () => {
     try {
       setError(null);
 
-      // Fetch blockchain stats to generate contract data
-      const stats = await apiService.getMetrics();
+      // Fetch real Ricardian contracts from backend API
+      const contractsData = await apiService.getRicardianContracts();
 
-      // Generate sample Ricardian contracts based on blockchain activity
-      const sampleContracts: RicardianContract[] = [
-        {
-          id: 'rc_001',
-          title: 'Token Sale Agreement',
-          type: 'sale',
-          parties: ['Aurigraph Corporation', 'Investment Partner A'],
-          status: 'active',
-          createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-          updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-          signatures: 2,
-          requiredSignatures: 2,
-          verificationStatus: 'verified',
-          hash: '0x' + Math.random().toString(16).substr(2, 64),
-          blockchainTxId: '0x' + Math.random().toString(16).substr(2, 64),
-          legalJurisdiction: 'US',
-          value: 1000000,
-          currency: 'USD'
-        },
-        {
-          id: 'rc_002',
-          title: 'Service Level Agreement',
-          type: 'service',
-          parties: ['Aurigraph DLT', 'Enterprise Client B'],
-          status: 'active',
-          createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-          updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-          signatures: 2,
-          requiredSignatures: 2,
-          verificationStatus: 'verified',
-          hash: '0x' + Math.random().toString(16).substr(2, 64),
-          blockchainTxId: '0x' + Math.random().toString(16).substr(2, 64),
-          legalJurisdiction: 'EU',
-          value: 500000,
-          currency: 'EUR'
-        },
-        {
-          id: 'rc_003',
-          title: 'Partnership Agreement',
-          type: 'partnership',
-          parties: ['Aurigraph', 'Technology Partner C'],
-          status: 'pending',
-          createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-          updatedAt: new Date(Date.now() - 3600000).toISOString(),
-          signatures: 1,
-          requiredSignatures: 2,
-          verificationStatus: 'pending',
-          hash: '0x' + Math.random().toString(16).substr(2, 64),
-          legalJurisdiction: 'SG',
-          value: 2000000,
-          currency: 'USD'
-        }
-      ];
-
+      // Process real contract data
       const response: ContractsResponse = {
-        contracts: sampleContracts,
-        total: sampleContracts.length,
-        pending: sampleContracts.filter(c => c.status === 'pending').length,
-        active: sampleContracts.filter(c => c.status === 'active').length,
-        completed: sampleContracts.filter(c => c.status === 'completed').length
+        contracts: contractsData.contracts || [],
+        total: contractsData.total || 0,
+        pending: contractsData.contracts?.filter(c => c.status === 'pending').length || 0,
+        active: contractsData.contracts?.filter(c => c.status === 'active').length || 0,
+        completed: contractsData.contracts?.filter(c => c.status === 'completed').length || 0
       };
 
       setContractsData(response);

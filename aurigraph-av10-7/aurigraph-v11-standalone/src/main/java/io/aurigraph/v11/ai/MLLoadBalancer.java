@@ -9,7 +9,9 @@ import org.jboss.logging.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -22,12 +24,16 @@ import java.util.stream.Collectors;
  * - Validator load distribution with capability awareness
  * - Geographic distribution optimization
  * - Adaptive scaling with auto-scaling triggers
+ * - **SPRINT 6**: Online learning with experience replay and reward-based updates
+ * - **SPRINT 6**: Adaptive learning rate based on prediction accuracy
+ * - **SPRINT 6**: Performance-based weight optimization
  *
  * Performance Targets:
  * - Distribution efficiency: 95%+
  * - Rebalancing time: <500ms
  * - Shard utilization variance: <10%
  * - Recommendation accuracy: >90%
+ * - **SPRINT 6**: Online learning accuracy: >92%
  */
 @ApplicationScoped
 public class MLLoadBalancer {
@@ -49,6 +55,16 @@ public class MLLoadBalancer {
     @ConfigProperty(name = "ml.loadbalancer.learning.rate", defaultValue = "0.01")
     double learningRate;
 
+    // Sprint 6: Online Learning Configuration
+    @ConfigProperty(name = "ml.loadbalancer.online.learning.enabled", defaultValue = "true")
+    boolean onlineLearningEnabled;
+
+    @ConfigProperty(name = "ml.loadbalancer.experience.replay.size", defaultValue = "10000")
+    int experienceReplaySize;
+
+    @ConfigProperty(name = "ml.loadbalancer.adaptive.learning.rate", defaultValue = "true")
+    boolean adaptiveLearningRate;
+
     private final Map<Integer, ShardMetrics> shardMetrics = new ConcurrentHashMap<>();
     private final Map<String, ValidatorMetrics> validatorMetrics = new ConcurrentHashMap<>();
     private final Map<Integer, AtomicLong> shardLoadCounters = new ConcurrentHashMap<>();
@@ -56,6 +72,13 @@ public class MLLoadBalancer {
     // Simple ML model weights for shard selection
     private double[] featureWeights = {0.25, 0.25, 0.25, 0.25}; // [load, latency, capacity, history]
     private final Random random = new Random();
+
+    // Sprint 6: Online Learning Components
+    private final Queue<AssignmentExperience> experienceReplay = new ConcurrentLinkedQueue<>();
+    private final AtomicInteger correctPredictions = new AtomicInteger(0);
+    private final AtomicInteger totalPredictions = new AtomicInteger(0);
+    private double currentLearningRate;
+    private volatile double predictionAccuracy = 0.90; // Start with 90% baseline
 
     @PostConstruct
     public void initialize() {
@@ -70,6 +93,13 @@ public class MLLoadBalancer {
         for (int i = 0; i < shardCount; i++) {
             shardMetrics.put(i, new ShardMetrics(i));
             shardLoadCounters.put(i, new AtomicLong(0));
+        }
+
+        // Sprint 6: Initialize online learning
+        currentLearningRate = learningRate;
+        if (onlineLearningEnabled) {
+            LOG.infof("Online learning ENABLED - Experience replay size: %d, Adaptive LR: %s",
+                     experienceReplaySize, adaptiveLearningRate);
         }
 
         // Start rebalancing scheduler
@@ -314,8 +344,17 @@ public class MLLoadBalancer {
 
     /**
      * Update ML model weights based on performance
+     * Sprint 6: Enhanced with online learning and experience replay
      */
     private void updateMLModel() {
+        // Sprint 6: Use online learning if enabled
+        if (onlineLearningEnabled && !experienceReplay.isEmpty()) {
+            updateWeightsFromExperience();
+            adaptLearningRate();
+            return;
+        }
+
+        // Fallback to basic variance-based update
         // Calculate distribution variance
         double avgLoad = shardMetrics.values().stream()
             .mapToDouble(ShardMetrics::getCurrentLoad)
@@ -341,6 +380,133 @@ public class MLLoadBalancer {
 
             LOG.debugf("Updated ML weights: %s (variance: %.4f)",
                       Arrays.toString(featureWeights), variance);
+        }
+    }
+
+    /**
+     * Sprint 6: Record assignment feedback for online learning
+     */
+    public void recordAssignmentFeedback(int predictedShard, double[] features,
+                                        double actualLatency, double actualLoad, boolean success) {
+        if (!onlineLearningEnabled) return;
+
+        // Create experience
+        AssignmentExperience experience = new AssignmentExperience(
+            predictedShard, features, actualLatency, actualLoad, success, System.currentTimeMillis()
+        );
+
+        // Add to experience replay buffer
+        experienceReplay.offer(experience);
+
+        // Maintain buffer size
+        while (experienceReplay.size() > experienceReplaySize) {
+            experienceReplay.poll();
+        }
+
+        // Track prediction accuracy
+        totalPredictions.incrementAndGet();
+        if (success && actualLoad < loadThreshold) {
+            correctPredictions.incrementAndGet();
+        }
+    }
+
+    /**
+     * Sprint 6: Update weights from experience replay using reward-based learning
+     */
+    private void updateWeightsFromExperience() {
+        int sampleSize = Math.min(100, experienceReplay.size());
+        if (sampleSize < 10) return; // Need minimum samples
+
+        // Sample experiences from replay buffer
+        List<AssignmentExperience> samples = experienceReplay.stream()
+            .limit(sampleSize)
+            .collect(Collectors.toList());
+
+        double[] weightUpdates = new double[featureWeights.length];
+
+        for (AssignmentExperience exp : samples) {
+            // Calculate reward: positive for good assignments, negative for bad
+            double reward = calculateReward(exp);
+
+            // Update weights based on reward and features
+            for (int i = 0; i < featureWeights.length; i++) {
+                // Gradient: reward * feature value * learning rate
+                weightUpdates[i] += reward * exp.features[i] * currentLearningRate;
+            }
+        }
+
+        // Apply weight updates with momentum
+        double momentum = 0.9;
+        for (int i = 0; i < featureWeights.length; i++) {
+            featureWeights[i] = momentum * featureWeights[i] + (1 - momentum) * weightUpdates[i] / sampleSize;
+        }
+
+        // Normalize weights to sum to 1
+        double sum = Arrays.stream(featureWeights).sum();
+        if (sum > 0) {
+            for (int i = 0; i < featureWeights.length; i++) {
+                featureWeights[i] /= sum;
+            }
+        }
+
+        // Update prediction accuracy
+        int correct = correctPredictions.get();
+        int total = totalPredictions.get();
+        if (total > 0) {
+            predictionAccuracy = (double) correct / total;
+        }
+
+        LOG.debugf("Online learning update - Weights: %s, Accuracy: %.2f%%, LR: %.5f",
+                  Arrays.toString(featureWeights), predictionAccuracy * 100, currentLearningRate);
+    }
+
+    /**
+     * Sprint 6: Calculate reward for assignment outcome
+     */
+    private double calculateReward(AssignmentExperience exp) {
+        double reward = 0.0;
+
+        // Success contributes positively
+        if (exp.success) {
+            reward += 1.0;
+        } else {
+            reward -= 1.0;
+        }
+
+        // Low latency is good
+        if (exp.actualLatency < 100.0) {
+            reward += 0.5;
+        } else if (exp.actualLatency > 500.0) {
+            reward -= 0.5;
+        }
+
+        // Load below threshold is good
+        if (exp.actualLoad < loadThreshold) {
+            reward += 0.5;
+        } else if (exp.actualLoad > loadThreshold) {
+            reward -= 0.5 * (exp.actualLoad - loadThreshold);
+        }
+
+        return reward;
+    }
+
+    /**
+     * Sprint 6: Adapt learning rate based on prediction accuracy
+     */
+    private void adaptLearningRate() {
+        if (!adaptiveLearningRate) return;
+
+        // Increase learning rate if accuracy is low (model needs to learn more)
+        // Decrease learning rate if accuracy is high (model is converging)
+        if (predictionAccuracy < 0.85) {
+            // Low accuracy, increase learning rate
+            currentLearningRate = Math.min(learningRate * 1.5, 0.1);
+        } else if (predictionAccuracy > 0.95) {
+            // High accuracy, decrease learning rate to fine-tune
+            currentLearningRate = Math.max(learningRate * 0.5, 0.001);
+        } else {
+            // Moderate accuracy, use base learning rate
+            currentLearningRate = learningRate;
         }
     }
 
@@ -507,5 +673,37 @@ public class MLLoadBalancer {
         public double getLoadVariance() {
             return (maxLoad - minLoad) / averageLoad;
         }
+    }
+
+    /**
+     * Sprint 6: Assignment Experience for Online Learning
+     *
+     * Stores the outcome of a shard assignment decision for later training
+     */
+    public static class AssignmentExperience {
+        private final int predictedShard;
+        private final double[] features;
+        private final double actualLatency;
+        private final double actualLoad;
+        private final boolean success;
+        private final long timestamp;
+
+        public AssignmentExperience(int predictedShard, double[] features,
+                                   double actualLatency, double actualLoad,
+                                   boolean success, long timestamp) {
+            this.predictedShard = predictedShard;
+            this.features = features.clone(); // Clone to avoid reference issues
+            this.actualLatency = actualLatency;
+            this.actualLoad = actualLoad;
+            this.success = success;
+            this.timestamp = timestamp;
+        }
+
+        public int getPredictedShard() { return predictedShard; }
+        public double[] getFeatures() { return features; }
+        public double getActualLatency() { return actualLatency; }
+        public double getActualLoad() { return actualLoad; }
+        public boolean isSuccess() { return success; }
+        public long getTimestamp() { return timestamp; }
     }
 }

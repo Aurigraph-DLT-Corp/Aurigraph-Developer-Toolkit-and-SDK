@@ -97,6 +97,9 @@ public class TransactionService {
     @ConfigProperty(name = "aurigraph.batch.size.optimal", defaultValue = "200000")
     int optimalBatchSize;
 
+    @ConfigProperty(name = "aurigraph.batch.size.max", defaultValue = "175000")
+    int maxBatchSize;
+
     @ConfigProperty(name = "aurigraph.processing.parallelism", defaultValue = "2048")
     int processingParallelism;
     
@@ -925,7 +928,8 @@ public class TransactionService {
         // Adaptive batch size optimization
         if (currentTPS < throughputTarget.get() * 0.8) {
             // Increase batch size for better throughput
-            optimalBatchSize = Math.min(50000, (int) (optimalBatchSize * 1.1));
+            // OPTIMIZED (Oct 21, 2025 - Sprint 11): Use configured maxBatchSize instead of hardcoded 50000
+            optimalBatchSize = Math.min(maxBatchSize, (int) (optimalBatchSize * 1.1));
         } else if (currentLatency > 10.0) {
             // Decrease batch size for better latency
             optimalBatchSize = Math.max(1000, (int) (optimalBatchSize * 0.9));
@@ -1198,8 +1202,9 @@ public class TransactionService {
             // Low performance: decrease chunk size
             baseChunkSize = (int) (baseChunkSize * 0.7);
         }
-        
-        return Math.min(50000, Math.max(1000, baseChunkSize));
+
+        // OPTIMIZED (Oct 21, 2025 - Sprint 11): Use configured maxBatchSize instead of hardcoded 50000
+        return Math.min(maxBatchSize, Math.max(1000, baseChunkSize));
     }
     
     /**

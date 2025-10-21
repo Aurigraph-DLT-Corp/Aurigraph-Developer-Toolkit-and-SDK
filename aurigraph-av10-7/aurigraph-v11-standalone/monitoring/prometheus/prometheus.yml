@@ -167,10 +167,7 @@ scrape_configs:
       - targets:
           - 'localhost:9090'
 
-# Storage configuration
-storage:
-  tsdb:
-    path: /prometheus
-    retention:
-      time: 15d
-      size: 50GB
+# Storage configuration handled by command-line flags in docker-compose
+# --storage.tsdb.path=/prometheus
+# --storage.tsdb.retention.time=15d
+# --storage.tsdb.retention.size=50GB
