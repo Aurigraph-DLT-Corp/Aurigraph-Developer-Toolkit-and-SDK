@@ -54,7 +54,7 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="demo" element={<DemoApp />} />
-          <Route path="demo/:demoId" element={<DemoDetailView />} />
+          <Route path="demo/:demoId" element={<DemoDetailView currentTPS={0} />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="performance" element={<Performance />} />
           <Route path="nodes" element={<NodeManagement />} />

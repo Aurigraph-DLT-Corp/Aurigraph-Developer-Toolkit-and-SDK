@@ -159,7 +159,6 @@ export const DemoListView: React.FC<Props> = ({ demos, onStart, onStop, onView, 
                       to={`/demo/${demo.id}`}
                       style={{
                         textDecoration: 'none',
-                        color: 'inherit'
                       }}
                     >
                       <Typography
@@ -168,12 +167,15 @@ export const DemoListView: React.FC<Props> = ({ demos, onStart, onStop, onView, 
                           fontWeight: 'bold',
                           color: 'primary.main',
                           cursor: 'pointer',
+                          textDecoration: 'underline',
                           '&:hover': {
-                            textDecoration: 'underline'
+                            color: 'primary.dark',
+                            textDecoration: 'underline',
+                            textShadow: '0 0 8px rgba(25, 118, 210, 0.3)'
                           }
                         }}
                       >
-                        {demo.demoName}
+                        {demo.demoName} →
                       </Typography>
                     </Link>
                     <Typography variant="caption" color="textSecondary">{demo.description}</Typography>
