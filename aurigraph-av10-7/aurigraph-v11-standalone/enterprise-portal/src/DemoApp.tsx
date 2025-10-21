@@ -1,5 +1,6 @@
 // AV11-63: Live Demo Application - Integrated with Aurigraph V11
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -44,11 +45,6 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 import NodeConfiguration from './components/NodeConfiguration';
 import { DemoRegistrationForm } from './components/DemoRegistration';
 import { DemoListView, DemoInstance } from './components/DemoListView';
-import { NodeVisualization } from './components/NodeVisualization';
-import { RealTimeTPSChart } from './components/RealTimeTPSChart';
-import { NetworkHealthViz } from './components/NetworkHealthViz';
-import MerkleTreeRegistry from './components/MerkleTreeRegistry';
-import { LiveMerkleTreeViz } from './components/LiveMerkleTreeViz';
 import { DemoService, DemoRegistration } from './services/DemoService';
 
 // Live API configuration - connects to actual Aurigraph V11
@@ -84,6 +80,7 @@ interface PerformanceMetric {
 }
 
 export const DemoApp: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [platformInfo, setPlatformInfo] = useState<PlatformInfo | null>(null);
@@ -99,7 +96,6 @@ export const DemoApp: React.FC = () => {
   // Demo system state
   const [demos, setDemos] = useState<DemoInstance[]>([]);
   const [registrationOpen, setRegistrationOpen] = useState(false);
-  const [selectedDemo, setSelectedDemo] = useState<DemoInstance | null>(null);
 
   // Transaction form state
   const [txFrom, setTxFrom] = useState('');
@@ -163,15 +159,8 @@ export const DemoApp: React.FC = () => {
   };
 
   const handleViewDemo = async (demoId: string) => {
-    try {
-      const demo = await DemoService.getDemo(demoId);
-      if (demo) {
-        setSelectedDemo(demo);
-        console.log('Viewing demo:', demo);
-      }
-    } catch (error) {
-      console.error('Failed to load demo:', error);
-    }
+    // Navigate to dedicated detail page
+    navigate(`/demo/${demoId}`);
   };
 
   const handleDeleteDemo = async (demoId: string) => {
@@ -704,7 +693,7 @@ export const DemoApp: React.FC = () => {
             </Alert>
           )}
 
-          {/* Demo List View */}
+          {/* Demo List View - Click "View" to navigate to detail page */}
           <DemoListView
             demos={demos}
             onStart={handleStartDemo}
@@ -713,93 +702,17 @@ export const DemoApp: React.FC = () => {
             onDelete={handleDeleteDemo}
           />
 
-          {/* Selected Demo View */}
-          {selectedDemo && (
+          {/* Info message */}
+          {demos.length > 0 && (
             <Box sx={{ mt: 4 }}>
-              {/* Demo Status Banner */}
-              <Alert
-                severity={selectedDemo.status === 'running' ? 'success' : selectedDemo.status === 'stopped' ? 'warning' : 'info'}
-                sx={{ mb: 3 }}
-              >
-                <Typography variant="h6">
-                  Demo: {selectedDemo.demoName} - Status: {selectedDemo.status.toUpperCase()}
+              <Alert severity="info">
+                <Typography variant="h6" gutterBottom>
+                  View Demo Details
                 </Typography>
-                {selectedDemo.status === 'running' && (
-                  <Typography variant="body2">
-                    Live performance metrics and network topology displayed below
-                  </Typography>
-                )}
-                {selectedDemo.status !== 'running' && (
-                  <Typography variant="body2">
-                    Start this demo to see live performance metrics
-                  </Typography>
-                )}
+                <Typography variant="body2">
+                  Click "View" on any demo above to see its detailed performance metrics, network topology, and live data on a dedicated page.
+                </Typography>
               </Alert>
-
-              {/* 1. Throughput/Latency Dashboard - TOP PRIORITY */}
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  📊 Performance Metrics: {selectedDemo.demoName}
-                  {selectedDemo.status === 'running' && (
-                    <Chip label="LIVE" color="success" size="small" />
-                  )}
-                </Typography>
-                <RealTimeTPSChart
-                  currentTPS={currentTPS}
-                  targetTPS={2000000}
-                  peakTPS={Math.max(currentTPS, 2050000)}
-                  averageTPS={Math.floor(currentTPS * 0.95)}
-                />
-              </Box>
-
-              {/* 2. Live Merkle Tree Visualization - SECOND */}
-              <Box sx={{ mb: 4 }}>
-                <LiveMerkleTreeViz
-                  demoId={selectedDemo.id}
-                  transactionCount={DemoService.getCachedDemo(selectedDemo.id)?.transactionCount || 0}
-                  merkleRoot={DemoService.getCachedDemo(selectedDemo.id)?.merkleRoot || ''}
-                />
-              </Box>
-
-              {/* 3. Network Health Visualization - THIRD */}
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" gutterBottom>
-                  🏥 Network Health: {selectedDemo.demoName}
-                </Typography>
-                <NetworkHealthViz
-                  validators={DemoService.getCachedDemo(selectedDemo.id)?.validators || []}
-                  businessNodes={DemoService.getCachedDemo(selectedDemo.id)?.businessNodes || []}
-                  slimNodes={DemoService.getCachedDemo(selectedDemo.id)?.slimNodes || []}
-                />
-              </Box>
-
-              {/* 4. Network Topology - BOTTOM */}
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" gutterBottom>
-                  🌐 Network Topology: {selectedDemo.demoName}
-                </Typography>
-                <NodeVisualization
-                  validators={DemoService.getCachedDemo(selectedDemo.id)?.validators || []}
-                  businessNodes={DemoService.getCachedDemo(selectedDemo.id)?.businessNodes || []}
-                  slimNodes={DemoService.getCachedDemo(selectedDemo.id)?.slimNodes || []}
-                  channels={selectedDemo.channels}
-                />
-              </Box>
-            </Box>
-          )}
-
-          {/* Show all nodes if no demo selected but demos exist */}
-          {!selectedDemo && demos.length > 0 && (
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h5" gutterBottom>
-                All Network Nodes Across Demos
-              </Typography>
-              <NodeVisualization
-                validators={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.validators || [])}
-                businessNodes={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.businessNodes || [])}
-                slimNodes={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.slimNodes || [])}
-                channels={demos.flatMap(d => DemoService.getCachedDemo(d.id)?.channels || [])}
-              />
             </Box>
           )}
 

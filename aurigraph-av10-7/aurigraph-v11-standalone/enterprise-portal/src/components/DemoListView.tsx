@@ -1,5 +1,6 @@
 // Demo List View Component - Display all registered demos
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Grid, Chip, Button, IconButton,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
@@ -154,7 +155,27 @@ export const DemoListView: React.FC<Props> = ({ demos, onStart, onStop, onView, 
               demos.map((demo) => (
                 <TableRow key={demo.id} hover>
                   <TableCell>
-                    <Typography variant="body1"><strong>{demo.demoName}</strong></Typography>
+                    <Link
+                      to={`/demo/${demo.id}`}
+                      style={{
+                        textDecoration: 'none',
+                        color: 'inherit'
+                      }}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 'bold',
+                          color: 'primary.main',
+                          cursor: 'pointer',
+                          '&:hover': {
+                            textDecoration: 'underline'
+                          }
+                        }}
+                      >
+                        {demo.demoName}
+                      </Typography>
+                    </Link>
                     <Typography variant="caption" color="textSecondary">{demo.description}</Typography>
                   </TableCell>
                   <TableCell>

@@ -1,5 +1,7 @@
 global:
   resolve_timeout: 5m
+  # Slack API URL - configure when Slack integration is needed
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
 
 route:
   group_by: ['alertname', 'cluster', 'service']
@@ -33,10 +35,13 @@ receivers:
         send_resolved: true
 
   - name: 'critical-alerts'
-    slack_configs:
-      - channel: '#aurigraph-critical'
-        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    # slack_configs:
+    #   - channel: '#aurigraph-critical'
+    #     title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    #     send_resolved: true
+    webhook_configs:
+      - url: 'http://localhost:5001/alerts/critical'
         send_resolved: true
     email_configs:
       - to: 'ops@aurigraph.io,oncall@aurigraph.io'
@@ -49,16 +54,22 @@ receivers:
           Priority: 'urgent'
 
   - name: 'warning-alerts'
-    slack_configs:
-      - channel: '#aurigraph-warnings'
-        title: '⚠️  WARNING: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    # slack_configs:
+    #   - channel: '#aurigraph-warnings'
+    #     title: '⚠️  WARNING: {{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    webhook_configs:
+      - url: 'http://localhost:5001/alerts/warning'
+        send_resolved: true
 
   - name: 'info-alerts'
-    slack_configs:
-      - channel: '#aurigraph-info'
-        title: 'ℹ️  INFO: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    # slack_configs:
+    #   - channel: '#aurigraph-info'
+    #     title: 'ℹ️  INFO: {{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    webhook_configs:
+      - url: 'http://localhost:5001/alerts/info'
+        send_resolved: true
 
 inhibit_rules:
   - source_match:
