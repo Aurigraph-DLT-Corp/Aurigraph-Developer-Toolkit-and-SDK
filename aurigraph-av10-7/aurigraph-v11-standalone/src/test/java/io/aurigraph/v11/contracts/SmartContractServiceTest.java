@@ -1,4 +1,4 @@
-package io.aurigraph.v11.unit;
+package io.aurigraph.v11.contracts;
 
 import io.aurigraph.v11.contracts.SmartContractService;
 import io.aurigraph.v11.contracts.models.*;
