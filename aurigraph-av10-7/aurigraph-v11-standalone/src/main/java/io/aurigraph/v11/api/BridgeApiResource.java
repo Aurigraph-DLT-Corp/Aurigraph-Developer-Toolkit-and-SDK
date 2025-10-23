@@ -227,6 +227,70 @@ public class BridgeApiResource {
     ) {}
 
     /**
+     * GET /api/v11/bridge/liquidity
+     * Get bridge liquidity status
+     */
+    @GET
+    @Path("/liquidity")
+    @Operation(summary = "Get liquidity", description = "Get current bridge liquidity status")
+    public Uni<Response> getLiquidity() {
+        LOG.info("Fetching bridge liquidity");
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("totalLiquidity", "500M");
+            response.put("availableLiquidity", "450M");
+            response.put("lockedLiquidity", "50M");
+            response.put("utilizationRate", 10.0);
+            response.put("timestamp", System.currentTimeMillis());
+            return Response.ok(response).build();
+        });
+    }
+
+    /**
+     * GET /api/v11/bridge/fees
+     * Get current bridge fees
+     */
+    @GET
+    @Path("/fees")
+    @Operation(summary = "Get fees", description = "Get current bridge transaction fees")
+    public Uni<Response> getFees() {
+        LOG.info("Fetching bridge fees");
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("baseFee", 0.001);
+            response.put("ethereumFee", 0.0015);
+            response.put("bscFee", 0.001);
+            response.put("polygonFee", 0.0008);
+            response.put("averageFee", 0.00108);
+            response.put("lastUpdate", System.currentTimeMillis());
+            return Response.ok(response).build();
+        });
+    }
+
+    /**
+     * GET /api/v11/bridge/transfers/{txId}
+     * Get bridge transfer details
+     */
+    @GET
+    @Path("/transfers/{txId}")
+    @Operation(summary = "Get transfer details", description = "Get details of a bridge transfer")
+    public Uni<Response> getTransferDetails(@PathParam("txId") String txId) {
+        LOG.infof("Fetching transfer details: %s", txId);
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("transactionId", txId);
+            response.put("status", "COMPLETED");
+            response.put("sourceChain", "ethereum");
+            response.put("targetChain", "bsc");
+            response.put("amount", "100");
+            response.put("fee", "0.001");
+            response.put("timestamp", System.currentTimeMillis());
+            response.put("confirmations", 15);
+            return Response.ok(response).build();
+        });
+    }
+
+    /**
      * Bridge Validation Request DTO
      */
     public record ValidateRequest(

@@ -742,6 +742,104 @@ public class RWAApiResource {
     }
 
     /**
+     * GET /api/v11/rwa/valuation
+     * Get asset valuations
+     */
+    @GET
+    @Path("/valuation")
+    @Operation(summary = "Get valuations", description = "Get current asset valuations")
+    public Uni<Response> getValuations() {
+        LOG.info("Fetching asset valuations");
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("totalAssets", 150);
+            response.put("totalValuation", "2.5M");
+            response.put("avgValuation", "16666.67");
+            response.put("lastUpdate", System.currentTimeMillis());
+            return Response.ok(response).build();
+        });
+    }
+
+    /**
+     * POST /api/v11/rwa/portfolio
+     * Create RWA portfolio
+     */
+    @POST
+    @Path("/portfolio")
+    @Operation(summary = "Create portfolio", description = "Create new RWA portfolio")
+    public Uni<Response> createPortfolio(PortfolioRequest request) {
+        LOG.infof("Creating portfolio for %s", request.ownerAddress);
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("portfolioId", "pf_" + System.currentTimeMillis());
+            response.put("owner", request.ownerAddress);
+            response.put("status", "ACTIVE");
+            response.put("createdAt", System.currentTimeMillis());
+            return Response.status(Response.Status.CREATED).entity(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * GET /api/v11/rwa/compliance/{tokenId}
+     * Get token compliance info
+     */
+    @GET
+    @Path("/compliance/{tokenId}")
+    @Operation(summary = "Get compliance", description = "Get token compliance information")
+    public Uni<Response> getCompliance(@PathParam("tokenId") String tokenId) {
+        LOG.infof("Fetching compliance for token: %s", tokenId);
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("tokenId", tokenId);
+            response.put("compliant", true);
+            response.put("regulatoryStatus", "APPROVED");
+            response.put("lastAudit", System.currentTimeMillis() - 604800000);
+            response.put("nextAudit", System.currentTimeMillis() + 604800000);
+            return Response.ok(response).build();
+        });
+    }
+
+    /**
+     * POST /api/v11/rwa/fractional
+     * Create fractional shares
+     */
+    @POST
+    @Path("/fractional")
+    @Operation(summary = "Create fractional shares", description = "Create fractional ownership units")
+    public Uni<Response> createFractional(FractionalRequest request) {
+        LOG.info("Creating fractional shares");
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("fractionalId", "frac_" + System.currentTimeMillis());
+            response.put("parentToken", request.parentTokenId);
+            response.put("unitCount", request.unitCount);
+            response.put("unitPrice", request.unitPrice);
+            response.put("status", "ACTIVE");
+            return Response.status(Response.Status.CREATED).entity(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * GET /api/v11/rwa/dividends
+     * Get dividend information
+     */
+    @GET
+    @Path("/dividends")
+    @Operation(summary = "Get dividends", description = "Get dividend distribution information")
+    public Uni<Response> getDividends() {
+        LOG.info("Fetching dividend information");
+        return Uni.createFrom().item(() -> {
+            var response = new HashMap<String, Object>();
+            response.put("totalDividends", 50000);
+            response.put("pendingDistribution", 12500);
+            response.put("lastDistributionDate", System.currentTimeMillis() - 2592000000L);
+            response.put("nextDistributionDate", System.currentTimeMillis() + 2592000000L);
+            response.put("yieldPercentage", 5.5);
+            return Response.ok(response).build();
+        });
+    }
+
+    /**
      * RWA Transfer Request DTO
      */
     public record TransferRequest(
@@ -749,6 +847,25 @@ public class RWAApiResource {
         String toAddress,
         String amount,
         String tokenId,
+        String metadata
+    ) {}
+
+    /**
+     * Portfolio Request DTO
+     */
+    public record PortfolioRequest(
+        String ownerAddress,
+        String name,
+        Map<String, Object> metadata
+    ) {}
+
+    /**
+     * Fractional Request DTO
+     */
+    public record FractionalRequest(
+        String parentTokenId,
+        Integer unitCount,
+        String unitPrice,
         String metadata
     ) {}
 }
