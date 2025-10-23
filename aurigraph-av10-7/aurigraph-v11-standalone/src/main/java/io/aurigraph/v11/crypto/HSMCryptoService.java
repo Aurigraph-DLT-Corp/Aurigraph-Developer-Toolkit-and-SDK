@@ -3,6 +3,8 @@ package io.aurigraph.v11.crypto;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.*;
 import java.util.Map;
@@ -22,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @ApplicationScoped
 public class HSMCryptoService {
+
+    private static final Logger log = LoggerFactory.getLogger(HSMCryptoService.class);
 
     @ConfigProperty(name = "hsm.enabled", defaultValue = "false")
     boolean hsmEnabled;
@@ -48,7 +52,7 @@ public class HSMCryptoService {
     public Uni<Boolean> initialize() {
         return Uni.createFrom().item(() -> {
             if (!hsmEnabled) {
-                System.out.println("HSM is disabled, using software crypto");
+                log.info("HSM is disabled, using software crypto");
                 return false;
             }
 
@@ -61,10 +65,10 @@ public class HSMCryptoService {
                 hsmKeyStore = KeyStore.getInstance("PKCS11", hsmSecurityProvider);
                 hsmKeyStore.load(null, hsmPin.toCharArray());
 
-                System.out.println("HSM initialized successfully");
+                log.info("HSM initialized successfully");
                 return true;
             } catch (Exception e) {
-                System.err.println("Failed to initialize HSM: " + e.getMessage());
+                log.error("Failed to initialize HSM", e);
                 throw new RuntimeException("HSM initialization failed", e);
             }
         });
@@ -89,8 +93,8 @@ public class HSMCryptoService {
                 keyGen.initialize(keySize, new SecureRandom());
                 KeyPair keyPair = keyGen.generateKeyPair();
 
-                System.out.println("Generated " + algorithm + " key pair (" + keySize + " bits) in "
-                    + (hsmEnabled ? "HSM" : "software"));
+                log.info("Generated {} key pair ({} bits) in {}", algorithm, keySize,
+                    hsmEnabled ? "HSM" : "software");
 
                 return keyPair;
             } catch (Exception e) {
@@ -118,7 +122,7 @@ public class HSMCryptoService {
                 signature.update(data);
 
                 byte[] signatureBytes = signature.sign();
-                System.out.println("Signed data using " + (hsmEnabled ? "HSM" : "software") + " key: " + keyAlias);
+                log.info("Signed data using {} key: {}", hsmEnabled ? "HSM" : "software", keyAlias);
 
                 return signatureBytes;
             } catch (Exception e) {
@@ -146,7 +150,7 @@ public class HSMCryptoService {
                 sig.update(data);
 
                 boolean valid = sig.verify(signature);
-                System.out.println("Signature verification: " + (valid ? "VALID" : "INVALID"));
+                log.info("Signature verification: {}", valid ? "VALID" : "INVALID");
 
                 return valid;
             } catch (Exception e) {
@@ -166,11 +170,11 @@ public class HSMCryptoService {
                     KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password);
                     KeyStore.SecretKeyEntry skEntry = new KeyStore.SecretKeyEntry((javax.crypto.SecretKey) key);
                     hsmKeyStore.setEntry(alias, skEntry, protParam);
-                    System.out.println("Stored key in HSM: " + alias);
+                    log.info("Stored key in HSM: {}", alias);
                 } else {
                     // Cache in memory (software mode)
                     keyCache.put(alias, key);
-                    System.out.println("Stored key in software cache: " + alias);
+                    log.info("Stored key in software cache: {}", alias);
                 }
                 return null;
             } catch (Exception e) {
@@ -188,12 +192,12 @@ public class HSMCryptoService {
                 if (hsmEnabled && hsmKeyStore != null) {
                     // Retrieve from HSM
                     Key key = hsmKeyStore.getKey(alias, hsmPin.toCharArray());
-                    System.out.println("Retrieved key from HSM: " + alias);
+                    log.info("Retrieved key from HSM: {}", alias);
                     return key;
                 } else {
                     // Retrieve from cache
                     Key key = keyCache.get(alias);
-                    System.out.println("Retrieved key from software cache: " + alias);
+                    log.info("Retrieved key from software cache: {}", alias);
                     return key;
                 }
             } catch (Exception e) {
@@ -210,10 +214,10 @@ public class HSMCryptoService {
             try {
                 if (hsmEnabled && hsmKeyStore != null) {
                     hsmKeyStore.deleteEntry(alias);
-                    System.out.println("Deleted key from HSM: " + alias);
+                    log.info("Deleted key from HSM: {}", alias);
                 } else {
                     keyCache.remove(alias);
-                    System.out.println("Deleted key from software cache: " + alias);
+                    log.info("Deleted key from software cache: {}", alias);
                 }
                 return null;
             } catch (Exception e) {
@@ -232,7 +236,7 @@ public class HSMCryptoService {
                 try {
                     if (hsmEnabled && hsmKeyStore != null) {
                         // Mark old key as deprecated in HSM (implementation specific)
-                        System.out.println("Rotating key: " + oldAlias + " -> " + newAlias);
+                        log.info("Rotating key: {} -> {}", oldAlias, newAlias);
                     }
                     return Uni.createFrom().item(newKeyPair);
                 } catch (Exception e) {

@@ -5,7 +5,8 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
@@ -139,14 +140,14 @@ public class SolanaAdapter implements ChainAdapter {
                 this.statistics.transactionsByType = new HashMap<>();
 
                 // Simulate Solana connection
-                System.out.println("Initializing Solana adapter for network: " + chainId);
-                System.out.println("RPC URL: " + rpcUrl);
-                System.out.println("Commitment level: " + confirmationCommitment);
+                log.info("Initializing Solana adapter for network: " + chainId);
+                log.info("RPC URL: " + rpcUrl);
+                log.info("Commitment level: " + confirmationCommitment);
 
                 this.initialized = true;
                 return true;
             } catch (Exception e) {
-                System.err.println("Failed to initialize Solana adapter: " + e.getMessage());
+                log.error("Failed to initialize Solana adapter: " + e.getMessage());
                 return false;
             }
         });
@@ -209,7 +210,7 @@ public class SolanaAdapter implements ChainAdapter {
                 // Update statistics
                 updateStatistics(transaction.transactionType, true, result.executionTime);
 
-                System.out.println("Sent Solana transaction: " + signature);
+                log.info("Sent Solana transaction: " + signature);
 
                 // Wait for confirmation if requested
                 if (options != null && options.waitForConfirmation) {
@@ -386,7 +387,7 @@ public class SolanaAdapter implements ChainAdapter {
             result.errorMessage = null;
             result.verified = deployment.verify;
 
-            System.out.println("Deployed Solana program at: " + result.contractAddress);
+            log.info("Deployed Solana program at: " + result.contractAddress);
             return result;
         });
     }
@@ -530,7 +531,7 @@ public class SolanaAdapter implements ChainAdapter {
     public Uni<Boolean> configureRetryPolicy(RetryPolicy policy) {
         return Uni.createFrom().item(() -> {
             this.retryPolicy = policy;
-            System.out.println("Configured Solana retry policy: max=" + policy.maxRetries);
+            log.info("Configured Solana retry policy: max=" + policy.maxRetries);
             return true;
         });
     }
@@ -538,7 +539,7 @@ public class SolanaAdapter implements ChainAdapter {
     @Override
     public Uni<Boolean> shutdown() {
         return Uni.createFrom().item(() -> {
-            System.out.println("Shutting down Solana adapter...");
+            log.info("Shutting down Solana adapter...");
             this.initialized = false;
             this.transactionCache.clear();
             this.balanceCache.clear();

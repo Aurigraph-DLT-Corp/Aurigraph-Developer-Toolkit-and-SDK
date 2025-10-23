@@ -5,7 +5,8 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
@@ -147,15 +148,15 @@ public class PolkadotAdapter implements ChainAdapter {
                 this.statistics.transactionsByType = new HashMap<>();
 
                 // Simulate Substrate RPC connection
-                System.out.println("Initializing Polkadot adapter for chain: " + chainId);
-                System.out.println("RPC URL: " + rpcUrl);
-                System.out.println("Confirmation blocks: " + confirmationBlocks);
-                System.out.println("WebSocket URL: " + websocketUrl);
+                log.info("Initializing Polkadot adapter for chain: " + chainId);
+                log.info("RPC URL: " + rpcUrl);
+                log.info("Confirmation blocks: " + confirmationBlocks);
+                log.info("WebSocket URL: " + websocketUrl);
 
                 this.initialized = true;
                 return true;
             } catch (Exception e) {
-                System.err.println("Failed to initialize Polkadot adapter: " + e.getMessage());
+                log.error("Failed to initialize Polkadot adapter: " + e.getMessage());
                 return false;
             }
         });
@@ -220,7 +221,7 @@ public class PolkadotAdapter implements ChainAdapter {
                 // Update statistics
                 updateStatistics(transaction.transactionType, true, result.executionTime);
 
-                System.out.println("Sent Polkadot extrinsic: " + extrinsicHash);
+                log.info("Sent Polkadot extrinsic: " + extrinsicHash);
 
                 // Wait for confirmation if requested
                 if (options != null && options.waitForConfirmation) {
@@ -416,7 +417,7 @@ public class PolkadotAdapter implements ChainAdapter {
             result.errorMessage = null;
             result.verified = deployment.verify;
 
-            System.out.println("Deployed ink! contract at: " + result.contractAddress);
+            log.info("Deployed ink! contract at: " + result.contractAddress);
             return result;
         });
     }
@@ -561,7 +562,7 @@ public class PolkadotAdapter implements ChainAdapter {
     public Uni<Boolean> configureRetryPolicy(RetryPolicy policy) {
         return Uni.createFrom().item(() -> {
             this.retryPolicy = policy;
-            System.out.println("Configured Polkadot retry policy: max=" + policy.maxRetries);
+            log.info("Configured Polkadot retry policy: max=" + policy.maxRetries);
             return true;
         });
     }
@@ -569,7 +570,7 @@ public class PolkadotAdapter implements ChainAdapter {
     @Override
     public Uni<Boolean> shutdown() {
         return Uni.createFrom().item(() -> {
-            System.out.println("Shutting down Polkadot adapter...");
+            log.info("Shutting down Polkadot adapter...");
             this.initialized = false;
             this.transactionCache.clear();
             this.balanceCache.clear();
@@ -693,7 +694,7 @@ public class PolkadotAdapter implements ChainAdapter {
      */
     public Uni<TransactionResult> sendXCM(String destinationParachain, String recipient, BigDecimal amount) {
         return Uni.createFrom().item(() -> {
-            System.out.println("Sending XCM to parachain " + destinationParachain +
+            log.info("Sending XCM to parachain " + destinationParachain +
                              " for recipient " + recipient + " amount " + amount);
 
             TransactionResult result = new TransactionResult();

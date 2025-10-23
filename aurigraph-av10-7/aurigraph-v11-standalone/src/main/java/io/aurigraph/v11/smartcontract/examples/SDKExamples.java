@@ -48,10 +48,10 @@ public class SDKExamples {
         // Deploy contract
         SmartContract deployed = client.deployContract(tokenContract).join();
 
-        System.out.println("✅ Token contract deployed!");
-        System.out.println("   Contract ID: " + deployed.getContractId());
-        System.out.println("   Status: " + deployed.getStatus());
-        System.out.println("   Deployed At: " + deployed.getDeployedAt());
+        log.info("✅ Token contract deployed!");
+        log.info("   Contract ID: " + deployed.getContractId());
+        log.info("   Status: " + deployed.getStatus());
+        log.info("   Deployed At: " + deployed.getDeployedAt());
     }
 
     /**
@@ -74,11 +74,11 @@ public class SDKExamples {
             "caller123"
         ).join();
 
-        System.out.println("✅ Transfer executed!");
-        System.out.println("   Execution ID: " + execution.getExecutionId());
-        System.out.println("   Status: " + execution.getStatus());
-        System.out.println("   Gas Used: " + execution.getGasUsed());
-        System.out.println("   Result: " + execution.getResult());
+        log.info("✅ Transfer executed!");
+        log.info("   Execution ID: " + execution.getExecutionId());
+        log.info("   Status: " + execution.getStatus());
+        log.info("   Gas Used: " + execution.getGasUsed());
+        log.info("   Result: " + execution.getResult());
     }
 
     /**
@@ -97,9 +97,9 @@ public class SDKExamples {
             "anonymous"
         ).join();
 
-        System.out.println("✅ Balance query completed!");
-        System.out.println("   Account: user123");
-        System.out.println("   Balance: " + execution.getResult());
+        log.info("✅ Balance query completed!");
+        log.info("   Account: user123");
+        log.info("   Balance: " + execution.getResult());
     }
 
     /**
@@ -111,15 +111,15 @@ public class SDKExamples {
         // List all contracts
         List<SmartContract> contracts = client.listContracts().join();
 
-        System.out.println("✅ Contracts retrieved!");
-        System.out.println("   Total Contracts: " + contracts.size());
+        log.info("✅ Contracts retrieved!");
+        log.info("   Total Contracts: " + contracts.size());
 
         contracts.forEach(contract -> {
-            System.out.println("\n   Contract: " + contract.getName());
-            System.out.println("   ID: " + contract.getContractId());
-            System.out.println("   Owner: " + contract.getOwner());
-            System.out.println("   Status: " + contract.getStatus());
-            System.out.println("   Language: " + contract.getLanguage());
+            log.info("\n   Contract: " + contract.getName());
+            log.info("   ID: " + contract.getContractId());
+            log.info("   Owner: " + contract.getOwner());
+            log.info("   Status: " + contract.getStatus());
+            log.info("   Language: " + contract.getLanguage());
         });
     }
 
@@ -132,16 +132,16 @@ public class SDKExamples {
         // Get execution history
         List<ContractExecution> history = client.getExecutionHistory(contractId).join();
 
-        System.out.println("✅ Execution history retrieved!");
-        System.out.println("   Total Executions: " + history.size());
+        log.info("✅ Execution history retrieved!");
+        log.info("   Total Executions: " + history.size());
 
         history.forEach(execution -> {
-            System.out.println("\n   Execution: " + execution.getExecutionId());
-            System.out.println("   Method: " + execution.getMethod());
-            System.out.println("   Caller: " + execution.getCaller());
-            System.out.println("   Status: " + execution.getStatus());
-            System.out.println("   Gas Used: " + execution.getGasUsed());
-            System.out.println("   Time: " + execution.getExecutionTimeMs() + "ms");
+            log.info("\n   Execution: " + execution.getExecutionId());
+            log.info("   Method: " + execution.getMethod());
+            log.info("   Caller: " + execution.getCaller());
+            log.info("   Status: " + execution.getStatus());
+            log.info("   Gas Used: " + execution.getGasUsed());
+            log.info("   Time: " + execution.getExecutionTimeMs() + "ms");
         });
     }
 
@@ -153,13 +153,13 @@ public class SDKExamples {
 
         // Pause contract
         SmartContract paused = client.pauseContract(contractId).join();
-        System.out.println("✅ Contract paused!");
-        System.out.println("   Status: " + paused.getStatus());
+        log.info("✅ Contract paused!");
+        log.info("   Status: " + paused.getStatus());
 
         // Resume contract
         SmartContract resumed = client.resumeContract(contractId).join();
-        System.out.println("✅ Contract resumed!");
-        System.out.println("   Status: " + resumed.getStatus());
+        log.info("✅ Contract resumed!");
+        log.info("   Status: " + resumed.getStatus());
     }
 
     /**
@@ -168,10 +168,10 @@ public class SDKExamples {
     public static void completeTokenWorkflowExample() {
         AurigraphSDKClient client = new AurigraphSDKClient("https://dlt.aurigraph.io/api/v11");
 
-        System.out.println("=== Complete Token Workflow Example ===\n");
+        log.info("=== Complete Token Workflow Example ===\n");
 
         // Step 1: Deploy token contract
-        System.out.println("Step 1: Deploying token contract...");
+        log.info("Step 1: Deploying token contract...");
         SmartContract contract = new SmartContract(
             "AurigraphToken",
             TokenContract.SOURCE_CODE,
@@ -179,10 +179,10 @@ public class SDKExamples {
             "deployer123"
         );
         SmartContract deployed = client.deployContract(contract).join();
-        System.out.println("✅ Deployed: " + deployed.getContractId() + "\n");
+        log.info("✅ Deployed: " + deployed.getContractId() + "\n");
 
         // Step 2: Mint initial tokens
-        System.out.println("Step 2: Minting initial tokens...");
+        log.info("Step 2: Minting initial tokens...");
         Map<String, Object> mintParams = Map.of("to", "user123", "amount", 1000);
         ContractExecution mintExec = client.executeContract(
             deployed.getContractId(),
@@ -190,10 +190,10 @@ public class SDKExamples {
             mintParams,
             "deployer123"
         ).join();
-        System.out.println("✅ Minted 1000 tokens to user123\n");
+        log.info("✅ Minted 1000 tokens to user123\n");
 
         // Step 3: Transfer tokens
-        System.out.println("Step 3: Transferring tokens...");
+        log.info("Step 3: Transferring tokens...");
         Map<String, Object> transferParams = Map.of("to", "user456", "amount", 200);
         ContractExecution transferExec = client.executeContract(
             deployed.getContractId(),
@@ -201,10 +201,10 @@ public class SDKExamples {
             transferParams,
             "user123"
         ).join();
-        System.out.println("✅ Transferred 200 tokens to user456\n");
+        log.info("✅ Transferred 200 tokens to user456\n");
 
         // Step 4: Check balances
-        System.out.println("Step 4: Checking balances...");
+        log.info("Step 4: Checking balances...");
         Map<String, Object> balanceParams1 = Map.of("account", "user123");
         ContractExecution balance1 = client.executeContract(
             deployed.getContractId(),
@@ -212,7 +212,7 @@ public class SDKExamples {
             balanceParams1,
             "anonymous"
         ).join();
-        System.out.println("✅ user123 balance: " + balance1.getResult());
+        log.info("✅ user123 balance: " + balance1.getResult());
 
         Map<String, Object> balanceParams2 = Map.of("account", "user456");
         ContractExecution balance2 = client.executeContract(
@@ -221,31 +221,31 @@ public class SDKExamples {
             balanceParams2,
             "anonymous"
         ).join();
-        System.out.println("✅ user456 balance: " + balance2.getResult() + "\n");
+        log.info("✅ user456 balance: " + balance2.getResult() + "\n");
 
         // Step 5: View execution history
-        System.out.println("Step 5: Viewing execution history...");
+        log.info("Step 5: Viewing execution history...");
         List<ContractExecution> history = client.getExecutionHistory(deployed.getContractId()).join();
-        System.out.println("✅ Total executions: " + history.size());
+        log.info("✅ Total executions: " + history.size());
 
-        System.out.println("\n=== Workflow Complete! ===");
+        log.info("\n=== Workflow Complete! ===");
     }
 
     /**
      * Main method - Run all examples
      */
     public static void main(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════╗");
-        System.out.println("║  Aurigraph Smart Contract SDK Examples        ║");
-        System.out.println("║  Version 11.2.1                                ║");
-        System.out.println("╚════════════════════════════════════════════════╝\n");
+        log.info("╔════════════════════════════════════════════════╗");
+        log.info("║  Aurigraph Smart Contract SDK Examples        ║");
+        log.info("║  Version 11.2.1                                ║");
+        log.info("╚════════════════════════════════════════════════╝\n");
 
         try {
             // Run complete workflow example
             completeTokenWorkflowExample();
 
         } catch (Exception e) {
-            System.err.println("❌ Error running examples: " + e.getMessage());
+            log.error("❌ Error running examples: " + e.getMessage());
             e.printStackTrace();
         }
     }

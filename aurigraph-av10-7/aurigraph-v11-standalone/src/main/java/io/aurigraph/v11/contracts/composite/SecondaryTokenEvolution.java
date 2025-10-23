@@ -472,16 +472,16 @@ public class SecondaryTokenEvolution {
         
         switch (verificationMode.toUpperCase()) {
             case "DISABLED":
-                System.out.println("RWA VERIFICATION: Disabled - token changes allowed for " + compositeTokenId);
+                log.info("RWA VERIFICATION: Disabled - token changes allowed for " + compositeTokenId);
                 return true;
                 
             case "OPTIONAL":
                 // Check if verification exists, but don't require it
                 boolean hasVerification = hasValidThirdPartyVerification(compositeTokenId, tokenType, newTokenData);
                 if (hasVerification) {
-                    System.out.println("RWA VERIFICATION: Optional verification found and approved for " + compositeTokenId);
+                    log.info("RWA VERIFICATION: Optional verification found and approved for " + compositeTokenId);
                 } else {
-                    System.out.println("RWA VERIFICATION: Optional mode - no verification required for " + compositeTokenId);
+                    log.info("RWA VERIFICATION: Optional mode - no verification required for " + compositeTokenId);
                 }
                 return true; // Always allow in optional mode
                 
@@ -489,14 +489,14 @@ public class SecondaryTokenEvolution {
                 // Require verification
                 boolean hasValidVerification = hasValidThirdPartyVerification(compositeTokenId, tokenType, newTokenData);
                 if (!hasValidVerification) {
-                    System.out.println("RWA VERIFICATION: Mandatory verification required but not found for " + compositeTokenId);
+                    log.info("RWA VERIFICATION: Mandatory verification required but not found for " + compositeTokenId);
                     return false;
                 }
-                System.out.println("RWA VERIFICATION: Mandatory verification satisfied for " + compositeTokenId);
+                log.info("RWA VERIFICATION: Mandatory verification satisfied for " + compositeTokenId);
                 return true;
                 
             default:
-                System.out.println("RWA VERIFICATION: Unknown mode '" + verificationMode + "', defaulting to OPTIONAL");
+                log.info("RWA VERIFICATION: Unknown mode '" + verificationMode + "', defaulting to OPTIONAL");
                 return true;
         }
     }
@@ -528,7 +528,7 @@ public class SecondaryTokenEvolution {
         // 4. Consensus decision is APPROVED
         
         // For demo purposes, log the requirement
-        System.out.println("VERIFICATION REQUIRED: RWA token " + compositeTokenId + 
+        log.info("VERIFICATION REQUIRED: RWA token " + compositeTokenId + 
                           " type " + tokenType + " requires third-party verification");
         
         // In production, integrate with MandatoryVerificationService:
@@ -572,7 +572,7 @@ public class SecondaryTokenEvolution {
         
         String modeDescription = "MANDATORY".equalsIgnoreCase(verificationMode) ? "REQUIRED" : "OPTIONAL";
         
-        System.out.println("VERIFICATION REQUESTED: " + verificationId + 
+        log.info("VERIFICATION REQUESTED: " + verificationId + 
                           " for RWA token " + compositeTokenId + 
                           " value $" + assetValue + 
                           " - Mode: " + modeDescription + " - AWAITING THIRD-PARTY VERIFICATION WITH DIGITAL SIGNATURES");

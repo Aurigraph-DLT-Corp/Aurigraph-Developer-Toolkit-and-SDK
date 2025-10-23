@@ -5,7 +5,8 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
@@ -135,14 +136,14 @@ public class EthereumAdapter implements ChainAdapter {
                 this.statistics.transactionsByType = new HashMap<>();
 
                 // Simulate Web3 connection
-                System.out.println("Initializing Ethereum adapter for chain: " + chainId);
-                System.out.println("RPC URL: " + rpcUrl);
-                System.out.println("Confirmation blocks: " + confirmationBlocks);
+                log.info("Initializing Ethereum adapter for chain: " + chainId);
+                log.info("RPC URL: " + rpcUrl);
+                log.info("Confirmation blocks: " + confirmationBlocks);
 
                 this.initialized = true;
                 return true;
             } catch (Exception e) {
-                System.err.println("Failed to initialize Ethereum adapter: " + e.getMessage());
+                log.error("Failed to initialize Ethereum adapter: " + e.getMessage());
                 return false;
             }
         });
@@ -204,7 +205,7 @@ public class EthereumAdapter implements ChainAdapter {
                 // Update statistics
                 updateStatistics(transaction.transactionType, true, result.executionTime);
 
-                System.out.println("Sent Ethereum transaction: " + txHash);
+                log.info("Sent Ethereum transaction: " + txHash);
 
                 // Wait for confirmation if requested
                 if (options != null && options.waitForConfirmation) {
@@ -398,7 +399,7 @@ public class EthereumAdapter implements ChainAdapter {
             result.errorMessage = null;
             result.verified = deployment.verify;
 
-            System.out.println("Deployed contract at: " + result.contractAddress);
+            log.info("Deployed contract at: " + result.contractAddress);
             return result;
         });
     }
@@ -541,7 +542,7 @@ public class EthereumAdapter implements ChainAdapter {
     public Uni<Boolean> configureRetryPolicy(RetryPolicy policy) {
         return Uni.createFrom().item(() -> {
             this.retryPolicy = policy;
-            System.out.println("Configured retry policy: max=" + policy.maxRetries);
+            log.info("Configured retry policy: max=" + policy.maxRetries);
             return true;
         });
     }
@@ -549,7 +550,7 @@ public class EthereumAdapter implements ChainAdapter {
     @Override
     public Uni<Boolean> shutdown() {
         return Uni.createFrom().item(() -> {
-            System.out.println("Shutting down Ethereum adapter...");
+            log.info("Shutting down Ethereum adapter...");
             this.initialized = false;
             this.transactionCache.clear();
             this.balanceCache.clear();
