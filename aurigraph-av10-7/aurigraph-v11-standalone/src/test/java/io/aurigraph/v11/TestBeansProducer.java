@@ -1,4 +1,4 @@
-package io.aurigraph.v11.testing;
+package io.aurigraph.v11;
 
 import io.aurigraph.v11.bridge.EthereumBridgeService;
 import io.aurigraph.v11.bridge.adapters.EthereumAdapter;
