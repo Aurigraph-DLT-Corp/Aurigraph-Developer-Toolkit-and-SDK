@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -21,7 +20,6 @@ import static org.hamcrest.Matchers.*;
  * Will be enabled in SPARC Week 1 Day 3-5 when all endpoints are ready.
  */
 @QuarkusTest
-@Disabled("Endpoint implementation required - scheduled for Week 1 Day 3-5")
 @DisplayName("Comprehensive API Endpoint Tests")
 public class ComprehensiveApiEndpointTest {
 
