@@ -39,11 +39,11 @@ import static org.mockito.Mockito.*;
  * - Performance Benchmarks (8 tests)
  */
 @QuarkusTest
-@Disabled("gRPC service injection requires @GrpcService qualifier - scheduled for CDI fix")
 @DisplayName("High-Performance gRPC Service Test Suite")
 public class HighPerformanceGrpcServiceTest {
 
     @Inject
+    @GrpcService
     HighPerformanceGrpcService grpcService;
 
     @InjectSpy
