@@ -68,17 +68,11 @@ public class AvalancheAdapter implements ChainAdapter {
     private RetryPolicy retryPolicy;
     private Instant lastHealthCheckTime = Instant.now();
 
-    /**
-     * Gets the chain ID for Avalanche C-Chain
-     */
     @Override
     public String getChainId() {
         return CHAIN_ID;
     }
 
-    /**
-     * Gets comprehensive Avalanche chain information
-     */
     @Override
     public Uni<ChainInfo> getChainInfo() {
         return Uni.createFrom().item(() -> {
@@ -89,8 +83,8 @@ public class AvalancheAdapter implements ChainAdapter {
             info.decimals = DECIMALS;
             info.rpcUrl = RPC_URL;
             info.explorerUrl = EXPLORER_URL;
-            info.chainType = ChainType.LAYER1;
-            info.consensusMechanism = ConsensusMechanism.SNOWMAN;
+            info.chainType = ChainType.MAINNET;
+            info.consensusMechanism = ConsensusMechanism.CUSTOM;
             info.blockTime = BLOCK_TIME_MS;
             info.avgGasPrice = BigDecimal.valueOf(25); // ~25 Gwei
             info.supportsEIP1559 = true;
@@ -109,20 +103,15 @@ public class AvalancheAdapter implements ChainAdapter {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Initializes the adapter with configuration
-     */
     @Override
     public Uni<Boolean> initialize(ChainAdapterConfig config) {
         return Uni.createFrom().item(() -> {
             this.config = config;
 
-            // Validate configuration
             if (config == null || config.rpcUrl == null || config.rpcUrl.isEmpty()) {
                 throw new IllegalArgumentException("Invalid configuration: RPC URL required");
             }
 
-            // Set default retry policy if not configured
             if (retryPolicy == null) {
                 retryPolicy = new RetryPolicy();
                 retryPolicy.maxRetries = config.maxRetries;
@@ -139,7 +128,6 @@ public class AvalancheAdapter implements ChainAdapter {
                 retryPolicy.enableJitter = true;
             }
 
-            // Simulate RPC connection and chain verification
             currentBlockHeight.set(System.currentTimeMillis() / BLOCK_TIME_MS);
 
             initialized = true;
@@ -147,38 +135,32 @@ public class AvalancheAdapter implements ChainAdapter {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Checks connection status to Avalanche network
-     */
     @Override
     public Uni<ConnectionStatus> checkConnection() {
         return Uni.createFrom().item(() -> {
             if (!initialized) {
                 ConnectionStatus status = new ConnectionStatus();
                 status.isConnected = false;
-                status.error = "Adapter not initialized";
+                status.errorMessage = "Adapter not initialized";
                 return status;
             }
 
             ConnectionStatus status = new ConnectionStatus();
             status.isConnected = true;
-            status.latencyMs = (int) (Math.random() * 80 + 10); // 10-90ms (sub-second finality)
+            status.latencyMs = (long) (Math.random() * 80 + 10); // 10-90ms (sub-second finality)
             status.isSynced = true;
-            status.blockHeight = currentBlockHeight.incrementAndGet();
-            status.peerCount = activePeers.get();
-            status.networkId = "43114";
-            status.lastBlockTime = System.currentTimeMillis();
+            status.syncedBlockHeight = currentBlockHeight.incrementAndGet();
+            status.networkBlockHeight = currentBlockHeight.get();
+            status.nodeVersion = "AvalancheGo/v1.9.1";
+            status.lastChecked = System.currentTimeMillis();
 
             lastHealthCheckTime = Instant.now();
             return status;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Sends a transaction to Avalanche network
-     */
     @Override
-    public Uni<TransactionResult> sendTransaction(ChainTransaction tx, TransactionOptions opts) {
+    public Uni<TransactionResult> sendTransaction(ChainTransaction transaction, TransactionOptions transactionOptions) {
         return Uni.createFrom().item(() -> {
             if (!initialized) {
                 throw new IllegalStateException("Adapter not initialized");
@@ -186,74 +168,78 @@ public class AvalancheAdapter implements ChainAdapter {
 
             totalTransactions.incrementAndGet();
 
-            // Validate transaction
-            if (tx == null || tx.from == null || tx.to == null) {
+            if (transaction == null || transaction.from == null || transaction.to == null) {
                 failedTransactions.incrementAndGet();
                 throw new IllegalArgumentException("Invalid transaction: from and to addresses required");
             }
 
-            // Generate transaction hash
-            String txHash = "0x" + HexGenerationUtil.generateRandomHex(64);
+            String txHash = "0x" + generateRandomHex(64);
 
-            // Cache transaction
             TransactionCacheEntry entry = new TransactionCacheEntry();
             entry.hash = txHash;
             entry.timestamp = System.currentTimeMillis();
             entry.confirmations = 0;
             transactionCache.put(txHash, entry);
 
-            // Calculate actual fee (Avalanche fees are moderate)
             BigDecimal baseFee = BigDecimal.valueOf(25); // ~25 Gwei
             BigDecimal gasUsed = new BigDecimal("21000"); // Standard transfer
             BigDecimal actualFee = baseFee.multiply(gasUsed).divide(BigDecimal.valueOf(1e9), 18, RoundingMode.HALF_UP);
 
             TransactionResult result = new TransactionResult();
             result.transactionHash = txHash;
+            result.status = TransactionExecutionStatus.PENDING;
             result.blockNumber = currentBlockHeight.get();
             result.actualFee = actualFee;
-            result.status = "pending";
-            result.timestamp = System.currentTimeMillis();
+            result.executionTime = System.currentTimeMillis();
 
             successfulTransactions.incrementAndGet();
             return result;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Gets transaction status
-     */
     @Override
-    public Uni<TransactionStatus> getTransactionStatus(String txHash) {
+    public Uni<TransactionStatus> getTransactionStatus(String transactionHash) {
         return Uni.createFrom().item(() -> {
             TransactionStatus status = new TransactionStatus();
-            status.transactionHash = txHash;
+            status.transactionHash = transactionHash;
 
-            TransactionCacheEntry entry = transactionCache.get(txHash);
+            TransactionCacheEntry entry = transactionCache.get(transactionHash);
             if (entry != null) {
                 status.confirmations = (int) ((System.currentTimeMillis() - entry.timestamp) / BLOCK_TIME_MS);
                 status.blockNumber = currentBlockHeight.get() - status.confirmations;
-                status.status = status.confirmations >= CONFIRMATION_BLOCKS ? "confirmed" : "pending";
+                status.status = status.confirmations >= CONFIRMATION_BLOCKS ? TransactionExecutionStatus.CONFIRMED : TransactionExecutionStatus.PENDING;
+                status.success = true;
             } else {
                 status.confirmations = 0;
-                status.status = "unknown";
+                status.status = TransactionExecutionStatus.PENDING;
             }
 
+            status.timestamp = System.currentTimeMillis();
             return status;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Gets account balance on Avalanche
-     */
     @Override
-    public Uni<BigDecimal> getBalance(String address, String assetId) {
+    public Uni<ConfirmationResult> waitForConfirmation(String transactionHash, int requiredConfirmations, Duration timeout) {
+        return Uni.createFrom().item(() -> {
+            ConfirmationResult result = new ConfirmationResult();
+            result.transactionHash = transactionHash;
+            result.confirmed = true;
+            result.actualConfirmations = CONFIRMATION_BLOCKS;
+            result.confirmationTime = System.currentTimeMillis();
+            result.timedOut = false;
+            return result;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @Override
+    public Uni<BigDecimal> getBalance(String address, String assetIdentifier) {
         return Uni.createFrom().item(() -> {
             if (address == null || address.isEmpty()) {
                 throw new IllegalArgumentException("Address is required");
             }
 
-            // Simulate balance query
-            if (assetId == null) {
+            if (assetIdentifier == null) {
                 // Native AVAX balance
                 return BigDecimal.valueOf(Math.random() * 100);
             } else {
@@ -263,35 +249,28 @@ public class AvalancheAdapter implements ChainAdapter {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Gets multiple asset balances efficiently
-     */
     @Override
-    public Multi<AssetBalance> getBalances(String address, List<String> assetIds) {
-        return Multi.createFrom().iterable(assetIds).map(assetId -> {
+    public Multi<AssetBalance> getBalances(String address, List<String> assetIdentifiers) {
+        return Multi.createFrom().iterable(assetIdentifiers).map(assetId -> {
             AssetBalance ab = new AssetBalance();
             ab.address = address;
-            ab.assetId = assetId;
+            ab.assetIdentifier = assetId;
             ab.balance = assetId == null ? BigDecimal.valueOf(Math.random() * 100)
                                          : BigDecimal.valueOf(Math.random() * 10000);
             return ab;
         });
     }
 
-    /**
-     * Estimates transaction fee for Avalanche
-     */
     @Override
-    public Uni<FeeEstimate> estimateTransactionFee(ChainTransaction tx) {
+    public Uni<FeeEstimate> estimateTransactionFee(ChainTransaction transaction) {
         return Uni.createFrom().item(() -> {
             FeeEstimate estimate = new FeeEstimate();
 
-            // Avalanche gas costs
             BigDecimal gasPrice = BigDecimal.valueOf(25); // ~25 Gwei
             BigDecimal gasLimit = new BigDecimal("21000");
 
-            if (tx != null && tx.gasLimit != null) {
-                gasLimit = tx.gasLimit;
+            if (transaction != null && transaction.gasLimit != null) {
+                gasLimit = transaction.gasLimit;
             }
 
             estimate.estimatedGas = gasLimit;
@@ -299,17 +278,14 @@ public class AvalancheAdapter implements ChainAdapter {
             estimate.totalFee = gasPrice.multiply(gasLimit).divide(BigDecimal.valueOf(1e9), 18, RoundingMode.HALF_UP);
 
             // EIP-1559 fields
-            estimate.baseFeePerGas = BigDecimal.valueOf(1);
             estimate.maxPriorityFeePerGas = BigDecimal.valueOf(1);
             estimate.maxFeePerGas = gasPrice;
+            estimate.feeSpeed = FeeSpeed.STANDARD;
 
             return estimate;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Gets network fee information
-     */
     @Override
     public Uni<NetworkFeeInfo> getNetworkFeeInfo() {
         return Uni.createFrom().item(() -> {
@@ -317,17 +293,76 @@ public class AvalancheAdapter implements ChainAdapter {
             info.safeLowGasPrice = BigDecimal.valueOf(20);
             info.standardGasPrice = BigDecimal.valueOf(25);
             info.fastGasPrice = BigDecimal.valueOf(30);
+            info.instantGasPrice = BigDecimal.valueOf(40);
             info.baseFeePerGas = BigDecimal.valueOf(1);
-            info.lastUpdate = System.currentTimeMillis();
-            info.network = CHAIN_NAME;
+            info.blockNumber = currentBlockHeight.get();
+            info.timestamp = System.currentTimeMillis();
 
             return info;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Validates Avalanche address format
-     */
+    @Override
+    public Uni<ContractDeploymentResult> deployContract(ContractDeployment contractDeployment) {
+        return Uni.createFrom().item(() -> {
+            if (!initialized) {
+                throw new IllegalStateException("Adapter not initialized");
+            }
+
+            ContractDeploymentResult result = new ContractDeploymentResult();
+            result.contractAddress = "0x" + generateRandomHex(40);
+            result.transactionHash = "0x" + generateRandomHex(64);
+            result.success = true;
+            result.gasUsed = new BigDecimal("1500000");
+            result.verified = true;
+
+            return result;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @Override
+    public Uni<ContractCallResult> callContract(ContractFunctionCall contractCall) {
+        return Uni.createFrom().item(() -> {
+            ContractCallResult result = new ContractCallResult();
+            result.success = true;
+            result.returnValue = "0x";
+            result.gasUsed = new BigDecimal("30000");
+            result.transactionHash = "0x" + generateRandomHex(64);
+            return result;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @Override
+    public Multi<BlockchainEvent> subscribeToEvents(EventFilter eventFilter) {
+        return Multi.createFrom().empty();
+    }
+
+    @Override
+    public Multi<BlockchainEvent> getHistoricalEvents(EventFilter eventFilter, long fromBlock, long toBlock) {
+        return Multi.createFrom().empty();
+    }
+
+    @Override
+    public Uni<BlockInfo> getBlockInfo(String blockIdentifier) {
+        return Uni.createFrom().item(() -> {
+            BlockInfo info = new BlockInfo();
+            info.blockNumber = currentBlockHeight.get();
+            info.blockHash = "0x" + generateRandomHex(64);
+            info.parentHash = "0x" + generateRandomHex(64);
+            info.timestamp = System.currentTimeMillis();
+            info.gasLimit = 8000000;
+            info.gasUsed = 4000000;
+            info.transactionCount = 150;
+            return info;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    @Override
+    public Uni<Long> getCurrentBlockHeight() {
+        return Uni.createFrom().item(() -> currentBlockHeight.incrementAndGet())
+            .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
     @Override
     public Uni<AddressValidationResult> validateAddress(String address) {
         return Uni.createFrom().item(() -> {
@@ -336,95 +371,46 @@ public class AvalancheAdapter implements ChainAdapter {
 
             if (address == null || address.isEmpty()) {
                 result.isValid = false;
-                result.reason = "Address is empty";
+                result.validationMessage = "Address is empty";
                 return result;
             }
 
             // EVM address validation (0x + 40 hex chars)
             result.isValid = address.matches("^0x[a-fA-F0-9]{40}$");
             if (!result.isValid) {
-                result.reason = "Invalid EVM address format (must be 0x + 40 hex chars)";
+                result.validationMessage = "Invalid EVM address format (must be 0x + 40 hex chars)";
+            } else {
+                result.format = AddressFormat.ETHEREUM_CHECKSUM;
+                result.normalizedAddress = address.toLowerCase();
             }
 
             return result;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Gets current Avalanche block height
-     */
     @Override
-    public Uni<Long> getCurrentBlockHeight() {
-        return Uni.createFrom().item(() -> currentBlockHeight.incrementAndGet())
-            .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    public Multi<NetworkHealth> monitorNetworkHealth(Duration monitoringInterval) {
+        return Multi.createFrom().empty();
     }
 
-    /**
-     * Deploys smart contract on Avalanche
-     */
     @Override
-    public Uni<ContractDeploymentResult> deployContract(ContractDeployment deployment) {
-        return Uni.createFrom().item(() -> {
-            if (!initialized) {
-                throw new IllegalStateException("Adapter not initialized");
-            }
-
-            ContractDeploymentResult result = new ContractDeploymentResult();
-            result.contractAddress = "0x" + HexGenerationUtil.generateRandomHex(40);
-            result.deploymentHash = "0x" + HexGenerationUtil.generateRandomHex(64);
-            result.blockNumber = currentBlockHeight.get();
-            result.success = true;
-            result.gasUsed = new BigDecimal("1500000");
-            result.timestamp = System.currentTimeMillis();
-
-            return result;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Calls smart contract function on Avalanche
-     */
-    @Override
-    public Uni<ContractCallResult> callContract(ContractFunctionCall call) {
-        return Uni.createFrom().item(() -> {
-            ContractCallResult result = new ContractCallResult();
-            result.success = true;
-            result.returnData = "0x";
-            result.gasUsed = new BigDecimal("30000");
-            result.blockNumber = currentBlockHeight.get();
-
-            return result;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Gets adapter statistics
-     */
-    @Override
-    public Uni<AdapterStatistics> getAdapterStatistics(Duration window) {
+    public Uni<AdapterStatistics> getAdapterStatistics(Duration timeWindow) {
         return Uni.createFrom().item(() -> {
             AdapterStatistics stats = new AdapterStatistics();
             stats.chainId = CHAIN_ID;
-            stats.chainName = CHAIN_NAME;
             stats.totalTransactions = totalTransactions.get();
             stats.successfulTransactions = successfulTransactions.get();
             stats.failedTransactions = failedTransactions.get();
             stats.successRate = totalTransactions.get() > 0
                 ? (double) successfulTransactions.get() / totalTransactions.get() * 100
                 : 0;
-            stats.currentBlockHeight = currentBlockHeight.get();
-            stats.activePeers = activePeers.get();
-            stats.lastHealthCheck = lastHealthCheckTime;
-            stats.averageGasPrice = BigDecimal.valueOf(25);
-            stats.uptime = 99.90;
-
+            stats.totalGasUsed = 0;
+            stats.totalFeesSpent = BigDecimal.ZERO;
+            stats.statisticsTimeWindow = timeWindow.toMillis();
             return stats;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Configures retry policy
-     */
     @Override
     public Uni<Boolean> configureRetryPolicy(RetryPolicy policy) {
         return Uni.createFrom().item(() -> {
@@ -437,9 +423,6 @@ public class AvalancheAdapter implements ChainAdapter {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Gracefully shuts down the adapter
-     */
     @Override
     public Uni<Boolean> shutdown() {
         return Uni.createFrom().item(() -> {
@@ -449,9 +432,16 @@ public class AvalancheAdapter implements ChainAdapter {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Internal cache entry for transactions
-     */
+    private String generateRandomHex(int length) {
+        StringBuilder hex = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int randomNum = (int) (Math.random() * 16);
+            char hexChar = (randomNum < 10) ? (char) ('0' + randomNum) : (char) ('a' + randomNum - 10);
+            hex.append(hexChar);
+        }
+        return hex.toString();
+    }
+
     private static class TransactionCacheEntry {
         String hash;
         long timestamp;
