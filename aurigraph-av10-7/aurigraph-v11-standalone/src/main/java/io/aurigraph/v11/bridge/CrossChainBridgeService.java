@@ -1,40 +1,84 @@
 package io.aurigraph.v11.bridge;
 
 import io.aurigraph.v11.bridge.models.BridgeStats;
+import io.aurigraph.v11.bridge.adapters.*;
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import io.quarkus.logging.Log;
 
 /**
- * Cross-Chain Bridge Service for Aurigraph V11
- * Enables secure asset transfers between Aurigraph and external blockchains
- * Features: Multi-chain support, atomic swaps, validator consensus, gas optimization
+ * Enhanced Cross-Chain Bridge Service for Aurigraph V11
+ *
+ * Enables secure asset transfers between Aurigraph and external blockchains with:
+ * - Atomic swap protocol with HTLC (Hash Time-Locked Contracts)
+ * - Multi-signature validation (m-of-n threshold)
+ * - Bridge transaction lifecycle management
+ * - Timeout and error recovery mechanisms
+ * - Event streaming for real-time state changes
+ * - Dynamic fee calculation based on network conditions
+ * - Multi-chain adapter support (Ethereum, Solana, Polkadot, Cosmos)
+ *
+ * Performance Targets:
+ * - Bridge transaction time: <5 seconds
+ * - Multi-signature verification: <500ms
+ * - Cross-chain message latency: <2 seconds
+ * - Throughput: >1000 bridges/minute
+ *
+ * @author Aurigraph V11 Bridge Team
+ * @version 11.0.0
+ * @since 2025-01-23
  */
 @ApplicationScoped
 public class CrossChainBridgeService {
+
+    // Chain Adapters (injected)
+    @Inject
+    EthereumAdapter ethereumAdapter;
+
+    @Inject
+    SolanaAdapter solanaAdapter;
+
+    @Inject
+    PolkadotAdapter polkadotAdapter;
 
     // Performance metrics
     private final AtomicLong totalBridgeOperations = new AtomicLong(0);
     private final AtomicLong successfulBridges = new AtomicLong(0);
     private final AtomicLong pendingBridges = new AtomicLong(0);
     private final AtomicLong failedBridges = new AtomicLong(0);
+    private final AtomicLong atomicSwapCount = new AtomicLong(0);
+    private final AtomicLong multiSigValidationCount = new AtomicLong(0);
 
-    // Bridge transaction storage
+    // Bridge transaction storage and state management
     private final Map<String, BridgeTransaction> bridgeTransactions = new ConcurrentHashMap<>();
+    private final Map<String, AtomicSwapState> atomicSwaps = new ConcurrentHashMap<>();
+    private final Map<String, MultiSigValidation> multiSigValidations = new ConcurrentHashMap<>();
     private final Map<String, ChainInfo> supportedChains = new ConcurrentHashMap<>();
     private final Map<String, BridgeValidator> validators = new ConcurrentHashMap<>();
+    private final Map<String, ChainAdapter> chainAdapters = new ConcurrentHashMap<>();
+
+    // Event streaming
+    private final Map<String, List<BridgeEventListener>> eventListeners = new ConcurrentHashMap<>();
 
     // Configuration
     private static final int REQUIRED_CONFIRMATIONS = 12;
     private static final double BRIDGE_FEE_PERCENTAGE = 0.1;
+    private static final int MULTI_SIG_THRESHOLD = 2; // 2-of-3 multi-sig
+    private static final int TOTAL_VALIDATORS = 3;
+    private static final long ATOMIC_SWAP_TIMEOUT_MS = 300000; // 5 minutes
+    private static final long HTLC_LOCK_TIME = 3600; // 1 hour in seconds
 
     // Chain-specific max transfer limits (USD equivalent)
     private static final Map<String, BigDecimal> CHAIN_MAX_LIMITS = Map.of(
@@ -42,18 +86,45 @@ public class CrossChainBridgeService {
         "bsc", new BigDecimal("101000"),         // $101K max
         "polygon", new BigDecimal("250000"),     // $250K max
         "avalanche", new BigDecimal("300000"),   // $300K max
+        "solana", new BigDecimal("500000"),      // $500K max
+        "polkadot", new BigDecimal("750000"),    // $750K max
         "aurigraph", new BigDecimal("1000000")   // $1M max
     );
 
-    @ConfigProperty(name = "bridge.processing.delay.min", defaultValue = "5000")
+    @ConfigProperty(name = "bridge.processing.delay.min", defaultValue = "2000")
     long processingDelayMin;
 
-    @ConfigProperty(name = "bridge.processing.delay.max", defaultValue = "10000")
+    @ConfigProperty(name = "bridge.processing.delay.max", defaultValue = "5000")
     long processingDelayMax;
+
+    @ConfigProperty(name = "bridge.atomic.swap.enabled", defaultValue = "true")
+    boolean atomicSwapEnabled;
+
+    @ConfigProperty(name = "bridge.multi.sig.enabled", defaultValue = "true")
+    boolean multiSigEnabled;
 
     public CrossChainBridgeService() {
         initializeSupportedChains();
         initializeValidators();
+    }
+
+    /**
+     * Initialize after dependency injection
+     */
+    @jakarta.annotation.PostConstruct
+    void init() {
+        // Register chain adapters
+        if (ethereumAdapter != null) {
+            chainAdapters.put("ethereum", ethereumAdapter);
+        }
+        if (solanaAdapter != null) {
+            chainAdapters.put("solana", solanaAdapter);
+        }
+        if (polkadotAdapter != null) {
+            chainAdapters.put("polkadot", polkadotAdapter);
+        }
+
+        Log.info("CrossChainBridgeService initialized with " + chainAdapters.size() + " chain adapters");
     }
 
     /**
