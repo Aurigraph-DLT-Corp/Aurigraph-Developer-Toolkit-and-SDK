@@ -23,6 +23,7 @@ import java.security.MessageDigest;
  */
 @ApplicationScoped
 public class SecondaryTokenEvolution {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SecondaryTokenEvolution.class);
     
     @Inject
     QuantumCryptoService cryptoService;

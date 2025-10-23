@@ -48,11 +48,9 @@ public class AurigraphResource {
     @Inject
     io.aurigraph.v11.bridge.CrossChainBridgeService bridgeService;
 
-    @Inject
-    io.aurigraph.v11.ai.AIOptimizationServiceStub aiOptimizationService;
-
-    @Inject
-    io.aurigraph.v11.ai.MLMetricsService mlMetricsService;
+    // Note: MLMetricsService endpoints moved to AIApiResource.java
+    // @Inject
+    // io.aurigraph.v11.ai.MLMetricsService mlMetricsService;
 
     @Inject
     io.aurigraph.v11.blockchain.NetworkStatsService networkStatsService;
@@ -255,7 +253,7 @@ public class AurigraphResource {
         var consensusStatus = consensusService.getStats().await().indefinitely();
         var cryptoStatus = quantumCryptoService.getStatus();
         var bridgeStats = bridgeService.getBridgeStats().await().indefinitely();
-        var aiStats = aiOptimizationService.getOptimizationStats();
+        var aiStats = new java.util.HashMap<String, Object>(); // AI stats placeholder
 
         return new SystemStatus(
             "Aurigraph V11 Platform",
@@ -609,7 +607,7 @@ public class AurigraphResource {
         io.aurigraph.v11.consensus.HyperRAFTConsensusService.ConsensusStats consensusStatus,
         io.aurigraph.v11.crypto.QuantumCryptoService.CryptoStatus cryptoStatus,
         io.aurigraph.v11.bridge.models.BridgeStats bridgeStats,
-        io.aurigraph.v11.ai.AIOptimizationServiceStub.AIOptimizationStats aiStats,
+        Object aiStats, // AI optimization stats (placeholder)
         long timestamp
     ) {}
 
@@ -724,112 +722,11 @@ public class AurigraphResource {
 
     // ==================== ML & AI OPTIMIZATION ENDPOINTS ====================
 
-    /**
-     * Get ML performance metrics
-     * Provides real-time ML optimization metrics including shard selection and transaction ordering
-     */
-    @GET
-    @Path("/ai/metrics")
-    @Produces(MediaType.APPLICATION_JSON)
-    public io.aurigraph.v11.ai.MLMetricsService.MLMetrics getMLMetrics() {
-        LOG.info("ML metrics requested");
-        return mlMetricsService.getMetrics();
-    }
-
-    /**
-     * Get ML predictions and forecasts
-     * Provides AI-driven predictions for TPS, growth rate, and anomaly detection
-     */
-    @GET
-    @Path("/ai/predictions")
-    @Produces(MediaType.APPLICATION_JSON)
-    public io.aurigraph.v11.ai.MLMetricsService.MLPredictions getMLPredictions() {
-        LOG.info("ML predictions requested");
-        return mlMetricsService.getPredictions();
-    }
-
-    /**
-     * Get ML performance comparison (baseline vs ML-optimized)
-     * Shows the performance improvement achieved through ML optimization
-     */
-    @GET
-    @Path("/ai/performance")
-    @Produces(MediaType.APPLICATION_JSON)
-    public MLPerformanceComparison getMLPerformance() {
-        LOG.info("ML performance comparison requested");
-        var metrics = mlMetricsService.getMetrics();
-
-        return new MLPerformanceComparison(
-            metrics.baselineTPS(),
-            metrics.mlOptimizedTPS(),
-            metrics.performanceGainPercent(),
-            metrics.mlShardSuccessRate(),
-            metrics.mlOrderingSuccessRate(),
-            metrics.avgShardConfidence(),
-            metrics.avgShardLatencyMs(),
-            metrics.avgOrderingLatencyMs(),
-            Instant.now()
-        );
-    }
-
-    /**
-     * Get ML confidence scores and health
-     * Provides ML model health indicators and confidence levels
-     */
-    @GET
-    @Path("/ai/confidence")
-    @Produces(MediaType.APPLICATION_JSON)
-    public MLConfidenceScores getMLConfidence() {
-        LOG.info("ML confidence scores requested");
-        var metrics = mlMetricsService.getMetrics();
-
-        return new MLConfidenceScores(
-            metrics.avgShardConfidence(),
-            metrics.mlShardSuccessRate(),
-            metrics.mlOrderingSuccessRate(),
-            metrics.anomaliesDetected(),
-            metrics.avgAnomalyScore(),
-            calculateMLHealth(metrics),
-            Instant.now()
-        );
-    }
-
-    /**
-     * Calculate overall ML health score
-     */
-    private String calculateMLHealth(io.aurigraph.v11.ai.MLMetricsService.MLMetrics metrics) {
-        double successRate = (metrics.mlShardSuccessRate() + metrics.mlOrderingSuccessRate()) / 2;
-        if (successRate > 95) return "EXCELLENT";
-        if (successRate > 85) return "GOOD";
-        if (successRate > 70) return "FAIR";
-        return "DEGRADED";
-    }
-
-    /**
-     * ML Performance Comparison record
-     */
-    public record MLPerformanceComparison(
-        long baselineTPS,
-        long mlOptimizedTPS,
-        double performanceGainPercent,
-        double mlShardSuccessRate,
-        double mlOrderingSuccessRate,
-        double avgShardConfidence,
-        double avgShardLatencyMs,
-        double avgOrderingLatencyMs,
-        Instant timestamp
-    ) {}
-
-    /**
-     * ML Confidence Scores record
-     */
-    public record MLConfidenceScores(
-        double avgShardConfidence,
-        double shardSuccessRate,
-        double orderingSuccessRate,
-        long anomaliesDetected,
-        double avgAnomalyScore,
-        String overallHealth,
-        Instant timestamp
-    ) {}
+    // ========== ML METHODS MOVED TO AIApiResource.java ==========
+    // The following ML-related endpoints have been moved to AIApiResource.java:
+    // - GET /api/v11/ai/metrics
+    // - GET /api/v11/ai/predictions
+    // - GET /api/v11/ai/performance
+    // - GET /api/v11/ai/confidence
+    // See AIApiResource.java for implementation details
 }

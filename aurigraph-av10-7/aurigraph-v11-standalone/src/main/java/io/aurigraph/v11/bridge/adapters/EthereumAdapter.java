@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
  */
 @ApplicationScoped
 public class EthereumAdapter implements ChainAdapter {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EthereumAdapter.class);
 
     @ConfigProperty(name = "ethereum.rpc.url", defaultValue = "https://eth-mainnet.g.alchemy.com/v2/demo")
     String rpcUrl;

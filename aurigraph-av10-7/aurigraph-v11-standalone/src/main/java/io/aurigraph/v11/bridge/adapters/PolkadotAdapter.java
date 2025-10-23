@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
  */
 @ApplicationScoped
 public class PolkadotAdapter implements ChainAdapter {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PolkadotAdapter.class);
 
     @ConfigProperty(name = "polkadot.rpc.url", defaultValue = "https://rpc.polkadot.io")
     String rpcUrl;

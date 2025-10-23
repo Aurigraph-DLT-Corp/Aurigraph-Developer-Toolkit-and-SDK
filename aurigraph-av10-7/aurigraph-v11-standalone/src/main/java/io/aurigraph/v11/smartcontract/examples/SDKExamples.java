@@ -18,6 +18,7 @@ import java.util.List;
  * @since 2025-10-12
  */
 public class SDKExamples {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SDKExamples.class);
 
     /**
      * Example 1: Deploy a Token Contract

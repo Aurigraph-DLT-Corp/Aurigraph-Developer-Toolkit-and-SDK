@@ -11,8 +11,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 
-import io.aurigraph.v11.ai.AIOptimizationServiceStub;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
@@ -37,9 +35,6 @@ import java.util.*;
 public class AIApiResource {
 
     private static final Logger LOG = Logger.getLogger(AIApiResource.class);
-
-    @Inject
-    AIOptimizationServiceStub aiOptimizationService;
 
     // ==================== AI MODEL MANAGEMENT ====================
 

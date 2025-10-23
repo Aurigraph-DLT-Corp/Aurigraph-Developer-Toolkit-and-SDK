@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
  */
 @ApplicationScoped
 public class SolanaAdapter implements ChainAdapter {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SolanaAdapter.class);
 
     @ConfigProperty(name = "solana.rpc.url", defaultValue = "https://api.mainnet-beta.solana.com")
     String rpcUrl;
