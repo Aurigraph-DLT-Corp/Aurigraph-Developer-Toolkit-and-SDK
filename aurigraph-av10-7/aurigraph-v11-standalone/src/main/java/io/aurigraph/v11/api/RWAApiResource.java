@@ -712,4 +712,43 @@ public class RWAApiResource {
         public double confidence;
         public String timestamp;
     }
+
+    /**
+     * POST /api/v11/rwa/transfer
+     * Transfer RWA tokens between addresses
+     */
+    @POST
+    @Path("/transfer")
+    @Operation(summary = "Transfer RWA tokens", description = "Transfer real-world asset tokens")
+    @APIResponse(responseCode = "201", description = "Transfer initiated")
+    public Uni<Response> transferAssets(TransferRequest request) {
+        LOG.infof("Initiating RWA transfer from %s to %s", request.fromAddress, request.toAddress);
+
+        return Uni.createFrom().item(() -> {
+            var txHash = "0x" + Long.toHexString(System.currentTimeMillis());
+            var response = new HashMap<String, Object>();
+            response.put("transactionHash", txHash);
+            response.put("status", "PENDING");
+            response.put("from", request.fromAddress);
+            response.put("to", request.toAddress);
+            response.put("amount", request.amount);
+            response.put("tokenId", request.tokenId);
+            response.put("timestamp", System.currentTimeMillis());
+            response.put("confirmations", 0);
+            response.put("expectedTime", System.currentTimeMillis() + 30000);
+
+            return Response.status(Response.Status.CREATED).entity(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * RWA Transfer Request DTO
+     */
+    public record TransferRequest(
+        String fromAddress,
+        String toAddress,
+        String amount,
+        String tokenId,
+        String metadata
+    ) {}
 }

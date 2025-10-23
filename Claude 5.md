@@ -2,44 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 📋 CRITICAL ENVIRONMENT FILES - ALWAYS LOAD AT RESUMPTION
-
-**IMPORTANT**: When resuming any session, Claude MUST read these critical planning documents first:
-
-1. **Sprint Plan**: `aurigraph-av10-7/aurigraph-v11-standalone/SPRINT_PLAN.md`
-   - Current sprint objectives and timeline
-   - Sprint allocation and task breakdown
-   - Story points and deliverables
-
-2. **Comprehensive Test Plan**: `aurigraph-av10-7/aurigraph-v11-standalone/COMPREHENSIVE-TEST-PLAN.md`
-   - Test coverage requirements (95% target)
-   - Test strategy by component
-   - Integration and E2E test plans
-
-3. **TODO Status**: `aurigraph-av10-7/aurigraph-v11-standalone/TODO.md`
-   - Current work status and progress
-   - Recent completions and achievements
-   - Pending tasks and priorities
-
-4. **Latest Sprint Report**: Check for most recent `SPRINT*.md` files
-   - Latest execution status
-   - Completed work and metrics
-   - Remaining work and blockers
-
-**Auto-Load Command**:
-```bash
-# Read these files at session start:
-cat aurigraph-av10-7/aurigraph-v11-standalone/SPRINT_PLAN.md
-cat aurigraph-av10-7/aurigraph-v11-standalone/COMPREHENSIVE-TEST-PLAN.md
-cat aurigraph-av10-7/aurigraph-v11-standalone/TODO.md
-ls -lt aurigraph-av10-7/aurigraph-v11-standalone/SPRINT*.md | head -3
-```
-
----
-
 ## 🚀 ENHANCED DEVELOPMENT TEAM AGENTS
 
-**NEW**: Aurigraph uses an enhanced multi-agent development team for parallel development and deployment. See [AURIGRAPH-TEAM-AGENTS.md](./AURIGRAPH-TEAM-AGENTS.md) for full details.
+**NEW**: Aurigraph now uses an enhanced multi-agent development team for parallel development and deployment. See [AURIGRAPH-TEAM-AGENTS.md](./AURIGRAPH-TEAM-AGENTS.md) for full details.
 
 ### Quick Agent Reference
 
@@ -92,57 +57,16 @@ Agents work in parallel across multiple workstreams:
 
 **Aurigraph DLT V11** - High-performance blockchain platform migration from TypeScript (V10) to Java/Quarkus/GraalVM architecture targeting 2M+ TPS with quantum-resistant cryptography and AI-driven consensus.
 
-**Current Migration Status**: ~35% complete
+**Current Migration Status**: ~30% complete
 
 - ✅ Core Java/Quarkus structure
 - ✅ REST API and health endpoints
 - ✅ Native compilation with optimized profiles
 - ✅ AI optimization services (ML-based consensus)
-- ✅ Real-world asset tokenization registry (Merkle tree-based)
-- ✅ **Enterprise Portal V4.3.2** - React/TypeScript management portal (PRODUCTION)
-- ✅ **NGINX Proxy** - Production-ready reverse proxy with security & firewall
-- ✅ **Testing Infrastructure** - Sprint 1 complete (140+ tests, 85%+ coverage)
+- ✅ HMS integration for real-world asset tokenization
 - 🚧 gRPC service implementation
 - 🚧 Performance optimization (currently 776K TPS)
 - 📋 Full consensus migration from TypeScript
-
-### Enterprise Portal V4.3.2 (NEW)
-
-**Purpose**: Enterprise management portal for Aurigraph V11 blockchain platform
-**Status**: ✅ **PRODUCTION** - Live at https://dlt.aurigraph.io
-**Technology**: React 18 + TypeScript + Material-UI + Vite
-**Testing**: Sprint 1 Complete (140+ tests, 85%+ coverage target)
-
-**Key Features**:
-- 23 Pages across 6 categories (Core, Dashboards, Developer, RWA, Security, Settings)
-- Real-time blockchain metrics (776K TPS display)
-- Node management and monitoring
-- Transaction tracking and analytics
-- Performance monitoring with ML metrics
-- RWA tokenization interface
-- Security audit logs
-- Settings & configuration management
-
-**Quick Start**:
-```bash
-cd aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
-
-# Development
-npm run dev              # Start dev server (port 5173)
-npm run build            # Production build
-npm run preview          # Preview production build
-
-# Testing
-npm test                 # Run tests in watch mode
-npm run test:run         # Run tests once
-npm run test:coverage    # Generate coverage report
-npm run test:ui          # Open Vitest UI
-
-# Deployment
-cd nginx/
-./deploy-nginx.sh --test     # Test NGINX config
-./deploy-nginx.sh --deploy   # Deploy to production
-```
 
 ## Essential Commands
 
@@ -223,12 +147,11 @@ aurigraph-v11-standalone/
 │   │   ├── bridge/                      # Cross-chain bridge
 │   │   │   ├── CrossChainBridgeService.java
 │   │   │   └── adapters/                # Chain-specific adapters
-│   │   ├── registry/                    # Asset registry services
-│   │   │   └── RWATRegistryService.java # Real-world asset token registry
-│   │   └── merkle/                      # Merkle tree infrastructure
-│   │       └── MerkleTreeRegistry.java  # Cryptographic verification
+│   │   └── hms/                        # HMS integration
+│   │       └── HMSIntegrationService.java # Real-world asset tokenization
 │   ├── proto/
-│   │   └── aurigraph-v11.proto          # V11 protocol definitions
+│   │   ├── aurigraph-v11.proto          # V11 protocol definitions
+│   │   └── hms-integration.proto        # HMS protocol definitions
 │   └── resources/
 │       ├── application.properties        # Quarkus configuration
 │       └── META-INF/native-image/       # Native compilation configs
@@ -264,46 +187,6 @@ curl http://localhost:9003/q/dev/                 # Dev UI (dev mode only)
 # gRPC service (planned)
 grpcurl -plaintext localhost:9004 list            # List gRPC services
 ```
-
-### Enterprise Portal Production Services (NGINX)
-
-**Production URL**: https://dlt.aurigraph.io
-**Backend API**: https://dlt.aurigraph.io/api/v11/*
-**NGINX Config**: `enterprise-portal/nginx/`
-
-```bash
-# NGINX Management
-cd aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/nginx/
-
-# Test configuration
-./deploy-nginx.sh --test
-
-# Deploy to production
-./deploy-nginx.sh --deploy
-
-# Check status
-./deploy-nginx.sh --status
-
-# Setup SSL (Let's Encrypt)
-./deploy-nginx.sh --setup-ssl
-
-# Rollback deployment
-./deploy-nginx.sh --rollback
-
-# Firewall setup (first time only)
-ssh subbu@dlt.aurigraph.io
-sudo ./setup-firewall.sh --setup
-```
-
-**NGINX Features**:
-- ✅ Reverse proxy for V11 backend (port 9003)
-- ✅ Rate limiting: 100 req/s API, 10 req/s admin, 5 req/m auth
-- ✅ IP-based firewall for admin endpoints
-- ✅ SSL/TLS 1.2/1.3 with modern cipher suites
-- ✅ Security headers (HSTS, CSP, X-Frame-Options)
-- ✅ Gzip compression & static asset caching (1 year)
-- ✅ WebSocket support for real-time updates
-- ✅ Automated backup/rollback deployment
 
 ### V10 Legacy Services (Reference)
 
@@ -350,35 +233,9 @@ sudo ./setup-firewall.sh --setup
 
 ### Coverage Requirements
 
-**V11 Backend (Java/Quarkus)**:
 - **Target Coverage**: 95% line, 90% function
 - **Critical Modules**: crypto (98%), consensus (95%), grpc (90%)
 - **Current Status**: ~15% coverage (migration in progress)
-
-**Enterprise Portal (React/TypeScript)**:
-- **Target Coverage**: 85% line, 85% function, 80% branch
-- **Framework**: Vitest 1.6.1 + React Testing Library 14.3.1
-- **Current Status**: Sprint 1 Complete ✅
-  - Dashboard.test.tsx (30+ tests)
-  - Transactions.test.tsx (40+ tests)
-  - Performance.test.tsx (30+ tests)
-  - Settings.test.tsx (40+ tests)
-  - **Total**: 140+ tests implemented
-  - **Coverage**: 85%+ for core pages
-
-**Testing Commands (Enterprise Portal)**:
-```bash
-cd aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
-
-# Run tests
-npm test                 # Watch mode
-npm run test:run         # Run once
-npm run test:coverage    # Generate coverage report
-npm run test:ui          # Vitest UI
-
-# View coverage
-open coverage/index.html
-```
 
 ### Environment Configuration
 
@@ -399,9 +256,9 @@ consensus.parallel.threads=256                # Processing threads
 ai.optimization.enabled=true                  # Enable ML optimization
 ai.optimization.target.tps=3000000           # AI TPS target
 
-# Real-world asset tokenization
-rwat.registry.enabled=true                   # Enable RWAT registry
-rwat.merkle.enabled=true                     # Enable Merkle tree verification
+# HMS integration
+hms.performance.target.tps=100000            # HMS TPS target
+hms.grpc.port=9005                           # HMS gRPC port
 ```
 
 ## Migration Status & Critical Requirements
@@ -416,33 +273,18 @@ rwat.merkle.enabled=true                     # Enable Merkle tree verification
 
 ### Component Migration Progress
 
-**Backend (V11 Java/Quarkus)**:
 - ✅ Core Quarkus application structure
 - ✅ REST API with reactive endpoints (`AurigraphResource.java`)
 - ✅ Transaction processing service (`TransactionService.java`)
 - ✅ AI optimization framework (ML-based consensus tuning)
 - ✅ Native compilation with 3 optimization profiles
-- ✅ RWAT registry with Merkle tree cryptographic verification
+- ✅ HMS integration for real-world asset tokenization
 - 🚧 gRPC service implementation (`HighPerformanceGrpcService.java`)
 - 🚧 HyperRAFT++ consensus migration (`HyperRAFTConsensusService.java`)
 - 🚧 Performance optimization (776K → 2M+ TPS target)
 - 📋 Quantum cryptography service migration
 - 📋 Cross-chain bridge service migration
 - 📋 Complete test suite migration (currently ~15% coverage)
-
-**Frontend (Enterprise Portal V4.3.2)**:
-- ✅ Complete React/TypeScript portal with 23 pages
-- ✅ Real-time blockchain metrics integration
-- ✅ Material-UI v6 component library
-- ✅ Vite build system with hot reload
-- ✅ Testing infrastructure (Vitest + RTL)
-- ✅ Sprint 1 testing complete (140+ tests, 85%+ coverage)
-- ✅ NGINX proxy with security & firewall
-- ✅ Production deployment at https://dlt.aurigraph.io
-- 🚧 Sprint 2 testing (Main Dashboards)
-- 📋 CI/CD pipeline (GitHub Actions)
-- 📋 OAuth 2.0 integration with Keycloak
-- 📋 E2E testing (Cypress/Playwright)
 
 ## Debugging & Troubleshooting
 
@@ -548,9 +390,9 @@ export JIRA_BASE_URL="https://aurigraphdlt.atlassian.net"
 export JIRA_PROJECT_KEY="AV11"
 ```
 
-#### Build & Deploy Scripts
+#### Build & Deploy Scripts for HMS
 
-Use these scripts for deployment:
+Use these scripts to build and deploy HMS in future:
 
 **@remote_dev4.sh** - Remote development deployment script
 **@deploy_dev4_complete.sh** - Complete dev4 deployment automation

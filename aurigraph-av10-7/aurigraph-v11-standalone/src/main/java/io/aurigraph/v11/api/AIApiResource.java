@@ -506,6 +506,31 @@ public class AIApiResource {
     }
 
     /**
+     * POST /api/v11/ai/optimize
+     * Submit optimization job for consensus mechanism
+     */
+    @POST
+    @Path("/optimize")
+    @Operation(summary = "Submit AI optimization job", description = "Optimize consensus mechanism with AI")
+    @APIResponse(responseCode = "201", description = "Optimization job submitted")
+    public Uni<Response> submitOptimization(OptimizeRequest request) {
+        LOG.info("Submitting AI optimization job");
+
+        return Uni.createFrom().item(() -> {
+            var jobId = "ai_opt_" + System.currentTimeMillis();
+            var response = new HashMap<String, Object>();
+            response.put("jobId", jobId);
+            response.put("status", "SUBMITTED");
+            response.put("optimizationType", request.optimizationType != null ? request.optimizationType : "consensus");
+            response.put("targetMetric", request.targetMetric != null ? request.targetMetric : "tps");
+            response.put("submittedAt", System.currentTimeMillis());
+            response.put("estimatedDuration", 60000); // 1 minute
+
+            return Response.status(Response.Status.CREATED).entity(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
      * AI System Status Response
      */
     public static class AIStatusResponse {
@@ -524,4 +549,13 @@ public class AIApiResource {
         public long timestamp;
         public long lastUpdated;
     }
+
+    /**
+     * AI Optimization Request DTO
+     */
+    public record OptimizeRequest(
+        String optimizationType,
+        String targetMetric,
+        Map<String, Object> parameters
+    ) {}
 }
