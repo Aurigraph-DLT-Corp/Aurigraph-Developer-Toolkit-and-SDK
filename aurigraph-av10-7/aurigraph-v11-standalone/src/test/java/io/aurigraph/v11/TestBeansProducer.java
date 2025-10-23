@@ -38,13 +38,14 @@ public class TestBeansProducer {
         return Mockito.mock(EthereumBridgeService.class);
     }
 
-    @Produces
-    @Mock
-    @Named("test-system-monitoring")
-    @ApplicationScoped
-    public SystemMonitoringService systemMonitoringService() {
-        return Mockito.mock(SystemMonitoringService.class);
-    }
+    // SystemMonitoringService is now implemented - no mock needed
+    // @Produces
+    // @Mock
+    // @Named("test-system-monitoring")
+    // @ApplicationScoped
+    // public SystemMonitoringService systemMonitoringService() {
+    //     return Mockito.mock(SystemMonitoringService.class);
+    // }
 
     @Produces
     @Mock

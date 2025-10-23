@@ -1,5 +1,6 @@
 package io.aurigraph.v11.monitoring;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.logging.Logger;
 
@@ -40,14 +41,26 @@ public class SystemMonitoringService {
     private final Map<String, MetricTimeSeries> metrics;
     private final List<ScheduledFuture<?>> scheduledTasks = new CopyOnWriteArrayList<>();
 
+    // Lazy initialization flag
+    private volatile boolean initialized = false;
+
     public SystemMonitoringService() {
         this.metricsCollector = new MetricsCollector();
         this.healthChecker = new HealthChecker();
         this.alertEngine = new AlertEngine();
         this.performanceMonitor = new PerformanceMonitor();
-        this.scheduler = Executors.newScheduledThreadPool(4);
+        this.scheduler = Executors.newScheduledThreadPool(4,
+            r -> {
+                Thread t = new Thread(r);
+                t.setDaemon(true);  // Make threads daemon so they don't block shutdown
+                return t;
+            });
         this.metrics = new ConcurrentHashMap<>();
+    }
 
+    @PostConstruct
+    void init() {
+        initialized = true;
         LOG.info("System Monitoring Service initialized");
     }
 
@@ -264,6 +277,16 @@ public class SystemMonitoringService {
      * Get monitoring status
      */
     public MonitoringStatus getStatus() {
+        if (!initialized) {
+            // Return default status if not initialized yet
+            return new MonitoringStatus(
+                false,
+                0,
+                new HealthStatus(true, new ArrayList<>()),
+                0
+            );
+        }
+
         return new MonitoringStatus(
             monitoring,
             metrics.size(),

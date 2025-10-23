@@ -29,8 +29,9 @@ class SystemMonitoringServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Start monitoring for tests
-        if (!monitoringService.getStatus().active()) {
+        // Start monitoring for tests if not already active
+        SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        if (status != null && !status.active()) {
             monitoringService.startMonitoring();
         }
     }
@@ -46,7 +47,11 @@ class SystemMonitoringServiceTest {
     @Test
     @DisplayName("Monitoring service initializes successfully")
     void testServiceInitialization() {
-        assertNotNull(monitoringService);
+        assertNotNull(monitoringService, "Monitoring service should be injected");
+
+        SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "getStatus() should never return null");
+        assertNotNull(status.healthStatus(), "HealthStatus should not be null");
     }
 
     @Test
@@ -57,6 +62,7 @@ class SystemMonitoringServiceTest {
         monitoringService.startMonitoring();
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertTrue(status.active());
     }
 
@@ -68,6 +74,7 @@ class SystemMonitoringServiceTest {
         monitoringService.stopMonitoring();
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertFalse(status.active());
     }
 
@@ -80,6 +87,7 @@ class SystemMonitoringServiceTest {
         assertDoesNotThrow(() -> monitoringService.startMonitoring());
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertTrue(status.active());
     }
 
@@ -159,10 +167,11 @@ class SystemMonitoringServiceTest {
     void testGetMonitoringStatus() {
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
 
-        assertNotNull(status);
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertTrue(status.active());
         assertTrue(status.metricsCount() >= 0);
         assertTrue(status.activeAlerts() >= 0);
+        assertNotNull(status.healthStatus(), "HealthStatus should not be null");
     }
 
     @Test
@@ -173,6 +182,7 @@ class SystemMonitoringServiceTest {
         Thread.sleep(1000);
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "MonitoringStatus should not be null");
         int metricsCount = status.metricsCount();
 
         assertTrue(metricsCount >= 0);
@@ -183,6 +193,7 @@ class SystemMonitoringServiceTest {
     void testMonitoringStatusActiveAlerts() {
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
 
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertTrue(status.activeAlerts() >= 0);
     }
 
@@ -196,7 +207,8 @@ class SystemMonitoringServiceTest {
         Thread.sleep(2000); // Wait for health checks
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
-        assertNotNull(status.healthStatus());
+        assertNotNull(status, "MonitoringStatus should not be null");
+        assertNotNull(status.healthStatus(), "HealthStatus should not be null");
     }
 
     @Test
@@ -204,8 +216,9 @@ class SystemMonitoringServiceTest {
     void testHealthStatusStructure() {
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
 
-        assertNotNull(status.healthStatus());
-        assertNotNull(status.healthStatus().issues());
+        assertNotNull(status, "MonitoringStatus should not be null");
+        assertNotNull(status.healthStatus(), "HealthStatus should not be null");
+        assertNotNull(status.healthStatus().issues(), "HealthStatus issues list should not be null");
     }
 
     // ==================== Alert Generation Tests ====================
@@ -219,6 +232,7 @@ class SystemMonitoringServiceTest {
         Thread.sleep(2000);
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "MonitoringStatus should not be null");
         // Alerts may or may not be present depending on system state
         assertTrue(status.activeAlerts() >= 0);
     }
@@ -389,6 +403,7 @@ class SystemMonitoringServiceTest {
         // Start monitoring
         monitoringService.startMonitoring();
         SystemMonitoringService.MonitoringStatus startStatus = monitoringService.getStatus();
+        assertNotNull(startStatus, "MonitoringStatus should not be null");
         assertTrue(startStatus.active());
 
         // Wait for metrics collection
@@ -400,11 +415,13 @@ class SystemMonitoringServiceTest {
 
         // Check status
         SystemMonitoringService.MonitoringStatus activeStatus = monitoringService.getStatus();
+        assertNotNull(activeStatus, "MonitoringStatus should not be null");
         assertTrue(activeStatus.active());
 
         // Stop monitoring
         monitoringService.stopMonitoring();
         SystemMonitoringService.MonitoringStatus stopStatus = monitoringService.getStatus();
+        assertNotNull(stopStatus, "MonitoringStatus should not be null");
         assertFalse(stopStatus.active());
     }
 
@@ -419,6 +436,7 @@ class SystemMonitoringServiceTest {
         // Second cycle
         monitoringService.startMonitoring();
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertTrue(status.active());
 
         Thread.sleep(1000);
@@ -499,7 +517,7 @@ class SystemMonitoringServiceTest {
 
         // Should handle rapid cycles without errors
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
-        assertNotNull(status);
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertFalse(status.active());
     }
 
@@ -521,7 +539,7 @@ class SystemMonitoringServiceTest {
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
 
-        assertNotNull(status);
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertFalse(status.active());
     }
 
@@ -536,6 +554,7 @@ class SystemMonitoringServiceTest {
         Thread.sleep(10000);
 
         SystemMonitoringService.MonitoringStatus status = monitoringService.getStatus();
+        assertNotNull(status, "MonitoringStatus should not be null");
         assertTrue(status.active());
         assertTrue(status.metricsCount() >= 0);
 
