@@ -13,9 +13,9 @@ import io.aurigraph.v11.contracts.ActiveContractService;
 import io.aurigraph.v11.contracts.SmartContractService;
 import io.aurigraph.v11.contracts.enterprise.EnterpriseDashboardService;
 import io.aurigraph.v11.blockchain.governance.GovernanceStatsService;
-import io.aurigraph.v11.blockchain.MempoolService;
+// import io.aurigraph.v11.blockchain.MempoolService;  // Removed - class deleted
 import io.aurigraph.v11.storage.LevelDBStorageService;
-import io.aurigraph.v11.api.Phase2BlockchainService;
+// import io.aurigraph.v11.api.Phase2BlockchainService;  // Removed - class deleted
 import io.quarkus.test.Mock;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
