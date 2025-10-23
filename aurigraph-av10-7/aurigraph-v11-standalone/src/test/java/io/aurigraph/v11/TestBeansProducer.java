@@ -19,17 +19,20 @@ import io.aurigraph.v11.api.Phase2BlockchainService;
 import io.quarkus.test.Mock;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
 import org.mockito.Mockito;
 
 /**
  * Test bean producer for mocking unimplemented services
  * This prevents CDI unsatisfied dependency errors during testing
+ * Added @Named qualifiers to resolve bean ambiguity issues
  */
 @ApplicationScoped
 public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-ethereum-bridge")
     @ApplicationScoped
     public EthereumBridgeService ethereumBridgeService() {
         return Mockito.mock(EthereumBridgeService.class);
@@ -37,6 +40,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-system-monitoring")
     @ApplicationScoped
     public SystemMonitoringService systemMonitoringService() {
         return Mockito.mock(SystemMonitoringService.class);
@@ -44,6 +48,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-network-monitoring")
     @ApplicationScoped
     public NetworkMonitoringService networkMonitoringService() {
         return Mockito.mock(NetworkMonitoringService.class);
@@ -59,6 +64,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-parallel-transaction-executor")
     @ApplicationScoped
     public ParallelTransactionExecutor parallelTransactionExecutor() {
         return Mockito.mock(ParallelTransactionExecutor.class);
@@ -66,6 +72,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-ethereum-adapter")
     @ApplicationScoped
     public EthereumAdapter ethereumAdapter() {
         return Mockito.mock(EthereumAdapter.class);
@@ -73,6 +80,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-quantum-crypto-provider")
     @ApplicationScoped
     public QuantumCryptoProvider quantumCryptoProvider() {
         return Mockito.mock(QuantumCryptoProvider.class);
@@ -80,6 +88,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-hsm-crypto-service")
     @ApplicationScoped
     public HSMCryptoService hsmCryptoService() {
         return Mockito.mock(HSMCryptoService.class);
@@ -87,6 +96,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-enterprise-portal-service")
     @ApplicationScoped
     public EnterprisePortalService enterprisePortalService() {
         return Mockito.mock(EnterprisePortalService.class);
@@ -94,6 +104,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-active-contract-service")
     @ApplicationScoped
     public ActiveContractService activeContractService() {
         return Mockito.mock(ActiveContractService.class);
@@ -101,6 +112,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-smart-contract-service")
     @ApplicationScoped
     public SmartContractService smartContractService() {
         return Mockito.mock(SmartContractService.class);
@@ -108,6 +120,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-enterprise-dashboard-service")
     @ApplicationScoped
     public EnterpriseDashboardService enterpriseDashboardService() {
         return Mockito.mock(EnterpriseDashboardService.class);
@@ -115,6 +128,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-governance-stats-service")
     @ApplicationScoped
     public GovernanceStatsService governanceStatsService() {
         return Mockito.mock(GovernanceStatsService.class);
@@ -130,6 +144,7 @@ public class TestBeansProducer {
 
     @Produces
     @Mock
+    @Named("test-leveldb-storage-service")
     @ApplicationScoped
     public LevelDBStorageService levelDBStorageService() {
         return Mockito.mock(LevelDBStorageService.class);

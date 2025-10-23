@@ -274,11 +274,8 @@ function App() {
         return <DemoApp />;
       case 'whitepaper':
         return <Whitepaper />;
-<<<<<<< HEAD
-=======
       case 'users':
         return <UserManagement />;
->>>>>>> a7304ef59afaf2dcbea700d5a7b06abec10ae154
       case 'settings':
         return (
           <div style={{ padding: '24px' }}>
