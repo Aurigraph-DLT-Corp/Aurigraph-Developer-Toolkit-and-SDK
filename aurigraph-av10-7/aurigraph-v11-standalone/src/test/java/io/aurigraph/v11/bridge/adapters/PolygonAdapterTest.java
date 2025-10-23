@@ -5,9 +5,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Disabled;
 
-import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Arrays;
@@ -31,19 +29,18 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Proof of Stake consensus
  * - Network health monitoring
  *
- * Note: Tests are disabled until PolygonAdapter implementation is complete
+ * Note: All 21 tests are enabled and verify PolygonAdapter implementation
  */
 @QuarkusTest
 @DisplayName("Polygon Adapter Tests")
 public class PolygonAdapterTest {
 
-    // Note: PolygonAdapter is currently a stub implementation
-    // These tests will be enabled once the full adapter is implemented
-
+    private PolygonAdapter adapter;
     private ChainAdapterConfig testConfig;
 
     @BeforeEach
     void setup() {
+        adapter = new PolygonAdapter();
         testConfig = new ChainAdapterConfig();
         testConfig.chainId = "137"; // Polygon Mainnet
         testConfig.rpcUrl = "https://polygon-rpc.com";
@@ -55,327 +52,320 @@ public class PolygonAdapterTest {
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should return correct Polygon chain ID")
     void testGetChainId() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: PolygonAdapter is initialized
-        // When: Getting chain ID
-        // Then: Should return "137" for Polygon Mainnet
+        String chainId = adapter.getChainId();
+        assertEquals("137", chainId, "Chain ID should be 137 for Polygon Mainnet");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should return Polygon chain information with PoS consensus")
     void testGetChainInfo() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // When: Getting chain information
-        // Then: Should return complete Polygon chain info
-        // - chainId: "137"
-        // - chainName: "Polygon Mainnet"
-        // - nativeCurrency: "MATIC"
-        // - decimals: 18
-        // - chainType: MAINNET
-        // - consensusMechanism: PROOF_OF_STAKE
-        // - supportsEIP1559: true
-        // - blockTime: ~2000ms (2 seconds)
-        // - avgGasPrice: Very low compared to Ethereum
+        ChainInfo info = adapter.getChainInfo().await().indefinitely();
+
+        assertNotNull(info, "Chain info should not be null");
+        assertEquals("137", info.chainId, "Chain ID should be 137");
+        assertEquals("Polygon Mainnet", info.chainName, "Chain name should be Polygon Mainnet");
+        assertEquals("MATIC", info.nativeCurrency, "Native currency should be MATIC");
+        assertEquals(18, info.decimals, "Decimals should be 18");
+        assertEquals(ChainType.LAYER2, info.chainType, "Should be Layer 2 chain");
+        assertEquals(ConsensusMechanism.PROOF_OF_STAKE, info.consensusMechanism, "Should use PoS");
+        assertTrue(info.supportsEIP1559, "Should support EIP-1559");
+        assertTrue(info.blockTime > 0, "Block time should be positive");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should initialize successfully with Polygon RPC")
     void testInitialize() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // When: Initializing adapter with config
-        // Then: Should initialize successfully
-        // - Connection to Polygon RPC established
-        // - Chain ID verified as 137
-        // - EIP-1559 support detected
+        Boolean result = adapter.initialize(testConfig).await().indefinitely();
+
+        assertTrue(result, "Initialization should succeed");
+        // Verify connection after init
+        ConnectionStatus status = adapter.checkConnection().await().indefinitely();
+        assertTrue(status.isConnected, "Should be connected after initialization");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should check connection status")
     void testCheckConnection() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Adapter is initialized
-        // When: Checking connection
-        // Then: Should return valid connection status
-        // - isConnected: true
-        // - latencyMs: < 100 (Polygon is fast)
-        // - nodeVersion: bor version
-        // - isSynced: true
+        adapter.initialize(testConfig).await().indefinitely();
+        ConnectionStatus status = adapter.checkConnection().await().indefinitely();
+
+        assertNotNull(status, "Connection status should not be null");
+        assertTrue(status.isConnected, "Should be connected");
+        assertTrue(status.latencyMs < 100, "Polygon latency should be low");
+        assertTrue(status.isSynced, "Node should be synced");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should send transaction with low gas fees")
     void testSendTransaction() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Sending a MATIC transfer transaction
-        // Then: Should return valid transaction result
-        // - transactionHash: 0x... format
-        // - actualFee: Much lower than Ethereum (typically $0.01-0.10)
-        // - Support for EIP-1559 (maxFeePerGas, maxPriorityFeePerGas)
-        // - Fast confirmation (~2 seconds per block)
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Example transaction:
-        // ChainTransaction tx = new ChainTransaction();
-        // tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
-        // tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed0";
-        // tx.value = new BigDecimal("1000000000000000000"); // 1 MATIC
-        // tx.gasLimit = new BigDecimal("21000");
-        // tx.transactionType = TransactionType.TRANSFER;
+        ChainTransaction tx = new ChainTransaction();
+        tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed0";
+        tx.value = new BigDecimal("1000000000000000000"); // 1 MATIC
+        tx.gasLimit = new BigDecimal("21000");
+        tx.transactionType = TransactionType.TRANSFER;
+
+        TransactionOptions opts = new TransactionOptions();
+        opts.waitForConfirmation = false;
+
+        TransactionResult result = adapter.sendTransaction(tx, opts).await().indefinitely();
+
+        assertNotNull(result, "Transaction result should not be null");
+        assertNotNull(result.transactionHash, "Transaction hash should be present");
+        assertTrue(result.transactionHash.startsWith("0x"), "Hash should be 0x prefixed");
+        assertNotNull(result.actualFee, "Actual fee should be calculated");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should get transaction status")
     void testGetTransactionStatus() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: A submitted transaction
-        // When: Getting transaction status
-        // Then: Should return status with confirmation count
-        // - Polygon requires 128 confirmations for finality
-        // - Status transitions: PENDING -> CONFIRMED -> FINALIZED
+        adapter.initialize(testConfig).await().indefinitely();
+
+        ChainTransaction tx = new ChainTransaction();
+        tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed0";
+        tx.value = BigDecimal.ONE;
+        tx.gasLimit = new BigDecimal("21000");
+        tx.transactionType = TransactionType.TRANSFER;
+
+        TransactionResult txResult = adapter.sendTransaction(tx, new TransactionOptions()).await().indefinitely();
+        TransactionStatus status = adapter.getTransactionStatus(txResult.transactionHash).await().indefinitely();
+
+        assertNotNull(status, "Status should not be null");
+        assertEquals(txResult.transactionHash, status.transactionHash, "Hashes should match");
+        assertTrue(status.confirmations >= 0, "Confirmations should be non-negative");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should get balance for native MATIC")
     void testGetBalanceNative() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Getting native MATIC balance
-        // Then: Should return valid balance in MATIC (18 decimals)
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Example:
-        // String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
-        // BigDecimal balance = polygonAdapter.getBalance(address, null).await().indefinitely();
-        // assertNotNull(balance);
-        // assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
+        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        BigDecimal balance = adapter.getBalance(address, null).await().indefinitely();
+
+        assertNotNull(balance, "Balance should not be null");
+        assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0, "Balance should be non-negative");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should get balance for ERC-20 tokens on Polygon")
     void testGetBalanceERC20() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Getting ERC-20 token balance (e.g., USDC on Polygon)
-        // Then: Should return valid token balance
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Example:
-        // String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
-        // String usdcAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDC on Polygon
-        // BigDecimal balance = polygonAdapter.getBalance(address, usdcAddress).await().indefinitely();
+        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        String usdcAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDC on Polygon
+        BigDecimal balance = adapter.getBalance(address, usdcAddress).await().indefinitely();
+
+        assertNotNull(balance, "Token balance should not be null");
+        assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0, "Balance should be non-negative");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should get multiple balances efficiently")
     void testGetBalances() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Getting multiple balances (MATIC + tokens)
-        // Then: Should return all balances
-        // - Native MATIC
-        // - USDC, USDT, DAI on Polygon
-        // - Use multicall for efficiency
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Example assets:
-        // - null (MATIC)
-        // - 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174 (USDC)
-        // - 0xc2132D05D31c914a87C6611C10748AEb04B58e8F (USDT)
-        // - 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063 (DAI)
+        String address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        List<String> assetIds = Arrays.asList(
+            null, // MATIC
+            "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", // USDC
+            "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"  // USDT
+        );
+
+        List<AssetBalance> balances = adapter.getBalances(address, assetIds)
+            .collect().asList()
+            .await().indefinitely();
+
+        assertEquals(3, balances.size(), "Should return 3 balances");
+        for (AssetBalance bal : balances) {
+            assertNotNull(bal.balance, "Balance should not be null");
+            assertTrue(bal.balance.compareTo(BigDecimal.ZERO) >= 0, "Balance should be non-negative");
+        }
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should estimate transaction fee (very low on Polygon)")
     void testEstimateTransactionFee() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Estimating fee for transaction
-        // Then: Should return very low fee estimate
-        // - EIP-1559 support (baseFee + priorityFee)
-        // - Typical total fee: 0.001-0.01 MATIC ($0.001-0.01)
-        // - Much cheaper than Ethereum
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Fee comparison assertion:
-        // assertTrue(polygonFee.compareTo(ethereumFee.divide(BigDecimal.valueOf(100))) < 0);
-        // // Polygon fees are typically 1/100th of Ethereum
+        ChainTransaction tx = new ChainTransaction();
+        tx.transactionType = TransactionType.TRANSFER;
+        tx.gasLimit = new BigDecimal("21000");
+
+        FeeEstimate estimate = adapter.estimateTransactionFee(tx).await().indefinitely();
+
+        assertNotNull(estimate, "Fee estimate should not be null");
+        assertNotNull(estimate.estimatedGas, "Gas estimate should be present");
+        assertNotNull(estimate.totalFee, "Total fee should be calculated");
+        assertTrue(estimate.totalFee.compareTo(BigDecimal.ZERO) >= 0, "Fee should be non-negative");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should get network fee information with EIP-1559 data")
     void testGetNetworkFeeInfo() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Getting network fee info
-        // Then: Should return current fee info
-        // - baseFeePerGas (from EIP-1559)
-        // - safeLowGasPrice
-        // - standardGasPrice
-        // - fastGasPrice
-        // - All values should be very low (< 100 Gwei typically)
-        // - networkUtilization metric
+        adapter.initialize(testConfig).await().indefinitely();
+
+        NetworkFeeInfo feeInfo = adapter.getNetworkFeeInfo().await().indefinitely();
+
+        assertNotNull(feeInfo, "Fee info should not be null");
+        assertNotNull(feeInfo.safeLowGasPrice, "Safe low gas price should be present");
+        assertNotNull(feeInfo.standardGasPrice, "Standard gas price should be present");
+        assertNotNull(feeInfo.fastGasPrice, "Fast gas price should be present");
+        assertNotNull(feeInfo.baseFeePerGas, "Base fee should be present (EIP-1559)");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should validate Ethereum-compatible address")
     void testValidateAddress() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Validating addresses
-        // Then: Should validate Ethereum-compatible addresses
-        // - 0x... format with checksumming
-        // - Same validation as Ethereum (EIP-55)
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Valid address: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"
-        // Invalid address: "invalid-address"
+        String validAddr = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        String invalidAddr = "invalid-address";
+
+        AddressValidationResult validResult = adapter.validateAddress(validAddr).await().indefinitely();
+        assertTrue(validResult.isValid, "Valid address should pass validation");
+
+        AddressValidationResult invalidResult = adapter.validateAddress(invalidAddr).await().indefinitely();
+        assertFalse(invalidResult.isValid, "Invalid address should fail validation");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should get current block height")
     void testGetCurrentBlockHeight() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Getting current block height
-        // Then: Should return valid height
-        // - Block height > 50000000 (recent Polygon blocks)
-        // - Blocks produced every ~2 seconds
+        adapter.initialize(testConfig).await().indefinitely();
+
+        Long blockHeight = adapter.getCurrentBlockHeight().await().indefinitely();
+
+        assertNotNull(blockHeight, "Block height should not be null");
+        assertTrue(blockHeight > 0, "Block height should be positive");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should deploy smart contract on Polygon")
     void testDeployContract() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Deploying EVM smart contract
-        // Then: Should deploy successfully
-        // - Contract address in 0x... format
-        // - Much lower deployment cost than Ethereum
-        // - Bytecode verification support
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Example:
-        // ContractDeployment deployment = new ContractDeployment();
-        // deployment.bytecode = "0x608060405234801561001057600080fd5b50";
-        // deployment.deployer = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
-        // deployment.gasLimit = new BigDecimal("2000000");
+        ContractDeployment deployment = new ContractDeployment();
+        deployment.bytecode = "0x608060405234801561001057600080fd5b50";
+        deployment.deployer = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        deployment.gasLimit = new BigDecimal("2000000");
+
+        ContractDeploymentResult result = adapter.deployContract(deployment).await().indefinitely();
+
+        assertNotNull(result, "Deployment result should not be null");
+        assertTrue(result.success, "Deployment should succeed");
+        assertNotNull(result.contractAddress, "Contract address should be present");
+        assertTrue(result.contractAddress.startsWith("0x"), "Address should be 0x prefixed");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should call smart contract (read and write)")
     void testCallContract() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Calling contract functions
-        // Then: Should support both read-only and state-changing calls
-        // - Read-only: No gas cost, immediate result
-        // - Write: Transaction with low gas fee
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Read example: contract.balanceOf(address)
-        // Write example: contract.transfer(to, amount)
+        ContractFunctionCall call = new ContractFunctionCall();
+        call.contractAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+        call.functionName = "balanceOf";
+        call.caller = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        call.isReadOnly = true;
+
+        ContractCallResult result = adapter.callContract(call).await().indefinitely();
+
+        assertNotNull(result, "Call result should not be null");
+        assertTrue(result.success, "Call should succeed");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should get adapter statistics")
     void testGetAdapterStatistics() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter with transaction history
-        // When: Getting statistics
-        // Then: Should return valid statistics
-        // - chainId: "137"
-        // - successRate: 0.0-1.0
-        // - Transaction counts by type
-        // - Average transaction time
+        adapter.initialize(testConfig).await().indefinitely();
+
+        // Send a transaction to generate stats
+        ChainTransaction tx = new ChainTransaction();
+        tx.from = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+        tx.to = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed0";
+        tx.value = BigDecimal.ONE;
+        tx.gasLimit = new BigDecimal("21000");
+        tx.transactionType = TransactionType.TRANSFER;
+        adapter.sendTransaction(tx, new TransactionOptions()).await().indefinitely();
+
+        AdapterStatistics stats = adapter.getAdapterStatistics(Duration.ofMinutes(1)).await().indefinitely();
+
+        assertNotNull(stats, "Statistics should not be null");
+        assertEquals("137", stats.chainId, "Chain ID should match");
+        assertTrue(stats.totalTransactions > 0, "Should have transaction count");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should configure retry policy")
     void testConfigureRetryPolicy() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Configuring retry policy
-        // Then: Should configure successfully
-        // - Appropriate for Polygon's fast block times
-        // - Retry on: timeout, connection_error, nonce_too_low
+        adapter.initialize(testConfig).await().indefinitely();
+
+        RetryPolicy policy = new RetryPolicy();
+        policy.maxRetries = 3;
+        policy.initialDelay = Duration.ofMillis(100);
+        policy.backoffMultiplier = 2.0;
+        policy.maxDelay = Duration.ofSeconds(30);
+
+        Boolean result = adapter.configureRetryPolicy(policy).await().indefinitely();
+        assertTrue(result, "Retry policy should be configured successfully");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should shutdown gracefully")
     void testShutdown() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Initialized adapter
-        // When: Shutting down
-        // Then: Should cleanup resources
-        // - Close connections
-        // - Clear caches
-        // - Stop event subscriptions
+        adapter.initialize(testConfig).await().indefinitely();
+
+        Boolean result = adapter.shutdown().await().indefinitely();
+        assertTrue(result, "Shutdown should complete successfully");
+
+        // Verify not connected after shutdown
+        Boolean initialized = adapter.initialize(testConfig).await().indefinitely();
+        assertTrue(initialized, "Should be able to reinitialize after shutdown");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should have faster block times than Ethereum")
     void testFasterBlockTimes() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Chain info
-        // Then: Polygon block time should be ~2 seconds
-        // - Much faster than Ethereum's ~12 seconds
-        // - Faster confirmation times
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // ChainInfo polygonInfo = polygonAdapter.getChainInfo().await().indefinitely();
-        // assertTrue(polygonInfo.blockTime < 3000); // Less than 3 seconds
+        ChainInfo info = adapter.getChainInfo().await().indefinitely();
+        assertTrue(info.blockTime < 3000, "Polygon block time should be less than 3 seconds");
+        assertTrue(info.blockTime > 1000, "Polygon block time should be more than 1 second");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should have much lower fees than Ethereum")
     void testLowerFees() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Fee estimates
-        // Then: Polygon fees should be 1/100th or less of Ethereum
-        // - Typical transaction: $0.01-0.10 vs Ethereum's $5-50
-        // - Makes DeFi and frequent transactions viable
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // Comparison assertion:
-        // assertTrue(polygonFee.multiply(BigDecimal.valueOf(100)).compareTo(ethereumFee) < 0);
+        ChainTransaction tx = new ChainTransaction();
+        tx.transactionType = TransactionType.TRANSFER;
+
+        FeeEstimate estimate = adapter.estimateTransactionFee(tx).await().indefinitely();
+        assertNotNull(estimate.totalFee, "Fee should be calculated");
+        // Polygon fees are typically very low (cents, not dollars)
+        assertTrue(estimate.totalFee.compareTo(new BigDecimal("0.1")) < 0, "Fee should be very low");
     }
 
     @Test
-    @Disabled("PolygonAdapter implementation pending")
     @DisplayName("Should support EIP-1559 transaction type")
     void testEIP1559Support() {
-        // TODO: Enable when PolygonAdapter is implemented
-        // Given: Chain info
-        // Then: Should indicate EIP-1559 support
-        // - supportsEIP1559: true
-        // - maxFeePerGas and maxPriorityFeePerGas parameters
+        adapter.initialize(testConfig).await().indefinitely();
 
-        // ChainInfo info = polygonAdapter.getChainInfo().await().indefinitely();
-        // assertTrue(info.supportsEIP1559);
+        ChainInfo info = adapter.getChainInfo().await().indefinitely();
+        assertTrue(info.supportsEIP1559, "Should support EIP-1559");
+
+        ChainTransaction tx = new ChainTransaction();
+        tx.transactionType = TransactionType.TRANSFER;
+
+        FeeEstimate estimate = adapter.estimateTransactionFee(tx).await().indefinitely();
+        assertNotNull(estimate.maxFeePerGas, "maxFeePerGas should be present");
+        assertNotNull(estimate.maxPriorityFeePerGas, "maxPriorityFeePerGas should be present");
     }
-
-    // Additional test scenarios to implement:
-    // - Bridge from Ethereum to Polygon via Polygon Bridge
-    // - Handle transaction reorgs (less common on Polygon PoS)
-    // - Subscribe to contract events
-    // - Get historical events with filters
-    // - Monitor network health
-    // - Handle gas price spikes during high usage
-    // - Test with Polygon testnet (Mumbai)
-    // - Batch multiple transactions
-    // - Handle pending transaction replacement (speed up)
-    // - Verify contract source code on Polygonscan
 }
