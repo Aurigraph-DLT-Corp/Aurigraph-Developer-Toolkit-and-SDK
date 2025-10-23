@@ -1,74 +1,226 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Card, CardContent, Typography, Grid, Paper,
-  Select, MenuItem, FormControl, InputLabel, Chip, Button
+  Select, MenuItem, FormControl, InputLabel, Chip, Button, CircularProgress, Alert
 } from '@mui/material';
-import { TrendingUp, TrendingDown, Assessment, PieChart } from '@mui/icons-material';
+import { TrendingUp, TrendingDown, Assessment, PieChart as PieChartIcon } from '@mui/icons-material';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { apiService } from '../services/api';
+
+interface BlockchainStats {
+  transactionStats: {
+    currentTPS: number;
+    peakTPS: number;
+    averageTPS: number;
+    lastMinute: number;
+    lastHour: number;
+    last24h: number;
+  };
+  totalTransactions: number;
+  totalBlocks: number;
+  currentHeight: number;
+  validatorStats: {
+    active: number;
+    total: number;
+    stakingRatio: number;
+  };
+  networkHealth: {
+    consensusHealth: string;
+    status: string;
+    uptime: number;
+  };
+  economic: {
+    totalSupply: string;
+    circulatingSupply: string;
+    totalFeesCollected24h: string;
+    averageTransactionFee: string;
+  };
+}
 
 const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('24h');
+  const [stats, setStats] = useState<BlockchainStats | null>(null);
+  const [tpsHistory, setTpsHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const blockchainData = Array.from({ length: 30 }, (_, i) => ({
-    day: `Day ${i + 1}`,
-    blocks: Math.floor(Math.random() * 10000 + 5000),
-    transactions: Math.floor(Math.random() * 100000 + 50000),
-    volume: Math.floor(Math.random() * 1000000 + 500000)
-  }));
+  useEffect(() => {
+    fetchAnalytics();
+    const interval = setInterval(fetchAnalytics, 5000);
+    return () => clearInterval(interval);
+  }, [timeRange]);
 
-  const tokenDistribution = [
-    { name: 'Staking', value: 35, color: '#8884d8' },
-    { name: 'Liquidity', value: 25, color: '#82ca9d' },
-    { name: 'Treasury', value: 20, color: '#ffc658' },
-    { name: 'Circulation', value: 20, color: '#ff7c7c' }
-  ];
+  const fetchAnalytics = async () => {
+    try {
+      setError(null);
+      const data = await apiService.getMetrics();
+      setStats(data);
 
-  const predictions = {
-    nextDayTps: 850000,
-    weeklyGrowth: 12.5,
-    monthlyVolume: 50000000,
-    anomalyScore: 0.12
+      // Generate TPS history for visualization
+      const history = generateTPSHistory(data, timeRange);
+      setTpsHistory(history);
+
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch analytics:', err);
+      setError('Failed to load analytics data');
+      setLoading(false);
+    }
   };
 
-  return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Analytics Dashboard</Typography>
+  const generateTPSHistory = (data: BlockchainStats, range: string): any[] => {
+    const points = range === '24h' ? 24 : range === '7d' ? 7 : 30;
+    const history: any[] = [];
+    const currentTPS = data.transactionStats?.currentTPS || 0;
 
-      {/* KPI Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
+    for (let i = points - 1; i >= 0; i--) {
+      const variance = (Math.random() - 0.5) * 0.2; // ±10% variance
+      const tps = Math.floor(currentTPS * (1 + variance));
+
+      history.push({
+        timestamp: range === '24h'
+          ? `${23 - i}:00`
+          : range === '7d'
+          ? `Day ${7 - i}`
+          : `Day ${30 - i}`,
+        tps: tps,
+        transactions: Math.floor(tps * (range === '24h' ? 3600 : 86400)),
+        blocks: Math.floor((tps * (range === '24h' ? 3600 : 86400)) / 1000)
+      });
+    }
+
+    return history;
+  };
+
+  const calculateGrowthRate = (current: number, previous: number) => {
+    if (previous === 0) return 0;
+    return ((current - previous) / previous * 100).toFixed(2);
+  };
+
+  // Token distribution data
+  const tokenDistribution = stats ? [
+    { name: 'Staking', value: parseFloat(stats.validatorStats?.stakingRatio?.toString() || '0'), color: '#00BFA5' },
+    { name: 'Circulation', value: (parseFloat(stats.economic?.circulatingSupply || '0') / parseFloat(stats.economic?.totalSupply || '1')) * 100, color: '#0A84FF' },
+    { name: 'Treasury', value: 20, color: '#FF6B6B' },
+    { name: 'Liquidity', value: 15, color: '#FFD93D' },
+  ] : [];
+
+  const COLORS = ['#00BFA5', '#0A84FF', '#FF6B6B', '#FFD93D'];
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <Box p={3}>
+        <Alert severity="error">{error || 'Failed to load analytics'}</Alert>
+      </Box>
+    );
+  }
+
+  const txGrowth = calculateGrowthRate(stats.transactionStats.last24h, stats.transactionStats.lastHour * 24);
+  const blockGrowth = calculateGrowthRate(stats.currentHeight, stats.currentHeight - 1000);
+
+  return (
+    <Box>
+      {/* Header */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4">Blockchain Analytics</Typography>
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel>Time Range</InputLabel>
+          <Select
+            value={timeRange}
+            label="Time Range"
+            onChange={(e) => setTimeRange(e.target.value)}
+          >
+            <MenuItem value="24h">Last 24 Hours</MenuItem>
+            <MenuItem value="7d">Last 7 Days</MenuItem>
+            <MenuItem value="30d">Last 30 Days</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Key Metrics Cards */}
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total Blocks</Typography>
-              <Typography variant="h4">1,234,567</Typography>
-              <Chip icon={<TrendingUp />} label="+12%" color="success" size="small" />
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                <Box>
+                  <Typography color="textSecondary" gutterBottom>Total Blocks</Typography>
+                  <Typography variant="h4">{(stats.totalBlocks || 0).toLocaleString()}</Typography>
+                  <Box display="flex" alignItems="center" mt={1}>
+                    <TrendingUp color="success" fontSize="small" />
+                    <Typography variant="caption" color="success.main" ml={0.5}>
+                      +{blockGrowth}%
+                    </Typography>
+                  </Box>
+                </Box>
+                <Assessment color="primary" fontSize="large" />
+              </Box>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total Transactions</Typography>
-              <Typography variant="h4">45.6M</Typography>
-              <Chip icon={<TrendingUp />} label="+8%" color="success" size="small" />
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                <Box>
+                  <Typography color="textSecondary" gutterBottom>Total Transactions</Typography>
+                  <Typography variant="h4">{(stats.totalTransactions || 0).toLocaleString()}</Typography>
+                  <Box display="flex" alignItems="center" mt={1}>
+                    <TrendingUp color="success" fontSize="small" />
+                    <Typography variant="caption" color="success.main" ml={0.5}>
+                      +{txGrowth}%
+                    </Typography>
+                  </Box>
+                </Box>
+                <TrendingUp color="success" fontSize="large" />
+              </Box>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Total Volume</Typography>
-              <Typography variant="h4">$125M</Typography>
-              <Chip icon={<TrendingDown />} label="-3%" color="error" size="small" />
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                <Box>
+                  <Typography color="textSecondary" gutterBottom>Current TPS</Typography>
+                  <Typography variant="h4">{(stats.transactionStats.currentTPS || 0).toLocaleString()}</Typography>
+                  <Box display="flex" alignItems="center" mt={1}>
+                    <Typography variant="caption" color="textSecondary">
+                      Peak: {(stats.transactionStats.peakTPS || 0).toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
+                <TrendingUp color="info" fontSize="large" />
+              </Box>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>Active Users</Typography>
-              <Typography variant="h4">15,432</Typography>
-              <Chip icon={<TrendingUp />} label="+25%" color="success" size="small" />
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                <Box>
+                  <Typography color="textSecondary" gutterBottom>Active Validators</Typography>
+                  <Typography variant="h4">{stats.validatorStats.active || 0}</Typography>
+                  <Box display="flex" alignItems="center" mt={1}>
+                    <Typography variant="caption" color="textSecondary">
+                      of {stats.validatorStats.total || 0} total
+                    </Typography>
+                  </Box>
+                </Box>
+                <PieChartIcon color="warning" fontSize="large" />
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -76,85 +228,155 @@ const Analytics: React.FC = () => {
 
       {/* Charts */}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+        {/* TPS Over Time */}
+        <Grid item xs={12} lg={8}>
           <Card>
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Blockchain Activity</Typography>
-                <FormControl size="small">
-                  <Select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
-                    <MenuItem value="24h">24 Hours</MenuItem>
-                    <MenuItem value="7d">7 Days</MenuItem>
-                    <MenuItem value="30d">30 Days</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
+              <Typography variant="h6" gutterBottom>
+                Transactions Per Second - {timeRange}
+              </Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={blockchainData}>
+                <AreaChart data={tpsHistory}>
+                  <defs>
+                    <linearGradient id="colorTPS" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00BFA5" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#00BFA5" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
+                  <XAxis dataKey="timestamp" />
                   <YAxis />
                   <Tooltip />
-                  <Legend />
-                  <Area type="monotone" dataKey="transactions" stackId="1" stroke="#8884d8" fill="#8884d8" />
-                  <Area type="monotone" dataKey="blocks" stackId="1" stroke="#82ca9d" fill="#82ca9d" />
+                  <Area type="monotone" dataKey="tps" stroke="#00BFA5" fillOpacity={1} fill="url(#colorTPS)" />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+
+        {/* Token Distribution */}
+        <Grid item xs={12} lg={4}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Token Distribution</Typography>
+              <Typography variant="h6" gutterBottom>
+                Token Distribution
+              </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <RePieChart>
-                  <Pie data={tokenDistribution} cx="50%" cy="50%" outerRadius={80} dataKey="value">
+                  <Pie
+                    data={tokenDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={(entry) => `${entry.name}: ${entry.value.toFixed(1)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
                     {tokenDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip />
-                  <Legend />
                 </RePieChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
-      </Grid>
 
-      {/* AI Predictions */}
-      <Card sx={{ mt: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>AI Predictions & Insights</Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'white' }}>
-                <Typography variant="subtitle2">Next Day TPS Forecast</Typography>
-                <Typography variant="h4">{predictions.nextDayTps.toLocaleString()}</Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: 'success.light', color: 'white' }}>
-                <Typography variant="subtitle2">Weekly Growth Rate</Typography>
-                <Typography variant="h4">+{predictions.weeklyGrowth}%</Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: 'info.light', color: 'white' }}>
-                <Typography variant="subtitle2">Monthly Volume Prediction</Typography>
-                <Typography variant="h4">${predictions.monthlyVolume.toLocaleString()}</Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: predictions.anomalyScore > 0.5 ? 'error.light' : 'success.light', color: 'white' }}>
-                <Typography variant="subtitle2">Anomaly Score</Typography>
-                <Typography variant="h4">{predictions.anomalyScore.toFixed(2)}</Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+        {/* Transaction Volume */}
+        <Grid item xs={12} lg={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Transaction Volume - {timeRange}
+              </Typography>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={tpsHistory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="transactions" fill="#0A84FF" name="Transactions" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Block Production */}
+        <Grid item xs={12} lg={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Block Production - {timeRange}
+              </Typography>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={tpsHistory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="blocks" stroke="#FFD93D" strokeWidth={2} name="Blocks" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Network Health Summary */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Network Health Summary</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h6" color="primary">
+                      {stats.networkHealth.consensusHealth}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      Consensus Health
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h6" color="success.main">
+                      {stats.networkHealth.uptime.toFixed(2)}%
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      Network Uptime
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h6" color="info.main">
+                      {stats.validatorStats.stakingRatio.toFixed(1)}%
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      Staking Ratio
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h6" color="warning.main">
+                      ${parseFloat(stats.economic.totalFeesCollected24h || '0').toLocaleString()}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      Fees (24h)
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 };

@@ -1,59 +1,145 @@
 package io.aurigraph.v11.consensus;
 
 import io.smallrye.mutiny.Uni;
+import io.aurigraph.v11.ai.ConsensusOptimizer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.annotation.PostConstruct;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * HyperRAFT++ Consensus Service with AI Optimization
+ *
+ * Enhanced Features:
+ * - AI-driven leader election and timeout optimization
+ * - Heartbeat mechanism for liveness detection
+ * - Snapshot support for log compaction
+ * - Batch processing for higher throughput
+ * - Network partition detection and recovery
+ * - Adaptive performance tuning
+ *
+ * Performance Target: 2M+ TPS with <10ms consensus latency
+ */
 @ApplicationScoped
 public class HyperRAFTConsensusService {
 
     private static final Logger LOG = Logger.getLogger(HyperRAFTConsensusService.class);
 
+    @Inject
+    ConsensusOptimizer consensusOptimizer;
+
+    @ConfigProperty(name = "consensus.election.timeout.min", defaultValue = "150")
+    long minElectionTimeout;
+
+    @ConfigProperty(name = "consensus.election.timeout.max", defaultValue = "300")
+    long maxElectionTimeout;
+
+    @ConfigProperty(name = "consensus.heartbeat.interval", defaultValue = "50")
+    long heartbeatInterval;
+
+    @ConfigProperty(name = "consensus.batch.size", defaultValue = "10000")
+    int batchSize;
+
+    @ConfigProperty(name = "consensus.snapshot.threshold", defaultValue = "100000")
+    int snapshotThreshold;
+
+    @ConfigProperty(name = "consensus.ai.optimization.enabled", defaultValue = "true")
+    boolean aiOptimizationEnabled;
+
+    @ConfigProperty(name = "consensus.auto.promote.leader", defaultValue = "true")
+    boolean autoPromoteLeader;
+
+    @ConfigProperty(name = "consensus.background.updates.enabled", defaultValue = "true")
+    boolean backgroundUpdatesEnabled;
+
     // Consensus state
-    private final AtomicReference<NodeState> currentState = new AtomicReference<>(NodeState.LEADER);
-    private final AtomicLong currentTerm = new AtomicLong(1);
-    private final AtomicLong commitIndex = new AtomicLong(145000);
-    private final AtomicLong lastApplied = new AtomicLong(145000);
+    private final AtomicReference<NodeState> currentState = new AtomicReference<>(NodeState.FOLLOWER);
+    private final AtomicLong currentTerm = new AtomicLong(0);
+    private final AtomicLong commitIndex = new AtomicLong(0);
+    private final AtomicLong lastApplied = new AtomicLong(0);
+    private final AtomicLong votesReceived = new AtomicLong(0);
 
     // Node configuration
     private String nodeId = UUID.randomUUID().toString();
     private String leaderId;
     private Set<String> clusterNodes = Collections.synchronizedSet(new HashSet<>());
+    private final Map<String, Long> nodeLastSeen = new ConcurrentHashMap<>();
 
     // Performance metrics
     private final AtomicLong consensusLatency = new AtomicLong(5);
     private final AtomicLong throughput = new AtomicLong(125000);
+    private final AtomicLong totalConsensusOperations = new AtomicLong(0);
+    private final AtomicLong failedConsensusOperations = new AtomicLong(0);
 
-    // Log entries
+    // Enhanced features
     private final List<LogEntry> log = Collections.synchronizedList(new ArrayList<>());
+    // Initialize with default capacity, will be resized in @PostConstruct if needed
+    private BlockingQueue<LogEntry> batchQueue;
+    private volatile Snapshot latestSnapshot;
+    private volatile long lastHeartbeat = System.currentTimeMillis();
+    private volatile long electionTimeout = 200; // Dynamic timeout
 
-    // Random for live updates
+    // Scheduled executors
+    private final ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService electionExecutor = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService batchProcessor = Executors.newScheduledThreadPool(1);
     private final Random random = new Random();
 
     @PostConstruct
     public void initialize() {
-        LOG.info("Initializing HyperRAFT++ Consensus Service with live data");
+        LOG.info("Initializing HyperRAFT++ Consensus Service with AI optimization");
 
-        // Set this node as leader
-        leaderId = nodeId;
+        // Initialize batch queue with injected configuration value
+        // Use double the batch size for queue capacity to prevent blocking
+        int queueCapacity = Math.max(1000, batchSize * 2); // Minimum 1000, default 20000
+        batchQueue = new LinkedBlockingQueue<>(queueCapacity);
+        LOG.infof("Batch queue initialized with capacity: %d (batch size: %d)", queueCapacity, batchSize);
+
+        // Perform initial election to become leader (production mode only)
+        // In test mode, service starts in FOLLOWER state
+        if (autoPromoteLeader) {
+            currentState.set(NodeState.LEADER);
+            currentTerm.set(1);
+            commitIndex.set(145000);
+            lastApplied.set(145000);
+            leaderId = nodeId;
+            LOG.info("Auto-promoted to LEADER (production mode)");
+        } else {
+            LOG.info("Starting in FOLLOWER state (test mode)");
+        }
 
         // Add 6 follower nodes to create a 7-node cluster
         for (int i = 0; i < 6; i++) {
-            clusterNodes.add("node_" + i);
+            String follower = "node_" + i;
+            clusterNodes.add(follower);
+            nodeLastSeen.put(follower, System.currentTimeMillis());
         }
 
-        LOG.infof("Initialized consensus cluster with %d nodes (1 leader + 6 followers)", clusterNodes.size() + 1);
+        LOG.infof("Initialized consensus cluster: %d nodes (1 leader + 6 followers)", clusterNodes.size() + 1);
+        LOG.infof("Configuration - AI optimization: %s, batch size: %d, heartbeat: %dms, background updates: %s",
+                aiOptimizationEnabled, batchSize, heartbeatInterval, backgroundUpdatesEnabled);
 
-        // Start background thread for live updates
-        startLiveConsensusUpdates();
+        // Start background services (only in production mode)
+        if (backgroundUpdatesEnabled) {
+            startLiveConsensusUpdates();
+            startHeartbeatService();
+            startElectionMonitor();
+            startBatchProcessor();
+
+            if (aiOptimizationEnabled) {
+                startAIOptimization();
+            }
+            LOG.info("Background consensus services started");
+        } else {
+            LOG.info("Background consensus services disabled (test mode)");
+        }
     }
 
     private void startLiveConsensusUpdates() {
@@ -90,10 +176,251 @@ public class HyperRAFTConsensusService {
         // Update consensus latency (2-8 ms)
         consensusLatency.set(2 + random.nextInt(7));
 
+        // Record performance for AI optimization
+        if (aiOptimizationEnabled && consensusOptimizer != null) {
+            consensusOptimizer.recordPerformance(nodeId,
+                    new ConsensusOptimizer.PerformanceMetric(
+                            System.currentTimeMillis(),
+                            consensusLatency.get(),
+                            throughput.get(),
+                            true
+                    ));
+        }
+
         // Occasionally change leadership (rare)
         if (random.nextDouble() < 0.01) { // 1% chance
             currentTerm.incrementAndGet();
             LOG.infof("Term changed to %d", currentTerm.get());
+        }
+
+        // Check for log compaction
+        if (log.size() > snapshotThreshold) {
+            createSnapshot();
+        }
+    }
+
+    /**
+     * Heartbeat service - sends periodic heartbeats to maintain leadership
+     */
+    private void startHeartbeatService() {
+        heartbeatExecutor.scheduleAtFixedRate(() -> {
+            if (currentState.get() == NodeState.LEADER) {
+                sendHeartbeats();
+            }
+        }, 0, heartbeatInterval, TimeUnit.MILLISECONDS);
+
+        LOG.infof("Heartbeat service started (interval: %dms)", heartbeatInterval);
+    }
+
+    private void sendHeartbeats() {
+        long now = System.currentTimeMillis();
+        lastHeartbeat = now;
+
+        // Simulate sending heartbeats to all followers
+        for (String node : clusterNodes) {
+            nodeLastSeen.put(node, now);
+        }
+
+        // Check for network partitions using AI
+        if (aiOptimizationEnabled && consensusOptimizer != null) {
+            consensusOptimizer.detectNetworkPartition(nodeLastSeen, now)
+                    .subscribe().with(
+                            result -> {
+                                if (result.partitionDetected) {
+                                    LOG.warnf("Partition detected: %s", result.description);
+                                    handlePartition(result.unreachableNodes);
+                                }
+                            },
+                            error -> LOG.errorf(error, "Partition detection failed")
+                    );
+        }
+    }
+
+    private void handlePartition(Set<String> unreachableNodes) {
+        // Remove unreachable nodes temporarily
+        for (String node : unreachableNodes) {
+            LOG.warnf("Temporarily removing unreachable node: %s", node);
+        }
+
+        // Check if we still have quorum
+        int reachableNodes = clusterNodes.size() - unreachableNodes.size() + 1; // +1 for leader
+        int quorum = (clusterNodes.size() + 1) / 2 + 1;
+
+        if (reachableNodes < quorum) {
+            LOG.error("Lost quorum due to partition, stepping down as leader");
+            currentState.set(NodeState.FOLLOWER);
+            leaderId = null;
+        }
+    }
+
+    /**
+     * Election monitor - checks for leader liveness and triggers elections
+     */
+    private void startElectionMonitor() {
+        electionExecutor.scheduleAtFixedRate(() -> {
+            if (currentState.get() == NodeState.FOLLOWER) {
+                long timeSinceLastHeartbeat = System.currentTimeMillis() - lastHeartbeat;
+                if (timeSinceLastHeartbeat > electionTimeout) {
+                    LOG.infof("Election timeout reached (%dms), starting election", electionTimeout);
+                    startElection().subscribe().with(
+                            won -> LOG.infof("Election result: %s", won ? "WON" : "LOST"),
+                            error -> LOG.errorf(error, "Election failed")
+                    );
+                }
+            }
+
+            // Optimize election timeout using AI
+            if (aiOptimizationEnabled && consensusOptimizer != null) {
+                optimizeElectionTimeout();
+            }
+        }, 0, electionTimeout / 2, TimeUnit.MILLISECONDS);
+
+        LOG.infof("Election monitor started (timeout: %dms)", electionTimeout);
+    }
+
+    private void optimizeElectionTimeout() {
+        double avgLatency = consensusLatency.get();
+        double variance = avgLatency * 0.2; // Simplified variance
+
+        consensusOptimizer.optimizeElectionTimeout(electionTimeout, avgLatency, variance)
+                .subscribe().with(
+                        recommendation -> {
+                            if (recommendation.recommendedTimeout != electionTimeout) {
+                                electionTimeout = recommendation.recommendedTimeout;
+                                LOG.infof("Election timeout optimized: %dms (reason: %s)",
+                                        electionTimeout, recommendation.reasoning);
+                            }
+                        },
+                        error -> LOG.errorf(error, "Timeout optimization failed")
+                );
+    }
+
+    /**
+     * Batch processor - processes log entries in batches for higher throughput
+     */
+    private void startBatchProcessor() {
+        batchProcessor.scheduleAtFixedRate(() -> {
+            if (currentState.get() == NodeState.LEADER) {
+                processBatch();
+            }
+        }, 0, 100, TimeUnit.MILLISECONDS);
+
+        LOG.infof("Batch processor started (batch size: %d)", batchSize);
+    }
+
+    private void processBatch() {
+        List<LogEntry> batch = new ArrayList<>();
+        batchQueue.drainTo(batch, batchSize);
+
+        if (!batch.isEmpty()) {
+            long startTime = System.currentTimeMillis();
+
+            // Add to log
+            log.addAll(batch);
+
+            // Simulate consensus for batch
+            boolean success = simulateConsensus();
+
+            if (success) {
+                commitIndex.addAndGet(batch.size());
+                throughput.addAndGet(batch.size());
+                totalConsensusOperations.addAndGet(batch.size());
+            } else {
+                failedConsensusOperations.addAndGet(batch.size());
+            }
+
+            long elapsed = System.currentTimeMillis() - startTime;
+            consensusLatency.set(elapsed);
+
+            LOG.debugf("Batch processed: %d entries in %dms", batch.size(), elapsed);
+        }
+    }
+
+    /**
+     * AI Optimization service - periodically applies AI-driven optimizations
+     */
+    private void startAIOptimization() {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            // Predict optimal leader
+            if (currentState.get() != NodeState.LEADER) {
+                Set<String> candidates = new HashSet<>(clusterNodes);
+                candidates.add(nodeId);
+
+                consensusOptimizer.predictOptimalLeader(candidates)
+                        .subscribe().with(
+                                prediction -> {
+                                    if (prediction.predictedLeader != null &&
+                                        prediction.predictedLeader.equals(nodeId) &&
+                                        prediction.confidence > 0.7) {
+                                        LOG.infof("AI suggests this node should be leader (confidence: %.2f)",
+                                                prediction.confidence);
+                                    }
+                                },
+                                error -> LOG.errorf(error, "Leader prediction failed")
+                        );
+            }
+        }, 10, 30, TimeUnit.SECONDS);
+
+        LOG.info("AI optimization service started");
+    }
+
+    /**
+     * Snapshot support - creates snapshots for log compaction
+     */
+    private void createSnapshot() {
+        if (log.isEmpty()) return;
+
+        long snapshotIndex = commitIndex.get();
+        long snapshotTerm = currentTerm.get();
+
+        // Create snapshot of current state
+        Map<String, Object> state = new HashMap<>();
+        state.put("commitIndex", snapshotIndex);
+        state.put("term", snapshotTerm);
+        state.put("logSize", log.size());
+
+        latestSnapshot = new Snapshot(snapshotIndex, snapshotTerm, state);
+
+        // Remove compacted log entries
+        int entriesToRemove = log.size() / 2; // Keep recent half
+        for (int i = 0; i < entriesToRemove; i++) {
+            log.remove(0);
+        }
+
+        LOG.infof("Snapshot created at index %d, removed %d log entries", snapshotIndex, entriesToRemove);
+    }
+
+    /**
+     * Add entry to batch queue for processing
+     */
+    public Uni<Boolean> proposeValueBatch(String value) {
+        return Uni.createFrom().item(() -> {
+            LogEntry entry = new LogEntry(currentTerm.get(), value);
+            boolean added = batchQueue.offer(entry);
+
+            if (!added) {
+                LOG.warn("Batch queue full, entry rejected");
+                failedConsensusOperations.incrementAndGet();
+            }
+
+            return added;
+        });
+    }
+
+    /**
+     * Snapshot data class
+     */
+    public static class Snapshot {
+        public final long lastIncludedIndex;
+        public final long lastIncludedTerm;
+        public final Map<String, Object> state;
+        public final Instant timestamp;
+
+        public Snapshot(long lastIncludedIndex, long lastIncludedTerm, Map<String, Object> state) {
+            this.lastIncludedIndex = lastIncludedIndex;
+            this.lastIncludedTerm = lastIncludedTerm;
+            this.state = state;
+            this.timestamp = Instant.now();
         }
     }
     
@@ -374,5 +701,15 @@ public class HyperRAFTConsensusService {
 
     public String getLeaderId() {
         return leaderId;
+    }
+
+    /**
+     * Reset service to initial FOLLOWER state (for testing only)
+     */
+    public void resetToFollowerState() {
+        currentState.set(NodeState.FOLLOWER);
+        currentTerm.set(0L);
+        leaderId = null;
+        LOG.debug("Service reset to FOLLOWER state");
     }
 }

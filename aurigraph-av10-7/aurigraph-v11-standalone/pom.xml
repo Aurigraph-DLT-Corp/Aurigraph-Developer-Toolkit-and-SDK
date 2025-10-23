@@ -408,7 +408,21 @@
             <artifactId>agrona</artifactId>
             <version>1.20.0</version>
         </dependency>
-        
+
+        <!-- JCTools for lock-free concurrent data structures -->
+        <dependency>
+            <groupId>org.jctools</groupId>
+            <artifactId>jctools-core</artifactId>
+            <version>4.0.5</version>
+        </dependency>
+
+        <!-- xxHash for ultra-fast hashing (10M+ TPS optimization) -->
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>zero-allocation-hashing</artifactId>
+            <version>0.16</version>
+        </dependency>
+
         <!-- Missing Dependencies for V11 Features -->
         
         <!-- Hibernate ORM with Panache for JPA (for model classes, not active) -->
@@ -420,10 +434,17 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
-        <!-- H2 in-memory database for now (migrate to LevelDB later) -->
+        <!-- PostgreSQL for production persistence -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
+
+        <!-- H2 for in-memory testing (no external database required) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-h2</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- LevelDB for embedded key-value storage (one per node) -->

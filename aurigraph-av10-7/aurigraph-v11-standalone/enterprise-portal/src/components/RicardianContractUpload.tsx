@@ -102,7 +102,7 @@ export const RicardianContractUpload: React.FC = () => {
       formData.append('jurisdiction', jurisdiction);
 
       // Call backend API
-      const response = await fetch('https://dlt.aurigraph.io:8443/api/v11/contracts/ricardian/upload', {
+      const response = await fetch('https://dlt.aurigraph.io/api/v11/contracts/ricardian/upload', {
         method: 'POST',
         body: formData
       });
@@ -188,7 +188,7 @@ export const RicardianContractUpload: React.FC = () => {
 
     try {
       // Call backend API to create contract
-      const response = await fetch('https://dlt.aurigraph.io:8443/api/v11/contracts/ricardian', {
+      const response = await fetch('https://dlt.aurigraph.io/api/v11/contracts/ricardian', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(convertedContract)

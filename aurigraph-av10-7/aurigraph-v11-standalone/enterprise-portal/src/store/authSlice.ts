@@ -10,10 +10,14 @@ interface AuthState {
   token: string | null
 }
 
+// Check if user was previously authenticated
+const savedToken = localStorage.getItem('auth_token')
+const savedUser = localStorage.getItem('auth_user')
+
 const initialState: AuthState = {
-  isAuthenticated: false,
-  user: null,
-  token: localStorage.getItem('auth_token'),
+  isAuthenticated: !!savedToken, // Set to true if token exists
+  user: savedUser ? JSON.parse(savedUser) : null,
+  token: savedToken,
 }
 
 const authSlice = createSlice({
@@ -24,12 +28,17 @@ const authSlice = createSlice({
       state.isAuthenticated = true
       state.user = action.payload.user
       state.token = action.payload.token
+      // Persist to localStorage for session continuity
+      localStorage.setItem('auth_token', action.payload.token)
+      localStorage.setItem('auth_user', JSON.stringify(action.payload.user))
     },
     logout: (state) => {
       state.isAuthenticated = false
       state.user = null
       state.token = null
+      // Clear all auth data from localStorage
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
     },
   },
 })

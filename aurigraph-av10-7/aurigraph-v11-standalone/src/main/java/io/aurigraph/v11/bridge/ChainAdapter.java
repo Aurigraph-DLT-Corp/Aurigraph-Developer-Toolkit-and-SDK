@@ -263,6 +263,7 @@ public interface ChainAdapter {
         PROOF_OF_AUTHORITY,
         DELEGATED_PROOF_OF_STAKE,
         PROOF_OF_HISTORY,
+        NOMINATED_PROOF_OF_STAKE,  // Polkadot/Substrate NPoS
         CUSTOM
     }
 
@@ -321,6 +322,7 @@ public interface ChainAdapter {
         CONTRACT_DEPLOY,    // Smart contract deployment
         TOKEN_TRANSFER,     // Token transfer
         MULTI_SEND,         // Multiple operations
+        STAKING,            // Staking operations (Polkadot, Cosmos, etc.)
         CUSTOM              // Chain-specific transaction type
     }
 
@@ -367,6 +369,7 @@ public interface ChainAdapter {
     public enum TransactionExecutionStatus {
         PENDING,
         CONFIRMED,
+        FINALIZED,          // Block finalized (Polkadot, Cosmos)
         FAILED,
         DROPPED,
         REPLACED
@@ -597,6 +600,7 @@ public interface ChainAdapter {
         BITCOIN_P2SH,
         BITCOIN_BECH32,
         SOLANA_BASE58,
+        SUBSTRATE_SS58,     // Polkadot/Substrate SS58 format
         CUSTOM
     }
 

@@ -1,87 +1,38 @@
 ################################################################################
-# Dockerfile.simple - Simple Quarkus deployment with minimal functionality
+# Dockerfile.simple - Simple JVM Container using pre-built JAR
 ################################################################################
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-jammy
 
 # Install required packages
-RUN apk add --no-cache curl wget
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl wget && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create user
-RUN addgroup -S aurigraph && adduser -S aurigraph -G aurigraph
+RUN useradd -r -u 1001 -g root -m -s /bin/bash aurigraph
 
 WORKDIR /app
 
-# Copy a simple REST service
-RUN cat > AurigraphSimple.java << 'EOF'
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import java.time.Instant;
-import java.util.Map;
-
-@Path("/api/v11")
-public class AurigraphSimple {
-    
-    @GET
-    @Path("/health")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Object> health() {
-        return Map.of(
-            "status", "UP",
-            "timestamp", Instant.now().toString(),
-            "service", "aurigraph-v11-simple",
-            "version", "11.0.0"
-        );
-    }
-    
-    @GET
-    @Path("/info") 
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Object> info() {
-        return Map.of(
-            "name", "Aurigraph V11 Simple",
-            "version", "11.0.0",
-            "targetTPS", 2000000,
-            "runtime", "JVM",
-            "mode", "simple-deployment"
-        );
-    }
-    
-    @GET
-    @Path("/performance")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Object> performance() {
-        return Map.of(
-            "currentTPS", 0,
-            "targetTPS", 2000000,
-            "status", "ready",
-            "timestamp", Instant.now().toString()
-        );
-    }
-}
-EOF
-
-# Create a simple JAR with the service
-RUN javac -cp "/usr/lib/jvm/java-21-openjdk/lib/*" AurigraphSimple.java 2>/dev/null || echo "Compilation may have warnings, continuing..."
-RUN mkdir -p classes && mv *.class classes/ 2>/dev/null || true
+# Copy pre-built uber-JAR
+COPY target/aurigraph-v11-standalone-11.3.2-runner.jar /app/app.jar
 
 # Environment variables
-ENV JAVA_OPTS="-Xmx256m -Xms128m"
+ENV JAVA_OPTS="-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=9003 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -Dquarkus.profile=prod"
 ENV PORT="9003"
 
 # Health check
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:9003/health || exit 1
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:9003/q/health/ready || exit 1
 
-USER aurigraph
+USER 1001
 
-EXPOSE 9003
+EXPOSE 9003 9004 9005
 
-# Simple HTTP server
-CMD ["sh", "-c", "echo 'Aurigraph V11 Simple Server Starting...' && echo 'Available at http://localhost:9003/api/v11/health' && python3 -m http.server 9003 2>/dev/null || nc -l -p 9003 2>/dev/null || sleep infinity"]
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 
-LABEL name="aurigraph-v11-simple" \
-      version="11.0.0" \
-      description="Aurigraph V11 Simple Container"
+# Labels
+LABEL name="aurigraph-v11-jvm" \
+      version="11.3.2" \
+      description="Aurigraph V11 JVM Container - Pre-built JAR"

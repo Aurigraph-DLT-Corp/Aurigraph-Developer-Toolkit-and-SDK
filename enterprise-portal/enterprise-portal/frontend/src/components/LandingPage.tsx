@@ -16,13 +16,14 @@ import {
   BankOutlined,
   CheckCircleOutlined,
   DashboardOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
 const { Title, Paragraph, Text } = Typography;
 
 interface LandingPageProps {
-  onAccessPortal?: () => void;
+  onAccessPortal?: (targetKey?: string) => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
@@ -160,15 +161,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
                 <Badge count="Multi-Chain" style={{ backgroundColor: '#722ed1' }} />
               </div>
 
-              <div className="hero-cta">
+              <div className="hero-cta" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Button
                   size="large"
                   icon={<RocketOutlined />}
-                  href="https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT"
-                  target="_blank"
+                  onClick={() => onAccessPortal?.('demo')}
+                  className="demo-button"
+                  type="primary"
+                >
+                  Try Interactive Demo
+                </Button>
+                <Button
+                  size="large"
+                  icon={<FileTextOutlined />}
+                  onClick={() => onAccessPortal?.('whitepaper')}
                   className="docs-button"
                 >
-                  View Documentation
+                  Read Whitepaper
                 </Button>
               </div>
             </div>
@@ -275,12 +284,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
             Explore our comprehensive enterprise portal with real-time monitoring,
             advanced analytics, and complete blockchain management capabilities.
           </Paragraph>
-          <div className="cta-buttons" style={{ marginTop: '24px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
+          <div className="cta-buttons" style={{ marginTop: '24px', display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button
               type="primary"
               size="large"
               icon={<DashboardOutlined />}
-              onClick={onAccessPortal}
+              onClick={() => onAccessPortal?.('dashboard')}
               style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
             >
               Access Enterprise Portal
@@ -288,11 +297,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
             <Button
               size="large"
               icon={<RocketOutlined />}
-              href="https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT"
-              target="_blank"
+              onClick={() => onAccessPortal?.('demo')}
               style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
             >
-              View on GitHub
+              Interactive Demo
+            </Button>
+            <Button
+              size="large"
+              icon={<FileTextOutlined />}
+              onClick={() => onAccessPortal?.('whitepaper')}
+              style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
+            >
+              View Whitepaper
             </Button>
           </div>
         </Card>

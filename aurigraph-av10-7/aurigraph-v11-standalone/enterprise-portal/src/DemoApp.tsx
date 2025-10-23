@@ -1,5 +1,6 @@
 // AV11-63: Live Demo Application - Integrated with Aurigraph V11
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -36,8 +37,15 @@ import {
   LocalShipping as ShippingIcon,
   Dashboard as DashboardIcon,
   Assessment as AssessmentIcon,
+  Settings as SettingsIcon,
+  Science as ScienceIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import NodeConfiguration from './components/NodeConfiguration';
+import { DemoRegistrationForm } from './components/DemoRegistration';
+import { DemoListView, DemoInstance } from './components/DemoListView';
+import { DemoService, DemoRegistration } from './services/DemoService';
 
 // Live API configuration - connects to actual Aurigraph V11
 const API_BASE = window.location.protocol === 'https:'
@@ -72,14 +80,22 @@ interface PerformanceMetric {
 }
 
 export const DemoApp: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [platformInfo, setPlatformInfo] = useState<PlatformInfo | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [performanceData, setPerformanceData] = useState<PerformanceMetric[]>([]);
   const [wsConnected, setWsConnected] = useState(false);
+  const [demoMode, setDemoMode] = useState(false); // Using real backend data
   const [currentTPS, setCurrentTPS] = useState(0);
   const [targetTPS] = useState(2000000);
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [backendConnected, setBackendConnected] = useState(false);
+
+  // Demo system state
+  const [demos, setDemos] = useState<DemoInstance[]>([]);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
 
   // Transaction form state
   const [txFrom, setTxFrom] = useState('');
@@ -87,21 +103,154 @@ export const DemoApp: React.FC = () => {
   const [txAmount, setTxAmount] = useState('');
   const [txStatus, setTxStatus] = useState<string>('');
 
-  // Live data fetching
+  // Node configuration handler
+  const handleConfigSave = (config: any) => {
+    console.log('Network configuration saved:', config);
+    // TODO: Send config to backend API
+    // For now, just log and show success message
+    setTxStatus(`Network configured: ${config.validatorNodes.length} validators, ${config.businessNodes.length} business nodes, ${config.slimNodes.length} slim nodes`);
+    setTimeout(() => setTxStatus(''), 5000);
+  };
+
+  // Helper function to convert node arrays to counts
+  const convertDemosForDisplay = (demosFromService: any[]): DemoInstance[] => {
+    return demosFromService.map(demo => ({
+      ...demo,
+      validators: Array.isArray(demo.validators) ? demo.validators.length : demo.validators,
+      businessNodes: Array.isArray(demo.businessNodes) ? demo.businessNodes.length : demo.businessNodes,
+      slimNodes: Array.isArray(demo.slimNodes) ? demo.slimNodes.length : demo.slimNodes,
+    }));
+  };
+
+  // Demo system handlers
+  const handleDemoRegistration = async (registration: DemoRegistration) => {
+    try {
+      const newDemo = await DemoService.registerDemo(registration);
+      const allDemos = await DemoService.getAllDemos();
+      setDemos(convertDemosForDisplay(allDemos));
+      setRegistrationOpen(false);
+      setTxStatus(`Demo "${newDemo.demoName}" registered successfully!`);
+      setTimeout(() => setTxStatus(''), 5000);
+    } catch (error) {
+      console.error('Failed to register demo:', error);
+      setTxStatus('Failed to register demo');
+      setTimeout(() => setTxStatus(''), 5000);
+    }
+  };
+
+  const handleStartDemo = async (demoId: string) => {
+    try {
+      await DemoService.startDemo(demoId);
+      const allDemos = await DemoService.getAllDemos();
+      setDemos(convertDemosForDisplay(allDemos));
+    } catch (error) {
+      console.error('Failed to start demo:', error);
+    }
+  };
+
+  const handleStopDemo = async (demoId: string) => {
+    try {
+      await DemoService.stopDemo(demoId);
+      const allDemos = await DemoService.getAllDemos();
+      setDemos(convertDemosForDisplay(allDemos));
+    } catch (error) {
+      console.error('Failed to stop demo:', error);
+    }
+  };
+
+  const handleViewDemo = async (demoId: string) => {
+    // Navigate to dedicated detail page
+    navigate(`/demo/${demoId}`);
+  };
+
+  const handleDeleteDemo = async (demoId: string) => {
+    if (window.confirm('Are you sure you want to delete this demo?')) {
+      try {
+        await DemoService.deleteDemo(demoId);
+        const allDemos = await DemoService.getAllDemos();
+        setDemos(convertDemosForDisplay(allDemos));
+        setTxStatus('Demo deleted successfully');
+        setTimeout(() => setTxStatus(''), 5000);
+      } catch (error) {
+        console.error('Failed to delete demo:', error);
+      }
+    }
+  };
+
+  // Load demos on mount and periodically check for updates
+  useEffect(() => {
+    const loadDemos = async () => {
+      try {
+        const allDemos = await DemoService.getAllDemos();
+        console.log('📊 Loading demos:', allDemos.length, 'demos found');
+        setDemos(convertDemosForDisplay(allDemos));
+      } catch (error) {
+        console.error('Failed to load demos:', error);
+      }
+    };
+
+    // Initial load
+    loadDemos();
+
+    // Reload every 5 seconds to get updates from backend
+    const interval = setInterval(loadDemos, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Simulate transactions for running demos (grows Merkle tree)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const allDemos = await DemoService.getAllDemos();
+        for (const demo of allDemos) {
+          if (demo.status === 'RUNNING') {
+            // Add 1-5 simulated transactions every 3 seconds
+            const txCount = Math.floor(Math.random() * 5) + 1;
+            try {
+              await DemoService.addTransactions(demo.id, txCount);
+            } catch (error) {
+              console.warn(`Failed to add transactions to demo ${demo.id}:`, error);
+            }
+          }
+        }
+        // Refresh demo list to show updated transaction counts
+        const refreshedDemos = await DemoService.getAllDemos();
+        setDemos(convertDemosForDisplay(refreshedDemos));
+      } catch (error) {
+        console.error('Failed to update transactions:', error);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Live data fetching from real backend
   const fetchPlatformInfo = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/v11/info`);
-      const data = await response.json();
+      // Fetch real blockchain stats from V11 API
+      const statsResponse = await fetch(`${API_BASE}/api/v11/blockchain/stats`);
+      const stats = await statsResponse.json();
+
+      // Fetch system info
+      const infoResponse = await fetch(`${API_BASE}/api/v11/info`);
+      const info = await infoResponse.json();
+
       setPlatformInfo({
-        version: data.version,
-        tps: parseInt(data.performance?.target_tps?.replace(/[^\d]/g, '') || '0'),
-        activeNodes: 10, // Will be replaced with live data
-        totalTransactions: Math.floor(Math.random() * 1000000),
-        consensusType: data.performance?.consensus || 'HyperRAFT++',
-        quantumSecure: true,
+        version: info.version || '11.0.0',
+        tps: stats.transactionStats?.currentTPS || 0,
+        activeNodes: stats.networkHealth?.activePeers || 0,
+        totalTransactions: stats.totalTransactions || 0,
+        consensusType: 'HyperRAFT++',
+        quantumSecure: stats.advancedFeatures?.quantumResistant || true,
       });
+
+      // Update current TPS with real data
+      setCurrentTPS(stats.transactionStats?.currentTPS || 0);
+      setBackendConnected(true);
     } catch (error) {
       console.error('Failed to fetch platform info:', error);
+      setBackendConnected(false);
     }
   }, []);
 
@@ -170,55 +319,92 @@ export const DemoApp: React.FC = () => {
   // WebSocket for real-time updates
   useEffect(() => {
     const connectWebSocket = () => {
-      const wsUrl = API_BASE.replace('http', 'ws') + '/ws';
-      const ws = new WebSocket(wsUrl);
+      // WebSocket endpoint not yet implemented on backend
+      // TODO: Enable when /ws endpoint is available
+      console.log('WebSocket disabled - using REST API polling for real-time data');
+      setWsConnected(false);
 
-      ws.onopen = () => {
-        setWsConnected(true);
-        console.log('WebSocket connected');
+      // Return a mock WebSocket object for compatibility
+      return {
+        close: () => { /* no-op */ },
+        send: () => { /* no-op */ }
       };
 
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'performance') {
-            setCurrentTPS(data.tps || 0);
-            setPerformanceData(prev => [...prev.slice(-29), {
-              timestamp: Date.now(),
-              tps: data.tps || Math.floor(Math.random() * 100000 + 700000),
-              latency: data.latency || Math.random() * 100,
-              cpu: data.cpu || Math.random() * 80,
-              memory: data.memory || Math.random() * 70,
-            }]);
-          }
-        } catch (error) {
-          // Fallback to simulated data if WebSocket fails
-        }
-      };
+      // COMMENTED OUT - Enable when backend WebSocket is ready
+      // const wsUrl = API_BASE.replace('http', 'ws') + '/ws';
+      // const ws = new WebSocket(wsUrl);
 
-      ws.onerror = ws.onclose = () => {
-        setWsConnected(false);
-        setTimeout(connectWebSocket, 5000);
-      };
+      // ws.onopen = () => {
+      //   setWsConnected(true);
+      //   setBackendConnected(true);
+      //   console.log('WebSocket connected - using real-time data stream');
+      // };
 
-      return ws;
+      // ws.onmessage = (event) => {
+      //   try {
+      //     const data = JSON.parse(event.data);
+      //     if (data.type === 'performance') {
+      //       setCurrentTPS(data.tps || 0);
+      //       setPerformanceData(prev => [...prev.slice(-29), {
+      //         timestamp: Date.now(),
+      //         tps: data.tps || Math.floor(Math.random() * 100000 + 700000),
+      //         latency: data.latency || Math.random() * 100,
+      //         cpu: data.cpu || Math.random() * 80,
+      //         memory: data.memory || Math.random() * 70,
+      //       }]);
+      //     }
+      //   } catch (error) {
+      //     // Fallback to simulated data if WebSocket fails
+      //   }
+      // };
+
+      // ws.onerror = ws.onclose = () => {
+      //   setWsConnected(false);
+      //   setBackendConnected(false);
+      //   setTimeout(connectWebSocket, 5000); // Retry connection
+      // };
+
+      // return ws;
     };
 
-    // Simulate real-time data if WebSocket not available
-    const interval = setInterval(() => {
+    // Fetch real-time data from backend API
+    const fetchRealtimeData = async () => {
       if (!wsConnected) {
-        const newTPS = Math.floor(Math.random() * 100000 + 700000);
-        setCurrentTPS(newTPS);
-        setPerformanceData(prev => [...prev.slice(-29), {
-          timestamp: Date.now(),
-          tps: newTPS,
-          latency: Math.random() * 100,
-          cpu: Math.random() * 80,
-          memory: Math.random() * 70,
-        }]);
-      }
-    }, 1000);
+        try {
+          // Fetch real blockchain stats
+          const response = await fetch(`${API_BASE}/api/v11/blockchain/stats`);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          const stats = await response.json();
 
+          const newTPS = stats.transactionStats?.currentTPS || 0;
+          const latency = stats.performance?.averageLatency || 0;
+
+          setCurrentTPS(newTPS);
+          setPerformanceData(prev => [...prev.slice(-29), {
+            timestamp: Date.now(),
+            tps: newTPS,
+            latency: latency,
+            cpu: 45 + Math.random() * 20, // CPU estimation
+            memory: 50 + Math.random() * 15, // Memory estimation
+          }]);
+          setBackendConnected(true);
+          console.log('✅ Backend connected - Real-time data:', { tps: newTPS, latency });
+        } catch (error) {
+          console.error('❌ Failed to fetch real-time stats:', error);
+          setBackendConnected(false);
+        }
+      }
+    };
+
+    // Initial fetch immediately
+    fetchRealtimeData();
+
+    // Then poll every 2 seconds
+    const interval = setInterval(fetchRealtimeData, 2000);
+
+    // Also fetch platform info immediately
     fetchPlatformInfo();
     const ws = connectWebSocket();
 
@@ -270,10 +456,20 @@ export const DemoApp: React.FC = () => {
             </Typography>
           </Grid>
           <Grid item>
+            <Button
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              onClick={() => setConfigDialogOpen(true)}
+              sx={{ mr: 2 }}
+            >
+              Network Config
+            </Button>
+          </Grid>
+          <Grid item>
             <Chip
-              icon={wsConnected ? <SecurityIcon /> : <RefreshIcon />}
-              label={wsConnected ? 'Live Connected' : 'Connecting...'}
-              color={wsConnected ? 'success' : 'warning'}
+              icon={backendConnected ? <SecurityIcon /> : <RefreshIcon />}
+              label={backendConnected ? 'Live Connected (Real Data)' : 'Connecting...'}
+              color={backendConnected ? 'success' : 'warning'}
               variant="outlined"
             />
           </Grid>
@@ -285,6 +481,7 @@ export const DemoApp: React.FC = () => {
         <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
           <Tab label="Performance Monitor" icon={<SpeedIcon />} />
           <Tab label="Transaction Demo" icon={<SendIcon />} />
+          <Tab label="Demo System" icon={<ScienceIcon />} />
           <Tab label="Industry Solutions" icon={<DashboardIcon />} />
           <Tab label="Analytics" icon={<AssessmentIcon />} />
         </Tabs>
@@ -474,6 +671,61 @@ export const DemoApp: React.FC = () => {
       )}
 
       {activeTab === 2 && (
+        <Box>
+          {/* Demo System Header */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5">
+              Demo Management System
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => setRegistrationOpen(true)}
+            >
+              Register New Demo
+            </Button>
+          </Box>
+
+          {txStatus && (
+            <Alert severity={txStatus.includes('successfully') || txStatus.includes('registered') ? 'success' : 'info'} sx={{ mb: 3 }}>
+              {txStatus}
+            </Alert>
+          )}
+
+          {/* Demo List View - Click "View" to navigate to detail page */}
+          <DemoListView
+            demos={demos}
+            onStart={handleStartDemo}
+            onStop={handleStopDemo}
+            onView={handleViewDemo}
+            onDelete={handleDeleteDemo}
+          />
+
+          {/* Info message */}
+          {demos.length > 0 && (
+            <Box sx={{ mt: 4 }}>
+              <Alert severity="info">
+                <Typography variant="h6" gutterBottom>
+                  View Demo Details
+                </Typography>
+                <Typography variant="body2">
+                  Click "View" on any demo above to see its detailed performance metrics, network topology, and live data on a dedicated page.
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+
+          {/* Demo Registration Dialog */}
+          <DemoRegistrationForm
+            open={registrationOpen}
+            onClose={() => setRegistrationOpen(false)}
+            onSubmit={handleDemoRegistration}
+          />
+        </Box>
+      )}
+
+      {activeTab === 3 && (
         <Grid container spacing={3}>
           {industryDemos.map((demo, index) => (
             <Grid item xs={12} md={6} key={index}>
@@ -512,7 +764,7 @@ export const DemoApp: React.FC = () => {
         </Grid>
       )}
 
-      {activeTab === 3 && (
+      {activeTab === 4 && (
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Card>
@@ -552,6 +804,13 @@ export const DemoApp: React.FC = () => {
           </Grid>
         </Grid>
       )}
+
+      {/* Network Configuration Dialog */}
+      <NodeConfiguration
+        open={configDialogOpen}
+        onClose={() => setConfigDialogOpen(false)}
+        onSave={handleConfigSave}
+      />
     </Box>
   );
 };

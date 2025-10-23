@@ -2,6 +2,54 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📋 CRITICAL ENVIRONMENT FILES - ALWAYS LOAD AT RESUMPTION
+
+**IMPORTANT**: When resuming any session, Claude MUST read these critical planning documents first:
+
+1. **Sprint Plan**: `aurigraph-v11-standalone/SPRINT_PLAN.md`
+   - Current sprint objectives and timeline
+   - Sprint allocation and task breakdown
+   - Story points and deliverables
+
+2. **Comprehensive Test Plan**: `aurigraph-v11-standalone/COMPREHENSIVE-TEST-PLAN.md`
+   - Test coverage requirements (95% target)
+   - Test strategy by component
+   - Integration and E2E test plans
+
+3. **TODO Status**: `aurigraph-v11-standalone/TODO.md`
+   - Current work status and progress
+   - Recent completions and achievements
+   - Pending tasks and priorities
+
+4. **Latest Sprint Report**: Check for most recent `aurigraph-v11-standalone/SPRINT*.md` files
+   - Latest execution status
+   - Completed work and metrics
+   - Remaining work and blockers
+
+5. **Parallel Sprint Plan**: `aurigraph-v11-standalone/PARALLEL-SPRINT-EXECUTION-PLAN.md`
+   - Multi-team development strategy
+   - 5 concurrent workstreams
+   - Agent coordination
+
+6. **SPARC Framework Plan**: `aurigraph-v11-standalone/SPARC-PROJECT-PLAN.md`
+   - Comprehensive project roadmap (Situation, Problem, Action, Result, Consequence)
+   - 10-day sprint plan with quality gates
+   - Multi-agent task allocation and coordination
+   - Success metrics and risk mitigation
+
+**Quick Load Sequence**:
+```bash
+# At session start, read in order:
+1. TODO.md - Current status
+2. SPRINT_PLAN.md - Sprint objectives
+3. COMPREHENSIVE-TEST-PLAN.md - Testing requirements
+4. PARALLEL-SPRINT-EXECUTION-PLAN.md - Parallel workstreams
+5. SPARC-PROJECT-PLAN.md - SPARC framework roadmap
+6. Most recent SPRINT_EXECUTION_REPORT.md - Latest progress
+```
+
+---
+
 ## IAM Credentials (SENSITIVE - DEVELOPMENT ONLY)
 
 ### IAM2 Server Configuration

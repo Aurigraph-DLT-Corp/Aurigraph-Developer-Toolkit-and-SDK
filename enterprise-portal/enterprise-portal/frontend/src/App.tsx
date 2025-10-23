@@ -31,6 +31,7 @@ import {
   BellOutlined,
   LogoutOutlined,
   DownOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
@@ -53,6 +54,7 @@ import RicardianContractUpload from './components/comprehensive/RicardianContrac
 import ExternalAPITokenization from './components/comprehensive/ExternalAPITokenization';
 import RWATRegistry from './components/comprehensive/RWATRegistry';
 import Whitepaper from './components/comprehensive/Whitepaper';
+import UserManagement from './components/UserManagement';
 
 const { Header, Content, Footer } = Layout;
 
@@ -216,6 +218,11 @@ function App() {
           label: 'Node Visualization',
         },
         {
+          key: 'users',
+          icon: <TeamOutlined />,
+          label: 'User Management',
+        },
+        {
           key: 'settings',
           icon: <SettingOutlined />,
           label: 'Settings',
@@ -232,7 +239,7 @@ function App() {
   const renderContent = () => {
     switch (activeKey) {
       case 'home':
-        return <LandingPage onAccessPortal={() => setActiveKey('dashboard')} />;
+        return <LandingPage onAccessPortal={(key) => setActiveKey(key || 'dashboard')} />;
       case 'dashboard':
         return <Dashboard />;
       case 'transactions':
@@ -267,6 +274,11 @@ function App() {
         return <DemoApp />;
       case 'whitepaper':
         return <Whitepaper />;
+<<<<<<< HEAD
+=======
+      case 'users':
+        return <UserManagement />;
+>>>>>>> a7304ef59afaf2dcbea700d5a7b06abec10ae154
       case 'settings':
         return (
           <div style={{ padding: '24px' }}>

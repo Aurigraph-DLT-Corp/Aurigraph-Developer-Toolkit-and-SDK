@@ -97,8 +97,11 @@ public class DilithiumSignatureServiceTest {
                 assertNotNull(keyPair, "Key pair should be generated");
                 assertNotNull(keyPair.getPublic(), "Public key should not be null");
                 assertNotNull(keyPair.getPrivate(), "Private key should not be null");
-                assertEquals("Dilithium", keyPair.getPublic().getAlgorithm());
-                assertEquals("Dilithium", keyPair.getPrivate().getAlgorithm());
+                // BouncyCastle returns "DILITHIUM5" for Dilithium5 parameter spec
+                assertTrue(keyPair.getPublic().getAlgorithm().toUpperCase().contains("DILITHIUM"),
+                          "Public key should use Dilithium algorithm");
+                assertTrue(keyPair.getPrivate().getAlgorithm().toUpperCase().contains("DILITHIUM"),
+                          "Private key should use Dilithium algorithm");
             }
             
             // Calculate statistics
@@ -523,9 +526,9 @@ public class DilithiumSignatureServiceTest {
         }
         
         // Verify quantum-resistant properties
-        assertTrue(keyPair.getPublic().getAlgorithm().equals("Dilithium"), 
+        assertTrue(keyPair.getPublic().getAlgorithm().toUpperCase().contains("DILITHIUM"),
                   "Should use Dilithium algorithm");
-        assertTrue(keyPair.getPublic().getEncoded().length > 1000, 
+        assertTrue(keyPair.getPublic().getEncoded().length > 1000,
                   "Quantum-resistant keys should be large");
         
         LOG.info("CRYSTALS-Dilithium quantum-resistant capabilities verified successfully");
