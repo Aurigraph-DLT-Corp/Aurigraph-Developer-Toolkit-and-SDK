@@ -1,0 +1,317 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.aurigraph.v11.consensus.grpc";
+option java_outer_classname = "ConsensusProto";
+
+package aurigraph.v11.consensus;
+
+import "google/protobuf/timestamp.proto";
+
+// HyperRAFT++ Consensus gRPC Service
+service ConsensusService {
+  // Leader Election
+  rpc RequestVote(VoteRequest) returns (VoteResponse);
+  rpc DeclareLeadership(LeadershipDeclaration) returns (LeadershipResponse);
+
+  // Log Replication
+  rpc AppendEntries(AppendEntriesRequest) returns (AppendEntriesResponse);
+  rpc BatchAppendEntries(BatchAppendRequest) returns (BatchAppendResponse);
+
+  // Consensus State
+  rpc GetConsensusState(ConsensusStateRequest) returns (ConsensusStateResponse);
+  rpc GetLeaderInfo(LeaderInfoRequest) returns (LeaderInfoResponse);
+
+  // Heartbeat and Health
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc SyncState(StateSyncRequest) returns (StateSyncResponse);
+
+  // Proposal and Voting
+  rpc ProposeBlock(BlockProposal) returns (ProposalResponse);
+  rpc VoteOnBlock(BlockVote) returns (VoteResponse);
+  rpc CommitBlock(BlockCommit) returns (CommitResponse);
+
+  // Streaming
+  rpc StreamConsensusEvents(ConsensusEventStreamRequest) returns (stream ConsensusEvent);
+}
+
+// Vote Request
+message VoteRequest {
+  string candidate_id = 1;
+  uint64 term = 2;
+  uint64 last_log_index = 3;
+  uint64 last_log_term = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  string signature = 6;
+}
+
+// Vote Response
+message VoteResponse {
+  bool vote_granted = 1;
+  uint64 term = 2;
+  string voter_id = 3;
+  string reason = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// Leadership Declaration
+message LeadershipDeclaration {
+  string leader_id = 1;
+  uint64 term = 2;
+  uint64 last_committed_index = 3;
+  repeated string follower_ids = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  string signature = 6;
+}
+
+// Leadership Response
+message LeadershipResponse {
+  bool acknowledged = 1;
+  string acknowledger_id = 2;
+  uint64 term = 3;
+  string message = 4;
+}
+
+// Append Entries Request
+message AppendEntriesRequest {
+  string leader_id = 1;
+  uint64 term = 2;
+  uint64 prev_log_index = 3;
+  uint64 prev_log_term = 4;
+  repeated LogEntry entries = 5;
+  uint64 leader_commit = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  string checksum = 8;
+}
+
+// Append Entries Response
+message AppendEntriesResponse {
+  bool success = 1;
+  uint64 term = 2;
+  uint64 last_log_index = 3;
+  string follower_id = 4;
+  string error_message = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+// Log Entry
+message LogEntry {
+  uint64 index = 1;
+  uint64 term = 2;
+  LogEntryType entry_type = 3;
+  bytes data = 4;
+  string hash = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  map<string, string> metadata = 7;
+}
+
+// Log Entry Type
+enum LogEntryType {
+  ENTRY_UNKNOWN = 0;
+  ENTRY_TRANSACTION = 1;
+  ENTRY_BLOCK = 2;
+  ENTRY_CONFIG_CHANGE = 3;
+  ENTRY_SNAPSHOT = 4;
+  ENTRY_CHECKPOINT = 5;
+}
+
+// Batch Append Request
+message BatchAppendRequest {
+  string leader_id = 1;
+  uint64 term = 2;
+  repeated AppendEntriesRequest append_requests = 3;
+  bool parallel_processing = 4;
+  uint32 batch_size = 5;
+}
+
+// Batch Append Response
+message BatchAppendResponse {
+  bool success = 1;
+  uint32 total_requests = 2;
+  uint32 successful_appends = 3;
+  uint32 failed_appends = 4;
+  repeated AppendEntriesResponse responses = 5;
+  uint64 processing_time_ms = 6;
+}
+
+// Consensus State Request
+message ConsensusStateRequest {
+  bool include_log_summary = 1;
+  bool include_peer_states = 2;
+}
+
+// Consensus State Response
+message ConsensusStateResponse {
+  string node_id = 1;
+  NodeRole role = 2;
+  uint64 current_term = 3;
+  string current_leader = 4;
+  uint64 commit_index = 5;
+  uint64 last_applied = 6;
+  uint64 last_log_index = 7;
+  uint64 last_log_term = 8;
+  repeated PeerState peer_states = 9;
+  ConsensusHealthStatus health_status = 10;
+}
+
+// Node Role
+enum NodeRole {
+  ROLE_UNKNOWN = 0;
+  ROLE_FOLLOWER = 1;
+  ROLE_CANDIDATE = 2;
+  ROLE_LEADER = 3;
+}
+
+// Peer State
+message PeerState {
+  string peer_id = 1;
+  uint64 next_index = 2;
+  uint64 match_index = 3;
+  bool is_reachable = 4;
+  google.protobuf.Timestamp last_contact = 5;
+}
+
+// Consensus Health Status
+enum ConsensusHealthStatus {
+  CONSENSUS_HEALTHY = 0;
+  CONSENSUS_DEGRADED = 1;
+  CONSENSUS_UNHEALTHY = 2;
+  CONSENSUS_SPLIT_BRAIN = 3;
+}
+
+// Leader Info Request
+message LeaderInfoRequest {
+  bool include_statistics = 1;
+}
+
+// Leader Info Response
+message LeaderInfoResponse {
+  bool has_leader = 1;
+  string leader_id = 2;
+  uint64 current_term = 3;
+  google.protobuf.Timestamp elected_at = 4;
+  LeaderStatistics statistics = 5;
+}
+
+// Leader Statistics
+message LeaderStatistics {
+  uint64 total_entries_replicated = 1;
+  uint64 successful_commits = 2;
+  uint64 failed_commits = 3;
+  double commit_success_rate = 4;
+  double average_replication_time_ms = 5;
+  uint32 active_followers = 6;
+}
+
+// Heartbeat Request
+message HeartbeatRequest {
+  string sender_id = 1;
+  uint64 term = 2;
+  uint64 commit_index = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+// Heartbeat Response
+message HeartbeatResponse {
+  bool alive = 1;
+  string responder_id = 2;
+  uint64 term = 3;
+  uint64 last_log_index = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// State Sync Request
+message StateSyncRequest {
+  string requester_id = 1;
+  uint64 last_known_index = 2;
+  uint32 max_entries = 3;
+}
+
+// State Sync Response
+message StateSyncResponse {
+  bool success = 1;
+  uint64 current_index = 2;
+  repeated LogEntry entries = 3;
+  bool more_available = 4;
+  string snapshot_id = 5;
+}
+
+// Block Proposal
+message BlockProposal {
+  string proposer_id = 1;
+  uint64 term = 2;
+  uint64 block_number = 3;
+  string block_hash = 4;
+  bytes block_data = 5;
+  repeated string transaction_hashes = 6;
+  google.protobuf.Timestamp proposed_at = 7;
+  string signature = 8;
+}
+
+// Proposal Response
+message ProposalResponse {
+  bool accepted = 1;
+  string validator_id = 2;
+  uint64 term = 3;
+  string reason = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// Block Vote
+message BlockVote {
+  string voter_id = 1;
+  uint64 term = 2;
+  uint64 block_number = 3;
+  string block_hash = 4;
+  bool approve = 5;
+  string reason = 6;
+  google.protobuf.Timestamp voted_at = 7;
+  string signature = 8;
+}
+
+// Block Commit
+message BlockCommit {
+  string committer_id = 1;
+  uint64 block_number = 2;
+  string block_hash = 3;
+  repeated BlockVote votes = 4;
+  google.protobuf.Timestamp committed_at = 5;
+  string signature = 6;
+}
+
+// Commit Response
+message CommitResponse {
+  bool success = 1;
+  uint64 block_number = 2;
+  uint64 commit_index = 3;
+  string error_message = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// Consensus Event Stream Request
+message ConsensusEventStreamRequest {
+  repeated ConsensusEventType event_types = 1;
+  bool include_heartbeats = 2;
+}
+
+// Consensus Event Type
+enum ConsensusEventType {
+  EVENT_UNKNOWN = 0;
+  EVENT_LEADER_ELECTED = 1;
+  EVENT_LEADER_FAILED = 2;
+  EVENT_VOTE_REQUESTED = 3;
+  EVENT_BLOCK_PROPOSED = 4;
+  EVENT_BLOCK_COMMITTED = 5;
+  EVENT_LOG_REPLICATED = 6;
+  EVENT_STATE_SYNCED = 7;
+}
+
+// Consensus Event
+message ConsensusEvent {
+  ConsensusEventType event_type = 1;
+  string node_id = 2;
+  uint64 term = 3;
+  string description = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  map<string, string> metadata = 6;
+}
