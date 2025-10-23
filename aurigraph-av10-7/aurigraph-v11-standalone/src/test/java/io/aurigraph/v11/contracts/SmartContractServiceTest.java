@@ -979,9 +979,4 @@ class SmartContractServiceTest {
         // Reset mocks after each test
         Mockito.reset(cryptoService, contractCompiler, contractVerifier, contractRepository);
     }
-
-    @AfterAll
-    static void tearDown() {
-        System.out.println("✅ All SmartContractService tests completed");
-    }
 }

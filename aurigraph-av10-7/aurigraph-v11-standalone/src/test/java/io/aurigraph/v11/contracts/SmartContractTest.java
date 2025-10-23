@@ -1,6 +1,9 @@
 package io.aurigraph.v11.smartcontract;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.aurigraph.v11.smartcontract.SmartContract;
+import io.aurigraph.v11.smartcontract.ContractMetadata;
+import io.aurigraph.v11.contracts.SmartContractService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
