@@ -579,7 +579,17 @@ public class CosmosAdapter implements ChainAdapter {
     }
 
     private String generateTransactionHash() {
-        return UUID.randomUUID().toString().replace("-", "").toUpperCase().substring(0, 64);
+        return generateRandomHex(64);
+    }
+
+    private String generateRandomHex(int length) {
+        StringBuilder hex = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int randomNum = (int) (Math.random() * 16);
+            char hexChar = (randomNum < 10) ? (char) ('0' + randomNum) : (char) ('a' + randomNum - 10);
+            hex.append(hexChar);
+        }
+        return hex.toString();
     }
 
     private String generateBlockHash() {

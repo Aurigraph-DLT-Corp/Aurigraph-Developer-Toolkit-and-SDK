@@ -578,17 +578,25 @@ public class EthereumAdapter implements ChainAdapter {
     }
 
     private String generateTransactionHash() {
-        return "0x" + UUID.randomUUID().toString().replace("-", "") +
-               UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        return "0x" + generateRandomHex(64);
     }
 
     private String generateBlockHash() {
-        return "0x" + UUID.randomUUID().toString().replace("-", "") +
-               UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        return "0x" + generateRandomHex(64);
     }
 
     private String generateContractAddress() {
-        return "0x" + UUID.randomUUID().toString().replace("-", "").substring(0, 40);
+        return "0x" + generateRandomHex(40);
+    }
+
+    private String generateRandomHex(int length) {
+        StringBuilder hex = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int randomNum = (int) (Math.random() * 16);
+            char hexChar = (randomNum < 10) ? (char) ('0' + randomNum) : (char) ('a' + randomNum - 10);
+            hex.append(hexChar);
+        }
+        return hex.toString();
     }
 
     private BigDecimal calculateActualFee(BigDecimal gasUsed, BigDecimal gasPrice) {
