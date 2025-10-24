@@ -2,6 +2,7 @@ package io.aurigraph.v11.demo.api;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
+import io.restassured.config.RestAssuredConfig;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,19 +23,24 @@ import static org.hamcrest.Matchers.*;
  * - Database persistence via Flyway migrations
  *
  * Base Path: /api/demos
- * Port: 9003
+ * Port: Dynamic (assigned by Quarkus)
  */
 @QuarkusTest
 @DisplayName("Demo API Integration Tests")
 public class DemoResourceIntegrationTest {
 
     private static final String BASE_PATH = "/api/demos";
-    private static final String BASE_URL = "http://localhost:9003";
 
     @BeforeEach
     void setup() {
-        RestAssured.baseURI = BASE_URL;
+        // RestAssured is automatically configured by @QuarkusTest
+        // It uses the dynamically assigned test port
         RestAssured.basePath = BASE_PATH;
+        // Set proper timeout configuration for slower systems (30 seconds)
+        RestAssured.config = RestAssuredConfig.config()
+            .httpClient(io.restassured.config.HttpClientConfig.httpClientConfig()
+                .setParam(org.apache.http.client.config.RequestConfig.CONNECTION_TIMEOUT, 30000)
+                .setParam(org.apache.http.client.config.RequestConfig.SOCKET_TIMEOUT, 30000));
     }
 
     // ==================== CREATE DEMO TESTS ====================
