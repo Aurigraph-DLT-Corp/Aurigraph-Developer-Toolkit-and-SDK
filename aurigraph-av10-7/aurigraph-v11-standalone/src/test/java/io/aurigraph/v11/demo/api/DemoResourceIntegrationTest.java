@@ -31,16 +31,23 @@ public class DemoResourceIntegrationTest {
 
     private static final String BASE_PATH = "/api/demos";
 
+    static {
+        // Set JVM system properties for socket timeout (required for REST Assured)
+        System.setProperty("sun.net.client.defaultConnectTimeout", "120000");
+        System.setProperty("sun.net.client.defaultReadTimeout", "120000");
+    }
+
     @BeforeEach
     void setup() {
         // RestAssured is automatically configured by @QuarkusTest with dynamic port
         RestAssured.basePath = BASE_PATH;
-        RestAssured.config = RestAssuredConfig.config()
-            .connectionConfig(io.restassured.config.ConnectionConfig.connectionConfig()
-                .closeIdleConnectionsAfterEachResponse())
-            .httpClient(io.restassured.config.HttpClientConfig.httpClientConfig()
-                .setParam("http.socket.timeout", 120000)
-                .setParam("http.connection.timeout", 120000));
+
+        // Configure request timeouts
+        RestAssured.requestSpecification = RestAssured.given()
+            .config(RestAssuredConfig.config()
+                .httpClient(io.restassured.config.HttpClientConfig.httpClientConfig()
+                    .setParam("http.socket.timeout", 120000)
+                    .setParam("http.connection.timeout", 120000)));
     }
 
     // ==================== CREATE DEMO TESTS ====================
@@ -243,6 +250,7 @@ public class DemoResourceIntegrationTest {
 
             // Start demo
             given()
+                    .contentType(ContentType.JSON)
                     .when()
                     .post("/" + demoId + "/start")
                     .then()
@@ -264,6 +272,7 @@ public class DemoResourceIntegrationTest {
 
             // Stop demo
             given()
+                    .contentType(ContentType.JSON)
                     .when()
                     .post("/" + demoId + "/stop")
                     .then()
@@ -285,6 +294,7 @@ public class DemoResourceIntegrationTest {
 
             // Extend demo
             given()
+                    .contentType(ContentType.JSON)
                     .queryParam("minutes", "15")
                     .queryParam("isAdmin", "true")
                     .when()
@@ -308,6 +318,7 @@ public class DemoResourceIntegrationTest {
 
             // Try to extend without admin flag - should fail
             given()
+                    .contentType(ContentType.JSON)
                     .queryParam("minutes", "15")
                     .queryParam("isAdmin", "false")
                     .when()
@@ -337,6 +348,7 @@ public class DemoResourceIntegrationTest {
 
             // Add transactions
             given()
+                    .contentType(ContentType.JSON)
                     .queryParam("count", "10")
                     .when()
                     .post("/" + demoId + "/transactions")
@@ -359,6 +371,7 @@ public class DemoResourceIntegrationTest {
 
             // Add transactions with merkle root
             given()
+                    .contentType(ContentType.JSON)
                     .queryParam("count", "5")
                     .queryParam("merkleRoot", "0x123456789abcdef")
                     .when()
@@ -396,7 +409,7 @@ public class DemoResourceIntegrationTest {
                     .when()
                     .post()
                     .then()
-                    .statusCode(200)
+                    .statusCode(201)
                     .extract()
                     .path("id");
 
