@@ -484,9 +484,25 @@ class DemoServiceClass {
 // Export singleton instance
 export const DemoService = new DemoServiceClass();
 
-// Auto-initialize with sample data on load
-DemoService.initializeSampleDemos().then(() => {
-  console.log('📊 Demo service initialized');
-}).catch((error) => {
-  console.error('Demo service initialization failed:', error);
-});
+// Auto-initialize with sample data on load (with retry logic)
+let initAttempts = 0;
+const maxInitAttempts = 3;
+const initWithRetry = async () => {
+  try {
+    await DemoService.initializeSampleDemos();
+    console.log('✅ Demo service initialized successfully');
+  } catch (error) {
+    initAttempts++;
+    if (initAttempts < maxInitAttempts) {
+      const retryDelay = Math.pow(2, initAttempts) * 1000; // Exponential backoff
+      console.warn(`❌ Demo service initialization failed (attempt ${initAttempts}/${maxInitAttempts}), retrying in ${retryDelay}ms...`);
+      setTimeout(initWithRetry, retryDelay);
+    } else {
+      console.error(`❌ Demo service initialization failed after ${maxInitAttempts} attempts:`, error);
+      console.info('💡 The backend database might not be available. Demos will still work but won\'t be persisted.');
+    }
+  }
+};
+
+// Start initialization with 2-second delay to allow app to stabilize
+setTimeout(initWithRetry, 2000);

@@ -440,6 +440,12 @@
             <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
 
+        <!-- Flyway for database migrations -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-flyway</artifactId>
+        </dependency>
+
         <!-- H2 for in-memory testing (no external database required) -->
         <dependency>
             <groupId>io.quarkus</groupId>
