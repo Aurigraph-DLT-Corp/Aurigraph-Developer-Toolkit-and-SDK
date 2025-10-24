@@ -27,10 +27,10 @@ CREATE TABLE IF NOT EXISTS demos (
 CREATE INDEX IF NOT EXISTS idx_demos_status ON demos(status);
 CREATE INDEX IF NOT EXISTS idx_demos_expires_at ON demos(expires_at);
 CREATE INDEX IF NOT EXISTS idx_demos_user_email ON demos(user_email);
-CREATE INDEX IF NOT EXISTS idx_demos_created_at ON demos(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_demos_created_at ON demos(created_at);
 
 -- Create composite index for active demos query
-CREATE INDEX IF NOT EXISTS idx_demos_active ON demos(status, expires_at) WHERE status != 'EXPIRED';
+CREATE INDEX IF NOT EXISTS idx_demos_active ON demos(status, expires_at);
 
 -- Grant permissions (adjust as needed)
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON demos TO aurigraph;
@@ -47,14 +47,13 @@ VALUES
     'PENDING',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP + INTERVAL '10 minutes',
+    DATEADD(minute, 10, CURRENT_TIMESTAMP),
     10,
     '[{"id":"ch1","name":"Production Channel","type":"PRIVATE"},{"id":"ch2","name":"Logistics Channel","type":"CONSORTIUM"}]',
     '[{"id":"v1","name":"Validator Node 1","type":"VALIDATOR","endpoint":"https://validator1.demo","channelId":"ch1"},{"id":"v2","name":"Validator Node 2","type":"VALIDATOR","endpoint":"https://validator2.demo","channelId":"ch2"}]',
     '[{"id":"b1","name":"Manufacturer Node","type":"BUSINESS","endpoint":"https://manufacturer.demo","channelId":"ch1"},{"id":"b2","name":"Distributor Node","type":"BUSINESS","endpoint":"https://distributor.demo","channelId":"ch2"}]',
     '[{"id":"s1","name":"Retailer Node","type":"SLIM","endpoint":"https://retailer.demo","channelId":"ch2"}]'
-)
-ON CONFLICT (id) DO NOTHING;
+);
 
 INSERT INTO demos (id, demo_name, user_email, user_name, description, status, created_at, last_activity, expires_at, duration_minutes, channels_json, validators_json, business_nodes_json, slim_nodes_json)
 VALUES
@@ -67,14 +66,13 @@ VALUES
     'PENDING',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP + INTERVAL '10 minutes',
+    DATEADD(minute, 10, CURRENT_TIMESTAMP),
     10,
     '[{"id":"hc1","name":"Patient Records","type":"PRIVATE"}]',
     '[{"id":"hv1","name":"Hospital Validator","type":"VALIDATOR","endpoint":"https://hospital-val.demo","channelId":"hc1"}]',
     '[{"id":"hb1","name":"Primary Care","type":"BUSINESS","endpoint":"https://primary-care.demo","channelId":"hc1"},{"id":"hb2","name":"Specialist Clinic","type":"BUSINESS","endpoint":"https://specialist.demo","channelId":"hc1"}]',
     '[]'
-)
-ON CONFLICT (id) DO NOTHING;
+);
 
 INSERT INTO demos (id, demo_name, user_email, user_name, description, status, created_at, last_activity, expires_at, duration_minutes, channels_json, validators_json, business_nodes_json, slim_nodes_json)
 VALUES
@@ -87,14 +85,11 @@ VALUES
     'PENDING',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP + INTERVAL '10 minutes',
+    DATEADD(minute, 10, CURRENT_TIMESTAMP),
     10,
     '[{"id":"fc1","name":"Payment Channel","type":"CONSORTIUM"}]',
     '[{"id":"fv1","name":"Bank Validator 1","type":"VALIDATOR","endpoint":"https://bank1-val.demo","channelId":"fc1"},{"id":"fv2","name":"Bank Validator 2","type":"VALIDATOR","endpoint":"https://bank2-val.demo","channelId":"fc1"}]',
     '[{"id":"fb1","name":"Bank A Node","type":"BUSINESS","endpoint":"https://banka.demo","channelId":"fc1"},{"id":"fb2","name":"Bank B Node","type":"BUSINESS","endpoint":"https://bankb.demo","channelId":"fc1"}]',
     '[{"id":"fs1","name":"Payment Provider","type":"SLIM","endpoint":"https://payment.demo","channelId":"fc1"}]'
-)
-ON CONFLICT (id) DO NOTHING;
+);
 
--- Verify table created
-SELECT COUNT(*) as demo_count FROM demos;
