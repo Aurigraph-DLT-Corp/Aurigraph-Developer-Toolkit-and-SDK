@@ -33,13 +33,14 @@ public class DemoResourceIntegrationTest {
 
     @BeforeEach
     void setup() {
-        // RestAssured is automatically configured by @QuarkusTest
-        // It uses the dynamically assigned test port
+        // RestAssured is automatically configured by @QuarkusTest with dynamic port
         RestAssured.basePath = BASE_PATH;
-        // Configuration for connection management
         RestAssured.config = RestAssuredConfig.config()
             .connectionConfig(io.restassured.config.ConnectionConfig.connectionConfig()
-                .closeIdleConnectionsAfterEachResponse());
+                .closeIdleConnectionsAfterEachResponse())
+            .httpClient(io.restassured.config.HttpClientConfig.httpClientConfig()
+                .setParam("http.socket.timeout", 120000)
+                .setParam("http.connection.timeout", 120000));
     }
 
     // ==================== CREATE DEMO TESTS ====================
@@ -68,7 +69,7 @@ public class DemoResourceIntegrationTest {
                     .when()
                     .post()
                     .then()
-                    .statusCode(200)
+                    .statusCode(201)
                     .contentType(ContentType.JSON)
                     .body("id", notNullValue())
                     .body("demoName", equalTo("Integration Test Demo"))
@@ -97,7 +98,7 @@ public class DemoResourceIntegrationTest {
                     .when()
                     .post()
                     .then()
-                    .statusCode(200)
+                    .statusCode(201)
                     .body("isAdminDemo", equalTo(true));
         }
 
@@ -122,7 +123,7 @@ public class DemoResourceIntegrationTest {
                     .when()
                     .post()
                     .then()
-                    .statusCode(200)
+                    .statusCode(201)
                     .body("durationMinutes", equalTo(30));
         }
     }
@@ -312,7 +313,7 @@ public class DemoResourceIntegrationTest {
                     .when()
                     .post("/" + demoId + "/extend")
                     .then()
-                    .statusCode(400);  // Bad request or forbidden
+                    .statusCode(403);  // Forbidden - admin only
         }
     }
 
@@ -404,7 +405,7 @@ public class DemoResourceIntegrationTest {
                     .when()
                     .delete("/" + demoId)
                     .then()
-                    .statusCode(200);
+                    .statusCode(204);
 
             // Verify deletion
             given()
