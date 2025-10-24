@@ -284,7 +284,6 @@ public class DataTransferObjects {
      */
     public record RWAStatus(
         boolean enabled,
-        boolean hmsIntegrationActive,
         long totalAssetsTokenized,
         String totalValueLocked,
         int activeAssetTypes,

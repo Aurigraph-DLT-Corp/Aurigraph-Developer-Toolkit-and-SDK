@@ -119,8 +119,7 @@ public class RWAApiResource {
                 "oracleSources", java.util.List.of(
                     "Chainlink",
                     "Tellor",
-                    "Band Protocol",
-                    "Aurigraph HMS"
+                    "Band Protocol"
                 )
             ));
 
@@ -348,7 +347,7 @@ public class RWAApiResource {
             details.oracleFeed.lastUpdated = Instant.now().minusSeconds(300).toString(); // 5 min ago
             details.oracleFeed.priceChange24h = new BigDecimal("2.50");
             details.oracleFeed.priceChangePercentage = 1.01;
-            details.oracleFeed.source = "Chainlink Oracle + Aurigraph HMS";
+            details.oracleFeed.source = "Chainlink Oracle";
             details.oracleFeed.confidence = 98.5;
 
             details.timestamp = System.currentTimeMillis();
@@ -444,18 +443,6 @@ public class RWAApiResource {
             chainlink.reliability = 99.9;
             chainlink.lastUpdated = Instant.now().minusSeconds(60).toString();
             response.sources.add(chainlink);
-
-            // Aurigraph HMS
-            OracleSource hms = new OracleSource();
-            hms.sourceId = "aurigraph-hms";
-            hms.name = "Aurigraph HMS Integration";
-            hms.type = "ENTERPRISE";
-            hms.status = "ACTIVE";
-            hms.assetTypes = Arrays.asList("REAL_ESTATE", "ART", "BONDS", "EQUITY");
-            hms.updateFrequency = "Every 5 minutes";
-            hms.reliability = 99.5;
-            hms.lastUpdated = Instant.now().minusSeconds(300).toString();
-            response.sources.add(hms);
 
             // Add more sources...
             response.sources.add(createOracleSource("reuters-data", "Thomson Reuters", "TRADITIONAL",

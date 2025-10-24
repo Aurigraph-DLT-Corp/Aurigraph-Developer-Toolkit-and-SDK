@@ -373,7 +373,6 @@ public class AurigraphResource {
     public Uni<RWAStatus> getRWAStatus() {
         return Uni.createFrom().item(new RWAStatus(
             true, // RWA module enabled
-            true, // Integration active
             0, // Total assets (placeholder)
             "0 USD", // Total value
             6, // Active asset types
@@ -710,7 +709,6 @@ public class AurigraphResource {
      */
     public record RWAStatus(
         boolean enabled,
-        boolean hmsIntegrationActive,
         long totalAssetsTokenized,
         String totalValueLocked,
         int activeAssetTypes,
