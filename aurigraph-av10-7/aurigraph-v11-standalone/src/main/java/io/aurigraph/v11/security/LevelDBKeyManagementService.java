@@ -72,13 +72,14 @@ public class LevelDBKeyManagementService {
     private static final int CURRENT_KEY_VERSION = 1;
 
     @ConfigProperty(name = "leveldb.encryption.key.path",
-                    defaultValue = "/var/lib/aurigraph/keys/leveldb-master.key")
+                    defaultValue = "/opt/aurigraph/keys/leveldb-master.key")
     String keyPath;
 
     @ConfigProperty(name = "leveldb.encryption.key.rotation.days", defaultValue = "90")
     int keyRotationDays;
 
-    @ConfigProperty(name = "leveldb.encryption.master.password")
+    @ConfigProperty(name = "leveldb.encryption.master.password",
+                    defaultValue = "demo-master-password-2025")
     String masterPassword;
 
     @ConfigProperty(name = "leveldb.encryption.hsm.enabled", defaultValue = "false")
@@ -86,6 +87,9 @@ public class LevelDBKeyManagementService {
 
     @ConfigProperty(name = "leveldb.encryption.hsm.provider", defaultValue = "PKCS11")
     String hsmProvider;
+
+    @ConfigProperty(name = "leveldb.encryption.enabled", defaultValue = "true")
+    boolean encryptionEnabled;
 
     @Inject
     SecurityAuditService auditService;
@@ -115,22 +119,35 @@ public class LevelDBKeyManagementService {
         try {
             logger.info("Initializing LevelDB Key Management Service");
 
+            if (!encryptionEnabled) {
+                logger.warn("Key encryption is disabled - demo mode");
+                if (auditService != null) {
+                    auditService.logSecurityEvent("KEY_MANAGEMENT_DISABLED",
+                        "Encryption disabled for demo mode");
+                }
+                return;
+            }
+
             if (hsmEnabled) {
                 initializeHSM();
             } else {
                 initializeFileBasedKeys();
             }
 
-            auditService.logSecurityEvent("KEY_MANAGEMENT_INITIALIZED",
-                "Key management service started, HSM: " + hsmEnabled);
+            if (auditService != null) {
+                auditService.logSecurityEvent("KEY_MANAGEMENT_INITIALIZED",
+                    "Key management service started, HSM: " + hsmEnabled);
+            }
 
             logger.info("Key Management initialized - Version: {}, Expires: {}",
                        currentKeyVersion, keyExpiresAt);
 
         } catch (Exception e) {
             logger.error("Failed to initialize key management", e);
-            auditService.logSecurityViolation("KEY_MANAGEMENT_INIT_FAILED",
-                "System", e.getMessage());
+            if (auditService != null) {
+                auditService.logSecurityViolation("KEY_MANAGEMENT_INIT_FAILED",
+                    "System", e.getMessage());
+            }
             throw new RuntimeException("Key management initialization failed", e);
         }
     }

@@ -7,6 +7,7 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Singleton;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import com.google.protobuf.Timestamp;
@@ -28,10 +29,16 @@ import java.util.stream.Collectors;
  * - Lock-free data structures
  * - Zero-copy message handling
  * - Connection pooling and multiplexing
+ *
+ * NOTE: gRPC service is conditionally enabled via configuration
+ * Set quarkus.grpc.server.enabled=false to disable
  */
 @GrpcService
 @Singleton
 public class HighPerformanceGrpcService implements AurigraphV11Service {
+
+    @ConfigProperty(name = "quarkus.grpc.server.enabled", defaultValue = "true")
+    boolean grpcEnabled;
 
     private static final Logger LOG = Logger.getLogger(HighPerformanceGrpcService.class);
 
