@@ -282,44 +282,73 @@ class HyperRAFTConsensusServiceTest extends ServiceTestBase {
     @DisplayName("Should handle multiple proposals efficiently")
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
     void testMultipleProposals(int proposalCount) {
-        // Try to become leader first
-        consensusService.startElection().await().atMost(java.time.Duration.ofSeconds(5));
-        
-        if (consensusService.getCurrentState() == NodeState.LEADER) {
-            long startTime = System.currentTimeMillis();
-            int successfulProposals = 0;
-            
-            for (int i = 0; i < proposalCount; i++) {
-                String value = "proposal-" + i;
-                try {
-                    Boolean result = consensusService.proposeValue(value)
-                        .await().atMost(java.time.Duration.ofSeconds(2));
-                    if (result) {
-                        successfulProposals++;
+        // FORCE leader election until successful - retry with exponential backoff
+        // This ensures deterministic test execution (no random 30% election failures)
+        int maxAttempts = 10;
+        boolean becameLeader = false;
+
+        for (int attempt = 0; attempt < maxAttempts && !becameLeader; attempt++) {
+            try {
+                Boolean electionResult = consensusService.startElection()
+                    .await().atMost(java.time.Duration.ofSeconds(5));
+
+                becameLeader = electionResult != null && electionResult &&
+                              consensusService.getCurrentState() == NodeState.LEADER;
+
+                if (!becameLeader && attempt < maxAttempts - 1) {
+                    logger.debug("Election attempt {} failed, retrying in 100ms...", attempt + 1);
+                    Thread.sleep(100); // Brief pause before retry
+                }
+            } catch (Exception e) {
+                logger.debug("Election attempt {} threw exception: {}", attempt + 1, e.getMessage());
+                if (attempt < maxAttempts - 1) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
                     }
-                } catch (Exception e) {
-                    logger.debug("Proposal {} failed: {}", i, e.getMessage());
                 }
             }
-            
-            long duration = System.currentTimeMillis() - startTime;
-            double successRate = (double) successfulProposals / proposalCount * 100;
-            double tps = calculateTPS(successfulProposals, duration);
-            
-            logger.info("Multiple proposals test - Success: {}/{} ({}%), TPS: {}", 
-                       successfulProposals, proposalCount, 
-                       String.format("%.2f", successRate), String.format("%.2f", tps));
-            
-            assertThat(successRate)
-                .as("Should have high success rate for proposals")
-                .isGreaterThanOrEqualTo(80.0); // 80% minimum success rate
-                
-            assertThat(tps)
-                .as("Should achieve reasonable throughput")
-                .isGreaterThan(10.0); // Minimum 10 TPS
-        } else {
-            logger.info("Node did not become leader, skipping multiple proposals test");
         }
+
+        // REQUIRE leader state - fail test if election never succeeds
+        // This prevents false positives where tests pass without running assertions
+        assertThat(becameLeader)
+            .as("Node must become leader to test proposal throughput (failed after %d attempts)", maxAttempts)
+            .isTrue();
+
+        long startTime = System.currentTimeMillis();
+        int successfulProposals = 0;
+
+        for (int i = 0; i < proposalCount; i++) {
+            String value = "proposal-" + i;
+            try {
+                Boolean result = consensusService.proposeValue(value)
+                    .await().atMost(java.time.Duration.ofSeconds(2));
+                if (result) {
+                    successfulProposals++;
+                }
+            } catch (Exception e) {
+                logger.debug("Proposal {} failed: {}", i, e.getMessage());
+            }
+        }
+
+        long duration = System.currentTimeMillis() - startTime;
+        double successRate = (double) successfulProposals / proposalCount * 100;
+        double tps = calculateTPS(successfulProposals, duration);
+
+        logger.info("Multiple proposals test - Success: {}/{} ({}%), TPS: {}",
+                   successfulProposals, proposalCount,
+                   String.format("%.2f", successRate), String.format("%.2f", tps));
+
+        assertThat(successRate)
+            .as("Should have high success rate for proposals")
+            .isGreaterThanOrEqualTo(80.0); // 80% minimum success rate
+
+        assertThat(tps)
+            .as("Should achieve reasonable throughput (minimum 10 TPS)")
+            .isGreaterThan(10.0); // Minimum 10 TPS requirement
     }
     
     @Test
