@@ -36,11 +36,10 @@ public class DemoResourceIntegrationTest {
         // RestAssured is automatically configured by @QuarkusTest
         // It uses the dynamically assigned test port
         RestAssured.basePath = BASE_PATH;
-        // Set proper timeout configuration for slower systems (30 seconds)
+        // Configuration for connection management
         RestAssured.config = RestAssuredConfig.config()
-            .httpClient(io.restassured.config.HttpClientConfig.httpClientConfig()
-                .setParam(org.apache.http.client.config.RequestConfig.CONNECTION_TIMEOUT, 30000)
-                .setParam(org.apache.http.client.config.RequestConfig.SOCKET_TIMEOUT, 30000));
+            .connectionConfig(io.restassured.config.ConnectionConfig.connectionConfig()
+                .closeIdleConnectionsAfterEachResponse());
     }
 
     // ==================== CREATE DEMO TESTS ====================
