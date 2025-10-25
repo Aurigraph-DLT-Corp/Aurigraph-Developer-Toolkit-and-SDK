@@ -883,11 +883,9 @@
                 
                 <!-- Performance Optimization Flags -->
                 <quarkus.native.additional-build-args>
-                    <!-- Memory and GC Optimizations -->
+                    <!-- Memory and GC Optimizations (serial GC for GraalVM native) -->
                     -H:+UnlockExperimentalVMOptions,
-                    -H:+UseG1GC,
-                    -H:MaxGCPauseMillis=1,
-                    -H:G1HeapRegionSize=32m,
+                    <!-- NOTE: G1GC not supported in native image, using serial GC -->
                     -H:+UseStringDeduplication,
                     -H:+OptimizeStringConcat,
                     
@@ -987,10 +985,8 @@
                     -O3,
                     -H:+UnlockExperimentalVMOptions,
 
-                    <!-- SPARC Week 1: GC Tuning for Low Latency -->
-                    -H:+UseG1GC,
-                    -H:MaxGCPauseMillis=1,
-                    -H:G1HeapRegionSize=64m,
+                    <!-- SPARC Week 1: GC Tuning (serial GC for native compatibility) -->
+                    <!-- NOTE: G1GC not supported in native image, using serial GC -->
                     -H:+UseStringDeduplication,
                     -H:+UseTLAB,
 
