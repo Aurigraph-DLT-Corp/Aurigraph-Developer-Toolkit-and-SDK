@@ -30,7 +30,9 @@ import {
   DistributionFrequency
 } from '../types/rwa'
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:9003'
+const API_BASE_URL = (import.meta as any).env?.PROD
+  ? 'https://dlt.aurigraph.io'
+  : 'http://localhost:9003'
 const API_PREFIX = '/api/v11'
 
 /**

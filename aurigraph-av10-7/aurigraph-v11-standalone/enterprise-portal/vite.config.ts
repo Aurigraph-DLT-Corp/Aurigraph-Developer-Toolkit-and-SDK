@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://dlt.aurigraph.io',
+        target: 'http://localhost:9003',
         changeOrigin: true,
         secure: false,
       }

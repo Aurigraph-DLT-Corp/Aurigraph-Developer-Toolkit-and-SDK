@@ -3,8 +3,10 @@
  * Handles all Smart Contracts Registry API interactions
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://dlt.aurigraph.io'
-const API_TIMEOUT = Number(process.env.REACT_APP_API_TIMEOUT) || 30000
+const API_BASE_URL = (import.meta as any).env?.PROD
+  ? 'https://dlt.aurigraph.io'
+  : 'http://localhost:9003'
+const API_TIMEOUT = Number((import.meta as any).env?.VITE_API_TIMEOUT) || 30000
 
 // ============================================================================
 // TYPES
