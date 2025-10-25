@@ -393,6 +393,32 @@ export const apiService = {
     const response = await apiClient.get('/demos', { params })
     return response.data
   },
+
+  // Validators & Staking
+  async getValidators(params?: { status?: string; limit?: number; offset?: number }) {
+    const response = await apiClient.get('/blockchain/validators', { params })
+    return response.data
+  },
+
+  async getValidatorDetails(address: string) {
+    const response = await apiClient.get(`/blockchain/validators/${address}`)
+    return response.data
+  },
+
+  async getStakingInfo() {
+    const response = await apiClient.get('/staking/info')
+    return response.data
+  },
+
+  async getNetworkHealth() {
+    const response = await apiClient.get('/blockchain/network/health')
+    return response.data
+  },
+
+  async claimRewards(validatorAddress: string) {
+    const response = await apiClient.post(`/staking/validators/${validatorAddress}/claim-rewards`)
+    return response.data
+  },
 }
 
 // Export helper functions for use in components

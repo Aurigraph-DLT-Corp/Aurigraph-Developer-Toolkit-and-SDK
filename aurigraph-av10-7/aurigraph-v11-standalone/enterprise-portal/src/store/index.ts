@@ -5,6 +5,7 @@ import performanceReducer from './performanceSlice'
 import transactionReducer from './transactionSlice'
 import rwaReducer from './rwaSlice'
 import apiIntegrationReducer from './apiIntegrationSlice'
+import transactionAnalyticsReducer from './transactionAnalyticsSlice'
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     transactions: transactionReducer,
     rwa: rwaReducer,
     apiIntegration: apiIntegrationReducer,
+    transactionAnalytics: transactionAnalyticsReducer,
   },
 })
 
