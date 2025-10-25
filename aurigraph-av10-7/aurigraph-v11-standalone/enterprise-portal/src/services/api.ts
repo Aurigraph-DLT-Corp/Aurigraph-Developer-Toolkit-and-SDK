@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 const API_BASE_URL = (import.meta as any).env?.PROD
   ? 'https://dlt.aurigraph.io/api/v11'
@@ -9,6 +9,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 })
 
 // Add auth token to requests
@@ -19,6 +20,84 @@ apiClient.interceptors.request.use((config) => {
   }
   return config
 })
+
+// ============================================================================
+// RETRY LOGIC WITH EXPONENTIAL BACKOFF
+// ============================================================================
+
+interface RetryOptions {
+  maxRetries?: number
+  initialDelay?: number
+  maxDelay?: number
+  backoffFactor?: number
+}
+
+const DEFAULT_RETRY_OPTIONS: RetryOptions = {
+  maxRetries: 3,
+  initialDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds
+  backoffFactor: 2,
+}
+
+/**
+ * Retry a function with exponential backoff
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> {
+  const opts = { ...DEFAULT_RETRY_OPTIONS, ...options }
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= (opts.maxRetries || 0); attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+
+      // Don't retry on client errors (4xx)
+      if (error instanceof AxiosError && error.response?.status && error.response.status >= 400 && error.response.status < 500) {
+        throw error
+      }
+
+      // Don't retry if we've exhausted attempts
+      if (attempt === opts.maxRetries) {
+        throw error
+      }
+
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        (opts.initialDelay || 1000) * Math.pow(opts.backoffFactor || 2, attempt),
+        opts.maxDelay || 10000
+      )
+
+      console.warn(`Request failed (attempt ${attempt + 1}/${(opts.maxRetries || 0) + 1}). Retrying in ${delay}ms...`, error)
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+
+  throw lastError
+}
+
+/**
+ * Gracefully handle API calls with fallback values
+ */
+async function safeApiCall<T>(
+  apiCall: () => Promise<T>,
+  fallbackValue: T,
+  options: RetryOptions = {}
+): Promise<{ data: T; error: Error | null; success: boolean }> {
+  try {
+    const data = await retryWithBackoff(apiCall, options)
+    return { data, error: null, success: true }
+  } catch (error) {
+    const err = error as Error
+    console.error('API call failed after retries:', err)
+    return { data: fallbackValue, error: err, success: false }
+  }
+}
 
 export const apiService = {
   // Health & Info
@@ -308,6 +387,16 @@ export const apiService = {
     const response = await apiClient.get('/registry/rwat/merkle/stats')
     return response.data
   },
+
+  // Demo Contracts (using actual backend endpoint)
+  async getDemos(params?: { limit?: number; offset?: number }) {
+    const response = await apiClient.get('/demos', { params })
+    return response.data
+  },
 }
+
+// Export helper functions for use in components
+export { retryWithBackoff, safeApiCall }
+export type { RetryOptions }
 
 export default apiService

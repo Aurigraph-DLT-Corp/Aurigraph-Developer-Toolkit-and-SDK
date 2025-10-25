@@ -46,6 +46,9 @@ public class SmartContractService {
     @Inject
     ContractVerifier contractVerifier;
 
+    @Inject
+    ContractTemplateRegistry contractTemplateRegistry;
+
     // Performance metrics
     private final AtomicLong contractsCreated = new AtomicLong(0);
     private final AtomicLong contractsExecuted = new AtomicLong(0);
@@ -377,22 +380,21 @@ public class SmartContractService {
      * Create contract from template
      */
     public Uni<RicardianContract> createFromTemplate(String templateId, Map<String, Object> variables) {
-        return Uni.createFrom().item(() -> {
-            LOGGER.info("Creating contract from template: {}", templateId);
-            
-            // Get template
-            ContractTemplate template = getTemplate(templateId);
+        LOGGER.info("Creating contract from template: {}", templateId);
+
+        // Get template
+        return getTemplate(templateId).flatMap(template -> {
             if (template == null) {
                 throw new IllegalArgumentException("Template not found: " + templateId);
             }
-            
+
             // Validate variables
             validateTemplateVariables(template, variables);
-            
+
             // Populate template
             String legalText = populateTemplate(template.getLegalText(), variables);
             String executableCode = generateExecutableCode(template, variables);
-            
+
             // Create contract request
             ContractRequest request = new ContractRequest();
             request.setName(template.getName() + " - " + Instant.now());
@@ -402,11 +404,10 @@ public class SmartContractService {
             request.setJurisdiction(template.getJurisdiction());
             request.setContractType(template.getContractType());
             request.setAssetType(template.getAssetType());
-            
+
             // Create contract
-            return createContract(request).await().indefinitely();
-        })
-        .runSubscriptionOn(executor);
+            return createContract(request);
+        });
     }
     
     /**
@@ -443,15 +444,15 @@ public class SmartContractService {
     /**
      * Get contract templates
      */
-    public List<ContractTemplate> getTemplates() {
-        return ContractTemplateRegistry.getAllTemplates();
+    public Uni<List<ContractTemplate>> getTemplates() {
+        return contractTemplateRegistry.getAllTemplates();
     }
-    
+
     /**
      * Get template by ID
      */
-    public ContractTemplate getTemplate(String templateId) {
-        return ContractTemplateRegistry.getTemplate(templateId);
+    public Uni<ContractTemplate> getTemplate(String templateId) {
+        return contractTemplateRegistry.getTemplate(templateId);
     }
     
     /**

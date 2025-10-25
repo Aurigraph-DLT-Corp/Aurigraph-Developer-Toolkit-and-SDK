@@ -5,6 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
@@ -18,6 +19,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.Map;
+import java.math.BigDecimal;
 
 /**
  * Aurigraph V11 Primary REST Resource
@@ -54,6 +58,9 @@ public class AurigraphResource {
 
     @Inject
     io.aurigraph.v11.blockchain.NetworkStatsService networkStatsService;
+
+    @Inject
+    io.aurigraph.v11.tokens.TokenManagementService tokenManagementService;
 
     @GET
     @Path("/health")
@@ -717,6 +724,20 @@ public class AurigraphResource {
         String status,
         long timestamp
     ) {}
+
+    // ==================== TOKEN MANAGEMENT ENDPOINTS ====================
+    // MOVED: Token endpoints moved to TokenResource.java to avoid path conflicts
+    // See: io.aurigraph.v11.tokens.TokenResource for all token operations
+    //
+    // Available token endpoints in TokenResource:
+    // - POST /api/v11/tokens/create - Create new token
+    // - GET  /api/v11/tokens/list - List all tokens
+    // - GET  /api/v11/tokens/{id} - Get token by ID
+    // - POST /api/v11/tokens/transfer - Transfer tokens
+    // - POST /api/v11/tokens/mint - Mint tokens
+    // - POST /api/v11/tokens/burn - Burn tokens
+    // - GET  /api/v11/tokens/{id}/balance/{address} - Get balance
+    // - GET  /api/v11/tokens/stats - Get statistics
 
     // ==================== ML & AI OPTIMIZATION ENDPOINTS ====================
 

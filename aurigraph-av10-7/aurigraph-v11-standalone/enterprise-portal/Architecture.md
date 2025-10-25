@@ -541,38 +541,82 @@ apiClient.interceptors.response.use(
 
 #### API Endpoints Matrix
 
-| Feature | Endpoint | Method | Status |
-|---------|----------|--------|--------|
+| Feature | Endpoint | Method | Status | Used By |
+|---------|----------|--------|--------|---------|
 | **Blockchain** |
-| Network stats | `/blockchain/stats` | GET | ✅ Active |
-| Transactions | `/blockchain/transactions` | GET | ✅ Active |
-| Transaction details | `/blockchain/transactions/:hash` | GET | ✅ Active |
-| Blocks | `/blockchain/blocks` | GET | ✅ Active |
+| Network stats | `/blockchain/stats` | GET | ✅ Active | Dashboard, Analytics |
+| Transactions | `/blockchain/transactions` | GET | ✅ Active | Transactions page |
+| Transaction details | `/blockchain/transactions/:hash` | GET | ✅ Active | Transaction details |
+| Blocks | `/blockchain/blocks` | GET | ✅ Active | Blockchain Operations |
 | **Nodes** |
-| List nodes | `/nodes` | GET | ✅ Active |
-| Node details | `/nodes/:id` | GET | ✅ Active |
-| Create node | `/nodes` | POST | ✅ Active |
-| Update node | `/nodes/:id` | PUT | ✅ Active |
-| Delete node | `/nodes/:id` | DELETE | ✅ Active |
+| List nodes | `/nodes` | GET | ✅ Active | Node Management |
+| Node details | `/nodes/:id` | GET | ✅ Active | Node details view |
+| Create node | `/nodes` | POST | ✅ Active | Node Management |
+| Update node | `/nodes/:id` | PUT | ✅ Active | Node Management |
+| Delete node | `/nodes/:id` | DELETE | ✅ Active | Node Management |
 | **Channels** |
-| List channels | `/channels` | GET | ✅ Active |
-| Create channel | `/channels` | POST | ✅ Active |
-| Channel stats | `/channels/:id/stats` | GET | ✅ Active |
+| List channels | `/channels` | GET | ✅ Active | External API Integration |
+| Create channel | `/channels` | POST | ✅ Active | Channel Management |
+| Channel stats | `/channels/:id/stats` | GET | ✅ Active | Channel Analytics |
 | **Contracts** |
-| List contracts | `/contracts/ricardian` | GET | ✅ Active |
-| Upload contract | `/contracts/ricardian/upload` | POST | ✅ Active |
-| Execute contract | `/contracts/ricardian/:id/execute` | POST | ✅ Active |
+| List contracts | `/contracts/ricardian` | GET | ✅ Active | RicardianContracts |
+| Upload contract | `/contracts/ricardian/upload` | POST | ✅ Active | Contract Upload |
+| Execute contract | `/contracts/ricardian/:id/execute` | POST | ✅ Active | Contract Execution |
+| Contract statistics | `/contracts/statistics` | GET | ✅ Active | Contract Analytics |
 | **Demos** |
-| List demos | `/demos` | GET | 📋 Planned |
-| Create demo | `/demos` | POST | 📋 Planned |
-| Start demo | `/demos/:id/start` | PUT | 📋 Planned |
-| Stop demo | `/demos/:id/stop` | PUT | 📋 Planned |
-| Delete demo | `/demos/:id` | DELETE | 📋 Planned |
-| Merkle proof | `/demos/:id/merkle` | GET | 📋 Planned |
+| List demos | `/demos` | GET | ✅ Active | Dashboard, RicardianContracts (96 records) |
+| Create demo | `/demos` | POST | 📋 Planned | Demo Management |
+| Start demo | `/demos/:id/start` | PUT | 📋 Planned | Demo Control |
+| Stop demo | `/demos/:id/stop` | PUT | 📋 Planned | Demo Control |
+| Delete demo | `/demos/:id` | DELETE | 📋 Planned | Demo Management |
+| Merkle proof | `/demos/:id/merkle` | GET | 📋 Planned | Demo Verification |
+| **AI/ML** (NEW - MISSING IMPLEMENTATION) |
+| AI Metrics | `/ai/metrics` | GET | ✅ Active | ML Performance Dashboard |
+| AI Predictions | `/ai/predictions` | GET | ✅ Active | ML Performance Dashboard |
+| **ML Performance** | `/ai/performance` | GET | ❌ Missing | ML Performance Dashboard (line 26) |
+| **Confidence Scores** | `/ai/confidence` | GET | ❌ Missing | ML Performance Dashboard (line 27) |
+| **Tokens & RWAT** (NEW - MISSING IMPLEMENTATION) |
+| List tokens | `/tokens` | GET | ❌ Missing | TokenManagement (src/pages/rwa/TokenManagement.tsx) |
+| Create token | `/tokens` | POST | ❌ Missing | TokenManagement |
+| Token details | `/tokens/:id` | GET | ❌ Missing | Token details view |
+| Update token | `/tokens/:id` | PUT | ❌ Missing | Token Management |
+| Token statistics | `/tokens/statistics` | GET | ❌ Missing | Token Analytics |
 | **System** |
-| Health check | `/health` | GET | ✅ Active |
-| System info | `/info` | GET | ✅ Active |
-| Metrics | `/metrics` | GET | ✅ Active |
+| Health check | `/health` | GET | ✅ Active | System Health |
+| System info | `/info` | GET | ✅ Active | Developer Dashboard |
+| Metrics | `/metrics` | GET | ✅ Active | Monitoring |
+
+---
+
+### API Integration Status
+
+**Total Endpoints**: 22 (updated)
+**Working**: 14 endpoints (64%)
+**Missing**: 4 endpoints (18%)
+**Planned**: 4 endpoints (18%)
+
+**Critical Missing Endpoints**:
+1. `/api/v11/ai/performance` - Used by ML Performance Dashboard
+2. `/api/v11/ai/confidence` - Used by ML Performance Dashboard
+3. `/api/v11/tokens` - Used by Token Management component
+4. `/api/v11/tokens/statistics` - Used by Token Management component
+
+### UI Component to API Endpoint Mapping
+
+| Component | File | Endpoints Used | Status |
+|-----------|------|-----------------|--------|
+| Dashboard | `src/pages/Dashboard.tsx` | `/blockchain/stats`, `/performance`, `/system/status`, `/demos` | ✅ Working |
+| Transactions | `src/pages/Transactions.tsx` | `/blockchain/transactions` | ✅ Working |
+| Analytics | `src/pages/Analytics.tsx` | `/blockchain/stats`, `/performance` | ✅ Working |
+| DeveloperDashboard | `src/pages/dashboards/DeveloperDashboard.tsx` | `/info`, `/performance` | ✅ Working |
+| MLPerformanceDashboard | `src/pages/dashboards/MLPerformanceDashboard.tsx` | `/ai/metrics`, `/ai/predictions`, ❌ `/ai/performance`, ❌ `/ai/confidence` | ⚠️ Partial |
+| BlockchainOperations | `src/pages/dashboards/BlockchainOperations.tsx` | `/blockchain/blocks`, `/blockchain/stats` | ✅ Working |
+| RicardianContracts | `src/pages/dashboards/RicardianContracts.tsx` | `/demos` (fixed in v4.8.0) | ✅ Working |
+| SecurityAudit | `src/pages/dashboards/SecurityAudit.tsx` | `/blockchain/stats` | ✅ Working |
+| SystemHealth | `src/pages/dashboards/SystemHealth.tsx` | `/health`, `/analytics/performance` | ✅ Working |
+| ExternalAPIIntegration | `src/pages/dashboards/ExternalAPIIntegration.tsx` | `/channels` | ✅ Working |
+| OracleService | `src/pages/dashboards/OracleService.tsx` | `/blockchain/stats` | ✅ Working |
+| TokenManagement | `src/pages/rwa/TokenManagement.tsx` | ❌ `/tokens`, ❌ `/tokens/statistics` | ❌ Missing Endpoints |
 
 ---
 

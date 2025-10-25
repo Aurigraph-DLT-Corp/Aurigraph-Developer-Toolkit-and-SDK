@@ -584,3 +584,4 @@ Use these scripts for deployment:
 - **System**: Linux Ubuntu 24.04.3 LTS
 - **Resources**: 49Gi RAM, 16 vCPU, 133G disk
 - **Docker**: Version 28.4.0
+- memorize

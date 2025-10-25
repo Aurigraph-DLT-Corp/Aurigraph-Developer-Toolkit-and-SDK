@@ -1,29 +1,64 @@
 package io.aurigraph.v11.contracts.composite;
 
+import io.aurigraph.v11.merkle.MerkleProof;
+import io.aurigraph.v11.merkle.MerkleTreeRegistry;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import io.quarkus.logging.Log;
+import java.util.stream.Collectors;
 
 /**
- * Verifier Registry - Manages third-party verifiers and verification requests
- * Implements 4-tier verifier system with reputation scoring and automated assignment
+ * Verifier Registry Service with Merkle Tree Support
+ *
+ * Manages third-party verifiers and verification requests with cryptographic verification.
+ * Implements 4-tier verifier system with reputation scoring and automated assignment.
+ *
+ * Features:
+ * - 4-tier verifier system (TIER_1 to TIER_4)
+ * - Reputation scoring and tracking
+ * - Automated verifier assignment
+ * - Credential expiration tracking
+ * - Merkle tree cryptographic verification
+ * - Proof generation and verification
+ * - Root hash tracking for verifier trust
+ *
+ * @version 11.5.0
+ * @since 2025-10-25 - AV11-459: VerifierRegistry Merkle Tree
  */
 @ApplicationScoped
-public class VerifierRegistry {
-    
-    private final Map<String, ThirdPartyVerifier> verifiers = new ConcurrentHashMap<>();
+public class VerifierRegistry extends MerkleTreeRegistry<ThirdPartyVerifier> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VerifierRegistry.class);
+
     private final Map<String, VerificationRequest> activeRequests = new ConcurrentHashMap<>();
     private final Map<String, List<String>> verifiersByTier = new ConcurrentHashMap<>();
     private final Map<String, BigDecimal> verifierReputation = new ConcurrentHashMap<>();
+    private final Map<String, Instant> credentialExpiration = new ConcurrentHashMap<>();
     private final AtomicLong requestCounter = new AtomicLong(0);
 
     public VerifierRegistry() {
+        super();
         initializeDefaultVerifiers();
+    }
+
+    @Override
+    protected String serializeValue(ThirdPartyVerifier verifier) {
+        return String.format("%s|%s|%s|%s|%s|%d|%s",
+            verifier.getVerifierId(),
+            verifier.getName(),
+            verifier.getTier(),
+            verifier.getSpecialization(),
+            verifier.getStatus(),
+            verifier.getCompletedVerifications(),
+            verifier.getSuccessRate()
+        );
     }
 
     /**
@@ -35,40 +70,108 @@ public class VerifierRegistry {
             verifier.setVerifierId(verifierId);
             verifier.setRegisteredAt(Instant.now());
             verifier.setStatus(VerifierStatus.PENDING_APPROVAL);
-            
-            verifiers.put(verifierId, verifier);
-            
+
             // Initialize reputation score
             verifierReputation.put(verifierId, BigDecimal.valueOf(50)); // Start with neutral score
-            
-            Log.infof("Registered new verifier: %s (%s) - %s", 
+
+            // Set credential expiration (2 years from now)
+            credentialExpiration.put(verifierId, Instant.now().plusSeconds(2 * 365 * 24 * 3600L));
+
+            LOGGER.info("Registered new verifier: {} ({}) - {}",
                 verifier.getName(), verifierId, verifier.getTier());
-            
+
             return verifierId;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        }).flatMap(id -> add(id, verifier).map(success -> id));
     }
 
     /**
      * Approve a verifier for active duty
      */
     public Uni<Boolean> approveVerifier(String verifierId) {
-        return Uni.createFrom().item(() -> {
-            ThirdPartyVerifier verifier = verifiers.get(verifierId);
+        return get(verifierId).flatMap(verifier -> {
             if (verifier == null) {
-                return false;
+                return Uni.createFrom().item(false);
             }
-            
+
             verifier.setStatus(VerifierStatus.ACTIVE);
             verifier.setApprovedAt(Instant.now());
-            
+
             // Add to tier-based lookup
             String tierKey = verifier.getTier().name();
             verifiersByTier.computeIfAbsent(tierKey, k -> new ArrayList<>()).add(verifierId);
-            
-            Log.infof("Approved verifier: %s for %s tier", verifier.getName(), verifier.getTier());
-            
-            return true;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+
+            LOGGER.info("Approved verifier: {} for {} tier", verifier.getName(), verifier.getTier());
+
+            return add(verifierId, verifier).map(success -> true);
+        });
+    }
+
+    /**
+     * Check and renew credentials for verifier
+     */
+    public Uni<Boolean> renewCredentials(String verifierId, Instant newExpirationDate) {
+        return get(verifierId).flatMap(verifier -> {
+            if (verifier == null) {
+                return Uni.createFrom().item(false);
+            }
+
+            credentialExpiration.put(verifierId, newExpirationDate);
+            LOGGER.info("Renewed credentials for verifier: {} until {}", verifierId, newExpirationDate);
+
+            return add(verifierId, verifier).map(success -> true);
+        });
+    }
+
+    /**
+     * Get verifiers with expired credentials
+     */
+    public Uni<List<ThirdPartyVerifier>> getExpiredVerifiers() {
+        return getAll().map(verifiers -> {
+            Instant now = Instant.now();
+            return verifiers.stream()
+                .filter(v -> {
+                    Instant expiration = credentialExpiration.get(v.getVerifierId());
+                    return expiration != null && expiration.isBefore(now);
+                })
+                .collect(Collectors.toList());
+        });
+    }
+
+    /**
+     * Generate Merkle proof for a verifier
+     */
+    public Uni<MerkleProof.ProofData> getVerifierProof(String verifierId) {
+        return generateProof(verifierId).map(MerkleProof::toProofData);
+    }
+
+    /**
+     * Verify a Merkle proof for verifier trust
+     */
+    public Uni<VerificationResponse> verifyMerkleProof(MerkleProof.ProofData proofData) {
+        return verifyProof(proofData.toMerkleProof()).map(valid ->
+            new VerificationResponse(valid, valid ? "Verifier proof verified successfully" : "Invalid verifier proof")
+        );
+    }
+
+    /**
+     * Get current Merkle root hash for verifier registry
+     */
+    public Uni<RootHashResponse> getMerkleRootHash() {
+        return getRootHash().flatMap(rootHash ->
+            getTreeStats().map(stats -> new RootHashResponse(
+                rootHash,
+                Instant.now(),
+                stats.getEntryCount(),
+                stats.getTreeHeight()
+            ))
+        );
+    }
+
+    /**
+     * Get Merkle tree statistics
+     */
+    public Uni<MerkleTreeStats> getMerkleTreeStats() {
+        return getTreeStats();
     }
 
     /**
@@ -104,7 +207,7 @@ public class VerifierRegistry {
                 notifyVerifier(verifierId, request);
             }
             
-            Log.infof("Created verification request %s for composite %s with %d verifiers", 
+            LOGGER.info("Created verification request %s for composite %s with %d verifiers", 
                 requestId, compositeId, verifierCount);
             
             return requestId;
@@ -137,7 +240,7 @@ public class VerifierRegistry {
                 processCompletedRequest(request);
             }
             
-            Log.infof("Received verification result from %s for request %s", verifierId, requestId);
+            LOGGER.info("Received verification result from %s for request %s", verifierId, requestId);
             
             return true;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
@@ -151,7 +254,7 @@ public class VerifierRegistry {
             Map<VerifierTier, Integer> tierCounts = new HashMap<>();
             Map<VerifierStatus, Integer> statusCounts = new HashMap<>();
             
-            for (ThirdPartyVerifier verifier : verifiers.values()) {
+            for (ThirdPartyVerifier verifier : registry.values()) {
                 tierCounts.merge(verifier.getTier(), 1, Integer::sum);
                 statusCounts.merge(verifier.getStatus(), 1, Integer::sum);
             }
@@ -161,7 +264,7 @@ public class VerifierRegistry {
                 .count();
             
             return new VerifierStats(
-                verifiers.size(),
+                registry.size(),
                 tierCounts,
                 statusCounts,
                 activeRequests,
@@ -176,13 +279,13 @@ public class VerifierRegistry {
     public Uni<List<ThirdPartyVerifier>> getVerifiersByTier(VerifierTier tier) {
         return Uni.createFrom().item(() -> {
             List<String> verifierIds = verifiersByTier.getOrDefault(tier.name(), new ArrayList<>());
-            
+
             return verifierIds.stream()
-                .map(verifiers::get)
+                .map(registry::get)
                 .filter(Objects::nonNull)
                 .filter(v -> v.getStatus() == VerifierStatus.ACTIVE)
                 .toList();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     /**
@@ -190,7 +293,7 @@ public class VerifierRegistry {
      */
     public Uni<VerifierPerformance> getVerifierPerformance(String verifierId) {
         return Uni.createFrom().item(() -> {
-            ThirdPartyVerifier verifier = verifiers.get(verifierId);
+            ThirdPartyVerifier verifier = registry.get(verifierId);
             if (verifier == null) {
                 return null;
             }
@@ -259,7 +362,7 @@ public class VerifierRegistry {
         // Filter by asset type specialization and active status
         List<String> qualified = candidates.stream()
             .filter(id -> {
-                ThirdPartyVerifier verifier = verifiers.get(id);
+                ThirdPartyVerifier verifier = registry.get(id);
                 return verifier != null && 
                        verifier.getStatus() == VerifierStatus.ACTIVE &&
                        (verifier.getSpecialization().equals("Multi-Asset") || 
@@ -288,11 +391,11 @@ public class VerifierRegistry {
 
     private void notifyVerifier(String verifierId, VerificationRequest request) {
         // In a real implementation, this would send notifications via email, API, etc.
-        Log.infof("Notifying verifier %s of new verification request %s", verifierId, request.getRequestId());
+        LOGGER.info("Notifying verifier %s of new verification request %s", verifierId, request.getRequestId());
     }
 
     private void updateVerifierPerformance(String verifierId, VerificationResult result) {
-        ThirdPartyVerifier verifier = verifiers.get(verifierId);
+        ThirdPartyVerifier verifier = registry.get(verifierId);
         if (verifier != null) {
             verifier.incrementCompletedVerifications();
             
@@ -326,7 +429,7 @@ public class VerifierRegistry {
 
     private void processCompletedRequest(VerificationRequest request) {
         // Process completed verification request
-        Log.infof("Verification request %s completed with %d results", 
+        LOGGER.info("Verification request %s completed with %d results", 
             request.getRequestId(), request.getVerificationResults().size());
         
         // Remove from active requests
@@ -348,8 +451,57 @@ public class VerifierRegistry {
     public static class InsufficientVerifiersException extends RuntimeException {
         public InsufficientVerifiersException(String message) { super(message); }
     }
-    
+
     public static class UnauthorizedVerifierException extends RuntimeException {
         public UnauthorizedVerifierException(String message) { super(message); }
+    }
+
+    // Response Classes for Merkle tree operations
+    public static class VerificationResponse {
+        private final boolean valid;
+        private final String message;
+
+        public VerificationResponse(boolean valid, String message) {
+            this.valid = valid;
+            this.message = message;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
+    public static class RootHashResponse {
+        private final String rootHash;
+        private final Instant timestamp;
+        private final int entryCount;
+        private final int treeHeight;
+
+        public RootHashResponse(String rootHash, Instant timestamp, int entryCount, int treeHeight) {
+            this.rootHash = rootHash;
+            this.timestamp = timestamp;
+            this.entryCount = entryCount;
+            this.treeHeight = treeHeight;
+        }
+
+        public String getRootHash() {
+            return rootHash;
+        }
+
+        public Instant getTimestamp() {
+            return timestamp;
+        }
+
+        public int getEntryCount() {
+            return entryCount;
+        }
+
+        public int getTreeHeight() {
+            return treeHeight;
+        }
     }
 }

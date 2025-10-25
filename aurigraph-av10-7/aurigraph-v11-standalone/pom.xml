@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.aurigraph</groupId>
     <artifactId>aurigraph-v11-standalone</artifactId>
-    <version>11.4.3</version>
+    <version>11.4.4</version>
 
     <properties>
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
@@ -968,7 +968,7 @@
             </properties>
         </profile>
         
-        <!-- Ultra-Optimized Production Profile -->
+        <!-- Ultra-Optimized Production Profile - SPARC Week 1 Enhanced -->
         <profile>
             <id>native-ultra</id>
             <activation>
@@ -982,13 +982,19 @@
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
                 <quarkus.native.additional-build-args>
-                    <!-- Ultra Performance Settings -->
+                    <!-- SPARC Week 1: CPU Architecture Optimizations -->
                     -march=native,
                     -O3,
                     -H:+UnlockExperimentalVMOptions,
+
+                    <!-- SPARC Week 1: GC Tuning for Low Latency -->
                     -H:+UseG1GC,
                     -H:MaxGCPauseMillis=1,
                     -H:G1HeapRegionSize=64m,
+                    -H:+UseStringDeduplication,
+                    -H:+UseTLAB,
+
+                    <!-- SPARC Week 1: Aggressive Performance Opts -->
                     -H:+AggressiveOpts,
                     -H:+UseFastAccessorMethods,
                     -H:+OptimizeStringConcat,
@@ -996,13 +1002,24 @@
                     -H:+UseCompressedClassPointers,
                     -H:+EliminateAllocations,
                     -H:+OptimizeBulkTransfer,
-                    
-                    <!-- Startup Optimizations -->
+                    -H:+InlineIntrinsics,
+                    -H:+UseSIMD,
+
+                    <!-- SPARC Week 1: Thread & Concurrency Opts -->
+                    -H:+UseFastLocking,
+                    -H:+UseBiasedLocking,
+                    -H:+OptimizeConcurrentLocking,
+                    -H:MaxInlineLevel=32,
+                    -H:FreqInlineSize=512,
+
+                    <!-- SPARC Week 1: Startup & Memory Optimizations -->
                     -H:-SpawnIsolates,
                     -H:+StaticExecutableWithDynamicLibC,
                     -H:+AllowIncompleteClasspath,
-                    
-                    <!-- All runtime initializations -->
+                    -H:+RemoveSaturatedTypeFlows,
+                    -H:+ReportUnsupportedElementsAtRuntime,
+
+                    <!-- Runtime Initializations (Network, Crypto, AI/ML) -->
                     --initialize-at-run-time=io.netty,
                     --initialize-at-run-time=io.grpc,
                     --initialize-at-run-time=org.bouncycastle,
@@ -1010,12 +1027,25 @@
                     --initialize-at-run-time=org.nd4j,
                     --initialize-at-run-time=com.github.haifengl.smile,
                     --initialize-at-run-time=java.security,
-                    
-                    <!-- Memory Settings -->
-                    -H:NativeImageHeapSize=12g,
-                    -H:MaxDirectMemorySize=4g,
-                    -H:ReservedCodeCacheSize=256m
+
+                    <!-- SPARC Week 1: Memory Settings for 8.51M TPS -->
+                    -H:NativeImageHeapSize=16g,
+                    -H:MaxDirectMemorySize=8g,
+                    -H:ReservedCodeCacheSize=512m,
+                    -H:MaxJavaStackTraceDepth=20,
+
+                    <!-- SPARC Week 1: Profiling & Diagnostics -->
+                    -H:+PrintAnalysisCallTree,
+                    -H:+PrintFeatures,
+                    -H:+TraceClassInitialization
                 </quarkus.native.additional-build-args>
+
+                <!-- SPARC Week 1: Resource Inclusions -->
+                <quarkus.native.resources.includes>*.proto,application*.properties,META-INF/resources/**,META-INF/native-image/**</quarkus.native.resources.includes>
+
+                <!-- SPARC Week 1: Compression -->
+                <quarkus.native.compression.level>10</quarkus.native.compression.level>
+                <quarkus.native.compression.additional-args>--strip-debug</quarkus.native.compression.additional-args>
             </properties>
         </profile>
 

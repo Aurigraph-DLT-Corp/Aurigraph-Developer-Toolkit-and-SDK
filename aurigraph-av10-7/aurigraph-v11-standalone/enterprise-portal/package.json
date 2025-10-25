@@ -1,7 +1,7 @@
 {
   "name": "aurigraph-v11-enterprise-portal",
-  "version": "4.7.1",
-  "description": "Enterprise Portal V4.7.1 - PostgreSQL Persistence & Demo Management",
+  "version": "4.8.0",
+  "description": "Enterprise Portal V4.8.0 - PostgreSQL Persistence & Demo Management",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",

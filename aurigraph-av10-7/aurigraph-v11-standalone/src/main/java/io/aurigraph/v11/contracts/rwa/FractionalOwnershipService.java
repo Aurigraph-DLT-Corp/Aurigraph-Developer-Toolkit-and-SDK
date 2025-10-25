@@ -22,7 +22,7 @@ public class FractionalOwnershipService {
     RWATokenizer rwaTokenizer;
 
     // Fractional ownership registry
-    private final Map<String, AssetShareRegistry> shareRegistries = new ConcurrentHashMap<>();
+    private final Map<String, AssetShareRecord> shareRegistries = new ConcurrentHashMap<>();
     private final Map<String, List<ShareTransaction>> shareTransactionHistory = new ConcurrentHashMap<>();
     private final Map<String, DividendPool> dividendPools = new ConcurrentHashMap<>();
 
@@ -50,13 +50,13 @@ public class FractionalOwnershipService {
             }
 
             // Check if token is already fractionalized
-            AssetShareRegistry existingRegistry = shareRegistries.get(tokenId);
+            AssetShareRecord existingRegistry = shareRegistries.get(tokenId);
             if (existingRegistry != null) {
                 throw new IllegalStateException("Token is already fractionalized");
             }
 
             // Create share registry
-            AssetShareRegistry shareRegistry = createShareRegistry(originalToken, numberOfShares, minSharePrice);
+            AssetShareRecord shareRegistry = createShareRegistry(originalToken, numberOfShares, minSharePrice);
             shareRegistries.put(tokenId, shareRegistry);
 
             // Initialize dividend pool
@@ -71,15 +71,15 @@ public class FractionalOwnershipService {
             long endTime = System.nanoTime();
             
             Log.infof("Successfully split token %s into %d shares", tokenId, numberOfShares);
-            
+
             return new FractionalOwnershipResult(
                 true,
                 "Token successfully split into fractional shares",
                 shareRegistry,
                 endTime - startTime
             );
-            
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+
+        });
     }
 
     /**
@@ -88,7 +88,7 @@ public class FractionalOwnershipService {
     public Uni<Boolean> transferShares(String tokenId, String fromAddress, String toAddress, 
                                      int shareCount, BigDecimal pricePerShare) {
         return Uni.createFrom().item(() -> {
-            AssetShareRegistry registry = shareRegistries.get(tokenId);
+            AssetShareRecord registry = shareRegistries.get(tokenId);
             if (registry == null) {
                 throw new TokenNotFoundException("Token not fractionalized: " + tokenId);
             }
@@ -134,7 +134,7 @@ public class FractionalOwnershipService {
      */
     public Uni<ShareHolderInfo> getShareHolderInfo(String tokenId, String holderAddress) {
         return Uni.createFrom().item(() -> {
-            AssetShareRegistry registry = shareRegistries.get(tokenId);
+            AssetShareRecord registry = shareRegistries.get(tokenId);
             if (registry == null) {
                 return null;
             }
@@ -170,7 +170,7 @@ public class FractionalOwnershipService {
         return Uni.createFrom().item(() -> {
             long startTime = System.nanoTime();
             
-            AssetShareRegistry registry = shareRegistries.get(tokenId);
+            AssetShareRecord registry = shareRegistries.get(tokenId);
             if (registry == null) {
                 throw new TokenNotFoundException("Token not fractionalized: " + tokenId);
             }
@@ -235,7 +235,7 @@ public class FractionalOwnershipService {
     public Uni<Boolean> mergeShares(String tokenId, String holderAddress, int sharesToMerge, 
                                   int newShareSize) {
         return Uni.createFrom().item(() -> {
-            AssetShareRegistry registry = shareRegistries.get(tokenId);
+            AssetShareRecord registry = shareRegistries.get(tokenId);
             if (registry == null) {
                 throw new TokenNotFoundException("Token not fractionalized: " + tokenId);
             }
@@ -268,7 +268,7 @@ public class FractionalOwnershipService {
      */
     public Uni<FractionalOwnershipStats> getTokenFractionStats(String tokenId) {
         return Uni.createFrom().item(() -> {
-            AssetShareRegistry registry = shareRegistries.get(tokenId);
+            AssetShareRecord registry = shareRegistries.get(tokenId);
             if (registry == null) {
                 return new FractionalOwnershipStats(tokenId, 0, 0, BigDecimal.ZERO, 
                                                    BigDecimal.ZERO, new ArrayList<>());
@@ -293,16 +293,16 @@ public class FractionalOwnershipService {
 
     // Private helper methods
 
-    private AssetShareRegistry createShareRegistry(RWAToken token, int numberOfShares, 
+    private AssetShareRecord createShareRegistry(RWAToken token, int numberOfShares,
                                                   BigDecimal minSharePrice) {
         BigDecimal shareValue = token.getAssetValue().divide(new BigDecimal(numberOfShares), 8, RoundingMode.HALF_UP);
-        
+
         // Ensure share value meets minimum price
         if (shareValue.compareTo(minSharePrice) < 0) {
             throw new IllegalArgumentException("Calculated share value is below minimum share price");
         }
 
-        AssetShareRegistry registry = new AssetShareRegistry(
+        AssetShareRecord registry = new AssetShareRecord(
             token.getTokenId(),
             token.getAssetId(),
             numberOfShares,
@@ -318,7 +318,7 @@ public class FractionalOwnershipService {
         return registry;
     }
 
-    private BigDecimal calculateOwnershipPercentage(int shareCount, AssetShareRegistry registry) {
+    private BigDecimal calculateOwnershipPercentage(int shareCount, AssetShareRecord registry) {
         if (registry.getTotalShares() == 0) {
             return BigDecimal.ZERO;
         }

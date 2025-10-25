@@ -20,7 +20,7 @@ import java.util.UUID;
  * Demo Management REST API
  * Provides CRUD operations and timeout management for demos
  */
-@Path("/api/demos")
+@Path("/api/v11/demos")
 @Tag(name = "Demo Management", description = "Manage live demos with persistence and timeout")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
