@@ -141,7 +141,7 @@ public class NodeManagementResourceTest {
                 .extract().response();
 
         // Verify resource usage structure
-        assertEquals(20, response.path("nodes.size()"));
+        assertEquals(20, (int) response.path("nodes.size()"));
         assertNotNull(response.path("nodes[0].resourceUsage.cpuPercent"));
         assertNotNull(response.path("nodes[0].resourceUsage.memoryPercent"));
         assertNotNull(response.path("nodes[0].resourceUsage.diskPercent"));

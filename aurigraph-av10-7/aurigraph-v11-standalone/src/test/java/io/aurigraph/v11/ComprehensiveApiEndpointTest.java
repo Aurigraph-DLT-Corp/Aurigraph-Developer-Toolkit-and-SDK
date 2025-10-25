@@ -14,14 +14,12 @@ import static org.hamcrest.Matchers.*;
 
 /**
  * Comprehensive API Endpoint Test Suite
- * Tests all 26 endpoints (12 Phase 1 + 14 Phase 2)
+ * Tests all 29 endpoints (12 Phase 1 + 14 Phase 2 + 3 Core)
  * Uses REST Assured for fluent API testing
  *
- * DISABLED: Quarkus startup requires all endpoints to be fully implemented.
- * Will be enabled in SPARC Week 1 Day 3-5 when all endpoints are ready.
+ * RE-ENABLED: All endpoints now implemented and ready for testing.
  */
 @QuarkusTest
-@Disabled("Quarkus startup requires fully initialized endpoints - scheduled for Week 1 Day 3-5")
 @DisplayName("Comprehensive API Endpoint Tests")
 public class ComprehensiveApiEndpointTest {
 
