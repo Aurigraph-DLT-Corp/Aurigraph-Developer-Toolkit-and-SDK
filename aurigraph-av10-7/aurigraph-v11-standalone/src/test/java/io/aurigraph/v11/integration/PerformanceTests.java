@@ -68,6 +68,14 @@ public class PerformanceTests {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("PERFORMANCE TEST REPORT");
         System.out.println("=".repeat(80));
+
+        // Null check to prevent NullPointerException
+        if (overallMetrics == null) {
+            System.out.println("WARNING: Performance metrics not initialized. Tests may have been skipped or failed during setup.");
+            System.out.println("=".repeat(80));
+            return;
+        }
+
         System.out.println(String.format("Total Requests:       %,d", overallMetrics.totalRequests.get()));
         System.out.println(String.format("Successful Requests:  %,d", overallMetrics.successfulRequests.get()));
         System.out.println(String.format("Failed Requests:      %,d", overallMetrics.failedRequests.get()));
@@ -332,22 +340,35 @@ public class PerformanceTests {
                     long latency = reqEnd - reqStart;
 
                     latencies.add(latency);
-                    overallMetrics.latencies.add(latency);
-                    overallMetrics.totalRequests.incrementAndGet();
 
-                    if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                        successCount.incrementAndGet();
-                        overallMetrics.successfulRequests.incrementAndGet();
+                    // Defensive null check for overallMetrics
+                    if (overallMetrics != null) {
+                        overallMetrics.latencies.add(latency);
+                        overallMetrics.totalRequests.incrementAndGet();
+
+                        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                            successCount.incrementAndGet();
+                            overallMetrics.successfulRequests.incrementAndGet();
+                        } else {
+                            failCount.incrementAndGet();
+                            overallMetrics.failedRequests.incrementAndGet();
+                        }
+
+                        overallMetrics.updateLatencyStats(latency);
                     } else {
-                        failCount.incrementAndGet();
-                        overallMetrics.failedRequests.incrementAndGet();
+                        // Track local metrics even if overall metrics are null
+                        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                            successCount.incrementAndGet();
+                        } else {
+                            failCount.incrementAndGet();
+                        }
                     }
-
-                    overallMetrics.updateLatencyStats(latency);
                 } catch (Exception e) {
                     failCount.incrementAndGet();
-                    overallMetrics.failedRequests.incrementAndGet();
-                    overallMetrics.totalRequests.incrementAndGet();
+                    if (overallMetrics != null) {
+                        overallMetrics.failedRequests.incrementAndGet();
+                        overallMetrics.totalRequests.incrementAndGet();
+                    }
                 }
             }, executor);
 
@@ -358,7 +379,11 @@ public class PerformanceTests {
 
         long endTime = System.currentTimeMillis();
         double durationSeconds = (endTime - startTime) / 1000.0;
-        overallMetrics.totalDuration.addAndGet((endTime - startTime));
+
+        // Defensive null check for overallMetrics
+        if (overallMetrics != null) {
+            overallMetrics.totalDuration.addAndGet((endTime - startTime));
+        }
 
         LoadTestResult result = new LoadTestResult(
             testName,
