@@ -240,8 +240,9 @@ public class FractionalizationService {
     /**
      * Get holder information
      */
+    @SuppressWarnings("unchecked")
     public Uni<Optional<FractionHolder>> getHolder(String primaryTokenId, String holderAddress) {
-        return Uni.createFrom().item(() -> {
+        return (Uni<Optional<FractionHolder>>) (Uni<?>) Uni.createFrom().item(() -> {
             Map<String, FractionHolder> holders = holderRegistry.get(primaryTokenId);
             if (holders == null) {
                 return Optional.empty();
@@ -253,8 +254,9 @@ public class FractionalizationService {
     /**
      * Get all holders for asset
      */
+    @SuppressWarnings("unchecked")
     public Uni<List<FractionHolder>> getAllHolders(String primaryTokenId) {
-        return Uni.createFrom().item(() -> {
+        return (Uni<List<FractionHolder>>) (Uni<?>) Uni.createFrom().item(() -> {
             Map<String, FractionHolder> holders = holderRegistry.get(primaryTokenId);
             if (holders == null) {
                 return new ArrayList<>();
