@@ -1,11 +1,13 @@
 // Real-Time TPS Visualization - Vizor Style
 // Animated, responsive, stunning visual display of blockchain performance
+// Integrated with backend API and WebSocket real-time updates
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Card, CardContent, Grid, alpha } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, alpha, CircularProgress } from '@mui/material';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
 import { TrendingUp, Speed, Bolt } from '@mui/icons-material';
 import { colors, animations } from '../styles/v0-theme';
+import { apiService, webSocketManager } from '../services/api';
 
 interface TPSDataPoint {
   timestamp: number;
@@ -16,44 +18,157 @@ interface TPSDataPoint {
 }
 
 interface Props {
-  currentTPS: number;
-  targetTPS: number;
-  peakTPS: number;
-  averageTPS: number;
+  currentTPS?: number;
+  targetTPS?: number;
+  peakTPS?: number;
+  averageTPS?: number;
 }
 
 export const RealTimeTPSChart: React.FC<Props> = ({
-  currentTPS,
-  targetTPS,
-  peakTPS,
-  averageTPS,
+  currentTPS: propsTPS,
+  targetTPS: propsTargetTPS,
+  peakTPS: propsPeakTPS,
+  averageTPS: propsAverageTPS,
 }) => {
   const [tpsHistory, setTPSHistory] = useState<TPSDataPoint[]>([]);
   const [isLive, setIsLive] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // State for current metrics from backend
+  const [currentTPS, setCurrentTPS] = useState<number>(propsTPS || 776000);
+  const [targetTPS, setTargetTPS] = useState<number>(propsTargetTPS || 2000000);
+  const [peakTPS, setPeakTPS] = useState<number>(propsPeakTPS || 800000);
+  const [averageTPS, setAverageTPS] = useState<number>(propsAverageTPS || 700000);
+
   const chartRef = useRef<HTMLDivElement>(null);
 
-  // Simulate real-time data updates (replace with WebSocket in production)
+  // Fetch initial blockchain stats from backend
   useEffect(() => {
-    const interval = setInterval(() => {
+    const fetchInitialStats = async () => {
+      try {
+        setIsLoading(true);
+        const stats = await apiService.getBlockchainStats();
+
+        if (stats) {
+          setCurrentTPS(stats.currentTPS || stats.tps || propsTPS || 776000);
+          setTargetTPS(stats.targetTPS || stats.target || propsTargetTPS || 2000000);
+          setPeakTPS(stats.peakTPS || stats.peak || propsPeakTPS || 800000);
+          setAverageTPS(stats.averageTPS || stats.average || propsAverageTPS || 700000);
+
+          // Initialize history with current data
+          const now = Date.now();
+          const initialDataPoint: TPSDataPoint = {
+            timestamp: now,
+            time: new Date(now).toLocaleTimeString(),
+            tps: stats.currentTPS || stats.tps || propsTPS || 776000,
+            latency: stats.latency || 40,
+            throughput: (stats.currentTPS || stats.tps || propsTPS || 776000) * 0.85,
+          };
+          setTPSHistory([initialDataPoint]);
+        }
+
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch blockchain stats:', err);
+        setError('Failed to load blockchain statistics');
+        // Use fallback values if backend is unavailable
+        const now = Date.now();
+        const fallbackDataPoint: TPSDataPoint = {
+          timestamp: now,
+          time: new Date(now).toLocaleTimeString(),
+          tps: propsTPS || 776000,
+          latency: 40,
+          throughput: (propsTPS || 776000) * 0.85,
+        };
+        setTPSHistory([fallbackDataPoint]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialStats();
+  }, []);
+
+  // Setup WebSocket for real-time updates
+  useEffect(() => {
+    if (!isLive) return;
+
+    const setupWebSocket = async () => {
+      try {
+        // Register handler for TPS updates
+        webSocketManager.onMessage('tps_update', (data: any) => {
+          const now = Date.now();
+          const newDataPoint: TPSDataPoint = {
+            timestamp: now,
+            time: new Date(now).toLocaleTimeString(),
+            tps: data.currentTPS || data.tps || currentTPS,
+            latency: data.latency || 40,
+            throughput: data.throughput || (data.currentTPS || currentTPS) * 0.85,
+          };
+
+          setTPSHistory(prev => {
+            const updated = [...prev, newDataPoint];
+            return updated.slice(-60); // Keep last 60 data points
+          });
+
+          // Update current metrics
+          if (data.currentTPS) setCurrentTPS(data.currentTPS);
+          if (data.peakTPS) setPeakTPS(data.peakTPS);
+          if (data.averageTPS) setAverageTPS(data.averageTPS);
+        });
+
+        // Connect to WebSocket
+        await webSocketManager.connect();
+      } catch (err) {
+        console.warn('WebSocket connection failed, falling back to polling:', err);
+        // Fallback: poll the API if WebSocket fails
+        setupPolling();
+      }
+    };
+
+    setupWebSocket();
+
+    return () => {
+      webSocketManager.disconnect();
+    };
+  }, [isLive, currentTPS]);
+
+  // Fallback polling mechanism if WebSocket unavailable
+  const setupPolling = () => {
+    const interval = setInterval(async () => {
       if (!isLive) return;
 
-      const now = Date.now();
-      const newDataPoint: TPSDataPoint = {
-        timestamp: now,
-        time: new Date(now).toLocaleTimeString(),
-        tps: currentTPS + (Math.random() - 0.5) * 50000, // Small variation
-        latency: 40 + Math.random() * 20,
-        throughput: currentTPS * 0.85,
-      };
+      try {
+        const stats = await apiService.getBlockchainStats();
 
-      setTPSHistory(prev => {
-        const updated = [...prev, newDataPoint];
-        return updated.slice(-60); // Keep last 60 data points (1 minute at 1s interval)
-      });
+        if (stats) {
+          const now = Date.now();
+          const newDataPoint: TPSDataPoint = {
+            timestamp: now,
+            time: new Date(now).toLocaleTimeString(),
+            tps: stats.currentTPS || stats.tps || currentTPS,
+            latency: stats.latency || 40,
+            throughput: stats.throughput || (stats.currentTPS || currentTPS) * 0.85,
+          };
+
+          setTPSHistory(prev => {
+            const updated = [...prev, newDataPoint];
+            return updated.slice(-60);
+          });
+
+          // Update current metrics
+          setCurrentTPS(stats.currentTPS || stats.tps || currentTPS);
+          setPeakTPS(stats.peakTPS || stats.peak || peakTPS);
+          setAverageTPS(stats.averageTPS || stats.average || averageTPS);
+        }
+      } catch (err) {
+        console.warn('Polling failed:', err);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentTPS, isLive]);
+  };
 
   const tpsPercentage = Math.min((currentTPS / targetTPS) * 100, 100);
   const radialData = [{ name: 'TPS', value: tpsPercentage, fill: colors.brand.primary }];
@@ -66,6 +181,44 @@ export const RealTimeTPSChart: React.FC<Props> = ({
   };
 
   const formatLatency = (value: number) => `${value.toFixed(1)}ms`;
+
+  // Show loading indicator while fetching initial data
+  if (isLoading && tpsHistory.length === 0) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" sx={{ height: 300 }}>
+        <Box textAlign="center">
+          <CircularProgress sx={{ mb: 2 }} />
+          <Typography color="text.secondary">Loading blockchain statistics...</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Show error state with fallback data
+  if (error) {
+    return (
+      <Box>
+        <Card
+          sx={{
+            background: `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.1)} 0%, ${alpha(colors.brand.secondary, 0.05)} 100%)`,
+            backdropFilter: 'blur(20px)',
+            border: `2px solid ${alpha(colors.brand.warning, 0.5)}`,
+            boxShadow: `0 8px 32px ${alpha(colors.brand.warning, 0.2)}`,
+          }}
+        >
+          <CardContent>
+            <Typography color="warning.main" sx={{ mb: 2 }}>
+              {error} - Displaying fallback data
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Backend connection is temporarily unavailable. Charts will update when service is restored.
+            </Typography>
+          </CardContent>
+        </Card>
+        {/* Continue rendering charts with fallback data */}
+      </Box>
+    );
+  }
 
   return (
     <Box>

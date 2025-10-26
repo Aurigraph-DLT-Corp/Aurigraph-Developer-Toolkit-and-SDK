@@ -419,7 +419,357 @@ export const apiService = {
     const response = await apiClient.post(`/staking/validators/${validatorAddress}/claim-rewards`)
     return response.data
   },
+
+  // ============================================================================
+  // ENHANCED ENDPOINTS - PHASE 2 INTEGRATION ADDITIONS
+  // ============================================================================
+
+  // Real-World Assets (RWA)
+  async getRWAPortfolio(params?: { userId?: string }) {
+    const response = await apiClient.get('/rwa/portfolio', { params })
+    return response.data
+  },
+
+  async getRWATokenization() {
+    const response = await apiClient.get('/rwa/tokenization')
+    return response.data
+  },
+
+  async getRWAFractionalization() {
+    const response = await apiClient.get('/rwa/fractionalization')
+    return response.data
+  },
+
+  async getRWADistribution() {
+    const response = await apiClient.get('/rwa/distribution')
+    return response.data
+  },
+
+  async getRWAValuation() {
+    const response = await apiClient.get('/rwa/valuation')
+    return response.data
+  },
+
+  async getRWAPools() {
+    const response = await apiClient.get('/rwa/pools')
+    return response.data
+  },
+
+  // Gas & Fee Tracking
+  async getGasTrends(params?: { period?: '1h' | '24h' | '7d' }) {
+    const response = await apiClient.get('/gas/trends', { params })
+    return response.data
+  },
+
+  async getGasHistory(params?: { limit?: number; offset?: number }) {
+    const response = await apiClient.get('/gas/history', { params })
+    return response.data
+  },
+
+  // Network Topology & Health
+  async getNetworkTopology() {
+    const response = await apiClient.get('/network/topology')
+    return response.data
+  },
+
+  async getNetworkStats() {
+    const response = await apiClient.get('/network/stats')
+    return response.data
+  },
+
+  // Consensus & Bridge Monitoring
+  async getConsensusState() {
+    const response = await apiClient.get('/consensus/state')
+    return response.data
+  },
+
+  async getBridgeStatistics() {
+    const response = await apiClient.get('/bridge/statistics')
+    return response.data
+  },
+
+  async getBridgeHealth() {
+    const response = await apiClient.get('/bridge/health')
+    return response.data
+  },
+
+  async getBridgeTransfers(params?: { limit?: number; offset?: number }) {
+    const response = await apiClient.get('/bridge/transfers', { params })
+    return response.data
+  },
+
+  // Enterprise Settings & Governance
+  async getEnterpriseSettings() {
+    const response = await apiClient.get('/enterprise/settings')
+    return response.data
+  },
+
+  async updateEnterpriseSettings(settings: any) {
+    const response = await apiClient.put('/enterprise/settings', settings)
+    return response.data
+  },
+
+  async getGovernanceProposals(params?: { status?: string; limit?: number }) {
+    const response = await apiClient.get('/governance/proposals', { params })
+    return response.data
+  },
+
+  async voteOnProposal(proposalId: string, vote: 'yes' | 'no' | 'abstain') {
+    const response = await apiClient.post(`/governance/proposals/${proposalId}/vote`, { vote })
+    return response.data
+  },
+
+  // Security & Audit
+  async getSecurityAuditLog(params?: { limit?: number; offset?: number; severity?: string }) {
+    const response = await apiClient.get('/security/audit-log', { params })
+    return response.data
+  },
+
+  async getSecurityMetrics() {
+    const response = await apiClient.get('/security/metrics')
+    return response.data
+  },
+
+  // Analytics Dashboard
+  async getAnalyticsPeriod(period: '24h' | '7d' | '30d' | '90d' = '24h') {
+    const response = await apiClient.get(`/analytics/${period}`)
+    return response.data
+  },
+
+  async getAnalyticsNetworkUsage() {
+    const response = await apiClient.get('/analytics/network-usage')
+    return response.data
+  },
+
+  async getAnalyticsValidatorEarnings() {
+    const response = await apiClient.get('/analytics/validator-earnings')
+    return response.data
+  },
+
+  // Carbon Tracking
+  async getCarbonMetrics() {
+    const response = await apiClient.get('/carbon/metrics')
+    return response.data
+  },
+
+  async getCarbonReport(params?: { startDate?: string; endDate?: string }) {
+    const response = await apiClient.get('/carbon/report', { params })
+    return response.data
+  },
+
+  // Demo & Testing (for development)
+  async getDemoById(id: string) {
+    const response = await apiClient.get(`/demos/${id}`)
+    return response.data
+  },
+
+  async startDemo(id: string) {
+    const response = await apiClient.post(`/demos/${id}/start`)
+    return response.data
+  },
+
+  async stopDemo(id: string) {
+    const response = await apiClient.post(`/demos/${id}/stop`)
+    return response.data
+  },
+
+  // Live Data Streaming Endpoints
+  async getLiveMetrics() {
+    const response = await apiClient.get('/live/metrics')
+    return response.data
+  },
+
+  async getLiveNetworkStatus() {
+    const response = await apiClient.get('/live/network')
+    return response.data
+  },
+
+  async getLiveTransactions(params?: { limit?: number }) {
+    const response = await apiClient.get('/live/transactions', { params })
+    return response.data
+  },
+
+  // Validator Management
+  async getValidatorMetrics(validatorId: string) {
+    const response = await apiClient.get(`/validators/${validatorId}/metrics`)
+    return response.data
+  },
+
+  async getValidatorSlashing() {
+    const response = await apiClient.get('/validators/slashing')
+    return response.data
+  },
+
+  // Blockchain Statistics (Enhanced)
+  async getBlockchainStats() {
+    const response = await apiClient.get('/blockchain/stats')
+    return response.data
+  },
+
+  async getBlockchainHealth() {
+    const response = await apiClient.get('/blockchain/health')
+    return response.data
+  },
+
+  async getTransactionStats() {
+    const response = await apiClient.get('/blockchain/transactions/stats')
+    return response.data
+  },
+
+  async getBlockStats() {
+    const response = await apiClient.get('/blockchain/blocks/stats')
+    return response.data
+  },
+
+  // Cryptography & Security (Post-Quantum)
+  async getCryptoStatus() {
+    const response = await apiClient.get('/crypto/status')
+    return response.data
+  },
+
+  async getQuantumReadiness() {
+    const response = await apiClient.get('/security/quantum-readiness')
+    return response.data
+  },
+
+  // Configuration & Advanced Features
+  async getAdvancedFeatures() {
+    const response = await apiClient.get('/advanced/features')
+    return response.data
+  },
+
+  async getConfigStatus() {
+    const response = await apiClient.get('/config/status')
+    return response.data
+  },
+
+  // Mobile API Endpoints
+  async getMobileStatus() {
+    const response = await apiClient.get('/mobile/status')
+    return response.data
+  },
+
+  async getMobileMetrics() {
+    const response = await apiClient.get('/mobile/metrics')
+    return response.data
+  },
 }
+
+// ============================================================================
+// WEBSOCKET SUPPORT FOR REAL-TIME DATA
+// ============================================================================
+
+/**
+ * WebSocket connection manager for real-time data streaming
+ */
+export class WebSocketManager {
+  private ws: WebSocket | null = null
+  private url: string
+  private messageHandlers: Map<string, (data: any) => void> = new Map()
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 5
+  private reconnectDelay = 3000
+
+  constructor() {
+    const protocol = import.meta.env.PROD ? 'wss' : 'ws'
+    const host = import.meta.env.PROD ? 'dlt.aurigraph.io' : 'localhost:9003'
+    this.url = `${protocol}://${host}/api/v11/live/stream`
+  }
+
+  /**
+   * Connect to WebSocket server
+   */
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        this.ws = new WebSocket(this.url)
+
+        this.ws.onopen = () => {
+          console.log('WebSocket connected')
+          this.reconnectAttempts = 0
+          resolve()
+        }
+
+        this.ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            const { type, payload } = data
+
+            // Call registered handlers for this message type
+            const handler = this.messageHandlers.get(type)
+            if (handler) {
+              handler(payload)
+            }
+          } catch (error) {
+            console.error('Failed to parse WebSocket message:', error)
+          }
+        }
+
+        this.ws.onerror = (error) => {
+          console.error('WebSocket error:', error)
+          reject(error)
+        }
+
+        this.ws.onclose = () => {
+          console.log('WebSocket disconnected')
+          this.attemptReconnect()
+        }
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  /**
+   * Reconnect to WebSocket with exponential backoff
+   */
+  private attemptReconnect(): void {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++
+      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
+      console.log(`Attempting WebSocket reconnect in ${delay}ms...`)
+      setTimeout(() => this.connect(), delay)
+    }
+  }
+
+  /**
+   * Register a handler for a specific message type
+   */
+  onMessage(type: string, handler: (data: any) => void): void {
+    this.messageHandlers.set(type, handler)
+  }
+
+  /**
+   * Send a message through WebSocket
+   */
+  send(type: string, payload: any): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type, payload }))
+    } else {
+      console.warn('WebSocket is not connected')
+    }
+  }
+
+  /**
+   * Disconnect WebSocket
+   */
+  disconnect(): void {
+    if (this.ws) {
+      this.ws.close()
+      this.ws = null
+    }
+  }
+
+  /**
+   * Check if WebSocket is connected
+   */
+  isConnected(): boolean {
+    return this.ws !== null && this.ws.readyState === WebSocket.OPEN
+  }
+}
+
+// Export WebSocket manager singleton
+export const webSocketManager = new WebSocketManager()
 
 // Export helper functions for use in components
 export { retryWithBackoff, safeApiCall }
