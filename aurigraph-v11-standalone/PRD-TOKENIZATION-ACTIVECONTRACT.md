@@ -1,4 +1,4 @@
-# Unified ActiveContract Framework PRD
+proceed with next steps # Unified ActiveContract Framework PRD
 ## Unified Aggregation + Fractionalization Smart Contracts
 
 **Version:** 1.0
