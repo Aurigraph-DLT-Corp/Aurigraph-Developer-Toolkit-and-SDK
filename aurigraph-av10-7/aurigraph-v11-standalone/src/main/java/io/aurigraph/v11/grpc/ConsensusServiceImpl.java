@@ -24,11 +24,11 @@ import com.google.protobuf.Timestamp;
  * Protocol: gRPC with Protocol Buffers and HTTP/2 multiplexing
  */
 @GrpcService
-public class ConsensusServiceImpl implements ConsensusService {
+public class ConsensusServiceImpl implements io.aurigraph.v11.proto.ConsensusService {
 
     // Consensus state management
-    private volatile ConsensusRole currentRole = ConsensusRole.ROLE_FOLLOWER;
-    private volatile ConsensusPhase currentPhase = ConsensusPhase.PHASE_UNKNOWN;
+    private volatile io.aurigraph.v11.proto.ConsensusRole currentRole = io.aurigraph.v11.proto.ConsensusRole.ROLE_FOLLOWER;
+    private volatile io.aurigraph.v11.proto.ConsensusPhase currentPhase = io.aurigraph.v11.proto.ConsensusPhase.PHASE_UNKNOWN;
     private volatile long currentTerm = 0L;
     private volatile String currentLeader = "";
     private volatile long lastHeartbeatTime = System.currentTimeMillis();
@@ -81,16 +81,16 @@ public class ConsensusServiceImpl implements ConsensusService {
                 votes.putIfAbsent(blockHash, Collections.synchronizedList(new ArrayList<>()));
                 votersByBlockHash.putIfAbsent(blockHash, ConcurrentHashMap.newKeySet());
 
-                return ProposeBlockResponse.newBuilder()
+                return io.aurigraph.v11.proto.ProposeBlockResponse.newBuilder()
                     .setBlockHash(blockHash)
-                    .setStatus(BlockStatus.BLOCK_PROPOSED)
+                    .setStatus(io.aurigraph.v11.proto.BlockStatus.BLOCK_PROPOSED)
                     .setVotesReceived(0)
                     .setVotesRequired(requiredMajority > 0 ? requiredMajority : calculateMajority(activeValidators))
                     .setTimestamp(getCurrentTimestamp())
                     .build();
             } catch (Exception e) {
-                return ProposeBlockResponse.newBuilder()
-                    .setStatus(BlockStatus.BLOCK_FAILED)
+                return io.aurigraph.v11.proto.ProposeBlockResponse.newBuilder()
+                    .setStatus(io.aurigraph.v11.proto.BlockStatus.BLOCK_ORPHANED)
                     .setTimestamp(getCurrentTimestamp())
                     .build();
             }
@@ -183,7 +183,7 @@ public class ConsensusServiceImpl implements ConsensusService {
 
                 return CommitBlockResponse.newBuilder()
                     .setBlockHash(blockHash)
-                    .setStatus(BlockStatus.BLOCK_FAILED)
+                    .setStatus(io.aurigraph.v11.proto.BlockStatus.BLOCK_ORPHANED)
                     .setBlockHeight(request.getBlock().getBlockHeight())
                     .setConfirmationCount(0)
                     .setCommitTime(getCurrentTimestamp())
@@ -191,8 +191,8 @@ public class ConsensusServiceImpl implements ConsensusService {
             } catch (Exception e) {
                 return CommitBlockResponse.newBuilder()
                     .setBlockHash(request.getBlockHash())
-                    .setStatus(BlockStatus.BLOCK_FAILED)
-                    .setTimestamp(getCurrentTimestamp())
+                    .setStatus(io.aurigraph.v11.proto.BlockStatus.BLOCK_ORPHANED)
+                    .setCommitTime(getCurrentTimestamp())
                     .build();
             }
         });
@@ -335,7 +335,7 @@ public class ConsensusServiceImpl implements ConsensusService {
                         .setActiveValidators(activeValidators)
                         .setTotalBlocksCommitted(totalBlocksCommitted.get())
                         .setAverageBlockTimeMs(totalBlocksCommitted.get() > 0 ? 1000.0 : 0.0)
-                        .setFailedConsensusAttempts(failedConsensusAttempts.get())
+                        .setFailedConsensusAttempts((int) failedConsensusAttempts.get())
                         .setNetworkHealthPercent(95.0)
                         .setMeasurementTime(getCurrentTimestamp())
                         .build();
@@ -490,7 +490,7 @@ public class ConsensusServiceImpl implements ConsensusService {
                     .build();
             })
             .ifNoItem().after(java.time.Duration.ofSeconds(300))
-            .complete();
+            .recoverWithCompletion();
     }
 
     // Helper methods

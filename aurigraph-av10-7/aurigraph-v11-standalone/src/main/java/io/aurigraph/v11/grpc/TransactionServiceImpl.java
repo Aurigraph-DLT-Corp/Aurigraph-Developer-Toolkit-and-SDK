@@ -24,11 +24,11 @@ import com.google.protobuf.Timestamp;
  * Protocol: gRPC with Protocol Buffers and HTTP/2 multiplexing
  */
 @GrpcService
-public class TransactionServiceImpl implements TransactionService {
+public class TransactionServiceImpl implements io.aurigraph.v11.proto.TransactionService {
 
-    private final Map<String, Transaction> transactionCache = new ConcurrentHashMap<>();
-    private final Queue<Transaction> pendingTransactions = new ConcurrentLinkedQueue<>();
-    private final Map<String, TransactionReceipt> receiptCache = new ConcurrentHashMap<>();
+    private final Map<String, io.aurigraph.v11.proto.Transaction> transactionCache = new ConcurrentHashMap<>();
+    private final Queue<io.aurigraph.v11.proto.Transaction> pendingTransactions = new ConcurrentLinkedQueue<>();
+    private final Map<String, io.aurigraph.v11.proto.TransactionReceipt> receiptCache = new ConcurrentHashMap<>();
     private final AtomicLong totalTransactions = new AtomicLong(0);
     private final AtomicLong confirmedTransactions = new AtomicLong(0);
     private final AtomicLong failedTransactions = new AtomicLong(0);
@@ -38,15 +38,15 @@ public class TransactionServiceImpl implements TransactionService {
     private volatile double maxGasPrice = 500.0;
 
     @Override
-    public Uni<TransactionSubmissionResponse> submitTransaction(SubmitTransactionRequest request) {
+    public Uni<io.aurigraph.v11.proto.TransactionSubmissionResponse> submitTransaction(io.aurigraph.v11.proto.SubmitTransactionRequest request) {
         return Uni.createFrom().item(() -> {
             try {
-                Transaction tx = request.getTransaction();
+                io.aurigraph.v11.proto.Transaction tx = request.getTransaction();
                 String txHash = generateTxHash(tx);
 
-                Transaction storedTx = tx.toBuilder()
+                io.aurigraph.v11.proto.Transaction storedTx = tx.toBuilder()
                     .setTransactionHash(txHash)
-                    .setStatus(TransactionStatus.TRANSACTION_QUEUED)
+                    .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_QUEUED)
                     .setCreatedAt(getCurrentTimestamp())
                     .build();
 
@@ -54,15 +54,15 @@ public class TransactionServiceImpl implements TransactionService {
                 pendingTransactions.offer(storedTx);
                 totalTransactions.incrementAndGet();
 
-                return TransactionSubmissionResponse.newBuilder()
+                return io.aurigraph.v11.proto.TransactionSubmissionResponse.newBuilder()
                     .setTransactionHash(txHash)
-                    .setStatus(TransactionStatus.TRANSACTION_QUEUED)
+                    .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_QUEUED)
                     .setTimestamp(getCurrentTimestamp())
                     .setMessage("Transaction queued for processing")
                     .build();
             } catch (Exception e) {
-                return TransactionSubmissionResponse.newBuilder()
-                    .setStatus(TransactionStatus.TRANSACTION_FAILED)
+                return io.aurigraph.v11.proto.TransactionSubmissionResponse.newBuilder()
+                    .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_FAILED)
                     .setTimestamp(getCurrentTimestamp())
                     .setMessage("Submission failed: " + e.getMessage())
                     .build();
@@ -71,18 +71,18 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<BatchTransactionSubmissionResponse> batchSubmitTransactions(BatchTransactionSubmissionRequest request) {
+    public Uni<io.aurigraph.v11.proto.BatchTransactionSubmissionResponse> batchSubmitTransactions(io.aurigraph.v11.proto.BatchTransactionSubmissionRequest request) {
         return Uni.createFrom().item(() -> {
-            List<TransactionSubmissionResponse> responses = new ArrayList<>();
+            List<io.aurigraph.v11.proto.TransactionSubmissionResponse> responses = new ArrayList<>();
             int acceptedCount = 0;
             int rejectedCount = 0;
 
-            for (Transaction tx : request.getTransactionsList()) {
+            for (io.aurigraph.v11.proto.Transaction tx : request.getTransactionsList()) {
                 try {
                     String txHash = generateTxHash(tx);
-                    Transaction storedTx = tx.toBuilder()
+                    io.aurigraph.v11.proto.Transaction storedTx = tx.toBuilder()
                         .setTransactionHash(txHash)
-                        .setStatus(TransactionStatus.TRANSACTION_QUEUED)
+                        .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_QUEUED)
                         .setCreatedAt(getCurrentTimestamp())
                         .build();
 
@@ -91,21 +91,21 @@ public class TransactionServiceImpl implements TransactionService {
                     totalTransactions.incrementAndGet();
                     acceptedCount++;
 
-                    responses.add(TransactionSubmissionResponse.newBuilder()
+                    responses.add(io.aurigraph.v11.proto.TransactionSubmissionResponse.newBuilder()
                         .setTransactionHash(txHash)
-                        .setStatus(TransactionStatus.TRANSACTION_QUEUED)
+                        .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_QUEUED)
                         .setTimestamp(getCurrentTimestamp())
                         .build());
                 } catch (Exception e) {
                     rejectedCount++;
-                    responses.add(TransactionSubmissionResponse.newBuilder()
-                        .setStatus(TransactionStatus.TRANSACTION_FAILED)
+                    responses.add(io.aurigraph.v11.proto.TransactionSubmissionResponse.newBuilder()
+                        .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_FAILED)
                         .setTimestamp(getCurrentTimestamp())
                         .build());
                 }
             }
 
-            return BatchTransactionSubmissionResponse.newBuilder()
+            return io.aurigraph.v11.proto.BatchTransactionSubmissionResponse.newBuilder()
                 .addAllResponses(responses)
                 .setAcceptedCount(acceptedCount)
                 .setRejectedCount(rejectedCount)
@@ -116,7 +116,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<TransactionStatusResponse> getTransactionStatus(GetTransactionStatusRequest request) {
+    public Uni<io.aurigraph.v11.proto.TransactionStatusResponse> getTransactionStatus(io.aurigraph.v11.proto.GetTransactionStatusRequest request) {
         return Uni.createFrom().item(() -> {
             String txHash = request.getTransactionHash();
 
@@ -124,24 +124,22 @@ public class TransactionServiceImpl implements TransactionService {
                 txHash = request.getTransactionId();
             }
 
-            Transaction tx = transactionCache.get(txHash);
+            io.aurigraph.v11.proto.Transaction tx = transactionCache.get(txHash);
             if (tx == null) {
-                return TransactionStatusResponse.newBuilder()
-                    .setStatus(TransactionStatus.TRANSACTION_UNKNOWN)
+                return io.aurigraph.v11.proto.TransactionStatusResponse.newBuilder()
+                    .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_UNKNOWN)
                     .setTimestamp(getCurrentTimestamp())
                     .build();
             }
 
-            TransactionStatusResponse.Builder response = TransactionStatusResponse.newBuilder()
-                .setTransaction(tx)
+            io.aurigraph.v11.proto.TransactionStatusResponse.Builder response = io.aurigraph.v11.proto.TransactionStatusResponse.newBuilder()
                 .setStatus(tx.getStatus())
                 .setTimestamp(getCurrentTimestamp());
 
-            TransactionReceipt receipt = receiptCache.get(txHash);
+            io.aurigraph.v11.proto.TransactionReceipt receipt = receiptCache.get(txHash);
             if (receipt != null) {
                 response.setConfirmations(1)
-                    .setContainingBlockHash(receipt.getBlockHash())
-                    .setContainingBlockHeight(receipt.getBlockHeight());
+                    .setContainingBlockHash(receipt.getBlockHash());
             }
 
             return response.build();
@@ -149,31 +147,31 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<TransactionReceipt> getTransactionReceipt(GetTransactionStatusRequest request) {
+    public Uni<io.aurigraph.v11.proto.TransactionReceipt> getTransactionReceipt(io.aurigraph.v11.proto.GetTransactionStatusRequest request) {
         return Uni.createFrom().item(() -> {
             String txHash = request.getTransactionHash();
-            TransactionReceipt receipt = receiptCache.get(txHash);
+            io.aurigraph.v11.proto.TransactionReceipt receipt = receiptCache.get(txHash);
 
             if (receipt != null) {
                 return receipt;
             }
 
-            return TransactionReceipt.newBuilder()
+            return io.aurigraph.v11.proto.TransactionReceipt.newBuilder()
                 .setTransactionHash(txHash)
-                .setStatus(TransactionStatus.TRANSACTION_UNKNOWN)
+                .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_UNKNOWN)
                 .setExecutionTime(getCurrentTimestamp())
                 .build();
         });
     }
 
     @Override
-    public Uni<CancelTransactionResponse> cancelTransaction(CancelTransactionRequest request) {
+    public Uni<io.aurigraph.v11.proto.CancelTransactionResponse> cancelTransaction(io.aurigraph.v11.proto.CancelTransactionRequest request) {
         return Uni.createFrom().item(() -> {
             String txHash = request.getTransactionHash();
-            Transaction tx = transactionCache.get(txHash);
+            io.aurigraph.v11.proto.Transaction tx = transactionCache.get(txHash);
 
-            if (tx == null || tx.getStatus() != TransactionStatus.TRANSACTION_QUEUED) {
-                return CancelTransactionResponse.newBuilder()
+            if (tx == null || tx.getStatus() != io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_QUEUED) {
+                return io.aurigraph.v11.proto.CancelTransactionResponse.newBuilder()
                     .setTransactionHash(txHash)
                     .setCancellationSuccessful(false)
                     .setReason("Transaction not pending")
@@ -181,13 +179,13 @@ public class TransactionServiceImpl implements TransactionService {
                     .build();
             }
 
-            Transaction cancelled = tx.toBuilder()
-                .setStatus(TransactionStatus.TRANSACTION_FAILED)
+            io.aurigraph.v11.proto.Transaction cancelled = tx.toBuilder()
+                .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_FAILED)
                 .build();
             transactionCache.put(txHash, cancelled);
             failedTransactions.incrementAndGet();
 
-            return CancelTransactionResponse.newBuilder()
+            return io.aurigraph.v11.proto.CancelTransactionResponse.newBuilder()
                 .setTransactionHash(txHash)
                 .setCancellationSuccessful(true)
                 .setReason("Cancelled by request")
@@ -197,13 +195,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<ResendTransactionResponse> resendTransaction(ResendTransactionRequest request) {
+    public Uni<io.aurigraph.v11.proto.ResendTransactionResponse> resendTransaction(io.aurigraph.v11.proto.ResendTransactionRequest request) {
         return Uni.createFrom().item(() -> {
             String originalHash = request.getOriginalTransactionHash();
-            Transaction originalTx = transactionCache.get(originalHash);
+            io.aurigraph.v11.proto.Transaction originalTx = transactionCache.get(originalHash);
 
             if (originalTx == null) {
-                return ResendTransactionResponse.newBuilder()
+                return io.aurigraph.v11.proto.ResendTransactionResponse.newBuilder()
                     .setOriginalTransactionHash(originalHash)
                     .setNewTransactionHash("")
                     .setTimestamp(getCurrentTimestamp())
@@ -211,10 +209,10 @@ public class TransactionServiceImpl implements TransactionService {
             }
 
             String newHash = generateTxHash(originalTx);
-            Transaction resent = originalTx.toBuilder()
+            io.aurigraph.v11.proto.Transaction resent = originalTx.toBuilder()
                 .setTransactionHash(newHash)
                 .setGasPrice(request.getNewGasPrice())
-                .setStatus(TransactionStatus.TRANSACTION_QUEUED)
+                .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_QUEUED)
                 .setCreatedAt(getCurrentTimestamp())
                 .build();
 
@@ -222,24 +220,24 @@ public class TransactionServiceImpl implements TransactionService {
             pendingTransactions.offer(resent);
             totalTransactions.incrementAndGet();
 
-            return ResendTransactionResponse.newBuilder()
+            return io.aurigraph.v11.proto.ResendTransactionResponse.newBuilder()
                 .setOriginalTransactionHash(originalHash)
                 .setNewTransactionHash(newHash)
                 .setNewGasPrice(request.getNewGasPrice())
-                .setStatus(TransactionStatus.TRANSACTION_QUEUED)
+                .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_QUEUED)
                 .setTimestamp(getCurrentTimestamp())
                 .build();
         });
     }
 
     @Override
-    public Uni<GasEstimate> estimateGasCost(EstimateGasCostRequest request) {
+    public Uni<io.aurigraph.v11.proto.GasEstimate> estimateGasCost(io.aurigraph.v11.proto.EstimateGasCostRequest request) {
         return Uni.createFrom().item(() -> {
             int dataLength = request.getData().length();
             double estimatedGas = 21000.0 + (dataLength * 16.0);
             double totalCost = estimatedGas * averageGasPrice;
 
-            return GasEstimate.newBuilder()
+            return io.aurigraph.v11.proto.GasEstimate.newBuilder()
                 .setEstimatedGas(estimatedGas)
                 .setGasPriceWei(averageGasPrice)
                 .setTotalCost(String.valueOf(totalCost))
@@ -251,12 +249,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<TransactionSignatureValidationResult> validateTransactionSignature(
-            ValidateTransactionSignatureRequest request) {
+    public Uni<io.aurigraph.v11.proto.TransactionSignatureValidationResult> validateTransactionSignature(
+            io.aurigraph.v11.proto.ValidateTransactionSignatureRequest request) {
         return Uni.createFrom().item(() -> {
-            Transaction tx = request.getTransaction();
+            io.aurigraph.v11.proto.Transaction tx = request.getTransaction();
 
-            TransactionSignatureValidationResult.Builder result = TransactionSignatureValidationResult.newBuilder()
+            io.aurigraph.v11.proto.TransactionSignatureValidationResult.Builder result = io.aurigraph.v11.proto.TransactionSignatureValidationResult.newBuilder()
                 .setSignatureValid(!tx.getSignature().isEmpty())
                 .setSenderValid(!tx.getPublicKey().isEmpty())
                 .setNonceValid(tx.getNonce() >= 0)
@@ -267,9 +265,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<PendingTransactionsResponse> getPendingTransactions(GetPendingTransactionsRequest request) {
+    public Uni<io.aurigraph.v11.proto.PendingTransactionsResponse> getPendingTransactions(io.aurigraph.v11.proto.GetPendingTransactionsRequest request) {
         return Uni.createFrom().item(() -> {
-            List<Transaction> pending = new ArrayList<>(pendingTransactions);
+            List<io.aurigraph.v11.proto.Transaction> pending = new ArrayList<>(pendingTransactions);
 
             if (request.getFilterAddress() != null && !request.getFilterAddress().isEmpty()) {
                 pending = pending.stream()
@@ -280,11 +278,11 @@ public class TransactionServiceImpl implements TransactionService {
             }
 
             double avgGas = pending.stream()
-                .mapToDouble(Transaction::getGasPrice)
+                .mapToDouble(io.aurigraph.v11.proto.Transaction::getGasPrice)
                 .average()
                 .orElse(averageGasPrice);
 
-            return PendingTransactionsResponse.newBuilder()
+            return io.aurigraph.v11.proto.PendingTransactionsResponse.newBuilder()
                 .addAllTransactions(pending)
                 .setTotalPending(pending.size())
                 .setAverageGasPrice(avgGas)
@@ -294,16 +292,16 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<TransactionHistoryResponse> getTransactionHistory(GetTransactionHistoryRequest request) {
+    public Uni<io.aurigraph.v11.proto.TransactionHistoryResponse> getTransactionHistory(io.aurigraph.v11.proto.GetTransactionHistoryRequest request) {
         return Uni.createFrom().item(() -> {
             String address = request.getAddress();
-            List<Transaction> history = transactionCache.values().stream()
+            List<io.aurigraph.v11.proto.Transaction> history = transactionCache.values().stream()
                 .filter(tx -> tx.getFromAddress().equals(address) || tx.getToAddress().equals(address))
                 .skip(request.getOffset())
                 .limit(request.getLimit() > 0 ? request.getLimit() : 50)
                 .toList();
 
-            return TransactionHistoryResponse.newBuilder()
+            return io.aurigraph.v11.proto.TransactionHistoryResponse.newBuilder()
                 .addAllTransactions(history)
                 .setTotalCount((int) transactionCache.values().stream()
                     .filter(tx -> tx.getFromAddress().equals(address) || tx.getToAddress().equals(address))
@@ -316,10 +314,10 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Uni<TxPoolStatistics> getTxPoolSize(GetTxPoolSizeRequest request) {
+    public Uni<io.aurigraph.v11.proto.TxPoolStatistics> getTxPoolSize(io.aurigraph.v11.proto.GetTxPoolSizeRequest request) {
         return Uni.createFrom().item(() -> {
             double avgGasPrice = transactionCache.values().stream()
-                .mapToDouble(Transaction::getGasPrice)
+                .mapToDouble(io.aurigraph.v11.proto.Transaction::getGasPrice)
                 .average()
                 .orElse(averageGasPrice);
 
@@ -329,7 +327,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             double utilization = (pendingTransactions.size() / 10000.0) * 100.0;
 
-            return TxPoolStatistics.newBuilder()
+            return io.aurigraph.v11.proto.TxPoolStatistics.newBuilder()
                 .setTotalPending(pendingTransactions.size())
                 .setTotalQueued(transactionCache.size())
                 .setAverageGasPrice(avgGasPrice)
@@ -343,30 +341,30 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Multi<TransactionEvent> streamTransactionEvents(StreamTransactionEventsRequest request) {
+    public Multi<io.aurigraph.v11.proto.TransactionEvent> streamTransactionEvents(io.aurigraph.v11.proto.StreamTransactionEventsRequest request) {
         return Multi.createFrom().ticks().every(java.time.Duration.ofMillis(100))
             .onItem().transform(i -> {
-                Transaction tx = pendingTransactions.poll();
+                io.aurigraph.v11.proto.Transaction tx = pendingTransactions.poll();
                 if (tx != null) {
-                    Transaction confirmed = tx.toBuilder()
-                        .setStatus(TransactionStatus.TRANSACTION_CONFIRMED)
+                    io.aurigraph.v11.proto.Transaction confirmed = tx.toBuilder()
+                        .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED)
                         .setExecutedAt(getCurrentTimestamp())
                         .build();
 
                     transactionCache.put(tx.getTransactionHash(), confirmed);
                     confirmedTransactions.incrementAndGet();
 
-                    return TransactionEvent.newBuilder()
+                    return io.aurigraph.v11.proto.TransactionEvent.newBuilder()
                         .setTransaction(confirmed)
-                        .setStatus(TransactionStatus.TRANSACTION_CONFIRMED)
+                        .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED)
                         .setEventType("CONFIRMED")
                         .setStreamId(UUID.randomUUID().toString())
                         .setEventSequence(totalTransactions.get())
                         .setTimestamp(getCurrentTimestamp())
                         .build();
                 } else {
-                    return TransactionEvent.newBuilder()
-                        .setStatus(TransactionStatus.TRANSACTION_UNKNOWN)
+                    return io.aurigraph.v11.proto.TransactionEvent.newBuilder()
+                        .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_UNKNOWN)
                         .setEventType("HEARTBEAT")
                         .setStreamId(UUID.randomUUID().toString())
                         .setTimestamp(getCurrentTimestamp())
@@ -374,10 +372,10 @@ public class TransactionServiceImpl implements TransactionService {
                 }
             })
             .ifNoItem().after(java.time.Duration.ofSeconds(300))
-            .complete();
+            .recoverWithCompletion();
     }
 
-    private String generateTxHash(Transaction tx) {
+    private String generateTxHash(io.aurigraph.v11.proto.Transaction tx) {
         return "0x" + Integer.toHexString(Objects.hash(
             tx.getFromAddress(), tx.getToAddress(), tx.getAmount(), System.nanoTime()
         )).substring(0, 8);
