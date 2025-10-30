@@ -1,408 +1,311 @@
 syntax = "proto3";
 
-option java_multiple_files = true;
-option java_package = "io.aurigraph.v11.transaction.grpc";
-option java_outer_classname = "TransactionProto";
-
-package aurigraph.v11.transaction;
+package io.aurigraph.v11.proto;
 
 import "google/protobuf/timestamp.proto";
+import "common.proto";
+import "blockchain.proto";
 
-// Transaction Processing gRPC Service
-service TransactionService {
-  // Single Transaction Operations
-  rpc SubmitTransaction(TransactionSubmission) returns (TransactionReceipt);
-  rpc ValidateTransaction(TransactionValidation) returns (ValidationResult);
-  rpc ExecuteTransaction(TransactionExecution) returns (ExecutionResult);
+option java_multiple_files = true;
+option java_package = "io.aurigraph.v11.proto";
+option java_outer_classname = "TransactionProto";
 
-  // Batch Operations
-  rpc SubmitBatch(BatchSubmission) returns (BatchReceipt);
-  rpc ValidateBatch(BatchValidation) returns (BatchValidationResult);
-  rpc ExecuteBatch(BatchExecution) returns (BatchExecutionResult);
+/**
+ * Transaction Protocol Buffer Definitions
+ *
+ * This proto file defines all message types for TransactionServiceImpl gRPC service.
+ * Supports 12 RPC methods for high-performance transaction processing:
+ * - submitTransaction()
+ * - getTransactionStatus()
+ * - getTransactionReceipt()
+ * - cancelTransaction()
+ * - batchSubmitTransactions()
+ * - estimateGasCost()
+ * - getPendingTransactions()
+ * - getTransactionHistory()
+ * - resendTransaction()
+ * - validateTransactionSignature()
+ * - getTxPoolSize()
+ * - streamTransactionEvents()
+ */
 
-  // Query Operations
-  rpc GetTransactionDetails(TransactionDetailsQuery) returns (TransactionDetails);
-  rpc GetTransactionHistory(TransactionHistoryQuery) returns (TransactionHistory);
-  rpc SearchTransactions(TransactionSearchQuery) returns (TransactionSearchResult);
+// ============================================================================
+// Transaction Pool Management
+// ============================================================================
 
-  // Pool Operations
-  rpc GetPendingTransactions(PendingTransactionsQuery) returns (PendingTransactionsResponse);
-  rpc GetPoolStatistics(PoolStatisticsQuery) returns (PoolStatistics);
-
-  // Streaming Operations
-  rpc StreamTransactionPool(PoolStreamRequest) returns (stream TransactionPoolUpdate);
-  rpc StreamExecutionResults(ExecutionStreamRequest) returns (stream ExecutionResult);
+message TransactionPool {
+  repeated Transaction pending_transactions = 1;
+  int32 total_size = 2;
+  int64 created_at_timestamp = 3;
+  double average_gas_price = 4;
+  repeated string high_priority_tx_hashes = 5;
 }
 
-// Transaction Submission
-message TransactionSubmission {
-  string transaction_id = 1;
-  TransactionType transaction_type = 2;
-  string from_address = 3;
-  string to_address = 4;
-  uint64 value = 5;
-  uint64 gas_limit = 6;
-  uint64 gas_price = 7;
-  uint64 nonce = 8;
-  bytes data = 9;
-  bytes signature = 10;
-  google.protobuf.Timestamp submitted_at = 11;
-  map<string, string> metadata = 12;
-}
-
-// Transaction Type
-enum TransactionType {
-  TX_UNKNOWN = 0;
-  TX_TRANSFER = 1;
-  TX_CONTRACT_CALL = 2;
-  TX_CONTRACT_DEPLOY = 3;
-  TX_STAKE = 4;
-  TX_UNSTAKE = 5;
-  TX_GOVERNANCE = 6;
-  TX_CROSS_CHAIN = 7;
-}
-
-// Transaction Receipt
-message TransactionReceipt {
-  bool success = 1;
-  string transaction_id = 2;
-  string transaction_hash = 3;
-  uint64 block_number = 4;
-  uint32 transaction_index = 5;
-  TransactionStatus status = 6;
-  uint64 gas_used = 7;
-  string error_message = 8;
-  google.protobuf.Timestamp processed_at = 9;
-  repeated EventLog event_logs = 10;
-}
-
-// Transaction Status
-enum TransactionStatus {
-  TX_STATUS_UNKNOWN = 0;
-  TX_STATUS_PENDING = 1;
-  TX_STATUS_VALIDATING = 2;
-  TX_STATUS_QUEUED = 3;
-  TX_STATUS_EXECUTING = 4;
-  TX_STATUS_SUCCESS = 5;
-  TX_STATUS_FAILED = 6;
-  TX_STATUS_REJECTED = 7;
-  TX_STATUS_TIMEOUT = 8;
-}
-
-// Event Log
-message EventLog {
-  string event_name = 1;
-  string contract_address = 2;
-  repeated string topics = 3;
-  bytes data = 4;
-  uint32 log_index = 5;
-}
-
-// Transaction Validation
-message TransactionValidation {
-  string transaction_id = 1;
-  bytes raw_transaction = 2;
-  bool check_signature = 3;
-  bool check_balance = 4;
-  bool check_nonce = 5;
-  bool check_gas = 6;
-}
-
-// Validation Result
-message ValidationResult {
-  bool valid = 1;
-  string transaction_id = 2;
-  repeated ValidationError errors = 3;
-  repeated ValidationWarning warnings = 4;
-  ValidationScore score = 5;
-  google.protobuf.Timestamp validated_at = 6;
-}
-
-// Validation Error
-message ValidationError {
-  ValidationErrorType error_type = 1;
-  string error_message = 2;
-  string field_name = 3;
-  string suggested_fix = 4;
-}
-
-// Validation Error Type
-enum ValidationErrorType {
-  ERROR_UNKNOWN = 0;
-  ERROR_INVALID_SIGNATURE = 1;
-  ERROR_INSUFFICIENT_BALANCE = 2;
-  ERROR_INVALID_NONCE = 3;
-  ERROR_INSUFFICIENT_GAS = 4;
-  ERROR_INVALID_FORMAT = 5;
-  ERROR_EXPIRED_TRANSACTION = 6;
-  ERROR_REPLAY_ATTACK = 7;
-}
-
-// Validation Warning
-message ValidationWarning {
-  string warning_message = 1;
-  WarningLevel level = 2;
-}
-
-// Warning Level
-enum WarningLevel {
-  WARNING_INFO = 0;
-  WARNING_LOW = 1;
-  WARNING_MEDIUM = 2;
-  WARNING_HIGH = 3;
-}
-
-// Validation Score
-message ValidationScore {
-  double overall_score = 1;
-  double signature_score = 2;
-  double balance_score = 3;
-  double nonce_score = 4;
-  double gas_score = 5;
-}
-
-// Transaction Execution
-message TransactionExecution {
-  string transaction_id = 1;
-  bytes transaction_data = 2;
-  ExecutionContext context = 3;
-  ExecutionOptions options = 4;
-}
-
-// Execution Context
-message ExecutionContext {
-  uint64 block_number = 1;
-  google.protobuf.Timestamp block_timestamp = 2;
-  string block_hash = 3;
-  string coinbase = 4;
-  uint64 gas_limit = 5;
-  uint64 chain_id = 6;
-}
-
-// Execution Options
-message ExecutionOptions {
-  bool dry_run = 1;
-  bool trace_execution = 2;
-  uint32 timeout_ms = 3;
-  uint64 gas_limit_override = 4;
-}
-
-// Execution Result
-message ExecutionResult {
-  bool success = 1;
-  string transaction_id = 2;
-  bytes return_data = 3;
-  uint64 gas_used = 4;
-  repeated StateChange state_changes = 5;
-  repeated EventLog events = 6;
-  string error_message = 7;
-  ExecutionTrace trace = 8;
-  google.protobuf.Timestamp executed_at = 9;
-}
-
-// State Change
-message StateChange {
-  string address = 1;
-  string storage_key = 2;
-  bytes old_value = 3;
-  bytes new_value = 4;
-}
-
-// Execution Trace
-message ExecutionTrace {
-  repeated TraceStep steps = 1;
-  uint64 total_steps = 2;
-  uint64 total_gas = 3;
-}
-
-// Trace Step
-message TraceStep {
-  uint32 step_number = 1;
-  string operation = 2;
-  uint64 gas_cost = 3;
-  uint64 remaining_gas = 4;
-  bytes stack_snapshot = 5;
-  bytes memory_snapshot = 6;
-}
-
-// Batch Submission
-message BatchSubmission {
-  repeated TransactionSubmission transactions = 1;
-  bool parallel_execution = 2;
-  uint32 batch_size = 3;
-  uint32 priority = 4;
-  google.protobuf.Timestamp submitted_at = 5;
-}
-
-// Batch Receipt
-message BatchReceipt {
-  bool success = 1;
-  string batch_id = 2;
-  uint32 total_transactions = 3;
-  uint32 successful_transactions = 4;
-  uint32 failed_transactions = 5;
-  repeated TransactionReceipt receipts = 6;
-  uint64 total_gas_used = 7;
-  uint64 processing_time_ms = 8;
-  google.protobuf.Timestamp processed_at = 9;
-}
-
-// Batch Validation
-message BatchValidation {
-  repeated TransactionValidation validations = 1;
-  bool stop_on_first_error = 2;
-}
-
-// Batch Validation Result
-message BatchValidationResult {
-  bool all_valid = 1;
-  uint32 total_validated = 2;
-  uint32 valid_count = 3;
-  uint32 invalid_count = 4;
-  repeated ValidationResult results = 5;
-  google.protobuf.Timestamp validated_at = 6;
-}
-
-// Batch Execution
-message BatchExecution {
-  repeated TransactionExecution executions = 1;
-  bool parallel_execution = 2;
-  bool stop_on_first_failure = 3;
-  ExecutionContext context = 4;
-}
-
-// Batch Execution Result
-message BatchExecutionResult {
-  bool all_successful = 1;
-  uint32 total_executed = 2;
-  uint32 successful_count = 3;
-  uint32 failed_count = 4;
-  repeated ExecutionResult results = 5;
-  uint64 total_gas_used = 6;
-  uint64 total_execution_time_ms = 7;
-  double throughput_tps = 8;
-}
-
-// Transaction Details Query
-message TransactionDetailsQuery {
-  string transaction_id = 1;
-  string transaction_hash = 2;
-  bool include_receipt = 3;
-  bool include_execution_trace = 4;
-}
-
-// Transaction Details
-message TransactionDetails {
-  string transaction_id = 1;
-  string transaction_hash = 2;
-  TransactionSubmission submission = 3;
-  TransactionReceipt receipt = 4;
-  ExecutionResult execution = 5;
-  TransactionMetadata metadata = 6;
-}
-
-// Transaction Metadata
-message TransactionMetadata {
-  google.protobuf.Timestamp submitted_at = 1;
-  google.protobuf.Timestamp validated_at = 2;
-  google.protobuf.Timestamp executed_at = 3;
-  google.protobuf.Timestamp confirmed_at = 4;
-  uint32 confirmations = 5;
+message TransactionQueueStatus {
+  int32 pending_count = 1;
+  int32 confirmed_count = 2;
+  int32 failed_count = 3;
+  double average_wait_time_ms = 4;
+  double pool_utilization_percent = 5;
   string pool_status = 6;
 }
 
-// Transaction History Query
-message TransactionHistoryQuery {
-  string address = 1;
-  uint64 start_block = 2;
-  uint64 end_block = 3;
-  uint32 limit = 4;
-  uint32 offset = 5;
+// ============================================================================
+// Transaction Submission
+// ============================================================================
+
+message SubmitTransactionRequest {
+  Transaction transaction = 1;
+  bool prioritize = 2;
+  int32 timeout_seconds = 3;
+  string node_id = 4;
 }
 
-// Transaction History
-message TransactionHistory {
-  string address = 1;
-  uint32 total_transactions = 2;
-  repeated TransactionDetails transactions = 3;
-  bool has_more = 4;
+message TransactionSubmissionResponse {
+  string transaction_hash = 1;
+  TransactionStatus status = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  string message = 4;
 }
 
-// Transaction Search Query
-message TransactionSearchQuery {
-  string from_address = 1;
-  string to_address = 2;
-  TransactionType transaction_type = 3;
-  TransactionStatus status = 4;
-  uint64 min_value = 5;
-  uint64 max_value = 6;
-  google.protobuf.Timestamp start_time = 7;
-  google.protobuf.Timestamp end_time = 8;
-  uint32 limit = 9;
+message BatchTransactionSubmissionRequest {
+  repeated Transaction transactions = 1;
+  int32 timeout_seconds = 2;
+  bool validate_before_submit = 3;
+  string batch_id = 4;
 }
 
-// Transaction Search Result
-message TransactionSearchResult {
-  uint32 total_matches = 2;
-  repeated TransactionDetails transactions = 3;
-  bool has_more = 4;
-}
-
-// Pending Transactions Query
-message PendingTransactionsQuery {
-  uint32 limit = 1;
-  bool sort_by_gas_price = 2;
-  bool sort_by_nonce = 3;
-}
-
-// Pending Transactions Response
-message PendingTransactionsResponse {
-  uint32 total_pending = 1;
-  repeated TransactionSubmission transactions = 2;
-  map<string, uint32> address_counts = 3;
-}
-
-// Pool Statistics Query
-message PoolStatisticsQuery {
-  bool include_detailed_stats = 1;
-}
-
-// Pool Statistics
-message PoolStatistics {
-  uint32 total_pending = 1;
-  uint32 total_queued = 2;
-  uint32 total_validating = 3;
-  uint64 total_gas_pending = 4;
-  double average_gas_price = 5;
-  double pool_usage_percent = 6;
-  map<string, uint32> status_distribution = 7;
-}
-
-// Pool Stream Request
-message PoolStreamRequest {
-  repeated TransactionStatus status_filter = 1;
-  uint32 buffer_size = 2;
-}
-
-// Transaction Pool Update
-message TransactionPoolUpdate {
-  UpdateType update_type = 1;
-  TransactionSubmission transaction = 2;
-  TransactionStatus old_status = 3;
-  TransactionStatus new_status = 4;
+message BatchTransactionSubmissionResponse {
+  repeated TransactionSubmissionResponse responses = 1;
+  int32 accepted_count = 2;
+  int32 rejected_count = 3;
+  string batch_id = 4;
   google.protobuf.Timestamp timestamp = 5;
 }
 
-// Update Type
-enum UpdateType {
-  UPDATE_UNKNOWN = 0;
-  UPDATE_ADDED = 1;
-  UPDATE_REMOVED = 2;
-  UPDATE_STATUS_CHANGED = 3;
+// ============================================================================
+// Transaction Status Retrieval
+// ============================================================================
+
+message GetTransactionStatusRequest {
+  oneof identifier {
+    string transaction_hash = 1;
+    string transaction_id = 2;
+  }
+  bool include_block_info = 3;
+  bool include_confirmations = 4;
 }
 
-// Execution Stream Request
-message ExecutionStreamRequest {
-  repeated string transaction_ids = 1;
-  bool include_trace = 2;
+message TransactionStatusResponse {
+  Transaction transaction = 1;
+  TransactionStatus status = 2;
+  int32 confirmations = 3;
+  string containing_block_hash = 4;
+  int64 containing_block_height = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message TransactionReceipt {
+  string transaction_hash = 1;
+  string transaction_id = 2;
+  string block_hash = 3;
+  int64 block_height = 4;
+  repeated TransactionLog logs = 5;
+  double gas_used = 6;
+  string contract_address = 7;
+  string result_data = 8;
+  TransactionStatus status = 9;
+  google.protobuf.Timestamp execution_time = 10;
+  string error_message = 11;
+}
+
+message TransactionLog {
+  string contract_address = 1;
+  repeated string topics = 2;
+  string data = 3;
+  int32 log_index = 4;
+}
+
+// ============================================================================
+// Transaction Cancellation & Resending
+// ============================================================================
+
+message CancelTransactionRequest {
+  string transaction_hash = 1;
+  string cancellation_reason = 2;
+  int32 timeout_seconds = 3;
+}
+
+message CancelTransactionResponse {
+  string transaction_hash = 1;
+  bool cancellation_successful = 2;
+  string reason = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message ResendTransactionRequest {
+  string original_transaction_hash = 1;
+  double new_gas_price = 2;
+  string resend_reason = 3;
+  int32 timeout_seconds = 4;
+}
+
+message ResendTransactionResponse {
+  string original_transaction_hash = 1;
+  string new_transaction_hash = 2;
+  double new_gas_price = 3;
+  TransactionStatus status = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// ============================================================================
+// Gas Estimation & Validation
+// ============================================================================
+
+message EstimateGasCostRequest {
+  string from_address = 1;
+  string to_address = 2;
+  string data = 3;
+  string amount = 4;
+  bool include_base_fee = 5;
+}
+
+message GasEstimate {
+  double estimated_gas = 1;
+  double gas_price_wei = 2;
+  string total_cost = 3;
+  double buffer_percent = 4;
+  string recommendation = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message ValidateTransactionSignatureRequest {
+  Transaction transaction = 1;
+  bool validate_sender = 2;
+  bool validate_nonce = 3;
+}
+
+message TransactionSignatureValidationResult {
+  bool signature_valid = 1;
+  bool sender_valid = 2;
+  bool nonce_valid = 3;
+  repeated ValidationError validation_errors = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// ============================================================================
+// Transaction History & Queries
+// ============================================================================
+
+message GetTransactionHistoryRequest {
+  string address = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+  string filter = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+}
+
+message TransactionHistoryResponse {
+  repeated Transaction transactions = 1;
+  int32 total_count = 2;
+  int32 returned_count = 3;
+  int32 offset = 4;
+  google.protobuf.Timestamp query_time = 5;
+}
+
+message GetPendingTransactionsRequest {
+  string filter_address = 1;
+  int32 limit = 2;
+  bool sort_by_fee = 3;
+}
+
+message PendingTransactionsResponse {
+  repeated Transaction transactions = 1;
+  int32 total_pending = 2;
+  double average_gas_price = 3;
+  google.protobuf.Timestamp query_time = 4;
+}
+
+message GetTxPoolSizeRequest {
+  bool include_detailed_stats = 1;
+}
+
+message TxPoolStatistics {
+  int32 total_pending = 1;
+  int32 total_queued = 2;
+  double average_gas_price = 3;
+  double min_gas_price = 4;
+  double max_gas_price = 5;
+  int64 total_pool_size_bytes = 6;
+  double pool_utilization_percent = 7;
+  google.protobuf.Timestamp timestamp = 8;
+}
+
+// ============================================================================
+// Transaction Streaming
+// ============================================================================
+
+message StreamTransactionEventsRequest {
+  string filter_address = 1;
+  TransactionStatus filter_status = 2;
+  bool include_failed = 3;
+  int32 stream_timeout_seconds = 4;
+}
+
+message TransactionEvent {
+  Transaction transaction = 1;
+  TransactionStatus status = 2;
+  string event_type = 3;
+  string stream_id = 4;
+  int64 event_sequence = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message TransactionStreamCompletion {
+  string stream_id = 1;
+  int64 total_events_streamed = 2;
+  google.protobuf.Timestamp completion_time = 3;
+  string completion_reason = 4;
+}
+
+// ============================================================================
+// Transaction Batch Processing
+// ============================================================================
+
+message TransactionBatch {
+  string batch_id = 1;
+  repeated Transaction transactions = 2;
+  string batch_owner = 3;
+  int32 required_confirmations = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message BatchProcessingStatus {
+  string batch_id = 1;
+  int32 total_transactions = 2;
+  int32 processed_count = 3;
+  int32 confirmed_count = 4;
+  int32 failed_count = 5;
+  string overall_status = 6;
+  google.protobuf.Timestamp last_update = 7;
+}
+
+// ============================================================================
+// Service gRPC definition for TransactionService
+// ============================================================================
+
+service TransactionService {
+  rpc submitTransaction(SubmitTransactionRequest) returns (TransactionSubmissionResponse);
+  rpc batchSubmitTransactions(BatchTransactionSubmissionRequest) returns (BatchTransactionSubmissionResponse);
+  rpc getTransactionStatus(GetTransactionStatusRequest) returns (TransactionStatusResponse);
+  rpc getTransactionReceipt(GetTransactionStatusRequest) returns (TransactionReceipt);
+  rpc cancelTransaction(CancelTransactionRequest) returns (CancelTransactionResponse);
+  rpc resendTransaction(ResendTransactionRequest) returns (ResendTransactionResponse);
+  rpc estimateGasCost(EstimateGasCostRequest) returns (GasEstimate);
+  rpc validateTransactionSignature(ValidateTransactionSignatureRequest) returns (TransactionSignatureValidationResult);
+  rpc getPendingTransactions(GetPendingTransactionsRequest) returns (PendingTransactionsResponse);
+  rpc getTransactionHistory(GetTransactionHistoryRequest) returns (TransactionHistoryResponse);
+  rpc getTxPoolSize(GetTxPoolSizeRequest) returns (TxPoolStatistics);
+  rpc streamTransactionEvents(StreamTransactionEventsRequest) returns (stream TransactionEvent);
 }
