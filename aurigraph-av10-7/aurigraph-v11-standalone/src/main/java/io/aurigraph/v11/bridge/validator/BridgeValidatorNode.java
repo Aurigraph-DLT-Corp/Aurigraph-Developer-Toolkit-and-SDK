@@ -1,6 +1,5 @@
 package io.aurigraph.v11.bridge.validator;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -27,7 +26,6 @@ import java.util.Base64;
  * @version 11.1.0
  * @since Sprint 14
  */
-@ApplicationScoped
 public class BridgeValidatorNode {
 
     private final String validatorId;
