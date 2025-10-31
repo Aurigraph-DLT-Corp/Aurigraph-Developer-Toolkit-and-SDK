@@ -224,9 +224,9 @@ class ChannelServiceClass extends EventEmitter {
 
   private connectWebSocket() {
     try {
-      const wsUrl = window.location.protocol === 'https:'
-        ? 'wss://dlt.aurigraph.io/ws/channels'
-        : 'ws://localhost:9003/ws/channels';
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      const wsUrl = `${protocol}//${host}/ws/channels`;
 
       this.ws = new WebSocket(wsUrl);
 
