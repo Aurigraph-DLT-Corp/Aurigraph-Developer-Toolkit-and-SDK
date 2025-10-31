@@ -247,14 +247,14 @@ public class RWADataService {
                 .auditCompliance(99.2)
                 .registryStatus("operational")
                 .merkleTreeHeight(18)
-                .verificationLatency(150)
+                .verificationLatency(150L)
                 .build();
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r))
-         .onFailure().recoverWithItem(throwable -> {
+         .onFailure().recoverWithUni(throwable -> {
              Log.error("Failed to get tokenization info", throwable);
-             return RWATokenizationDTO.builder()
+             return Uni.createFrom().item(() -> RWATokenizationDTO.builder()
                  .error(throwable.getMessage())
-                 .build();
+                 .build());
          });
     }
 }

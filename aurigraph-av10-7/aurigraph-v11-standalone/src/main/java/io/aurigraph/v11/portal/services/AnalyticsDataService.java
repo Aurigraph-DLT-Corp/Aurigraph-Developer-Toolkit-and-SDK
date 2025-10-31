@@ -106,7 +106,7 @@ public class AnalyticsDataService {
 
             return MLMetricsDTO.builder()
                 .modelVersion("3.2.1")
-                .trainingDataPoints(45678900)
+                .trainingDataPoints(45678900L)
                 .modelAccuracy(97.34)
                 .modelPrecision(98.12)
                 .modelRecall(96.45)
@@ -126,11 +126,11 @@ public class AnalyticsDataService {
                 .predictionAccuracy(96.78)
                 .build();
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r))
-         .onFailure().recoverWithItem(throwable -> {
+         .onFailure().recoverWithUni(throwable -> {
              Log.error("Failed to get ML metrics", throwable);
-             return MLMetricsDTO.builder()
+             return Uni.createFrom().item(() -> MLMetricsDTO.builder()
                  .error(throwable.getMessage())
-                 .build();
+                 .build());
          });
     }
 

@@ -1,7 +1,6 @@
 package io.aurigraph.v11.portal;
 
-import io.aurigraph.v11.portal.models.PortalResponse;
-import io.aurigraph.v11.portal.models.BlockchainMetricsDTO;
+import io.aurigraph.v11.portal.models.*;
 import io.aurigraph.v11.portal.services.*;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -9,6 +8,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.logging.Logger;
+
+import java.util.List;
 
 /**
  * Aurigraph Portal API Gateway
@@ -57,7 +58,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/health")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getHealth() {
+    public Uni<PortalResponse<HealthStatusDTO>> getHealth() {
         LOG.info("Health check requested");
 
         return blockchainDataService.getHealthStatus()
@@ -76,7 +77,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/info")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getInfo() {
+    public Uni<PortalResponse<SystemInfoDTO>> getInfo() {
         LOG.info("System info requested");
 
         return blockchainDataService.getSystemInfo()
@@ -115,7 +116,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/blockchain/stats")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getBlockchainStats() {
+    public Uni<PortalResponse<BlockchainStatsDTO>> getBlockchainStats() {
         LOG.info("Blockchain stats requested");
 
         return blockchainDataService.getBlockchainStats()
@@ -141,7 +142,7 @@ public class PortalAPIGateway {
     @Produces(MediaType.APPLICATION_JSON)
     @QueryParam("limit")
     @DefaultValue("20")
-    public Uni<PortalResponse<Object>> getBlocks(int limit) {
+    public Uni<PortalResponse<List<BlockDTO>>> getBlocks(int limit) {
         LOG.infof("Blocks requested (limit: %d)", limit);
 
         return blockchainDataService.getLatestBlocks(Math.min(limit, 100))
@@ -161,7 +162,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/validators")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getValidators() {
+    public Uni<PortalResponse<List<ValidatorDTO>>> getValidators() {
         LOG.info("Validators requested");
 
         return blockchainDataService.getValidators()
@@ -180,7 +181,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/validators/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getValidatorDetails(@PathParam("id") String validatorId) {
+    public Uni<PortalResponse<ValidatorDetailDTO>> getValidatorDetails(@PathParam("id") String validatorId) {
         LOG.infof("Validator details requested: %s", validatorId);
 
         return blockchainDataService.getValidatorDetails(validatorId)
@@ -201,7 +202,7 @@ public class PortalAPIGateway {
     @Produces(MediaType.APPLICATION_JSON)
     @QueryParam("limit")
     @DefaultValue("20")
-    public Uni<PortalResponse<Object>> getTransactions(int limit) {
+    public Uni<PortalResponse<List<TransactionDTO>>> getTransactions(int limit) {
         LOG.infof("Transactions requested (limit: %d)", limit);
 
         return blockchainDataService.getTransactions(Math.min(limit, 100))
@@ -220,7 +221,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/transactions/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getTransactionDetails(@PathParam("id") String transactionId) {
+    public Uni<PortalResponse<TransactionDetailDTO>> getTransactionDetails(@PathParam("id") String transactionId) {
         LOG.infof("Transaction details requested: %s", transactionId);
 
         return blockchainDataService.getTransactionDetails(transactionId)
@@ -244,7 +245,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getTokens() {
+    public Uni<PortalResponse<List<TokenDTO>>> getTokens() {
         LOG.info("Tokens requested");
 
         return tokenDataService.getAllTokens()
@@ -263,7 +264,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/tokens/statistics")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getTokenStatistics() {
+    public Uni<PortalResponse<TokenStatisticsDTO>> getTokenStatistics() {
         LOG.info("Token statistics requested");
 
         return tokenDataService.getTokenStatistics()
@@ -287,7 +288,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/analytics")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getAnalytics() {
+    public Uni<PortalResponse<AnalyticsDTO>> getAnalytics() {
         LOG.info("Analytics requested");
 
         return analyticsDataService.getAnalytics()
@@ -306,7 +307,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/analytics/performance")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getAnalyticsPerformance() {
+    public Uni<PortalResponse<PerformanceAnalyticsDTO>> getAnalyticsPerformance() {
         LOG.info("Performance analytics requested");
 
         return analyticsDataService.getPerformanceAnalytics()
@@ -326,7 +327,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/ml/metrics")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getMLMetrics() {
+    public Uni<PortalResponse<MLMetricsDTO>> getMLMetrics() {
         LOG.info("ML metrics requested");
 
         return analyticsDataService.getMLMetrics()
@@ -345,7 +346,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/ml/performance")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getMLPerformance() {
+    public Uni<PortalResponse<MLPerformanceDTO>> getMLPerformance() {
         LOG.info("ML performance requested");
 
         return analyticsDataService.getMLPerformance()
@@ -364,7 +365,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/ml/predictions")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getMLPredictions() {
+    public Uni<PortalResponse<MLPredictionsDTO>> getMLPredictions() {
         LOG.info("ML predictions requested");
 
         return analyticsDataService.getMLPredictions()
@@ -383,7 +384,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/ml/confidence")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getMLConfidence() {
+    public Uni<PortalResponse<MLConfidenceDTO>> getMLConfidence() {
         LOG.info("ML confidence requested");
 
         return analyticsDataService.getMLConfidence()
@@ -406,7 +407,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/network/health")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getNetworkHealth() {
+    public Uni<PortalResponse<NetworkHealthDTO>> getNetworkHealth() {
         LOG.info("Network health requested");
 
         return networkDataService.getNetworkHealth()
@@ -425,7 +426,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/system/config")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getSystemConfig() {
+    public Uni<PortalResponse<SystemConfigDTO>> getSystemConfig() {
         LOG.info("System config requested");
 
         return networkDataService.getSystemConfig()
@@ -444,7 +445,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/system/status")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getSystemStatus() {
+    public Uni<PortalResponse<SystemStatusDTO>> getSystemStatus() {
         LOG.info("System status requested");
 
         return networkDataService.getSystemStatus()
@@ -463,10 +464,12 @@ public class PortalAPIGateway {
     @GET
     @Path("/audit-trail")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getAuditTrail() {
-        LOG.info("Audit trail requested");
+    @QueryParam("limit")
+    @DefaultValue("50")
+    public Uni<PortalResponse<List<AuditTrailDTO>>> getAuditTrail(int limit) {
+        LOG.infof("Audit trail requested (limit: %d)", limit);
 
-        return networkDataService.getAuditTrail()
+        return networkDataService.getAuditTrail(Math.min(limit, 100))
             .map(logs -> PortalResponse.success(logs, "Audit logs retrieved"))
             .onFailure()
             .recoverWithItem(throwable -> {
@@ -486,7 +489,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/rwa/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getRWATokens() {
+    public Uni<PortalResponse<List<RWATokenDTO>>> getRWATokens() {
         LOG.info("RWA tokens requested");
 
         return rwaDataService.getRWATokens()
@@ -505,7 +508,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/rwa/pools")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getRWAPools() {
+    public Uni<PortalResponse<List<RWAPoolDTO>>> getRWAPools() {
         LOG.info("RWA pools requested");
 
         return rwaDataService.getRWAPools()
@@ -524,7 +527,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/rwa/fractional")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getFractionalTokens() {
+    public Uni<PortalResponse<List<FractionalTokenDTO>>> getFractionalTokens() {
         LOG.info("Fractional tokens requested");
 
         return rwaDataService.getFractionalTokens()
@@ -547,7 +550,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/contracts/ricardian")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getRicardianContracts() {
+    public Uni<PortalResponse<List<RicardianContractDTO>>> getRicardianContracts() {
         LOG.info("Ricardian contracts requested");
 
         return contractDataService.getRicardianContracts()
@@ -566,7 +569,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/contracts/templates")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getContractTemplates() {
+    public Uni<PortalResponse<List<ContractTemplateDTO>>> getContractTemplates() {
         LOG.info("Contract templates requested");
 
         return contractDataService.getContractTemplates()
@@ -585,7 +588,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/channels")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getChannels() {
+    public Uni<PortalResponse<List<SmartChannelDTO>>> getChannels() {
         LOG.info("Channels requested");
 
         return contractDataService.getChannels()
@@ -608,7 +611,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/staking/info")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getStakingInfo() {
+    public Uni<PortalResponse<StakingInfoDTO>> getStakingInfo() {
         LOG.info("Staking info requested");
 
         return stakingDataService.getStakingInfo()
@@ -627,7 +630,7 @@ public class PortalAPIGateway {
     @GET
     @Path("/distribution/pools")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Object>> getDistributionPools() {
+    public Uni<PortalResponse<List<RewardDistributionDTO>>> getDistributionPools() {
         LOG.info("Distribution pools requested");
 
         return stakingDataService.getDistributionPools()
