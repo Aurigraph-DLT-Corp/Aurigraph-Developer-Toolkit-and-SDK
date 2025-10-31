@@ -1,18 +1,30 @@
 package io.aurigraph.v11.portal.services;
 
 import io.aurigraph.v11.portal.models.*;
+import io.aurigraph.v11.registry.RWATRegistryService;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
 
 /**
  * RWADataService provides Real-World Asset tokenization data
  * Bridges Portal frontend requests to RWAT registry and tokenization services
+ *
+ * INTEGRATION NOTE: This service is configured to receive dependency-injected
+ * RWATRegistryService for real RWAT data. Currently uses mock data for demo.
+ * Replace mock data calls with:
+ * - rwaRegistryService.getRWAT(rwatId) for individual RWAT queries
+ * - rwaRegistryService.getProof(rwatId) for Merkle proof generation
+ * - rwaRegistryService.verifyMerkleProof(proofData) for verification
  */
 @ApplicationScoped
 public class RWADataService {
+
+    @Inject
+    RWATRegistryService rwaRegistryService;
 
     /**
      * Get all RWA tokens

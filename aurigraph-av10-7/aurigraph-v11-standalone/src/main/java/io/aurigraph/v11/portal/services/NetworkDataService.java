@@ -1,18 +1,30 @@
 package io.aurigraph.v11.portal.services;
 
+import io.aurigraph.v11.blockchain.NetworkStatsService;
 import io.aurigraph.v11.portal.models.*;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
 
 /**
  * NetworkDataService provides network health and configuration data
  * Bridges Portal frontend requests to network and security services
+ *
+ * INTEGRATION NOTE: This service is configured to receive dependency-injected
+ * NetworkStatsService for real network data. Currently uses mock data for demo.
+ * Replace mock data calls with:
+ * - networkStatsService.getNetworkStatistics() for complete network stats
+ * - networkStatsService.getCurrentTPS() for real-time TPS
+ * - networkStatsService.calculateNetworkLatency() for latency metrics
  */
 @ApplicationScoped
 public class NetworkDataService {
+
+    @Inject
+    NetworkStatsService networkStatsService;
 
     /**
      * Get network health status

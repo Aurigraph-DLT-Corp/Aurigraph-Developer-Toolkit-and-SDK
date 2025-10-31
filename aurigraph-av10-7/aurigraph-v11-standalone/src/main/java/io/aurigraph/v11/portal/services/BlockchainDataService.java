@@ -1,9 +1,12 @@
 package io.aurigraph.v11.portal.services;
 
+import io.aurigraph.v11.blockchain.NetworkStatsService;
+import io.aurigraph.v11.consensus.HyperRAFTConsensusService;
 import io.aurigraph.v11.portal.models.*;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,14 +20,29 @@ public class BlockchainDataService {
 
     private static final long STARTUP_TIME = System.currentTimeMillis();
 
+    @Inject
+    HyperRAFTConsensusService consensusService;
+
+    @Inject
+    NetworkStatsService networkStatsService;
+
     /**
      * Get overall blockchain health status
+     *
+     * INTEGRATION NOTE: Currently using mock data. To integrate real services:
+     * Replace with calls to:
+     * - consensusService.getCurrentState() for consensus metrics
+     * - networkStatsService.getNetworkStatistics() for network health
+     * - Use Uni.combine().all().unis() to combine multiple async calls
      */
     public Uni<HealthStatusDTO> getHealthStatus() {
         return Uni.createFrom().item(() -> {
             Log.info("Fetching blockchain health status");
 
-            // In production, would call: HyperRAFTConsensusService.getConsensusHealth()
+            // Real implementation would fetch from:
+            // long consensusLatency = consensusService.getConsensusLatency();
+            // double tps = networkStatsService.getCurrentTPS();
+
             return HealthStatusDTO.builder()
                 .status("healthy")
                 .timestamp(Instant.now())
@@ -40,13 +58,13 @@ public class BlockchainDataService {
                 .memPoolSize(342)
                 .build();
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r))
-         .onFailure().recoverWithItem(throwable -> {
+         .onFailure().recoverWithUni(throwable -> {
              Log.error("Failed to get health status", throwable);
-             return HealthStatusDTO.builder()
+             return Uni.createFrom().item(() -> HealthStatusDTO.builder()
                  .status("degraded")
                  .timestamp(Instant.now())
                  .error(throwable.getMessage())
-                 .build();
+                 .build());
          });
     }
 

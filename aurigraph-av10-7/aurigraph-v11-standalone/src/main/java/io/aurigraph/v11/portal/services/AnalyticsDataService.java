@@ -1,18 +1,30 @@
 package io.aurigraph.v11.portal.services;
 
+import io.aurigraph.v11.analytics.AnalyticsService;
 import io.aurigraph.v11.portal.models.*;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
 
 /**
  * AnalyticsDataService provides analytics and performance metrics
  * Bridges Portal frontend requests to analytics and ML optimization services
+ *
+ * INTEGRATION NOTE: This service is configured to receive dependency-injected
+ * AnalyticsService for real analytics data. Currently uses mock data for demo.
+ * Replace mock data calls with:
+ * - analyticsService.getPerformanceMetrics() for real performance data
+ * - analyticsService.getTransactionAnalytics() for transaction analytics
+ * - analyticsService.getTopValidators() for validator rankings
  */
 @ApplicationScoped
 public class AnalyticsDataService {
+
+    @Inject
+    AnalyticsService analyticsService;
 
     /**
      * Get comprehensive analytics data

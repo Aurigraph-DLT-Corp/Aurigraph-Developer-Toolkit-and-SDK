@@ -1,18 +1,29 @@
 package io.aurigraph.v11.portal.services;
 
 import io.aurigraph.v11.portal.models.*;
+import io.aurigraph.v11.smartcontract.SmartContractService;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
 
 /**
  * ContractDataService provides smart contract and Ricardian contract data
  * Bridges Portal frontend requests to smart contract services
+ *
+ * INTEGRATION NOTE: This service is configured to receive dependency-injected
+ * SmartContractService for real contract data. Currently uses mock data for demo.
+ * Replace mock data calls with:
+ * - smartContractService.getContractExecutionHistory(contractId) for real execution history
+ * - smartContractService.getContractState(contractId) for live contract state
  */
 @ApplicationScoped
 public class ContractDataService {
+
+    @Inject
+    SmartContractService smartContractService;
 
     /**
      * Get Ricardian contracts

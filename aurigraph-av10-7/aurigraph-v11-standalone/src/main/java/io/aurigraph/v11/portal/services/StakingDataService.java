@@ -1,18 +1,29 @@
 package io.aurigraph.v11.portal.services;
 
+import io.aurigraph.v11.contracts.rwa.DividendDistributionService;
 import io.aurigraph.v11.portal.models.*;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
 
 /**
  * StakingDataService provides staking and reward distribution data
  * Bridges Portal frontend requests to staking and rewards services
+ *
+ * INTEGRATION NOTE: This service is configured to receive dependency-injected
+ * DividendDistributionService for real dividend/reward data. Currently uses mock data for demo.
+ * Replace mock data calls with:
+ * - dividendDistributionService.distributeDividends() for actual distributions
+ * - dividendDistributionService.calculateNetDividendAmount() for calculations
  */
 @ApplicationScoped
 public class StakingDataService {
+
+    @Inject
+    DividendDistributionService dividendDistributionService;
 
     /**
      * Get staking information
