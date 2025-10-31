@@ -140,9 +140,8 @@ public class PortalAPIGateway {
     @GET
     @Path("/blocks")
     @Produces(MediaType.APPLICATION_JSON)
-    @QueryParam("limit")
-    @DefaultValue("20")
-    public Uni<PortalResponse<List<BlockDTO>>> getBlocks(int limit) {
+    public Uni<PortalResponse<List<BlockDTO>>> getBlocks(
+            @QueryParam("limit") @DefaultValue("20") int limit) {
         LOG.infof("Blocks requested (limit: %d)", limit);
 
         return blockchainDataService.getLatestBlocks(Math.min(limit, 100))
@@ -200,9 +199,8 @@ public class PortalAPIGateway {
     @GET
     @Path("/transactions")
     @Produces(MediaType.APPLICATION_JSON)
-    @QueryParam("limit")
-    @DefaultValue("20")
-    public Uni<PortalResponse<List<TransactionDTO>>> getTransactions(int limit) {
+    public Uni<PortalResponse<List<TransactionDTO>>> getTransactions(
+            @QueryParam("limit") @DefaultValue("20") int limit) {
         LOG.infof("Transactions requested (limit: %d)", limit);
 
         return blockchainDataService.getTransactions(Math.min(limit, 100))
@@ -464,9 +462,8 @@ public class PortalAPIGateway {
     @GET
     @Path("/audit-trail")
     @Produces(MediaType.APPLICATION_JSON)
-    @QueryParam("limit")
-    @DefaultValue("50")
-    public Uni<PortalResponse<List<AuditTrailDTO>>> getAuditTrail(int limit) {
+    public Uni<PortalResponse<List<AuditTrailDTO>>> getAuditTrail(
+            @QueryParam("limit") @DefaultValue("50") int limit) {
         LOG.infof("Audit trail requested (limit: %d)", limit);
 
         return networkDataService.getAuditTrail(Math.min(limit, 100))
