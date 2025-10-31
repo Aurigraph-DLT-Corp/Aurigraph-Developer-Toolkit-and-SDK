@@ -137,6 +137,43 @@ class DemoServiceClass {
 
       return demo;
     } catch (error: any) {
+      // Graceful fallback: create demo locally if backend unavailable
+      if (error.response?.status === 500 || error.response?.status === 404) {
+        console.warn('⚠️ Backend demos endpoint not available, creating demo locally:', error.response?.status);
+
+        const demoId = `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + (durationMinutes || 30) * 60000);
+
+        const localDemo: DemoInstance = {
+          id: demoId,
+          ...registration,
+          status: 'RUNNING',
+          createdAt: now,
+          lastActivity: now,
+          expiresAt,
+          transactionCount: 0,
+          merkleRoot: '',
+          durationMinutes: durationMinutes || 30,
+          isAdminDemo: isAdmin,
+        };
+
+        // Generate Merkle tree locally
+        const { tree, root } = await createDemoMerkleTree(localDemo);
+        this.merkleTrees.set(demoId, tree);
+        localDemo.merkleRoot = root;
+
+        // Cache demo
+        this.demoCache.set(demoId, localDemo);
+
+        console.log(`✅ Demo created locally: ${localDemo.demoName} (ID: ${localDemo.id})`);
+        console.log(`⏱️ Duration: ${localDemo.durationMinutes} minutes`);
+        console.log(`🌳 Merkle root: ${root}`);
+        console.log(`ℹ️ Note: Demo stored locally (backend endpoint not available)`);
+
+        return localDemo;
+      }
+
       console.error('Failed to register demo:', error);
       throw new Error(error.response?.data?.error || 'Failed to register demo');
     }
@@ -156,7 +193,13 @@ class DemoServiceClass {
       });
 
       return demos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    } catch (error) {
+    } catch (error: any) {
+      // Graceful fallback: if backend endpoint not available, return cached demos
+      if (error.response?.status === 500 || error.response?.status === 404) {
+        console.warn('⚠️ Backend demos endpoint not available, using cache:', error.response?.status);
+        const cachedDemos = Array.from(this.demoCache.values());
+        return cachedDemos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      }
       console.error('Failed to fetch demos:', error);
       throw error;
     }
