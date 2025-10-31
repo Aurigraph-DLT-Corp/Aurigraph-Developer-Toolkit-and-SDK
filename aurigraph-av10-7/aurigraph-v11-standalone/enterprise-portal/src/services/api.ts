@@ -18,8 +18,74 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // Add API key - IMPORTANT: Vite exposes as VITE_REACT_APP_API_KEY
+  const apiKey = import.meta.env.VITE_REACT_APP_API_KEY
+  if (apiKey) {
+    config.headers['X-API-Key'] = apiKey
+    console.debug(`[API] Sending X-API-Key header`)
+  } else {
+    console.warn('[API] No API key found in environment variables. Check .env file for VITE_REACT_APP_API_KEY')
+  }
+
   return config
 })
+
+// Handle response errors including 401 Unauthorized
+apiClient.interceptors.response.use(
+  (response) => {
+    // Log rate limit headers if present
+    const remaining = response.headers['x-ratelimit-remaining']
+    const reset = response.headers['x-ratelimit-reset']
+    if (remaining !== undefined) {
+      console.debug(`Rate limit: ${remaining} remaining, resets at ${reset}`)
+    }
+    return response
+  },
+  async (error) => {
+    const status = error.response?.status
+    const url = error.config?.url || 'unknown'
+
+    switch (status) {
+      case 401:
+        // Unauthorized - clear token and redirect to login
+        console.error(`401 Unauthorized on ${url}`)
+        localStorage.removeItem('auth_token')
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
+        }
+        return Promise.reject(new Error('Authentication failed. Please log in again.'))
+
+      case 403:
+        // Forbidden
+        console.error(`403 Forbidden on ${url}`)
+        return Promise.reject(new Error('Access forbidden'))
+
+      case 404:
+        // Not found
+        console.error(`404 Not Found on ${url}`)
+        return Promise.reject(new Error(`Resource not found: ${url}`))
+
+      case 429:
+        // Rate limited
+        console.warn(`429 Rate Limited on ${url}`)
+        const retryAfter = error.response?.headers['retry-after'] || 60
+        return Promise.reject(new Error(`Rate limited. Please retry after ${retryAfter} seconds`))
+
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        // Server error
+        console.error(`${status} Server error on ${url}`)
+        return Promise.reject(new Error(`Server error (${status})`))
+
+      default:
+        console.error(`API Error on ${url}:`, error.message)
+        return Promise.reject(error)
+    }
+  }
+)
 
 // ============================================================================
 // RETRY LOGIC WITH EXPONENTIAL BACKOFF
@@ -99,27 +165,68 @@ async function safeApiCall<T>(
   }
 }
 
+// Default fallback data for failed requests
+const FALLBACK_DATA = {
+  metrics: {
+    tps: 0,
+    blockHeight: 0,
+    activeNodes: 0,
+    transactionVolume: 0,
+    networkStatus: 'offline',
+  },
+  performance: {
+    avgLatency: 0,
+    p99Latency: 0,
+    throughput: 0,
+    errorRate: 0,
+  },
+  health: {
+    status: 'unknown',
+    timestamp: new Date().toISOString(),
+  },
+}
+
 export const apiService = {
   // Health & Info
   async getHealth() {
-    const response = await apiClient.get('/health')
-    return response.data
+    try {
+      const response = await apiClient.get('/health')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch health:', error)
+      return FALLBACK_DATA.health
+    }
   },
 
   async getInfo() {
-    const response = await apiClient.get('/info')
-    return response.data
+    try {
+      const response = await apiClient.get('/info')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch info:', error)
+      return { status: 'unavailable' }
+    }
   },
 
   // Metrics
   async getMetrics() {
-    const response = await apiClient.get('/blockchain/stats')
-    return response.data
+    try {
+      const response = await apiClient.get('/blockchain/stats')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch metrics:', error)
+      return FALLBACK_DATA.metrics
+    }
   },
 
   async getPerformance() {
-    const response = await apiClient.get('/performance')
-    return response.data
+    try {
+      const response = await apiClient.get('/performance')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch performance:', error)
+      return FALLBACK_DATA.performance
+    }
   },
 
   async getAnalyticsPerformance() {
@@ -193,8 +300,13 @@ export const apiService = {
   },
 
   async getMLPerformance() {
-    const response = await apiClient.get('/ai/performance')
-    return response.data
+    try {
+      const response = await apiClient.get('/ai/performance')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch ML performance:', error)
+      return { optimization: 0, efficiency: 0, accuracy: 0 }
+    }
   },
 
   async getMLConfidence() {
@@ -296,8 +408,13 @@ export const apiService = {
   },
 
   async getTokenStatistics() {
-    const response = await apiClient.get('/tokens/statistics')
-    return response.data
+    try {
+      const response = await apiClient.get('/tokens/statistics')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch token statistics:', error)
+      return { total: 0, active: 0, locked: 0 }
+    }
   },
 
   async getRWATokens() {

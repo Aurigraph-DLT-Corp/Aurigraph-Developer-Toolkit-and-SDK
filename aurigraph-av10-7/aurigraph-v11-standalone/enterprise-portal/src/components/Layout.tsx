@@ -124,7 +124,7 @@ export default function Layout() {
               minWidth: 'fit-content'
             }}
           >
-            Aurigraph V11 Enterprise Portal - v4.7.0
+            Aurigraph V11 Enterprise Portal - v4.8.0
           </Typography>
 
           {/* Top Navigation Menus */}
