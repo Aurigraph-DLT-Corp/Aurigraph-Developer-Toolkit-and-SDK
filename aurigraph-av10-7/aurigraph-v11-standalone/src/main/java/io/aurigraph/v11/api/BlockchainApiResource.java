@@ -34,10 +34,14 @@ import java.util.Map;
  * - Validator information
  * - Network topology and statistics
  *
+ * NOTE: This resource is superseded by PortalAPIGateway in Phase 3.
+ * Kept for backward compatibility. During testing, PortalAPIGateway
+ * is used as the single REST endpoint gateway.
+ *
  * @version 3.7.3
  * @author Aurigraph V11 Team
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v11/deprecated/blockchain")
 @ApplicationScoped
 @Tag(name = "Blockchain Core API", description = "Core blockchain operations - transactions, blocks, validators, network")
 public class BlockchainApiResource {

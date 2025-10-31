@@ -26,8 +26,12 @@ import java.math.BigDecimal;
 /**
  * Aurigraph V11 Primary REST Resource
  * High-performance Java/Quarkus implementation
+ *
+ * NOTE: This resource is superseded by PortalAPIGateway in Phase 3.
+ * Kept for backward compatibility. During testing, PortalAPIGateway
+ * is used as the single REST endpoint gateway.
  */
-@Path("/api/v11")
+@Path("/api/v11/deprecated")
 @ApplicationScoped
 public class AurigraphResource {
 

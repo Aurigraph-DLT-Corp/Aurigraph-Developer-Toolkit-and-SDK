@@ -3,6 +3,7 @@ package io.aurigraph.v11.portal;
 import io.aurigraph.v11.portal.models.*;
 import io.aurigraph.v11.portal.services.*;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,8 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Integration tests for Portal Phase 2 data services
  * Tests all 7 data service implementations with realistic scenarios
+ *
+ * Uses PortalIntegrationTestProfile to disable old API resources
+ * and prevent endpoint conflicts with PortalAPIGateway
  */
 @QuarkusTest
+@TestProfile(PortalIntegrationTestProfile.class)
 @DisplayName("Portal Phase 2 Data Services Integration Tests")
 public class PortalDataServicesIntegrationTest {
 

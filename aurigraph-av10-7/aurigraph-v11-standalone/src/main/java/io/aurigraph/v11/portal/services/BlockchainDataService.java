@@ -353,6 +353,9 @@ public class BlockchainDataService {
 
     // Helper method to generate mock hashes
     private String generateHash() {
-        return "0x" + UUID.randomUUID().toString().replace("-", "").substring(0, 40);
+        // Generate a 40-character hex string (0x + 38 hex chars)
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        // UUID is 32 chars, use it all and pad to 40 if needed, or just use what we have
+        return "0x" + uuid.substring(0, Math.min(40, uuid.length()));
     }
 }
