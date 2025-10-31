@@ -34,6 +34,8 @@ public class BlockchainDataService {
      * - consensusService.getCurrentState() for consensus metrics
      * - networkStatsService.getNetworkStatistics() for network health
      * - Use Uni.combine().all().unis() to combine multiple async calls
+     *
+     * CACHING: Ready to cache for 30 seconds once caching dependency is added
      */
     public Uni<HealthStatusDTO> getHealthStatus() {
         return Uni.createFrom().item(() -> {
@@ -70,6 +72,7 @@ public class BlockchainDataService {
 
     /**
      * Get system information about V11 platform
+     * CACHING: Ready to cache for 5 minutes once caching dependency is added
      */
     public Uni<SystemInfoDTO> getSystemInfo() {
         return Uni.createFrom().item(() -> {
@@ -102,6 +105,7 @@ public class BlockchainDataService {
 
     /**
      * Get comprehensive blockchain metrics
+     * CACHING: Ready to cache for 10 seconds once caching dependency is added
      */
     public Uni<BlockchainMetricsDTO> getBlockchainMetrics() {
         return Uni.createFrom().item(() -> {
