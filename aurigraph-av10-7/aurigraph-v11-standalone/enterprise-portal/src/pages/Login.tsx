@@ -13,16 +13,32 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('') // Clear previous errors
+
+    // Validate inputs
+    if (!username.trim()) {
+      setError('Username is required')
+      return
+    }
+    if (!password.trim()) {
+      setError('Password is required')
+      return
+    }
 
     // Demo login - in production, this would call the API
+    // Valid credentials: admin / admin
     if (username === 'admin' && password === 'admin') {
+      console.log('✅ Login successful for user:', username)
       dispatch(loginSuccess({
         user: { id: '1', username: 'admin', role: 'admin' },
         token: 'demo-token-' + Date.now()
       }))
+      console.log('✅ Redirecting to dashboard...')
       navigate('/')
     } else {
-      setError('Invalid credentials. Use admin/admin for demo.')
+      const errorMsg = `Invalid credentials. Username: "${username}", Password: ${password.length} characters. Use admin/admin for demo.`
+      console.error('❌', errorMsg)
+      setError(errorMsg)
     }
   }
 
