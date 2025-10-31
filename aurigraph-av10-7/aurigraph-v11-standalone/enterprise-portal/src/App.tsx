@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
@@ -42,6 +42,16 @@ import {
 
 function App() {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
+  const isLoading = useAppSelector(state => state.auth.isLoading)
+
+  // Prevent flashing by not rendering routes until auth is checked
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography>Loading...</Typography>
+      </Box>
+    )
+  }
 
   return (
     <ErrorBoundary>

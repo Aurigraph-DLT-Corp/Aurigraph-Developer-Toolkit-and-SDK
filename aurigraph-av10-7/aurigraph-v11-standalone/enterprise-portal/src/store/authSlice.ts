@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface AuthState {
   isAuthenticated: boolean
+  isLoading: boolean
   user: {
     id: string
     username: string
@@ -16,6 +17,7 @@ const savedUser = localStorage.getItem('auth_user')
 
 const initialState: AuthState = {
   isAuthenticated: !!savedToken, // Set to true if token exists
+  isLoading: false, // Auth initialization complete immediately for demo
   user: savedUser ? JSON.parse(savedUser) : null,
   token: savedToken,
 }
