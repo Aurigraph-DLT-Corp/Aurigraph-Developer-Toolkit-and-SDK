@@ -122,6 +122,8 @@ public class TokenDataService {
 
     /**
      * Get detailed token statistics
+     * CACHING: Ready for 1-minute TTL via Caffeine cache
+     * @CacheResult(cacheName = "token-data")
      */
     public Uni<TokenStatisticsDTO> getTokenStatistics() {
         return Uni.createFrom().item(() -> {

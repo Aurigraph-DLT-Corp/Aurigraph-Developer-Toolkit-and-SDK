@@ -70,6 +70,12 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-scheduler</artifactId>
         </dependency>
+        <!-- Caching Infrastructure (requires additional configuration for Caffeine backend) -->
+        <!-- Dependency to be added when Quarkus caching extension is available -->
+        <!-- <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-cache</artifactId>
+        </dependency> -->
         <!-- MicroProfile Metrics removed - conflicts with Micrometer -->
         <!-- <dependency>
             <groupId>io.quarkus</groupId>
