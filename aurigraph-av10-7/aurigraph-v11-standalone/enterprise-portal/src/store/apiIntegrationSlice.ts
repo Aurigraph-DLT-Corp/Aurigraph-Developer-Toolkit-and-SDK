@@ -1,24 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type {
   APIIntegrationState,
-  OracleSource,
-  PriceFeedPair,
   OracleFeed,
-  PriceConsensus,
-  APIKey,
-  APIKeyRotationLog,
   ExternalAPIConfig,
-  APIUsageMetrics,
-  APIQuota,
-  APICallLog,
-  OracleHealthCheck,
-  OracleUptimeStats,
-  PriceFeedAlert,
   SmartContractAPIMapping,
-  APICallExecution,
   ContractOracleBinding,
-  OracleSourceType,
-  APIServiceType,
 } from '../types/apiIntegration';
 import apiIntegrationService from '../services/APIIntegrationService';
 

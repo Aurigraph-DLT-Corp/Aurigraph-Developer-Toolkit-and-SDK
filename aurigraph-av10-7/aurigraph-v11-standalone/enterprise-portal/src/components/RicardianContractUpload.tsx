@@ -313,7 +313,7 @@ export const RicardianContractUpload: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom">Avg. Enforceability</Typography>
+              <Typography color="textSecondary" gutterBottom>Avg. Enforceability</Typography>
               <Typography variant="h4">
                 {contracts.length > 0
                   ? Math.round(contracts.reduce((sum, c) => sum + c.enforceabilityScore, 0) / contracts.length)
