@@ -1,9 +1,10 @@
 # Aurigraph DLT: Next-Generation Blockchain Platform
-## Technical Whitepaper Version 1.0
+## Technical Whitepaper Version 1.1
 
 **Aurigraph Corporation**
-**Document Version:** 1.0
-**Publication Date:** October 3, 2025
+**Document Version:** 1.1
+**Publication Date:** November 1, 2025
+**Updated:** Enhanced with comprehensive 185+ inline citations and expanded IEEE-formatted bibliography (53 references)
 **Status:** Production Deployment Ready
 **Platform URL:** https://dlt.aurigraph.io
 
