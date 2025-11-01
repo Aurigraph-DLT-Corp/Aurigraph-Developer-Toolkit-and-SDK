@@ -318,6 +318,263 @@ The agent will:
 
 ---
 
+## Duplicate & Blocker Detection Feature
+
+**NEW**: Intelligent scanning for duplicates, endpoints, files, and blockers (#NEW-FEATURE-v11.4.5)
+
+### Purpose
+Automatically detect and flag potential issues that could cause build failures, conflicts, or performance degradation:
+- Duplicate REST endpoints
+- Duplicate container definitions
+- Duplicate file definitions
+- Circular dependencies
+- Port conflicts
+- Configuration conflicts
+
+### Activation & Usage
+
+#### Automatic Scanning
+The J4C agent automatically scans for duplicates when:
+1. Creating new REST endpoints
+2. Adding new Docker containers
+3. Implementing new service classes
+4. Modifying configuration files
+5. Before every build and deployment
+
+#### Manual Invocation
+```bash
+# Trigger duplicate detection
+j4c-scan-duplicates [target]
+
+# Examples
+j4c-scan-duplicates endpoints        # Scan REST endpoints
+j4c-scan-duplicates containers       # Scan Docker compose
+j4c-scan-duplicates files            # Scan file declarations
+j4c-scan-duplicates dependencies     # Scan circular dependencies
+j4c-scan-duplicates all              # Full system scan
+```
+
+### Duplicate Detection Rules
+
+#### 1. REST Endpoints Scanning
+**What to detect**:
+- Duplicate @Path annotations at same base path
+- Duplicate HTTP methods (GET/POST/DELETE/PUT) on same path
+- Conflicting endpoint definitions across resources
+
+**Action when found**:
+```
+⚠️  DUPLICATE ENDPOINT DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Path: /api/v11/rwa
+  Conflicts:
+  • RWAApiResource.java:45
+  • RWAManagementResource.java:78
+Status: GET /api/v11/rwa is declared by 2 resources
+Severity: CRITICAL - Will cause build failure
+Action: Remove one resource or consolidate endpoints
+```
+
+**Scanning code pattern**:
+```java
+// Search for duplicate @Path patterns
+grep -r "@Path\(" src/main/java --include="*.java" | \
+  grep -E "(api/v11|api/v10)" | \
+  sort | uniq -d | while read path; do
+    echo "DUPLICATE: $path"
+  done
+```
+
+#### 2. Docker Container Scanning
+**What to detect**:
+- Duplicate service names in docker-compose.yml
+- Duplicate port bindings
+- Duplicate volume mount paths
+- Duplicate environment variable conflicts
+
+**Action when found**:
+```
+⚠️  DUPLICATE CONTAINER DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Service: postgres-primary
+  Issues:
+  • Port 5432 declared 2 times
+  • Volume /data/postgres declared 2 times
+Status: docker-compose.yml will fail validation
+Severity: CRITICAL - Container won't start
+Action: Consolidate duplicate service definitions
+```
+
+#### 3. File Declaration Scanning
+**What to detect**:
+- Duplicate Java class definitions
+- Duplicate test file definitions
+- Duplicate resource declarations
+- Duplicate bean definitions in Spring/Quarkus
+
+**Action when found**:
+```
+⚠️  DUPLICATE FILE DECLARATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Class: SmartContractTest.java
+  Locations:
+  • src/test.bak/java/io/aurigraph/v11/contracts/SmartContractTest.java
+  • src/test/java/io/aurigraph/v11/contracts/SmartContractTest.java
+Status: Both files exist - will cause classpath conflicts
+Severity: WARNING - May cause compilation issues
+Action: Remove test.bak file or consolidate
+```
+
+#### 4. Circular Dependency Scanning
+**What to detect**:
+- Service A depends on Service B, B depends on A
+- Module circular imports
+- Bean initialization order issues
+
+**Action when found**:
+```
+⚠️  CIRCULAR DEPENDENCY DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cycle: TransactionService → ConsensusService → TransactionService
+  Path: TransactionService.java:45
+       → ConsensusService.java:67
+       → TransactionService.java (circular)
+Status: May cause runtime initialization failures
+Severity: WARNING - Monitor in integration testing
+Action: Review dependency order or use lazy initialization
+```
+
+#### 5. Port Conflict Scanning
+**What to detect**:
+- Duplicate port assignments
+- Port ranges that overlap
+- Services using same port
+
+**Action when found**:
+```
+⚠️  PORT CONFLICT DETECTED
+━━━━━━━━━━━━━━━━━━━━━━
+Port: 9003
+  Services:
+  • Aurigraph V11 main (docker-compose)
+  • Quarkus dev mode (quarkus:dev)
+Status: Only one can bind to port 9003
+Severity: WARNING - Manual conflict resolution needed
+Action: Change one service port or stop conflicting service
+```
+
+### Pre-Build Scanning Process
+
+Before every build, the J4C agent performs:
+
+```bash
+# 1. REST Endpoint Scan
+echo "🔍 Scanning REST endpoints..."
+./scripts/detect-duplicate-endpoints.sh
+
+# 2. Docker Configuration Scan
+echo "🔍 Scanning Docker compose..."
+./scripts/detect-duplicate-containers.sh
+
+# 3. File Declaration Scan
+echo "🔍 Scanning file declarations..."
+./scripts/detect-duplicate-files.sh
+
+# 4. Circular Dependency Scan
+echo "🔍 Scanning dependencies..."
+./scripts/detect-circular-dependencies.sh
+
+# 5. Port Conflict Scan
+echo "🔍 Scanning port assignments..."
+./scripts/detect-port-conflicts.sh
+
+# 6. Summary Report
+echo "✅ Scan complete - see DUPLICATE-DETECTION-REPORT.md"
+```
+
+### Reporting
+
+All duplicates are logged to:
+- **DUPLICATE-DETECTION-REPORT.md** - Detailed findings
+- **BUILD-BLOCKERS.md** - Critical issues preventing build
+- **Console output** - Real-time warnings
+
+**Report Format**:
+```markdown
+# Duplicate Detection Report
+**Date**: November 1, 2025
+**Severity**: 1 CRITICAL, 2 WARNING
+
+## Critical Issues (Block Build)
+1. REST endpoint /api/v11/rwa declared 2 times
+2. Docker service 'postgres-primary' has duplicate port 5432
+
+## Warning Issues (May cause runtime problems)
+1. SmartContractTest.java exists in 2 locations
+2. Circular dependency: Service A ↔ Service B
+
+## Action Items
+- [ ] Consolidate RWA endpoints
+- [ ] Fix postgres-primary service
+- [ ] Remove test.bak duplicate
+- [ ] Review service dependencies
+```
+
+### Integration with Build Pipeline
+
+Add to pom.xml pre-build phase:
+
+```xml
+<plugin>
+  <groupId>org.codehaus.mojo</groupId>
+  <artifactId>exec-maven-plugin</artifactId>
+  <executions>
+    <execution>
+      <phase>validate</phase>
+      <goals>
+        <goal>exec</goal>
+      </goals>
+      <configuration>
+        <executable>./scripts/pre-build-scan.sh</executable>
+        <arguments>
+          <argument>all</argument>
+        </arguments>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+### Automated Fixing
+
+For common duplicates, J4C can auto-fix:
+- Remove duplicate test.bak files: `j4c-fix-duplicates --auto-remove test.bak`
+- Consolidate REST endpoints: `j4c-fix-duplicates --consolidate endpoints`
+- Deduplicate containers: `j4c-fix-duplicates --consolidate containers`
+
+### Success Metrics
+
+✅ J4C agent detects duplicates when:
+- Duplicate endpoints identified before compile
+- Duplicate containers found before docker-compose up
+- Duplicate files reported before test run
+- Circular dependencies detected early
+- Port conflicts flagged before deployment
+
+### Examples from History
+
+**Real Example**: October 23, 2025
+- Issue: SmartContractTest.java in both src/test.bak and src/test
+- Detection: Would have prevented duplicate test failures
+- Action: Consolidated to single location
+
+**Real Example**: Current Session (Nov 1, 2025)
+- Issue: 4 duplicate REST resource files detected
+- Detection: Identified before build (AIOptimization, RWA, Bridge, Security)
+- Action: Removed duplicates, consolidated to existing resources
+
+---
+
 ## Success Criteria
 
 The J4C agent successfully implements these instructions when:
