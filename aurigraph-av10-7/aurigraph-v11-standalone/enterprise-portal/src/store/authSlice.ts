@@ -23,10 +23,27 @@ try {
   console.warn('⚠️ localStorage unavailable (incognito mode?), using session-only auth')
 }
 
+// Safely parse saved user data
+let parsedUser = null
+if (savedUser) {
+  try {
+    parsedUser = JSON.parse(savedUser)
+  } catch (e) {
+    console.warn('⚠️ Failed to parse saved user data, clearing auth state')
+    // Clear invalid data
+    try {
+      localStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_token')
+    } catch (err) {
+      // Ignore localStorage errors (incognito mode)
+    }
+  }
+}
+
 const initialState: AuthState = {
-  isAuthenticated: !!savedToken, // Set to true if token exists
+  isAuthenticated: !!savedToken && !!parsedUser, // Only authenticated if BOTH token and user exist
   isLoading: false, // Auth initialization complete immediately for demo
-  user: savedUser ? JSON.parse(savedUser) : null,
+  user: parsedUser,
   token: savedToken,
 }
 

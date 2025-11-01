@@ -245,61 +245,247 @@ public class BusinessNode {
 
 ---
 
-### 2.4 API Integration Nodes
+### 2.4 API Integration Nodes (Slim Nodes)
 
-**Purpose**: Integrate with external APIs and data sources
+**Purpose**: Integrate with external APIs and data sources for real-world asset tokenization
+
+**Status**: ✅ Production Deployed - November 1, 2025
+
+**Core Concept**: Slim nodes (also called API Integration Nodes) serve as specialized data ingestion and tokenization orchestrators that connect Aurigraph to external data sources and push processed data to the tokenization channel for asset registration and token creation.
 
 **Responsibilities**:
-- Connect to external APIs (Alpaca, Weather, etc.)
-- Fetch and validate external data
-- Cache external data
-- Provide oracle services
-- Handle API rate limiting
+- Connect to external APIs and data sources
+- Fetch, validate, and transform external data
+- Cache external data with TTL management
+- Push validated data to tokenization channel
+- Provide oracle services for smart contracts
+- Handle API rate limiting and error recovery
+- Monitor data quality and freshness
+
+**External Data Source Integrations**:
+
+1. **Financial Markets** (Alpaca API)
+   - Stock prices, indices, commodities
+   - Real-time and historical market data
+   - Portfolio data for algorithmic trading
+
+2. **Real Estate Data** (Property APIs)
+   - Property valuations and appraisals
+   - Market data and comparables
+   - Title and ownership records
+
+3. **Carbon Credits & ESG** (Carbon APIs)
+   - Carbon offset prices
+   - ESG ratings and certifications
+   - Sustainability metrics
+
+4. **Supply Chain** (IOT/Logistics APIs)
+   - Product location and status
+   - Temperature/humidity monitoring
+   - Chain of custody verification
+
+5. **Weather & Environmental** (Weather APIs)
+   - Real-time weather conditions
+   - Environmental impact data
+   - Climate risk assessments
 
 **Key Features**:
 ```java
-public class APIIntegrationNode {
+public class SlimNode implements APIIntegrationNode {
     private String nodeId;
     private NodeType nodeType = NodeType.API_INTEGRATION;
+
+    // External API clients
     private Map<String, APIClient> apiClients;
+
+    // Data processing and caching
     private DataCache dataCache;
+    private DataValidator dataValidator;
+    private DataTransformer dataTransformer;
+
+    // Tokenization integration
+    private TokenizationChannel tokenizationChannel;
     private OracleService oracleService;
 
     // Core operations
     public Uni<MarketData> fetchMarketData(String symbol);
     public Uni<WeatherData> fetchWeather(String location);
+    public Uni<PropertyData> fetchPropertyData(String propertyId);
+    public Uni<CarbonData> fetchCarbonData(String assetId);
+
+    // Data push to tokenization
+    public Uni<Void> pushToTokenizationChannel(ExternalData data);
     public Uni<OracleData> provideOracleData(String dataType);
     public Uni<CacheStats> getCacheStatistics();
+
+    // Data validation
+    public Uni<Boolean> validateData(ExternalData data);
+    public Uni<DataQualityScore> assessDataQuality(ExternalData data);
 }
+```
+
+**Data Tokenization Pipeline**:
+
+```
+External API → Slim Node → Validation → Transformation → Tokenization Channel
+                    ↓
+              Data Cache
+              (TTL: 5min)
+                    ↓
+              Smart Contracts
+              (Token Creation)
+```
+
+**Workflow Example - Real Estate Tokenization**:
+```
+1. Fetch property data from real estate API
+2. Validate property information and ownership
+3. Retrieve current market valuation
+4. Assess carbon footprint impact
+5. Push to tokenization channel with metadata:
+   {
+     "assetType": "REAL_ESTATE",
+     "propertyId": "prop-12345",
+     "address": "123 Main St, Boston, MA",
+     "valuation": 500000,
+     "currency": "USD",
+     "lastUpdated": "2025-11-01T10:30:00Z",
+     "source": "Zillow API",
+     "confidence": 0.95,
+     "carbonFootprint": "Medium"
+   }
+6. Smart contract creates fractional tokens
+7. Tokens available for trading
 ```
 
 **Performance Targets**:
 - API call latency: <100ms (with caching)
 - Cache hit rate: >90%
 - Data freshness: <5s for critical data
-- Throughput: 10K external API calls/sec
+- Data validation: <10ms per record
+- Throughput: 10K external API calls/sec, 100K TPS data events
+- Concurrent connections: 1000+ to external APIs
 
 **Configuration Schema**:
 ```json
 {
   "nodeType": "API_INTEGRATION",
-  "nodeId": "api-node-001",
+  "nodeId": "slim-1",
+  "description": "External API and tokenization orchestrator",
   "apiConfigs": {
     "alpaca": {
       "apiKey": "encrypted",
       "baseUrl": "https://api.alpaca.markets",
-      "rateLimit": 200
+      "rateLimit": 200,
+      "enabled": true,
+      "dataTypes": ["STOCK_PRICES", "COMMODITIES", "INDICES"]
     },
-    "weather": {
+    "realEstateProvider": {
+      "apiKey": "encrypted",
+      "baseUrl": "https://api.realtyprovider.com",
+      "rateLimit": 100,
+      "enabled": true,
+      "dataTypes": ["PROPERTY_VALUES", "MARKET_DATA", "TITLES"]
+    },
+    "carbonOffsets": {
+      "apiKey": "encrypted",
+      "baseUrl": "https://api.carbonoffsets.com",
+      "rateLimit": 50,
+      "enabled": true,
+      "dataTypes": ["CARBON_CREDITS", "ESG_RATINGS"]
+    },
+    "supplyChain": {
+      "apiKey": "encrypted",
+      "baseUrl": "https://api.supplychain.com",
+      "rateLimit": 150,
+      "enabled": true,
+      "dataTypes": ["TRACKING_DATA", "CHAIN_OF_CUSTODY"]
+    },
+    "weatherAPI": {
       "apiKey": "encrypted",
       "baseUrl": "https://api.weather.com",
-      "rateLimit": 100
+      "rateLimit": 75,
+      "enabled": true,
+      "dataTypes": ["WEATHER_CONDITIONS", "ENVIRONMENTAL_IMPACT"]
     }
   },
-  "cacheSize": "5GB",
-  "cacheTTL": 300,
-  "enableOracleService": true
+  "dataProcessing": {
+    "cacheSize": "5GB",
+    "cacheTTL": 300,
+    "validationEnabled": true,
+    "dataQualityThreshold": 0.8,
+    "transformationRules": "transformers/standard-rules.json"
+  },
+  "tokenization": {
+    "channelName": "TOKENIZATION_EVENTS",
+    "batchSize": 1000,
+    "batchTimeoutSeconds": 5,
+    "enableAIValidation": true
+  },
+  "monitoring": {
+    "metricsEnabled": true,
+    "metricsPort": 9090,
+    "healthCheckPort": 9091,
+    "logLevel": "INFO",
+    "dataQualityMonitoring": true,
+    "apiHealthMonitoring": true
+  }
 }
+```
+
+**Caching Strategy**:
+```
+Cache Tiers:
+├─ L1: In-Memory Cache (1GB, <1ms latency)
+│  └─ Hot data (frequently accessed)
+├─ L2: Distributed Cache/Redis (2GB, <10ms latency)
+│  └─ Recent data
+└─ L3: Persistent Storage (2GB, <100ms latency)
+   └─ Historical data for analytics
+
+Cache Invalidation:
+- TTL-based: 5 minutes for market data, 1 hour for property data
+- Event-based: Invalidate on data source updates
+- Size-based: LRU eviction when capacity exceeded
+```
+
+**Data Quality Assurance**:
+```java
+public class DataQualityValidator {
+    // Validation checks
+    public boolean validateCompleteness(ExternalData data);  // All required fields
+    public boolean validateFormat(ExternalData data);        // Correct data types
+    public boolean validateRange(ExternalData data);         // Values within bounds
+    public boolean validateConsistency(ExternalData data);   // Logical consistency
+    public float calculateQualityScore(ExternalData data);   // 0.0 - 1.0 score
+}
+```
+
+**Error Handling & Recovery**:
+```
+API Failure Scenarios:
+├─ Rate Limited: Exponential backoff (1s, 2s, 4s, 8s, 16s)
+├─ Connection Timeout: Retry with 30s pause
+├─ Invalid Data: Log & skip, use cached version
+├─ Authentication Error: Alert operator, retry with credentials
+└─ Service Down: Use fallback data source, notify consumers
+
+Circuit Breaker:
+- Open: Stop calling failed API (5+ consecutive failures)
+- Half-Open: Allow 1 test call to see if recovered
+- Closed: Normal operation
+- Timeout: 60 seconds
+```
+
+**Metrics & Monitoring**:
+```
+Key Metrics:
+- api_call_latency_ms: Per-API call latency
+- cache_hit_ratio: Percentage of cached vs fresh requests
+- data_quality_score: Average quality of data returned
+- api_availability: % uptime per API
+- tokenization_events_pushed: Events sent to tokenization channel
+- external_data_freshness_seconds: Time since last refresh
 ```
 
 ---
