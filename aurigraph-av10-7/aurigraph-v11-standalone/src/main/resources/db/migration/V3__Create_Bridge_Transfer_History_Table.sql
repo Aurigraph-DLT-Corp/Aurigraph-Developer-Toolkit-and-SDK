@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS bridge_transfer_history (
     -- Can store block numbers, gas costs, network conditions, etc.
     metadata TEXT
 
-)
+);
 
 -- =========================================================================
 -- Indexes for Query Performance
