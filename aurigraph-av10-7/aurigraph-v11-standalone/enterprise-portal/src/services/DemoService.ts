@@ -138,8 +138,9 @@ class DemoServiceClass {
       return demo;
     } catch (error: any) {
       // Graceful fallback: create demo locally if backend unavailable
-      if (error.response?.status === 500 || error.response?.status === 404) {
-        console.warn('⚠️ Backend demos endpoint not available, creating demo locally:', error.response?.status);
+      if (error.response?.status === 500 || error.response?.status === 404 || !error.response) {
+        const statusMsg = error.response?.status ? `HTTP ${error.response.status}` : 'Connection refused';
+        console.warn(`⚠️ Backend demos endpoint not available (${statusMsg}), creating demo locally...`);
 
         const demoId = `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const now = new Date();
@@ -169,12 +170,12 @@ class DemoServiceClass {
         console.log(`✅ Demo created locally: ${localDemo.demoName} (ID: ${localDemo.id})`);
         console.log(`⏱️ Duration: ${localDemo.durationMinutes} minutes`);
         console.log(`🌳 Merkle root: ${root}`);
-        console.log(`ℹ️ Note: Demo stored locally (backend endpoint not available)`);
+        console.log(`💡 Tip: Demo stored locally (backend will sync when server comes online)`);
 
         return localDemo;
       }
 
-      console.error('Failed to register demo:', error);
+      console.error('❌ Failed to register demo:', error);
       throw new Error(error.response?.data?.error || 'Failed to register demo');
     }
   }

@@ -228,10 +228,12 @@ class ChannelServiceClass extends EventEmitter {
       const host = window.location.host;
       const wsUrl = `${protocol}//${host}/ws/channels`;
 
+      console.log(`🔌 Attempting to connect to WebSocket: ${wsUrl}`);
+
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log('Channel WebSocket connected');
+        console.log('✅ Channel WebSocket connected');
         this.reconnectAttempts = 0;
         this.emit('connected');
         this.subscribeToChannelUpdates();
@@ -247,30 +249,36 @@ class ChannelServiceClass extends EventEmitter {
       };
 
       this.ws.onerror = (error) => {
-        console.error('Channel WebSocket error:', error);
+        console.error('❌ Channel WebSocket error:', error);
         this.emit('error', error);
       };
 
       this.ws.onclose = () => {
-        console.log('Channel WebSocket disconnected');
+        console.log('⚠️ Channel WebSocket disconnected');
         this.emit('disconnected');
         this.attemptReconnect();
       };
     } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
-      this.simulateChannelUpdates(); // Fallback to simulation
+      console.error('❌ Failed to connect WebSocket:', error);
+      this.attemptReconnect(); // Still try to reconnect
     }
   }
 
   private attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
+      const waitTime = 2000 * this.reconnectAttempts;
+      console.log(`⏳ Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${waitTime}ms`);
       setTimeout(() => {
-        console.log(`Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
         this.connectWebSocket();
-      }, 2000 * this.reconnectAttempts);
+      }, waitTime);
     } else {
-      console.log('Max reconnection attempts reached, using simulation mode');
+      console.log('⚠️ Max reconnection attempts reached, using simulation mode');
+      console.log('💡 Backend server appears to be offline. Using local simulation for channel data.');
+      this.emit('fallback_mode_enabled', {
+        reason: 'Backend unavailable after 5 reconnection attempts',
+        message: 'Using local simulation for channel metrics'
+      });
       this.simulateChannelUpdates();
     }
   }
