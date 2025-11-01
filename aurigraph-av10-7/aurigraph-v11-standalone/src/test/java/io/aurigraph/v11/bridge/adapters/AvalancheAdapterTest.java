@@ -56,7 +56,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should return correct Avalanche C-Chain ID")
     void testGetChainId() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -66,7 +65,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should return Avalanche chain information with Snowman consensus")
     void testGetChainInfo() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -84,7 +82,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should initialize successfully with Avalanche C-Chain RPC")
     void testInitialize() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -97,7 +94,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should check connection status")
     void testCheckConnection() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -111,7 +107,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should send transaction with sub-second finality")
     void testSendTransaction() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -135,7 +130,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should get transaction status with fast finality")
     void testGetTransactionStatus() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -148,7 +142,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should get balance for native AVAX")
     void testGetBalanceNative() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -164,7 +157,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should get balance for ERC-20 tokens on C-Chain")
     void testGetBalanceERC20() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -180,7 +172,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should get multiple balances efficiently")
     void testGetBalances() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -199,7 +190,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should estimate transaction fee with dynamic pricing")
     void testEstimateTransactionFee() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -218,7 +208,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should get network fee information with EIP-1559 data")
     void testGetNetworkFeeInfo() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -235,7 +224,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should validate Ethereum-compatible address")
     void testValidateAddress() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -251,7 +239,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should get current block height")
     void testGetCurrentBlockHeight() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -264,7 +251,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should deploy smart contract on C-Chain")
     void testDeployContract() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -284,7 +270,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should call smart contract (read and write)")
     void testCallContract() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -300,7 +285,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should get adapter statistics")
     void testGetAdapterStatistics() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -314,7 +298,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should configure retry policy")
     void testConfigureRetryPolicy() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -327,7 +310,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should shutdown gracefully")
     void testShutdown() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -340,7 +322,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should have SUB-SECOND finality (fastest of all chains)")
     void testSubSecondFinality() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -359,7 +340,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should support EIP-1559 transaction type")
     void testEIP1559Support() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -374,7 +354,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should support Avalanche consensus (Snowman on C-Chain)")
     void testAvalancheConsensus() {
         // TODO: Enable when AvalancheAdapter is implemented
@@ -389,7 +368,6 @@ public class AvalancheAdapterTest {
     }
 
     @Test
-    @Disabled("AvalancheAdapter implementation pending")
     @DisplayName("Should have moderate fees (higher than Polygon/BSC, lower than Ethereum)")
     void testModerateFees() {
         // TODO: Enable when AvalancheAdapter is implemented

@@ -55,7 +55,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should return correct BSC chain ID")
     void testGetChainId() {
         // TODO: Enable when BSCAdapter is implemented
@@ -65,7 +64,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should return BSC chain information with PoSA consensus")
     void testGetChainInfo() {
         // TODO: Enable when BSCAdapter is implemented
@@ -83,7 +81,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should initialize successfully with BSC RPC")
     void testInitialize() {
         // TODO: Enable when BSCAdapter is implemented
@@ -95,7 +92,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should check connection status")
     void testCheckConnection() {
         // TODO: Enable when BSCAdapter is implemented
@@ -109,7 +105,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should send transaction with BNB gas fees")
     void testSendTransaction() {
         // TODO: Enable when BSCAdapter is implemented
@@ -132,7 +127,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should get transaction status")
     void testGetTransactionStatus() {
         // TODO: Enable when BSCAdapter is implemented
@@ -145,7 +139,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should get balance for native BNB")
     void testGetBalanceNative() {
         // TODO: Enable when BSCAdapter is implemented
@@ -161,7 +154,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should get balance for BEP-20 tokens")
     void testGetBalanceBEP20() {
         // TODO: Enable when BSCAdapter is implemented
@@ -177,7 +169,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should get multiple balances efficiently")
     void testGetBalances() {
         // TODO: Enable when BSCAdapter is implemented
@@ -196,7 +187,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should estimate transaction fee (very low on BSC)")
     void testEstimateTransactionFee() {
         // TODO: Enable when BSCAdapter is implemented
@@ -215,7 +205,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should get network fee information (legacy gas pricing)")
     void testGetNetworkFeeInfo() {
         // TODO: Enable when BSCAdapter is implemented
@@ -231,7 +220,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should validate Ethereum-compatible address")
     void testValidateAddress() {
         // TODO: Enable when BSCAdapter is implemented
@@ -247,7 +235,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should get current block height")
     void testGetCurrentBlockHeight() {
         // TODO: Enable when BSCAdapter is implemented
@@ -260,7 +247,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should deploy smart contract on BSC")
     void testDeployContract() {
         // TODO: Enable when BSCAdapter is implemented
@@ -281,7 +267,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should call smart contract (read and write)")
     void testCallContract() {
         // TODO: Enable when BSCAdapter is implemented
@@ -297,7 +282,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should get adapter statistics")
     void testGetAdapterStatistics() {
         // TODO: Enable when BSCAdapter is implemented
@@ -311,7 +295,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should configure retry policy")
     void testConfigureRetryPolicy() {
         // TODO: Enable when BSCAdapter is implemented
@@ -324,7 +307,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should shutdown gracefully")
     void testShutdown() {
         // TODO: Enable when BSCAdapter is implemented
@@ -337,7 +319,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should have faster block times than Ethereum")
     void testFasterBlockTimes() {
         // TODO: Enable when BSCAdapter is implemented
@@ -353,7 +334,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should have very low fees similar to Polygon")
     void testLowFees() {
         // TODO: Enable when BSCAdapter is implemented
@@ -369,7 +349,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should NOT support EIP-1559 (legacy gas pricing)")
     void testNoEIP1559Support() {
         // TODO: Enable when BSCAdapter is implemented
@@ -384,7 +363,6 @@ public class BSCAdapterTest {
     }
 
     @Test
-    @Disabled("BSCAdapter implementation pending")
     @DisplayName("Should support PoSA consensus mechanism")
     void testPoSAConsensus() {
         // TODO: Enable when BSCAdapter is implemented

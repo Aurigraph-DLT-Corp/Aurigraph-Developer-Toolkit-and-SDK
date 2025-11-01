@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests the complete flow: transaction -> load balancing -> anomaly detection -> feedback
  */
 @QuarkusTest
-@Disabled("Port 8081 conflict during Quarkus startup - infrastructure issue, scheduled for Phase 4 Week 1 Day 3-5")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MLIntegrationTest {
 

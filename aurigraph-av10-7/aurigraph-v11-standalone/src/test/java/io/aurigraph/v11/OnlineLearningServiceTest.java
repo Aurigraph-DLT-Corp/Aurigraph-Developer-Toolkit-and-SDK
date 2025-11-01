@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Scheduled for Week 1 Day 3-5.
  */
 @QuarkusTest
-@Disabled("Quarkus startup issue - scheduled for Week 1 Day 3-5")
 @DisplayName("OnlineLearningService Unit Tests")
 public class OnlineLearningServiceTest {
 

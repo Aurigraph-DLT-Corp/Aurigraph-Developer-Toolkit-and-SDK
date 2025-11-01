@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Critical Path: TPS and Accuracy benchmarks
  */
 @QuarkusTest
-@Disabled("Port 8081 conflict - test infrastructure issue, scheduled for Week 1 Day 3-5")
 @DisplayName("Phase 1: Online Learning Performance Optimization (Sprint 14)")
 public class PerformanceOptimizationTest {
 
