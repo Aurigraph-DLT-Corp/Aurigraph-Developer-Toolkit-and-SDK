@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS bridge_transfer_history (
     -- Can store block numbers, gas costs, network conditions, etc.
     metadata TEXT
 
-) TABLESPACE pg_default;
+)
 
 -- =========================================================================
 -- Indexes for Query Performance
@@ -53,44 +53,44 @@ CREATE TABLE IF NOT EXISTS bridge_transfer_history (
 
 -- Foreign key lookup index
 CREATE INDEX idx_history_tx_id
-    ON bridge_transfer_history (transaction_id)
-    TABLESPACE pg_default;
+    ON bridge_transfer_history (transaction_id);
+
 
 -- Time-based queries
 CREATE INDEX idx_history_timestamp
-    ON bridge_transfer_history (timestamp)
-    TABLESPACE pg_default;
+    ON bridge_transfer_history (timestamp);
+
 
 -- Status transition lookups
 CREATE INDEX idx_history_from_status
-    ON bridge_transfer_history (from_status)
-    TABLESPACE pg_default;
+    ON bridge_transfer_history (from_status);
+
 
 CREATE INDEX idx_history_to_status
-    ON bridge_transfer_history (to_status)
-    TABLESPACE pg_default;
+    ON bridge_transfer_history (to_status);
+
 
 -- Combined index for common patterns (tx_id + timestamp)
 CREATE INDEX idx_history_tx_timestamp
-    ON bridge_transfer_history (transaction_id, timestamp DESC)
-    TABLESPACE pg_default;
+    ON bridge_transfer_history (transaction_id, timestamp DESC);
+
 
 -- Agent-based lookups
 CREATE INDEX idx_history_agent
-    ON bridge_transfer_history (agent)
-    TABLESPACE pg_default;
+    ON bridge_transfer_history (agent);
+
 
 -- Error tracking
 CREATE INDEX idx_history_errors
     ON bridge_transfer_history (to_status)
-    WHERE error_details IS NOT NULL
-    TABLESPACE pg_default;
+    WHERE error_details IS NOT NULL;
+
 
 -- Validator signatures tracking
 CREATE INDEX idx_history_validator_sigs
     ON bridge_transfer_history (timestamp)
-    WHERE validator_signatures IS NOT NULL
-    TABLESPACE pg_default;
+    WHERE validator_signatures IS NOT NULL;
+
 
 -- =========================================================================
 -- Table Comments and Documentation

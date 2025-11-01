@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS atomic_swap_state (
     -- Optimistic Locking
     version BIGINT DEFAULT 0
 
-) TABLESPACE pg_default;
+)
 
 -- =========================================================================
 -- Indexes for Query Performance
@@ -72,64 +72,64 @@ CREATE TABLE IF NOT EXISTS atomic_swap_state (
 -- Primary lookup by transaction ID
 CREATE UNIQUE INDEX idx_swap_tx_id
     ON atomic_swap_state (transaction_id)
-    TABLESPACE pg_default;
+
 
 -- HTLC hash lookup (for secret revelation scenarios)
 CREATE INDEX idx_swap_htlc_hash
     ON atomic_swap_state (htlc_hash)
-    TABLESPACE pg_default;
+
 
 -- Status-based lookups
 CREATE INDEX idx_swap_status
     ON atomic_swap_state (swap_status)
-    TABLESPACE pg_default;
+
 
 -- Timeout queries (for expiration and refund detection)
 CREATE INDEX idx_swap_timeout
     ON atomic_swap_state (timeout_at)
-    TABLESPACE pg_default;
+
 
 -- Active swaps query (INITIATED or LOCKED status)
 CREATE INDEX idx_swap_active
     ON atomic_swap_state (swap_status)
     WHERE swap_status IN ('INITIATED', 'LOCKED')
-    TABLESPACE pg_default;
+
 
 -- Expiring swaps query (approaching timeout)
 CREATE INDEX idx_swap_expiring
     ON atomic_swap_state (timeout_at, swap_status)
     WHERE swap_status = 'LOCKED'
-    TABLESPACE pg_default;
+
 
 -- Initiator lookups
 CREATE INDEX idx_swap_initiator
     ON atomic_swap_state (initiator_address)
-    TABLESPACE pg_default;
+
 
 -- Participant lookups
 CREATE INDEX idx_swap_participant
     ON atomic_swap_state (participant_address)
-    TABLESPACE pg_default;
+
 
 -- Chain-based lookups
 CREATE INDEX idx_swap_source_chain
     ON atomic_swap_state (source_chain)
-    TABLESPACE pg_default;
+
 
 CREATE INDEX idx_swap_target_chain
     ON atomic_swap_state (target_chain)
-    TABLESPACE pg_default;
+
 
 -- Chain pair lookups (specific corridor)
 CREATE INDEX idx_swap_chain_pair
     ON atomic_swap_state (source_chain, target_chain)
-    TABLESPACE pg_default;
+
 
 -- Revealed secrets (for claiming scenarios)
 CREATE INDEX idx_swap_revealed_secrets
     ON atomic_swap_state (swap_status)
     WHERE htlc_secret IS NOT NULL
-    TABLESPACE pg_default;
+
 
 -- =========================================================================
 -- Table Comments and Documentation

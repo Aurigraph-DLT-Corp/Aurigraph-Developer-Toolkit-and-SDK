@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS bridge_transactions (
 
     -- Optimistic Locking
     version BIGINT DEFAULT 0
-) TABLESPACE pg_default;
+);
 
 -- =========================================================================
 -- Indexes for Query Performance
@@ -82,52 +82,52 @@ CREATE TABLE IF NOT EXISTS bridge_transactions (
 
 -- Primary lookup index (transaction ID)
 CREATE UNIQUE INDEX idx_tx_id
-    ON bridge_transactions (transaction_id)
-    TABLESPACE pg_default;
+    ON bridge_transactions (transaction_id);
+
 
 -- Status filtering index
 CREATE INDEX idx_status
-    ON bridge_transactions (status)
-    TABLESPACE pg_default;
+    ON bridge_transactions (status);
+
 
 -- Time-based queries (for stuck transfer detection)
 CREATE INDEX idx_created
-    ON bridge_transactions (created_at)
-    TABLESPACE pg_default;
+    ON bridge_transactions (created_at);
+
 
 -- Address-based lookups
 CREATE INDEX idx_source_address
-    ON bridge_transactions (source_address)
-    TABLESPACE pg_default;
+    ON bridge_transactions (source_address);
+
 
 CREATE INDEX idx_target_address
-    ON bridge_transactions (target_address)
-    TABLESPACE pg_default;
+    ON bridge_transactions (target_address);
+
 
 -- Chain-based lookups
 CREATE INDEX idx_source_chain
-    ON bridge_transactions (source_chain)
-    TABLESPACE pg_default;
+    ON bridge_transactions (source_chain);
+
 
 CREATE INDEX idx_target_chain
-    ON bridge_transactions (target_chain)
-    TABLESPACE pg_default;
+    ON bridge_transactions (target_chain);
+
 
 -- Composite index for common queries (status + time)
 CREATE INDEX idx_status_created
-    ON bridge_transactions (status, created_at)
-    TABLESPACE pg_default;
+    ON bridge_transactions (status, created_at);
+
 
 -- HTLC-related queries
 CREATE INDEX idx_htlc_hash
     ON bridge_transactions (htlc_hash)
-    WHERE htlc_hash IS NOT NULL
-    TABLESPACE pg_default;
+    WHERE htlc_hash IS NOT NULL;
+
 
 -- Multi-sig validation queries
 CREATE INDEX idx_multi_sig_validated
-    ON bridge_transactions (multi_sig_validated, status)
-    TABLESPACE pg_default;
+    ON bridge_transactions (multi_sig_validated, status);
+
 
 -- =========================================================================
 -- Table Comments and Documentation
@@ -183,11 +183,13 @@ EXECUTE FUNCTION update_bridge_transactions_updated_at();
 -- =========================================================================
 
 -- Application user read/write access
-GRANT SELECT, INSERT, UPDATE ON bridge_transactions TO aurigraph_app;
-GRANT SELECT ON bridge_transactions TO aurigraph_readonly;
+-- NOTE: Roles must exist before granting permissions
+-- Create roles in initialization script or database setup
+-- GRANT SELECT, INSERT, UPDATE ON bridge_transactions TO aurigraph_app;
+-- GRANT SELECT ON bridge_transactions TO aurigraph_readonly;
 
 -- Sequence access for ID generation
-GRANT USAGE, SELECT ON SEQUENCE bridge_transactions_id_seq TO aurigraph_app;
+-- GRANT USAGE, SELECT ON SEQUENCE bridge_transactions_id_seq TO aurigraph_app;
 
 -- =========================================================================
 -- End of Migration
