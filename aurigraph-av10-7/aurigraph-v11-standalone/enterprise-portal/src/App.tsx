@@ -40,14 +40,16 @@ import {
   Compliance,
 } from './pages/rwa'
 
-// Protected Route Component
+// Protected Route Wrapper Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
 
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
+  // Render protected content
   return <>{children}</>
 }
 
@@ -71,47 +73,55 @@ function App() {
           {/* Public route */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected routes */}
-          {isAuthenticated && (
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="demo" element={<DemoApp />} />
-              <Route path="demo/:demoId" element={<DemoDetailView currentTPS={0} />} />
-              <Route path="transactions" element={<Transactions />} />
-              <Route path="performance" element={<Performance />} />
-              <Route path="nodes" element={<NodeManagement />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="ml-performance" element={<MLPerformanceDashboard />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="channels" element={<MultiChannelDashboard />} />
-              <Route path="channels/:channelId/demo" element={<ChannelDemo channelId="main" />} />
-              <Route path="contracts" element={<SmartContractRegistry />} />
-              <Route path="active-contracts" element={<ActiveContracts />} />
-              <Route path="tokens" element={<TokenizationRegistry />} />
-              <Route path="tokenization" element={<Tokenization />} />
-              <Route path="merkle-tree" element={<MerkleTreeRegistry />} />
-              <Route path="channel-management" element={<ChannelManagement />} />
-              {/* Dashboard Routes */}
-              <Route path="dashboards/system-health" element={<SystemHealth />} />
-              <Route path="dashboards/blockchain-operations" element={<BlockchainOperations />} />
-              <Route path="dashboards/consensus-monitoring" element={<ConsensusMonitoring />} />
-              <Route path="dashboards/external-api" element={<ExternalAPIIntegration />} />
-              <Route path="dashboards/oracle-service" element={<OracleService />} />
-              <Route path="dashboards/performance-metrics" element={<PerformanceMetrics />} />
-              <Route path="dashboards/security-audit" element={<SecurityAudit />} />
-              <Route path="dashboards/developer" element={<DeveloperDashboard />} />
-              <Route path="dashboards/ricardian-contracts" element={<RicardianContracts />} />
-              {/* RWA Routes */}
-              <Route path="rwa/tokenize" element={<TokenizeAsset />} />
-              <Route path="rwa/portfolio" element={<Portfolio />} />
-              <Route path="rwa/valuation" element={<Valuation />} />
-              <Route path="rwa/dividends" element={<Dividends />} />
-              <Route path="rwa/compliance" element={<Compliance />} />
-            </Route>
-          )}
+          {/* Protected routes using wrapper component */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="demo" element={<DemoApp />} />
+            <Route path="demo/:demoId" element={<DemoDetailView currentTPS={0} />} />
+            <Route path="transactions" element={<Transactions />} />
+            <Route path="performance" element={<Performance />} />
+            <Route path="nodes" element={<NodeManagement />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="ml-performance" element={<MLPerformanceDashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="channels" element={<MultiChannelDashboard />} />
+            <Route path="channels/:channelId/demo" element={<ChannelDemo channelId="main" />} />
+            <Route path="contracts" element={<SmartContractRegistry />} />
+            <Route path="active-contracts" element={<ActiveContracts />} />
+            <Route path="tokens" element={<TokenizationRegistry />} />
+            <Route path="tokenization" element={<Tokenization />} />
+            <Route path="merkle-tree" element={<MerkleTreeRegistry />} />
+            <Route path="channel-management" element={<ChannelManagement />} />
+            {/* Dashboard Routes */}
+            <Route path="dashboards/system-health" element={<SystemHealth />} />
+            <Route path="dashboards/blockchain-operations" element={<BlockchainOperations />} />
+            <Route path="dashboards/consensus-monitoring" element={<ConsensusMonitoring />} />
+            <Route path="dashboards/external-api" element={<ExternalAPIIntegration />} />
+            <Route path="dashboards/oracle-service" element={<OracleService />} />
+            <Route path="dashboards/performance-metrics" element={<PerformanceMetrics />} />
+            <Route path="dashboards/security-audit" element={<SecurityAudit />} />
+            <Route path="dashboards/developer" element={<DeveloperDashboard />} />
+            <Route path="dashboards/ricardian-contracts" element={<RicardianContracts />} />
+            {/* RWA Routes */}
+            <Route path="rwa/tokenize" element={<TokenizeAsset />} />
+            <Route path="rwa/portfolio" element={<Portfolio />} />
+            <Route path="rwa/valuation" element={<Valuation />} />
+            <Route path="rwa/dividends" element={<Dividends />} />
+            <Route path="rwa/compliance" element={<Compliance />} />
+          </Route>
 
-          {/* Catch-all: redirect unauthenticated users to login */}
-          <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
+          {/* 404 - Not Found - Only redirect to login if not authenticated */}
+          <Route
+            path="*"
+            element={!isAuthenticated ? <Navigate to="/login" replace /> : <Navigate to="/" replace />}
+          />
         </Routes>
       </Box>
     </ErrorBoundary>

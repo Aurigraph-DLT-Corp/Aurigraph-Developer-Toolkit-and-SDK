@@ -1,26 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Card, TextField, Button, Typography, Alert } from '@mui/material'
-import { useAppDispatch, useAppSelector } from '../hooks'
+import { useAppDispatch } from '../hooks'
 import { loginSuccess } from '../store/authSlice'
 
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [shouldNavigate, setShouldNavigate] = useState(false)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
-
-  // Navigate after Redux state update completes
-  useEffect(() => {
-    if (shouldNavigate && isAuthenticated) {
-      console.log('✅ Auth state confirmed, navigating to dashboard...')
-      navigate('/')
-      setShouldNavigate(false)
-    }
-  }, [shouldNavigate, isAuthenticated, navigate])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,12 +29,18 @@ export default function Login() {
     // Valid credentials: admin / admin
     if (username === 'admin' && password === 'admin') {
       console.log('✅ Login successful for user:', username)
+
+      // Dispatch login action to update Redux state
       dispatch(loginSuccess({
         user: { id: '1', username: 'admin', role: 'admin' },
         token: 'demo-token-' + Date.now()
       }))
-      console.log('✅ Redux dispatch submitted, waiting for state update...')
-      setShouldNavigate(true)
+
+      console.log('✅ Login dispatched, navigating to dashboard...')
+
+      // Navigate immediately - ProtectedRoute will allow access
+      // because Redux state was just updated synchronously
+      navigate('/')
     } else {
       const errorMsg = `Invalid credentials. Username: "${username}", Password: ${password.length} characters. Use admin/admin for demo.`
       console.error('❌', errorMsg)
