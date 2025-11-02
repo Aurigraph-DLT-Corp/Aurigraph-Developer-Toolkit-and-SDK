@@ -100,7 +100,74 @@ class ChannelServiceClass extends EventEmitter {
   constructor() {
     super();
     this.initializeDefaultChannels();
-    this.connectWebSocket();
+    this.initializeConnection();
+  }
+
+  private async initializeConnection() {
+    // Pre-check if WebSocket endpoint is available before attempting connection
+    const wsSupported = await this.checkWebSocketSupport();
+
+    if (wsSupported) {
+      console.log('✅ WebSocket endpoint available, attempting connection');
+      this.connectWebSocket();
+    } else {
+      console.log('⚠️ WebSocket endpoint unavailable, using simulation mode');
+      this.emit('fallback_mode_enabled', {
+        reason: 'WebSocket endpoint not available (HTTP 400 or similar)',
+        message: 'Using local simulation for channel metrics'
+      });
+      this.simulateChannelUpdates();
+    }
+  }
+
+  private checkWebSocketSupport(): Promise<boolean> {
+    return new Promise((resolve) => {
+      try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        const wsUrl = `${protocol}//${host}/ws/channels`;
+
+        console.log(`🔍 Checking WebSocket endpoint availability: ${wsUrl}`);
+
+        // Create a timeout for the check
+        const timeoutId = setTimeout(() => {
+          console.log('⏳ WebSocket pre-check timeout (endpoint not responding)');
+          resolve(false);
+        }, 2000);
+
+        // Attempt to create WebSocket with immediate error detection
+        const ws = new WebSocket(wsUrl);
+        let errorOccurred = false;
+
+        ws.onopen = () => {
+          clearTimeout(timeoutId);
+          console.log('✅ WebSocket pre-check successful - connection established');
+          ws.close(); // Close the test connection
+          resolve(true);
+        };
+
+        ws.onerror = () => {
+          clearTimeout(timeoutId);
+          if (!errorOccurred) {
+            errorOccurred = true;
+            console.log('❌ WebSocket pre-check failed - endpoint returned error');
+            resolve(false);
+          }
+        };
+
+        ws.onclose = () => {
+          clearTimeout(timeoutId);
+          if (!errorOccurred) {
+            // If we get here, connection was successful but now closed
+            console.log('✅ WebSocket pre-check passed - connection tested');
+            resolve(true);
+          }
+        };
+      } catch (error) {
+        console.log('❌ WebSocket pre-check failed with exception:', error);
+        resolve(false);
+      }
+    });
   }
 
   private initializeDefaultChannels() {
@@ -230,20 +297,9 @@ class ChannelServiceClass extends EventEmitter {
 
       console.log(`🔌 Attempting to connect to WebSocket: ${wsUrl}`);
 
-      // Set a timeout to detect failed WebSocket connections quickly
-      const connectionTimeout = setTimeout(() => {
-        if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
-          console.log('⚠️ WebSocket connection timeout - falling back to simulation mode');
-          this.ws = null;
-          this.reconnectAttempts = this.maxReconnectAttempts; // Skip reconnect attempts
-          this.attemptReconnect();
-        }
-      }, 3000); // 3 second timeout
-
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        clearTimeout(connectionTimeout);
         console.log('✅ Channel WebSocket connected');
         this.reconnectAttempts = 0;
         this.emit('connected');
@@ -260,16 +316,12 @@ class ChannelServiceClass extends EventEmitter {
       };
 
       this.ws.onerror = (error) => {
-        clearTimeout(connectionTimeout);
         console.error('❌ Channel WebSocket error:', error);
-        // Immediately trigger fallback on error
-        this.reconnectAttempts = this.maxReconnectAttempts;
         this.emit('error', error);
         this.attemptReconnect();
       };
 
       this.ws.onclose = () => {
-        clearTimeout(connectionTimeout);
         console.log('⚠️ Channel WebSocket disconnected');
         this.emit('disconnected');
         // If we haven't hit max attempts and this is the first close, try reconnecting
@@ -282,7 +334,6 @@ class ChannelServiceClass extends EventEmitter {
       };
     } catch (error) {
       console.error('❌ Failed to create WebSocket:', error);
-      this.reconnectAttempts = this.maxReconnectAttempts; // Skip reconnect attempts
       this.attemptReconnect();
     }
   }
