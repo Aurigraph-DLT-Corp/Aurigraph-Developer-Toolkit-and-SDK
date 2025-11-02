@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Define gradients -->
+  <defs>
+    <linearGradient id="aurigraphGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d9ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0099ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6600ff;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowEffect" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="128" fill="#0a0e27" opacity="0.5"/>
+
+  <!-- Main geometric shape - Aurigraph symbol -->
+  <!-- Outer circle ring -->
+  <circle cx="128" cy="128" r="100" fill="none" stroke="url(#aurigraphGradient)" stroke-width="3" opacity="0.8"/>
+
+  <!-- Inner concentric circles -->
+  <circle cx="128" cy="128" r="75" fill="none" stroke="url(#aurigraphGradient)" stroke-width="2" opacity="0.6"/>
+  <circle cx="128" cy="128" r="50" fill="none" stroke="url(#aurigraphGradient)" stroke-width="2" opacity="0.4"/>
+
+  <!-- Central core - represents blockchain nodes -->
+  <circle cx="128" cy="128" r="25" fill="url(#aurigraphGradient)" opacity="0.9"/>
+
+  <!-- Node points around the circle (7 validators concept) -->
+  <circle cx="128" cy="48" r="6" fill="url(#aurigraphGradient)"/>
+  <circle cx="189.3" cy="63.3" r="6" fill="url(#aurigraphGradient)"/>
+  <circle cx="213.1" cy="113.1" r="6" fill="url(#aurigraphGradient)"/>
+  <circle cx="189.3" cy="192.7" r="6" fill="url(#aurigraphGradient)"/>
+  <circle cx="128" cy="208" r="6" fill="url(#aurigraphGradient)"/>
+  <circle cx="66.7" cy="192.7" r="6" fill="url(#aurigraphGradient)"/>
+  <circle cx="42.9" cy="113.1" r="6" fill="url(#aurigraphGradient)"/>
+
+  <!-- Connection lines between nodes (representing network) -->
+  <line x1="128" y1="48" x2="189.3" y2="63.3" stroke="url(#aurigraphGradient)" stroke-width="1.5" opacity="0.5"/>
+  <line x1="189.3" y1="63.3" x2="213.1" y2="113.1" stroke="url(#aurigraphGradient)" stroke-width="1.5" opacity="0.5"/>
+  <line x1="213.1" y1="113.1" x2="189.3" y2="192.7" stroke="url(#aurigraphGradient)" stroke-width="1.5" opacity="0.5"/>
+  <line x1="189.3" y1="192.7" x2="128" y2="208" stroke="url(#aurigraphGradient)" stroke-width="1.5" opacity="0.5"/>
+  <line x1="128" y1="208" x2="66.7" y2="192.7" stroke="url(#aurigraphGradient)" stroke-width="1.5" opacity="0.5"/>
+  <line x1="66.7" y1="192.7" x2="42.9" y2="113.1" stroke="url(#aurigraphGradient)" stroke-width="1.5" opacity="0.5"/>
+  <line x1="42.9" y1="113.1" x2="128" y2="48" stroke="url(#aurigraphGradient)" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- Glow effect overlay -->
+  <circle cx="128" cy="128" r="100" fill="url(#glowEffect)" opacity="0.5"/>
+
+  <!-- Optional: Center text for branding (can be scaled) -->
+  <text x="128" y="135" font-family="Arial, sans-serif" font-size="14" font-weight="bold"
+        text-anchor="middle" fill="url(#aurigraphGradient)" opacity="0.8">
+    AURIGRAPH
+  </text>
+</svg>
