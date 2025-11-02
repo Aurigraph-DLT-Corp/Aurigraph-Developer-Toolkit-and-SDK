@@ -46,10 +46,4 @@
 
   <!-- Glow effect overlay -->
   <circle cx="128" cy="128" r="100" fill="url(#glowEffect)" opacity="0.5"/>
-
-  <!-- Optional: Center text for branding (can be scaled) -->
-  <text x="128" y="135" font-family="Arial, sans-serif" font-size="14" font-weight="bold"
-        text-anchor="middle" fill="url(#aurigraphGradient)" opacity="0.8">
-    AURIGRAPH
-  </text>
 </svg>
