@@ -123,48 +123,13 @@ class ChannelServiceClass extends EventEmitter {
   private checkWebSocketSupport(): Promise<boolean> {
     return new Promise((resolve) => {
       try {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.host;
-        const wsUrl = `${protocol}//${host}/ws/channels`;
-
-        console.log(`🔍 Checking WebSocket endpoint availability: ${wsUrl}`);
-
-        // Create a timeout for the check
-        const timeoutId = setTimeout(() => {
-          console.log('⏳ WebSocket pre-check timeout (endpoint not responding)');
-          resolve(false);
-        }, 2000);
-
-        // Attempt to create WebSocket with immediate error detection
-        const ws = new WebSocket(wsUrl);
-        let errorOccurred = false;
-
-        ws.onopen = () => {
-          clearTimeout(timeoutId);
-          console.log('✅ WebSocket pre-check successful - connection established');
-          ws.close(); // Close the test connection
-          resolve(true);
-        };
-
-        ws.onerror = () => {
-          clearTimeout(timeoutId);
-          if (!errorOccurred) {
-            errorOccurred = true;
-            console.log('❌ WebSocket pre-check failed - endpoint returned error');
-            resolve(false);
-          }
-        };
-
-        ws.onclose = () => {
-          clearTimeout(timeoutId);
-          if (!errorOccurred) {
-            // If we get here, connection was successful but now closed
-            console.log('✅ WebSocket pre-check passed - connection tested');
-            resolve(true);
-          }
-        };
+        // WebSocket endpoint is not implemented in the backend
+        // Portal operates in simulation mode for channel management
+        // This is the intended design - no real-time updates from backend needed
+        console.log('📌 WebSocket endpoint not available - using local simulation mode (by design)');
+        resolve(false);
       } catch (error) {
-        console.log('❌ WebSocket pre-check failed with exception:', error);
+        console.error('WebSocket check error:', error);
         resolve(false);
       }
     });
