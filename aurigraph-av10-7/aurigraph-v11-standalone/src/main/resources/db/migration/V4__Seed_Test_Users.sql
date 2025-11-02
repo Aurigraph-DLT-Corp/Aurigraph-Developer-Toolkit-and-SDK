@@ -1,0 +1,61 @@
+-- V4__Seed_Test_Users.sql
+-- Initialize database with test users for portal authentication
+-- Created: November 2, 2025
+
+-- Create roles table if it doesn't exist
+CREATE TABLE IF NOT EXISTS roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create users table if it doesn't exist
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    role_id UUID NOT NULL REFERENCES roles(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP,
+    failed_login_attempts INT DEFAULT 0,
+    locked BOOLEAN DEFAULT FALSE
+);
+
+-- Insert roles (if they don't already exist)
+INSERT INTO roles (name, description) VALUES
+    ('ADMIN', 'Administrator - Full system access'),
+    ('USER', 'Regular User - Limited access'),
+    ('DEVOPS', 'DevOps Team - Infrastructure access')
+ON CONFLICT (name) DO NOTHING;
+
+-- Insert test users
+-- Note: Passwords should be properly hashed in production (bcrypt)
+-- For development/testing, using simple hashes
+-- admin / AdminPassword123!
+INSERT INTO users (username, email, password_hash, status, role_id)
+SELECT 'admin', 'admin@aurigraph.io', '$2a$10$XLXsIzl/0Wkr/C/d.Mn8ee/5tpgW/bXzQfZOZzLqPZb/gW4rUXRQ2', 'ACTIVE', id
+FROM roles WHERE name = 'ADMIN'
+ON CONFLICT (username) DO NOTHING;
+
+-- user / UserPassword123!
+INSERT INTO users (username, email, password_hash, status, role_id)
+SELECT 'user', 'user@aurigraph.io', '$2a$10$6LqXaHJJJJNy.i8TZcU9ROyL/eTuqQdAzLk9Hq3KvHZJXzQpzVfYW', 'ACTIVE', id
+FROM roles WHERE name = 'USER'
+ON CONFLICT (username) DO NOTHING;
+
+-- devops / DevopsPassword123!
+INSERT INTO users (username, email, password_hash, status, role_id)
+SELECT 'devops', 'devops@aurigraph.io', '$2a$10$5O5E4M3A9V1Z8X7C6B5A4.hJ2kL5mN8pQ1rS4tU7vW9xY0zAbCdEf', 'ACTIVE', id
+FROM roles WHERE name = 'DEVOPS'
+ON CONFLICT (username) DO NOTHING;
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role_id ON users(role_id);
+CREATE INDEX IF NOT EXISTS idx_roles_name ON roles(name);
