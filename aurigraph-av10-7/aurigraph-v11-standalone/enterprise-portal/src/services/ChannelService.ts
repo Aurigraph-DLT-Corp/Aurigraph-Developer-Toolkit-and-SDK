@@ -230,9 +230,20 @@ class ChannelServiceClass extends EventEmitter {
 
       console.log(`🔌 Attempting to connect to WebSocket: ${wsUrl}`);
 
+      // Set a timeout to detect failed WebSocket connections quickly
+      const connectionTimeout = setTimeout(() => {
+        if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
+          console.log('⚠️ WebSocket connection timeout - falling back to simulation mode');
+          this.ws = null;
+          this.reconnectAttempts = this.maxReconnectAttempts; // Skip reconnect attempts
+          this.attemptReconnect();
+        }
+      }, 3000); // 3 second timeout
+
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
+        clearTimeout(connectionTimeout);
         console.log('✅ Channel WebSocket connected');
         this.reconnectAttempts = 0;
         this.emit('connected');
@@ -249,18 +260,30 @@ class ChannelServiceClass extends EventEmitter {
       };
 
       this.ws.onerror = (error) => {
+        clearTimeout(connectionTimeout);
         console.error('❌ Channel WebSocket error:', error);
+        // Immediately trigger fallback on error
+        this.reconnectAttempts = this.maxReconnectAttempts;
         this.emit('error', error);
+        this.attemptReconnect();
       };
 
       this.ws.onclose = () => {
+        clearTimeout(connectionTimeout);
         console.log('⚠️ Channel WebSocket disconnected');
         this.emit('disconnected');
-        this.attemptReconnect();
+        // If we haven't hit max attempts and this is the first close, try reconnecting
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.attemptReconnect();
+        } else {
+          // Already in fallback mode, don't reconnect
+          this.simulateChannelUpdates();
+        }
       };
     } catch (error) {
-      console.error('❌ Failed to connect WebSocket:', error);
-      this.attemptReconnect(); // Still try to reconnect
+      console.error('❌ Failed to create WebSocket:', error);
+      this.reconnectAttempts = this.maxReconnectAttempts; // Skip reconnect attempts
+      this.attemptReconnect();
     }
   }
 
