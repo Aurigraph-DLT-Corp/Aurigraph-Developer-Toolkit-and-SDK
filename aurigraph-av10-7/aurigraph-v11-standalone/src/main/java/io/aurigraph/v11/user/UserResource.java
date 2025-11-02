@@ -33,6 +33,9 @@ public class UserResource {
     @Inject
     UserService userService;
 
+    @Inject
+    JwtService jwtService;
+
     /**
      * List all users with pagination
      * GET /api/v11/users?page=0&size=20
@@ -273,6 +276,7 @@ public class UserResource {
     /**
      * Authenticate user
      * POST /api/v11/users/authenticate
+     * Returns JWT token on successful authentication
      */
     @POST
     @Path("/authenticate")
@@ -281,7 +285,17 @@ public class UserResource {
             try {
                 LOG.infof("Authenticating user: %s", request.username());
                 User user = userService.authenticate(request.username(), request.password());
-                return Response.ok(toUserResponse(user)).build();
+
+                // Generate JWT token for authenticated user
+                String token = jwtService.generateToken(user);
+
+                // Return both user info and JWT token
+                AuthenticationResponse authResponse = new AuthenticationResponse(
+                    toUserResponse(user),
+                    token
+                );
+
+                return Response.ok(authResponse).build();
             } catch (ValidationException e) {
                 return Response.status(Response.Status.UNAUTHORIZED)
                     .entity(new ErrorResponse(e.getMessage()))
@@ -360,6 +374,11 @@ public class UserResource {
         int page,
         int size,
         long totalCount
+    ) {}
+
+    public record AuthenticationResponse(
+        UserResponse user,
+        String token
     ) {}
 
     public record ErrorResponse(String message) {}

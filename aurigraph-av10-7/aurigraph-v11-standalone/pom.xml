@@ -243,6 +243,24 @@
             <artifactId>bctls-jdk18on</artifactId>
             <version>1.78</version>
         </dependency>
+        <!-- JWT Library for Authentication -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.3</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.3</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.3</version>
+            <scope>runtime</scope>
+        </dependency>
         <!-- AI/ML Dependencies temporarily commented out to resolve Groovy version conflict -->
         <!-- TODO: Re-enable after resolving dependency conflicts -->
         <!--

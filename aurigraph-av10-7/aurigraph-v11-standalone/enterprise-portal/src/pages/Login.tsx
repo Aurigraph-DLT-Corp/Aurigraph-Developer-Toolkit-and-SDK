@@ -1,50 +1,96 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Box, Card, TextField, Button, Typography, Alert } from '@mui/material'
+import { Box, Card, TextField, Button, Typography, Alert, CircularProgress } from '@mui/material'
 import { useAppDispatch } from '../hooks'
 import { loginSuccess } from '../store/authSlice'
+
+// API base URL - supports both development and production
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:9003/api/v11'
 
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('') // Clear previous errors
+    setIsLoading(true)
 
     // Validate inputs
     if (!username.trim()) {
       setError('Username is required')
+      setIsLoading(false)
       return
     }
     if (!password.trim()) {
       setError('Password is required')
+      setIsLoading(false)
       return
     }
 
-    // Demo login - in production, this would call the API
-    // Valid credentials: admin / admin
-    if (username === 'admin' && password === 'admin') {
-      console.log('✅ Login successful for user:', username)
+    try {
+      console.log('🔐 Sending authentication request to backend...')
+
+      // Call the backend authentication endpoint
+      const response = await fetch(`${API_BASE_URL}/users/authenticate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password.trim()
+        })
+      })
+
+      console.log('📡 Backend response status:', response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Authentication failed' }))
+        const errorMessage = errorData.message || 'Invalid username or password'
+        console.error('❌ Authentication failed:', errorMessage)
+        setError(errorMessage)
+        setIsLoading(false)
+        return
+      }
+
+      // Parse the response - expect: { user: {...}, token: "..." }
+      const authResponse = await response.json()
+      console.log('✅ Authentication successful for user:', authResponse.user.username)
+
+      // Extract user and token from response
+      const { user, token } = authResponse
+
+      if (!token) {
+        setError('No authentication token received from server')
+        setIsLoading(false)
+        return
+      }
 
       // Dispatch login action to update Redux state
       dispatch(loginSuccess({
-        user: { id: '1', username: 'admin', role: 'admin' },
-        token: 'demo-token-' + Date.now()
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.roleName
+        },
+        token: token
       }))
 
       console.log('✅ Login dispatched, navigating to dashboard...')
 
-      // Navigate immediately - ProtectedRoute will allow access
-      // because Redux state was just updated synchronously
+      // Navigate to dashboard
       navigate('/')
-    } else {
-      const errorMsg = `Invalid credentials. Username: "${username}", Password: ${password.length} characters. Use admin/admin for demo.`
-      console.error('❌', errorMsg)
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Connection error. Please check if the backend is running.'
+      console.error('❌ Login error:', errorMsg)
       setError(errorMsg)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -97,17 +143,26 @@ export default function Login() {
             type="submit"
             variant="contained"
             size="large"
+            disabled={isLoading}
             sx={{
               bgcolor: '#00BFA5',
-              '&:hover': { bgcolor: '#00A693' }
+              '&:hover': { bgcolor: '#00A693' },
+              '&:disabled': { bgcolor: 'rgba(0,191,165,0.5)' }
             }}
           >
-            Login
+            {isLoading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                <CircularProgress size={20} sx={{ color: '#00BFA5' }} />
+                Authenticating...
+              </Box>
+            ) : (
+              'Login'
+            )}
           </Button>
         </form>
 
         <Typography variant="body2" sx={{ mt: 2, textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
-          Demo: Use admin/admin to login
+          Test credentials: admin / AdminPassword123!
         </Typography>
       </Card>
     </Box>
