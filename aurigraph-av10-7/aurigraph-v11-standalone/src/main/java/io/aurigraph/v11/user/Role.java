@@ -50,7 +50,7 @@ public class Role extends PanacheEntityBase {
     public int userCount = 0;
 
     @Column(name = "is_system_role")
-    public boolean isSystemRole = false;
+    public Boolean isSystemRole = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     public Instant createdAt;
