@@ -1,8 +1,8 @@
 # Aurigraph DLT Platform Architecture
 
-**Version**: 11.0.0 (V11 Migration)
-**Status**: 🚧 Hybrid V10/V11 Architecture (30% migrated)
-**Last Updated**: 2025-01-27
+**Version**: 11.1.0 (V11 Migration Progress)
+**Status**: 🚧 Hybrid V10/V11 Architecture (42% migrated)
+**Last Updated**: 2025-11-03
 
 ---
 
@@ -33,9 +33,11 @@ Aurigraph DLT is a high-performance blockchain platform transitioning from TypeS
 - **Interoperability**: Cross-chain bridge with major networks
 - **Innovation**: AI-driven consensus optimization and real-world asset tokenization
 
-### Current State
-- **V10 (TypeScript)**: Production-ready, 1M+ TPS capability
-- **V11 (Java/Quarkus)**: 30% migrated, 776K TPS achieved
+### Current State (November 3, 2025)
+- **V10 (TypeScript)**: Production-ready, 1M+ TPS capability (legacy support)
+- **V11 (Java/Quarkus)**: 42% migrated, 776K TPS baseline achieved
+- **V11 ML Optimization**: 3.0M TPS achieved in Sprint 5 benchmarks
+- **Enterprise Portal**: v4.5.0 live at https://dlt.aurigraph.io
 - **Both versions** coexist during migration period
 
 ---
@@ -297,13 +299,15 @@ io.aurigraph.v11
    - Optimization: -O3 + -march=native
    - Use case: Maximum performance
 
-### Performance Metrics (V11 Current)
-- **TPS**: 1.97M sustained (99% of 2M+ target) ✅
-- **Startup**: <1s (native), ~3s (JVM)
-- **Memory**: <256MB (native), ~512MB (JVM)
-- **Finality**: <500ms (target: <100ms)
-- **Throughput**: HTTP/2 + gRPC high performance
-- **Carbon Footprint**: 0.022 gCO₂/tx (99.97% lower than Bitcoin) ✅
+### Performance Metrics (V11 Current - November 2025)
+- **TPS Baseline**: 776K TPS (production baseline, verified)
+- **TPS with ML Optimization**: 3.0M TPS (Sprint 5 benchmarks, not yet sustained)
+- **TPS Target**: 2M+ (roadmap goal)
+- **Startup**: <1s (native), ~3s (JVM) ✅
+- **Memory**: <256MB (native), ~512MB (JVM) ✅
+- **Finality**: <500ms current, <100ms target (with optimization)
+- **Throughput**: HTTP/2 + Polling (WebSocket in progress)
+- **Carbon Footprint**: <0.17 gCO₂/tx (target, tracking implemented)
 
 ### V11 Multi-Cloud Deployment Architecture
 
@@ -435,17 +439,27 @@ public class CarbonFootprintService {
 
 ## Migration Strategy
 
-### Phase-Based Approach
+### Phase-Based Approach (Updated November 2025)
 
 ```
-Phase 1 (Complete - 30%)     Phase 2 (In Progress)      Phase 3 (Planned)
-┌─────────────────┐          ┌─────────────────┐       ┌─────────────────┐
-│ Core Structure  │  ───────>│ Service Layer   │ ─────>│ Full Migration  │
-│ - REST API      │          │ - Consensus     │       │ - gRPC Complete │
-│ - Basic Tx      │          │ - Crypto        │       │ - Native Opt    │
-│ - Health        │          │ - AI/ML         │       │ - 2M+ TPS       │
-└─────────────────┘          └─────────────────┘       └─────────────────┘
-     Complete                    40% Complete              0% Complete
+Phase 1 (Complete - 42%)      Phase 2 (In Progress)     Phase 3 (Planned)
+┌─────────────────┐           ┌─────────────────┐      ┌─────────────────┐
+│ Core Structure  │  ───────> │ Service Layer   │ ───> │ Full Migration  │
+│ - REST API      │           │ - Consensus     │      │ - gRPC Complete │
+│ - Basic Tx      │           │ - Crypto        │      │ - Native Opt    │
+│ - Health        │           │ - AI/ML ✓       │      │ - 2M+ TPS       │
+│ - JWT Auth ✓    │           │ - Portal ✓      │      │ - Multi-Cloud   │
+└─────────────────┘           └─────────────────┘      └─────────────────┘
+    100% Complete              50% Complete             0% Complete
+
+    Completed:                In Progress:             Pending:
+    ✅ Core REST API          🚧 gRPC service         📋 Full optimization
+    ✅ Tx processing          🚧 Consensus tuning     📋 Cross-cloud failover
+    ✅ JWT Authentication     🚧 WebSocket support    📋 Kubernetes orchestration
+    ✅ AI/ML optimization     🚧 Oracle integration   📋 E2E testing
+    ✅ Enterprise Portal      🚧 RWA tokenization    📋 Performance validation
+    ✅ Demo Management        🚧 Carbon tracking      📋 Carbon offset integration
+    ✅ Quantum Crypto (95%)    🚧 Multi-cloud setup
 ```
 
 ### Migration Checklist
@@ -458,22 +472,29 @@ Phase 1 (Complete - 30%)     Phase 2 (In Progress)      Phase 3 (Planned)
 - [x] Native compilation setup
 - [x] Performance testing framework
 
-**Phase 2 - Core Services** 🚧 (40%)
-- [x] HyperRAFT++ consensus (partial)
-- [x] AI optimization services
-- [x] RWAT registry with Merkle tree
-- [x] Native build optimization
-- [ ] gRPC service layer (planned)
-- [ ] Full consensus migration
-- [ ] Quantum cryptography service
-- [ ] Cross-chain bridge
+**Phase 2 - Core Services** 🚧 (50% - Updated November 2025)
+- [x] HyperRAFT++ consensus (70% - AI optimization pending)
+- [x] AI optimization services (90% - online learning pending)
+- [x] RWAT registry with Merkle tree (80% - oracle integration partial)
+- [x] Native build optimization (complete)
+- [x] JWT-based authentication (complete)
+- [x] Enterprise Portal v4.5.0 (complete)
+- [x] Demo management system (95%)
+- [x] Quantum crypto (95% - SPHINCS+ integration pending)
+- [ ] gRPC service layer (Sprint 7 target)
+- [ ] WebSocket support (in progress, console errors being fixed)
+- [ ] Full consensus migration (Sprint 6 target)
+- [ ] Cross-chain bridge (partial - Ethereum working)
+- [ ] E2E testing framework (Sprint 14-15 target)
 
-**Phase 3 - Full Production** 📋 (0%)
-- [ ] Complete gRPC implementation
-- [ ] 2M+ TPS achievement
-- [ ] Full test suite (95% coverage)
-- [ ] Production deployment
-- [ ] V10 deprecation
+**Phase 3 - Full Production** 📋 (0% - Updated November 2025)
+- [ ] Complete gRPC implementation (Sprint 7-8)
+- [ ] 2M+ TPS achievement (performance roadmap needed)
+- [ ] Multi-cloud deployment (Azure, GCP - Sprint 14-15)
+- [ ] Full test suite (95% coverage, currently 60-85%)
+- [ ] Production deployment with auto-scaling
+- [ ] Carbon offset integration (Sprint 16-18)
+- [ ] V10 deprecation timeline
 
 ### Parallel Operation Strategy
 
@@ -970,32 +991,41 @@ public Uni<Transaction> processAsync(Transaction tx) {
 
 ## Future Roadmap
 
-### Short-Term (Q4 2025)
-- ✅ V11 Enterprise Portal integration (Sprint 4 complete)
-- ✅ Achieve 1.97M TPS (99% of 2M target)
-- ✅ Carbon footprint tracking (0.022 gCO₂/tx achieved)
-- 🚧 Complete gRPC service layer
-- 📋 Full consensus migration
-- 📋 Quantum cryptography service completion
+### Short-Term (November - December 2025 - Sprints 13-15)
 
-### Medium-Term (Q1-Q2 2026)
-- 📋 Multi-cloud deployment (AWS, Azure, GCP) - Sprint 14-15
-- 📋 Carbon offset integration (Gold Standard, Verra) - Sprint 16-18
-- 📋 Green Blockchain Certification - Q2 2026
-- 📋 Cross-chain bridge with 10+ networks
-- 📋 AI-driven smart contract optimization
-- 📋 Enhanced RWA tokenization platform
+**Sprint 13 (Nov 4-14)** - Enterprise Portal V4.6.0
+- 🚧 8 new React components (network topology, validators, RWA, etc.)
+- 🚧 8 corresponding API endpoints (+800% coverage improvement)
+- 🚧 WebSocket implementation (real-time updates)
+- 📋 Validator management UI (staking interface)
+
+**Sprint 14-15 (Nov 17-Dec 5)** - Critical Gap Closure
+- 📋 E2E testing framework (Cypress configuration)
+- 📋 Multi-cloud deployment (Azure, GCP setup)
+- 📋 Oracle integration completion (5 oracles)
+- 📋 Performance validation (3M TPS sustainability tests)
+- 📋 Documentation consolidation (retire HMS PRD v2.0)
+
+### Medium-Term (Q1-Q2 2026 - Sprints 16+)
+- 📋 Complete gRPC service layer (Sprint 7-8)
+- 📋 AI-driven insights integration (Sprint 9-10)
+- 📋 Carbon offset integration (Gold Standard, Verra)
+- 📋 Green Blockchain Certification (Q1 2026)
+- 📋 Cross-chain bridge expansion (10+ networks)
+- 📋 Smart contract IDE and debugger
+- 📋 APM and error tracking (Sentry integration)
+- 📋 Advanced RWA marketplace features
 - 📋 Mobile wallet application (React Native)
-- 📋 Advanced analytics and BI integration
 
 ### Long-Term (Q3-Q4 2026+)
-- 📋 Sharding implementation for horizontal scaling
+- 📋 Sharding implementation (horizontal scaling)
 - 📋 Layer 2 scaling solutions
 - 📋 Zero-knowledge rollups
+- 📋 2M+ TPS sustained production performance
 - 📋 Decentralized governance model
-- 📋 Full V10 deprecation and V11 production
-- 📋 Carbon-negative status (offsets > emissions) - 2027
-- 📋 100% renewable energy target - 2028
+- 📋 Full V10 deprecation (18 months post V11 GA)
+- 📋 Carbon-negative status (2027)
+- 📋 100% renewable energy target (2028)
 
 ---
 
@@ -1295,10 +1325,49 @@ public Uni<Transaction> processAsync(Transaction tx) {
 
 ---
 
-**Document Version**: 1.0.0
-**Last Updated**: 2025-01-27
+---
+
+## Key Updates (November 3, 2025)
+
+### Performance Clarification
+- **Current Baseline**: 776K TPS (production-verified)
+- **ML Optimization Peak**: 3.0M TPS (Sprint 5 benchmarks, not sustained)
+- **Whitepaper Target**: 2M+ TPS (roadmap goal)
+- **Performance Roadmap**: Needed to close 1.224M TPS gap
+
+### Migration Progress
+- **Phase 1**: 100% complete (core structure, REST API, JWT auth)
+- **Phase 2**: 50% complete (50% of core services implemented)
+- **Phase 3**: 0% complete (full production optimization pending)
+
+### Critical Gaps Identified
+1. **API Endpoint Coverage**: 19.6% (9/46 endpoints) → Sprint 13 targets +8
+2. **WebSocket Support**: In progress (console errors being fixed)
+3. **E2E Testing**: 0% (Cypress not configured) → Sprint 14-15
+4. **Multi-Cloud**: 10% (AWS only) → Sprint 14-15
+5. **Documentation**: Multiple outdated versions → Consolidation needed
+
+### Enterprise Portal Status
+- **Version**: v4.5.0 (production live at https://dlt.aurigraph.io)
+- **Test Coverage**: 85%+ (Portal PRD score: 87/100)
+- **Feature Completion**: 70% of documented features
+- **Demo Management**: 95% complete (exceptional feature)
+
+### Recent Achievements (Oct-Nov 2025)
+- ✅ JWT-based authentication (commit 0be32e7a)
+- ✅ Database migration cleanup (Flyway)
+- ✅ WebSocket error fixes (in progress)
+- ✅ AI/ML optimization (3.0M TPS benchmarks)
+- ✅ Enterprise Portal v4.5.0 deployment
+
+---
+
+**Document Version**: 1.1.0
+**Last Updated**: 2025-11-03
 **Status**: Living Document (Updated Continuously)
 **Maintainer**: Aurigraph DLT Core Team
+
+**Next Review**: After Sprint 13 completion (November 14, 2025)
 
 ---
 
