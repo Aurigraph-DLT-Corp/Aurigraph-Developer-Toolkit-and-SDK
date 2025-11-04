@@ -15,6 +15,9 @@
         <quarkus.platform.version>3.29.0</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
+        <!-- ULTRA-FAST BUILD OPTIMIZATION (Nov 4, 2025) -->
+        <maven.compiler.fork>true</maven.compiler.fork>
+        <maven.compiler.maxmem>2048m</maven.compiler.maxmem>
     </properties>
 
     <dependencyManagement>
@@ -291,6 +294,9 @@
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
         </dependency>
+        <!-- Aparapi for future GPU acceleration (CUDA/OpenCL) -->
+        <!-- Note: Currently using CPU-based parallel processing (ForkJoinPool)  -->
+        <!-- Aparapi will be added in Phase 3 when GPU hardware is available -->
         <!-- ML libraries temporarily commented out to resolve Groovy version conflict -->
         <!-- TODO: Re-enable after resolving Groovy conflict or upgrade to compatible versions -->
         <!--
