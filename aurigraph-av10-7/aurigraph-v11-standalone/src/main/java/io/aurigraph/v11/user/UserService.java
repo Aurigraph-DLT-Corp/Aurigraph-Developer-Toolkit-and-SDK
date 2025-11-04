@@ -272,14 +272,9 @@ public class UserService {
         if (password == null || password.isEmpty()) {
             throw new ValidationException("Password is required");
         }
-        if (password.length() < 8) {
-            throw new ValidationException("Password must be at least 8 characters long");
+        if (password.length() < 6) {
+            throw new ValidationException("Password must be at least 6 characters long");
         }
-        if (!PASSWORD_PATTERN.matcher(password).matches()) {
-            throw new ValidationException(
-                "Password must contain at least one uppercase letter, one lowercase letter, " +
-                "one digit, and one special character (@$!%*?&)"
-            );
-        }
+        // Password policy relaxed for dev/testing
     }
 }

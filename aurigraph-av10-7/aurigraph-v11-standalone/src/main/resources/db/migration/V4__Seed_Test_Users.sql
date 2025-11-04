@@ -35,10 +35,9 @@ ON CONFLICT (name) DO NOTHING;
 
 -- Insert test users
 -- Note: Passwords should be properly hashed in production (bcrypt)
--- For development/testing, using simple hashes
--- admin / AdminPassword123!
+-- admin / admin123
 INSERT INTO users (username, email, password_hash, status, role_id)
-SELECT 'admin', 'admin@aurigraph.io', '$2a$10$XLXsIzl/0Wkr/C/d.Mn8ee/5tpgW/bXzQfZOZzLqPZb/gW4rUXRQ2', 'ACTIVE', id
+SELECT 'admin', 'admin@aurigraph.io', '$2a$12$ZnfoFcLvUtNQcHBGSNWXnucvcQUsRyu5CzYEe9mibrq8Fhf5RJOuy', 'ACTIVE', id
 FROM roles WHERE name = 'ADMIN'
 ON CONFLICT (username) DO NOTHING;
 
