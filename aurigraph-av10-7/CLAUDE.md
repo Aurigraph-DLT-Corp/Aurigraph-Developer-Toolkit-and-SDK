@@ -2,6 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📋 SESSION START PROTOCOL - #memorize
+
+**CRITICAL**: At the start of EVERY session:
+1. **FIRST**: Read `/AurigraphDLTVersionHistory.md` (in repo root)
+   - Understand what was done last session
+   - Check current version numbers (v11.x.x & vx.x.x)
+   - Review Sprint 13 progress and pending tasks
+   - Note any blockers or decisions
+
+2. **THEN**: Load critical planning documents (see below)
+
+This ensures continuity and prevents losing context between sessions.
+
+---
+
 ## 📋 CRITICAL ENVIRONMENT FILES - ALWAYS LOAD AT RESUMPTION
 
 **IMPORTANT**: When resuming any session, Claude MUST read these critical planning documents first:
