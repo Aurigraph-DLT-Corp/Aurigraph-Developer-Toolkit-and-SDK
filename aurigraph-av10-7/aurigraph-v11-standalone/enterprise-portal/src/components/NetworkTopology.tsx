@@ -31,7 +31,9 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material'
 import { networkTopologyApi } from '../services/phase1Api'
+import NetworkTopologyService from '../services/NetworkTopologyService'
 import type { NetworkTopologyData, NetworkNode, NetworkEdge } from '../types/phase1'
+import type { NetworkTopologyData as APINetworkTopologyData } from '../services/NetworkTopologyService'
 
 // ============================================================================
 // CONSTANTS
