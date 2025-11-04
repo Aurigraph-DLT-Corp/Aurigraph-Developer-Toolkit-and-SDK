@@ -27,10 +27,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Insert roles (if they don't already exist)
-INSERT INTO roles (name, description) VALUES
-    ('ADMIN', 'Administrator - Full system access'),
-    ('USER', 'Regular User - Limited access'),
-    ('DEVOPS', 'DevOps Team - Infrastructure access')
+INSERT INTO roles (id, name, description, created_at, updated_at) VALUES
+    (gen_random_uuid(), 'ADMIN', 'Administrator - Full system access', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), 'USER', 'Regular User - Limited access', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), 'DEVOPS', 'DevOps Team - Infrastructure access', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (name) DO NOTHING;
 
 -- Insert test users

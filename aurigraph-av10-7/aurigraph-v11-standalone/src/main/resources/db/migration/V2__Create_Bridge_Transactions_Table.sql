@@ -81,51 +81,51 @@ CREATE TABLE IF NOT EXISTS bridge_transactions (
 -- =========================================================================
 
 -- Primary lookup index (transaction ID)
-CREATE UNIQUE INDEX idx_tx_id
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tx_id
     ON bridge_transactions (transaction_id);
 
 
 -- Status filtering index
-CREATE INDEX idx_status
+CREATE INDEX IF NOT EXISTS idx_status
     ON bridge_transactions (status);
 
 
 -- Time-based queries (for stuck transfer detection)
-CREATE INDEX idx_created
+CREATE INDEX IF NOT EXISTS idx_created
     ON bridge_transactions (created_at);
 
 
 -- Address-based lookups
-CREATE INDEX idx_source_address
+CREATE INDEX IF NOT EXISTS idx_source_address
     ON bridge_transactions (source_address);
 
 
-CREATE INDEX idx_target_address
+CREATE INDEX IF NOT EXISTS idx_target_address
     ON bridge_transactions (target_address);
 
 
 -- Chain-based lookups
-CREATE INDEX idx_source_chain
+CREATE INDEX IF NOT EXISTS idx_source_chain
     ON bridge_transactions (source_chain);
 
 
-CREATE INDEX idx_target_chain
+CREATE INDEX IF NOT EXISTS idx_target_chain
     ON bridge_transactions (target_chain);
 
 
 -- Composite index for common queries (status + time)
-CREATE INDEX idx_status_created
+CREATE INDEX IF NOT EXISTS idx_status_created
     ON bridge_transactions (status, created_at);
 
 
 -- HTLC-related queries
-CREATE INDEX idx_htlc_hash
+CREATE INDEX IF NOT EXISTS idx_htlc_hash
     ON bridge_transactions (htlc_hash)
     WHERE htlc_hash IS NOT NULL;
 
 
 -- Multi-sig validation queries
-CREATE INDEX idx_multi_sig_validated
+CREATE INDEX IF NOT EXISTS idx_multi_sig_validated
     ON bridge_transactions (multi_sig_validated, status);
 
 
