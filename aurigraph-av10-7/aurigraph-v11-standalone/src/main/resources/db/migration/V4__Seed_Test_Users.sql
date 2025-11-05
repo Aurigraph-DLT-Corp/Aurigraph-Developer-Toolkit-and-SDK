@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP,
     failed_login_attempts INT DEFAULT 0,
-    locked BOOLEAN DEFAULT FALSE
+    locked_until TIMESTAMP
 );
 
 -- Insert roles (if they don't already exist)
@@ -36,20 +36,20 @@ ON CONFLICT (name) DO NOTHING;
 -- Insert test users
 -- Note: Passwords should be properly hashed in production (bcrypt)
 -- admin / admin123
-INSERT INTO users (username, email, password_hash, status, role_id)
-SELECT 'admin', 'admin@aurigraph.io', '$2a$12$ZnfoFcLvUtNQcHBGSNWXnucvcQUsRyu5CzYEe9mibrq8Fhf5RJOuy', 'ACTIVE', id
+INSERT INTO users (id, username, email, password_hash, status, role_id, created_at, updated_at, failed_login_attempts, locked_until)
+SELECT gen_random_uuid(), 'admin', 'admin@aurigraph.io', '$2a$12$ZnfoFcLvUtNQcHBGSNWXnucvcQUsRyu5CzYEe9mibrq8Fhf5RJOuy', 'ACTIVE', id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, NULL
 FROM roles WHERE name = 'ADMIN'
 ON CONFLICT (username) DO NOTHING;
 
 -- user / UserPassword123!
-INSERT INTO users (username, email, password_hash, status, role_id)
-SELECT 'user', 'user@aurigraph.io', '$2a$10$6LqXaHJJJJNy.i8TZcU9ROyL/eTuqQdAzLk9Hq3KvHZJXzQpzVfYW', 'ACTIVE', id
+INSERT INTO users (id, username, email, password_hash, status, role_id, created_at, updated_at, failed_login_attempts, locked_until)
+SELECT gen_random_uuid(), 'user', 'user@aurigraph.io', '$2a$10$6LqXaHJJJJNy.i8TZcU9ROyL/eTuqQdAzLk9Hq3KvHZJXzQpzVfYW', 'ACTIVE', id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, NULL
 FROM roles WHERE name = 'USER'
 ON CONFLICT (username) DO NOTHING;
 
 -- devops / DevopsPassword123!
-INSERT INTO users (username, email, password_hash, status, role_id)
-SELECT 'devops', 'devops@aurigraph.io', '$2a$10$5O5E4M3A9V1Z8X7C6B5A4.hJ2kL5mN8pQ1rS4tU7vW9xY0zAbCdEf', 'ACTIVE', id
+INSERT INTO users (id, username, email, password_hash, status, role_id, created_at, updated_at, failed_login_attempts, locked_until)
+SELECT gen_random_uuid(), 'devops', 'devops@aurigraph.io', '$2a$10$5O5E4M3A9V1Z8X7C6B5A4.hJ2kL5mN8pQ1rS4tU7vW9xY0zAbCdEf', 'ACTIVE', id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, NULL
 FROM roles WHERE name = 'DEVOPS'
 ON CONFLICT (username) DO NOTHING;
 

@@ -71,7 +71,7 @@ public class RoleService {
             Role admin = new Role();
             admin.name = Role.DefaultRoles.ADMIN;
             admin.description = "Full system access with all permissions";
-            admin.permissions = Role.Permissions.admin().toJson();
+            admin.permissions = "{\"admin\":[\"*\"],\"users\":[\"*\"],\"roles\":[\"*\"],\"transactions\":[\"*\"],\"contracts\":[\"*\"],\"tokens\":[\"*\"]}";
             admin.isSystemRole = true;
             admin.persist();
             LOG.info("Created ADMIN role");
@@ -82,7 +82,7 @@ public class RoleService {
             Role user = new Role();
             user.name = Role.DefaultRoles.USER;
             user.description = "Standard user with transaction and contract access";
-            user.permissions = Role.Permissions.user().toJson();
+            user.permissions = "{\"transactions\":[\"read\",\"create\"],\"contracts\":[\"read\",\"create\"],\"tokens\":[\"read\"]}";
             user.isSystemRole = true;
             user.persist();
             LOG.info("Created USER role");
@@ -93,7 +93,7 @@ public class RoleService {
             Role devops = new Role();
             devops.name = Role.DefaultRoles.DEVOPS;
             devops.description = "DevOps with system and monitoring access";
-            devops.permissions = Role.Permissions.devops().toJson();
+            devops.permissions = "{\"system\":[\"*\"],\"monitoring\":[\"*\"],\"logs\":[\"read\"],\"transactions\":[\"read\"]}";
             devops.isSystemRole = true;
             devops.persist();
             LOG.info("Created DEVOPS role");
@@ -104,7 +104,7 @@ public class RoleService {
             Role apiUser = new Role();
             apiUser.name = Role.DefaultRoles.API_USER;
             apiUser.description = "API access for external integrations";
-            apiUser.permissions = Role.Permissions.apiUser().toJson();
+            apiUser.permissions = "{\"api\":[\"read\",\"write\"],\"transactions\":[\"read\",\"create\"],\"tokens\":[\"read\"]}";
             apiUser.isSystemRole = true;
             apiUser.persist();
             LOG.info("Created API_USER role");
@@ -115,7 +115,7 @@ public class RoleService {
             Role readonly = new Role();
             readonly.name = Role.DefaultRoles.READONLY;
             readonly.description = "Read-only access to system resources";
-            readonly.permissions = Role.Permissions.readonly().toJson();
+            readonly.permissions = "{\"transactions\":[\"read\"],\"contracts\":[\"read\"],\"tokens\":[\"read\"],\"users\":[\"read\"]}";
             readonly.isSystemRole = true;
             readonly.persist();
             LOG.info("Created READONLY role");

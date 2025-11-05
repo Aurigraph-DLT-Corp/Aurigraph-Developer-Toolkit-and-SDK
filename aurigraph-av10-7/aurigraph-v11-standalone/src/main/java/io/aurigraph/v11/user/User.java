@@ -63,7 +63,7 @@ public class User extends PanacheEntityBase {
     @Column(name = "last_login_at")
     public Instant lastLoginAt;
 
-    @Column(name = "failed_login_attempts")
+    @Column(name = "failed_login_attempts", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
     public int failedLoginAttempts = 0;
 
     @Column(name = "locked_until")

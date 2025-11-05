@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -120,44 +119,4 @@ public class Role extends PanacheEntityBase {
         public static final String READONLY = "READONLY";
     }
 
-    /**
-     * Permission structure helper
-     */
-    public static class Permissions {
-        private final List<String> resources = new ArrayList<>();
-
-        public static Permissions admin() {
-            Permissions p = new Permissions();
-            p.resources.add("{\"admin\":[\"*\"],\"users\":[\"*\"],\"roles\":[\"*\"],\"transactions\":[\"*\"],\"contracts\":[\"*\"],\"tokens\":[\"*\"]}");
-            return p;
-        }
-
-        public static Permissions user() {
-            Permissions p = new Permissions();
-            p.resources.add("{\"transactions\":[\"read\",\"create\"],\"contracts\":[\"read\",\"create\"],\"tokens\":[\"read\"]}");
-            return p;
-        }
-
-        public static Permissions devops() {
-            Permissions p = new Permissions();
-            p.resources.add("{\"system\":[\"*\"],\"monitoring\":[\"*\"],\"logs\":[\"read\"],\"transactions\":[\"read\"]}");
-            return p;
-        }
-
-        public static Permissions apiUser() {
-            Permissions p = new Permissions();
-            p.resources.add("{\"api\":[\"read\",\"write\"],\"transactions\":[\"read\",\"create\"],\"tokens\":[\"read\"]}");
-            return p;
-        }
-
-        public static Permissions readonly() {
-            Permissions p = new Permissions();
-            p.resources.add("{\"transactions\":[\"read\"],\"contracts\":[\"read\"],\"tokens\":[\"read\"],\"users\":[\"read\"]}");
-            return p;
-        }
-
-        public String toJson() {
-            return resources.isEmpty() ? "{}" : resources.get(0);
-        }
-    }
 }
