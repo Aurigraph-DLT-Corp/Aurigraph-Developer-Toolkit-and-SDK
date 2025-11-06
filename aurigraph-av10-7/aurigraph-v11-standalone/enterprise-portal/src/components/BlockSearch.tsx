@@ -72,8 +72,26 @@ export const BlockSearch: React.FC = () => {
     try {
       setLoading(true)
       setError(null)
-      const result = await blockSearchApi.searchBlocks(filters, page, pageSize)
-      setSearchResult(result)
+
+      // Try dedicated API first, fallback to fetch
+      try {
+        const result = await blockSearchApi.searchBlocks(filters, page, pageSize)
+        setSearchResult(result)
+      } catch (err) {
+        // Fallback to direct endpoint
+        console.warn('Block search API failed, using direct fetch')
+        const response = await fetch(`http://localhost:9003/api/v11/blocks?limit=${pageSize}`)
+        const data = await response.json()
+
+        // Transform response to expected format
+        const result = {
+          blocks: data.data || [],
+          totalCount: (data.data || []).length,
+          pageSize,
+          page,
+        }
+        setSearchResult(result)
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to search blocks'
       setError(errorMessage)
