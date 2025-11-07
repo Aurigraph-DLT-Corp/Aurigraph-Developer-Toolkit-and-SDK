@@ -74,11 +74,15 @@ git clean -fd
 echo "✅ Repository updated with corrected configuration"
 echo ""
 echo "📝 Verification - Checking for fixes:"
-echo "  Line 172 (HTTP version):"
-sed -n '172p' nginx-lb-primary.conf | grep -q "proxy_http_version 2;" && echo "    ✅ Fixed: proxy_http_version 2 (integer)" || echo "    ❌ ERROR: Still has decimal version"
+echo "  Line 170 (gRPC HTTP version at server block level):"
+sed -n '169,171p' nginx-lb-primary.conf | grep -q "proxy_http_version 1.1;" && echo "    ✅ Fixed: proxy_http_version at server block level" || echo "    ❌ ERROR: Wrong scope or format"
 
-echo "  Line 136 (Health endpoint):"
-sed -n '136p' nginx-lb-primary.conf | grep -q "version" && echo "    ✅ Fixed: Static version string (no bash substitution)" || echo "    ❌ ERROR: Still has bash substitution"
+echo "  Line 126 (Health endpoint - static response):"
+sed -n '126p' nginx-lb-primary.conf | grep -q "version.*4.4.4" && echo "    ✅ Fixed: Static JSON with version field (no bash substitution)" || echo "    ❌ ERROR: Still has bash substitution or incorrect format"
+
+echo ""
+echo "📋 Configuration validation with nginx -t:"
+docker exec aurigraph-nginx-lb-primary nginx -t 2>&1 | tail -3 || echo "Container not yet started, will validate after startup"
 REMOTE_SCRIPT_3
 
 # ============================================================================
