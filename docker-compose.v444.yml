@@ -12,6 +12,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx-lb-primary.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt/live/aurcrt:/etc/nginx/ssl:ro
       - nginx-cache:/var/cache/nginx
       - nginx-logs:/var/log/nginx
     networks:
