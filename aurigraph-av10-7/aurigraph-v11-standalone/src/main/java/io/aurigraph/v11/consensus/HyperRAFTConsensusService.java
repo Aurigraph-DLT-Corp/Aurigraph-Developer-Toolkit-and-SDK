@@ -48,7 +48,7 @@ public class HyperRAFTConsensusService {
     @ConfigProperty(name = "consensus.heartbeat.interval", defaultValue = "50")
     long heartbeatInterval;
 
-    @ConfigProperty(name = "consensus.batch.size", defaultValue = "10000")
+    @ConfigProperty(name = "consensus.batch.size", defaultValue = "12000")
     int batchSize;
 
     @ConfigProperty(name = "consensus.snapshot.threshold", defaultValue = "100000")
@@ -101,8 +101,8 @@ public class HyperRAFTConsensusService {
         LOG.info("Initializing HyperRAFT++ Consensus Service with AI optimization");
 
         // Initialize batch queue with injected configuration value
-        // Use double the batch size for queue capacity to prevent blocking
-        int queueCapacity = Math.max(1000, batchSize * 2); // Minimum 1000, default 20000
+        // Sprint 18 Optimization: Increased to 4× batch size for high throughput bursts
+        int queueCapacity = Math.max(2000, batchSize * 4); // Minimum 2000, default 48000
         batchQueue = new LinkedBlockingQueue<>(queueCapacity);
         LOG.infof("Batch queue initialized with capacity: %d (batch size: %d)", queueCapacity, batchSize);
 
@@ -301,15 +301,16 @@ public class HyperRAFTConsensusService {
 
     /**
      * Batch processor - processes log entries in batches for higher throughput
+     * Sprint 18 Optimization: Increased frequency to 50ms for 2× throughput
      */
     private void startBatchProcessor() {
         batchProcessor.scheduleAtFixedRate(() -> {
             if (currentState.get() == NodeState.LEADER) {
                 processBatch();
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, 50, TimeUnit.MILLISECONDS);
 
-        LOG.infof("Batch processor started (batch size: %d)", batchSize);
+        LOG.infof("Batch processor started (batch size: %d, interval: 50ms)", batchSize);
     }
 
     private void processBatch() {
@@ -356,12 +357,13 @@ public class HyperRAFTConsensusService {
     /**
      * Validate batch entries in parallel using Java Virtual Threads
      * This significantly improves throughput by processing validations concurrently
+     * Sprint 18 Optimization: Increased parallelism to 4× CPU cores for I/O-bound validation
      */
     private boolean validateBatchParallel(List<LogEntry> batch) {
         if (batch.isEmpty()) return true;
 
         // Split batch into chunks for parallel processing
-        int parallelism = Math.min(batch.size(), Runtime.getRuntime().availableProcessors() * 2);
+        int parallelism = Math.min(batch.size(), Runtime.getRuntime().availableProcessors() * 4);
         int chunkSize = Math.max(1, batch.size() / parallelism);
 
         List<CompletableFuture<Boolean>> validationFutures = new ArrayList<>();

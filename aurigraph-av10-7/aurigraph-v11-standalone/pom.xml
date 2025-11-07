@@ -1010,35 +1010,31 @@
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
                 <quarkus.native.additional-build-args>
-                    <!-- SPARC Week 1: CPU Architecture Optimizations -->
-                    -march=native,
+                    <!-- GraalVM 21 Compatible Ultra-Optimized Configuration -->
+                    <!-- Updated Nov 7, 2025 - Sprint 18 Native Build Stream -->
+
+                    <!-- CPU Architecture: Use compatibility for portability -->
+                    -march=compatibility,
                     -O3,
                     -H:+UnlockExperimentalVMOptions,
 
-                    <!-- SPARC Week 1: GC Tuning (serial GC for native compatibility) -->
-                    <!-- NOTE: G1GC not supported in native image, using serial GC -->
+                    <!-- GC: Use default serial GC (optimal for native-image) -->
+                    <!-- G1GC only available on Oracle GraalVM Linux builds -->
                     -H:+UseStringDeduplication,
-                    -H:+UseTLAB,
 
-                    <!-- SPARC Week 1: Aggressive Performance Opts -->
-                    -H:+AggressiveOpts,
-                    -H:+UseFastAccessorMethods,
+                    <!-- Memory Optimizations (GraalVM 21 SUPPORTED) -->
                     -H:+OptimizeStringConcat,
                     -H:+UseCompressedOops,
                     -H:+UseCompressedClassPointers,
                     -H:+EliminateAllocations,
                     -H:+OptimizeBulkTransfer,
-                    -H:+InlineIntrinsics,
-                    -H:+UseSIMD,
 
-                    <!-- SPARC Week 1: Thread & Concurrency Opts -->
-                    -H:+UseFastLocking,
-                    -H:+UseBiasedLocking,
-                    -H:+OptimizeConcurrentLocking,
+                    <!-- Code Optimizations (GraalVM 21 SUPPORTED) -->
+                    -H:+InlineIntrinsics,
                     -H:MaxInlineLevel=32,
                     -H:FreqInlineSize=512,
 
-                    <!-- SPARC Week 1: Startup & Memory Optimizations -->
+                    <!-- Startup & Memory Optimizations -->
                     -H:-SpawnIsolates,
                     -H:+StaticExecutableWithDynamicLibC,
                     -H:+AllowIncompleteClasspath,
@@ -1054,13 +1050,13 @@
                     --initialize-at-run-time=com.github.haifengl.smile,
                     --initialize-at-run-time=java.security,
 
-                    <!-- SPARC Week 1: Memory Settings for 8.51M TPS -->
+                    <!-- Memory Settings for High-Performance (2M+ TPS target) -->
                     -H:NativeImageHeapSize=16g,
                     -H:MaxDirectMemorySize=8g,
                     -H:ReservedCodeCacheSize=512m,
                     -H:MaxJavaStackTraceDepth=20,
 
-                    <!-- SPARC Week 1: Profiling & Diagnostics -->
+                    <!-- Diagnostics & Profiling -->
                     -H:+PrintAnalysisCallTree,
                     -H:+PrintFeatures,
                     -H:+TraceClassInitialization

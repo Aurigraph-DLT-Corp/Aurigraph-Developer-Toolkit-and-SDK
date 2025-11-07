@@ -43,16 +43,16 @@ public class DynamicBatchSizeOptimizer {
     @ConfigProperty(name = "batch.processor.enabled", defaultValue = "true")
     boolean enabled;
 
-    @ConfigProperty(name = "batch.processor.min.size", defaultValue = "1000")
+    @ConfigProperty(name = "batch.processor.min.size", defaultValue = "2000")
     int minBatchSize;
 
-    @ConfigProperty(name = "batch.processor.max.size", defaultValue = "10000")
+    @ConfigProperty(name = "batch.processor.max.size", defaultValue = "15000")
     int maxBatchSize;
 
-    @ConfigProperty(name = "batch.processor.default.size", defaultValue = "5000")
+    @ConfigProperty(name = "batch.processor.default.size", defaultValue = "8000")
     int defaultBatchSize;
 
-    @ConfigProperty(name = "batch.processor.adaptation.interval.ms", defaultValue = "5000")
+    @ConfigProperty(name = "batch.processor.adaptation.interval.ms", defaultValue = "3000")
     long adaptationIntervalMs;
 
     @ConfigProperty(name = "consensus.target.tps", defaultValue = "2000000")
@@ -199,6 +199,7 @@ public class DynamicBatchSizeOptimizer {
 
     /**
      * Calculate optimal batch size using ML-based analysis
+     * Sprint 18 Optimization: Adaptive weighting and increased ramp-up speed
      */
     private int calculateOptimalBatchSize(
             double currentThroughput,
@@ -218,15 +219,25 @@ public class DynamicBatchSizeOptimizer {
         // Strategy 3: Gradient ascent (if throughput improving)
         int gradientBatch = applyGradientAscent(currentBatch);
 
+        // Sprint 18: Adaptive weight distribution based on model quality
+        double rSquare = batchSizePredictor.getN() >= 5 ? batchSizePredictor.getRSquare() : 0.0;
+        double regressionWeight = rSquare > 0.8 ? 0.5 : 0.3;
+        double ratioWeight = 0.4;
+        double gradientWeight = 1.0 - regressionWeight - ratioWeight;
+
         // Weighted combination of strategies
         int predictedBatch = (int) (
-            regressionBatch * 0.4 +
-            ratioAdjusted * 0.4 +
-            gradientBatch * 0.2
+            regressionBatch * regressionWeight +
+            ratioAdjusted * ratioWeight +
+            gradientBatch * gradientWeight
         );
 
-        // Smooth transition (max 20% change per optimization)
-        int maxChange = (int) (currentBatch * 0.2);
+        // Sprint 18: Adaptive change rate - faster during ramp-up, conservative at steady-state
+        long samples = optimizationRuns.get();
+        int maxChange = samples < 20
+            ? (int) (currentBatch * 0.3)  // 30% change during ramp-up (first 20 optimizations)
+            : (int) (currentBatch * 0.2); // 20% change at steady-state
+
         int change = predictedBatch - currentBatch;
         if (Math.abs(change) > maxChange) {
             change = change > 0 ? maxChange : -maxChange;
@@ -237,9 +248,10 @@ public class DynamicBatchSizeOptimizer {
 
     /**
      * Predict batch size using linear regression model
+     * Sprint 18 Optimization: Reduced threshold from 10 to 5 for faster cold-start
      */
     private int predictBatchSizeFromRegression(double targetThroughput) {
-        if (batchSizePredictor.getN() < 10) {
+        if (batchSizePredictor.getN() < 5) {
             return currentBatchSize.get(); // Not enough data yet
         }
 

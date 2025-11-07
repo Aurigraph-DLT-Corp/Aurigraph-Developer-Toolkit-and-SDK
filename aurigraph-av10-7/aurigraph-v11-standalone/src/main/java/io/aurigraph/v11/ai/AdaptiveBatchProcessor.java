@@ -44,7 +44,7 @@ public class AdaptiveBatchProcessor {
     @ConfigProperty(name = "batch.processor.enabled", defaultValue = "true")
     boolean enabled;
 
-    @ConfigProperty(name = "batch.processor.parallel.workers", defaultValue = "16")
+    @ConfigProperty(name = "batch.processor.parallel.workers", defaultValue = "48")
     int parallelWorkers;
 
     @ConfigProperty(name = "batch.processor.timeout.ms", defaultValue = "1000")
