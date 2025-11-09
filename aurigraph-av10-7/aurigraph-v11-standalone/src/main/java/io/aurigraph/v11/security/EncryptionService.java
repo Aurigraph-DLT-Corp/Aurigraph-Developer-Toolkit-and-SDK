@@ -56,7 +56,6 @@ import java.time.Instant;
  * @since Sprint 18 - November 2025
  */
 @ApplicationScoped
-@Startup
 public class EncryptionService {
 
     private static final Logger logger = LoggerFactory.getLogger(EncryptionService.class);
