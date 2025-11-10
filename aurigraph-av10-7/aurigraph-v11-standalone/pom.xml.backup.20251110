@@ -1045,7 +1045,11 @@
 
                     <!-- Build-time JVM Memory Settings (for compilation process) -->
                     -J-Xmx16g,
-                    -J-Xms8g
+                    -J-Xms8g,
+
+                    <!-- Diagnostics & Profiling (Warning: Experimental features) -->
+                    -H:+PrintAnalysisCallTree,
+                    -H:+PrintFeatures
                 </quarkus.native.additional-build-args>
 
                 <!-- SPARC Week 1: Resource Inclusions -->
