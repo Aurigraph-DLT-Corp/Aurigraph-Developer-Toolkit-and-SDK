@@ -25,6 +25,7 @@ import storage from 'redux-persist/lib/storage'; // defaults to localStorage
 import demoAppReducer from './demoAppSlice';
 import settingsReducer from './settingsSlice';
 import comprehensivePortalReducer from './comprehensivePortalSlice';
+import authReducer from './authSlice';
 import type { RootState } from '../types/state';
 
 // ============================================================================
@@ -61,11 +62,23 @@ const demoAppPersistConfig = {
   whitelist: ['selectedNodeId', 'activeDashboard', 'spatialViewMode', 'demoMode'],
 };
 
+/**
+ * Persist configuration for auth
+ * - Does NOT persist sensitive auth state in localStorage
+ * - Session will be verified from server on app load via useAuth hook
+ */
+const authPersistConfig = {
+  key: 'auth',
+  storage,
+  whitelist: [], // Don't persist any auth state - verify session instead
+};
+
 // ============================================================================
 // Root Reducer
 // ============================================================================
 
 const rootReducer = combineReducers({
+  auth: persistReducer(authPersistConfig, authReducer),
   demoApp: persistReducer(demoAppPersistConfig, demoAppReducer),
   settings: persistReducer(settingsPersistConfig, settingsReducer),
   comprehensivePortal: comprehensivePortalReducer,
