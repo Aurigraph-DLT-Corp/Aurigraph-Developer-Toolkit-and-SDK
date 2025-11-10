@@ -19,12 +19,11 @@ import {
   setConnectionState,
   setError,
 } from '../store/liveDataSlice';
-import type { RootState } from '../store/index';
-import type { Transaction as LiveTransaction } from '../store/liveDataSlice';
+import type { RootState, Transaction as LiveTransaction } from '../types/state';
 
 const LiveTransactionFeed = () => {
   const dispatch = useAppDispatch();
-  const { transactions, connectionStates, errors } = useAppSelector(
+  const { transactions } = useAppSelector(
     (state: RootState) => state.liveData
   );
 
@@ -62,11 +61,10 @@ const LiveTransactionFeed = () => {
       }
     },
     onConnect: () => {
-      dispatch(setConnectionState({ channel: 'transactions', connected: true }));
-      dispatch(setError({ channel: 'transactions', error: null }));
+      // Connection state is handled by useWebSocket hook
     },
     onDisconnect: () => {
-      dispatch(setConnectionState({ channel: 'transactions', connected: false }));
+      // Disconnection state is handled by useWebSocket hook
     },
     onError: (err) => {
       dispatch(setError({ channel: 'transactions', error: err.message }));
@@ -82,7 +80,7 @@ const LiveTransactionFeed = () => {
 
   // Prepare table data
   const tableData = useMemo(() => {
-    return transactions.map((tx) => ({
+    return transactions.map((tx: LiveTransaction) => ({
       ...tx,
       key: tx.id,
       amountDisplay: `${tx.amount.toFixed(4)} AUR`,
@@ -188,12 +186,12 @@ const LiveTransactionFeed = () => {
 
   // Statistics
   const stats = useMemo(() => {
-    const confirmed = transactions.filter((t) => t.status === 'confirmed').length;
-    const pending = transactions.filter((t) => t.status === 'pending').length;
-    const failed = transactions.filter((t) => t.status === 'failed').length;
+    const confirmed = transactions.filter((t: LiveTransaction) => t.status === 'confirmed').length;
+    const pending = transactions.filter((t: LiveTransaction) => t.status === 'pending').length;
+    const failed = transactions.filter((t: LiveTransaction) => t.status === 'failed').length;
     const totalAmount = transactions
-      .filter((t) => t.status === 'confirmed')
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter((t: LiveTransaction) => t.status === 'confirmed')
+      .reduce((sum: number, t: LiveTransaction) => sum + t.amount, 0);
 
     return { confirmed, pending, failed, totalAmount };
   }, [transactions]);
@@ -225,10 +223,10 @@ const LiveTransactionFeed = () => {
       </Row>
 
       {/* Error Message */}
-      {(error || errors.transactions) && (
+      {error && (
         <Alert
           message="WebSocket Error"
-          description={error?.message || errors.transactions}
+          description={error?.message}
           type="error"
           showIcon
           closable

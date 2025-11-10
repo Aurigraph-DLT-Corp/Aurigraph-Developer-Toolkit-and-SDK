@@ -14,7 +14,7 @@ import { Form, Input, Button, Card, message, Spin, Alert, Space } from 'antd';
 import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { loginAsync } from '../store/authSlice';
-import type { RootState } from '../store/index';
+import type { RootState } from '../types/state';
 import './Login.css';
 
 const Login = () => {

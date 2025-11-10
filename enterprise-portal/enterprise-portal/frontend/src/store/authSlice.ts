@@ -132,7 +132,7 @@ const authSlice = createSlice({
         state.lastCheckTime = Date.now();
         state.error = null;
       })
-      .addCase(verifySessionAsync.rejected, (state, action) => {
+      .addCase(verifySessionAsync.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
@@ -153,7 +153,7 @@ const authSlice = createSlice({
         state.expiresIn = null;
         state.error = null;
       })
-      .addCase(logoutAsync.rejected, (state, action) => {
+      .addCase(logoutAsync.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;

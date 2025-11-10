@@ -9,7 +9,6 @@
  * - Connection status
  */
 
-import { useMemo } from 'react';
 import {
   Card,
   Row,
@@ -20,23 +19,19 @@ import {
   Alert,
   Spin,
   Progress,
-  Divider,
   Empty,
 } from 'antd';
 import {
   ThunderboltOutlined,
-  CloudServerOutlined,
-  CopyOutlined,
-  BgColorsOutlined,
 } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { updatePerformanceMetrics, setConnectionState, setError } from '../store/liveDataSlice';
-import type { RootState } from '../store/index';
+import { updatePerformanceMetrics, setError } from '../store/liveDataSlice';
+import type { RootState } from '../types/state';
 
 const LiveMetricsDashboard = () => {
   const dispatch = useAppDispatch();
-  const { performanceMetrics, connectionStates, errors } = useAppSelector(
+  const { performanceMetrics } = useAppSelector(
     (state: RootState) => state.liveData
   );
 
@@ -68,11 +63,10 @@ const LiveMetricsDashboard = () => {
       }
     },
     onConnect: () => {
-      dispatch(setConnectionState({ channel: 'metrics', connected: true }));
-      dispatch(setError({ channel: 'metrics', error: null }));
+      // Connection state is handled by useWebSocket hook
     },
     onDisconnect: () => {
-      dispatch(setConnectionState({ channel: 'metrics', connected: false }));
+      // Disconnection state is handled by useWebSocket hook
     },
     onError: (err) => {
       dispatch(setError({ channel: 'metrics', error: err.message }));
@@ -120,10 +114,10 @@ const LiveMetricsDashboard = () => {
       </Card>
 
       {/* Error Message */}
-      {(error || errors.metrics) && (
+      {error && (
         <Alert
           message="Metrics Error"
-          description={error?.message || errors.metrics}
+          description={error?.message}
           type="error"
           showIcon
           closable

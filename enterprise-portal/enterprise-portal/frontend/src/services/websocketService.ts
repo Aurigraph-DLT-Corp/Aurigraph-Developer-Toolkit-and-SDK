@@ -49,6 +49,7 @@ export interface WebSocketMessage {
 }
 
 export interface WebSocketEvent {
+  type?: WebSocketMessageType;
   channel: WebSocketChannel;
   data: any;
   timestamp: string;
@@ -120,7 +121,9 @@ class WebSocketService {
           this.reconnectAttempts.set(channel, 0);
           this.notifyListeners(channel, {
             type: 'connected',
+            channel: channel,
             data: { channel, timestamp: new Date().toISOString() },
+            timestamp: new Date().toISOString(),
           });
           resolve();
         };
@@ -146,7 +149,9 @@ class WebSocketService {
           this.connections.delete(channel);
           this.notifyListeners(channel, {
             type: 'disconnected',
+            channel: channel,
             data: { channel, timestamp: new Date().toISOString() },
+            timestamp: new Date().toISOString(),
           });
 
           // Attempt to reconnect

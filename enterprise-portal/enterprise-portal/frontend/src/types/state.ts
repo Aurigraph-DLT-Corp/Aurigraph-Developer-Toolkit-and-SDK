@@ -128,12 +128,133 @@ export interface SettingsState {
 }
 
 // ============================================================================
+// Auth State (authSlice)
+// ============================================================================
+
+export interface User {
+  id: string;
+  username: string;
+  email?: string;
+  roles?: string[];
+}
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  sessionId: string | null;
+  expiresIn: number | null;
+  lastCheckTime: number | null;
+}
+
+// ============================================================================
+// Live Data State (liveDataSlice)
+// ============================================================================
+
+export interface Transaction {
+  id: string;
+  from: string;
+  to: string;
+  amount: number;
+  hash: string;
+  blockHeight: number;
+  timestamp: string;
+  status: 'pending' | 'confirmed' | 'failed';
+  fee: number;
+  gasUsed?: number;
+}
+
+export interface Validator {
+  nodeId: string;
+  address: string;
+  status: 'active' | 'inactive' | 'syncing';
+  stake: number;
+  rewards: number;
+  uptime: number;
+  lastHeartbeat: string;
+}
+
+export interface ConsensusStateData {
+  term: number;
+  blockHeight: number;
+  leader: string;
+  state: 'leader' | 'follower' | 'candidate';
+  isHealthy: boolean;
+  activeValidators: number;
+  totalValidators: number;
+}
+
+export interface NetworkMetrics {
+  totalNodes: number;
+  activeNodes: number;
+  networkLatencyMs: number;
+  bandwidthUtilization: number;
+  totalConnections: number;
+  nodesByType: Record<string, number>;
+}
+
+export interface PerformanceMetricsData {
+  tps: number;
+  avgTps: number;
+  peakTps: number;
+  totalTransactions: number;
+  activeTransactions: number;
+  pendingTransactions: number;
+  avgLatencyMs: number;
+  p95LatencyMs: number;
+  p99LatencyMs: number;
+  memoryUsageMb: number;
+  cpuUsagePercent: number;
+  timestamp: string;
+}
+
+export interface ChannelMetrics {
+  totalChannels: number;
+  activeChannels: number;
+  totalConnections: number;
+  activeConnections: number;
+  totalPacketsTransferred: number;
+  totalBytesTransferred: number;
+  avgLatencyMs: number;
+}
+
+export interface LiveDataState {
+  transactions: Transaction[];
+  validators: Validator[];
+  consensusState: ConsensusStateData | null;
+  networkMetrics: NetworkMetrics | null;
+  performanceMetrics: PerformanceMetricsData | null;
+  channelMetrics: ChannelMetrics | null;
+  connectionStates: {
+    transactions: boolean;
+    validators: boolean;
+    consensus: boolean;
+    network: boolean;
+    metrics: boolean;
+    channels: boolean;
+    liveStream: boolean;
+  };
+  errors: {
+    transactions: string | null;
+    validators: string | null;
+    consensus: string | null;
+    network: string | null;
+    metrics: string | null;
+    channels: string | null;
+  };
+  lastUpdate: string;
+}
+
+// ============================================================================
 // Root State
 // ============================================================================
 
 export interface RootState {
+  auth: AuthState;
   demoApp: DemoAppState;
   settings: SettingsState;
+  liveData: LiveDataState;
 }
 
 // ============================================================================

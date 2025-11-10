@@ -7,7 +7,7 @@
 
 import { Navigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/useRedux';
-import type { RootState } from '../store/index';
+import type { RootState } from '../types/state';
 import { Spin } from 'antd';
 
 interface ProtectedRouteProps {
@@ -40,8 +40,8 @@ const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
   }
 
   // Check role-based access if required roles specified
-  if (requiredRoles && user) {
-    const hasRequiredRole = requiredRoles.some((role) => user.roles.includes(role));
+  if (requiredRoles && user && user.roles) {
+    const hasRequiredRole = requiredRoles.some((role) => user.roles?.includes(role));
     if (!hasRequiredRole) {
       return <Navigate to="/unauthorized" replace />;
     }

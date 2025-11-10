@@ -8,7 +8,7 @@
 import { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './useRedux';
 import { loginAsync, logoutAsync, verifySessionAsync, clearError } from '../store/authSlice';
-import type { RootState } from '../store/index';
+import type { RootState } from '../types/state';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
