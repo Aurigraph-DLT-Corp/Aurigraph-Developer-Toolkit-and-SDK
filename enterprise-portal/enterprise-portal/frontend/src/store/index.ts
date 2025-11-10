@@ -26,6 +26,7 @@ import demoAppReducer from './demoAppSlice';
 import settingsReducer from './settingsSlice';
 import comprehensivePortalReducer from './comprehensivePortalSlice';
 import authReducer from './authSlice';
+import liveDataReducer from './liveDataSlice';
 import type { RootState } from '../types/state';
 
 // ============================================================================
@@ -82,6 +83,7 @@ const rootReducer = combineReducers({
   demoApp: persistReducer(demoAppPersistConfig, demoAppReducer),
   settings: persistReducer(settingsPersistConfig, settingsReducer),
   comprehensivePortal: comprehensivePortalReducer,
+  liveData: liveDataReducer, // Real-time data - NOT persisted
 });
 
 // ============================================================================
