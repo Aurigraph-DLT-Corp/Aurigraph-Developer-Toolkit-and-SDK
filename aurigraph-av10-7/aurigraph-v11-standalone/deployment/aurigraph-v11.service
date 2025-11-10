@@ -8,8 +8,8 @@ Wants=network-online.target
 Type=simple
 User=aurigraph
 Group=aurigraph
-WorkingDirectory=/opt/DLT/aurigraph-v11/11.4.3
-ExecStart=/opt/DLT/aurigraph-v11/11.4.3/aurigraph-v11-standalone-11.4.3-runner
+WorkingDirectory=/opt/aurigraph/releases/v11.4.4
+ExecStart=/usr/bin/java -jar /opt/aurigraph/releases/v11.4.4/aurigraph-v11-standalone-11.4.4-runner.jar
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
@@ -31,8 +31,8 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/opt/DLT/aurigraph-v11/logs
-ReadWritePaths=/opt/DLT/aurigraph-v11/data
+ReadWritePaths=/opt/aurigraph/logs
+ReadWritePaths=/opt/aurigraph/data
 
 # Resource Limits
 CPUQuota=95%
