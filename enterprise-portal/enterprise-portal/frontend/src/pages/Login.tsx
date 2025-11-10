@@ -8,8 +8,8 @@
  * - Session persistence
  */
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Form, Input, Button, Card, message, Spin, Alert, Space } from 'antd';
 import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
@@ -20,15 +20,19 @@ import './Login.css';
 const Login = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const [localError, setLocalError] = useState<string | null>(null);
 
   const { isLoading, error, isAuthenticated } = useAppSelector((state: RootState) => state.auth);
 
   // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate('/home');
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      const returnUrl = searchParams.get('returnUrl') || '/home';
+      navigate(returnUrl);
+    }
+  }, [isAuthenticated, navigate, searchParams]);
 
   const handleLogin = async (values: { username: string; password: string }) => {
     try {

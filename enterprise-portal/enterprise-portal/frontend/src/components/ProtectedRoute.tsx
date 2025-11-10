@@ -17,6 +17,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading, user } = useAppSelector((state: RootState) => state.auth);
+  const location = window.location.pathname;
 
   // Still loading - show spinner
   if (isLoading) {
@@ -29,14 +30,14 @@ const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
           height: '100vh',
         }}
       >
-        <Spin tip="Loading..." />
+        <Spin tip="Checking authentication..." />
       </div>
     );
   }
 
-  // Not authenticated - redirect to login
+  // Not authenticated - redirect to login with return URL
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`/login?returnUrl=${encodeURIComponent(location)}`} replace />;
   }
 
   // Check role-based access if required roles specified

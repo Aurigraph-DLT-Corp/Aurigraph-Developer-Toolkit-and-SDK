@@ -40,7 +40,19 @@ export const useAuth = () => {
   // Auto-verify session on mount
   useEffect(() => {
     verifySession();
-  }, []);
+
+    // Listen for unauthorized events
+    const handleUnauthorized = () => {
+      dispatch(clearError());
+      dispatch(logoutAsync());
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, [dispatch]);
 
   return {
     user: auth.user,
