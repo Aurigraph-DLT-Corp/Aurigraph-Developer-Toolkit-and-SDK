@@ -23,12 +23,12 @@ class ConsoleLogger {
       enableSuppression: true,
       enableConsoleLogging: true,
       suppressedPatterns: [
-        // Chrome extension messaging errors
-        /No tab with id:/,
-        /Unchecked runtime\.lastError/,
-        /The page keeping the extension port is moved into back\/forward cache/,
-        /the message channel is closed/,
-        
+        // Chrome extension messaging errors (most common)
+        /No tab with id:/i,
+        /Unchecked runtime\.lastError/i,
+        /The page keeping the extension port is moved into back\/forward cache/i,
+        /the message channel is closed/i,
+
         // Expected development warnings
         /WebSocket endpoint not available/i,
         /WebSocket endpoint unavailable/i,
@@ -36,10 +36,21 @@ class ConsoleLogger {
         /using.*demo.*mode/i,
         /backend.*endpoint not available/i,
         /Connection refused/i,
-        
-        // Permissions policy
+        /backend demos endpoint/i,
+        /Demo created locally/i,
+        /backend will sync when server comes online/i,
+
+        // Permissions policy violations
         /Potential permissions policy violation/i,
         /microphone is not allowed/i,
+        /camera is not allowed/i,
+        /geolocation is not allowed/i,
+
+        // Service initialization messages (info level, not errors)
+        /ChannelService/i,
+        /DemoService/i,
+        /Demo service initialized/i,
+        /Sample demos initialized/i,
       ],
       ...config,
     };
