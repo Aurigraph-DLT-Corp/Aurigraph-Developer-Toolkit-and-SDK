@@ -105,10 +105,27 @@ public class TokenInvalidationWebSocket {
 
     /**
      * Handle subscription to token invalidation notifications
+     * SECURITY: Client must provide valid JWT token for authentication
      */
     private void handleSubscribe(Session session, String userId, String tokenId) {
         if (userId == null || userId.isBlank()) {
             sendError(session, "userId is required");
+            return;
+        }
+
+        // SECURITY: Validate that userId matches authenticated user from JWT
+        // Extract from session properties if available, or from JWT in handshake
+        String authenticatedUserId = getAuthenticatedUserId(session);
+        if (authenticatedUserId == null) {
+            sendError(session, "Authentication required. Please provide valid JWT token");
+            LOG.warnf("❌ SECURITY: WebSocket subscription attempt without authentication for userId: %s", userId);
+            return;
+        }
+
+        // SECURITY: Prevent user from subscribing to another user's tokens
+        if (!userId.equals(authenticatedUserId)) {
+            sendError(session, "Unauthorized: Cannot subscribe to another user's tokens");
+            LOG.warnf("❌ SECURITY: User %s attempted to subscribe to user %s's tokens", authenticatedUserId, userId);
             return;
         }
 
@@ -313,6 +330,35 @@ public class TokenInvalidationWebSocket {
     public int getConnectionsCountForUser(String userId) {
         Set<Session> sessions = userSessions.get(userId);
         return sessions != null ? sessions.size() : 0;
+    }
+
+    /**
+     * SECURITY: Extract authenticated user ID from WebSocket session
+     * This should come from JWT token validation during handshake
+     * For now, this is a placeholder - in production, use proper JWT extraction
+     *
+     * @param session WebSocket session
+     * @return authenticated user ID, or null if not authenticated
+     */
+    private String getAuthenticatedUserId(Session session) {
+        // Try to extract from session properties (set during handshake)
+        Object userIdObj = session.getUserProperties().get("userId");
+        if (userIdObj instanceof String) {
+            return (String) userIdObj;
+        }
+
+        // Try to extract from query parameters (for WebSocket URI like ws://host/ws/tokens?token=JWT)
+        // This is a fallback and should be replaced with proper JWT validation
+        try {
+            Object userIdFromQuery = session.getUserProperties().get("jwtUserId");
+            if (userIdFromQuery instanceof String) {
+                return (String) userIdFromQuery;
+            }
+        } catch (Exception e) {
+            LOG.debugf("Could not extract user ID from WebSocket session: %s", e.getMessage());
+        }
+
+        return null;
     }
 
     // ==================== Message DTO ====================

@@ -69,7 +69,11 @@ public class JwtService {
 
     /**
      * Validate JWT token
-     * First validates the JWT signature, then checks against database for revocation status
+     * First validates the JWT signature, then checks against database for revocation status.
+     *
+     * SECURITY NOTE: Database validation is MANDATORY. If database is unavailable,
+     * the token is rejected to prevent revoked tokens from being accepted.
+     * For resilience, implement caching of non-revoked tokens instead of fallback.
      */
     public boolean validateToken(String token) {
         try {
@@ -79,7 +83,7 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token);
 
-            // 2. Validate token against database
+            // 2. Validate token against database (MANDATORY for security)
             try {
                 Optional<AuthToken> dbToken = authTokenService.validateToken(token);
                 if (!dbToken.isPresent()) {
@@ -96,10 +100,10 @@ public class JwtService {
                 LOG.debugf("✅ Token validated successfully for user %s", authToken.userEmail);
                 return true;
             } catch (Exception dbError) {
-                LOG.warnf(dbError, "Database validation failed, falling back to signature-only validation");
-                // If database validation fails, still accept token if signature is valid
-                // This ensures system resilience if database is temporarily unavailable
-                return true;
+                // SECURITY: Database validation failed - reject token to prevent accepting revoked tokens
+                LOG.errorf(dbError, "❌ SECURITY: Database validation failed for token validation. Rejecting token.");
+                LOG.warnf("⚠️ To mitigate this, consider implementing caching of non-revoked tokens");
+                return false;
             }
         } catch (JwtException | IllegalArgumentException e) {
             LOG.debugf("Invalid JWT token: %s", e.getMessage());
