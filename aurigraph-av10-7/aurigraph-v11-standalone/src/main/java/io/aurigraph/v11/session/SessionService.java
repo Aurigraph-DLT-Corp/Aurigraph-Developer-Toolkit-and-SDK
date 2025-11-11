@@ -1,6 +1,7 @@
 package io.aurigraph.v11.session;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,19 +10,38 @@ import java.util.*;
 
 /**
  * SessionService: Manages user sessions with persistent session tokens
- * Replaces JWT-based approach with stateful session management
+ *
+ * Architecture:
+ * - Single-node (current): In-memory ConcurrentHashMap with cleanup thread
+ * - Multi-node (next): Delegates to RedisSessionService via Redis backend
+ *
+ * When Redis is added (quarkus-redis-client dependency):
+ * 1. Uncomment @Inject RedisSessionService redisSessionService
+ * 2. Update methods to delegate to Redis
+ * 3. Sessions will work across multiple nodes
+ * 4. Auto-cleanup via Redis key expiration
+ *
+ * @author Backend Development Agent (BDA)
+ * @since V11.5.0
  */
 @ApplicationScoped
 public class SessionService {
     private static final Logger LOG = Logger.getLogger(SessionService.class);
 
+    // TODO: Uncomment when Redis dependency is added
+    // @Inject
+    // RedisSessionService redisSessionService;
+
+    // In-memory fallback (used when Redis not available)
     private final ConcurrentHashMap<String, SessionData> sessions = new ConcurrentHashMap<>();
     private static final long SESSION_TIMEOUT_MINUTES = 480; // 8 hours
     private static final long SESSION_CLEANUP_INTERVAL_MS = 60000; // 1 minute
 
     public SessionService() {
-        // Cleanup thread
+        // Cleanup thread for in-memory sessions
+        // This will be unnecessary when Redis is enabled (Redis handles expiration)
         new Thread(this::cleanupExpiredSessions, "SessionCleanupThread").start();
+        LOG.infof("✅ SessionService initialized (In-memory mode - Redis pending for multi-node support)");
     }
 
     public String createSession(String username, Map<String, Object> userData) {
