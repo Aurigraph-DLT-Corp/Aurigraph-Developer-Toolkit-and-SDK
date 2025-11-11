@@ -5,6 +5,10 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Aurigraph Enterprise Portal - Real-Time Node Visualization Demo App" />
+    <!-- Permissions Policy: Explicitly disable unused features to prevent console warnings -->
+    <meta http-equiv="Permissions-Policy" content="microphone=(), camera=(), geolocation=(), usb=()" />
+    <!-- CSP for security: Prevent XSS while allowing needed resources -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;" />
     <title>Aurigraph Enterprise Portal</title>
   </head>
   <body>

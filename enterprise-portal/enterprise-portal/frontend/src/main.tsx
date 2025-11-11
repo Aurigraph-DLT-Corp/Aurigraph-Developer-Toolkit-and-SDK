@@ -5,6 +5,7 @@
  * - Redux store with Redux Toolkit
  * - Redux Persist for state persistence
  * - React StrictMode for development
+ * - Console Logger for error suppression
  */
 
 import React from 'react';
@@ -14,6 +15,9 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store';
 import App from './App';
 import './index.css';
+
+// Initialize console logger to suppress expected development warnings
+import './utils/consoleLogger';
 
 // Error handling for React 18
 if (!document.getElementById('root')) {
