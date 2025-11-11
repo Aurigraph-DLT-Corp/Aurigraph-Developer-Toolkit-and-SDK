@@ -1,0 +1,253 @@
+@startuml Aurigraph_DLT_Deployment
+title Aurigraph DLT - Deployment Diagram (Multi-Cloud Architecture)
+
+skinparam linetype ortho
+skinparam nodesep 120
+
+cloud AWS {
+    node "us-east-1" as aws_region {
+        package "Validator Tier" {
+            component "V11 Validator 1" as V1_AWS
+            component "V11 Validator 2" as V2_AWS
+            component "V11 Validator 3" as V3_AWS
+            component "V11 Validator 4" as V4_AWS
+        }
+
+        package "Business Tier" {
+            component "Business Node 1" as BN1_AWS
+            component "Business Node 2" as BN2_AWS
+            component "Business Node 3" as BN3_AWS
+            component "Business Node 4" as BN4_AWS
+            component "Business Node 5" as BN5_AWS
+            component "Business Node 6" as BN6_AWS
+        }
+
+        package "Slim Tier" {
+            component "Slim Node 1-12" as SN_AWS
+        }
+
+        package "Data Tier" {
+            component "PostgreSQL 16\n(Primary)" as PG_AWS
+            component "PostgreSQL 16\n(Replica)" as PG_AWS_R1
+            component "PostgreSQL 16\n(Replica)" as PG_AWS_R2
+        }
+
+        package "Cache Layer" {
+            component "Redis Cluster" as REDIS_AWS
+        }
+
+        package "Storage" {
+            component "RocksDB\n(State Store)" as ROCKS_AWS
+            component "S3\n(Block Archive)" as S3_AWS
+        }
+    }
+}
+
+cloud Azure {
+    node "eastus" as azure_region {
+        package "Validator Tier" {
+            component "V11 Validator 1" as V1_AZURE
+            component "V11 Validator 2" as V2_AZURE
+            component "V11 Validator 3" as V3_AZURE
+            component "V11 Validator 4" as V4_AZURE
+        }
+
+        package "Business Tier" {
+            component "Business Node 1-6" as BN_AZURE
+        }
+
+        package "Slim Tier" {
+            component "Slim Node 1-12" as SN_AZURE
+        }
+
+        package "Data Tier" {
+            component "PostgreSQL 16\n(Primary)" as PG_AZURE
+            component "PostgreSQL 16\n(Replica 1-2)" as PG_AZURE_R
+        }
+
+        package "Cache Layer" {
+            component "Redis Cluster" as REDIS_AZURE
+        }
+
+        package "Storage" {
+            component "RocksDB\n(State Store)" as ROCKS_AZURE
+            component "Azure Blob\n(Block Archive)" as BLOB_AZURE
+        }
+    }
+}
+
+cloud GCP {
+    node "us-central1" as gcp_region {
+        package "Validator Tier" {
+            component "V11 Validator 1" as V1_GCP
+            component "V11 Validator 2" as V2_GCP
+            component "V11 Validator 3" as V3_GCP
+            component "V11 Validator 4" as V4_GCP
+        }
+
+        package "Business Tier" {
+            component "Business Node 1-6" as BN_GCP
+        }
+
+        package "Slim Tier" {
+            component "Slim Node 1-12" as SN_GCP
+        }
+
+        package "Data Tier" {
+            component "PostgreSQL 16\n(Primary)" as PG_GCP
+            component "PostgreSQL 16\n(Replica 1-2)" as PG_GCP_R
+        }
+
+        package "Cache Layer" {
+            component "Redis Cluster" as REDIS_GCP
+        }
+
+        package "Storage" {
+            component "RocksDB\n(State Store)" as ROCKS_GCP
+            component "Cloud Storage\n(Block Archive)" as GCS_GCP
+        }
+    }
+}
+
+cloud "Internet/WireGuard VPN Mesh" as vpn {
+}
+
+cloud "Load Balancing" {
+    component "Global Load Balancer" as GLBM
+    component "DNS (Route 53)" as DNS
+    component "Traffic Manager" as TM
+}
+
+cloud "Monitoring & Observability" {
+    component "Prometheus" as PROM
+    component "Grafana" as GRAFANA
+    component "ELK Stack" as ELK
+    component "CloudTrail / Audit" as AUDIT
+}
+
+cloud "Enterprise Portal" {
+    component "Portal UI\n(React v4.5.0)" as PORTAL
+    component "NGINX\nLoad Balancer" as NLB
+    component "Portal API\n(Backend)" as PORTAL_API
+    component "Portal Database" as PORTAL_DB
+}
+
+' Connections within AWS
+V1_AWS --> PG_AWS
+V2_AWS --> PG_AWS
+V3_AWS --> PG_AWS
+V4_AWS --> PG_AWS
+BN1_AWS --> PG_AWS_R1
+BN2_AWS --> PG_AWS_R1
+SN_AWS --> PG_AWS_R2
+
+V1_AWS --> REDIS_AWS
+BN1_AWS --> REDIS_AWS
+
+V1_AWS --> ROCKS_AWS
+V2_AWS --> ROCKS_AWS
+
+' Connections within Azure
+V1_AZURE --> PG_AZURE
+V2_AZURE --> PG_AZURE
+BN_AZURE --> PG_AZURE_R
+
+V1_AZURE --> REDIS_AZURE
+BN_AZURE --> REDIS_AZURE
+
+V1_AZURE --> ROCKS_AZURE
+
+' Connections within GCP
+V1_GCP --> PG_GCP
+V2_GCP --> PG_GCP
+BN_GCP --> PG_GCP_R
+
+V1_GCP --> REDIS_GCP
+BN_GCP --> REDIS_GCP
+
+V1_GCP --> ROCKS_GCP
+
+' Cross-Cloud Connectivity (WireGuard VPN)
+aws_region --> vpn
+azure_region --> vpn
+gcp_region --> vpn
+
+' Global Load Balancing
+GLBM --> NLB
+DNS --> GLBM
+TM --> GLBM
+
+NLB --> PORTAL
+PORTAL --> PORTAL_API
+PORTAL_API --> V1_AWS
+PORTAL_API --> V1_AZURE
+PORTAL_API --> V1_GCP
+
+' Monitoring Connections
+V1_AWS -.-> PROM
+V1_AZURE -.-> PROM
+V1_GCP -.-> PROM
+
+PG_AWS -.-> PROM
+REDIS_AWS -.-> PROM
+
+PROM --> GRAFANA
+PROM --> ELK
+
+V1_AWS -.-> AUDIT
+V1_AZURE -.-> AUDIT
+V1_GCP -.-> AUDIT
+
+note right of aws_region
+  AWS us-east-1
+  4 Validators
+  6 Business Nodes
+  12 Slim Nodes
+  Multi-AZ deployment
+end note
+
+note right of azure_region
+  Azure eastus
+  4 Validators
+  6 Business Nodes
+  12 Slim Nodes
+  Multi-region failover
+end note
+
+note right of gcp_region
+  GCP us-central1
+  4 Validators
+  6 Business Nodes
+  12 Slim Nodes
+  Auto-scaling enabled
+end note
+
+note right of vpn
+  WireGuard VPN Mesh
+  Inter-cloud connectivity
+  Encrypted tunnels
+  <150ms latency SLA
+end note
+
+note right of DNS
+  GeoDNS routing
+  Latency-based
+  Geo-proximity
+  Health checks
+end note
+
+note right of PG_AWS
+  PostgreSQL 16
+  Primary-replica
+  Streaming replication
+  Cross-region backup
+end note
+
+note right of PORTAL
+  Enterprise Portal
+  v4.5.0
+  React/TypeScript
+  Responsive UI
+end note
+
+@enduml
