@@ -5,10 +5,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
+import io.aurigraph.v11.auth.AuthToken;
+import io.aurigraph.v11.auth.AuthTokenService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * JwtService - JWT token generation and validation
@@ -29,6 +33,9 @@ public class JwtService {
 
     // Token expiration: 24 hours
     private static final long TOKEN_EXPIRATION_MS = 24 * 60 * 60 * 1000;
+
+    @Inject
+    AuthTokenService authTokenService;
 
     /**
      * Generate JWT token for authenticated user
@@ -62,14 +69,38 @@ public class JwtService {
 
     /**
      * Validate JWT token
+     * First validates the JWT signature, then checks against database for revocation status
      */
     public boolean validateToken(String token) {
         try {
+            // 1. Validate JWT signature
             Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8)))
                 .build()
                 .parseSignedClaims(token);
-            return true;
+
+            // 2. Validate token against database
+            try {
+                Optional<AuthToken> dbToken = authTokenService.validateToken(token);
+                if (!dbToken.isPresent()) {
+                    LOG.warnf("⚠️ Token not found in database or is revoked");
+                    return false;
+                }
+
+                AuthToken authToken = dbToken.get();
+                if (!authToken.isValid()) {
+                    LOG.warnf("⚠️ Token is not valid (revoked/expired) for user %s", authToken.userEmail);
+                    return false;
+                }
+
+                LOG.debugf("✅ Token validated successfully for user %s", authToken.userEmail);
+                return true;
+            } catch (Exception dbError) {
+                LOG.warnf(dbError, "Database validation failed, falling back to signature-only validation");
+                // If database validation fails, still accept token if signature is valid
+                // This ensures system resilience if database is temporarily unavailable
+                return true;
+            }
         } catch (JwtException | IllegalArgumentException e) {
             LOG.debugf("Invalid JWT token: %s", e.getMessage());
             return false;
