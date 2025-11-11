@@ -59,8 +59,12 @@ COPY --from=build --chown=1001:root /build/target/*-runner /app/aurigraph-v11
 COPY --chown=1001:root src/main/resources/application.properties /app/config/
 COPY --chown=1001:root src/main/resources/META-INF/ /app/META-INF/
 
-# Create necessary directories
-RUN mkdir -p /app/data /app/logs /app/tmp && \
+# Copy health check script
+COPY --chown=1001:root health-check.sh /app/health-check.sh
+RUN chmod +x /app/health-check.sh
+
+# Create necessary directories for LevelDB and logs
+RUN mkdir -p /app/data/leveldb /app/data/snapshots /app/logs /app/tmp && \
     chown -R 1001:root /app && \
     chmod -R 775 /app
 
@@ -86,15 +90,31 @@ ENV AURIGRAPH_MAX_CONNECTIONS="10000" \
     AURIGRAPH_BATCH_SIZE="50000" \
     AURIGRAPH_MEMORY_MODE="optimized"
 
-# Health check configuration
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
-    CMD ["/app/aurigraph-v11", "-Dquarkus.http.health.path=/q/health/ready"]
+# LevelDB Configuration for State Management
+# Integrated bare-metal database for all node types
+ENV LEVELDB_PATH="/app/data/leveldb" \
+    LEVELDB_CACHE_SIZE="512m" \
+    LEVELDB_BLOCK_SIZE="4096" \
+    LEVELDB_WRITE_BUFFER_SIZE="64m" \
+    LEVELDB_MAX_OPEN_FILES="1024" \
+    LEVELDB_BLOOM_FILTER="true" \
+    LEVELDB_COMPRESSION="snappy" \
+    LEVELDB_SNAPSHOTS_DIR="/app/data/snapshots" \
+    LEVELDB_WAL_ENABLED="true"
+
+# Health check configuration (includes LevelDB health check)
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=3 \
+    CMD /app/health-check.sh || exit 1
 
 # Switch to non-root user
 USER 1001
 
-# Expose ports
-EXPOSE 9003 9004 9005
+# Expose ports for Validator/Business/Slim node variants
+# Validator Nodes: 9003-9005
+# Business Nodes: 9006-9008
+# Slim Nodes: 9009-9011
+# Metrics: 9090-9093
+EXPOSE 9003 9004 9005 9006 9007 9008 9009 9010 9011 9090 9091 9092 9093
 
 # Set the entrypoint
 ENTRYPOINT ["/app/aurigraph-v11"]
