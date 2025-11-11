@@ -39,9 +39,10 @@ public class UserResource {
     /**
      * List all users with pagination
      * GET /api/v11/users?page=0&size=20
+     * Requires: ADMIN or DEVOPS role
      */
     @GET
-    //@RolesAllowed({"ADMIN", "DEVOPS"})
+    @RolesAllowed({"ADMIN", "DEVOPS"})
     public Uni<Response> listUsers(
         @QueryParam("page") @DefaultValue("0") int page,
         @QueryParam("size") @DefaultValue("20") int size
@@ -71,10 +72,11 @@ public class UserResource {
     /**
      * Get user by ID
      * GET /api/v11/users/{id}
+     * Requires: ADMIN, DEVOPS, or USER role
      */
     @GET
     @Path("/{id}")
-    //@RolesAllowed({"ADMIN", "DEVOPS", "USER"})
+    @RolesAllowed({"ADMIN", "DEVOPS", "USER"})
     public Uni<Response> getUser(@PathParam("id") String id) {
         return Uni.createFrom().item(() -> {
             try {
@@ -97,9 +99,10 @@ public class UserResource {
     /**
      * Create new user
      * POST /api/v11/users
+     * Requires: ADMIN role
      */
     @POST
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> createUser(@Valid CreateUserRequest request) {
         return Uni.createFrom().item(() -> {
             try {
@@ -126,10 +129,11 @@ public class UserResource {
     /**
      * Update user
      * PUT /api/v11/users/{id}
+     * Requires: ADMIN role
      */
     @PUT
     @Path("/{id}")
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> updateUser(
         @PathParam("id") String id,
         @Valid UpdateUserRequest request
@@ -161,10 +165,11 @@ public class UserResource {
     /**
      * Delete user
      * DELETE /api/v11/users/{id}
+     * Requires: ADMIN role
      */
     @DELETE
     @Path("/{id}")
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> deleteUser(@PathParam("id") String id) {
         return Uni.createFrom().item(() -> {
             try {
@@ -187,10 +192,11 @@ public class UserResource {
     /**
      * Update user role
      * PUT /api/v11/users/{id}/role
+     * Requires: ADMIN role
      */
     @PUT
     @Path("/{id}/role")
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> updateUserRole(
         @PathParam("id") String id,
         UpdateRoleRequest request
@@ -217,10 +223,11 @@ public class UserResource {
     /**
      * Update user status
      * PUT /api/v11/users/{id}/status
+     * Requires: ADMIN role
      */
     @PUT
     @Path("/{id}/status")
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> updateUserStatus(
         @PathParam("id") String id,
         UpdateStatusRequest request
@@ -247,10 +254,11 @@ public class UserResource {
     /**
      * Update user password
      * PUT /api/v11/users/{id}/password
+     * Requires: ADMIN or USER role (users can only change their own password)
      */
     @PUT
     @Path("/{id}/password")
-    //@RolesAllowed({"ADMIN", "USER"})
+    @RolesAllowed({"ADMIN", "USER"})
     public Uni<Response> updatePassword(
         @PathParam("id") String id,
         UpdatePasswordRequest request

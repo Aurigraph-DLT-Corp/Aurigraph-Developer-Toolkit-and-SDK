@@ -36,9 +36,10 @@ public class RoleResource {
     /**
      * List all roles
      * GET /api/v11/roles
+     * Requires: ADMIN or DEVOPS role
      */
     @GET
-    //@RolesAllowed({"ADMIN", "DEVOPS"})
+    @RolesAllowed({"ADMIN", "DEVOPS"})
     public Uni<Response> listRoles(
         @QueryParam("type") @DefaultValue("all") String type
     ) {
@@ -62,10 +63,11 @@ public class RoleResource {
     /**
      * Get role by ID
      * GET /api/v11/roles/{id}
+     * Requires: ADMIN or DEVOPS role
      */
     @GET
     @Path("/{id}")
-    //@RolesAllowed({"ADMIN", "DEVOPS"})
+    @RolesAllowed({"ADMIN", "DEVOPS"})
     public Uni<Response> getRole(@PathParam("id") String id) {
         return Uni.createFrom().item(() -> {
             try {
@@ -88,9 +90,10 @@ public class RoleResource {
     /**
      * Create new role
      * POST /api/v11/roles
+     * Requires: ADMIN role
      */
     @POST
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> createRole(@Valid CreateRoleRequest request) {
         return Uni.createFrom().item(() -> {
             try {
@@ -116,10 +119,11 @@ public class RoleResource {
     /**
      * Update role
      * PUT /api/v11/roles/{id}
+     * Requires: ADMIN role
      */
     @PUT
     @Path("/{id}")
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> updateRole(
         @PathParam("id") String id,
         @Valid UpdateRoleRequest request
@@ -151,10 +155,11 @@ public class RoleResource {
     /**
      * Delete role
      * DELETE /api/v11/roles/{id}
+     * Requires: ADMIN role
      */
     @DELETE
     @Path("/{id}")
-    //@RolesAllowed("ADMIN")
+    @RolesAllowed("ADMIN")
     public Uni<Response> deleteRole(@PathParam("id") String id) {
         return Uni.createFrom().item(() -> {
             try {
@@ -177,10 +182,11 @@ public class RoleResource {
     /**
      * Get role permissions
      * GET /api/v11/roles/{id}/permissions
+     * Requires: ADMIN or DEVOPS role
      */
     @GET
     @Path("/{id}/permissions")
-    //@RolesAllowed({"ADMIN", "DEVOPS"})
+    @RolesAllowed({"ADMIN", "DEVOPS"})
     public Uni<Response> getRolePermissions(@PathParam("id") String id) {
         return Uni.createFrom().item(() -> {
             try {
@@ -203,10 +209,11 @@ public class RoleResource {
     /**
      * Check role permission
      * GET /api/v11/roles/{id}/permissions/check?resource=transactions&action=write
+     * Requires: ADMIN or DEVOPS role
      */
     @GET
     @Path("/{id}/permissions/check")
-    //@RolesAllowed({"ADMIN", "DEVOPS"})
+    @RolesAllowed({"ADMIN", "DEVOPS"})
     public Uni<Response> checkPermission(
         @PathParam("id") String id,
         @QueryParam("resource") String resource,
@@ -247,10 +254,11 @@ public class RoleResource {
     /**
      * Get role statistics
      * GET /api/v11/roles/{id}/statistics
+     * Requires: ADMIN or DEVOPS role
      */
     @GET
     @Path("/{id}/statistics")
-    //@RolesAllowed({"ADMIN", "DEVOPS"})
+    @RolesAllowed({"ADMIN", "DEVOPS"})
     public Uni<Response> getRoleStatistics(@PathParam("id") String id) {
         return Uni.createFrom().item(() -> {
             try {
