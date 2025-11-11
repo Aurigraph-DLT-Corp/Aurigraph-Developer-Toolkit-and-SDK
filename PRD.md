@@ -315,6 +315,321 @@ All services communicate via Protocol Buffers defined in `protos/`:
 5. **CryptoService**: Quantum-safe cryptographic operations
 6. **StorageService**: Blockchain and state persistence
 
+### 2.6 System Architecture Diagrams (UML)
+
+Comprehensive UML documentation provides detailed system architecture, data flows, and component interactions:
+
+#### Diagram Reference
+- **01-System-Architecture.puml** - C4 Context model with all services and connections
+- **02-Data-Flow-Diagram.puml** - Level 2 DFD showing 8 processes and data stores
+- **03-Entity-Relationship-Diagram.puml** - PostgreSQL schema with 13 entities
+- **04-Class-Diagram-Core-Services.puml** - 8 service interfaces with implementations
+- **05-Sequence-Diagram-Transaction-Flow.puml** - Complete transaction lifecycle to finality
+- **06-State-Diagram-Authentication.puml** - Auth state machine with token refresh
+- **07-State-Diagram-Consensus.puml** - HyperRAFT++ consensus state machine
+- **08-Deployment-Diagram.puml** - Multi-cloud (AWS, Azure, GCP) topology
+- **09-Component-Diagram-Enterprise-Portal.puml** - Portal architecture with layers
+
+**Location**: `/docs/UML/` in repository
+
+#### System Architecture (C4 Context)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                Browser / Client Layer                        │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ React Application (Login, Dashboard, Monitors, UI)   │  │
+│  │ State: Redux + Custom Hooks + WebSocket              │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                            ↓ (HTTPS/HTTP2)
+┌─────────────────────────────────────────────────────────────┐
+│              API Gateway (NGINX) + TLS 1.3                  │
+│              Rate Limiting: 1000 req/min (auth)             │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│             REST API + WebSocket (Port 9003)                │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ Authentication Endpoint (JWT token management)       │  │
+│  │ Transaction Endpoint (Submit, query, batch)          │  │
+│  │ Consensus Endpoint (Status, metrics)                 │  │
+│  │ Smart Contract Endpoint (Deploy, execute)            │  │
+│  │ RWAT Endpoint (Tokenization, registry)               │  │
+│  │ Cross-Chain Endpoint (Bridge transfers)              │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    Data Layer (Persistence)                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │
+│  │PostgreSQL│  │ RocksDB  │  │  Redis   │                  │
+│  │ 16 (Txs) │  │(State)   │  │ (Cache)  │                  │
+│  └──────────┘  └──────────┘  └──────────┘                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Data Flow (Level 2)
+- **Transaction Submission**: API → Crypto validation → Mempool → Consensus
+- **Consensus**: Leader election → Log replication → State machine → DB commit
+- **Smart Contracts**: WASM execution → State transitions → Event emission
+- **Cross-Chain**: Bridge module → Attestation → Lock-and-mint → Settlement
+
+#### Entity Relationships
+- **Users & Sessions**: Authentication, authorization, session management
+- **Transactions**: Hash, status, fees, sender, receiver
+- **Blocks**: Height, merkle root, timestamp, consensus data
+- **Validators**: Node ID, stake, rewards, uptime metrics
+- **Smart Contracts**: Address, code, state, execution logs
+- **RWATs**: Token ID, asset metadata, oracle verification
+
+---
+
+## 2.7 Enterprise Portal Authentication & Authorization
+
+### 2.7.1 JWT Token Lifecycle Management
+
+The Enterprise Portal implements a comprehensive JWT-based authentication system with automatic token refresh, cross-tab synchronization, and offline support.
+
+#### Authentication Components
+
+**Storage Keys (localStorage)**
+```
+auth_token: "eyJhbGciOiJIUzI1NiIs..."       # Main JWT access token
+auth_refresh_token: "eyJhbGciOiJIUzI1NiIs..." # Token refresh token
+auth_user: {...}                            # Cached user data
+auth_expiry: "1731334800000"               # Token expiration (ms)
+```
+
+**Redux Auth State**
+```typescript
+AuthState {
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    roles: string[];
+  } | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  sessionId?: string;
+  expiresIn?: number;
+  lastCheckTime?: number;
+}
+```
+
+#### Key Services
+
+**AuthService** (`src/services/authService.ts`)
+- `login(username, password)` - POST /api/v11/login/authenticate
+- `verifySession()` - Restore from localStorage or server
+- `refreshTokenAsync(refreshToken)` - POST /api/v11/login/refresh
+- `logout()` - POST /api/v11/login/logout + clear storage
+
+**APIClient** (`src/services/apiClient.ts`)
+- Automatic JWT header injection: `Authorization: Bearer {token}`
+- 401 error handling with automatic token refresh
+- Retry mechanism for failed requests
+- Fallback to cookie-based sessions
+
+**useAuth Hook** (`src/hooks/useAuth.ts`)
+- Auto-verification on component mount
+- Global `auth:unauthorized` event listener
+- Automatic logout on 401 or refresh failure
+- Cross-tab synchronization via storage events
+
+### 2.7.2 Authentication Workflow
+
+#### User Login Flow
+```
+1. User visits /login page
+   ↓ ProtectedRoute detects isAuthenticated=false
+   ↓ Redirects with return URL: /login?returnUrl=%2Fdashboard
+
+2. User submits credentials
+   ↓ handleLogin() → dispatch(loginAsync())
+   ↓ authService.login() → POST /api/v11/login/authenticate
+
+3. Backend validates credentials
+   ↓ Returns JWT + refreshToken + user data
+
+4. Frontend stores tokens
+   ↓ storeToken() saves to localStorage
+   ├─ auth_token
+   ├─ auth_refresh_token
+   ├─ auth_user
+   └─ auth_expiry
+
+5. Redux updates state
+   ↓ dispatch(setAuthenticated(user))
+   ↓ isAuthenticated = true
+
+6. useEffect triggers redirect
+   ↓ navigate(returnUrl) → Original destination
+```
+
+#### Protected Route Flow
+```
+Component accesses /dashboard route
+   ↓ ProtectedRoute checks Redux auth state
+
+   ┌──────────────────────────┐
+   │ isLoading?               │
+   ├──────────────────────────┤
+   │ YES → Show spinner       │
+   │ NO  → Check auth status  │
+   └──────────────────────────┘
+
+   ┌──────────────────────────┐
+   │ isAuthenticated?          │
+   ├──────────────────────────┤
+   │ YES → Render component   │
+   │ NO  → Redirect to login  │
+   │      with returnUrl      │
+   └──────────────────────────┘
+
+   ┌──────────────────────────┐
+   │ Check requiredRoles?     │
+   ├──────────────────────────┤
+   │ YES → Validate role      │
+   │       Allow or forbid    │
+   │ NO  → Render component   │
+   └──────────────────────────┘
+```
+
+#### API Request with JWT
+```
+Component calls: apiClient.get('/api/v11/transactions')
+   ↓
+APIClient.request() executes:
+   1. Get JWT from localStorage
+      authService.getToken() → "eyJhbGc..."
+
+   2. Prepare headers
+      Authorization: Bearer {token}
+      Content-Type: application/json
+
+   3. Send request with credentials
+      credentials: 'include' (for session fallback)
+
+   ┌─────────────────────────┐
+   │ Response status?        │
+   ├─────────────────────────┤
+   │ 200-399: Success        │
+   │ → Return data to caller │
+   │                         │
+   │ 401: Unauthorized       │
+   │ → Attempt token refresh │
+   │    → Retry request      │
+   │    → Return new data    │
+   │    OR logout on failure │
+   │                         │
+   │ 4xx/5xx: Error          │
+   │ → Throw error to caller │
+   └─────────────────────────┘
+```
+
+#### Token Refresh Flow
+```
+Background task or 401 response triggers refresh
+   ↓
+authService.getRefreshToken() → "eyJhbGc..."
+   ↓
+POST /api/v11/login/refresh
+  Headers: Authorization: Bearer {refreshToken}
+   ↓
+┌────────────────────────────┐
+│ Refresh successful?        │
+├────────────────────────────┤
+│ YES:                       │
+│  1. Store new token        │
+│     localStorage.setItem() │
+│  2. Retry original request │
+│  3. Return data to caller  │
+│                            │
+│ NO:                        │
+│  1. Dispatch               │
+│     auth:unauthorized      │
+│  2. Clear localStorage     │
+│  3. logout() → /login      │
+└────────────────────────────┘
+```
+
+#### Logout Flow
+```
+User clicks Logout button
+   ↓
+dispatch(logoutAsync())
+   ↓
+authService.logout()
+   POST /api/v11/login/logout
+   Headers: Authorization: Bearer {token}
+   ↓
+Clear storage:
+   localStorage.removeItem('auth_token')
+   localStorage.removeItem('auth_refresh_token')
+   localStorage.removeItem('auth_user')
+   localStorage.removeItem('auth_expiry')
+   ↓
+Update Redux state:
+   isAuthenticated = false
+   user = null
+   ↓
+Navigate to /login
+```
+
+### 2.7.3 Security Features
+
+**Token Management**
+- Tokens stored in browser localStorage (XSS protected via CSP)
+- Automatic refresh before expiration (proactive)
+- Manual refresh capability for user control
+- Token expiry validation on each request
+
+**Session Handling**
+- Session-based auth fallback (cookies with credentials: 'include')
+- Cross-tab synchronization via storage events
+- Offline support with request queuing
+- Automatic logout on 401 after refresh fails
+
+**Error Handling**
+- Global `auth:unauthorized` event for 401 responses
+- Automatic cleanup of invalid tokens
+- Graceful degradation to login page
+- User-friendly error messages
+
+**CORS & Rate Limiting**
+- CORS headers configured for portal domain
+- Rate limiting: 5 req/min for authentication endpoints
+- Rate limiting: 1000 req/min for general API access
+- TLS 1.3 minimum for transport security
+
+### 2.7.4 Portal Routes & Access Control
+
+**Protected Routes** (require authentication)
+```
+/home              → Dashboard with live metrics
+/transactions      → Transaction explorer
+/metrics           → Performance metrics viewer
+/contracts         → Smart contract management
+/bridge            → Cross-chain bridge interface
+/rwa               → RWAT registry and tokenization
+/settings          → User settings and preferences
+```
+
+**Public Routes** (no authentication required)
+```
+/login             → Login page with demo option
+/health            → API health check endpoint
+/unauthorized      → 403 Forbidden page
+```
+
+**Return URL Handling**
+- Unauthenticated access to /contracts captures location
+- Redirects to: `/login?returnUrl=%2Fcontracts`
+- After successful login, navigates to: `/contracts`
+- Prevents forced navigation to `/home`
+
 ---
 
 ## 3. Core Components
