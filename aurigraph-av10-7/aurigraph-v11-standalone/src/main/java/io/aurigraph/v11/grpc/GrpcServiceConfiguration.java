@@ -51,11 +51,21 @@ public class GrpcServiceConfiguration {
     @Inject(optional = true)
     ContractServiceImpl contractService;
 
-    // TODO: Add other services when implementations are complete:
-    // - TraceabilityServiceImpl (Agent 2.1)
-    // - CryptoServiceImpl (Agent 1.4)
-    // - StorageServiceImpl (Agent 1.5)
-    // - NetworkServiceImpl (Agent 2.2)
+    // CryptoService implementation (Agent 1.4)
+    @Inject(optional = true)
+    CryptoServiceImpl cryptoService;
+
+    // StorageService implementation (Agent 1.5)
+    @Inject(optional = true)
+    StorageServiceImpl storageService;
+
+    // TraceabilityService implementation (Agent 2.1)
+    @Inject(optional = true)
+    TraceabilityServiceImpl traceabilityService;
+
+    // NetworkService implementation (Agent 2.2)
+    @Inject(optional = true)
+    NetworkServiceImpl networkService;
 
     private Server grpcServer;
 
@@ -84,11 +94,25 @@ public class GrpcServiceConfiguration {
                 Log.infof("✅ ContractService registered");
             }
 
-            // TODO: Register other services when implementations are complete
-            // - TraceabilityService (Agent 2.1)
-            // - CryptoService (Agent 1.4)
-            // - StorageService (Agent 1.5)
-            // - NetworkService (Agent 2.2)
+            // Register CryptoService if available (Agent 1.4)
+            if (cryptoService != null) {
+                Log.infof("✅ CryptoService registered");
+            }
+
+            // Register StorageService if available (Agent 1.5)
+            if (storageService != null) {
+                Log.infof("✅ StorageService registered");
+            }
+
+            // Register TraceabilityService if available (Agent 2.1)
+            if (traceabilityService != null) {
+                Log.infof("✅ TraceabilityService registered");
+            }
+
+            // Register NetworkService if available (Agent 2.2)
+            if (networkService != null) {
+                Log.infof("✅ NetworkService registered");
+            }
 
             grpcServer = builder
                 // Performance optimizations
