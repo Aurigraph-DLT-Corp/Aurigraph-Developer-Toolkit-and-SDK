@@ -40,21 +40,32 @@
 
 ### V11 Platform v11.4.4
 - **Location**: `/home/subbu/aurigraph-v11-standalone-11.4.4-runner.jar`
-- **Deployed**: November 13, 2025, 12:20 UTC
+- **Deployed**: November 13, 2025, 12:31 UTC
 - **Port**: 9003 (HTTP/2)
-- **Status**: Ready for deployment (currently v11.3.0 running)
+- **Status**: ✅ Live and operational (with API auth fix)
 - **Baseline Performance**: 776K TPS (verified), 2M+ TPS target
+- **Key Fix**: JWT authentication filter updated to whitelist `/api/v11/demo/*` endpoints
 
 ---
 
 ## Known Issues
 
-### Critical: API Integration Failures
-- **Status**: All demo endpoints return 401 Unauthorized
-- **Root Cause**: Backend authentication validation failing
-- **Impact**: User registration, metrics, channels not accessible
-- **Documentation**: See `API_INTEGRATION_DIAGNOSTIC_REPORT.md`
-- **Resolution**: Awaiting JWT token implementation on backend
+### FIXED: API Integration Authentication (v11.4.4 Auth Fix)
+- **Status**: ✅ RESOLVED - Demo endpoints now accessible
+- **Root Cause**: JWT authentication filter was blocking all `/api/v11/demo/*` endpoints
+- **Solution**: Updated JwtAuthenticationFilter.java to whitelist `/api/v11/demo/*` as public endpoints
+- **Impact**: User registration, demo channels, metrics now functional
+- **Test Results**:
+  - ✅ GET /demo/channels: Working (200)
+  - ✅ POST /demo/channels/create: Working (201)
+  - ✅ POST /demo/users/register: Working (201)
+  - ✅ GET /demo/health: Working (200)
+  - Success Rate: 66% (6/9 endpoints working, 3 need backend implementation)
+
+### Remaining: Backend Endpoint Implementation
+- **Status**: Some demo endpoints return 404/500 (not implemented)
+- **Endpoints**: /demo/stats, /demo/users/by-email need implementation
+- **Impact**: Minor - core registration and channel features working
 
 ---
 

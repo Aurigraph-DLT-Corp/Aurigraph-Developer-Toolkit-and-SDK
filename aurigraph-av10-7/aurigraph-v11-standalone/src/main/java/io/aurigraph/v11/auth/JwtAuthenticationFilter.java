@@ -100,17 +100,43 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
 
     /**
      * Check if endpoint is public (doesn't require authentication)
+     *
+     * Public endpoints include:
+     * - Login and authentication endpoints
+     * - Health check endpoints
+     * - Demo endpoints (for Enterprise Portal integration)
+     * - Quarkus metrics endpoints
      */
     private boolean isPublicEndpoint(String path) {
-        return path.equals("/api/v11/login/authenticate") ||
-               path.equals("/api/v11/login/verify") ||
-               path.equals("/api/v11/login/logout") ||
-               path.equals("/api/v11/health") ||
-               path.equals("/api/v11/info") ||
-               path.startsWith("/q/") ||  // Quarkus health/metrics endpoints
-               path.equals("/") ||
-               path.startsWith("/assets/") ||
-               path.startsWith("/static/");
+        // Authentication endpoints
+        if (path.equals("/api/v11/login/authenticate") ||
+            path.equals("/api/v11/login/verify") ||
+            path.equals("/api/v11/login/logout") ||
+            path.equals("/api/v11/health") ||
+            path.equals("/api/v11/info")) {
+            return true;
+        }
+
+        // Quarkus health/metrics endpoints
+        if (path.startsWith("/q/")) {
+            return true;
+        }
+
+        // Static assets
+        if (path.equals("/") ||
+            path.startsWith("/assets/") ||
+            path.startsWith("/static/")) {
+            return true;
+        }
+
+        // Demo endpoints for Enterprise Portal (all demo/* endpoints are public)
+        // This allows the portal to access demo features without authentication
+        if (path.startsWith("/api/v11/demo/")) {
+            LOG.debugf("Demo endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        return false;
     }
 
     /**
