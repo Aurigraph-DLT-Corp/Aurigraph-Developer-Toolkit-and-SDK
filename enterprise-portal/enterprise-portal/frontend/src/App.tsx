@@ -32,6 +32,8 @@ import {
   LogoutOutlined,
   DownOutlined,
   TeamOutlined,
+  SecurityScanOutlined,
+  FolderTreeOutlined,
 } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
@@ -55,6 +57,9 @@ import ExternalAPITokenization from './components/comprehensive/ExternalAPIToken
 import RWATRegistry from './components/comprehensive/RWATRegistry';
 import Whitepaper from './components/comprehensive/Whitepaper';
 import UserManagement from './components/UserManagement';
+import RWATTokenizationForm from './components/rwat/RWATTokenizationForm';
+import MerkleTreeRegistry from './components/registry/MerkleTreeRegistry';
+import ComplianceDashboard from './components/compliance/ComplianceDashboard';
 
 const { Header, Content, Footer } = Layout;
 
@@ -174,6 +179,11 @@ function App() {
           label: 'Tokenization',
         },
         {
+          key: 'rwat-tokenization',
+          icon: <FileAddOutlined />,
+          label: 'RWAT Tokenization',
+        },
+        {
           key: 'token-registry',
           icon: <DollarOutlined />,
           label: 'Token Registry',
@@ -182,6 +192,40 @@ function App() {
           key: 'rwat',
           icon: <BankOutlined />,
           label: 'RWAT Registry',
+        },
+      ],
+    },
+    {
+      key: 'compliance',
+      icon: <SecurityScanOutlined />,
+      label: 'Compliance',
+      children: [
+        {
+          key: 'compliance-dashboard',
+          icon: <SafetyOutlined />,
+          label: 'Compliance Dashboard',
+        },
+        {
+          key: 'compliance-reports',
+          icon: <FileTextOutlined />,
+          label: 'Compliance Reports',
+        },
+      ],
+    },
+    {
+      key: 'registries',
+      icon: <FolderTreeOutlined />,
+      label: 'Registries',
+      children: [
+        {
+          key: 'merkle-tree',
+          icon: <FolderTreeOutlined />,
+          label: 'Merkle Tree Registry',
+        },
+        {
+          key: 'token-list',
+          icon: <AppstoreOutlined />,
+          label: 'Token Directory',
         },
       ],
     },
@@ -262,12 +306,32 @@ function App() {
         return <ActiveContracts />;
       case 'tokenization':
         return <Tokenization />;
+      case 'rwat-tokenization':
+        return <RWATTokenizationForm />;
       case 'token-registry':
         return <TokenizationRegistry />;
       case 'api-tokenization':
         return <ExternalAPITokenization />;
       case 'rwat':
         return <RWATRegistry />;
+      case 'compliance-dashboard':
+        return <ComplianceDashboard />;
+      case 'compliance-reports':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Compliance Reports</h1>
+            <p>Detailed compliance reports and regulatory documentation.</p>
+          </div>
+        );
+      case 'merkle-tree':
+        return <MerkleTreeRegistry />;
+      case 'token-list':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Token Directory</h1>
+            <p>Complete list of all tokenized assets across the platform.</p>
+          </div>
+        );
       case 'monitoring':
         return <Monitoring />;
       case 'demo':
