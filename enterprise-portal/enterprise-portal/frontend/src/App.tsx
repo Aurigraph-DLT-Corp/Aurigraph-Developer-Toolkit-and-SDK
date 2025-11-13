@@ -30,6 +30,9 @@ import {
   TeamOutlined,
   SecurityScanOutlined,
   FolderOutlined,
+  LinkOutlined,
+  HistoryOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons';
 import { useAppSelector } from './hooks/useRedux';
 import { selectThemeMode } from './store/selectors';
@@ -207,6 +210,36 @@ function App() {
       ],
     },
     {
+      key: 'registries',
+      icon: <DatabaseOutlined />,
+      label: 'Registries & Traceability',
+      children: [
+        {
+          key: 'asset-traceability',
+          icon: <LinkOutlined />,
+          label: 'Asset Traceability',
+        },
+        {
+          key: 'traceability-management',
+          icon: <HistoryOutlined />,
+          label: 'Traceability Management',
+        },
+        {
+          key: 'contract-asset-links',
+          icon: <LinkOutlined />,
+          label: 'Contract-Asset Links',
+        },
+        {
+          type: 'divider',
+        },
+        {
+          key: 'registry-management',
+          icon: <FolderOutlined />,
+          label: 'Registry Management',
+        },
+      ],
+    },
+    {
       key: 'ai-optimization',
       icon: <RobotOutlined />,
       label: 'AI & Optimization',
@@ -352,6 +385,72 @@ function App() {
           <div style={{ padding: '24px' }}>
             <h1>Consensus Tuning</h1>
             <p>HyperRAFT++ consensus algorithm optimization and configuration.</p>
+          </div>
+        );
+      case 'asset-traceability':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Asset Traceability Visualization</h1>
+            <p>Track and visualize the complete lifecycle and history of tokenized assets across the blockchain network.</p>
+            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+              <h3>Features:</h3>
+              <ul>
+                <li>Real-time asset movement tracking</li>
+                <li>Complete audit trail visualization</li>
+                <li>Ownership history and transfers</li>
+                <li>Compliance event logging</li>
+                <li>Export traceability reports</li>
+              </ul>
+            </div>
+          </div>
+        );
+      case 'traceability-management':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Traceability Management</h1>
+            <p>Manage traceability records, verify ownership chains, and audit asset history.</p>
+            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+              <h3>Capabilities:</h3>
+              <ul>
+                <li>View asset ownership chains</li>
+                <li>Verify historical transactions</li>
+                <li>Compliance verification</li>
+                <li>Generate audit reports</li>
+              </ul>
+            </div>
+          </div>
+        );
+      case 'contract-asset-links':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Contract-Asset Links</h1>
+            <p>Establish and manage relationships between smart contracts and tokenized assets.</p>
+            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+              <h3>Functions:</h3>
+              <ul>
+                <li>Link smart contracts to assets</li>
+                <li>Manage contract-asset bindings</li>
+                <li>View contract interactions with assets</li>
+                <li>Enforce contract-based asset rules</li>
+              </ul>
+            </div>
+          </div>
+        );
+      case 'registry-management':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Registry Management</h1>
+            <p>Manage all registries including token registries, contract registries, and asset registries.</p>
+            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+              <h3>Registry Types:</h3>
+              <ul>
+                <li>Smart Contract Registry</li>
+                <li>Token Registry</li>
+                <li>RWA (Real-World Asset) Registry</li>
+                <li>Merkle Tree Registry</li>
+                <li>Compliance Registry</li>
+              </ul>
+            </div>
           </div>
         );
       default:
