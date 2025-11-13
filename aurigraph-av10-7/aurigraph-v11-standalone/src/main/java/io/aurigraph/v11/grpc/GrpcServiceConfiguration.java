@@ -7,6 +7,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.quarkus.runtime.ShutdownEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.io.IOException;
 
@@ -40,32 +41,45 @@ public class GrpcServiceConfiguration {
     private static final int GRPC_KEEPALIVE_TIMEOUT_SECONDS = 5;
 
     // TransactionService is the primary service implementation for this sprint
-    @Inject(optional = true)
-    TransactionServiceImpl transactionService;
+    @Inject
+    Instance<TransactionServiceImpl> transactionServiceInstance;
 
     // ConsensusService implementation (Agent 1.2)
-    @Inject(optional = true)
-    ConsensusServiceImpl consensusService;
+    @Inject
+    Instance<ConsensusServiceImpl> consensusServiceInstance;
 
     // ContractService implementation (Agent 1.3)
-    @Inject(optional = true)
-    ContractServiceImpl contractService;
+    @Inject
+    Instance<ContractServiceImpl> contractServiceInstance;
 
     // CryptoService implementation (Agent 1.4)
-    @Inject(optional = true)
-    CryptoServiceImpl cryptoService;
+    @Inject
+    Instance<CryptoServiceImpl> cryptoServiceInstance;
 
     // StorageService implementation (Agent 1.5)
-    @Inject(optional = true)
-    StorageServiceImpl storageService;
+    @Inject
+    Instance<StorageServiceImpl> storageServiceInstance;
 
     // TraceabilityService implementation (Agent 2.1)
-    @Inject(optional = true)
-    TraceabilityServiceImpl traceabilityService;
+    @Inject
+    Instance<TraceabilityServiceImpl> traceabilityServiceInstance;
 
     // NetworkService implementation (Agent 2.2)
-    @Inject(optional = true)
-    NetworkServiceImpl networkService;
+    @Inject
+    Instance<NetworkServiceImpl> networkServiceInstance;
+
+    // gRPC Interceptors
+    @Inject
+    Instance<AuthorizationInterceptor> authorizationInterceptorInstance;
+
+    @Inject
+    Instance<LoggingInterceptor> loggingInterceptorInstance;
+
+    @Inject
+    Instance<MetricsInterceptor> metricsInterceptorInstance;
+
+    @Inject
+    Instance<ExceptionInterceptor> exceptionInterceptorInstance;
 
     private Server grpcServer;
 
@@ -79,39 +93,66 @@ public class GrpcServiceConfiguration {
             var builder = ServerBuilder.forPort(GRPC_PORT);
 
             // Register TransactionService if available
-            if (transactionService != null) {
-                builder.addService(transactionService);
+            if (transactionServiceInstance.isResolvable()) {
+                builder.addService(transactionServiceInstance.get());
+                Log.infof("✅ TransactionService registered");
             }
 
             // Register ConsensusService if available (Agent 1.2)
-            if (consensusService != null) {
-                builder.addService(consensusService);
+            if (consensusServiceInstance.isResolvable()) {
+                builder.addService(consensusServiceInstance.get());
                 Log.infof("✅ ConsensusService registered");
             }
 
             // Register ContractService if available (Agent 1.3)
-            if (contractService != null) {
+            if (contractServiceInstance.isResolvable()) {
+                builder.addService(contractServiceInstance.get());
                 Log.infof("✅ ContractService registered");
             }
 
             // Register CryptoService if available (Agent 1.4)
-            if (cryptoService != null) {
+            if (cryptoServiceInstance.isResolvable()) {
+                builder.addService(cryptoServiceInstance.get());
                 Log.infof("✅ CryptoService registered");
             }
 
             // Register StorageService if available (Agent 1.5)
-            if (storageService != null) {
+            if (storageServiceInstance.isResolvable()) {
+                builder.addService(storageServiceInstance.get());
                 Log.infof("✅ StorageService registered");
             }
 
             // Register TraceabilityService if available (Agent 2.1)
-            if (traceabilityService != null) {
+            if (traceabilityServiceInstance.isResolvable()) {
+                builder.addService(traceabilityServiceInstance.get());
                 Log.infof("✅ TraceabilityService registered");
             }
 
             // Register NetworkService if available (Agent 2.2)
-            if (networkService != null) {
+            if (networkServiceInstance.isResolvable()) {
+                builder.addService(networkServiceInstance.get());
                 Log.infof("✅ NetworkService registered");
+            }
+
+            // Register gRPC Interceptors
+            if (exceptionInterceptorInstance.isResolvable()) {
+                builder.intercept(exceptionInterceptorInstance.get());
+                Log.infof("✅ ExceptionInterceptor registered");
+            }
+
+            if (authorizationInterceptorInstance.isResolvable()) {
+                builder.intercept(authorizationInterceptorInstance.get());
+                Log.infof("✅ AuthorizationInterceptor registered");
+            }
+
+            if (loggingInterceptorInstance.isResolvable()) {
+                builder.intercept(loggingInterceptorInstance.get());
+                Log.infof("✅ LoggingInterceptor registered");
+            }
+
+            if (metricsInterceptorInstance.isResolvable()) {
+                builder.intercept(metricsInterceptorInstance.get());
+                Log.infof("✅ MetricsInterceptor registered");
             }
 
             grpcServer = builder
