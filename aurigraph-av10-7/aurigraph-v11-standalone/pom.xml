@@ -707,7 +707,9 @@
                 </configuration>
             </plugin>
             
-            <!-- Protocol Buffers Maven Plugin - Generates gRPC stubs from .proto files -->
+            <!-- Protocol Buffers Maven Plugin - DISABLED: Using Quarkus gRPC extension instead -->
+            <!-- Quarkus gRPC extension handles proto compilation automatically to avoid duplication -->
+            <!--
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
@@ -728,6 +730,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
 
             <!-- OS Maven Plugin - Detects OS for protoc compilation -->
             <plugin>
