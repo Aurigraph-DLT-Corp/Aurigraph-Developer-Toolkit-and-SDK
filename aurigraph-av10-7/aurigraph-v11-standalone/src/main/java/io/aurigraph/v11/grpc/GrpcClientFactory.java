@@ -7,6 +7,9 @@ import io.quarkus.logging.Log;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import io.aurigraph.v11.proto.TransactionServiceGrpc;
+import io.aurigraph.v11.proto.ConsensusServiceGrpc;
+import io.aurigraph.v11.proto.BlockchainServiceGrpc;
 
 import java.util.concurrent.TimeUnit;
 
