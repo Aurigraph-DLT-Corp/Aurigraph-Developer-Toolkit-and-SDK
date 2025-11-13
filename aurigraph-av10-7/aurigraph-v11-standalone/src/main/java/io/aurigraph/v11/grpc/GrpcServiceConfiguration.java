@@ -68,6 +68,10 @@ public class GrpcServiceConfiguration {
     @Inject
     Instance<NetworkServiceImpl> networkServiceInstance;
 
+    // BlockchainService implementation (Agent B)
+    @Inject
+    Instance<BlockchainServiceImpl> blockchainServiceInstance;
+
     // gRPC Interceptors
     @Inject
     Instance<AuthorizationInterceptor> authorizationInterceptorInstance;
@@ -134,6 +138,12 @@ public class GrpcServiceConfiguration {
                 Log.infof("✅ NetworkService registered");
             }
 
+            // Register BlockchainService if available (Agent B)
+            if (blockchainServiceInstance.isResolvable()) {
+                builder.addService(blockchainServiceInstance.get());
+                Log.infof("✅ BlockchainService registered");
+            }
+
             // Register gRPC Interceptors
             if (exceptionInterceptorInstance.isResolvable()) {
                 builder.intercept(exceptionInterceptorInstance.get());
@@ -170,6 +180,7 @@ public class GrpcServiceConfiguration {
             Log.info("Available gRPC services:");
             Log.info("   - TransactionService (tx submission, validation, mempool management)");
             Log.info("   - ConsensusService (HyperRAFT++ consensus, block proposal, voting, leader election)");
+            Log.info("   - BlockchainService (block creation, validation, streaming, Merkle proofs)");
             Log.info("   [TODO] - ContractService (smart contract deployment and execution)");
             Log.info("   [TODO] - TraceabilityService (contract-asset link tracking)");
             Log.info("   [TODO] - CryptoService (quantum-resistant cryptography)");
