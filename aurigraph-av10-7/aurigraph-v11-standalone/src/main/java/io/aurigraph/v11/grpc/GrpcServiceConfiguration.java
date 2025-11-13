@@ -170,11 +170,11 @@ public class GrpcServiceConfiguration {
             Log.info("Available gRPC services:");
             Log.info("   - TransactionService (tx submission, validation, mempool management)");
             Log.info("   - ConsensusService (HyperRAFT++ consensus, block proposal, voting, leader election)");
+            Log.info("   - NetworkService (peer management, message broadcast, event streaming)");
             Log.info("   [TODO] - ContractService (smart contract deployment and execution)");
             Log.info("   [TODO] - TraceabilityService (contract-asset link tracking)");
             Log.info("   [TODO] - CryptoService (quantum-resistant cryptography)");
             Log.info("   [TODO] - StorageService (key-value state storage)");
-            Log.info("   [TODO] - NetworkService (peer communication and routing)");
 
         } catch (IOException e) {
             Log.error("Failed to start gRPC server", e);
