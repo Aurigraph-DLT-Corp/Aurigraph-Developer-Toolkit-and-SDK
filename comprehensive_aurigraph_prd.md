@@ -737,6 +737,110 @@ class TokenizationEngine {
 }
 ```
 
+### 2.3 Composite Token Framework (Digital Twin Bundles)
+
+The Composite Token feature extends RWA tokenization with a hierarchical digital twin framework that creates immutable cryptographic chains linking physical assets to verified digital representations.
+
+#### 2.3.1 Definition & Purpose
+
+**Composite Token** = Digital Twin Bundle combining:
+- **Primary Token**: Ownership proof (KYC-verified owner)
+- **Secondary Tokens**: Supporting evidence (government IDs, tax records, photos, videos, 3rd-party certifications)
+- **Verification**: Trusted oracle validation (CRYSTALS-Dilithium quantum signatures)
+- **Immutable Record**: Merkle tree proof of authenticity and consistency
+
+**Key Innovation**: Multi-layer merkle tree architecture enables cryptographic proof of digital twin integrity without central authority.
+
+#### 2.3.2 Composite Token Workflow
+
+**Week-by-week breakdown for typical 10-day digital twin creation**:
+
+**Days 1-2: Asset Registration & Primary Token**
+- Register asset in Asset Registry (merkle tree enabled)
+- Create Primary Token with KYC-verified owner
+- Primary token status: CREATED
+- Merkle inclusion: Asset Registry → Token Registry link
+
+**Days 2-4: Secondary Token Uploads**
+- Upload supporting documents (government IDs, tax receipts)
+- Upload photos/videos of asset (encrypted S3 storage)
+- Upload 3rd-party certifications and appraisals
+- All documents SHA-256 hashed and registered in merkle tree
+
+**Days 4-5: Oracle Verification**
+- Trusted oracle reviews primary + all secondary tokens
+- Verifies document authenticity and consistency
+- Signs verification with CRYSTALS-Dilithium quantum key
+- Status transition: SECONDARY_TOKENS_VERIFIED
+
+**Day 5: Composite Creation**
+- System creates deterministic digital twin hash
+- Builds 4-level merkle tree (primary + secondary + binding + root)
+- Status: COMPOSITE_CREATED
+
+**Days 5-7: Oracle Final Verification**
+- Oracle validates merkle tree integrity (external verification possible)
+- Verifies all components present and cryptographically consistent
+- Signs composite token with quantum key
+- Status: COMPOSITE_VERIFIED
+
+**Days 7-10: Contract Binding & Execution**
+- Bind composite token to ActiveContract (1:1 relationship)
+- Contract parties review verified digital twin
+- Execute contract terms against immutable record
+- Final status: BOUND_TO_CONTRACT → EXECUTED
+
+#### 2.3.3 Security & Verification
+
+**Cryptographic Guarantee**:
+- Any external party can verify digital twin authenticity
+- Merkle tree proofs enable verification in O(log n) time
+- Oracle signatures verified with oracle's public key
+- Complete audit trail available (immutable log)
+- No central authority required (cryptographic proof sufficient)
+
+**Trust Model**:
+1. **Asset Registry (merkle tree)**: Proves asset existed at creation
+2. **Token Registry**: Proves primary & secondary tokens valid
+3. **Composite Registry**: Proves oracle verification occurred
+4. **Contract Registry**: Proves execution against verified digital twin
+5. **Binding Proofs**: Links all 4 registries together
+
+#### 2.3.4 Performance Targets
+
+| Operation | Target | Notes |
+|-----------|--------|-------|
+| Primary Token Creation | < 2 seconds | KYC-verified owner |
+| Secondary Token Upload | < 5 sec/doc | Encrypted S3 storage |
+| Composite Creation | < 5 seconds | After all secondary verified |
+| Oracle Verification | < 10 seconds | Merkle tree validation |
+| Contract Binding | < 3 seconds | 1:1 composite-contract link |
+| External Verification | < 1 second | Replay merkle proofs |
+
+#### 2.3.5 Scalability Analysis
+
+**Single Composite Token**:
+- Primary Tokens: 1
+- Secondary Tokens: 5-10 documents (typical)
+- Merkle Tree Depth: 4 levels
+- Merkle Proof Size: ~256 bytes
+- Binding Proof Size: ~512 bytes
+
+**Platform Capacity** (with V11 2M TPS backend):
+- Composite tokens/day: 100,000+ (projected)
+- Oracle verifications/day: 100,000+ (parallel processing)
+- Merkle tree updates: < 1ms per token
+- Registry queries: < 100ms even with millions of tokens
+- Blockchain transaction finality: < 100ms
+
+**Use Cases**:
+1. **Real Estate Fractional Ownership**: Property deed (primary) + appraisal, photos, title (secondary) = verified tradeable digital twin
+2. **Carbon Credit Verification**: Emission certificate (primary) + methodology docs, audits, measurement reports (secondary) = market-tradeable verified credit
+3. **Supply Chain Asset Tracking**: Shipment ID (primary) + origin certs, quality reports, lab tests (secondary) = provenance-verified product
+4. **Art & Collectibles Authentication**: Artwork tokenization (primary) + provenance docs, expert appraisals, photos, certificates (secondary) = authenticated tradeable art
+
+---
+
 ## 3. Smart Contract Architecture (Ricardian Contracts)
 
 ### 3.1 Ricardian Contract Engine
