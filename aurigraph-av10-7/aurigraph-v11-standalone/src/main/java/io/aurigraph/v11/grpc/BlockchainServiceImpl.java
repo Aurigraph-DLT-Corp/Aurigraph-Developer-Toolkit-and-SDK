@@ -510,7 +510,7 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
             // Update transaction status
             io.aurigraph.v11.proto.Transaction executedTx = protoTx.toBuilder()
-                .setStatus(TransactionStatus.TRANSACTION_CONFIRMED)
+                .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED)
                 .setExecutedAt(Timestamp.newBuilder()
                     .setSeconds(Instant.now().getEpochSecond())
                     .setNanos(Instant.now().getNano())
@@ -909,19 +909,19 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             .setTransactionId(tx.getHash()) // Using hash as ID
             .setFromAddress(tx.getFromAddress() != null ? tx.getFromAddress() : "")
             .setToAddress(tx.getToAddress() != null ? tx.getToAddress() : "")
-            .setAmount(tx.getAmount() != null ? tx.getAmount().toString() : "0")
-            .setGasPrice(tx.getGasPrice() != null ? tx.getGasPrice().doubleValue() : 0.0)
-            .setGasLimit(tx.getGasLimit() != null ? tx.getGasLimit().doubleValue() : 0.0)
+            .setAmount(String.valueOf(tx.getAmount()))
+            .setGasPrice((double) tx.getGasPrice())
+            .setGasLimit((double) tx.getGasLimit())
             .setGasUsed(0.0)
-            .setData(tx.getData() != null ? tx.getData() : "")
-            .setNonce(tx.getNonce() != null ? tx.getNonce() : 0)
+            .setData(tx.getPayload() != null ? tx.getPayload() : "")
+            .setNonce(0) // Transaction entity doesn't have nonce field yet
             .setCreatedAt(Timestamp.newBuilder()
                 .setSeconds(tx.getTimestamp().getEpochSecond())
                 .setNanos(tx.getTimestamp().getNano())
                 .build())
             .setStatus(convertToProtoTransactionStatus(tx.getStatus()))
             .setSignature(tx.getSignature() != null ? tx.getSignature() : "")
-            .setPublicKey(tx.getPublicKey() != null ? tx.getPublicKey() : "")
+            .setPublicKey("") // Transaction entity doesn't have publicKey field yet
             .build();
     }
 

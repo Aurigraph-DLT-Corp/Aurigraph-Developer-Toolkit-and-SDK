@@ -32,14 +32,14 @@ public class DAMNResource {
     public Uni<Response> performHealthCheck() {
         return damn.performSystemHealthCheck()
             .map(report -> {
-                Log.info("Health check completed. Overall: {}", report.getOverallHealthLevel());
+                Log.infof("Health check completed. Overall: %s", report.getOverallHealthLevel());
                 return Response.ok(report).build();
             })
             .onFailure()
             .recoverWithItem(e -> {
-                Log.error("Health check failed", e);
+                Log.errorf("Health check failed: %s", e.getMessage());
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Health check failed"))
+                    .entity(Map.of("error", "Health check failed: " + e.getMessage()))
                     .build();
             });
     }
@@ -132,7 +132,7 @@ public class DAMNResource {
                     .build();
             }
 
-            Log.info("Manually triggered check for component: {}", componentId);
+            Log.infof("Manually triggered check for component: %s", componentId);
             return Response.ok(Map.of(
                 "message", "Health check triggered",
                 "componentId", componentId

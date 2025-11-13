@@ -61,11 +61,11 @@ public class NetworkServiceImpl implements io.aurigraph.v11.proto.NetworkService
     }
 
     /**
-     * GetNetworkStatus - Returns current network health and metrics
+     * getNetworkStatus - Returns current network health and metrics
      * Performance Target: <5ms latency
      */
     @Override
-    public Uni<io.aurigraph.v11.proto.NetworkStatus> GetNetworkStatus(io.aurigraph.v11.proto.GetNetworkStatusRequest request) {
+    public Uni<io.aurigraph.v11.proto.NetworkStatus> getNetworkStatus(io.aurigraph.v11.proto.GetNetworkStatusRequest request) {
         long startTime = System.nanoTime();
 
         return Uni.createFrom().item(() -> {
@@ -126,11 +126,11 @@ public class NetworkServiceImpl implements io.aurigraph.v11.proto.NetworkService
     }
 
     /**
-     * GetPeerList - Returns list of connected peers with metadata
+     * getPeerList - Returns list of connected peers with metadata
      * Performance Target: <10ms latency
      */
     @Override
-    public Uni<io.aurigraph.v11.proto.PeerListResponse> GetPeerList(io.aurigraph.v11.proto.GetPeerListRequest request) {
+    public Uni<io.aurigraph.v11.proto.PeerListResponse> getPeerList(io.aurigraph.v11.proto.GetPeerListRequest request) {
         long startTime = System.nanoTime();
 
         return Uni.createFrom().item(() -> {
@@ -173,11 +173,11 @@ public class NetworkServiceImpl implements io.aurigraph.v11.proto.NetworkService
     }
 
     /**
-     * BroadcastMessage - Broadcasts message to network peers
+     * broadcastMessage - Broadcasts message to network peers
      * Performance Target: <50ms peer-to-peer propagation
      */
     @Override
-    public Uni<io.aurigraph.v11.proto.BroadcastMessageResponse> BroadcastMessage(io.aurigraph.v11.proto.BroadcastMessageRequest request) {
+    public Uni<io.aurigraph.v11.proto.BroadcastMessageResponse> broadcastMessage(io.aurigraph.v11.proto.BroadcastMessageRequest request) {
         long startTime = System.nanoTime();
 
         return Uni.createFrom().item(() -> {
@@ -269,11 +269,11 @@ public class NetworkServiceImpl implements io.aurigraph.v11.proto.NetworkService
     }
 
     /**
-     * SubscribeNetworkEvents - Streams real-time network events
+     * subscribeNetworkEvents - Streams real-time network events
      * Performance Target: 100+ concurrent subscribers
      */
     @Override
-    public Multi<io.aurigraph.v11.proto.NetworkEvent> SubscribeNetworkEvents(io.aurigraph.v11.proto.NetworkEventSubscription request) {
+    public Multi<io.aurigraph.v11.proto.NetworkEvent> subscribeNetworkEvents(io.aurigraph.v11.proto.NetworkEventSubscription request) {
         String streamId = UUID.randomUUID().toString();
         Log.infof("Starting network event stream: %s (active streams: %d)", streamId, activeStreams.size() + 1);
 
