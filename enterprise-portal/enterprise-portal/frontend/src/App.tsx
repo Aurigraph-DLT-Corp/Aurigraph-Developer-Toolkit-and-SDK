@@ -38,6 +38,7 @@ import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import Monitoring from './components/Monitoring';
 import DemoApp from './components/demo-app/DemoApp';
+import DemoChannelApp from './components/demo/DemoChannelApp';
 import TransactionExplorer from './components/comprehensive/TransactionExplorer';
 import BlockExplorer from './components/comprehensive/BlockExplorer';
 import ValidatorDashboard from './components/comprehensive/ValidatorDashboard';
@@ -115,6 +116,11 @@ function App() {
           key: 'demo',
           icon: <ExperimentOutlined />,
           label: 'Network Topology',
+        },
+        {
+          key: 'demo-channel',
+          icon: <ThunderboltOutlined />,
+          label: 'High-Throughput Demo',
         },
       ],
     },
@@ -321,6 +327,8 @@ function App() {
         return <Monitoring />;
       case 'demo':
         return <DemoApp />;
+      case 'demo-channel':
+        return <DemoChannelApp />;
       case 'whitepaper':
         return <Whitepaper />;
       case 'users':

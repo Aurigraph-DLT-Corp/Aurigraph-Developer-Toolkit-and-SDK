@@ -17,6 +17,9 @@ import {
   CheckCircleOutlined,
   DashboardOutlined,
   FileTextOutlined,
+  ExperimentOutlined,
+  NodeIndexOutlined,
+  LineChartOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
@@ -164,12 +167,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
               <div className="hero-cta" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Button
                   size="large"
-                  icon={<RocketOutlined />}
-                  onClick={() => onAccessPortal?.('demo')}
+                  icon={<ExperimentOutlined />}
+                  onClick={() => onAccessPortal?.('demo-channel')}
                   className="demo-button"
                   type="primary"
                 >
-                  Try Interactive Demo
+                  High-Throughput Demo
+                </Button>
+                <Button
+                  size="large"
+                  icon={<DashboardOutlined />}
+                  onClick={() => onAccessPortal?.('dashboard')}
+                  className="docs-button"
+                >
+                  Enterprise Portal
                 </Button>
                 <Button
                   size="large"
@@ -177,7 +188,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
                   onClick={() => onAccessPortal?.('whitepaper')}
                   className="docs-button"
                 >
-                  Read Whitepaper
+                  Whitepaper
                 </Button>
               </div>
             </div>
@@ -231,6 +242,85 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
             </Col>
           ))}
         </Row>
+      </div>
+
+      {/* High-Throughput Demo Section */}
+      <div className="demo-section" style={{
+        background: 'linear-gradient(135deg, #001529 0%, #0d2c4a 100%)',
+        color: '#fff',
+        padding: '60px 24px',
+        marginTop: '60px',
+        marginBottom: '60px',
+        borderRadius: '8px'
+      }}>
+        <Title level={2} className="section-title" style={{ color: '#fff', marginBottom: '12px' }}>
+          High-Throughput Demo Channel
+        </Title>
+        <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', marginBottom: '36px' }}>
+          Configure and test multi-channel blockchain scenarios with validator, business, and slim nodes.
+          Simulate 1M+ TPS workloads and measure real-time performance metrics.
+        </Paragraph>
+
+        <Row gutter={[32, 32]} style={{ marginBottom: '36px' }}>
+          <Col xs={24} md={12} lg={6}>
+            <Card className="demo-feature" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff' }} hoverable>
+              <NodeIndexOutlined style={{ fontSize: '40px', color: '#faad14', marginBottom: '16px' }} />
+              <Title level={5} style={{ color: '#fff', marginTop: '12px' }}>Node Configuration</Title>
+              <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>
+                4 Validators, 6 Business, 12 Slim nodes per channel
+              </Paragraph>
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={6}>
+            <Card className="demo-feature" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff' }} hoverable>
+              <ThunderboltOutlined style={{ fontSize: '40px', color: '#52c41a', marginBottom: '16px' }} />
+              <Title level={5} style={{ color: '#fff', marginTop: '12px' }}>High Throughput</Title>
+              <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>
+                Support 100K to 2M+ transactions per second
+              </Paragraph>
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={6}>
+            <Card className="demo-feature" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff' }} hoverable>
+              <LineChartOutlined style={{ fontSize: '40px', color: '#1890ff', marginBottom: '16px' }} />
+              <Title level={5} style={{ color: '#fff', marginTop: '12px' }}>Real-Time Metrics</Title>
+              <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>
+                Monitor TPS, latency, and per-node statistics live
+              </Paragraph>
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={6}>
+            <Card className="demo-feature" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff' }} hoverable>
+              <RobotOutlined style={{ fontSize: '40px', color: '#722ed1', marginBottom: '16px' }} />
+              <Title level={5} style={{ color: '#fff', marginTop: '12px' }}>AI Optimization</Title>
+              <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>
+                Enable AI-driven consensus improvements (+18.2% TPS)
+              </Paragraph>
+            </Card>
+          </Col>
+        </Row>
+
+        <div style={{ textAlign: 'center' }}>
+          <Button
+            size="large"
+            type="primary"
+            icon={<ExperimentOutlined />}
+            onClick={() => onAccessPortal?.('demo-channel')}
+            style={{
+              minWidth: '280px',
+              height: '48px',
+              fontSize: '16px',
+              background: '#faad14',
+              borderColor: '#faad14',
+              color: '#000'
+            }}
+          >
+            Launch Demo Channel Simulator
+          </Button>
+          <Paragraph style={{ color: 'rgba(255,255,255,0.7)', marginTop: '16px', fontSize: '12px' }}>
+            Test performance in isolated multi-channel environments with full control over node configurations
+          </Paragraph>
+        </div>
       </div>
 
       {/* Use Cases Section */}
@@ -296,11 +386,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
             </Button>
             <Button
               size="large"
-              icon={<RocketOutlined />}
-              onClick={() => onAccessPortal?.('demo')}
+              icon={<ExperimentOutlined />}
+              onClick={() => onAccessPortal?.('demo-channel')}
               style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
             >
-              Interactive Demo
+              High-Throughput Demo
             </Button>
             <Button
               size="large"
