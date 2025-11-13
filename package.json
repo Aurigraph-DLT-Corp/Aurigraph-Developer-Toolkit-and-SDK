@@ -1,7 +1,7 @@
 {
   "name": "aurigraph-dlt",
-  "version": "10.7.1",
-  "description": "Aurigraph-DLT Quantum Blockchain Platform with GitHub MCP integration",
+  "version": "10.7.2",
+  "description": "Aurigraph-DLT Quantum Blockchain Platform with Contract-Asset Traceability and Merkle Registry",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
