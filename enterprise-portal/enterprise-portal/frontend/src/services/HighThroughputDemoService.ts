@@ -91,7 +91,9 @@ class HighThroughputDemoService {
         'Content-Type': 'application/json',
         'X-API-Key': this.apiKey,
         'X-Internal-Request': 'true',
-        'Authorization': `Bearer internal-portal-access`,
+        // Note: Authorization header removed due to backend auth issues
+        // Backend requires valid JWT but current token format is not recognized
+        // TODO: Update with valid JWT token once authentication is properly configured
       },
     });
 
@@ -100,6 +102,10 @@ class HighThroughputDemoService {
       (response) => response,
       (error) => {
         console.error('[HighThroughputDemoService] API Error:', error.response?.data || error.message);
+        // Log authentication errors specifically for debugging
+        if (error.response?.status === 401) {
+          console.error('[HighThroughputDemoService] Authentication Error (401):', error.response?.data?.error);
+        }
         throw error;
       }
     );
