@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Layout, ConfigProvider, theme, Menu, Dropdown, Space, Avatar, Badge, Button } from 'antd';
+import { Layout, ConfigProvider, theme } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   DashboardOutlined,
@@ -27,17 +27,13 @@ import {
   ApiOutlined,
   BankOutlined,
   HomeOutlined,
-  UserOutlined,
-  BellOutlined,
-  LogoutOutlined,
-  DownOutlined,
   TeamOutlined,
   SecurityScanOutlined,
   FolderOutlined,
 } from '@ant-design/icons';
-import { useAppSelector, useAppDispatch } from './hooks/useRedux';
-import { toggleThemeMode } from './store/settingsSlice';
+import { useAppSelector } from './hooks/useRedux';
 import { selectThemeMode } from './store/selectors';
+import TopNav from './components/layout/TopNav';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import Monitoring from './components/Monitoring';
@@ -61,13 +57,12 @@ import RWATTokenizationForm from './components/rwat/RWATTokenizationForm';
 import MerkleTreeRegistry from './components/registry/MerkleTreeRegistry';
 import ComplianceDashboard from './components/compliance/ComplianceDashboard';
 
-const { Header, Content, Footer } = Layout;
+const { Content, Footer } = Layout;
 
 function App() {
   const [activeKey, setActiveKey] = useState('home');
 
-  // Redux state and actions
-  const dispatch = useAppDispatch();
+  // Redux state
   const themeMode = useAppSelector(selectThemeMode);
   const isDarkMode = themeMode === 'dark';
 
@@ -75,25 +70,6 @@ function App() {
     name: 'Admin User',
     role: 'System Administrator',
   };
-
-  // User menu dropdown
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'theme',
-      icon: <SettingOutlined />,
-      label: 'Toggle Theme',
-      onClick: () => dispatch(toggleThemeMode()),
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Logout',
-      onClick: () => console.log('Logout clicked'),
-    },
-  ];
 
   // Main navigation menu items - Reorganized for better UX
   const navMenuItems: MenuProps['items'] = [
@@ -287,9 +263,6 @@ function App() {
     },
   ];
 
-  const handleMenuClick = (e: { key: string }) => {
-    setActiveKey(e.key);
-  };
 
   // Render content based on active key
   const renderContent = () => {
@@ -389,74 +362,19 @@ function App() {
       }}
     >
       <Layout style={{ minHeight: '100vh' }}>
-        {/* Top Navigation Header */}
-        <Header
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-            background: isDarkMode ? '#001529' : '#fff',
-            borderBottom: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`,
-            position: 'sticky',
-            top: 0,
-            zIndex: 1000,
-          }}
-        >
-          {/* Logo and Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div
-              style={{
-                fontSize: '20px',
-                fontWeight: 'bold',
-                color: '#1890ff',
-              }}
-            >
-              Aurigraph DLT
-            </div>
-            <div
-              style={{
-                fontSize: '12px',
-                color: isDarkMode ? '#8c8c8c' : '#595959',
-              }}
-            >
-              Enterprise Portal v4.3.0
-            </div>
-          </div>
-
-          {/* Navigation Menu */}
-          <Menu
-            mode="horizontal"
-            selectedKeys={[activeKey]}
-            items={navMenuItems}
-            onClick={handleMenuClick}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              border: 'none',
-              background: 'transparent',
-              marginLeft: '24px',
-            }}
-          />
-
-          {/* User Actions */}
-          <Space size="large">
-            <Badge count={3}>
-              <Button
-                type="text"
-                icon={<BellOutlined style={{ fontSize: '18px' }} />}
-                onClick={() => console.log('Notifications clicked')}
-              />
-            </Badge>
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Space style={{ cursor: 'pointer' }}>
-                <Avatar icon={<UserOutlined />} />
-                <span>{user.name}</span>
-                <DownOutlined />
-              </Space>
-            </Dropdown>
-          </Space>
-        </Header>
+        {/* Optimized Top Navigation */}
+        <TopNav
+          navMenuItems={navMenuItems}
+          selectedKey={activeKey}
+          onMenuClick={(key: string) => setActiveKey(key)}
+          notificationCount={3}
+          onNotificationClick={() => console.log('Notifications clicked')}
+          user={user}
+          breadcrumbItems={[
+            { title: 'Home', onClick: () => setActiveKey('home') },
+          ]}
+          onSearch={(value) => console.log('Search:', value)}
+        />
 
         {/* Main Content */}
         <Content
