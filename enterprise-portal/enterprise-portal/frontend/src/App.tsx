@@ -95,7 +95,7 @@ function App() {
     },
   ];
 
-  // Main navigation menu items
+  // Main navigation menu items - Reorganized for better UX
   const navMenuItems: MenuProps['items'] = [
     {
       key: 'home',
@@ -127,61 +127,38 @@ function App() {
           icon: <NodeIndexOutlined />,
           label: 'Validators',
         },
-      ],
-    },
-    {
-      key: 'ai-security',
-      icon: <SafetyOutlined />,
-      label: 'AI & Security',
-      children: [
         {
-          key: 'ai',
-          icon: <RobotOutlined />,
-          label: 'AI Optimization',
+          type: 'divider',
         },
         {
-          key: 'security',
-          icon: <SafetyOutlined />,
-          label: 'Quantum Security',
+          key: 'monitoring',
+          icon: <LineChartOutlined />,
+          label: 'Monitoring',
+        },
+        {
+          key: 'demo',
+          icon: <ExperimentOutlined />,
+          label: 'Network Topology',
         },
       ],
     },
     {
-      key: 'contracts',
-      icon: <FileTextOutlined />,
-      label: 'Smart Contracts',
-      children: [
-        {
-          key: 'contracts-registry',
-          icon: <FileTextOutlined />,
-          label: 'Contract Registry',
-        },
-        {
-          key: 'document-converter',
-          icon: <FileAddOutlined />,
-          label: 'Document Converter',
-        },
-        {
-          key: 'active-contracts',
-          icon: <AppstoreOutlined />,
-          label: 'Active Contracts',
-        },
-      ],
-    },
-    {
-      key: 'assets',
+      key: 'rwat',
       icon: <GoldOutlined />,
-      label: 'Asset Management',
+      label: 'RWA Tokenization',
       children: [
-        {
-          key: 'tokenization',
-          icon: <GoldOutlined />,
-          label: 'Tokenization',
-        },
         {
           key: 'rwat-tokenization',
           icon: <FileAddOutlined />,
-          label: 'RWAT Tokenization',
+          label: 'Create RWAT Token',
+        },
+        {
+          key: 'tokenization',
+          icon: <GoldOutlined />,
+          label: 'Standard Tokenization',
+        },
+        {
+          type: 'divider',
         },
         {
           key: 'token-registry',
@@ -191,14 +168,36 @@ function App() {
         {
           key: 'rwat',
           icon: <BankOutlined />,
-          label: 'RWAT Registry',
+          label: 'RWA Registry',
+        },
+      ],
+    },
+    {
+      key: 'smart-contracts',
+      icon: <FileTextOutlined />,
+      label: 'Smart Contracts',
+      children: [
+        {
+          key: 'contracts-registry',
+          icon: <FileTextOutlined />,
+          label: 'Contract Registry',
+        },
+        {
+          key: 'active-contracts',
+          icon: <AppstoreOutlined />,
+          label: 'Active Contracts',
+        },
+        {
+          key: 'document-converter',
+          icon: <FileAddOutlined />,
+          label: 'Ricardian Converter',
         },
       ],
     },
     {
       key: 'compliance',
       icon: <SecurityScanOutlined />,
-      label: 'Compliance',
+      label: 'Compliance & Security',
       children: [
         {
           key: 'compliance-dashboard',
@@ -210,22 +209,40 @@ function App() {
           icon: <FileTextOutlined />,
           label: 'Compliance Reports',
         },
-      ],
-    },
-    {
-      key: 'registries',
-      icon: <FolderOutlined />,
-      label: 'Registries',
-      children: [
+        {
+          type: 'divider',
+        },
+        {
+          key: 'security',
+          icon: <SafetyOutlined />,
+          label: 'Quantum Security',
+        },
         {
           key: 'merkle-tree',
           icon: <FolderOutlined />,
           label: 'Merkle Tree Registry',
         },
+      ],
+    },
+    {
+      key: 'ai-optimization',
+      icon: <RobotOutlined />,
+      label: 'AI & Optimization',
+      children: [
         {
-          key: 'token-list',
-          icon: <AppstoreOutlined />,
-          label: 'Token Directory',
+          key: 'ai',
+          icon: <RobotOutlined />,
+          label: 'AI Optimization',
+        },
+        {
+          key: 'ai-metrics',
+          icon: <LineChartOutlined />,
+          label: 'AI Metrics',
+        },
+        {
+          key: 'consensus-optimization',
+          icon: <NodeIndexOutlined />,
+          label: 'Consensus Tuning',
         },
       ],
     },
@@ -242,25 +259,15 @@ function App() {
         {
           key: 'api-tokenization',
           icon: <ApiOutlined />,
-          label: 'API Tokenization',
+          label: 'API Endpoints',
         },
       ],
     },
     {
-      key: 'system',
-      icon: <ExperimentOutlined />,
-      label: 'System',
+      key: 'admin',
+      icon: <SettingOutlined />,
+      label: 'Administration',
       children: [
-        {
-          key: 'monitoring',
-          icon: <LineChartOutlined />,
-          label: 'Monitoring',
-        },
-        {
-          key: 'demo',
-          icon: <ExperimentOutlined />,
-          label: 'Node Visualization',
-        },
         {
           key: 'users',
           icon: <TeamOutlined />,
@@ -269,7 +276,12 @@ function App() {
         {
           key: 'settings',
           icon: <SettingOutlined />,
-          label: 'Settings',
+          label: 'System Settings',
+        },
+        {
+          key: 'token-list',
+          icon: <AppstoreOutlined />,
+          label: 'Token Directory',
         },
       ],
     },
@@ -343,8 +355,22 @@ function App() {
       case 'settings':
         return (
           <div style={{ padding: '24px' }}>
-            <h1>Settings</h1>
+            <h1>System Settings</h1>
             <p>Portal settings and configuration options will appear here.</p>
+          </div>
+        );
+      case 'ai-metrics':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>AI Metrics Dashboard</h1>
+            <p>Real-time AI optimization performance metrics and analytics.</p>
+          </div>
+        );
+      case 'consensus-optimization':
+        return (
+          <div style={{ padding: '24px' }}>
+            <h1>Consensus Tuning</h1>
+            <p>HyperRAFT++ consensus algorithm optimization and configuration.</p>
           </div>
         );
       default:
