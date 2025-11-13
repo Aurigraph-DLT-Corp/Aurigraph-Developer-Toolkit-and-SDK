@@ -4,8 +4,9 @@ package io.aurigraph.v11.proto;
 
 import "google/protobuf/timestamp.proto";
 import "common.proto";
+import "core_types.proto";
 
-option java_multiple_files = true;
+option java_multiple_files = false;
 option java_package = "io.aurigraph.v11.proto";
 option java_outer_classname = "BlockchainProto";
 
@@ -141,15 +142,7 @@ message BlockValidationResult {
   int64 validation_time_ms = 5;        // Time taken to validate
 }
 
-/**
- * ValidationError describes a single validation failure
- */
-message ValidationError {
-  string error_code = 1;               // Error identifier
-  string error_message = 2;            // Human-readable message
-  string error_details = 3;            // Additional details
-  int32 error_severity = 4;            // 1=Low, 2=Medium, 3=High
-}
+// ValidationError is defined in core_types.proto and reused here
 
 // ============================================================================
 // Block Details Request/Response
@@ -180,53 +173,13 @@ message BlockDetailsResponse {
   google.protobuf.Timestamp timestamp = 5;
 }
 
-/**
- * ValidatorInfo contains validator metadata
- */
-message ValidatorInfo {
-  string validator_id = 1;
-  string public_key = 2;
-  bool is_active = 3;
-  int32 signature_count = 4;
-  double reputation_score = 5;
-}
+// ValidatorInfo is defined in core_types.proto and reused here
 
 // ============================================================================
 // Transaction Execution
 // ============================================================================
 
-/**
- * Transaction represents a single blockchain transaction
- * Core data structure for all tx operations
- */
-message Transaction {
-  // Transaction identification
-  string transaction_hash = 1;         // Unique tx hash
-  string transaction_id = 2;           // Unique tx identifier (UUID)
-
-  // Transaction parties
-  string from_address = 3;             // Sender address
-  string to_address = 4;               // Recipient address
-
-  // Transaction value
-  string amount = 5;                   // Amount (as string for precision)
-  double gas_price = 6;                // Gas price
-  double gas_limit = 7;                // Gas limit
-  double gas_used = 8;                 // Actual gas used
-
-  // Transaction data
-  string data = 9;                     // Smart contract data/payload
-  int32 nonce = 10;                    // Transaction nonce
-
-  // Timestamps and status
-  google.protobuf.Timestamp created_at = 11;
-  google.protobuf.Timestamp executed_at = 12;
-  TransactionStatus status = 13;       // Current tx status
-
-  // Signature
-  string signature = 14;               // Transaction signature
-  string public_key = 15;              // Sender's public key
-}
+// Transaction is defined in core_types.proto and reused here
 
 /**
  * TransactionExecutionRequest initiates transaction execution
