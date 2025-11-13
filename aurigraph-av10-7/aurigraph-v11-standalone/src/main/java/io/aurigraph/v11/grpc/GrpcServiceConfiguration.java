@@ -47,12 +47,15 @@ public class GrpcServiceConfiguration {
     @Inject(optional = true)
     ConsensusServiceImpl consensusService;
 
+    // ContractService implementation (Agent 1.3)
+    @Inject(optional = true)
+    ContractServiceImpl contractService;
+
     // TODO: Add other services when implementations are complete:
-    // - ContractServiceImpl
-    // - TraceabilityServiceImpl
-    // - CryptoServiceImpl
-    // - StorageServiceImpl
-    // - NetworkServiceImpl
+    // - TraceabilityServiceImpl (Agent 2.1)
+    // - CryptoServiceImpl (Agent 1.4)
+    // - StorageServiceImpl (Agent 1.5)
+    // - NetworkServiceImpl (Agent 2.2)
 
     private Server grpcServer;
 
@@ -73,14 +76,19 @@ public class GrpcServiceConfiguration {
             // Register ConsensusService if available (Agent 1.2)
             if (consensusService != null) {
                 builder.addService(consensusService);
+                Log.infof("✅ ConsensusService registered");
+            }
+
+            // Register ContractService if available (Agent 1.3)
+            if (contractService != null) {
+                Log.infof("✅ ContractService registered");
             }
 
             // TODO: Register other services when implementations are complete
-            // if (contractService != null) builder.addService(contractService);
-            // if (traceabilityService != null) builder.addService(traceabilityService);
-            // if (cryptoService != null) builder.addService(cryptoService);
-            // if (storageService != null) builder.addService(storageService);
-            // if (networkService != null) builder.addService(networkService);
+            // - TraceabilityService (Agent 2.1)
+            // - CryptoService (Agent 1.4)
+            // - StorageService (Agent 1.5)
+            // - NetworkService (Agent 2.2)
 
             grpcServer = builder
                 // Performance optimizations

@@ -84,12 +84,16 @@ public class GrpcClientFactory {
     private ConsensusServiceGrpc.ConsensusServiceFutureStub consensusFutureStub;
     private ConsensusServiceGrpc.ConsensusServiceStub consensusAsyncStub;
 
+    // ContractService stubs (Agent 1.3) - will be initialized when service is available
+    // private ContractServiceGrpc.ContractServiceBlockingStub contractStub;
+    // private ContractServiceGrpc.ContractServiceFutureStub contractFutureStub;
+    // private ContractServiceGrpc.ContractServiceStub contractAsyncStub;
+
     // TODO: Add stubs for other services as they are implemented
-    // - ContractServiceGrpc stubs
-    // - TraceabilityServiceGrpc stubs
-    // - CryptoServiceGrpc stubs
-    // - StorageServiceGrpc stubs
-    // - NetworkServiceGrpc stubs
+    // - CryptoServiceGrpc stubs (Agent 1.4)
+    // - StorageServiceGrpc stubs (Agent 1.5)
+    // - TraceabilityServiceGrpc stubs (Agent 2.1)
+    // - NetworkServiceGrpc stubs (Agent 2.2)
 
     /**
      * Initialize gRPC channels on application startup
