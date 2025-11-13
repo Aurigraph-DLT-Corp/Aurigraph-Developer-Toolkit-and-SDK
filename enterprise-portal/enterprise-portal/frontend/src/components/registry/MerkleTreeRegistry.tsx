@@ -17,7 +17,6 @@ import {
   Divider,
   Input,
   Select,
-  Tooltip,
   Table,
   Empty,
 } from 'antd';

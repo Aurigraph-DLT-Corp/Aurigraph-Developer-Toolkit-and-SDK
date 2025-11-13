@@ -33,7 +33,7 @@ import {
   DownOutlined,
   TeamOutlined,
   SecurityScanOutlined,
-  FolderTreeOutlined,
+  FolderOutlined,
 } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import { toggleThemeMode } from './store/settingsSlice';
@@ -214,12 +214,12 @@ function App() {
     },
     {
       key: 'registries',
-      icon: <FolderTreeOutlined />,
+      icon: <FolderOutlined />,
       label: 'Registries',
       children: [
         {
           key: 'merkle-tree',
-          icon: <FolderTreeOutlined />,
+          icon: <FolderOutlined />,
           label: 'Merkle Tree Registry',
         },
         {

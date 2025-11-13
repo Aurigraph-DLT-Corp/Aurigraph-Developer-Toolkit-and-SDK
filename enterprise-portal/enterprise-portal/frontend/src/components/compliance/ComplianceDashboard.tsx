@@ -19,7 +19,6 @@ import {
   Timeline,
   Empty,
   Spin,
-  Tooltip,
   Tabs,
   List,
 } from 'antd';
@@ -29,11 +28,9 @@ import {
   ExclamationOutlined,
   SafetyOutlined,
   FileTextOutlined,
-  TeamOutlined,
   DownloadOutlined,
   ReloadOutlined,
   ArrowUpOutlined,
-  ArrowDownOutlined,
 } from '@ant-design/icons';
 
 interface ComplianceMetric {
@@ -65,12 +62,10 @@ interface ComplianceRecord {
 
 interface ComplianceDashboardProps {
   refreshInterval?: number;
-  apiBaseUrl?: string;
 }
 
 const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({
   refreshInterval = 30000,
-  apiBaseUrl = 'http://localhost:9003/api/v11',
 }) => {
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState<ComplianceMetric[]>([]);
@@ -214,7 +209,7 @@ const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({
       dataIndex: ['value', 'target'],
       key: 'progress',
       render: (_: any, record: ComplianceMetric) => (
-        <Progress percent={record.value} size="small" status={record.status} />
+        <Progress percent={record.value} size="small" status={record.status as any} />
       ),
     },
   ];

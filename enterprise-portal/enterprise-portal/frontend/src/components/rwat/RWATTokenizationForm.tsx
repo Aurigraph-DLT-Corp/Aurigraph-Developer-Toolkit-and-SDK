@@ -19,7 +19,6 @@ import {
   Tag,
   Space,
   Checkbox,
-  DatePicker,
   Modal,
   Table,
   Empty,
@@ -33,7 +32,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
-import type { AssetTokenizeRequest, AssetDocument, ComplianceInfo, AssetMetadata, AssetCategory } from '../../types/rwat';
+import type { AssetTokenizeRequest, AssetDocument, AssetCategory } from '../../types/rwat';
 
 const ASSET_CATEGORIES: AssetCategory[] = [
   'real_estate',
@@ -78,8 +77,7 @@ const RWATTokenizationForm: React.FC<RWATTokenizationFormProps> = ({
   const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [documents, setDocuments] = useState<AssetDocument[]>(initialData?.documents || []);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadFile[]>([]);
+  const [documents, setDocuments] = useState<AssetDocument[]>([]);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [previewData, setPreviewData] = useState<Partial<AssetTokenizeRequest> | null>(null);
 
