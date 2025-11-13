@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "common.proto";
 import "core_types.proto";
 
-option java_multiple_files = false;
+option java_multiple_files = true;
 option java_package = "io.aurigraph.v11.proto";
 option java_outer_classname = "BlockchainProto";
 
