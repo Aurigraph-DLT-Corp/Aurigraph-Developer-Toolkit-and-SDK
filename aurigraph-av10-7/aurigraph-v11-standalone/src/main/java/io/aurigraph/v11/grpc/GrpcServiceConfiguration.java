@@ -43,8 +43,11 @@ public class GrpcServiceConfiguration {
     @Inject(optional = true)
     TransactionServiceImpl transactionService;
 
+    // ConsensusService implementation (Agent 1.2)
+    @Inject(optional = true)
+    ConsensusServiceImpl consensusService;
+
     // TODO: Add other services when implementations are complete:
-    // - ConsensusServiceImpl
     // - ContractServiceImpl
     // - TraceabilityServiceImpl
     // - CryptoServiceImpl
@@ -67,8 +70,12 @@ public class GrpcServiceConfiguration {
                 builder.addService(transactionService);
             }
 
+            // Register ConsensusService if available (Agent 1.2)
+            if (consensusService != null) {
+                builder.addService(consensusService);
+            }
+
             // TODO: Register other services when implementations are complete
-            // if (consensusService != null) builder.addService(consensusService);
             // if (contractService != null) builder.addService(contractService);
             // if (traceabilityService != null) builder.addService(traceabilityService);
             // if (cryptoService != null) builder.addService(cryptoService);
@@ -89,7 +96,7 @@ public class GrpcServiceConfiguration {
             Log.infof("gRPC server started successfully on port %d", GRPC_PORT);
             Log.info("Available gRPC services:");
             Log.info("   - TransactionService (tx submission, validation, mempool management)");
-            Log.info("   [TODO] - ConsensusService (RAFT log replication, leader election)");
+            Log.info("   - ConsensusService (HyperRAFT++ consensus, block proposal, voting, leader election)");
             Log.info("   [TODO] - ContractService (smart contract deployment and execution)");
             Log.info("   [TODO] - TraceabilityService (contract-asset link tracking)");
             Log.info("   [TODO] - CryptoService (quantum-resistant cryptography)");

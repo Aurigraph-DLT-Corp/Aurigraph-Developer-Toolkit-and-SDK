@@ -79,8 +79,12 @@ public class GrpcClientFactory {
     private TransactionServiceGrpc.TransactionServiceFutureStub transactionFutureStub;
     private TransactionServiceGrpc.TransactionServiceStub transactionAsyncStub;
 
+    // ConsensusService stubs (Agent 1.2)
+    private ConsensusServiceGrpc.ConsensusServiceBlockingStub consensusStub;
+    private ConsensusServiceGrpc.ConsensusServiceFutureStub consensusFutureStub;
+    private ConsensusServiceGrpc.ConsensusServiceStub consensusAsyncStub;
+
     // TODO: Add stubs for other services as they are implemented
-    // - ConsensusServiceGrpc stubs
     // - ContractServiceGrpc stubs
     // - TraceabilityServiceGrpc stubs
     // - CryptoServiceGrpc stubs
@@ -99,8 +103,10 @@ public class GrpcClientFactory {
             // Initialize TransactionService channel (Phase 1 - Current Sprint)
             initializeTransactionChannel();
 
+            // Initialize ConsensusService channel (Agent 1.2)
+            initializeConsensusChannel();
+
             // TODO: Initialize other service channels as implementations complete
-            // - initializeConsensusChannel() (Sprint 7-8)
             // - initializeContractChannel() (Sprint 8)
             // - initializeTraceabilityChannel() (Sprint 8)
             // - initializeCryptoChannel() (Sprint 8-9)
@@ -182,6 +188,61 @@ public class GrpcClientFactory {
     }
 
     /**
+     * Initialize HTTP/2 channel for ConsensusService
+     *
+     * HTTP/2 Configuration:
+     * - forAddress("localhost", 9004): Connect to local gRPC server
+     * - usePlaintext(): Development mode (TLS in production)
+     * - keepAliveWithoutCalls(true): Maintain connection without activity
+     * - keepAliveTime(30s): Send keepalive ping every 30 seconds
+     * - keepAliveTimeout(5s): Wait 5 seconds for keepalive response
+     * - maxRetryAttempts(3): Retry failed requests up to 3 times
+     * - retryBufferSize(16MB): Buffer for retrying failed requests
+     * - perRpcBufferLimit(1MB): Per-request buffer limit
+     */
+    private void initializeConsensusChannel() {
+        Log.infof("Initializing HTTP/2 channel for ConsensusService on port %d", GRPC_PORT);
+
+        // Create HTTP/2 channel with performance optimizations
+        consensusChannel = ManagedChannelBuilder
+                .forAddress(GRPC_HOST, GRPC_PORT)
+                .usePlaintext()  // Development: plaintext
+                // Production: .useTransportSecurity() for TLS 1.3
+
+                // === HTTP/2 Multiplexing Configuration ===
+                .keepAliveWithoutCalls(true)          // Keep alive even without activity
+                .keepAliveTime(30, TimeUnit.SECONDS)  // Send keepalive every 30s
+                .keepAliveTimeout(5, TimeUnit.SECONDS) // Wait 5s for keepalive response
+
+                // === Retry and Buffering Configuration ===
+                .maxRetryAttempts(3)                   // Retry failed requests up to 3 times
+                .retryBufferSize(16 * 1024 * 1024)     // 16MB retry buffer
+                .perRpcBufferLimit(1024 * 1024)        // 1MB per RPC call
+
+                .build();
+
+        // Create blocking stub (synchronous RPC calls)
+        consensusStub = ConsensusServiceGrpc
+                .newBlockingStub(consensusChannel)
+                .withCompression("gzip")  // Enable gzip compression (HPACK)
+                .withDeadlineAfter(60, TimeUnit.SECONDS);  // 60s deadline per call
+
+        // Create future stub (async with CompletableFuture)
+        consensusFutureStub = ConsensusServiceGrpc
+                .newFutureStub(consensusChannel)
+                .withCompression("gzip")
+                .withDeadlineAfter(60, TimeUnit.SECONDS);
+
+        // Create async stub (streaming and callbacks)
+        consensusAsyncStub = ConsensusServiceGrpc
+                .newStub(consensusChannel)
+                .withCompression("gzip")
+                .withDeadlineAfter(60, TimeUnit.SECONDS);
+
+        Log.infof("✅ ConsensusService HTTP/2 channel established");
+    }
+
+    /**
      * Get blocking stub for TransactionService (synchronous calls)
      *
      * Thread-safe: Can be called from multiple threads
@@ -248,6 +309,72 @@ public class GrpcClientFactory {
     }
 
     /**
+     * Get blocking stub for ConsensusService (synchronous calls)
+     *
+     * Thread-safe: Can be called from multiple threads
+     * Reuses single HTTP/2 connection (100+ concurrent streams)
+     *
+     * Usage:
+     * ```java
+     * ProposeBlockResponse response = grpcFactory
+     *     .getConsensusStub()
+     *     .proposeBlock(request);
+     * ```
+     */
+    public ConsensusServiceGrpc.ConsensusServiceBlockingStub getConsensusStub() {
+        if (consensusChannel == null || consensusChannel.isShutdown()) {
+            synchronized (this) {
+                if (consensusChannel == null || consensusChannel.isShutdown()) {
+                    initializeConsensusChannel();
+                }
+            }
+        }
+        return consensusStub;
+    }
+
+    /**
+     * Get future stub for ConsensusService (async with CompletableFuture)
+     *
+     * Usage:
+     * ```java
+     * ListenableFuture<ProposeBlockResponse> response = grpcFactory
+     *     .getConsensusFutureStub()
+     *     .proposeBlock(request);
+     * ```
+     */
+    public ConsensusServiceGrpc.ConsensusServiceFutureStub getConsensusFutureStub() {
+        if (consensusChannel == null || consensusChannel.isShutdown()) {
+            synchronized (this) {
+                if (consensusChannel == null || consensusChannel.isShutdown()) {
+                    initializeConsensusChannel();
+                }
+            }
+        }
+        return consensusFutureStub;
+    }
+
+    /**
+     * Get async stub for ConsensusService (streaming and callbacks)
+     *
+     * Usage:
+     * ```java
+     * grpcFactory
+     *     .getConsensusAsyncStub()
+     *     .streamConsensusEvents(request, responseObserver);
+     * ```
+     */
+    public ConsensusServiceGrpc.ConsensusServiceStub getConsensusAsyncStub() {
+        if (consensusChannel == null || consensusChannel.isShutdown()) {
+            synchronized (this) {
+                if (consensusChannel == null || consensusChannel.isShutdown()) {
+                    initializeConsensusChannel();
+                }
+            }
+        }
+        return consensusAsyncStub;
+    }
+
+    /**
      * Shutdown all gRPC channels gracefully
      * Called on application shutdown
      */
@@ -257,6 +384,7 @@ public class GrpcClientFactory {
 
         try {
             shutdownChannel(transactionChannel, "TransactionService");
+            shutdownChannel(consensusChannel, "ConsensusService");
             // TODO: Shutdown other channels as implementations complete
         } catch (Exception e) {
             Log.warnf("Error during gRPC channel shutdown: %s", e.getMessage());
@@ -340,8 +468,11 @@ public class GrpcClientFactory {
         Log.info("   Methods: submitTransaction, validateTransaction, submitBatch, getMempool, getTransaction, streamTransactions");
         Log.info("   Status: Implemented");
         Log.info("");
-        Log.info("[TODO] ConsensusService (Phase 2 - Sprint 7-8)");
-        Log.info("   Methods: appendEntries, requestVote, getMetrics, getNodeState, streamConsensusEvents");
+        Log.info("✅ ConsensusService (Agent 1.2 - Sprint 7)");
+        Log.info("   Methods: proposeBlock, voteOnBlock, commitBlock, requestLeaderElection, heartbeat, syncState");
+        Log.info("            getConsensusState, getValidatorInfo, submitConsensusMetrics, getRaftLog, streamConsensusEvents");
+        Log.info("   Status: Implemented (11 RPC methods)");
+        Log.info("");
         Log.info("[TODO] ContractService (Phase 2 - Sprint 8)");
         Log.info("[TODO] TraceabilityService (Phase 2 - Sprint 8)");
         Log.info("[TODO] CryptoService (Phase 2 - Sprint 8-9)");
