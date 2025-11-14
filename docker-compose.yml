@@ -1,0 +1,462 @@
+# Aurigraph V4.4.4 Production Deployment
+# Remote Server: dlt.aurigraph.io (Port 2235)
+# V11 Standalone Service with Bridge Infrastructure
+# Includes monitoring, logging, and SSL/TLS support
+
+version: '3.8'
+
+# Network configuration for service isolation
+networks:
+  dlt-frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  dlt-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+  dlt-monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+# Persistent volumes for data durability
+volumes:
+  dlt-data:
+    driver: local
+  dlt-postgres-data:
+    driver: local
+  dlt-redis-data:
+    driver: local
+  dlt-prometheus-data:
+    driver: local
+  dlt-grafana-data:
+    driver: local
+  dlt-logs:
+    driver: local
+
+services:
+  # =========================================================================
+  # NGINX Reverse Proxy with SSL/TLS (Ports 80, 443)
+  # =========================================================================
+  nginx-gateway:
+    image: nginx:1.25-alpine
+    container_name: dlt-nginx-gateway
+    restart: unless-stopped
+
+    ports:
+      - "80:80"      # HTTP (auto-redirect to HTTPS)
+      - "443:443"    # HTTPS
+
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt/live/aurcrt/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
+      - /etc/letsencrypt/live/aurcrt/privkey.pem:/etc/nginx/ssl/privkey.pem:ro
+
+    environment:
+      - DOMAIN=dlt.aurigraph.io
+      - TLS_ENABLED=true
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    networks:
+      - dlt-frontend
+
+    depends_on:
+      - aurigraph-v11-service
+
+    labels:
+      - "com.dlt.service=nginx-gateway"
+      - "com.dlt.tier=frontend"
+
+  # =========================================================================
+  # Aurigraph V11 Standalone Service (Port 9003 internally, exposed via NGINX)
+  # =========================================================================
+  aurigraph-v11-service:
+    build:
+      context: ./aurigraph-av10-7/aurigraph-v11-standalone
+      dockerfile: Dockerfile
+      args:
+        BUILD_TYPE: native-fast
+        JAVA_VERSION: 21
+    image: aurigraph/v11-standalone:latest
+    container_name: dlt-aurigraph-v11
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '4.0'
+        reservations:
+          memory: 512M
+          cpus: '1.0'
+
+    environment:
+      # Quarkus Configuration
+      - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_HTTP2=true
+
+      # Aurigraph Node Configuration
+      - AURIGRAPH_NODE_ID=v11-standalone-1
+      - AURIGRAPH_MODE=production
+
+      # Bridge Service Configuration (Sprint 15)
+      - BRIDGE_SERVICE_ENABLED=true
+      - BRIDGE_TRANSFER_FEE_PERCENTAGE=0.12
+      - BRIDGE_SWAP_TIMEOUT_MS=300000
+      - BRIDGE_HTLC_ENABLED=true
+
+      # Performance Configuration
+      - CONSENSUS_TARGET_TPS=776000
+      - AI_OPTIMIZATION_ENABLED=true
+      - QUANTUM_CRYPTO_ENABLED=true
+      - NATIVE_MODE=true
+
+      # Memory optimization
+      - MALLOC_ARENA_MAX=2
+      - MALLOC_MMAP_THRESHOLD_=65536
+
+    ports:
+      - "9003:9003"  # REST API (internal)
+      - "9004:9004"  # gRPC (internal)
+
+    volumes:
+      - dlt-data:/deployments/data
+      - dlt-logs:/deployments/logs
+      - ./config/v11:/deployments/config:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    networks:
+      dlt-backend:
+        ipv4_address: 172.21.1.10
+      dlt-frontend:
+        ipv4_address: 172.20.1.10
+      dlt-monitoring:
+        ipv4_address: 172.22.1.10
+
+    depends_on:
+      - postgres
+      - redis
+      - prometheus
+
+    security_opt:
+      - no-new-privileges:true
+
+    labels:
+      - "com.dlt.service=aurigraph-v11"
+      - "com.dlt.tier=backend"
+      - "com.dlt.version=11.0.0"
+
+  # =========================================================================
+  # PostgreSQL Database (Port 5432 internal only)
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: dlt-postgres
+    restart: unless-stopped
+
+    environment:
+      - POSTGRES_DB=aurigraph_production
+      - POSTGRES_USER=aurigraph
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-aurigraph-prod-secure-2025}
+      - POSTGRES_INITDB_ARGS=--auth-local=trust
+
+    volumes:
+      - dlt-postgres-data:/var/lib/postgresql/data
+      - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurigraph"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    networks:
+      - dlt-backend
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+
+    labels:
+      - "com.dlt.service=postgres"
+      - "com.dlt.tier=database"
+
+  # =========================================================================
+  # Redis Cache Layer (Port 6379 internal only)
+  # =========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: dlt-redis
+    restart: unless-stopped
+
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-redis-secure-2025}
+
+    volumes:
+      - dlt-redis-data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+    networks:
+      - dlt-backend
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+
+    labels:
+      - "com.dlt.service=redis"
+      - "com.dlt.tier=cache"
+
+  # =========================================================================
+  # Prometheus Metrics Collection (Port 9090 internal)
+  # =========================================================================
+  prometheus:
+    image: prom/prometheus:v2.50-alpine
+    container_name: dlt-prometheus
+    restart: unless-stopped
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+
+    volumes:
+      - dlt-prometheus-data:/prometheus
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus/rules:/etc/prometheus/rules:ro
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    networks:
+      - dlt-monitoring
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    labels:
+      - "com.dlt.service=prometheus"
+      - "com.dlt.tier=monitoring"
+
+  # =========================================================================
+  # Grafana Dashboard (Port 3000 -> exposed via NGINX)
+  # =========================================================================
+  grafana:
+    image: grafana/grafana:10.3-alpine
+    container_name: dlt-grafana
+    restart: unless-stopped
+
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=dlt.aurigraph.io
+      - GF_SERVER_ROOT_URL=https://dlt.aurigraph.io/grafana
+      - GF_INSTALL_PLUGINS=redis-datasource
+
+    volumes:
+      - dlt-grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    networks:
+      - dlt-monitoring
+      - dlt-frontend
+
+    depends_on:
+      - prometheus
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+
+    labels:
+      - "com.dlt.service=grafana"
+      - "com.dlt.tier=monitoring"
+
+  # =========================================================================
+  # Enterprise Portal (React Frontend, exposed via NGINX)
+  # =========================================================================
+  enterprise-portal:
+    build:
+      context: ./enterprise-portal/enterprise-portal/frontend
+      dockerfile: Dockerfile
+    image: aurigraph/enterprise-portal:latest
+    container_name: dlt-portal
+    restart: unless-stopped
+
+    environment:
+      - REACT_APP_API_BASE_URL=https://dlt.aurigraph.io/api/v11
+      - REACT_APP_DOMAIN=dlt.aurigraph.io
+      - NODE_ENV=production
+      - GENERATE_SOURCEMAP=false
+
+    volumes:
+      - ./config/portal/.env.production:/app/.env.production:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    networks:
+      - dlt-frontend
+
+    depends_on:
+      - aurigraph-v11-service
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+
+    labels:
+      - "com.dlt.service=enterprise-portal"
+      - "com.dlt.tier=frontend"
+
+  # =========================================================================
+  # Validator Node 1 (HyperRAFT++ Consensus)
+  # =========================================================================
+  validator-node-1:
+    build:
+      context: ./aurigraph-av10-7/aurigraph-v11-standalone
+      dockerfile: Dockerfile
+      args:
+        BUILD_TYPE: native-fast
+        JAVA_VERSION: 21
+    image: aurigraph/v11-validator:latest
+    container_name: dlt-validator-node-1
+    restart: unless-stopped
+    profiles: ["validators"]
+
+    environment:
+      - QUARKUS_PROFILE=production
+      - AURIGRAPH_NODE_ID=validator-1
+      - AURIGRAPH_NODE_TYPE=validator
+      - CONSENSUS_LEADER_ELECTION=true
+      - CONSENSUS_HEARTBEAT_INTERVAL=50
+      - CONSENSUS_ELECTION_TIMEOUT_MIN=150
+      - CONSENSUS_ELECTION_TIMEOUT_MAX=300
+
+    networks:
+      - dlt-backend
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+
+    labels:
+      - "com.dlt.service=validator-1"
+      - "com.dlt.tier=consensus"
+
+  # =========================================================================
+  # Business Node 1 (Transaction Processing)
+  # =========================================================================
+  business-node-1:
+    build:
+      context: ./aurigraph-av10-7/aurigraph-v11-standalone
+      dockerfile: Dockerfile
+      args:
+        BUILD_TYPE: native-fast
+        JAVA_VERSION: 21
+    image: aurigraph/v11-business:latest
+    container_name: dlt-business-node-1
+    restart: unless-stopped
+    profiles: ["business-nodes"]
+
+    environment:
+      - QUARKUS_PROFILE=production
+      - AURIGRAPH_NODE_ID=business-1
+      - AURIGRAPH_NODE_TYPE=business
+      - TRANSACTION_BATCH_SIZE=100
+      - TRANSACTION_TIMEOUT_MS=30000
+
+    networks:
+      - dlt-backend
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+
+    labels:
+      - "com.dlt.service=business-1"
+      - "com.dlt.tier=transaction-processing"

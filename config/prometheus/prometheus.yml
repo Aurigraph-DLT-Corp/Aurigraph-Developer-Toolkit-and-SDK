@@ -1,0 +1,303 @@
+# Prometheus Configuration for Aurigraph V4.4.4 Production
+# Monitoring: Aurigraph V11 Service, Bridge Infrastructure, and Infrastructure
+
+global:
+  scrape_interval: 15s          # Default scrape interval
+  evaluation_interval: 15s      # How often to evaluate rules
+  external_labels:
+    monitor: 'aurigraph-production'
+    environment: 'production'
+    domain: 'dlt.aurigraph.io'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # =========================================================================
+  # Prometheus Self-Monitoring
+  # =========================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          component: 'monitoring'
+
+  # =========================================================================
+  # Aurigraph V11 Standalone Service (Sprint 15 Bridge Infrastructure)
+  # =========================================================================
+  - job_name: 'aurigraph-v11-service'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          component: 'api-service'
+          version: '11.0.0'
+          features: 'bridge-transfer,atomic-swap,htlc,query-service'
+
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+    # Service discovery
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__scheme__]
+        target_label: scheme
+
+  # =========================================================================
+  # Bridge Transfer Service Metrics (AV11-635)
+  # =========================================================================
+  - job_name: 'bridge-transfer-service'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'bridge-transfer'
+          component: 'multi-signature'
+          feature: 'AV11-635'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'bridge_transfer_.*'
+        action: keep
+
+  # =========================================================================
+  # Atomic Swap (HTLC) Service Metrics (AV11-636)
+  # =========================================================================
+  - job_name: 'atomic-swap-service'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'atomic-swap'
+          component: 'htlc'
+          feature: 'AV11-636'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'atomic_swap_.*|htlc_.*'
+        action: keep
+
+  # =========================================================================
+  # Query Service Metrics (AV11-637)
+  # =========================================================================
+  - job_name: 'query-service'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'query-service'
+          component: 'pagination'
+          feature: 'AV11-637'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'query_.*|pagination_.*'
+        action: keep
+
+  # =========================================================================
+  # PostgreSQL Database Metrics
+  # =========================================================================
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+        labels:
+          service: 'postgres'
+          component: 'database'
+          database: 'aurigraph_production'
+
+    scrape_interval: 30s
+
+  # =========================================================================
+  # Redis Cache Metrics
+  # =========================================================================
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'redis'
+          component: 'cache'
+
+    scrape_interval: 30s
+
+  # =========================================================================
+  # NGINX Load Balancer Metrics
+  # =========================================================================
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-gateway:80']
+        labels:
+          service: 'nginx'
+          component: 'load-balancer'
+
+    scrape_interval: 30s
+    scrape_timeout: 5s
+
+  # =========================================================================
+  # Enterprise Portal Metrics
+  # =========================================================================
+  - job_name: 'enterprise-portal'
+    static_configs:
+      - targets: ['enterprise-portal:3000']
+        labels:
+          service: 'enterprise-portal'
+          component: 'frontend'
+
+    scrape_interval: 30s
+    scrape_timeout: 5s
+
+  # =========================================================================
+  # Grafana Metrics
+  # =========================================================================
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+        labels:
+          service: 'grafana'
+          component: 'visualization'
+
+    scrape_interval: 30s
+
+  # =========================================================================
+  # Application Performance Monitoring (APM)
+  # =========================================================================
+  - job_name: 'application-health'
+    metrics_path: '/q/health'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          type: 'health'
+
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # =========================================================================
+  # HTTP Request Metrics
+  # =========================================================================
+  - job_name: 'http-requests'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          type: 'http-requests'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'http_request_.*|rest_client_.*'
+        action: keep
+
+    scrape_interval: 15s
+
+  # =========================================================================
+  # Consensus Metrics (HyperRAFT++)
+  # =========================================================================
+  - job_name: 'consensus-metrics'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          component: 'consensus'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'consensus_.*|hyperraft_.*'
+        action: keep
+
+    scrape_interval: 15s
+
+  # =========================================================================
+  # Cryptography & Security Metrics
+  # =========================================================================
+  - job_name: 'security-metrics'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          component: 'security'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'crypto_.*|security_.*|signature_.*'
+        action: keep
+
+    scrape_interval: 30s
+
+  # =========================================================================
+  # JVM Metrics (Java Virtual Machine)
+  # =========================================================================
+  - job_name: 'jvm-metrics'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          component: 'jvm'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'jvm_.*|process_.*'
+        action: keep
+
+    scrape_interval: 15s
+
+  # =========================================================================
+  # Custom Application Metrics
+  # =========================================================================
+  - job_name: 'business-metrics'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          type: 'business'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'transactions_.*|transfers_.*|swaps_.*|bridge_.*'
+        action: keep
+
+    scrape_interval: 10s
+
+  # =========================================================================
+  # Service Availability & Latency
+  # =========================================================================
+  - job_name: 'service-latency'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-service:9003']
+        labels:
+          service: 'aurigraph-v11'
+          type: 'latency'
+
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '.*duration.*|.*latency.*|.*response.*'
+        action: keep
+
+    scrape_interval: 15s
+
+# Remote storage configuration (optional)
+# remote_write:
+#   - url: "http://remote-prometheus:9009/api/v1/write"
+#     write_relabel_configs:
+#       - source_labels: [__name__]
+#         regex: '(bridge_.*|atomic_swap_.*|query_.*)'
+#         action: keep
+
+# Remote read configuration (optional)
+# remote_read:
+#   - url: "http://remote-prometheus:9009/api/v1/read"
