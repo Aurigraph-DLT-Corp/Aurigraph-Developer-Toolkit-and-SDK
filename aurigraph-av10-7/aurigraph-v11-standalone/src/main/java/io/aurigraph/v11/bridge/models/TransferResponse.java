@@ -253,4 +253,28 @@ public class TransferResponse {
         }
         approvalSignatures.add(signature);
     }
+
+    // Setters (explicit to work around Lombok annotation processor issues)
+    public void setTransferId(String transferId) { this.transferId = transferId; }
+    public void setStatus(TransferStatus status) { this.status = status; }
+    public void setSignaturesReceived(Integer signaturesReceived) { this.signaturesReceived = signaturesReceived; }
+    public void setSignaturesRequired(Integer signaturesRequired) { this.signaturesRequired = signaturesRequired; }
+    public void setSignatureProgress(Double signatureProgress) { this.signatureProgress = signatureProgress; }
+    public void setSourceTransactionHash(String sourceTransactionHash) { this.sourceTransactionHash = sourceTransactionHash; }
+    public void setTargetTransactionHash(String targetTransactionHash) { this.targetTransactionHash = targetTransactionHash; }
+    public void setSourceConfirmations(Integer sourceConfirmations) { this.sourceConfirmations = sourceConfirmations; }
+    public void setTargetConfirmations(Integer targetConfirmations) { this.targetConfirmations = targetConfirmations; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public void setTotalFees(BigDecimal totalFees) { this.totalFees = totalFees; }
+    public void setGasUsed(BigDecimal gasUsed) { this.gasUsed = gasUsed; }
+    public void setLiquidityDeducted(BigDecimal liquidityDeducted) { this.liquidityDeducted = liquidityDeducted; }
+    public void setEstimatedCompletionTime(Long estimatedCompletionTime) { this.estimatedCompletionTime = estimatedCompletionTime; }
+    public void setActualCompletionTime(Long actualCompletionTime) { this.actualCompletionTime = actualCompletionTime; }
+    public void setErrorCode(String errorCode) { this.errorCode = errorCode; }
+    public void setErrorDetails(String errorDetails) { this.errorDetails = errorDetails; }
+    public void setApprovalSignatures(List<ApprovalSignature> approvalSignatures) { this.approvalSignatures = approvalSignatures; }
+    public void setEvents(List<TransferEvent> events) { this.events = events; }
+    public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
