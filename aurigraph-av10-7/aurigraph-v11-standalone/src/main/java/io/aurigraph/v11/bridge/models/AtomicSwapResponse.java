@@ -246,4 +246,41 @@ public class AtomicSwapResponse {
         }
         events.add(event);
     }
+
+    // Setters (explicit to work around Lombok annotation processor issues)
+    public void setSwapId(String swapId) { this.swapId = swapId; }
+    public void setStatus(SwapStatus status) { this.status = status; }
+    public void setInitiatorAddress(String initiatorAddress) { this.initiatorAddress = initiatorAddress; }
+    public void setCounterpartyAddress(String counterpartyAddress) { this.counterpartyAddress = counterpartyAddress; }
+    public void setAmountIn(BigDecimal amountIn) { this.amountIn = amountIn; }
+    public void setAmountOut(BigDecimal amountOut) { this.amountOut = amountOut; }
+    public void setTokenIn(String tokenIn) { this.tokenIn = tokenIn; }
+    public void setTokenOut(String tokenOut) { this.tokenOut = tokenOut; }
+    public void setSourceChain(String sourceChain) { this.sourceChain = sourceChain; }
+    public void setTargetChain(String targetChain) { this.targetChain = targetChain; }
+    public void setHashAlgo(String hashAlgo) { this.hashAlgo = hashAlgo; }
+    public void setHashLock(String hashLock) { this.hashLock = hashLock; }
+    public void setSecret(String secret) { this.secret = secret; }
+    public void setLockTime(Instant lockTime) { this.lockTime = lockTime; }
+    public void setExpiryTime(Instant expiryTime) { this.expiryTime = expiryTime; }
+    public void setRevealTime(Instant revealTime) { this.revealTime = revealTime; }
+    public void setCompletionTime(Instant completionTime) { this.completionTime = completionTime; }
+    public void setExpirationTime(Instant expirationTime) { this.expirationTime = expirationTime; }
+    public void setRefundTime(Instant refundTime) { this.refundTime = refundTime; }
+    public void setSourceTransactionHash(String sourceTransactionHash) { this.sourceTransactionHash = sourceTransactionHash; }
+    public void setTargetTransactionHash(String targetTransactionHash) { this.targetTransactionHash = targetTransactionHash; }
+    public void setLockTransactionHash(String lockTransactionHash) { this.lockTransactionHash = lockTransactionHash; }
+    public void setRevealTransactionHash(String revealTransactionHash) { this.revealTransactionHash = revealTransactionHash; }
+    public void setRefundTransactionHash(String refundTransactionHash) { this.refundTransactionHash = refundTransactionHash; }
+    public void setSourceConfirmations(Integer sourceConfirmations) { this.sourceConfirmations = sourceConfirmations; }
+    public void setTargetConfirmations(Integer targetConfirmations) { this.targetConfirmations = targetConfirmations; }
+    public void setRequiredConfirmations(Integer requiredConfirmations) { this.requiredConfirmations = requiredConfirmations; }
+    public void setFee(BigDecimal fee) { this.fee = fee; }
+    public void setRefundAddress(String refundAddress) { this.refundAddress = refundAddress; }
+    public void setEvents(List<SwapEvent> events) { this.events = events; }
+    public void setErrorCode(String errorCode) { this.errorCode = errorCode; }
+    public void setErrorDetails(String errorDetails) { this.errorDetails = errorDetails; }
+    public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
