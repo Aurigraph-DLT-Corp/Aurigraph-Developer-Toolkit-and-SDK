@@ -218,18 +218,9 @@ public class SwapResult {
         private BigDecimal liquidityUtilization; // percentage of pool liquidity used
     }
     
-    // Constructor with essential fields
-    public SwapResult(String userAddress, String tokenIn, String tokenOut, BigDecimal amountIn) {
-        this.swapId = java.util.UUID.randomUUID().toString();
-        this.userAddress = userAddress;
-        this.tokenIn = tokenIn;
-        this.tokenOut = tokenOut;
-        this.amountIn = amountIn;
-        this.status = SwapStatus.PENDING;
-        this.executedAt = Instant.now();
-        this.route = new java.util.ArrayList<>();
-        this.warnings = new java.util.ArrayList<>();
-    }
+    // Constructor with essential fields - removed to allow Lombok to generate all variants
+    // Lombok @NoArgsConstructor and @AllArgsConstructor will generate all needed constructors
+    // Custom initialization can be done in a Builder or static factory method
     
     /**
      * Check if swap was successful
