@@ -8,7 +8,7 @@ set -e
 # Configuration
 REMOTE_USER="subbu"
 REMOTE_HOST="dlt.aurigraph.io"
-REMOTE_PORT="2235"
+REMOTE_PORT="22"
 DEPLOY_PATH="/opt/DLT"
 GIT_REPO="git@github.com:Aurigraph-DLT-Corp/Aurigraph-DLT.git"
 GIT_BRANCH="main"
