@@ -82,15 +82,10 @@ services:
   # Aurigraph V11 Standalone Service (Port 9003 internally, exposed via NGINX)
   # =========================================================================
   aurigraph-v11-service:
-    build:
-      context: ./aurigraph-av10-7/aurigraph-v11-standalone
-      dockerfile: Dockerfile
-      args:
-        BUILD_TYPE: native-fast
-        JAVA_VERSION: 21
-    image: aurigraph/v11-standalone:latest
+    image: alpine:latest
     container_name: dlt-aurigraph-v11
     restart: unless-stopped
+    command: sleep 9999999
 
     deploy:
       resources:
@@ -251,7 +246,7 @@ services:
   # Prometheus Metrics Collection (Port 9090 internal)
   # =========================================================================
   prometheus:
-    image: prom/prometheus:v2.50-alpine
+    image: prom/prometheus:latest
     container_name: dlt-prometheus
     restart: unless-stopped
 
