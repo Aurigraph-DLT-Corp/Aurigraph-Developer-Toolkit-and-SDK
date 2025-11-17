@@ -446,32 +446,36 @@ public class SmartContractRegistryResource {
         description = "Get information about the Smart Contract Registry API"
     )
     public Response getInfo() {
-        return Response.ok(Map.of(
-                "service", "Smart Contract Registry",
-                "version", "11.5.0",
-                "basePath", "/api/v11/registries/smart-contract",
-                "endpoints", Map.of(
-                        "register", "POST /register",
-                        "getContract", "GET /{contractId}",
-                        "search", "GET /search",
-                        "getAssets", "GET /{contractId}/assets",
-                        "updateStatus", "PUT /{contractId}/status",
-                        "removeContract", "DELETE /{contractId}",
-                        "linkAsset", "POST /{contractId}/assets/{assetId}",
-                        "unlinkAsset", "DELETE /{contractId}/assets/{assetId}",
-                        "getContractsForAsset", "GET /asset/{assetId}/contracts",
-                        "statistics", "GET /statistics",
-                        "auditTrail", "GET /{contractId}/audit"
-                ),
-                "features", List.of(
-                        "Contract Registration",
-                        "Deployment Tracking",
-                        "Asset Linking",
-                        "Status Management",
-                        "Audit Trail",
-                        "Search and Filtering",
-                        "Statistics and Analytics"
-                )
-        )).build();
+        // Create endpoints map with LinkedHashMap to support 11+ entries
+        // (Map.of() has a 10-entry limit)
+        Map<String, String> endpoints = new LinkedHashMap<>();
+        endpoints.put("register", "POST /register");
+        endpoints.put("getContract", "GET /{contractId}");
+        endpoints.put("search", "GET /search");
+        endpoints.put("getAssets", "GET /{contractId}/assets");
+        endpoints.put("updateStatus", "PUT /{contractId}/status");
+        endpoints.put("removeContract", "DELETE /{contractId}");
+        endpoints.put("linkAsset", "POST /{contractId}/assets/{assetId}");
+        endpoints.put("unlinkAsset", "DELETE /{contractId}/assets/{assetId}");
+        endpoints.put("getContractsForAsset", "GET /asset/{assetId}/contracts");
+        endpoints.put("statistics", "GET /statistics");
+        endpoints.put("auditTrail", "GET /{contractId}/audit");
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("service", "Smart Contract Registry");
+        response.put("version", "11.5.0");
+        response.put("basePath", "/api/v11/registries/smart-contract");
+        response.put("endpoints", endpoints);
+        response.put("features", List.of(
+                "Contract Registration",
+                "Deployment Tracking",
+                "Asset Linking",
+                "Status Management",
+                "Audit Trail",
+                "Search and Filtering",
+                "Statistics and Analytics"
+        ));
+
+        return Response.ok(response).build();
     }
 }

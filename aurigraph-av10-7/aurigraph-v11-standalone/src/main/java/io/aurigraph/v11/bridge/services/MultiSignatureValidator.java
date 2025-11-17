@@ -31,7 +31,7 @@ public class MultiSignatureValidator {
     public MultiSigValidationResult validateMultiSignatures(TransferRequest request) {
         LOG.infof("Validating multi-signatures for transfer: %s", request.getTransferId());
 
-        MultiSigValidationResult.MultiSigValidationResultBuilder resultBuilder =
+        MultiSigValidationResult.Builder resultBuilder =
             MultiSigValidationResult.builder()
                 .transferId(request.getTransferId())
                 .requiredSignatures(request.getRequiredSignatures())
