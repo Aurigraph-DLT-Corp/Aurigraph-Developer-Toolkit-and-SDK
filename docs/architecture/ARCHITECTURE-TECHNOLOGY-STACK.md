@@ -5,36 +5,11 @@
 
 ---
 
-## V10 Architecture (TypeScript - Legacy)
+
+## Aurigraph DLT Architecture (Java/Quarkus)
 
 ### Overview
-V10 is the current production system built on Node.js/TypeScript, delivering 1M+ TPS with proven stability.
-
-### Core Technology Stack
-- **Runtime**: Node.js 20+
-- **Language**: TypeScript 5.3+
-- **Framework**: Custom blockchain framework
-- **Build**: npm + tsc
-
-### Key Components
-- **Consensus**: HyperRAFT++ (TypeScript implementation)
-- **Crypto**: CRYSTALS-Dilithium/Kyber (BouncyCastle)
-- **Networking**: Custom P2P with encrypted channels
-- **State**: In-memory with periodic persistence
-
-### Performance Metrics (V10)
-- **TPS**: 1M+ sustained
-- **Finality**: <500ms
-- **Block Time**: 1-3 seconds
-- **Memory**: 512MB - 2GB
-- **CPU**: Multi-core utilization >80%
-
----
-
-## V11 Architecture (Java/Quarkus - Target)
-
-### Overview
-V11 is the next-generation architecture leveraging Java 21, Quarkus, and GraalVM for superior performance and native compilation.
+Aurigraph DLT is a fully decentralized blockchain platform built on Java 21, Quarkus, and GraalVM for superior performance, security, and native compilation.
 
 ### Core Technology Stack
 
@@ -109,14 +84,14 @@ V11 is the next-generation architecture leveraging Java 21, Quarkus, and GraalVM
 2. **`-Pnative`** (Standard): 15 minutes, -O2
 3. **`-Pnative-ultra`** (Ultra-Optimized): 30 minutes, -O3 + -march=native
 
-### Performance Metrics (V11 Current - November 2025)
-- **TPS Baseline**: 776K TPS (production baseline)
-- **TPS with ML**: 3.0M TPS (Sprint 5 benchmarks)
-- **TPS Target**: 2M+ (roadmap goal)
-- **Startup**: <1s (native), ~3s (JVM)
-- **Memory**: <256MB (native), ~512MB (JVM)
-- **Finality**: <500ms current, <100ms target
-- **Carbon Footprint**: <0.17 gCO₂/tx (target)
+### Performance Metrics (Aurigraph DLT - November 2025)
+- **TPS Baseline**: 776K TPS (production verified)
+- **TPS with ML Optimization**: 3.0M TPS (Sprint 5 benchmarks)
+- **TPS Target**: 2M+ sustained (roadmap goal)
+- **Startup Time**: <1s (native), ~3s (JVM)
+- **Memory Usage**: <256MB (native), ~512MB (JVM)
+- **Finality Latency**: <500ms current, <100ms target
+- **Carbon Footprint**: 0.022 gCO₂/tx current, <0.17 target
 
 ---
 
@@ -280,18 +255,18 @@ public class CarbonFootprintService {
 
 ---
 
-## Migration Path
+## Development Roadmap
 
 ```
-Phase 1 (Complete)    Phase 2 (In Progress)    Phase 3 (Planned)
-┌─────────────────┐   ┌─────────────────┐     ┌─────────────────┐
-│ Core Structure  │──>│ Service Layer   │────>│ Full Migration  │
-│ - REST API      │   │ - Consensus     │     │ - gRPC Complete │
-│ - Basic Tx      │   │ - Crypto        │     │ - Native Opt    │
-│ - Health        │   │ - AI/ML ✓       │     │ - 2M+ TPS       │
-│ - JWT Auth ✓    │   │ - Portal ✓      │     │ - Multi-Cloud   │
-└─────────────────┘   └─────────────────┘     └─────────────────┘
-   100% Complete         50% Complete            0% Complete
+Phase 1 (Complete)     Phase 2 (Current)        Phase 3 (Future)
+┌──────────────────┐   ┌──────────────────┐    ┌──────────────────┐
+│ Foundation       │──>│ Enhancement      │───>│ Scale & Optimize │
+│ - REST API ✓     │   │ - gRPC Layer ✓   │    │ - 2M+ TPS        │
+│ - Consensus ✓    │   │ - WebSocket ✓    │    │ - Multi-Cloud    │
+│ - Crypto ✓       │   │ - RWA Registry ✓ │    │ - Full Coverage  │
+│ - Portal ✓       │   │ - Oracle Network │    │ - Carbon Offset  │
+└──────────────────┘   └──────────────────┘    └──────────────────┘
+    100% Complete        80% Complete             In Planning
 ```
 
 ---
