@@ -1,0 +1,110 @@
+version: '3.9'
+
+# Base Docker Compose Configuration for Aurigraph DLT
+# This file defines networks, volumes, and common settings shared across all deployments
+# Composed with: docker-compose -f docker-compose.base.yml -f docker-compose.<layer>.yml up -d
+
+networks:
+  # Frontend network: Public API exposure (10.1.0.0/24)
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.1.0.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-frontend
+
+  # Backend network: Internal service communication (10.2.0.0/24)
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.2.0.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-backend
+
+  # Monitoring network: Metrics & observability (10.3.0.0/24)
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.3.0.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-monitoring
+
+  # Logging network: Log aggregation (10.4.0.0/24)
+  logging:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.4.0.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-logging
+
+# Shared volumes across deployments
+volumes:
+  # Data persistence
+  postgres_data:
+    driver: local
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+  # Elasticsearch & Kibana
+  elasticsearch_data:
+    driver: local
+  kibana_data:
+    driver: local
+
+  # Monitoring
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+  # Application data
+  blockchain_data:
+    driver: local
+  contract_data:
+    driver: local
+
+  # Logs
+  logstash_data:
+    driver: local
+
+# Base service template (inherited by other services)
+x-base-service: &base-service
+  restart: unless-stopped
+  healthcheck:
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 40s
+
+# Environment variables placeholder
+x-environment: &base-env
+  NODE_ENV: ${NODE_ENV:-production}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  ENVIRONMENT: ${ENVIRONMENT:-production}
+  REGION: ${REGION:-us-east-1}
+
+# Common labels for organization
+x-labels: &base-labels
+  app: aurigraph-dlt
+  version: "11.1.0"
+  component: platform
+
+services:
+  # Placeholder service (ensures compose file is valid)
+  # This is overridden by specific layer files
+  base:
+    image: alpine:latest
+    command: echo "Base configuration loaded"
+    networks:
+      - backend
+    labels:
+      <<: *base-labels
+      role: base

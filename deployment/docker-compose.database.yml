@@ -1,0 +1,90 @@
+version: '3.9'
+
+# Database Layer - PostgreSQL & MongoDB
+# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.database.yml up -d
+
+services:
+  # PostgreSQL 16 - Primary metadata and transactions database
+  postgres:
+    image: postgres:16-alpine
+    container_name: aurigraph-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-aurigraph}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-aurigraph}
+      POSTGRES_DB: ${DB_NAME:-aurigraph_dlt}
+      POSTGRES_INITDB_ARGS: "-c shared_buffers=256MB -c max_connections=500"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-aurigraph}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      app: aurigraph-dlt
+      component: database
+      role: postgres
+
+  # MongoDB - Asset and RWA token data
+  mongodb:
+    image: mongo:7.0-alpine
+    container_name: aurigraph-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-aurigraph}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-aurigraph}
+      MONGO_INITDB_DATABASE: aurigraph_assets
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./init-scripts/mongo-init.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test -u ${MONGO_USER:-aurigraph} -p ${MONGO_PASSWORD:-aurigraph}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      app: aurigraph-dlt
+      component: database
+      role: mongodb
+
+  # Database migration tool (flyway)
+  db-migration:
+    image: flyway/flyway:latest
+    container_name: aurigraph-db-migration
+    command: -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./migrations/sql:/flyway/sql
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-aurigraph_dlt}
+      FLYWAY_USER: ${DB_USER:-aurigraph}
+      FLYWAY_PASSWORD: ${DB_PASSWORD:-aurigraph}
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+    labels:
+      app: aurigraph-dlt
+      component: database
+      role: migration
+
+volumes:
+  postgres_data:
+    driver: local
+  mongo_data:
+    driver: local
+
+networks:
+  backend:
+    external: true

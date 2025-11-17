@@ -1,0 +1,59 @@
+version: '3.9'
+
+# Cache Layer - Redis & Hazelcast
+# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.cache.yml up -d
+
+services:
+  # Redis 7 - Warm data cache and session store
+  redis:
+    image: redis:7-alpine
+    container_name: aurigraph-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-aurigraph}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      app: aurigraph-dlt
+      component: cache
+      role: redis
+
+  # Hazelcast - Hot data in-memory store
+  hazelcast:
+    image: hazelcast/hazelcast:latest
+    container_name: aurigraph-hazelcast
+    environment:
+      HZ_INSTANCE_NAME: aurigraph-hz-1
+      HZ_NETWORK_PUBLICADDRESS: hazelcast
+      HZ_NETWORK_PUBLICPORT: 5701
+      HZ_JET_ENABLED: "true"
+    ports:
+      - "5701:5701"
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "hazelcast -c /opt/hazelcast/config_default.xml 2>&1 | grep -q 'Hazelcast'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      app: aurigraph-dlt
+      component: cache
+      role: hazelcast
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  backend:
+    external: true
