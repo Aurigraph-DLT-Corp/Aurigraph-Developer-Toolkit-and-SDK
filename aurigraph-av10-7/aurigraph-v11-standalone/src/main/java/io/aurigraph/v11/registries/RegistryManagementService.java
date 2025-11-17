@@ -490,7 +490,7 @@ public class RegistryManagementService {
     }
 
     private Uni<Boolean> verifyInTokens(String entryId) {
-        return tokenRegistryService.getToken(entryId)
+        return tokenRegistryService.getTokenByAddress(entryId)
                 .map(t -> true)
                 .onFailure().recoverWithItem(false);
     }
