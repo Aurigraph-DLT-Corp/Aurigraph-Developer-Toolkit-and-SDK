@@ -62,4 +62,24 @@ public class AssetDigitalTwin {
     public String getAssetSummary() {
         return String.format("%s (%s): %s %s", name, assetType, value, currency);
     }
+
+    /**
+     * Get the digital twin ID for this asset
+     */
+    public String getTwinId() {
+        return "DT_" + assetId + "_" + System.currentTimeMillis();
+    }
+
+    /**
+     * Record an ownership change for this digital twin
+     */
+    public void recordOwnershipChange(String newOwner, String timestamp, BigDecimal transferAmount) {
+        this.owner = newOwner;
+        this.updatedAt = Instant.now();
+        if (this.metadata == null) {
+            this.metadata = new java.util.HashMap<>();
+        }
+        this.metadata.put("lastOwnershipChange", timestamp);
+        this.metadata.put("lastTransferAmount", transferAmount);
+    }
 }

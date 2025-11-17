@@ -70,4 +70,24 @@ public class DigitalTwinService {
             return true;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
+
+    /**
+     * Get a digital twin by ID
+     *
+     * @param twinId the identifier of the digital twin
+     * @return a Uni containing the digital twin asset
+     */
+    public Uni<AssetDigitalTwin> getDigitalTwin(String twinId) {
+        return Uni.createFrom().item(() -> {
+            logger.info("Retrieving digital twin: {}", twinId);
+            return AssetDigitalTwin.builder()
+                    .assetId(twinId)
+                    .name("Digital Twin " + twinId)
+                    .assetType("RWA")
+                    .owner("system")
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
 }
