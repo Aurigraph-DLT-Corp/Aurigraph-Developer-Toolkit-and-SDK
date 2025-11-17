@@ -64,8 +64,8 @@ public class RegistryManagementService {
             int limit,
             int offset) {
 
-        limit = Math.min(Math.max(limit, 1), MAX_LIMIT);
-        offset = Math.max(offset, 0);
+        final int finalLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
+        final int finalOffset = Math.max(offset, 0);
 
         Log.infof("Searching registries - keyword: %s, types: %s, limit: %d, offset: %d",
                 keyword, types, limit, offset);
@@ -96,18 +96,23 @@ public class RegistryManagementService {
             }
         }
 
-        return Uni.combine().all().unis(searchUnis).discardItems()
-                .onItem().transform(() ->
-                    searchUnis.stream()
-                        .flatMap(uni -> uni.await().indefinitely().stream())
-                        .skip(offset)
-                        .limit(limit)
-                        .collect(Collectors.toList())
-                )
-                .onFailure().recoverWithItem(error -> {
-                    Log.errorf("Error searching registries: %s", error.getMessage());
-                    return Collections.emptyList();
-                });
+        return Uni.createFrom().item(() -> {
+                List<RegistrySearchResult> allResults = new ArrayList<>();
+                for (Uni<List<RegistrySearchResult>> uni : searchUnis) {
+                    List<RegistrySearchResult> results = uni.await().indefinitely();
+                    if (results != null) {
+                        allResults.addAll(results);
+                    }
+                }
+                return allResults.stream()
+                        .skip(finalOffset)
+                        .limit(finalLimit)
+                        .collect(Collectors.toList());
+            })
+            .onFailure().recoverWithItem(error -> {
+                Log.errorf("Error searching registries: %s", error.getMessage());
+                return Collections.emptyList();
+            });
     }
 
     /**
@@ -370,7 +375,7 @@ public class RegistryManagementService {
                 .map(tokens -> tokens.stream()
                     .filter(t -> matchesKeyword(t.getName(), t.getSymbol(), keyword))
                     .map(t -> toSearchResult(t.getTokenAddress(), "TokenRegistry", t.getName(),
-                        RegistryType.TOKEN, t.getVerificationStatus().name()))
+                        RegistryType.TOKEN, ""))
                     .collect(Collectors.toList())
                 )
                 .onFailure().recoverWithItem(Collections.emptyList());
@@ -457,7 +462,7 @@ public class RegistryManagementService {
                     .skip(offset)
                     .limit(limit)
                     .map(t -> toSearchResult(t.getTokenAddress(), "TokenRegistry", t.getName(),
-                        RegistryType.TOKEN, t.getVerificationStatus().name()))
+                        RegistryType.TOKEN, ""))
                     .collect(Collectors.toList())
                 )
                 .onFailure().recoverWithItem(Collections.emptyList());
