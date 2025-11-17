@@ -263,7 +263,7 @@ public class RegistryManagementResource {
     @APIResponse(
         responseCode = "200",
         description = "Verification results",
-        content = @Content(schema = @Schema(type = "object"))
+        content = @Content(schema = @Schema(implementation = java.util.Map.class))
     )
     @APIResponse(responseCode = "500", description = "Internal server error")
     public Uni<Response> verifyEntry(@PathParam("entryId") String entryId) {
@@ -305,7 +305,7 @@ public class RegistryManagementResource {
     @APIResponse(
         responseCode = "200",
         description = "Registry summary",
-        content = @Content(schema = @Schema(type = "object"))
+        content = @Content(schema = @Schema(implementation = java.util.Map.class))
     )
     @APIResponse(responseCode = "500", description = "Internal server error")
     public Uni<Response> getRegistrySummary() {
