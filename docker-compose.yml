@@ -82,10 +82,12 @@ services:
   # Aurigraph V11 Standalone Service (Port 9003 internally, exposed via NGINX)
   # =========================================================================
   aurigraph-v11-service:
-    image: alpine:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.v11
+    image: aurigraph/v11:11.4.4
     container_name: dlt-aurigraph-v11
     restart: unless-stopped
-    command: sleep 9999999
 
     deploy:
       resources:
@@ -121,6 +123,7 @@ services:
       # Memory optimization
       - MALLOC_ARENA_MAX=2
       - MALLOC_MMAP_THRESHOLD_=65536
+      - JAVA_OPTS=-Xms256m -Xmx2g
 
     ports:
       - "9003:9003"  # REST API (internal)
@@ -132,11 +135,11 @@ services:
       - ./config/v11:/deployments/config:ro
 
     healthcheck:
-      test: ["CMD-SHELL", "exit 0"]
+      test: ["CMD", "curl", "-f", "http://localhost:9003/q/health/ready"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 30s
 
     networks:
       dlt-backend:
@@ -157,7 +160,7 @@ services:
     labels:
       - "com.dlt.service=aurigraph-v11"
       - "com.dlt.tier=backend"
-      - "com.dlt.version=11.0.0"
+      - "com.dlt.version=11.4.4"
 
   # =========================================================================
   # PostgreSQL Database (Port 5432 internal only)

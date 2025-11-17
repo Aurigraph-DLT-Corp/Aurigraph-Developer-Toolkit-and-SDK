@@ -317,6 +317,27 @@ public class SwapResult {
     }
     
     /**
+     * Set amount out
+     */
+    public void setAmountOut(BigDecimal amountOut) {
+        this.amountOut = amountOut;
+    }
+
+    /**
+     * Set price impact
+     */
+    public void setPriceImpact(BigDecimal priceImpact) {
+        this.priceImpact = priceImpact;
+    }
+
+    /**
+     * Set execution price
+     */
+    public void setExecutionPrice(BigDecimal executionPrice) {
+        this.executionPrice = executionPrice;
+    }
+
+    /**
      * Set MEV protection status
      */
     public void setMEVProtected(boolean mevProtected) {

@@ -263,6 +263,13 @@ public class LendingRequest {
     }
     
     /**
+     * Get collateral amount
+     */
+    public BigDecimal getCollateralAmount() {
+        return collateralAmount;
+    }
+
+    /**
      * Get collateral token (alias for collateralAsset)
      */
     public String getCollateralToken() {

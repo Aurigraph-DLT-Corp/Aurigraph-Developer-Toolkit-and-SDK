@@ -241,6 +241,27 @@ public class SwapRequest {
     }
     
     /**
+     * Get token in
+     */
+    public String getTokenIn() {
+        return tokenIn;
+    }
+
+    /**
+     * Get token out
+     */
+    public String getTokenOut() {
+        return tokenOut;
+    }
+
+    /**
+     * Get amount in
+     */
+    public BigDecimal getAmountIn() {
+        return amountIn;
+    }
+
+    /**
      * Get slippage tolerance (alias for maxSlippage)
      */
     public BigDecimal getSlippageTolerance() {
