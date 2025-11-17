@@ -94,7 +94,6 @@ services:
           cpus: '4.0'
         reservations:
           memory: 512M
-          cpus: '1.0'
 
     environment:
       # Quarkus Configuration
@@ -195,7 +194,6 @@ services:
           cpus: '2.0'
         reservations:
           memory: 256M
-          cpus: '0.5'
 
     labels:
       - "com.dlt.service=postgres"
@@ -236,7 +234,6 @@ services:
           cpus: '1.0'
         reservations:
           memory: 128M
-          cpus: '0.25'
 
     labels:
       - "com.dlt.service=redis"
@@ -279,7 +276,6 @@ services:
           cpus: '1.0'
         reservations:
           memory: 256M
-          cpus: '0.25'
 
     labels:
       - "com.dlt.service=prometheus"
@@ -326,7 +322,6 @@ services:
           cpus: '1.0'
         reservations:
           memory: 128M
-          cpus: '0.25'
 
     labels:
       - "com.dlt.service=grafana"
@@ -373,7 +368,6 @@ services:
           cpus: '0.5'
         reservations:
           memory: 64M
-          cpus: '0.1'
 
     labels:
       - "com.dlt.service=enterprise-portal"
@@ -408,7 +402,6 @@ services:
           cpus: '2.0'
         reservations:
           memory: 256M
-          cpus: '0.5'
 
     labels:
       - "com.dlt.service=validator-1"
@@ -441,7 +434,6 @@ services:
           cpus: '2.0'
         reservations:
           memory: 256M
-          cpus: '0.5'
 
     labels:
       - "com.dlt.service=business-1"
