@@ -189,10 +189,10 @@ public class TokenRegistryService {
 
             long totalTokens = tokenRegistry.size();
             long verifiedTokens = tokenRegistry.values().stream()
-                    .filter(t -> t.getVerificationStatus() == TokenRegistry.VerificationStatus.VERIFIED)
+                    .filter(t -> "VERIFIED".equals(t.getVerificationStatus().name()))
                     .count();
             long listedTokens = tokenRegistry.values().stream()
-                    .filter(t -> t.getListingStatus() == TokenRegistry.ListingStatus.LISTED)
+                    .filter(t -> "LISTED".equals(t.getListingStatus().name()))
                     .count();
             long rwaTokens = tokenRegistry.values().stream()
                     .filter(TokenRegistry::isRealWorldAsset)

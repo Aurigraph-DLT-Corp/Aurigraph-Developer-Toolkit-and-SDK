@@ -420,7 +420,7 @@ public class RegistryManagementService {
                     stats.setTotalEntries(rwats.size());
                     stats.setActiveEntries(rwats.stream().filter(RWATRegistry::isActive).count());
                     stats.setVerifiedEntries(rwats.stream()
-                        .filter(r -> r.getVerificationStatus() == RWATRegistry.VerificationStatus.VERIFIED)
+                        .filter(r -> "VERIFIED".equals(r.getVerificationStatus().name()))
                         .count());
                     return stats;
                 })
