@@ -358,22 +358,32 @@ public class LiquidityPoolManager {
     private SwapResult executeSingleSwap(SwapRoute route) {
         // Mock single swap execution
         SwapResult result = new SwapResult();
-        result.setAmountOut(route.getOutputAmount());
-        result.setPriceImpact(route.getPriceImpact());
-        result.setExecutionPrice(route.getOutputAmount().divide(route.getOutputAmount(), 8, RoundingMode.HALF_UP));
-        result.setTransactionHash("0x" + generateMockHash());
-        
+
+        if (route != null && route.getOutputAmount() != null) {
+            result.setAmountOut(route.getOutputAmount());
+            result.setPriceImpact(route.getPriceImpact());
+            if (route.getOutputAmount().compareTo(BigDecimal.ZERO) > 0) {
+                result.setExecutionPrice(route.getOutputAmount());
+            }
+            result.setTransactionHash("0x" + generateMockHash());
+        }
+
         return result;
     }
-    
+
     private SwapResult executeMultiHopSwap(SwapRoute route) {
         // Mock multi-hop swap execution
         SwapResult result = new SwapResult();
-        result.setAmountOut(route.getOutputAmount());
-        result.setPriceImpact(route.getPriceImpact());
-        result.setExecutionPrice(route.getOutputAmount().divide(route.getOutputAmount(), 8, RoundingMode.HALF_UP));
-        result.setTransactionHash("0x" + generateMockHash());
-        
+
+        if (route != null && route.getOutputAmount() != null) {
+            result.setAmountOut(route.getOutputAmount());
+            result.setPriceImpact(route.getPriceImpact());
+            if (route.getOutputAmount().compareTo(BigDecimal.ZERO) > 0) {
+                result.setExecutionPrice(route.getOutputAmount());
+            }
+            result.setTransactionHash("0x" + generateMockHash());
+        }
+
         return result;
     }
     

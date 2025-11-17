@@ -235,17 +235,26 @@ public class DeFiIntegrationService {
     public Uni<SwapResponse> executeOptimizedSwap(SwapRequest request) {
         return Uni.createFrom().item(() -> {
             operationCounter.incrementAndGet();
-            
+
+            // Validate request
+            if (!request.isValid()) {
+                throw new IllegalArgumentException("Invalid swap request");
+            }
+
             // Find optimal route across protocols
             List<SwapRoute> routes = findOptimalSwapRoute(
                 request.getTokenIn(),
                 request.getTokenOut(),
                 request.getAmountIn()
             );
-            
+
+            if (routes.isEmpty()) {
+                throw new IllegalArgumentException("No swap route available");
+            }
+
             // Execute swap with MEV protection
             SwapResult result = executeSwapWithMEVProtection(routes.get(0), request);
-            
+
             return new SwapResponse(result);
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
