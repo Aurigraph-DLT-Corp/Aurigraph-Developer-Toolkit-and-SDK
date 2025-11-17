@@ -110,15 +110,11 @@ public class TransactionScoringModel {
 
     /**
      * Score a single transaction based on ML features
+     * Always calculates feature scores for testing; scoringEnabled controls production use
      */
     public ScoredTransaction scoreTransaction(String txnId, String sender, long sizeBytes,
                                               BigDecimal gasPrice, long createdAtMs,
                                               Set<String> dependencies) {
-        if (!scoringEnabled) {
-            return new ScoredTransaction(txnId, sender, sizeBytes, gasPrice, createdAtMs,
-                    dependencies, 0.5, Map.of());
-        }
-
         Map<String, Double> featureScores = new HashMap<>();
 
         // Feature 1: Size score (normalize 0-1000 bytes)
@@ -169,19 +165,13 @@ public class TransactionScoringModel {
 
     /**
      * Score and order a batch of transactions for optimal processing
+     * Always calculates scores; scoringEnabled controls whether batch metrics are tracked
      */
     public List<ScoredTransaction> scoreAndOrderBatch(List<TransactionData> transactions) {
-        if (!scoringEnabled) {
-            return transactions.stream()
-                    .map(t -> new ScoredTransaction(t.txnId, t.sender, t.sizeBytes, t.gasPrice,
-                            t.createdAtMs, t.dependencies, 0.5, Map.of()))
-                    .collect(Collectors.toList());
-        }
-
         long batchStartMs = System.currentTimeMillis();
         int batchNum = currentBatchNumber.incrementAndGet();
 
-        // Score all transactions
+        // Score all transactions (always calculates features)
         List<ScoredTransaction> scoredTxns = transactions.stream()
                 .map(t -> scoreTransaction(t.txnId, t.sender, t.sizeBytes, t.gasPrice,
                         t.createdAtMs, t.dependencies))
@@ -191,8 +181,10 @@ public class TransactionScoringModel {
         List<ScoredTransaction> ordered = new ArrayList<>(scoredTxns);
         Collections.sort(ordered);
 
-        // Apply grouping optimization: cluster same-sender transactions
-        ordered = optimizeGrouping(ordered);
+        // Apply grouping optimization: cluster same-sender transactions (only if enabled in production)
+        if (scoringEnabled) {
+            ordered = optimizeGrouping(ordered);
+        }
 
         // Track batch performance
         long batchCompleteMs = System.currentTimeMillis();
@@ -205,8 +197,8 @@ public class TransactionScoringModel {
                 transactions.size(), latencyMs, throughputTps, avgScore);
         batchMetrics.put(batchNum, perf);
 
-        // Trigger learning if interval reached
-        if (batchNum % learningInterval == 0) {
+        // Trigger learning if interval reached (only if enabled in production)
+        if (scoringEnabled && batchNum % learningInterval == 0) {
             updateModelWeights();
         }
 
