@@ -1,378 +1,237 @@
 package io.aurigraph.v11.models;
 
-import io.aurigraph.v11.merkle.MerkleProof;
-import io.aurigraph.v11.merkle.MerkleTreeRegistry;
 import io.smallrye.mutiny.Uni;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Token Registry Service with Merkle Tree Support
+ * Token Registry Service
  *
- * Backend service for token registry with cryptographic verification.
- * Provides searchability, discoverability, analytics, and Merkle tree-based integrity.
- *
- * Features:
- * - Multi-standard token support (ERC20/721/1155)
- * - Real-world asset (RWA) tokenization tracking
- * - Merkle tree cryptographic verification
- * - Proof generation and verification
- * - Root hash tracking for tamper detection
+ * Core service for managing token registrations and lifecycle.
+ * Provides business logic for token registration, verification, listing,
+ * and market data management. Uses in-memory ConcurrentHashMap for storage.
  *
  * @version 11.5.0
- * @since 2025-10-25 - AV11-455: TokenRegistry Merkle Tree
+ * @since 2025-11-14
  */
 @ApplicationScoped
-public class TokenRegistryService extends MerkleTreeRegistry<TokenRegistry> {
+public class TokenRegistryService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TokenRegistryService.class);
+    // In-memory storage using ConcurrentHashMap for thread-safe operations
+    private final Map<String, TokenRegistry> tokenRegistry = new ConcurrentHashMap<>();
 
-    @Override
-    protected String serializeValue(TokenRegistry token) {
-        return String.format("%s|%s|%s|%s|%s|%s|%s|%s",
-            token.getTokenAddress(),
-            token.getName(),
-            token.getSymbol(),
-            token.getTokenType(),
-            token.getTotalSupply(),
-            token.getCirculatingSupply(),
-            token.getVerificationStatus(),
-            token.getCreatorAddress()
-        );
+    /**
+     * List all tokens in the registry
+     *
+     * @return Uni with list of all tokens
+     */
+    public Uni<List<TokenRegistry>> listTokens() {
+        return Uni.createFrom().item(() -> {
+            Log.debugf("Listing all tokens in registry (total: %d)", tokenRegistry.size());
+            List<TokenRegistry> tokens = new ArrayList<>(tokenRegistry.values());
+            // Sort by creation date descending (newest first)
+            tokens.sort((a, b) -> {
+                Instant aTime = a.getCreatedAt() != null ? a.getCreatedAt() : Instant.EPOCH;
+                Instant bTime = b.getCreatedAt() != null ? b.getCreatedAt() : Instant.EPOCH;
+                return bTime.compareTo(aTime);
+            });
+            return tokens;
+        });
     }
 
     /**
      * Register a new token
+     *
+     * @param name Token name
+     * @param symbol Token symbol
+     * @param tokenType Token type (ERC20, ERC721, ERC1155)
+     * @param creatorAddress Creator address
+     * @return Uni with registered token
      */
-    public Uni<TokenRegistry> registerToken(TokenRegistry token) {
+    public Uni<TokenRegistry> registerToken(String name, String symbol, TokenType tokenType, String creatorAddress) {
         return Uni.createFrom().item(() -> {
-            LOGGER.info("Registering token: {} ({})", token.getName(), token.getSymbol());
+            Log.infof("Registering token: %s (%s)", name, symbol);
 
-            // Initialize timestamps and token address
+            TokenRegistry token = new TokenRegistry(name, symbol, tokenType, creatorAddress);
             token.ensureCreatedAt();
+            token.updateTimestamp();
 
+            tokenRegistry.put(token.getTokenAddress(), token);
             return token;
-        }).flatMap(t -> add(t.getTokenAddress(), t).map(success -> t));
+        });
     }
 
     /**
      * Get token by address
+     *
+     * @param tokenAddress Token address
+     * @return Uni with token if found
      */
-    public Uni<TokenRegistry> getToken(String tokenAddress) {
-        return get(tokenAddress).onItem().ifNull().failWith(() ->
-            new TokenNotFoundException("Token not found: " + tokenAddress));
+    public Uni<Optional<TokenRegistry>> getTokenByAddress(String tokenAddress) {
+        return Uni.createFrom().item(() -> {
+            Log.debugf("Retrieving token: %s", tokenAddress);
+            return Optional.ofNullable(tokenRegistry.get(tokenAddress));
+        });
     }
 
     /**
-     * Update token
+     * Verify a token
+     *
+     * @param tokenAddress Token address
+     * @return Uni with updated token
      */
-    public Uni<TokenRegistry> updateToken(String tokenAddress, TokenRegistry updatedToken) {
-        return getToken(tokenAddress).map(existing -> {
-            // Update timestamp
-            updatedToken.updateTimestamp();
-            registry.put(tokenAddress, updatedToken);
-            LOGGER.info("Token updated: {}", tokenAddress);
-            return updatedToken;
-        }).flatMap(t -> add(tokenAddress, t).map(success -> t));
+    public Uni<TokenRegistry> verifyToken(String tokenAddress) {
+        return Uni.createFrom().item(() -> {
+            TokenRegistry token = tokenRegistry.get(tokenAddress);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found: " + tokenAddress);
+            }
+            token.verify();
+            token.updateTimestamp();
+            Log.infof("Token verified: %s", tokenAddress);
+            return token;
+        });
+    }
+
+    /**
+     * List token on exchange
+     *
+     * @param tokenAddress Token address
+     * @return Uni with updated token
+     */
+    public Uni<TokenRegistry> listToken(String tokenAddress) {
+        return Uni.createFrom().item(() -> {
+            TokenRegistry token = tokenRegistry.get(tokenAddress);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found: " + tokenAddress);
+            }
+            token.list();
+            token.updateTimestamp();
+            Log.infof("Token listed: %s", tokenAddress);
+            return token;
+        });
+    }
+
+    /**
+     * Get tokens by type
+     *
+     * @param tokenType Token type filter
+     * @return Uni with filtered tokens
+     */
+    public Uni<List<TokenRegistry>> getTokensByType(TokenType tokenType) {
+        return Uni.createFrom().item(() -> {
+            List<TokenRegistry> tokens = tokenRegistry.values().stream()
+                    .filter(t -> t.getTokenType() == tokenType)
+                    .sorted((a, b) -> {
+                        Instant aTime = a.getCreatedAt() != null ? a.getCreatedAt() : Instant.EPOCH;
+                        Instant bTime = b.getCreatedAt() != null ? b.getCreatedAt() : Instant.EPOCH;
+                        return bTime.compareTo(aTime);
+                    })
+                    .toList();
+            Log.debugf("Found %d tokens of type %s", tokens.size(), tokenType);
+            return tokens;
+        });
+    }
+
+    /**
+     * Get RWA tokens only
+     *
+     * @return Uni with list of RWA tokens
+     */
+    public Uni<List<TokenRegistry>> getRWATokens() {
+        return Uni.createFrom().item(() -> {
+            List<TokenRegistry> rwaTokens = tokenRegistry.values().stream()
+                    .filter(TokenRegistry::isRealWorldAsset)
+                    .sorted((a, b) -> {
+                        Instant aTime = a.getCreatedAt() != null ? a.getCreatedAt() : Instant.EPOCH;
+                        Instant bTime = b.getCreatedAt() != null ? b.getCreatedAt() : Instant.EPOCH;
+                        return bTime.compareTo(aTime);
+                    })
+                    .toList();
+            Log.debugf("Found %d RWA tokens", rwaTokens.size());
+            return rwaTokens;
+        });
+    }
+
+    /**
+     * Update token market price
+     *
+     * @param tokenAddress Token address
+     * @param price New price
+     * @param volume 24h volume
+     * @return Uni with updated token
+     */
+    public Uni<TokenRegistry> updateMarketPrice(String tokenAddress, BigDecimal price, BigDecimal volume) {
+        return Uni.createFrom().item(() -> {
+            TokenRegistry token = tokenRegistry.get(tokenAddress);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found: " + tokenAddress);
+            }
+            token.updateMarketData(price, volume);
+            token.updateTimestamp();
+            Log.debugf("Updated market price for token %s: %s AUR", tokenAddress, price);
+            return token;
+        });
+    }
+
+    /**
+     * Get token statistics
+     *
+     * @return Uni with statistics map
+     */
+    public Uni<Map<String, Object>> getTokenStatistics() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> stats = new HashMap<>();
+
+            long totalTokens = tokenRegistry.size();
+            long verifiedTokens = tokenRegistry.values().stream()
+                    .filter(t -> t.getVerificationStatus() == TokenRegistry.VerificationStatus.VERIFIED)
+                    .count();
+            long listedTokens = tokenRegistry.values().stream()
+                    .filter(t -> t.getListingStatus() == TokenRegistry.ListingStatus.LISTED)
+                    .count();
+            long rwaTokens = tokenRegistry.values().stream()
+                    .filter(TokenRegistry::isRealWorldAsset)
+                    .count();
+
+            BigDecimal totalMarketCap = tokenRegistry.values().stream()
+                    .map(TokenRegistry::getMarketCap)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            stats.put("totalTokens", totalTokens);
+            stats.put("verifiedTokens", verifiedTokens);
+            stats.put("listedTokens", listedTokens);
+            stats.put("rwaTokens", rwaTokens);
+            stats.put("totalMarketCap", totalMarketCap);
+            stats.put("timestamp", Instant.now().toString());
+
+            Log.debugf("Token statistics calculated - Total: %d, Verified: %d, Listed: %d, RWA: %d",
+                    totalTokens, verifiedTokens, listedTokens, rwaTokens);
+            return stats;
+        });
     }
 
     /**
      * Delete token (soft delete)
+     *
+     * @param tokenAddress Token address
+     * @return Uni indicating success
      */
     public Uni<Boolean> deleteToken(String tokenAddress) {
-        return getToken(tokenAddress).map(token -> {
-            token.softDelete();
-            registry.put(tokenAddress, token);
-            LOGGER.info("Token soft-deleted: {}", tokenAddress);
-            return true;
-        }).flatMap(result -> remove(tokenAddress));
-    }
-
-    /**
-     * Generate Merkle proof for a token
-     */
-    public Uni<MerkleProof.ProofData> getProof(String tokenAddress) {
-        return generateProof(tokenAddress).map(MerkleProof::toProofData);
-    }
-
-    /**
-     * Verify a Merkle proof
-     */
-    public Uni<VerificationResponse> verifyMerkleProof(MerkleProof.ProofData proofData) {
-        return verifyProof(proofData.toMerkleProof()).map(valid ->
-            new VerificationResponse(valid, valid ? "Proof verified successfully" : "Invalid proof")
-        );
-    }
-
-    /**
-     * Get current Merkle root hash
-     */
-    public Uni<RootHashResponse> getMerkleRootHash() {
-        return getRootHash().flatMap(rootHash ->
-            getTreeStats().map(stats -> new RootHashResponse(
-                rootHash,
-                Instant.now(),
-                stats.getEntryCount(),
-                stats.getTreeHeight()
-            ))
-        );
-    }
-
-    /**
-     * Get Merkle tree statistics
-     */
-    public Uni<MerkleTreeStats> getMerkleTreeStats() {
-        return getTreeStats();
-    }
-
-    /**
-     * Search tokens by keyword
-     */
-    public Uni<List<TokenRegistry>> searchTokens(String keyword) {
-        return getAll().map(tokens ->
-            tokens.stream()
-                .filter(t -> matchesKeyword(t, keyword))
-                .collect(Collectors.toList())
-        );
-    }
-
-    /**
-     * List tokens by type
-     */
-    public Uni<List<TokenRegistry>> listByType(TokenType tokenType) {
-        return getAll().map(tokens ->
-            tokens.stream()
-                .filter(t -> t.getTokenType() == tokenType)
-                .collect(Collectors.toList())
-        );
-    }
-
-    /**
-     * List verified tokens
-     */
-    public Uni<List<TokenRegistry>> listVerifiedTokens() {
-        return getAll().map(tokens ->
-            tokens.stream()
-                .filter(t -> t.getVerificationStatus() == VerificationStatus.VERIFIED)
-                .collect(Collectors.toList())
-        );
-    }
-
-    /**
-     * List RWA tokens
-     */
-    public Uni<List<TokenRegistry>> listRWATokens() {
-        return getAll().map(tokens ->
-            tokens.stream()
-                .filter(TokenRegistry::isRealWorldAsset)
-                .collect(Collectors.toList())
-        );
-    }
-
-    /**
-     * List tradeable tokens
-     */
-    public Uni<List<TokenRegistry>> listTradeableTokens() {
-        return getAll().map(tokens ->
-            tokens.stream()
-                .filter(TokenRegistry::isTradeable)
-                .collect(Collectors.toList())
-        );
-    }
-
-    /**
-     * List top tokens by market cap
-     */
-    public Uni<List<TokenRegistry>> listTopByMarketCap(int limit) {
-        return getAll().map(tokens ->
-            tokens.stream()
-                .filter(t -> t.getMarketCap() != null)
-                .sorted((a, b) -> b.getMarketCap().compareTo(a.getMarketCap()))
-                .limit(limit)
-                .collect(Collectors.toList())
-        );
-    }
-
-    /**
-     * List top tokens by trading volume
-     */
-    public Uni<List<TokenRegistry>> listTopByVolume(int limit) {
-        return getAll().map(tokens ->
-            tokens.stream()
-                .sorted((a, b) -> b.getVolume24h().compareTo(a.getVolume24h()))
-                .limit(limit)
-                .collect(Collectors.toList())
-        );
-    }
-
-    /**
-     * Update token verification status
-     */
-    public Uni<TokenRegistry> updateVerificationStatus(
-            String tokenAddress,
-            VerificationStatus status
-    ) {
-        return getToken(tokenAddress).map(token -> {
-            token.setVerificationStatus(status);
-            if (status == VerificationStatus.VERIFIED) {
-                token.verify();
+        return Uni.createFrom().item(() -> {
+            TokenRegistry token = tokenRegistry.get(tokenAddress);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found: " + tokenAddress);
             }
-            registry.put(tokenAddress, token);
-            LOGGER.info("Token verification updated: {} - {}", tokenAddress, status);
-            return token;
-        });
-    }
-
-    /**
-     * Update token market data
-     */
-    public Uni<TokenRegistry> updateMarketData(String tokenAddress, BigDecimal price, BigDecimal volume) {
-        return getToken(tokenAddress).map(token -> {
-            token.updateMarketData(price, volume);
-            registry.put(tokenAddress, token);
-            return token;
-        });
-    }
-
-    /**
-     * Mint tokens
-     */
-    public Uni<TokenRegistry> mintTokens(String tokenAddress, BigDecimal amount) {
-        return getToken(tokenAddress).map(token -> {
-            token.mint(amount);
-            registry.put(tokenAddress, token);
-            LOGGER.info("Minted {} tokens for {}", amount, tokenAddress);
-            return token;
-        });
-    }
-
-    /**
-     * Burn tokens
-     */
-    public Uni<TokenRegistry> burnTokens(String tokenAddress, BigDecimal amount) {
-        return getToken(tokenAddress).map(token -> {
-            token.burn(amount);
-            registry.put(tokenAddress, token);
-            LOGGER.info("Burned {} tokens for {}", amount, tokenAddress);
-            return token;
-        });
-    }
-
-    /**
-     * Get registry statistics
-     */
-    public Map<String, Object> getStatistics() {
-        Map<String, Object> stats = new HashMap<>();
-
-        stats.put("totalTokens", registry.size());
-        stats.put("activeTokens", registry.values().stream()
-                .filter(t -> !t.getIsDeleted()).count());
-        stats.put("verifiedTokens", registry.values().stream()
-                .filter(t -> t.getVerificationStatus() == VerificationStatus.VERIFIED).count());
-
-        // Total market cap
-        BigDecimal totalMarketCap = registry.values().stream()
-                .filter(t -> t.getMarketCap() != null)
-                .map(TokenRegistry::getMarketCap)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        stats.put("totalMarketCap", totalMarketCap);
-
-        // Total trading volume
-        BigDecimal totalVolume = registry.values().stream()
-                .map(TokenRegistry::getVolume24h)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        stats.put("totalVolume24h", totalVolume);
-
-        // Count by token type
-        Map<String, Long> byType = registry.values().stream()
-                .collect(Collectors.groupingBy(
-                        t -> t.getTokenType().name(),
-                        Collectors.counting()
-                ));
-        stats.put("tokensByType", byType);
-
-        // RWA token count
-        long rwaCount = registry.values().stream()
-                .filter(TokenRegistry::isRealWorldAsset)
-                .count();
-        stats.put("rwaTokens", rwaCount);
-
-        return stats;
-    }
-
-    // Helper methods
-    private boolean matchesKeyword(TokenRegistry token, String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+            token.softDelete();
+            token.updateTimestamp();
+            Log.infof("Token soft deleted: %s", tokenAddress);
             return true;
-        }
-
-        String lowerKeyword = keyword.toLowerCase();
-
-        return (token.getName() != null && token.getName().toLowerCase().contains(lowerKeyword)) ||
-                (token.getSymbol() != null && token.getSymbol().toLowerCase().contains(lowerKeyword)) ||
-                (token.getTokenAddress() != null && token.getTokenAddress().toLowerCase().contains(lowerKeyword)) ||
-                (token.getCategories() != null && token.getCategories().toLowerCase().contains(lowerKeyword));
-    }
-
-    // Custom Exception
-    public static class TokenNotFoundException extends RuntimeException {
-        public TokenNotFoundException(String message) {
-            super(message);
-        }
-    }
-
-    // Response Classes
-    public static class VerificationResponse {
-        private final boolean valid;
-        private final String message;
-
-        public VerificationResponse(boolean valid, String message) {
-            this.valid = valid;
-            this.message = message;
-        }
-
-        public boolean isValid() {
-            return valid;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-    }
-
-    public static class RootHashResponse {
-        private final String rootHash;
-        private final Instant timestamp;
-        private final int entryCount;
-        private final int treeHeight;
-
-        public RootHashResponse(String rootHash, Instant timestamp, int entryCount, int treeHeight) {
-            this.rootHash = rootHash;
-            this.timestamp = timestamp;
-            this.entryCount = entryCount;
-            this.treeHeight = treeHeight;
-        }
-
-        public String getRootHash() {
-            return rootHash;
-        }
-
-        public Instant getTimestamp() {
-            return timestamp;
-        }
-
-        public int getEntryCount() {
-            return entryCount;
-        }
-
-        public int getTreeHeight() {
-            return treeHeight;
-        }
+        });
     }
 }

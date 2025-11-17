@@ -829,3 +829,23 @@ enum ListingStatus {
      */
     DELISTED
 }
+
+/**
+ * Token Type Enumeration
+ */
+enum TokenType {
+    /**
+     * ERC20 - Fungible tokens
+     */
+    ERC20,
+
+    /**
+     * ERC721 - Non-fungible tokens (NFTs)
+     */
+    ERC721,
+
+    /**
+     * ERC1155 - Multi-token standard
+     */
+    ERC1155
+}
