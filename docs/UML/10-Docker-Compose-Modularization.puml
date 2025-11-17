@@ -1,0 +1,170 @@
+@startuml Aurigraph_Docker_Compose_Modules
+title Aurigraph DLT - Docker Compose Modularization (Phase 4 - November 17, 2025)
+
+skinparam linetype ortho
+skinparam nodesep 100
+skinparam ranksep 80
+
+package "Layer 0: Base Infrastructure" {
+    component "docker-compose.base.yml" as BASE {
+        portin "Networks" as base_networks
+        portin "Volumes" as base_volumes
+        portin "YAML Anchors" as base_anchors
+    }
+}
+
+package "Layer 1: Data & Storage" {
+    component "docker-compose.database.yml" as DB {
+        portin "PostgreSQL 16" as pg
+        portin "MongoDB 7.0" as mongo
+        portin "Flyway Migration" as flyway
+    }
+
+    component "docker-compose.cache.yml" as CACHE {
+        portin "Redis 7 (Warm)" as redis
+        portin "Hazelcast (Hot)" as hazelcast
+    }
+
+    component "docker-compose.storage.yml" as STORAGE {
+        portin "MinIO S3-Compat" as minio
+        portin "Backup System" as backup
+    }
+}
+
+package "Layer 2: Application Services" {
+    component "docker-compose.blockchain.yml" as BLOCKCHAIN {
+        portin "NGINX API Gateway" as gateway
+        portin "V11 API Service" as api_v11
+        portin "Validator Node 1" as val1
+        portin "Validator Node 2" as val2
+        portin "Validator Node 3" as val3
+    }
+
+    component "docker-compose.monitoring.yml" as MONITORING {
+        portin "Prometheus" as prometheus
+        portin "Grafana" as grafana
+        portin "AlertManager" as alertmanager
+    }
+}
+
+package "Layer 3: Observability & Integration (Phase 4 - Ready)" {
+    component "docker-compose.logging.yml" as LOGGING {
+        portout "Elasticsearch" as elastic
+        portout "Logstash" as logstash
+        portout "Kibana" as kibana
+    }
+
+    component "docker-compose.tracing.yml" as TRACING {
+        portout "Jaeger Collector" as jaeger
+        portout "Jaeger Query" as jaeger_query
+    }
+
+    component "docker-compose.iam.yml" as IAM {
+        portout "Keycloak Server" as keycloak
+    }
+}
+
+package "Layer 4: Message & Data Processing (Phase 4 - Ready)" {
+    component "docker-compose.messaging.yml" as MESSAGING {
+        portout "RabbitMQ" as rabbitmq
+        portout "Kafka" as kafka
+    }
+
+    component "docker-compose.contracts.yml" as CONTRACTS {
+        portout "Smart Contract Engine" as contracts_engine
+    }
+
+    component "docker-compose.analytics.yml" as ANALYTICS {
+        portout "Analytics DB" as analytics_db
+    }
+}
+
+package "Layer 5: Deployment Overrides (Phase 4 - Ready)" {
+    component "docker-compose.overrides.yml" as OVERRIDES {
+        portout "Environment Config" as env_config
+    }
+
+    component "docker-compose.dev.yml" as DEV {
+        portout "Dev Environment" as dev_env
+    }
+
+    component "docker-compose.prod.yml" as PROD {
+        portout "Production Environment" as prod_env
+    }
+}
+
+' Dependencies
+BASE --> DB
+BASE --> CACHE
+BASE --> STORAGE
+BASE --> BLOCKCHAIN
+BASE --> MONITORING
+
+DB --> BLOCKCHAIN
+CACHE --> BLOCKCHAIN
+STORAGE --> BLOCKCHAIN
+
+BLOCKCHAIN --> LOGGING
+BLOCKCHAIN --> TRACING
+BLOCKCHAIN --> MONITORING
+
+MONITORING --> LOGGING
+LOGGING --> MESSAGING
+
+MESSAGING --> CONTRACTS
+CONTRACTS --> ANALYTICS
+
+DEV --> OVERRIDES
+PROD --> OVERRIDES
+OVERRIDES --> DB
+
+note right of BASE
+  Networks: frontend, backend, monitoring, logging
+  Volumes: postgres_data, redis_data, mongo_data, etc.
+  YAML Anchors: DRY configuration
+  Status: ✅ COMPLETED
+  Commit: 32a0e020
+end note
+
+note right of BLOCKCHAIN
+  API Gateway: NGINX reverse proxy
+  V11 Service: HTTP/2, 9003
+  3-Node Consensus: BFT tolerant
+  Status: ✅ COMPLETED
+  Commit: 32a0e020
+end note
+
+note right of MONITORING
+  Prometheus: Metrics (15s interval)
+  Grafana: Dashboards & alerts
+  AlertManager: Alert routing
+  Status: ✅ COMPLETED
+  Commit: 32a0e020
+end note
+
+note right of LOGGING
+  Elasticsearch: Log storage
+  Logstash: Log processing
+  Kibana: Visualization
+  Status: ⏳ READY FOR IMPLEMENTATION
+end note
+
+note right of OVERRIDES
+  Environment-specific overrides
+  Dev, Staging, Production configs
+  Service replicas by environment
+  Status: ⏳ READY FOR IMPLEMENTATION
+end note
+
+legend right
+  ✅ COMPLETED (6 files)
+  ⏳ READY (9 files)
+  ---
+  Modularization Status: 40% (6/15)
+  Expected Results:
+    - 67% file reduction (45+ → 15)
+    - 60% code reduction
+    - 4 deployment scenarios
+end legend
+
+@enduml
