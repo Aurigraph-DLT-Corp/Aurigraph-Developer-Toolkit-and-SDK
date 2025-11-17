@@ -289,7 +289,7 @@ services:
   # Grafana Dashboard (Port 3000 -> exposed via NGINX)
   # =========================================================================
   grafana:
-    image: grafana/grafana:10.3-alpine
+    image: grafana/grafana:latest
     container_name: dlt-grafana
     restart: unless-stopped
 
@@ -336,12 +336,13 @@ services:
   # Enterprise Portal (React Frontend, exposed via NGINX)
   # =========================================================================
   enterprise-portal:
-    build:
-      context: ./enterprise-portal/enterprise-portal/frontend
-      dockerfile: Dockerfile
-    image: aurigraph/enterprise-portal:latest
+    image: node:20-alpine
     container_name: dlt-portal
     restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
 
     environment:
       - REACT_APP_API_BASE_URL=https://dlt.aurigraph.io/api/v11
@@ -350,7 +351,7 @@ services:
       - GENERATE_SOURCEMAP=false
 
     volumes:
-      - ./config/portal/.env.production:/app/.env.production:ro
+      - ./enterprise-portal/enterprise-portal/frontend:/app
 
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
@@ -382,15 +383,10 @@ services:
   # Validator Node 1 (HyperRAFT++ Consensus)
   # =========================================================================
   validator-node-1:
-    build:
-      context: ./aurigraph-av10-7/aurigraph-v11-standalone
-      dockerfile: Dockerfile
-      args:
-        BUILD_TYPE: native-fast
-        JAVA_VERSION: 21
-    image: aurigraph/v11-validator:latest
+    image: alpine:latest
     container_name: dlt-validator-node-1
     restart: unless-stopped
+    command: sleep 9999999
     profiles: ["validators"]
 
     environment:
@@ -422,15 +418,10 @@ services:
   # Business Node 1 (Transaction Processing)
   # =========================================================================
   business-node-1:
-    build:
-      context: ./aurigraph-av10-7/aurigraph-v11-standalone
-      dockerfile: Dockerfile
-      args:
-        BUILD_TYPE: native-fast
-        JAVA_VERSION: 21
-    image: aurigraph/v11-business:latest
+    image: alpine:latest
     container_name: dlt-business-node-1
     restart: unless-stopped
+    command: sleep 9999999
     profiles: ["business-nodes"]
 
     environment:
