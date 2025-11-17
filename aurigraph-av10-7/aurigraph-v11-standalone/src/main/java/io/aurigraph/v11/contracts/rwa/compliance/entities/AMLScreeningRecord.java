@@ -17,15 +17,15 @@ import java.time.Instant;
 @AllArgsConstructor
 public class AMLScreeningRecord {
 
-    private String userId;
-    private String screeningId;
-    private String jurisdiction;
-    private BigDecimal riskLevel;
-    private BigDecimal riskScore;
-    private Boolean sanctionsHit;
-    private Boolean pepStatus;
-    private Instant createdAt;
-    private Instant updatedAt;
+    public String userId;
+    public String screeningId;
+    public String jurisdiction;
+    public BigDecimal riskLevel;
+    public BigDecimal riskScore;
+    public Boolean sanctionsHit;
+    public Boolean pepStatus;
+    public Instant createdAt;
+    public Instant updatedAt;
 
     /**
      * Ensure createdAt is populated

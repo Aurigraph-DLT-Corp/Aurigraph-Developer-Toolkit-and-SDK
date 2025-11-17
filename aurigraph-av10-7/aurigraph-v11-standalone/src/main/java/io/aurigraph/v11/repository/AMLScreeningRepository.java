@@ -6,6 +6,7 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -169,7 +170,7 @@ public class AMLScreeningRepository extends LevelDBRepository<AMLScreeningRecord
      */
     public List<AMLScreeningRecord> findByRiskScoreAbove(int minScore) {
         return findAll().stream()
-                .filter(record -> record.riskScore != null && record.riskScore >= minScore)
+                .filter(record -> record.riskScore != null && record.riskScore.compareTo(BigDecimal.valueOf(minScore)) >= 0)
                 .toList();
     }
 }

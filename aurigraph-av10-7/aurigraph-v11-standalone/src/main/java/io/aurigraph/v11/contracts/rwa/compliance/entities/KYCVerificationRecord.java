@@ -16,16 +16,16 @@ import java.time.Instant;
 @AllArgsConstructor
 public class KYCVerificationRecord {
 
-    private String userId;
-    private String verificationId;
-    private String jurisdiction;
-    private String provider;
-    private String status;
-    private String documentType;
-    private String referenceNumber;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private Instant expiresAt;
+    public String userId;
+    public String verificationId;
+    public String jurisdiction;
+    public String provider;
+    public String status;
+    public String documentType;
+    public String referenceNumber;
+    public Instant createdAt;
+    public Instant updatedAt;
+    public Instant expiresAt;
 
     /**
      * Ensure createdAt is populated

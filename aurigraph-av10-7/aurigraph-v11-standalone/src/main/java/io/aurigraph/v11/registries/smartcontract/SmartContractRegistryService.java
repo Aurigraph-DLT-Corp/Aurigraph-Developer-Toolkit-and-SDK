@@ -377,11 +377,13 @@ public class SmartContractRegistryService {
 
             List<RegistryAuditEntry> trail = auditTrail.getOrDefault(contractId, new ArrayList<>());
             List<Map<String, Object>> auditList = trail.stream()
-                    .map(audit -> Map.of(
-                            "operation", audit.operation,
-                            "timestamp", audit.timestamp.toString(),
-                            "details", audit.details
-                    ))
+                    .map(audit -> {
+                        Map<String, Object> auditMap = new java.util.HashMap<>();
+                        auditMap.put("operation", audit.operation);
+                        auditMap.put("timestamp", audit.timestamp.toString());
+                        auditMap.put("details", audit.details);
+                        return auditMap;
+                    })
                     .collect(Collectors.toList());
 
             Log.debugf("Retrieved %d audit entries for contract: %s", auditList.size(), contractId);
