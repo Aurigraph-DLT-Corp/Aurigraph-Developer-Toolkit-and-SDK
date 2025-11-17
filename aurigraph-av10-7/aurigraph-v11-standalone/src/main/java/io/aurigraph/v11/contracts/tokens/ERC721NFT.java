@@ -77,11 +77,11 @@ public class ERC721NFT {
             BigInteger tokenId = generateTokenId(collectionAddress);
             
             // Create digital twin for the asset
-            AssetDigitalTwin digitalTwin = digitalTwinService.createDigitalTwin(
+            String twinId = digitalTwinService.createDigitalTwin(
                 metadata.getAssetId(),
                 collection.getAssetType(),
-                metadata.toMap()
-            );
+                metadata.toString()
+            ).await().indefinitely();
             
             // Create NFT token
             NFTToken token = new NFTToken(
@@ -89,7 +89,7 @@ public class ERC721NFT {
                 collectionAddress,
                 to,
                 metadata.getAssetId(),
-                digitalTwin.getTwinId(),
+                twinId,
                 metadata.getTokenURI(),
                 metadata.toMap(),
                 Instant.now()
@@ -182,7 +182,8 @@ public class ERC721NFT {
             // Update digital twin ownership
             NFTToken token = collectionTokens.get(collectionAddress).get(tokenId);
             if (token != null && token.getDigitalTwinId() != null) {
-                AssetDigitalTwin digitalTwin = digitalTwinService.getDigitalTwin(token.getDigitalTwinId());
+                AssetDigitalTwin digitalTwin = digitalTwinService.getDigitalTwin(token.getDigitalTwinId())
+                    .await().indefinitely();
                 if (digitalTwin != null) {
                     digitalTwin.recordOwnershipChange(from, to, java.math.BigDecimal.ONE);
                 }

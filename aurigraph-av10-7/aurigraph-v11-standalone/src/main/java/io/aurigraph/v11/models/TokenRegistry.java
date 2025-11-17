@@ -783,7 +783,7 @@ public class TokenRegistry {
 /**
  * Verification Status Enumeration
  */
-public enum VerificationStatus {
+enum VerificationStatus {
     /**
      * Token verification pending
      */
@@ -813,7 +813,7 @@ public enum VerificationStatus {
 /**
  * Listing Status Enumeration
  */
-public enum ListingStatus {
+enum ListingStatus {
     /**
      * Token not listed on any exchange
      */

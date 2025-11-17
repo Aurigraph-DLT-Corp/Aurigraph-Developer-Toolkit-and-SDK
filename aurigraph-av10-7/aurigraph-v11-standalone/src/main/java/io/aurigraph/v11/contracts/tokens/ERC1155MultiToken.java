@@ -111,10 +111,10 @@ public class ERC1155MultiToken {
             
             // Create digital twin for RWA if asset ID provided
             if (assetId != null && !assetId.isEmpty()) {
-                AssetDigitalTwin digitalTwin = digitalTwinService.createDigitalTwin(
-                    assetId, "MULTI_TOKEN", Map.of("tokenId", tokenId.toString())
-                );
-                tokenDigitalTwins.get(contractAddress).put(tokenId, digitalTwin.getTwinId());
+                String twinId = digitalTwinService.createDigitalTwin(
+                    assetId, "MULTI_TOKEN", "{\"tokenId\": \"" + tokenId.toString() + "\"}"
+                ).await().indefinitely();
+                tokenDigitalTwins.get(contractAddress).put(tokenId, twinId);
             }
             
             Log.infof("Minted %s of token %s to %s in contract %s", 
@@ -221,7 +221,8 @@ public class ERC1155MultiToken {
             if (contractDigitalTwins != null) {
                 String digitalTwinId = contractDigitalTwins.get(tokenId);
                 if (digitalTwinId != null) {
-                    AssetDigitalTwin digitalTwin = digitalTwinService.getDigitalTwin(digitalTwinId);
+                    AssetDigitalTwin digitalTwin = digitalTwinService.getDigitalTwin(digitalTwinId)
+                        .await().indefinitely();
                     if (digitalTwin != null) {
                         digitalTwin.recordOwnershipChange(from, to, new java.math.BigDecimal(amount));
                     }
