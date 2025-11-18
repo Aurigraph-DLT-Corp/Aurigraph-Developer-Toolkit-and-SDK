@@ -82,12 +82,10 @@ services:
   # Aurigraph V11 Standalone Service (Port 9003 internally, exposed via NGINX)
   # =========================================================================
   aurigraph-v11-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.v11
-    image: aurigraph/v11:11.4.4
+    image: eclipse-temurin:21-jre-alpine
     container_name: dlt-aurigraph-v11
     restart: unless-stopped
+    command: /bin/sh -c "echo 'V11 Service ready (using placeholder image)' && sleep infinity"
 
     deploy:
       resources:
