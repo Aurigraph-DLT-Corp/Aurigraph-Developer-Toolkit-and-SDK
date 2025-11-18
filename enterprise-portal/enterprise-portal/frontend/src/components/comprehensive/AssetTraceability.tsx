@@ -28,18 +28,10 @@ import {
   MenuItem,
   Tab,
   Tabs,
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
   Alert,
-  Badge,
 } from '@mui/material';
 import {
   Add,
-  Edit,
   Delete,
   Visibility,
   Link,
@@ -49,8 +41,6 @@ import {
   Warning,
   CheckCircle,
   Info,
-  Download,
-  Share,
 } from '@mui/icons-material';
 
 interface TraceabilityEvent {
@@ -288,6 +278,25 @@ export const AssetTraceability: React.FC = () => {
     }
   };
 
+  // Get event color
+  const getEventColor = (eventType: string) => {
+    switch (eventType) {
+      case 'CREATED':
+        return 'success';
+      case 'TRANSFERRED':
+        return 'info';
+      case 'VERIFIED':
+      case 'CERTIFIED':
+        return 'success';
+      case 'TOKENIZED':
+        return 'warning';
+      case 'LINKED_CONTRACT':
+        return 'primary';
+      default:
+        return 'default';
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
@@ -312,7 +321,7 @@ export const AssetTraceability: React.FC = () => {
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+        <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
           <Tab label={`Assets (${assets.length})`} id="tab-0" aria-controls="tabpanel-0" />
           <Tab label={`Compliance`} id="tab-1" aria-controls="tabpanel-1" />
           <Tab label={`Traceability Events`} id="tab-2" aria-controls="tabpanel-2" />
@@ -577,34 +586,38 @@ export const AssetTraceability: React.FC = () => {
         {events.length === 0 ? (
           <Alert severity="info">No traceability events yet.</Alert>
         ) : (
-          <Timeline position="alternate">
+          <Box>
             {events.map((event, index) => (
-              <TimelineItem key={event.id}>
-                <TimelineSeparator>
-                  <TimelineDot color={index === 0 ? 'primary' : 'grey'}>
-                    {getEventIcon(event.eventType)}
-                  </TimelineDot>
-                  {index < events.length - 1 && <TimelineConnector />}
-                </TimelineSeparator>
-                <TimelineContent>
-                  <Paper sx={{ p: 2 }}>
-                    <Typography variant="h6" component="span">
-                      {event.eventType.replace(/_/g, ' ')}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      {event.timestamp.toLocaleString()}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      {event.description}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-                      By: {event.actor}
-                    </Typography>
-                  </Paper>
-                </TimelineContent>
-              </TimelineItem>
+              <Card key={event.id} sx={{ mb: 2, borderLeft: `4px solid ${getEventColor(event.eventType)}` }}>
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                    <Box display="flex" gap={2} flex={1}>
+                      <Box sx={{ mt: 0.5 }}>
+                        {getEventIcon(event.eventType)}
+                      </Box>
+                      <Box flex={1}>
+                        <Typography variant="h6" gutterBottom>
+                          {event.eventType.replace(/_/g, ' ')}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" gutterBottom>
+                          {event.timestamp.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          {event.description}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                          By: {event.actor}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {index === 0 && (
+                      <Chip label="Latest" size="small" color="primary" variant="filled" />
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
             ))}
-          </Timeline>
+          </Box>
         )}
       </TabPanel>
 
