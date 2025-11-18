@@ -19,6 +19,7 @@ export interface NavigationState {
   activeMenu: string[];
   filters: Record<string, any>;
   selectedItems: Record<string, string[]>;
+  navigationData?: Record<string, any>; // Data passed between components
 }
 
 /**
@@ -26,7 +27,7 @@ export interface NavigationState {
  */
 export interface NavigationContextValue extends NavigationState {
   // Navigation actions
-  navigate: (path: string) => void;
+  navigate: (path: string, data?: Record<string, any>) => void;
   goBack: () => void;
 
   // Breadcrumb management
@@ -43,6 +44,11 @@ export interface NavigationContextValue extends NavigationState {
 
   // Menu state
   setActiveMenu: (keys: string[]) => void;
+
+  // Inter-component navigation callbacks
+  navigateWithData: (path: string, data: Record<string, any>) => void;
+  getNavigationData: (key?: string) => any;
+  clearNavigationData: () => void;
 
   // Utilities
   isActive: (path: string) => boolean;
@@ -80,15 +86,16 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, [location.pathname]);
 
   /**
-   * Navigate to a different path
+   * Navigate to a different path with optional data
    */
-  const navigate = useCallback((path: string) => {
+  const navigate = useCallback((path: string, data?: Record<string, any>) => {
     window.history.pushState(null, '', path);
     setState(prev => ({
       ...prev,
       previousPath: prev.currentPath,
       currentPath: path,
       breadcrumbs: getBreadcrumbPath(path),
+      navigationData: data,
     }));
   }, []);
 
@@ -215,6 +222,32 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 
   /**
+   * Navigate with data (inter-component communication)
+   */
+  const navigateWithData = useCallback((path: string, data: Record<string, any>) => {
+    navigate(path, data);
+  }, [navigate]);
+
+  /**
+   * Get navigation data passed between components
+   */
+  const getNavigationData = useCallback((key?: string) => {
+    if (!state.navigationData) return undefined;
+    if (key) return state.navigationData[key];
+    return state.navigationData;
+  }, [state.navigationData]);
+
+  /**
+   * Clear navigation data
+   */
+  const clearNavigationData = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      navigationData: undefined,
+    }));
+  }, []);
+
+  /**
    * Context value
    */
   const value: NavigationContextValue = {
@@ -228,6 +261,9 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setSelectedItems,
     clearSelectedItems,
     setActiveMenu,
+    navigateWithData,
+    getNavigationData,
+    clearNavigationData,
     isActive,
     getFilterValue,
     getSelectedItems,
