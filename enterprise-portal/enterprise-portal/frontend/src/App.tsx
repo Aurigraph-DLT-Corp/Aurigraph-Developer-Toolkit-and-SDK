@@ -61,6 +61,9 @@ import RWATTokenizationForm from './components/rwat/RWATTokenizationForm';
 import MerkleTreeRegistry from './components/registry/MerkleTreeRegistry';
 import ComplianceDashboard from './components/compliance/ComplianceDashboard';
 import AssetTraceability from './components/comprehensive/AssetTraceability';
+import ContractAssetLinks from './components/comprehensive/ContractAssetLinks';
+import TraceabilityManagement from './components/comprehensive/TraceabilityManagement';
+import RegistryManagement from './components/comprehensive/RegistryManagement';
 
 const { Content, Footer } = Layout;
 
@@ -391,54 +394,11 @@ function App() {
       case 'asset-traceability':
         return <AssetTraceability />;
       case 'traceability-management':
-        return (
-          <div style={{ padding: '24px' }}>
-            <h1>Traceability Management</h1>
-            <p>Manage traceability records, verify ownership chains, and audit asset history.</p>
-            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-              <h3>Capabilities:</h3>
-              <ul>
-                <li>View asset ownership chains</li>
-                <li>Verify historical transactions</li>
-                <li>Compliance verification</li>
-                <li>Generate audit reports</li>
-              </ul>
-            </div>
-          </div>
-        );
+        return <TraceabilityManagement />;
       case 'contract-asset-links':
-        return (
-          <div style={{ padding: '24px' }}>
-            <h1>Contract-Asset Links</h1>
-            <p>Establish and manage relationships between smart contracts and tokenized assets.</p>
-            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-              <h3>Functions:</h3>
-              <ul>
-                <li>Link smart contracts to assets</li>
-                <li>Manage contract-asset bindings</li>
-                <li>View contract interactions with assets</li>
-                <li>Enforce contract-based asset rules</li>
-              </ul>
-            </div>
-          </div>
-        );
+        return <ContractAssetLinks />;
       case 'registry-management':
-        return (
-          <div style={{ padding: '24px' }}>
-            <h1>Registry Management</h1>
-            <p>Manage all registries including token registries, contract registries, and asset registries.</p>
-            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-              <h3>Registry Types:</h3>
-              <ul>
-                <li>Smart Contract Registry</li>
-                <li>Token Registry</li>
-                <li>RWA (Real-World Asset) Registry</li>
-                <li>Merkle Tree Registry</li>
-                <li>Compliance Registry</li>
-              </ul>
-            </div>
-          </div>
-        );
+        return <RegistryManagement />;
       default:
         return <LandingPage />;
     }

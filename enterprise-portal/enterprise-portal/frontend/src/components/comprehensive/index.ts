@@ -29,6 +29,9 @@ export { default as RWATRegistry } from './RWATRegistry';
 
 // Registries & Traceability
 export { default as AssetTraceability } from './AssetTraceability';
+export { default as ContractAssetLinks } from './ContractAssetLinks';
+export { default as TraceabilityManagement } from './TraceabilityManagement';
+export { default as RegistryManagement } from './RegistryManagement';
 
 // Documentation
 export { default as Whitepaper } from './Whitepaper';
