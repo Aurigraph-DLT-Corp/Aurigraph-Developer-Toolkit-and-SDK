@@ -5,7 +5,7 @@ import io.quarkus.grpc.GrpcService;
 import io.aurigraph.v11.proto.*;
 import io.aurigraph.v11.service.TransactionService;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;

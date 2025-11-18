@@ -1,11 +1,13 @@
 package io.aurigraph.v11.consensus;
 
 import java.util.concurrent.atomic.AtomicLong;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * Metrics tracking for HyperRAFT++ consensus operations
  * Tracks TPS, latency, replication performance, and consensus state
  */
+@ApplicationScoped
 public class ConsensusMetrics {
 
     private final AtomicLong transactionsProcessed = new AtomicLong(0);

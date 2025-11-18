@@ -1,0 +1,556 @@
+# Aurigraph V11 Load Testing Deployment
+# Optimized: Uses existing built image with multi-node scaling
+# Target: 2M+ TPS Load Testing with HyperRAFT++ Consensus
+
+version: '3.8'
+
+networks:
+  dlt-consensus:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+  dlt-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+  dlt-monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+volumes:
+  validator-1-data:
+  validator-2-data:
+  validator-3-data:
+  business-1-data:
+  business-2-data:
+  business-3-data:
+  slim-1-data:
+  slim-2-data:
+  slim-3-data:
+  dlt-postgres-data:
+  dlt-redis-data:
+  dlt-prometheus-data:
+  dlt-grafana-data:
+
+services:
+  # =========================================================================
+  # VALIDATOR NODES (Primary Consensus Participants)
+  # 3x Validator nodes for Byzantine Fault Tolerance (f < n/3)
+  # =========================================================================
+  validator-node-1:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}  # Uses host's V11 image
+    container_name: validator-node-1
+    hostname: validator-node-1
+    restart: unless-stopped
+
+    command: >
+      sh -c "
+        curl -f http://dlt-aurigraph-v11:9003/q/health 2>/dev/null && \
+        java -Xmx3G -Xms1G \
+          -Dquarkus.http.port=9003 \
+          -Dnode.type=VALIDATOR \
+          -Dnode.id=validator-1 \
+          -Dconsensus.mode=HyperRAFT_PLUS_PLUS \
+          -Dtransaction.pool.size=100000 \
+          -jar /app/quarkus-run.jar
+      "
+
+    environment:
+      - NODE_TYPE=VALIDATOR
+      - NODE_ID=validator-1
+      - NODE_ROLE=consensus_primary
+      - QUARKUS_HTTP_PORT=9003
+      - CONSENSUS_MODE=HyperRAFT_PLUS_PLUS
+      - CONSENSUS_LEADER_TIMEOUT=300
+      - CONSENSUS_HEARTBEAT_INTERVAL=50
+      - REPLICATION_BATCH_SIZE=32
+      - TRANSACTION_POOL_SIZE=100000
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=INFO
+
+    ports:
+      - "9003:9003"  # HTTP/2
+      - "9004:9004"  # gRPC
+
+    volumes:
+      - validator-1-data:/data
+
+    networks:
+      - dlt-consensus
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '8.0'
+        reservations:
+          memory: 2G
+
+    depends_on:
+      - dlt-postgres
+      - dlt-redis
+
+  validator-node-2:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: validator-node-2
+    hostname: validator-node-2
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=VALIDATOR
+      - NODE_ID=validator-2
+      - NODE_ROLE=consensus_replica
+      - QUARKUS_HTTP_PORT=9003
+      - CONSENSUS_MODE=HyperRAFT_PLUS_PLUS
+      - CONSENSUS_LEADER_TIMEOUT=300
+      - CONSENSUS_HEARTBEAT_INTERVAL=50
+      - REPLICATION_BATCH_SIZE=32
+      - TRANSACTION_POOL_SIZE=100000
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=INFO
+      - PEER_NODES=validator-node-1,validator-node-3,business-node-1
+
+    ports:
+      - "9005:9003"
+      - "9006:9004"
+
+    volumes:
+      - validator-2-data:/data
+
+    networks:
+      - dlt-consensus
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '8.0'
+        reservations:
+          memory: 2G
+
+  validator-node-3:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: validator-node-3
+    hostname: validator-node-3
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=VALIDATOR
+      - NODE_ID=validator-3
+      - NODE_ROLE=consensus_replica
+      - QUARKUS_HTTP_PORT=9003
+      - CONSENSUS_MODE=HyperRAFT_PLUS_PLUS
+      - CONSENSUS_LEADER_TIMEOUT=300
+      - CONSENSUS_HEARTBEAT_INTERVAL=50
+      - REPLICATION_BATCH_SIZE=32
+      - TRANSACTION_POOL_SIZE=100000
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=INFO
+      - PEER_NODES=validator-node-1,validator-node-2,business-node-1
+
+    ports:
+      - "9007:9003"
+      - "9008:9004"
+
+    volumes:
+      - validator-3-data:/data
+
+    networks:
+      - dlt-consensus
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '8.0'
+        reservations:
+          memory: 2G
+
+  # =========================================================================
+  # BUSINESS NODES (Transaction Processing & Smart Contract Execution)
+  # 3x Business nodes for parallel transaction processing
+  # =========================================================================
+  business-node-1:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: business-node-1
+    hostname: business-node-1
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=BUSINESS
+      - NODE_ID=business-1
+      - NODE_ROLE=transaction_processor
+      - QUARKUS_HTTP_PORT=9003
+      - TRANSACTION_POOL_SIZE=200000
+      - PARALLEL_TX_THREADS=16
+      - ENABLE_CONTRACT_EXECUTION=true
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=INFO
+      - PEER_NODES=validator-node-1,validator-node-2,validator-node-3
+
+    ports:
+      - "9009:9003"
+      - "9010:9004"
+
+    volumes:
+      - business-1-data:/data
+
+    networks:
+      - dlt-consensus
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '6.0'
+        reservations:
+          memory: 1.5G
+
+  business-node-2:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: business-node-2
+    hostname: business-node-2
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=BUSINESS
+      - NODE_ID=business-2
+      - NODE_ROLE=transaction_processor
+      - QUARKUS_HTTP_PORT=9003
+      - TRANSACTION_POOL_SIZE=200000
+      - PARALLEL_TX_THREADS=16
+      - ENABLE_CONTRACT_EXECUTION=true
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=INFO
+      - PEER_NODES=validator-node-1,validator-node-2,validator-node-3
+
+    ports:
+      - "9011:9003"
+      - "9012:9004"
+
+    volumes:
+      - business-2-data:/data
+
+    networks:
+      - dlt-consensus
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '6.0'
+        reservations:
+          memory: 1.5G
+
+  business-node-3:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: business-node-3
+    hostname: business-node-3
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=BUSINESS
+      - NODE_ID=business-3
+      - NODE_ROLE=transaction_processor
+      - QUARKUS_HTTP_PORT=9003
+      - TRANSACTION_POOL_SIZE=200000
+      - PARALLEL_TX_THREADS=16
+      - ENABLE_CONTRACT_EXECUTION=true
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=INFO
+      - PEER_NODES=validator-node-1,validator-node-2,validator-node-3
+
+    ports:
+      - "9013:9003"
+      - "9014:9004"
+
+    volumes:
+      - business-3-data:/data
+
+    networks:
+      - dlt-consensus
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '6.0'
+        reservations:
+          memory: 1.5G
+
+  # =========================================================================
+  # SLIM NODES (Lightweight Read-Only Nodes for Load Distribution)
+  # 3x Slim nodes for scaling transaction submission load
+  # =========================================================================
+  slim-node-1:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: slim-node-1
+    hostname: slim-node-1
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=SLIM
+      - NODE_ID=slim-1
+      - NODE_ROLE=load_balancer
+      - QUARKUS_HTTP_PORT=9003
+      - MEMORY_MODE=MINIMAL
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=WARN
+      - PEER_NODES=business-node-1,business-node-2,business-node-3
+
+    ports:
+      - "9015:9003"
+
+    volumes:
+      - slim-1-data:/data
+
+    networks:
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+
+  slim-node-2:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: slim-node-2
+    hostname: slim-node-2
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=SLIM
+      - NODE_ID=slim-2
+      - NODE_ROLE=load_balancer
+      - QUARKUS_HTTP_PORT=9003
+      - MEMORY_MODE=MINIMAL
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=WARN
+      - PEER_NODES=business-node-1,business-node-2,business-node-3
+
+    ports:
+      - "9016:9003"
+
+    volumes:
+      - slim-2-data:/data
+
+    networks:
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+
+  slim-node-3:
+    image: ${AURIGRAPH_IMAGE:-openjdk:21-slim}
+    container_name: slim-node-3
+    hostname: slim-node-3
+    restart: unless-stopped
+
+    environment:
+      - NODE_TYPE=SLIM
+      - NODE_ID=slim-3
+      - NODE_ROLE=load_balancer
+      - QUARKUS_HTTP_PORT=9003
+      - MEMORY_MODE=MINIMAL
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=WARN
+      - PEER_NODES=business-node-1,business-node-2,business-node-3
+
+    ports:
+      - "9017:9003"
+
+    volumes:
+      - slim-3-data:/data
+
+    networks:
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9003/q/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+
+  # =========================================================================
+  # MONITORING & INFRASTRUCTURE SERVICES
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: dlt-postgres
+    restart: unless-stopped
+
+    environment:
+      - POSTGRES_DB=aurigraph
+      - POSTGRES_USER=aurigraph
+      - POSTGRES_PASSWORD=aurigraph_db_2025
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - dlt-postgres-data:/var/lib/postgresql/data
+
+    networks:
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurigraph"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: dlt-redis
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - dlt-redis-data:/data
+
+    networks:
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dlt-prometheus
+    restart: unless-stopped
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - dlt-prometheus-data:/prometheus
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+    networks:
+      - dlt-monitoring
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 -O - http://localhost:9090 > /dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dlt-grafana
+    restart: unless-stopped
+
+    ports:
+      - "3001:3000"
+
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin_2025
+      - GF_USERS_ALLOW_SIGN_UP=false
+
+    volumes:
+      - dlt-grafana-data:/var/lib/grafana
+
+    networks:
+      - dlt-monitoring
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+    depends_on:
+      - prometheus

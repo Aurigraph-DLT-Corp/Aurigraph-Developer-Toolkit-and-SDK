@@ -185,7 +185,7 @@ public class ERC721NFT {
                 AssetDigitalTwin digitalTwin = digitalTwinService.getDigitalTwin(token.getDigitalTwinId())
                     .await().indefinitely();
                 if (digitalTwin != null) {
-                    digitalTwin.recordOwnershipChange(from, to, java.math.BigDecimal.ONE);
+                    digitalTwin.recordOwnershipChange(to, java.time.Instant.now().toString(), java.math.BigDecimal.ONE);
                 }
             }
             
