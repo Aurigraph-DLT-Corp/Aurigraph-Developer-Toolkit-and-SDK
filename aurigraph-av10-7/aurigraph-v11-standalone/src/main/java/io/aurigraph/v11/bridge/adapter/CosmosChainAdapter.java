@@ -140,7 +140,26 @@ public class CosmosChainAdapter extends BaseChainAdapter {
     @Override
     public Uni<BigDecimal> getBalance(String address, String assetIdentifier) {
         logOperation("getBalance", "address=" + address);
-        return Uni.createFrom().item(BigDecimal.ZERO);
+
+        return executeWithRetry(() -> {
+            if (address == null || address.isEmpty()) {
+                throw new BridgeException("Address cannot be null or empty");
+            }
+
+            // Validate Bech32 address format (Cosmos addresses start with 'cosmos')
+            if (!address.startsWith("cosmos") || address.length() < 42) {
+                throw new BridgeException("Invalid Cosmos address format: must be Bech32 with 'cosmos' prefix");
+            }
+
+            // Determine asset denomination (default to ATOM)
+            String denom = assetIdentifier != null ? assetIdentifier : "uatom";
+
+            // In real implementation, would query Cosmos LCD REST API
+            // Endpoint: https://lcd-cosmoshub.allthatnode.com/cosmos/bank/v1beta1/balances/{address}/by_denom?denom={denom}
+            // For now, return zero balance as placeholder
+            return BigDecimal.ZERO;
+
+        }, Duration.ofSeconds(10), 3);
     }
 
     @Override

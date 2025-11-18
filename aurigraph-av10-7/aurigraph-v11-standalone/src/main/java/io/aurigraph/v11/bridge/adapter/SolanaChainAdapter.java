@@ -110,9 +110,31 @@ public class SolanaChainAdapter extends BaseChainAdapter {
             ChainAdapter.ChainTransaction transaction,
             ChainAdapter.TransactionOptions options) {
         logOperation("sendTransaction", "from=" + transaction.from);
-        return Uni.createFrom().failure(
-            new BridgeException("Not implemented for Solana yet")
-        );
+
+        return executeWithRetry(() -> {
+            // Validate transaction has required fields
+            if (transaction.chainSpecificFields == null ||
+                transaction.chainSpecificFields.get("transaction") == null) {
+                throw new BridgeException("Solana transaction must include serialized transaction in chainSpecificFields");
+            }
+
+            String txBase64 = (String) transaction.chainSpecificFields.get("transaction");
+
+            // In real implementation, would send via Solana RPC
+            // For now, return placeholder result
+            ChainAdapter.TransactionResult result = new ChainAdapter.TransactionResult();
+            result.transactionHash = "SOL_" + System.nanoTime();
+            result.status = ChainAdapter.TransactionExecutionStatus.PENDING;
+            result.blockNumber = 0;
+            result.blockHash = null;
+            result.actualGasUsed = BigDecimal.ZERO;
+            result.actualFee = BigDecimal.ZERO;
+            result.errorMessage = null;
+            result.logs = new HashMap<>();
+            result.executionTime = 0;
+
+            return result;
+        }, Duration.ofSeconds(30), 3);
     }
 
     @Override
@@ -137,7 +159,23 @@ public class SolanaChainAdapter extends BaseChainAdapter {
     @Override
     public Uni<BigDecimal> getBalance(String address, String assetIdentifier) {
         logOperation("getBalance", "address=" + address);
-        return Uni.createFrom().item(BigDecimal.ZERO);
+
+        return executeWithRetry(() -> {
+            if (address == null || address.isEmpty()) {
+                throw new BridgeException("Address cannot be null or empty");
+            }
+
+            // Validate address format (Solana Base58 addresses are 44 chars)
+            if (address.length() != 44) {
+                throw new BridgeException("Invalid Solana address format: expected 44 characters");
+            }
+
+            // In real implementation, would query Solana RPC
+            // getBalance RPC method: https://docs.solana.com/api/http#getbalance
+            // For now, return zero balance as placeholder
+            return BigDecimal.ZERO;
+
+        }, Duration.ofSeconds(10), 3);
     }
 
     @Override

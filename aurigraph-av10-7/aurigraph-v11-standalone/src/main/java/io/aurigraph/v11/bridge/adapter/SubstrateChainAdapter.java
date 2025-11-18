@@ -155,7 +155,23 @@ public class SubstrateChainAdapter extends BaseChainAdapter {
     @Override
     public Uni<BigDecimal> getBalance(String address, String assetIdentifier) {
         logOperation("getBalance", "address=" + address);
-        return Uni.createFrom().item(BigDecimal.ZERO);
+
+        return executeWithRetry(() -> {
+            if (address == null || address.isEmpty()) {
+                throw new BridgeException("Address cannot be null or empty");
+            }
+
+            // Validate SS58 address format (typically 47-48 characters for Substrate/Polkadot)
+            if (address.length() < 47 || address.length() > 48) {
+                throw new BridgeException("Invalid Substrate SS58 address format: expected 47-48 characters");
+            }
+
+            // In real implementation, would query Substrate RPC via Polkadot.js or compatible client
+            // RPC method: state_getStorage with key: state.account + address
+            // For now, return zero balance as placeholder
+            return BigDecimal.ZERO;
+
+        }, Duration.ofSeconds(10), 3);
     }
 
     @Override
