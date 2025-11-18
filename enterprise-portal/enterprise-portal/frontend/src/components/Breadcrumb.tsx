@@ -32,7 +32,7 @@ export const Breadcrumb: React.FC = () => {
   /**
    * Render a breadcrumb item
    */
-  const renderBreadcrumbItem = (breadcrumb: RouteDefinition, index: number, isLast: boolean) => {
+  const renderBreadcrumbItem = (breadcrumb: RouteDefinition, isLast: boolean) => {
     const key = breadcrumb.path;
 
     // Don't render as clickable if it's the last item (current page)
@@ -46,13 +46,14 @@ export const Breadcrumb: React.FC = () => {
 
     // Render as clickable link
     return (
-      <AntBreadcrumb.Item
-        key={key}
-        onClick={() => handleBreadcrumbClick(breadcrumb.path)}
-        style={{ cursor: 'pointer', color: '#1890ff' }}
-        title={`Navigate to ${breadcrumb.breadcrumbLabel || breadcrumb.label}`}
-      >
-        {breadcrumb.breadcrumbLabel || breadcrumb.label}
+      <AntBreadcrumb.Item key={key}>
+        <a
+          onClick={() => handleBreadcrumbClick(breadcrumb.path)}
+          style={{ cursor: 'pointer', color: '#1890ff' }}
+          title={`Navigate to ${breadcrumb.breadcrumbLabel || breadcrumb.label}`}
+        >
+          {breadcrumb.breadcrumbLabel || breadcrumb.label}
+        </a>
       </AntBreadcrumb.Item>
     );
   };
@@ -60,21 +61,23 @@ export const Breadcrumb: React.FC = () => {
   return (
     <div style={{ marginBottom: '16px', padding: '8px 0' }}>
       <AntBreadcrumb separator=">">
-        <AntBreadcrumb.Item
-          onClick={() => handleBreadcrumbClick('/')}
-          style={{ cursor: 'pointer' }}
-          title="Go to Home"
-        >
-          <HomeOutlined />
+        <AntBreadcrumb.Item>
+          <a
+            onClick={() => handleBreadcrumbClick('/')}
+            style={{ cursor: 'pointer' }}
+            title="Go to Home"
+          >
+            <HomeOutlined />
+          </a>
         </AntBreadcrumb.Item>
-        {breadcrumbs.map((breadcrumb, index) => {
+        {breadcrumbs.map((breadcrumb) => {
           // Skip home breadcrumb as we already rendered it
           if (breadcrumb.path === '/') {
             return null;
           }
 
-          const isLast = index === breadcrumbs.length - 1;
-          return renderBreadcrumbItem(breadcrumb, index, isLast);
+          const isLast = breadcrumbs[breadcrumbs.length - 1]?.path === breadcrumb.path;
+          return renderBreadcrumbItem(breadcrumb, isLast);
         })}
       </AntBreadcrumb>
     </div>

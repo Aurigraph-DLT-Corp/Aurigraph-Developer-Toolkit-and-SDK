@@ -5,7 +5,7 @@
  * Using React Router v6 with lazy loading and code splitting
  */
 
-import { lazy, ReactNode } from 'react';
+import { lazy } from 'react';
 
 // Lazy-loaded components
 const LandingPage = lazy(() => import('../components/LandingPage'));
@@ -55,7 +55,7 @@ const RWATTokenizationForm = lazy(() => import('../components/rwat/RWATTokenizat
  */
 export interface RouteDefinition {
   path: string;
-  component: ReactNode;
+  component: any; // React.LazyExoticComponent or FC
   label: string;
   breadcrumbLabel: string;
   parent?: string;
