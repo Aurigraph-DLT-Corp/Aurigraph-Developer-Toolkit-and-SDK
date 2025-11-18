@@ -477,27 +477,6 @@
 
         <!-- Missing Dependencies for V11 Features -->
         
-        <!-- Hibernate ORM with Panache for JPA (for model classes, not active) -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm-panache</artifactId>
-        </dependency>
-        <!-- PostgreSQL for production persistence -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-postgresql</artifactId>
-        </dependency>
-
-        <!-- Flyway for database migrations -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-flyway</artifactId>
-        </dependency>
-
         <!-- H2 for in-memory testing (no external database required) -->
         <dependency>
             <groupId>io.quarkus</groupId>

@@ -1,9 +1,14 @@
 package io.aurigraph.v11.bridge.adapter;
 
 import io.aurigraph.v11.bridge.ChainAdapter;
+import io.aurigraph.v11.bridge.ChainInfo;
 import io.aurigraph.v11.bridge.exception.BridgeException;
-import io.aurigraph.v11.bridge.model.*;
-import io.aurigraph.v11.bridge.repository.*;
+import io.aurigraph.v11.bridge.BridgeTransaction;
+import io.aurigraph.v11.bridge.BridgeEvent;
+import io.aurigraph.v11.bridge.model.BridgeChainConfig;
+import io.aurigraph.v11.bridge.model.HTLCRequest;
+import io.aurigraph.v11.bridge.persistence.BridgeTransactionRepository;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.inject.Inject;

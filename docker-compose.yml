@@ -336,7 +336,7 @@ services:
     container_name: dlt-portal
     restart: unless-stopped
     working_dir: /app
-    command: sh -c "npm install && npx http-server public -p 3000 -c-1"
+    command: sh /app/start-portal.sh
     ports:
       - "3000:3000"
 
@@ -348,6 +348,7 @@ services:
 
     volumes:
       - ./enterprise-portal/enterprise-portal/frontend:/app
+      - ./start-portal.sh:/app/start-portal.sh:ro
 
     healthcheck:
       test: ["CMD-SHELL", "ps aux | grep 'http-server' | grep -v grep || exit 1"]

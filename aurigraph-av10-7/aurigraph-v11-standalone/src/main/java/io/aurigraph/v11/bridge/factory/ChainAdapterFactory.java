@@ -1,9 +1,10 @@
 package io.aurigraph.v11.bridge.factory;
 
-import io.aurigraph.v11.bridge.adapter.*;
+import io.aurigraph.v11.bridge.ChainAdapter;
+import io.aurigraph.v11.bridge.adapter.BaseChainAdapter;
 import io.aurigraph.v11.bridge.exception.BridgeException;
-import io.aurigraph.v11.bridge.model.*;
-import io.aurigraph.v11.bridge.repository.*;
+import io.aurigraph.v11.bridge.model.BridgeChainConfig;
+import io.aurigraph.v11.bridge.repository.BridgeConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.enterprise.context.ApplicationScoped;
