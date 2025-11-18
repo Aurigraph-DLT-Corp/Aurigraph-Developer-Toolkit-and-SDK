@@ -60,6 +60,7 @@ import UserManagement from './components/UserManagement';
 import RWATTokenizationForm from './components/rwat/RWATTokenizationForm';
 import MerkleTreeRegistry from './components/registry/MerkleTreeRegistry';
 import ComplianceDashboard from './components/compliance/ComplianceDashboard';
+import AssetTraceability from './components/comprehensive/AssetTraceability';
 
 const { Content, Footer } = Layout;
 
@@ -388,22 +389,7 @@ function App() {
           </div>
         );
       case 'asset-traceability':
-        return (
-          <div style={{ padding: '24px' }}>
-            <h1>Asset Traceability Visualization</h1>
-            <p>Track and visualize the complete lifecycle and history of tokenized assets across the blockchain network.</p>
-            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-              <h3>Features:</h3>
-              <ul>
-                <li>Real-time asset movement tracking</li>
-                <li>Complete audit trail visualization</li>
-                <li>Ownership history and transfers</li>
-                <li>Compliance event logging</li>
-                <li>Export traceability reports</li>
-              </ul>
-            </div>
-          </div>
-        );
+        return <AssetTraceability />;
       case 'traceability-management':
         return (
           <div style={{ padding: '24px' }}>
