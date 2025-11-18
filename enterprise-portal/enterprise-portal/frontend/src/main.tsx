@@ -8,11 +8,14 @@
  * - Console Logger for error suppression
  */
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import { BrowserRouter } from 'react-router-dom';
+import { Spin } from 'antd';
 import { store, persistor } from './store';
+import { NavigationProvider } from './context/NavigationContext';
 import App from './App';
 import './index.css';
 
@@ -30,7 +33,19 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <App />
+        <BrowserRouter>
+          <NavigationProvider>
+            <Suspense
+              fallback={
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                  <Spin size="large" tip="Loading..." />
+                </div>
+              }
+            >
+              <App />
+            </Suspense>
+          </NavigationProvider>
+        </BrowserRouter>
       </PersistGate>
     </Provider>
   </React.StrictMode>
