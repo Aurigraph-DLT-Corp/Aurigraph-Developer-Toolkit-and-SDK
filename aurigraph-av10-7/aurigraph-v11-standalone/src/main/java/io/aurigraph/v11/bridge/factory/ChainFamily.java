@@ -1,6 +1,8 @@
 package io.aurigraph.v11.bridge.factory;
 
 import io.aurigraph.v11.bridge.adapter.Web3jChainAdapter;
+import io.aurigraph.v11.bridge.adapter.SolanaChainAdapter;
+import io.aurigraph.v11.bridge.adapter.CosmosChainAdapter;
 
 /**
  * Classification of blockchains by consensus/VM type for adapter family pattern
@@ -29,24 +31,24 @@ public enum ChainFamily {
      * Solana Program Model - SPL token standard
      * Examples: Solana, Serum, Marinade, Magic Eden, Orca
      * Total: 5 chains
-     * Adapter: SolanaChainAdapter (Week 2, Week 5-8)
+     * Adapter: SolanaChainAdapter (reactive with Mutiny)
      */
     SOLANA(
         "Solana Program Model",
         "Solana ecosystem with SPL tokens",
-        null  // Adapter: SolanaChainAdapter - Week 5-8
+        SolanaChainAdapter.class
     ),
 
     /**
      * Cosmos SDK - IBC protocol for inter-blockchain communication
      * Examples: Cosmos Hub, Osmosis, Juno, Evmos, Injective, Kava, etc.
      * Total: 10 chains
-     * Adapter: CosmosChainAdapter (Week 2, Week 5-8)
+     * Adapter: CosmosChainAdapter (reactive with Mutiny, IBC support)
      */
     COSMOS(
         "Cosmos SDK + IBC",
         "Cosmos ecosystem with IBC protocol",
-        null  // Adapter: CosmosChainAdapter - Week 5-8
+        CosmosChainAdapter.class
     ),
 
     /**
