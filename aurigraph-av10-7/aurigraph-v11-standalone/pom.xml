@@ -386,7 +386,29 @@
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
+        <!-- Database and Persistence (Priority 3 - Configuration Management) -->
+        <!-- Quarkus JPA/Hibernate -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm</artifactId>
+        </dependency>
+        <!-- Quarkus JDBC PostgreSQL -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
+        <!-- Quarkus JPA with REST support -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-rest-data-panache</artifactId>
+        </dependency>
+        <!-- Flyway for database migrations -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-flyway</artifactId>
+        </dependency>
+
         <!-- Test Coverage and Reporting -->
         <dependency>
             <groupId>org.jacoco</groupId>
