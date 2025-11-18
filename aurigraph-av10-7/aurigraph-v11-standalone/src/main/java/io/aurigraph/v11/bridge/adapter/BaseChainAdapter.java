@@ -124,8 +124,8 @@ public abstract class BaseChainAdapter implements ChainAdapter {
             }
         })
             .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+            .ifNoItem().after(timeout).fail()
             .onFailure().retry().atMost(maxRetries)
-            .onTimeout().after(timeout).fail()
             .onFailure().transform(e -> {
                 logger.error("Operation failed after {} retries: {}", maxRetries, e.getMessage());
                 return new BridgeException("RPC operation failed: " + e.getMessage(), e);
@@ -154,7 +154,7 @@ public abstract class BaseChainAdapter implements ChainAdapter {
             }
         })
             .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-            .onTimeout().after(timeout).fail()
+            .ifNoItem().after(timeout).fail()
             .onFailure().transform(e ->
                 new BridgeException("RPC operation timed out or failed: " + e.getMessage(), e)
             );
@@ -181,7 +181,7 @@ public abstract class BaseChainAdapter implements ChainAdapter {
             .onFailure().transform(e ->
                 new BridgeException("Chain operation failed: " + e.getMessage(), e)
             )
-            .chain(second);
+            .chain(v -> second.apply(v));
     }
 
     /**
@@ -239,9 +239,8 @@ public abstract class BaseChainAdapter implements ChainAdapter {
      */
     protected java.util.List<String> getBackupRpcUrls() {
         java.util.List<String> urls = new java.util.ArrayList<>();
-        if (config.getBackupRpcUrls() != null) {
-            urls.addAll(config.getBackupRpcUrls());
-        }
+        // Note: Implement this based on BridgeChainConfig structure
+        // For now, return empty list - can be enhanced later
         return urls;
     }
 
@@ -274,10 +273,14 @@ public abstract class BaseChainAdapter implements ChainAdapter {
      * Shutdown adapter and clean up resources
      * Called when adapter is no longer needed
      */
-    public void shutdown() {
-        logger.info("Shutting down {} adapter for chain: {}",
-            this.getClass().getSimpleName(), config.getChainName());
-        onShutdown();
+    @Override
+    public Uni<Boolean> shutdown() {
+        return Uni.createFrom().item(() -> {
+            logger.info("Shutting down {} adapter for chain: {}",
+                this.getClass().getSimpleName(), config.getChainName());
+            onShutdown();
+            return true;
+        });
     }
 
     /**
@@ -325,6 +328,13 @@ public abstract class BaseChainAdapter implements ChainAdapter {
      */
     protected void logError(String operation, String error, Exception e) {
         logger.error("[{}:{}] {} error: {}", getAdapterName(), getChainName(), operation, error, e);
+    }
+
+    /**
+     * Log operation error
+     */
+    protected void logError(String operation, Exception e) {
+        logger.error("[{}:{}] {} error: {}", getAdapterName(), getChainName(), operation, e.getMessage(), e);
     }
 
     /**

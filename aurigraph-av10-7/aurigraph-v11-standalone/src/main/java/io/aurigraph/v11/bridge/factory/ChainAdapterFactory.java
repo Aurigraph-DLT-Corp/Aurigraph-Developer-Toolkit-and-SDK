@@ -146,7 +146,8 @@ public class ChainAdapterFactory {
     private BaseChainAdapter createAdapterForFamily(ChainFamily family,
             BridgeChainConfig config) throws BridgeException {
         try {
-            Class<? extends BaseChainAdapter> adapterClass = family.getAdapterClass();
+            @SuppressWarnings("unchecked")
+            Class<? extends BaseChainAdapter> adapterClass = (Class<? extends BaseChainAdapter>) family.getAdapterClass();
 
             if (adapterClass == null) {
                 throw new BridgeException(
