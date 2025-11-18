@@ -170,7 +170,7 @@ public class AMLScreeningRepository extends LevelDBRepository<AMLScreeningRecord
      */
     public List<AMLScreeningRecord> findByRiskScoreAbove(int minScore) {
         return findAll().stream()
-                .filter(record -> record.riskScore != null && record.riskScore.compareTo(BigDecimal.valueOf(minScore)) >= 0)
+                .filter(record -> record.riskScore != null && record.riskScore.compareTo(BigDecimal.valueOf((long)minScore)) >= 0)
                 .toList();
     }
 }

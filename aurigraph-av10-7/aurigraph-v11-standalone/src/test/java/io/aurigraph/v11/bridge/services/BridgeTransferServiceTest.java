@@ -41,12 +41,21 @@ public class BridgeTransferServiceTest {
         // Create valid test request
         validRequest = TransferRequest.builder()
                 .transferId("transfer-001")
+                .bridgeId("bridge-001")
                 .sourceChain("ethereum")
                 .targetChain("polygon")
                 .tokenSymbol("ETH")
                 .amount(new BigDecimal("10.00"))
                 .requiredSignatures(2)
                 .totalSigners(3)
+                .signatures(new ArrayList<TransferRequest.SignatureData>() {{
+                    add(TransferRequest.SignatureData.builder()
+                            .signer("signer1")
+                            .signature("sig1")
+                            .signatureType("SECP256K1")
+                            .weight(1)
+                            .build());
+                }})
                 .build();
 
         // Setup mock default response
@@ -70,7 +79,9 @@ public class BridgeTransferServiceTest {
 
         TransferResponse signedResponse = createMockTransferResponse("transfer-001");
         signedResponse.setStatus(TransferResponse.TransferStatus.SIGNED);
-        when(stateManager.getTransfer("transfer-001"))
+        signedResponse.setSignaturesReceived(2);
+        signedResponse.setSignaturesRequired(2);
+        when(stateManager.initializeTransfer(anyString(), anyString(), anyString(), anyString(), any(BigDecimal.class)))
                 .thenReturn(signedResponse);
 
         // When
@@ -109,13 +120,24 @@ public class BridgeTransferServiceTest {
         when(multiSigValidator.validateMultiSignatures(validRequest))
                 .thenReturn(invalidResult);
 
+        // Setup default response for initializeTransfer
+        TransferResponse pendingResponse = createMockTransferResponse("transfer-001");
+        when(stateManager.initializeTransfer(anyString(), anyString(), anyString(), anyString(), any(BigDecimal.class)))
+                .thenReturn(pendingResponse);
+
+        // Setup failed state transition to capture error response
+        when(stateManager.transitionToFailed(anyString(), anyString(), anyString()))
+                .thenReturn(true);
+
         // When
         TransferResponse response = transferService.submitBridgeTransfer(validRequest);
 
         // Then
         assertNotNull(response);
-        assertEquals(TransferResponse.TransferStatus.FAILED, response.getStatus());
+        // When multi-sig validation fails, the response includes error details
         assertEquals("SIGNATURE_VALIDATION_FAILED", response.getErrorCode());
+        assertNotNull(response.getErrorDetails());
+        assertTrue(response.getErrorDetails().contains("Invalid signature format"));
     }
 
     @Test

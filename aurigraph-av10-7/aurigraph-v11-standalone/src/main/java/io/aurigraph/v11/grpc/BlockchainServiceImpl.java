@@ -10,10 +10,11 @@ import io.aurigraph.v11.proto.*;
 import io.aurigraph.v11.repositories.BlockRepository;
 import io.aurigraph.v11.repositories.TransactionRepository;
 import io.grpc.stub.StreamObserver;
+import io.quarkus.grpc.GrpcService;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.Multi;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import jakarta.inject.Inject;
 
 import com.google.protobuf.Timestamp;
@@ -52,7 +53,8 @@ import java.util.stream.Collectors;
  * @version 11.0.0
  * @since Sprint 9 - Week 2-3
  */
-@ApplicationScoped
+@GrpcService
+@Singleton
 public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServiceImplBase {
 
     @Inject

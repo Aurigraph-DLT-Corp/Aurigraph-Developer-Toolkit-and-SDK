@@ -6,7 +6,7 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.aurigraph.v11.proto.*;
 import com.google.protobuf.Timestamp;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * Protocol: gRPC with Protocol Buffers and HTTP/2 multiplexing
  */
 @GrpcService
-@ApplicationScoped
+@Singleton
 public class NetworkServiceImpl implements io.aurigraph.v11.proto.NetworkService {
 
     // Peer management storage
