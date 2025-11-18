@@ -70,6 +70,11 @@ services:
       - TRANSACTION_POOL_SIZE=100000
       - ENABLE_METRICS=true
       - LOG_LEVEL=INFO
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
 
     ports:
       - "9003:9003"  # HTTP/2
@@ -115,6 +120,11 @@ services:
       - TRANSACTION_POOL_SIZE=100000
       - ENABLE_METRICS=true
       - LOG_LEVEL=INFO
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=validator-node-1,validator-node-3,business-node-1
 
     ports:
@@ -161,6 +171,11 @@ services:
       - TRANSACTION_POOL_SIZE=100000
       - ENABLE_METRICS=true
       - LOG_LEVEL=INFO
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=validator-node-1,validator-node-2,business-node-1
 
     ports:
@@ -209,6 +224,11 @@ services:
       - ENABLE_CONTRACT_EXECUTION=true
       - ENABLE_METRICS=true
       - LOG_LEVEL=INFO
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=validator-node-1,validator-node-2,validator-node-3
 
     ports:
@@ -253,6 +273,11 @@ services:
       - ENABLE_CONTRACT_EXECUTION=true
       - ENABLE_METRICS=true
       - LOG_LEVEL=INFO
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=validator-node-1,validator-node-2,validator-node-3
 
     ports:
@@ -297,6 +322,11 @@ services:
       - ENABLE_CONTRACT_EXECUTION=true
       - ENABLE_METRICS=true
       - LOG_LEVEL=INFO
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=validator-node-1,validator-node-2,validator-node-3
 
     ports:
@@ -343,6 +373,11 @@ services:
       - MEMORY_MODE=MINIMAL
       - ENABLE_METRICS=true
       - LOG_LEVEL=WARN
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=business-node-1,business-node-2,business-node-3
 
     ports:
@@ -383,6 +418,11 @@ services:
       - MEMORY_MODE=MINIMAL
       - ENABLE_METRICS=true
       - LOG_LEVEL=WARN
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=business-node-1,business-node-2,business-node-3
 
     ports:
@@ -423,6 +463,11 @@ services:
       - MEMORY_MODE=MINIMAL
       - ENABLE_METRICS=true
       - LOG_LEVEL=WARN
+      - DATABASE_ENGINE=LEVELDB
+      - LEVELDB_DATA_PATH=/data/leveldb
+      - LEVELDB_BLOCK_CACHE_SIZE=134217728
+      - LEVELDB_WRITE_BUFFER_SIZE=67108864
+      - LEVELDB_COMPRESSION=snappy
       - PEER_NODES=business-node-1,business-node-2,business-node-3
 
     ports:
