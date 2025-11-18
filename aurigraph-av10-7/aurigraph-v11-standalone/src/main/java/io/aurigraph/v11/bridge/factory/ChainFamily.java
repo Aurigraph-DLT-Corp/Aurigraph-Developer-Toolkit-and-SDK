@@ -1,10 +1,11 @@
 package io.aurigraph.v11.bridge.factory;
 
-import io.aurigraph.v11.bridge.adapter.*;
-
 /**
  * Classification of blockchains by consensus/VM type for adapter family pattern
  * Enables reusable adapter implementations across similar chains
+ *
+ * PHASE: 2 (Week 3-4) - Configuration setup
+ * Adapter implementations deferred to Week 5-8
  *
  * @author Claude Code - Priority 3 Implementation
  * @version 1.0.0
@@ -18,7 +19,7 @@ public enum ChainFamily {
     EVM(
         "Ethereum Virtual Machine",
         "EVM-compatible chains using Web3.js/Web3j",
-        Web3jChainAdapter.class
+        null  // Adapter: Week 5-8
     ),
 
     /**
@@ -29,7 +30,7 @@ public enum ChainFamily {
     SOLANA(
         "Solana Program Model",
         "Solana ecosystem with SPL tokens",
-        SolanaChainAdapter.class
+        null  // Adapter: Week 5-8
     ),
 
     /**
@@ -40,7 +41,7 @@ public enum ChainFamily {
     COSMOS(
         "Cosmos SDK + IBC",
         "Cosmos ecosystem with IBC protocol",
-        CosmosChainAdapter.class
+        null  // Adapter: Week 5-8
     ),
 
     /**
@@ -51,7 +52,7 @@ public enum ChainFamily {
     SUBSTRATE(
         "Polkadot/Substrate",
         "Substrate-based chains with XCM",
-        SubstrateChainAdapter.class
+        null  // Adapter: Week 5-8
     ),
 
     /**
@@ -62,7 +63,7 @@ public enum ChainFamily {
     LAYER2(
         "Layer 2 Rollups",
         "L2 solutions (Optimistic & ZK rollups)",
-        Layer2ChainAdapter.class
+        null  // Adapter: Week 5-8
     ),
 
     /**
@@ -73,7 +74,7 @@ public enum ChainFamily {
     UTXO(
         "Bitcoin UTXO Model",
         "UTXO-based chains like Bitcoin",
-        UTXOChainAdapter.class
+        null  // Adapter: Week 5-8
     ),
 
     /**
@@ -84,14 +85,14 @@ public enum ChainFamily {
     OTHER(
         "Other VMs",
         "Unique VM implementations (Tezos, Cardano, Near, etc.)",
-        GenericChainAdapter.class
+        null  // Adapter: Week 5-8
     );
 
     private final String displayName;
     private final String description;
-    private final Class<? extends BaseChainAdapter> adapterClass;
+    private final Class<?> adapterClass;
 
-    ChainFamily(String displayName, String description, Class<? extends BaseChainAdapter> adapterClass) {
+    ChainFamily(String displayName, String description, Class<?> adapterClass) {
         this.displayName = displayName;
         this.description = description;
         this.adapterClass = adapterClass;
@@ -105,7 +106,7 @@ public enum ChainFamily {
         return description;
     }
 
-    public Class<? extends BaseChainAdapter> getAdapterClass() {
+    public Class<?> getAdapterClass() {
         return adapterClass;
     }
 
