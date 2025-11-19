@@ -342,12 +342,31 @@
             <artifactId>crypto</artifactId>
             <version>4.12.1</version>
         </dependency>
-        <!-- Solana Web3 Java SDK - Temporarily commented due to repository issues -->
-        <!-- <dependency>
-            <groupId>com.github.skynetcap</groupId>
-            <artifactId>solanaj</artifactId>
-            <version>1.18.1</version>
-        </dependency> -->
+        <!-- Solana/Blockchain HTTP Client -->
+        <dependency>
+            <groupId>org.asynchttpclient</groupId>
+            <artifactId>async-http-client</artifactId>
+            <version>2.12.3</version>
+        </dependency>
+        <!-- Bitcoin UTXO SDK -->
+        <dependency>
+            <groupId>org.bitcoinj</groupId>
+            <artifactId>bitcoinj-core</artifactId>
+            <version>0.15.10</version>
+        </dependency>
+        <!-- Cosmos SDK for REST API -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>4.32.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>4.32.1</version>
+        </dependency>
+        <!-- For REST client communications, using OkHttp3 + Jackson -->
+        <!-- Substrate/Polkadot REST operations will use OkHttp + Jackson JSON handling -->
         <!-- OkHttp for HTTP clients -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
