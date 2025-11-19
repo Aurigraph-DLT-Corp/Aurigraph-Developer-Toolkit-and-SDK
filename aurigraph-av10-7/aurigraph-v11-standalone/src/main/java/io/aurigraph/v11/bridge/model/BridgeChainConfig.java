@@ -301,6 +301,10 @@ public class BridgeChainConfig {
         this.enabled = enabled;
     }
 
+    public boolean isEnabled() {
+        return enabled != null && enabled;
+    }
+
     public Map<String, String> getContractAddresses() {
         return contractAddresses;
     }

@@ -1,0 +1,486 @@
+================================================================================
+AURIGRAPH ENTERPRISE PORTAL V4.6.0 - CODEBASE ARCHITECTURE SUMMARY
+================================================================================
+
+PROJECT LOCATION
+/Users/subbujois/subbuworkingdir/Aurigraph-DLT/enterprise-portal/enterprise-portal/frontend/
+
+================================================================================
+KEY STATISTICS
+================================================================================
+
+Technology Stack:
+  - React 18.2.0 + TypeScript 5.3.3
+  - Vite 5.0.8 (build tool)
+  - Redux Toolkit 1.9.7 + Redux Persist
+  - React Router v6.20.0
+  - Ant Design v5.11.5 (51 files using)
+  - Material-UI v5.18.0 (secondary)
+  
+Codebase Size:
+  - Total Components: 30+ feature pages
+  - Common Components: 3 (LoadingSkeleton, EmptyState, ErrorBoundary)
+  - Services: 12 service files
+  - Redux Slices: 5 (auth, settings, demoApp, comprehensivePortal, liveData)
+  - Type Definitions: 10 type modules
+  - Custom Hooks: 5 hooks
+  - Routes: 1 main configuration file (15KB)
+
+Version: v4.6.0
+Node: >=18.0.0 | NPM: >=9.0.0
+
+================================================================================
+DIRECTORY TREE
+================================================================================
+
+src/
+├── components/                (React components organized by domain)
+│   ├── common/                (3 shared UI components)
+│   ├── layout/                (Navigation, Header, Footer, Sidebar)
+│   ├── comprehensive/         (15+ feature components)
+│   │   ├── Blockchain: BlockExplorer, TransactionExplorer, ValidatorDashboard
+│   │   ├── Contracts: SmartContractRegistry, ActiveContracts, RicardianUpload
+│   │   ├── RWAT: RWATRegistry, Tokenization, TokenizationRegistry
+│   │   ├── Traceability: AssetTraceability, TraceabilityManagement
+│   │   ├── Cross-Chain: CrossChainBridge
+│   │   ├── AI/Security: AIOptimizationControls, QuantumSecurityPanel
+│   │   ├── Compliance: ComplianceDashboard
+│   │   └── Registry: RegistryManagement, MerkleTreeRegistry
+│   ├── compliance/            (Compliance features)
+│   ├── registry/              (Registry components)
+│   ├── rwat/                  (Real-world asset forms)
+│   ├── demo/                  (Demo components)
+│   ├── demo-app/              (Demo application + charts)
+│   └── styles/                (Shared CSS)
+│
+├── pages/                     (Legacy page structure - Login)
+├── routes/                    (Route definitions with metadata)
+│
+├── store/                     (Redux state management)
+│   ├── index.ts               (Store config + Redux Persist)
+│   ├── authSlice.ts           (Auth state)
+│   ├── settingsSlice.ts       (App settings)
+│   ├── demoAppSlice.ts        (Demo data)
+│   ├── comprehensivePortalSlice.ts (Main app state)
+│   ├── liveDataSlice.ts       (Real-time data - non-persisted)
+│   └── selectors.ts           (Memoized selectors with Reselect)
+│
+├── services/                  (API & business logic)
+│   ├── apiClient.ts           (HTTP client with JWT interceptor)
+│   ├── authService.ts         (Authentication)
+│   ├── V11BackendService.ts   (Blockchain API)
+│   ├── ComprehensivePortalService.ts (Main service)
+│   ├── HighThroughputDemoService.ts (Demo data)
+│   ├── websocketService.ts    (Real-time communication)
+│   ├── contractsApi.ts        (Smart contracts)
+│   ├── complianceApi.ts       (Compliance)
+│   ├── ChannelService.ts      (Channel communication)
+│   ├── TokenService.ts        (Token operations)
+│   └── DataSourceService.ts   (Data fetching abstraction)
+│
+├── hooks/                     (Custom React hooks - 5)
+│   ├── useRedux.ts            (Redux hooks)
+│   ├── useAuth.ts             (Authentication)
+│   ├── useWebSocket.ts        (WebSocket connection)
+│   └── useQueryParams.ts      (URL query parameters)
+│
+├── context/                   (React Context)
+│   └── NavigationContext.tsx   (Breadcrumb navigation)
+│
+├── types/                     (TypeScript definitions - 10 files)
+│   ├── state.ts               (Redux state types)
+│   ├── comprehensive.ts       (Feature types)
+│   ├── api.ts                 (API response types)
+│   ├── rwat.ts                (RWAT types)
+│   ├── contracts.ts           (Contract types)
+│   ├── nodes.ts               (Node/validator types)
+│   ├── tokens.ts              (Token types)
+│   └── ...
+│
+├── utils/                     (Utility functions)
+├── config/                    (Configuration)
+│   └── featureFlags.ts        (Feature flags)
+│
+├── App.tsx                    (Root application component)
+├── main.tsx                   (Entry point with Redux + Router setup)
+├── index.css                  (Global styles)
+│
+├── vite.config.ts             (Build configuration)
+├── tsconfig.json              (TypeScript config)
+├── vitest.config.ts           (Testing config)
+└── package.json               (Dependencies & scripts)
+
+================================================================================
+ARCHITECTURE PATTERNS
+================================================================================
+
+1. ROUTING
+   - React Router v6 with lazy-loaded components
+   - Route metadata enables automatic menu generation
+   - 8 categories: blockchain, contracts, tokenization, compliance, 
+     registries, ai, integration, admin
+   - Breadcrumb navigation via NavigationContext
+
+2. STATE MANAGEMENT
+   - Redux Toolkit with 5 slices
+   - Redux Persist: persists auth, settings, demoApp selections
+   - Reselect for memoized selectors
+   - Real-time data (liveData) NOT persisted
+
+3. AUTHENTICATION
+   - JWT with auto-refresh on 401
+   - Token storage in localStorage
+   - Credentials included for session fallback
+   - Protected routes with useAuth hook
+
+4. API INTEGRATION
+   - Service layer abstracts API calls
+   - apiClient with JWT interceptor
+   - Error handling and retry logic
+   - WebSocket with polling fallback
+
+5. UI FRAMEWORKS
+   - Ant Design: primary UI framework (51 files)
+   - Material-UI: specific components (RWAT Registry)
+   - Theme switching (light/dark mode)
+   - ConfigProvider for theme management
+
+6. REAL-TIME UPDATES
+   - WebSocket service with auto-reconnection
+   - Fallback to polling
+   - Redux liveData slice for updates
+   - useWebSocket hook for components
+
+7. PERFORMANCE
+   - Code splitting with lazy loading
+   - Vendor bundle separation
+   - Memoization with React.memo, useMemo, useCallback
+   - Redux Persist for client-side caching
+
+================================================================================
+KEY COMPONENTS
+================================================================================
+
+Layout:
+  TopNavRouter    - Sticky header with React Router dropdown navigation
+  Header         - Header component
+  Footer         - Version info + system status
+  Breadcrumb     - Navigation context breadcrumbs
+
+Blockchain Features:
+  BlockExplorer        - Block details + chain visualization
+  TransactionExplorer  - Transaction listing + details
+  ValidatorDashboard   - Validator performance metrics
+
+Smart Contracts:
+  SmartContractRegistry    - Contract deployment/management
+  ActiveContracts         - Running contracts list
+  RicardianContractUpload - Legal contract upload
+
+Real-World Asset Tokenization:
+  RWATRegistry        - Asset tokenization interface (Material-UI)
+  Tokenization        - Token creation form
+  TokenizationRegistry - Token inventory viewer
+
+Compliance & Security:
+  ComplianceDashboard    - Compliance metrics
+  QuantumSecurityPanel   - NIST Level 5 quantum crypto status
+  UserManagement        - User CRUD operations
+
+Registries & Traceability:
+  MerkleTreeRegistry      - Merkle tree visualization
+  AssetTraceability       - Supply chain tracking
+  TraceabilityManagement  - Trace operations
+  RegistryManagement      - Registry CRUD
+
+Cross-Chain:
+  CrossChainBridge - Inter-chain asset transfers
+
+AI & ML:
+  AIOptimizationControls - ML-based optimization tuning
+
+Common:
+  LoadingSkeleton  - Skeleton loading UI
+  EmptyState       - Empty state display
+  ErrorBoundary    - Error handling wrapper
+  ProtectedRoute   - Auth-protected route wrapper
+
+================================================================================
+SERVICES ARCHITECTURE
+================================================================================
+
+HTTP Layer:
+  apiClient         - JWT interceptor, token refresh, error handling
+
+Authentication:
+  authService       - Login, logout, token management
+
+Blockchain:
+  V11BackendService         - Blockchain data (blocks, transactions)
+  blockchainService         - Block explorer operations
+
+Smart Contracts:
+  contractsApi      - Contract deployment, querying, events
+
+Tokenization:
+  tokenService      - Token operations
+
+Compliance:
+  complianceApi     - KYC, AML, audit logs
+
+Communication:
+  websocketService  - Real-time updates
+  channelService    - Channel communication
+
+Demo:
+  HighThroughputDemoService - Mock data generation (776K TPS baseline)
+
+Data:
+  DataSourceService - Data fetching abstraction
+  ComprehensivePortalService - Main orchestration service
+
+================================================================================
+BUILD & DEPLOYMENT
+================================================================================
+
+Development:
+  npm run dev         - Start dev server on port 3000
+  npm run dev:https   - HTTPS dev server
+
+Production:
+  npm run build       - Build optimized bundles
+  npm run preview     - Preview production build
+
+Testing:
+  npm run test        - Unit tests with Vitest
+  npm run test:ui     - Interactive test UI
+  npm run test:coverage - Coverage report
+  npm run test:e2e    - Playwright E2E tests
+
+Code Quality:
+  npm run lint        - ESLint check
+  npm run lint:fix    - Auto-fix linting
+  npm run format      - Prettier formatting
+  npm run type-check  - TypeScript check
+
+Build Output:
+  dist/
+  ├── index.html
+  ├── assets/
+  │   ├── react-vendor.js      (React libraries)
+  │   ├── redux-vendor.js      (Redux libraries)
+  │   ├── antd-vendor.js       (Ant Design)
+  │   ├── chart-vendor.js      (Recharts)
+  │   └── main.js              (App code)
+  └── *.map                    (Source maps)
+
+API Proxy:
+  Development:
+    /api          -> http://localhost:9003
+    /ws           -> ws://localhost:9003
+
+================================================================================
+TECHNOLOGY BREAKDOWN
+================================================================================
+
+Frontend Framework:
+  React 18.2.0          - UI library
+  React Router 6.20.0   - Client-side routing
+  React DOM 18.2.0      - DOM rendering
+
+State Management:
+  Redux Toolkit 1.9.7   - State management
+  React Redux 8.1.3     - React bindings
+  Redux Persist 6.0.0   - State persistence
+  Reselect 4.1.8        - Selector memoization
+  Immer 10.0.3          - Immutable state updates
+
+UI Components:
+  Ant Design 5.11.5     - Primary UI library
+  @ant-design/icons 5.2.6 - Icon library
+  Material-UI 5.18.0    - Secondary UI library
+  @mui/icons-material 5.18.0 - MUI icons
+
+Charting & Visualization:
+  Recharts 2.10.3       - Data visualization
+  Dayjs 1.11.10         - Date/time utilities
+
+HTTP & Communication:
+  Axios 1.6.2           - HTTP client
+
+Styling:
+  @emotion/react 11.14.0 - CSS-in-JS
+  @emotion/styled 11.14.1 - Styled components
+
+Development Tools:
+  TypeScript 5.3.3      - Type system
+  Vite 5.0.8            - Build tool
+  Vitest 1.0.4          - Test framework
+  Playwright 1.40.0     - E2E testing
+  ESLint 8.55.0         - Linting
+  Prettier 3.1.1        - Code formatting
+
+Type Safety:
+  @types/react 18.2.43
+  @types/react-dom 18.2.17
+
+================================================================================
+NAVIGATION STRUCTURE
+================================================================================
+
+Home Page (/):
+  LandingPage
+
+Blockchain (Category):
+  /dashboard              - Main dashboard
+  /transactions           - Transaction explorer
+  /blocks                 - Block explorer
+  /validators             - Validator dashboard
+  /monitoring             - System monitoring
+
+Smart Contracts (Category):
+  /contracts/registry     - Contract registry
+  /contracts/active       - Active contracts
+  /contracts/upload       - Ricardian upload
+
+RWA Tokenization (Category):
+  /rwa/registry           - RWAT registry
+  /rwa/tokenize           - Tokenization form
+  /rwa/tokens             - Token inventory
+  /rwa/external-api       - External API integration
+
+Compliance & Security (Category):
+  /compliance/dashboard   - Compliance metrics
+  /security/quantum       - Quantum security
+  /users                  - User management
+  /roles                  - Role management
+
+Registries & Traceability (Category):
+  /registry/merkle-tree   - Merkle tree registry
+  /traceability/assets    - Asset traceability
+  /traceability/links     - Contract-asset links
+  /registry/management    - Registry operations
+
+AI & Optimization (Category):
+  /ai/optimization        - AI controls
+  /ai/performance         - Performance metrics
+
+Integration (Category):
+  /bridge/cross-chain     - Cross-chain bridge
+
+Administration (Category):
+  /whitepaper             - Documentation
+
+================================================================================
+REDUX STATE STRUCTURE
+================================================================================
+
+auth:
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
+  sessionId: string | null
+  expiresIn: number | null
+  lastCheckTime: number | null
+
+settings:
+  theme: 'light' | 'dark'
+  notifications: NotificationSettings
+  performance: PerformanceSettings
+  externalFeeds: ExternalFeedConfig
+  apiBaseUrl: string
+  wsUrl: string
+  demoMode: boolean
+
+demoApp:
+  nodes: DemoNode[]
+  metrics: DemoMetrics
+  chartData: ChartDataPoint[]
+  selectedNodeId: string | null
+  activeDashboard: string
+  wsConnected: boolean
+
+comprehensivePortal:
+  blocks: Block[]
+  transactions: Transaction[]
+  contracts: SmartContract[]
+  rwatTokens: RealWorldAsset[]
+  traceabilityData: TraceabilityInfo[]
+
+liveData:
+  transactionFeed: LiveTransaction[]
+  metrics: RealTimeMetrics
+  (NOT persisted - refetched on load)
+
+================================================================================
+TYPESCRIPT CONFIGURATION
+================================================================================
+
+Target: ES2020
+Module Resolution: bundler
+Strict Mode: true
+JSX: react-jsx
+Path Aliases:
+  @ = src
+  @components = src/components
+  @hooks = src/hooks
+  @services = src/services
+  @store = src/store
+  @types = src/types
+  @utils = src/utils
+
+================================================================================
+FEATURE FLAGS
+================================================================================
+
+Demo Mode:                Enable mock data generation
+Component Visibility:     Show/hide specific features
+API Endpoint Switching:   Toggle between real/mock APIs
+Performance Monitoring:   Enable performance tracking
+Debug Mode:              Enable debug logging
+
+================================================================================
+INTEGRATION POINTS
+================================================================================
+
+API Base URLs:
+  Production:  https://dlt.aurigraph.io/api/v11
+  Development: http://localhost:9003/api/v11
+
+WebSocket:
+  Production:  wss://dlt.aurigraph.io
+  Development: ws://localhost:9003
+
+Key Endpoints:
+  GET /health                    - Health check
+  GET /blocks                    - Block listing
+  GET /transactions              - Transaction listing
+  GET /validators                - Validator list
+  GET /consensus/status          - Consensus metrics
+  POST /contracts/deploy         - Deploy contract
+  POST /rwa/tokenize             - Tokenize asset
+  GET /rwa/registry              - RWAT inventory
+
+================================================================================
+PERFORMANCE METRICS
+================================================================================
+
+Bundle Size (optimized):
+  Total: ~1.8MB (gzipped: ~500KB)
+  React vendor: ~300KB
+  Redux vendor: ~100KB
+  Ant Design vendor: ~400KB
+  Chart vendor: ~200KB
+  App code: ~400KB
+
+Startup Time:
+  Cold start: ~2-3s (network dependent)
+  HMR: <500ms
+  Route transition: <200ms
+
+Memory Footprint:
+  Initial load: ~50MB
+  After navigation: ~60-80MB
+
+================================================================================
