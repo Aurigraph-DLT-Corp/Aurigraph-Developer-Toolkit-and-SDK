@@ -369,7 +369,7 @@ public class TransactionResource {
                 double durationMs = durationNanos / 1_000_000.0;
 
                 Log.debugf("[REST→gRPC] ✓ Pending transactions retrieved: %d txs, latency=%.2fms",
-                          grpcResponse.getTotalPending(), durationMs);
+                          (Object) grpcResponse.getTotalPending(), (Object) durationMs);
 
                 // Convert to DTOs
                 List<TransactionDTO> dtos = dtoConverter.toTransactionDTOs(
@@ -414,7 +414,7 @@ public class TransactionResource {
                 double durationMs = durationNanos / 1_000_000.0;
 
                 Log.debugf("[REST→gRPC] ✓ Tx pool stats retrieved: %d pending, latency=%.2fms",
-                          grpcStats.getTotalPending(), durationMs);
+                          (Object) grpcStats.getTotalPending(), (Object) durationMs);
 
                 return Response.ok(grpcStats).build();
 
