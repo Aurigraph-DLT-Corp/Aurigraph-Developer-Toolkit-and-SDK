@@ -392,10 +392,12 @@ public class DTOConverter {
 
     /**
      * Extract TransactionDTO from SubmitTransactionResponse (DEPRECATED - use TransactionSubmissionResponse)
+     * NOTE: This method is commented out as SubmitTransactionResponse is not defined in protobuf
      *
      * @param response SubmitTransactionResponse (legacy)
      * @return TransactionDTO
      */
+    /*
     @Deprecated
     public TransactionDTO fromSubmitTransactionResponse(
             io.aurigraph.v11.proto.SubmitTransactionResponse response) {
@@ -410,6 +412,7 @@ public class DTOConverter {
                 .timestamp(Instant.now())
                 .build();
     }
+    */
 
     /**
      * Extract TransactionDTO from TransactionSubmissionResponse
