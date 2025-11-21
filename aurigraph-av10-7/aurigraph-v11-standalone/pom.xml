@@ -1004,7 +1004,11 @@
                     --initialize-at-run-time=io.grpc.internal.DnsNameResolver,
                     --initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.codec.http2.Http2CodecUtil,
                     --initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.codec.http2.DefaultHttp2FrameWriter,
-                    
+
+                    <!-- ForkJoinPool Initialization for Parallel Processing -->
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinWorkerThread,
+
                     <!-- Crypto and Security -->
                     --initialize-at-run-time=org.bouncycastle,
                     --initialize-at-run-time=java.security.SecureRandom,

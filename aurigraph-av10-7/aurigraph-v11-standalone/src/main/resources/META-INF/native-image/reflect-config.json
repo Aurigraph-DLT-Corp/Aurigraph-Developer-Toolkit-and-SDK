@@ -392,5 +392,33 @@
   {
     "name": "sun.security.provider.NativePRNG$NonBlocking",
     "allDeclaredConstructors": true
+  },
+  {
+    "name": "java.util.concurrent.ForkJoinPool",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true,
+    "methods": [
+      {
+        "name": "<clinit>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "java.util.concurrent.ForkJoinPool$Submitter",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "java.util.concurrent.ForkJoinWorkerThread",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "jdk.internal.vm.vector.VectorSupport",
+    "allDeclaredConstructors": false,
+    "allDeclaredMethods": false
   }
 ]
