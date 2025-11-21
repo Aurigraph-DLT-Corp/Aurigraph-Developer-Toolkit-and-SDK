@@ -9,13 +9,13 @@ import { lazy } from 'react';
 
 // Lazy-loaded components
 const LandingPage = lazy(() => import('../components/LandingPage'));
-const Dashboard = lazy(() => import('../components/Dashboard'));
+const Dashboard = lazy(() => import('../components/DashboardIntegrated'));
 const Monitoring = lazy(() => import('../components/Monitoring'));
 const DemoApp = lazy(() => import('../components/demo-app/DemoApp'));
 const DemoChannelApp = lazy(() => import('../components/demo/DemoChannelApp'));
 
 // Blockchain components
-const TransactionExplorer = lazy(() => import('../components/comprehensive/TransactionExplorer'));
+const TransactionExplorer = lazy(() => import('../components/comprehensive/TransactionExplorerIntegrated'));
 const BlockExplorer = lazy(() => import('../components/comprehensive/BlockExplorer'));
 const ValidatorDashboard = lazy(() => import('../components/comprehensive/ValidatorDashboard'));
 
