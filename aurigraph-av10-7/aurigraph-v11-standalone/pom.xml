@@ -1054,8 +1054,23 @@
                     -O1,
                     --initialize-at-run-time=io.netty,
                     --initialize-at-run-time=io.grpc,
+
+                    <!-- ForkJoinPool Runtime Initialization - CRITICAL -->
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool$Submitter,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool$WorkQueue,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinWorkerThread,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinWorkerThread$InnocuousForkJoinWorkerThread,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinTask,
+                    --initialize-at-run-time=java.util.concurrent.RecursiveTask,
+                    --initialize-at-run-time=java.util.concurrent.RecursiveAction,
+                    --initialize-at-run-time=sun.misc.Unsafe,
+
+                    <!-- GraalVM Options -->
                     -H:-SpawnIsolates,
-                    -H:+ReportUnsupportedElementsAtRuntime
+                    -H:+ReportUnsupportedElementsAtRuntime,
+                    -H:+UseSerialGC,
+                    -H:NativeImageHeapSize=8g
                 </quarkus.native.additional-build-args>
             </properties>
         </profile>
