@@ -1,0 +1,368 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+      - 'docker-compose*.yml'
+      - '.github/workflows/deploy-production.yml'
+  workflow_dispatch:
+    inputs:
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        type: choice
+        default: 'blue-green'
+        options:
+          - blue-green
+          - canary
+          - rolling
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  build:
+    name: Build V11 JAR
+    runs-on: ubuntu-latest
+    outputs:
+      jar_path: ${{ steps.build.outputs.jar_path }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep -oP '<version>\K[^<]+' aurigraph-av10-7/aurigraph-v11-standalone/pom.xml | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Build JAR
+        id: build
+        run: |
+          cd aurigraph-av10-7/aurigraph-v11-standalone
+          ./mvnw clean package \
+            -DskipTests \
+            -Drevision=${{ steps.version.outputs.version }}-${{ github.run_number }}
+          JAR_PATH="$(find target -name 'aurigraph-v11-standalone-*-runner.jar' -type f)"
+          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
+          echo "Built JAR: $JAR_PATH"
+          ls -lh "$JAR_PATH"
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: v11-jar
+          path: ${{ steps.build.outputs.jar_path }}
+          retention-days: 30
+
+  test:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download JAR
+        uses: actions/download-artifact@v3
+        with:
+          name: v11-jar
+
+      - name: Start containers
+        run: |
+          docker-compose -f docker-compose.yml up -d
+          sleep 30
+
+      - name: Wait for services
+        run: |
+          timeout 120 bash -c 'until curl -f http://localhost:9003/q/health; do sleep 5; done'
+          echo "✓ V11 API healthy"
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          curl -s http://localhost:9003/q/health | jq .
+          curl -s http://localhost:9003/api/v11/info | jq .
+          echo "✓ Smoke tests passed"
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          docker-compose logs > test-logs.txt
+          ls -lh test-logs.txt
+
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-logs
+          path: test-logs.txt
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    environment:
+      name: staging
+      url: http://staging.dlt.aurigraph.io:9003
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download JAR
+        uses: actions/download-artifact@v3
+        with:
+          name: v11-jar
+
+      - name: Deploy to staging server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+
+          JAR_FILE=$(find . -name '*-runner.jar' -type f)
+          scp -i ~/.ssh/deploy_key "$JAR_FILE" \
+            "$DEPLOY_USER@$DEPLOY_HOST:/opt/DLT/staging/"
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd /opt/DLT && docker-compose -f docker-compose-staging.yml up -d"
+
+          echo "✓ Staging deployment complete"
+
+      - name: Verify staging health
+        run: |
+          for i in {1..30}; do
+            if curl -f http://staging.dlt.aurigraph.io:9003/q/health/ready; then
+              echo "✓ Staging health check passed"
+              exit 0
+            fi
+            echo "Attempt $i/30..."
+            sleep 5
+          done
+          echo "✗ Staging health check failed"
+          exit 1
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, test, deploy-staging]
+    environment:
+      name: production
+      url: https://dlt.aurigraph.io
+    concurrency: production-deployment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download JAR
+        uses: actions/download-artifact@v3
+        with:
+          name: v11-jar
+
+      - name: Determine deployment strategy
+        id: strategy
+        run: |
+          STRATEGY=${{ github.event.inputs.deployment_strategy || 'blue-green' }}
+          echo "strategy=$STRATEGY" >> $GITHUB_OUTPUT
+          echo "Deployment strategy: $STRATEGY"
+
+      - name: Pre-deployment backup
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+            'docker exec dlt-postgres pg_dump -U aurigraph aurigraph_production | gzip > /backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql'
+
+          echo "✓ Backup created"
+
+      - name: Deploy (Blue-Green)
+        if: steps.strategy.outputs.strategy == 'blue-green'
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+
+          JAR_FILE=$(find . -name '*-runner.jar' -type f)
+          scp -i ~/.ssh/deploy_key "$JAR_FILE" \
+            "$DEPLOY_USER@$DEPLOY_HOST:/opt/DLT/v11-quarkus-run.jar"
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd /opt/DLT && ./scripts/deploy-blue-green.sh"
+
+          echo "✓ Blue-green deployment started"
+
+      - name: Deploy (Canary)
+        if: steps.strategy.outputs.strategy == 'canary'
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd /opt/DLT && ./scripts/deploy-canary.sh 5"  # Start with 5% traffic
+
+          echo "✓ Canary deployment started"
+
+      - name: Verify production health
+        run: |
+          for i in {1..60}; do
+            if curl -f https://dlt.aurigraph.io/q/health/ready 2>/dev/null; then
+              echo "✓ Production health check passed"
+              exit 0
+            fi
+            echo "Attempt $i/60..."
+            sleep 5
+          done
+          echo "✗ Production health check failed"
+          exit 1
+
+      - name: Smoke tests
+        run: |
+          echo "Running production smoke tests..."
+          curl -s https://dlt.aurigraph.io/api/v11/health | jq .
+          curl -s https://dlt.aurigraph.io/api/v11/info | jq .
+          echo "✓ Production smoke tests passed"
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+
+          echo "⚠️  Deployment failed - initiating rollback"
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd /opt/DLT && ./scripts/rollback.sh"
+
+          echo "✓ Rollback initiated"
+          exit 1
+
+      - name: Create deployment summary
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.ref,
+              environment: 'production',
+              description: 'V11 deployment ${{ needs.build.outputs.version }}',
+              required_contexts: [],
+              auto_merge: false
+            });
+
+  monitor:
+    name: Monitor Deployment
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: success()
+    steps:
+      - name: Wait and monitor
+        run: |
+          echo "Monitoring production for 5 minutes..."
+          for i in {1..60}; do
+            HEALTH=$(curl -s https://dlt.aurigraph.io/q/health/ready 2>/dev/null | jq -r '.status' || echo 'down')
+            ERROR_RATE=$(curl -s https://dlt.aurigraph.io/metrics | grep 'http_server_requests_seconds_count.*status="5"' || echo '0')
+
+            echo "[$i/60] Health: $HEALTH, Error rate check: $ERROR_RATE"
+
+            if [ "$HEALTH" != "UP" ]; then
+              echo "✗ Health degraded"
+              exit 1
+            fi
+
+            sleep 5
+          done
+          echo "✓ 5-minute monitoring period complete - deployment stable"
+
+  notify-success:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: [deploy-production, monitor]
+    if: success()
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "✅ Production deployment successful",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deployment Successful*\nVersion: ${{ needs.build.outputs.version }}\nCommit: ${{ github.sha }}"
+                  }
+                }
+              ]
+            }
+
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure()
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "❌ Production deployment failed - rollback initiated",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deployment Failed*\nVersion: ${{ needs.build.outputs.version }}\nCommit: ${{ github.sha }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
+                  }
+                }
+              ]
+            }
