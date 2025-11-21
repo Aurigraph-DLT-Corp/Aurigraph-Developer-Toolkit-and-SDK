@@ -38,6 +38,12 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import type { Transaction, TransactionFilter } from '../../types/comprehensive';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import utc from 'dayjs/plugin/utc';
+
+// Enable dayjs plugins
+dayjs.extend(relativeTime);
+dayjs.extend(utc);
 
 const { RangePicker } = DatePicker;
 const { Text } = Typography;
