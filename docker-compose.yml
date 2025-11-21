@@ -27,6 +27,8 @@ networks:
 volumes:
   dlt-data:
     driver: local
+  letsencrypt:
+    driver: local
   dlt-postgres-data:
     driver: local
     driver_opts:
@@ -50,7 +52,70 @@ volumes:
 
 services:
   # =========================================================================
+  # Traefik Reverse Proxy (Container-Native, Auto-Discovery)
+  # Phase 1: Parallel deployment with NGINX for testing
+  # =========================================================================
+  traefik:
+    image: traefik:v3.0-alpine
+    container_name: dlt-traefik
+    restart: unless-stopped
+
+    command:
+      # API Configuration
+      - "--api=true"
+      - "--api.insecure=false"
+      - "--api.dashboard=true"
+
+      # Entrypoints (HTTP/HTTPS)
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      # Docker Provider with auto-discovery
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=dlt-frontend"
+
+      # Let's Encrypt ACME
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@aurigraph.io"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+
+      # Logging
+      - "--log.level=INFO"
+      - "--accesslog=true"
+
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+      - "8080:8080"  # Dashboard (access at http://localhost:8080/dashboard/)
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - letsencrypt:/letsencrypt
+
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+    networks:
+      - dlt-frontend
+      - dlt-backend
+
+    labels:
+      - "com.dlt.service=traefik"
+      - "com.dlt.tier=frontend"
+
+    profiles: ["traefik"]  # Only run when explicitly enabled
+
+
+  # =========================================================================
   # NGINX Reverse Proxy with SSL/TLS (Ports 80, 443)
+  # Phase 1: Kept running in parallel for gradual migration
   # =========================================================================
   nginx-gateway:
     image: nginx:1.25-alpine
@@ -184,6 +249,18 @@ services:
       - "com.dlt.service=aurigraph-v11"
       - "com.dlt.tier=backend"
       - "com.dlt.version=11.4.4"
+
+      # Traefik Labels (for Traefik profile)
+      - "traefik.enable=true"
+      - "traefik.http.routers.aurigraph-api.rule=Host(`dlt.aurigraph.io`) && PathPrefix(`/api/v11`)"
+      - "traefik.http.routers.aurigraph-api.entrypoints=websecure"
+      - "traefik.http.routers.aurigraph-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.aurigraph-api.loadbalancer.server.port=9003"
+      - "traefik.http.services.aurigraph-api.loadbalancer.healthcheck.path=/q/health"
+      - "traefik.http.services.aurigraph-api.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.middlewares.aurigraph-ratelimit.ratelimit.average=1000"
+      - "traefik.http.middlewares.aurigraph-ratelimit.ratelimit.period=1s"
+      - "traefik.http.routers.aurigraph-api.middlewares=aurigraph-ratelimit@docker"
 
   # =========================================================================
   # PostgreSQL Database (Port 5432 internal only)
@@ -399,6 +476,17 @@ services:
     labels:
       - "com.dlt.service=enterprise-portal"
       - "com.dlt.tier=frontend"
+
+      # Traefik Labels (for Traefik profile)
+      - "traefik.enable=true"
+      - "traefik.http.routers.portal.rule=Host(`dlt.aurigraph.io`) || Host(`www.dlt.aurigraph.io`)"
+      - "traefik.http.routers.portal.entrypoints=websecure"
+      - "traefik.http.routers.portal.tls.certresolver=letsencrypt"
+      - "traefik.http.services.portal.loadbalancer.server.port=3000"
+      - "traefik.http.services.portal.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.portal.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.middlewares.portal-gzip.compress=true"
+      - "traefik.http.routers.portal.middlewares=portal-gzip@docker"
 
   # =========================================================================
   # Validator Node 1 (HyperRAFT++ Consensus)
