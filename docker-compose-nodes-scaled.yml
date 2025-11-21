@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
     profiles: ["validators-scaled"]
 
-    command: /bin/bash -c "bash /opt/start-multi-nodes.sh validator 5 19003 1"
+    command: /bin/sh -c "sh /opt/start-multi-nodes.sh validator 5 19003 1"
 
     environment:
       # Base configuration shared across all instances
@@ -126,7 +126,7 @@ services:
     restart: unless-stopped
     profiles: ["business-scaled"]
 
-    command: /bin/bash -c "bash /opt/start-multi-nodes.sh business 8 21003 1"
+    command: /bin/sh -c "sh /opt/start-multi-nodes.sh business 8 21003 1"
 
     environment:
       # Base configuration
@@ -216,7 +216,7 @@ services:
     restart: unless-stopped
     profiles: ["business-scaled"]
 
-    command: /bin/bash -c "bash /opt/start-multi-nodes.sh business 7 23003 9"
+    command: /bin/sh -c "sh /opt/start-multi-nodes.sh business 7 23003 9"
 
     environment:
       # Base configuration
@@ -304,7 +304,7 @@ services:
     restart: unless-stopped
     profiles: ["slim-scaled"]
 
-    command: /bin/bash -c "bash /opt/start-multi-nodes.sh slim 5 25003 1"
+    command: /bin/sh -c "sh /opt/start-multi-nodes.sh slim 5 25003 1"
 
     environment:
       # Base configuration

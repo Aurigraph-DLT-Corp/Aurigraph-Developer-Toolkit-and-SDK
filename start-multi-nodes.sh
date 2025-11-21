@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Multi-Node Startup Script for Aurigraph V11
 # Runs multiple node instances within a single container
 # Usage: ./start-multi-nodes.sh [node_type] [num_instances] [base_port] [base_node_id]
