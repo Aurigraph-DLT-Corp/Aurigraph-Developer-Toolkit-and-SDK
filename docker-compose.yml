@@ -127,9 +127,8 @@ services:
       - QUARKUS_DATASOURCE_USERNAME=aurigraph
       - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
 
-      # Hibernate ORM Configuration - Disable automatic schema generation
-      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
-      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION_CREATE_SCHEMAS=false
+      # Hibernate ORM Configuration - Skip schema validation/generation
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
       - QUARKUS_HIBERNATE_ORM_JDBC_STATEMENT_BATCH_SIZE=20
       - QUARKUS_HIBERNATE_ORM_JDBC_FETCH_SIZE=50
 
