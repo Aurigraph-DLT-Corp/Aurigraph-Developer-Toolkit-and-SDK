@@ -29,6 +29,10 @@ volumes:
     driver: local
   dlt-postgres-data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dlt/postgres-data
   dlt-redis-data:
     driver: local
   dlt-prometheus-data:
