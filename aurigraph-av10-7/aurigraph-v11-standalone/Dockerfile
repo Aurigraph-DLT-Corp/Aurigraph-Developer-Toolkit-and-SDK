@@ -1,6 +1,7 @@
 # Multi-stage build for Aurigraph V11
 # Stage 1: Build stage
-FROM openjdk:21-slim as builder
+# Using eclipse-temurin (maintained replacement for deprecated openjdk images)
+FROM eclipse-temurin:21-jdk-slim as builder
 
 WORKDIR /app
 
@@ -18,7 +19,7 @@ RUN chmod +x mvnw && \
     find target -name "*-runner.jar" -exec cp {} /app/built/app.jar \;
 
 # Stage 2: Runtime stage
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jdk-slim
 
 WORKDIR /app
 
