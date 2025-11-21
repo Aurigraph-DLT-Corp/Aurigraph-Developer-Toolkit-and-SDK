@@ -41,6 +41,12 @@ volumes:
     driver: local
   dlt-logs:
     driver: local
+  dlt-slim-node-1-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dlt/slim-node-1-data
 
 services:
   # =========================================================================
@@ -453,3 +459,50 @@ services:
     labels:
       - "com.dlt.service=business-1"
       - "com.dlt.tier=transaction-processing"
+
+  # =========================================================================
+  # Slim Node 1 (Edge-Optimized with LevelDB Storage)
+  # =========================================================================
+  slim-node-1:
+    image: alpine:latest
+    container_name: dlt-slim-node-1
+    restart: unless-stopped
+    command: sleep 9999999
+    profiles: ["slim-nodes"]
+
+    environment:
+      - QUARKUS_PROFILE=production
+      - AURIGRAPH_NODE_ID=slim-1
+      - AURIGRAPH_NODE_TYPE=slim
+      - LEVELDB_PATH=/deployments/data/leveldb
+      - LEVELDB_CACHE_SIZE=64MB
+      - LEVELDB_WRITE_BUFFER_SIZE=32MB
+      - SLIM_NODE_SYNC_INTERVAL=10000
+      - SLIM_NODE_MAX_MEMORY=384M
+
+    volumes:
+      - dlt-slim-node-1-data:/deployments/data/leveldb
+
+    networks:
+      dlt-backend:
+        ipv4_address: 172.21.1.30
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /deployments/data/leveldb || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    labels:
+      - "com.dlt.service=slim-1"
+      - "com.dlt.tier=edge-node"
+      - "com.dlt.storage=leveldb"
