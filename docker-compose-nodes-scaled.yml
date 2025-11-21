@@ -1,0 +1,382 @@
+# Aurigraph V4.4.4 - Scaled Node Deployment
+# Overlay for docker-compose.yml to run multiple nodes per container
+# Usage: docker-compose -f docker-compose.yml -f docker-compose-nodes-scaled.yml up -d
+
+version: '3.8'
+
+volumes:
+  dlt-validator-nodes-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dlt/validator-nodes-data
+  dlt-business-nodes-1-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dlt/business-nodes-1-data
+  dlt-business-nodes-2-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dlt/business-nodes-2-data
+  dlt-slim-nodes-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dlt/slim-nodes-data
+
+services:
+  # =========================================================================
+  # Validator Nodes Container (Runs 5 validator node instances)
+  # =========================================================================
+  validator-nodes-multi:
+    image: aurigraph-v11:11.4.4
+    container_name: dlt-validator-nodes-multi
+    restart: unless-stopped
+    profiles: ["validators-scaled"]
+
+    command: /bin/bash -c "bash /opt/start-multi-nodes.sh validator 5 19003 1"
+
+    environment:
+      # Base configuration shared across all instances
+      - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - AURIGRAPH_MODE=production
+
+      # Consensus Configuration
+      - CONSENSUS_LEADER_ELECTION=true
+      - CONSENSUS_HEARTBEAT_INTERVAL=50
+      - CONSENSUS_ELECTION_TIMEOUT_MIN=150
+      - CONSENSUS_ELECTION_TIMEOUT_MAX=300
+      - CONSENSUS_TARGET_TPS=776000
+
+      # Database Configuration
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
+      - QUARKUS_DATASOURCE_USERNAME=aurigraph
+      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
+
+      # Performance
+      - AI_OPTIMIZATION_ENABLED=true
+      - QUANTUM_CRYPTO_ENABLED=true
+      - NATIVE_MODE=true
+      - MALLOC_ARENA_MAX=2
+      - MALLOC_MMAP_THRESHOLD_=65536
+      - JAVA_OPTS=-Xms128m -Xmx512m
+
+    ports:
+      # 5 validator instances on ports 19003-19007 (HTTP) and 20003-20007 (gRPC)
+      - "19003:19003"
+      - "19004:19004"
+      - "19005:19005"
+      - "19006:19006"
+      - "19007:19007"
+      - "20003:20003"
+      - "20004:20004"
+      - "20005:20005"
+      - "20006:20006"
+      - "20007:20007"
+
+    volumes:
+      - dlt-validator-nodes-data:/deployments/data
+      - dlt-logs:/deployments/logs
+      - ./start-multi-nodes.sh:/opt/start-multi-nodes.sh:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:19003/q/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      dlt-backend:
+        ipv4_address: 172.21.1.40
+      dlt-monitoring:
+        ipv4_address: 172.22.1.40
+
+    depends_on:
+      - postgres
+      - redis
+
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '4.0'
+        reservations:
+          memory: 1G
+
+    labels:
+      - "com.dlt.service=validator-nodes-multi"
+      - "com.dlt.tier=consensus"
+      - "com.dlt.instances=5"
+
+  # =========================================================================
+  # Business Nodes Container 1 (Runs 7-8 business node instances)
+  # =========================================================================
+  business-nodes-1-multi:
+    image: aurigraph-v11:11.4.4
+    container_name: dlt-business-nodes-1-multi
+    restart: unless-stopped
+    profiles: ["business-scaled"]
+
+    command: /bin/bash -c "bash /opt/start-multi-nodes.sh business 8 21003 1"
+
+    environment:
+      # Base configuration
+      - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - AURIGRAPH_MODE=production
+
+      # Business Node Configuration (Observer mode - no consensus voting)
+      - CONSENSUS_LEADER_ELECTION=false
+      - CONSENSUS_OBSERVER_MODE=true
+      - CONSENSUS_TARGET_TPS=1000000
+
+      # Database Configuration
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
+      - QUARKUS_DATASOURCE_USERNAME=aurigraph
+      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
+
+      # Performance
+      - AI_OPTIMIZATION_ENABLED=true
+      - QUANTUM_CRYPTO_ENABLED=true
+      - NATIVE_MODE=true
+      - MALLOC_ARENA_MAX=2
+      - MALLOC_MMAP_THRESHOLD_=65536
+      - JAVA_OPTS=-Xms128m -Xmx512m
+
+    ports:
+      # 8 business instances on ports 21003-21010 (HTTP) and 22003-22010 (gRPC)
+      - "21003:21003"
+      - "21004:21004"
+      - "21005:21005"
+      - "21006:21006"
+      - "21007:21007"
+      - "21008:21008"
+      - "21009:21009"
+      - "21010:21010"
+      - "22003:22003"
+      - "22004:22004"
+      - "22005:22005"
+      - "22006:22006"
+      - "22007:22007"
+      - "22008:22008"
+      - "22009:22009"
+      - "22010:22010"
+
+    volumes:
+      - dlt-business-nodes-1-data:/deployments/data
+      - dlt-logs:/deployments/logs
+      - ./start-multi-nodes.sh:/opt/start-multi-nodes.sh:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:21003/q/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      dlt-backend:
+        ipv4_address: 172.21.1.41
+      dlt-monitoring:
+        ipv4_address: 172.22.1.41
+
+    depends_on:
+      - postgres
+      - redis
+
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '4.0'
+        reservations:
+          memory: 1G
+
+    labels:
+      - "com.dlt.service=business-nodes-1-multi"
+      - "com.dlt.tier=transaction-processing"
+      - "com.dlt.instances=8"
+
+  # =========================================================================
+  # Business Nodes Container 2 (Runs 7 business node instances)
+  # =========================================================================
+  business-nodes-2-multi:
+    image: aurigraph-v11:11.4.4
+    container_name: dlt-business-nodes-2-multi
+    restart: unless-stopped
+    profiles: ["business-scaled"]
+
+    command: /bin/bash -c "bash /opt/start-multi-nodes.sh business 7 23003 9"
+
+    environment:
+      # Base configuration
+      - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - AURIGRAPH_MODE=production
+
+      # Business Node Configuration
+      - CONSENSUS_LEADER_ELECTION=false
+      - CONSENSUS_OBSERVER_MODE=true
+      - CONSENSUS_TARGET_TPS=1000000
+
+      # Database Configuration
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
+      - QUARKUS_DATASOURCE_USERNAME=aurigraph
+      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
+
+      # Performance
+      - AI_OPTIMIZATION_ENABLED=true
+      - QUANTUM_CRYPTO_ENABLED=true
+      - NATIVE_MODE=true
+      - MALLOC_ARENA_MAX=2
+      - MALLOC_MMAP_THRESHOLD_=65536
+      - JAVA_OPTS=-Xms128m -Xmx512m
+
+    ports:
+      # 7 business instances on ports 23003-23009 (HTTP) and 24003-24009 (gRPC)
+      - "23003:23003"
+      - "23004:23004"
+      - "23005:23005"
+      - "23006:23006"
+      - "23007:23007"
+      - "23008:23008"
+      - "23009:23009"
+      - "24003:24003"
+      - "24004:24004"
+      - "24005:24005"
+      - "24006:24006"
+      - "24007:24007"
+      - "24008:24008"
+      - "24009:24009"
+
+    volumes:
+      - dlt-business-nodes-2-data:/deployments/data
+      - dlt-logs:/deployments/logs
+      - ./start-multi-nodes.sh:/opt/start-multi-nodes.sh:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:23003/q/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      dlt-backend:
+        ipv4_address: 172.21.1.42
+      dlt-monitoring:
+        ipv4_address: 172.22.1.42
+
+    depends_on:
+      - postgres
+      - redis
+
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '4.0'
+        reservations:
+          memory: 1G
+
+    labels:
+      - "com.dlt.service=business-nodes-2-multi"
+      - "com.dlt.tier=transaction-processing"
+      - "com.dlt.instances=7"
+
+  # =========================================================================
+  # Slim Nodes Container (Runs 5 slim node instances for edge/archive)
+  # =========================================================================
+  slim-nodes-multi:
+    image: aurigraph-v11:11.4.4
+    container_name: dlt-slim-nodes-multi
+    restart: unless-stopped
+    profiles: ["slim-scaled"]
+
+    command: /bin/bash -c "bash /opt/start-multi-nodes.sh slim 5 25003 1"
+
+    environment:
+      # Base configuration
+      - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - AURIGRAPH_MODE=production
+
+      # Slim Node Configuration (Edge-optimized, no consensus)
+      - CONSENSUS_LEADER_ELECTION=false
+      - CONSENSUS_OBSERVER_MODE=false
+      - SLIM_NODE_SYNC_INTERVAL=10000
+      - SLIM_NODE_MAX_MEMORY=384M
+      - CONSENSUS_TARGET_TPS=500000
+
+      # Database Configuration
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
+      - QUARKUS_DATASOURCE_USERNAME=aurigraph
+      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
+
+      # Performance
+      - AI_OPTIMIZATION_ENABLED=true
+      - QUANTUM_CRYPTO_ENABLED=true
+      - NATIVE_MODE=true
+      - MALLOC_ARENA_MAX=1
+      - MALLOC_MMAP_THRESHOLD_=65536
+      - JAVA_OPTS=-Xms96m -Xmx384m
+
+    ports:
+      # 5 slim instances on ports 25003-25007 (HTTP) and 26003-26007 (gRPC)
+      - "25003:25003"
+      - "25004:25004"
+      - "25005:25005"
+      - "25006:25006"
+      - "25007:25007"
+      - "26003:26003"
+      - "26004:26004"
+      - "26005:26005"
+      - "26006:26006"
+      - "26007:26007"
+
+    volumes:
+      - dlt-slim-nodes-data:/deployments/data
+      - dlt-logs:/deployments/logs
+      - ./start-multi-nodes.sh:/opt/start-multi-nodes.sh:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:25003/q/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      dlt-backend:
+        ipv4_address: 172.21.1.43
+      dlt-monitoring:
+        ipv4_address: 172.22.1.43
+
+    depends_on:
+      - postgres
+      - redis
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+
+    labels:
+      - "com.dlt.service=slim-nodes-multi"
+      - "com.dlt.tier=edge-node"
+      - "com.dlt.instances=5"
