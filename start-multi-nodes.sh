@@ -92,24 +92,5 @@ echo "  - Health check: curl http://localhost:PORT/q/health"
 echo ""
 
 # Keep container running - wait for all background processes
-wait_for_nodes() {
-    while true; do
-        # Check if all processes are still running
-        all_running=true
-        while IFS= read -r pid; do
-            if ! kill -0 "$pid" 2>/dev/null; then
-                all_running=false
-                echo "⚠️  Process $pid is no longer running"
-            fi
-        done < "$NODES_DIR/pids.txt"
-
-        if [ "$all_running" = false ]; then
-            echo "❌ Some node processes have exited"
-            sleep 5
-        fi
-
-        sleep 30
-    done
-}
-
-wait_for_nodes
+echo "🔄 Container running - monitoring node processes"
+tail -f /dev/null
