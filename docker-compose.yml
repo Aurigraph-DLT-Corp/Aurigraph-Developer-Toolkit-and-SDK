@@ -56,7 +56,7 @@ services:
   # Phase 1: Parallel deployment with NGINX for testing
   # =========================================================================
   traefik:
-    image: traefik:v3.0-alpine
+    image: traefik:latest
     container_name: dlt-traefik
     restart: unless-stopped
 
