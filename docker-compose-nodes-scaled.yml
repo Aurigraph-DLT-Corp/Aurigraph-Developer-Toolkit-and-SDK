@@ -39,8 +39,8 @@ services:
     container_name: dlt-validator-nodes-multi
     restart: unless-stopped
     profiles: ["validators-scaled"]
-
-    command: /bin/sh -c "sh /opt/start-multi-nodes.sh validator 5 19003 1"
+    entrypoint: /bin/sh -c
+    command: sh /opt/start-multi-nodes.sh validator 5 19003 1
 
     environment:
       # Base configuration shared across all instances
@@ -125,8 +125,8 @@ services:
     container_name: dlt-business-nodes-1-multi
     restart: unless-stopped
     profiles: ["business-scaled"]
-
-    command: /bin/sh -c "sh /opt/start-multi-nodes.sh business 8 21003 1"
+    entrypoint: /bin/sh -c
+    command: sh /opt/start-multi-nodes.sh business 8 21003 1
 
     environment:
       # Base configuration
@@ -215,8 +215,8 @@ services:
     container_name: dlt-business-nodes-2-multi
     restart: unless-stopped
     profiles: ["business-scaled"]
-
-    command: /bin/sh -c "sh /opt/start-multi-nodes.sh business 7 23003 9"
+    entrypoint: /bin/sh -c
+    command: sh /opt/start-multi-nodes.sh business 7 23003 9
 
     environment:
       # Base configuration
@@ -303,8 +303,8 @@ services:
     container_name: dlt-slim-nodes-multi
     restart: unless-stopped
     profiles: ["slim-scaled"]
-
-    command: /bin/sh -c "sh /opt/start-multi-nodes.sh slim 5 25003 1"
+    entrypoint: /bin/sh -c
+    command: sh /opt/start-multi-nodes.sh slim 5 25003 1
 
     environment:
       # Base configuration
