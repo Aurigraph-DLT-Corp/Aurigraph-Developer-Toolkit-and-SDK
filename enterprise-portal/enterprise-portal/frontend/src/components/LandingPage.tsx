@@ -6,6 +6,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Card, Row, Col, Typography, Badge, Statistic } from 'antd';
 import {
   RocketOutlined,
@@ -25,11 +26,8 @@ import './LandingPage.css';
 
 const { Title, Paragraph, Text } = Typography;
 
-interface LandingPageProps {
-  onAccessPortal?: (targetKey?: string) => void;
-}
-
-const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [tpsCounter, setTpsCounter] = useState(0);
 
   // Animate TPS counter from 0 to 2M
@@ -168,7 +166,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
                 <Button
                   size="large"
                   icon={<ExperimentOutlined />}
-                  onClick={() => onAccessPortal?.('demo-channel')}
+                  onClick={() => navigate('/demo-channel')}
                   className="demo-button"
                   type="primary"
                 >
@@ -177,7 +175,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
                 <Button
                   size="large"
                   icon={<DashboardOutlined />}
-                  onClick={() => onAccessPortal?.('dashboard')}
+                  onClick={() => navigate('/dashboard')}
                   className="docs-button"
                 >
                   Enterprise Portal
@@ -185,7 +183,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
                 <Button
                   size="large"
                   icon={<FileTextOutlined />}
-                  onClick={() => onAccessPortal?.('whitepaper')}
+                  onClick={() => navigate('/docs/whitepaper')}
                   className="docs-button"
                 >
                   Whitepaper
@@ -305,7 +303,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
             size="large"
             type="primary"
             icon={<ExperimentOutlined />}
-            onClick={() => onAccessPortal?.('demo-channel')}
+            onClick={() => navigate('/demo-channel')}
             style={{
               minWidth: '280px',
               height: '48px',
@@ -379,7 +377,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
               type="primary"
               size="large"
               icon={<DashboardOutlined />}
-              onClick={() => onAccessPortal?.('dashboard')}
+              onClick={() => navigate('/dashboard')}
               style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
             >
               Access Enterprise Portal
@@ -387,7 +385,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
             <Button
               size="large"
               icon={<ExperimentOutlined />}
-              onClick={() => onAccessPortal?.('demo-channel')}
+              onClick={() => navigate('/demo-channel')}
               style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
             >
               High-Throughput Demo
@@ -395,7 +393,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAccessPortal }) => {
             <Button
               size="large"
               icon={<FileTextOutlined />}
-              onClick={() => onAccessPortal?.('whitepaper')}
+              onClick={() => navigate('/docs/whitepaper')}
               style={{ minWidth: '200px', height: '48px', fontSize: '16px' }}
             >
               View Whitepaper
