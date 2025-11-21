@@ -80,6 +80,7 @@ services:
 
     networks:
       - dlt-frontend
+      - dlt-backend
 
     depends_on:
       - aurigraph-v11-service
@@ -398,23 +399,58 @@ services:
   # Validator Node 1 (HyperRAFT++ Consensus)
   # =========================================================================
   validator-node-1:
-    image: alpine:latest
+    image: aurigraph-v11:11.4.4
     container_name: dlt-validator-node-1
     restart: unless-stopped
-    command: sleep 9999999
     profiles: ["validators"]
 
     environment:
+      # Quarkus Configuration
       - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_HTTP2=true
+
+      # Node Configuration
       - AURIGRAPH_NODE_ID=validator-1
       - AURIGRAPH_NODE_TYPE=validator
+      - AURIGRAPH_MODE=production
+
+      # Consensus Configuration
       - CONSENSUS_LEADER_ELECTION=true
       - CONSENSUS_HEARTBEAT_INTERVAL=50
       - CONSENSUS_ELECTION_TIMEOUT_MIN=150
       - CONSENSUS_ELECTION_TIMEOUT_MAX=300
+      - CONSENSUS_TARGET_TPS=776000
+
+      # Database Configuration
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
+      - QUARKUS_DATASOURCE_USERNAME=aurigraph
+      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
+
+    ports:
+      - "19003:9003"  # REST API (validator-1)
+      - "19004:9004"  # gRPC (validator-1)
+
+    volumes:
+      - dlt-data:/deployments/data
+      - dlt-logs:/deployments/logs
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9003/q/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
 
     networks:
-      - dlt-backend
+      dlt-backend:
+        ipv4_address: 172.21.1.20
+
+    depends_on:
+      - postgres
+      - redis
 
     deploy:
       resources:
@@ -432,21 +468,56 @@ services:
   # Business Node 1 (Transaction Processing)
   # =========================================================================
   business-node-1:
-    image: alpine:latest
+    image: aurigraph-v11:11.4.4
     container_name: dlt-business-node-1
     restart: unless-stopped
-    command: sleep 9999999
     profiles: ["business-nodes"]
 
     environment:
+      # Quarkus Configuration
       - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_HTTP2=true
+
+      # Node Configuration
       - AURIGRAPH_NODE_ID=business-1
       - AURIGRAPH_NODE_TYPE=business
+      - AURIGRAPH_MODE=production
+
+      # Transaction Processing Configuration
       - TRANSACTION_BATCH_SIZE=100
       - TRANSACTION_TIMEOUT_MS=30000
+      - CONSENSUS_TARGET_TPS=776000
+
+      # Database Configuration
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
+      - QUARKUS_DATASOURCE_USERNAME=aurigraph
+      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
+
+    ports:
+      - "19103:9003"  # REST API (business-1)
+      - "19104:9004"  # gRPC (business-1)
+
+    volumes:
+      - dlt-data:/deployments/data
+      - dlt-logs:/deployments/logs
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9003/q/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
 
     networks:
-      - dlt-backend
+      dlt-backend:
+        ipv4_address: 172.21.1.21
+
+    depends_on:
+      - postgres
+      - redis
 
     deploy:
       resources:
@@ -464,28 +535,51 @@ services:
   # Slim Node 1 (Edge-Optimized with LevelDB Storage)
   # =========================================================================
   slim-node-1:
-    image: alpine:latest
+    image: aurigraph-v11:11.4.4
     container_name: dlt-slim-node-1
     restart: unless-stopped
-    command: sleep 9999999
     profiles: ["slim-nodes"]
 
     environment:
+      # Quarkus Configuration
       - QUARKUS_PROFILE=production
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_HTTP2=true
+
+      # Node Configuration
       - AURIGRAPH_NODE_ID=slim-1
       - AURIGRAPH_NODE_TYPE=slim
+      - AURIGRAPH_MODE=production
+
+      # Slim Node Configuration
       - LEVELDB_PATH=/deployments/data/leveldb
       - LEVELDB_CACHE_SIZE=64MB
       - LEVELDB_WRITE_BUFFER_SIZE=32MB
       - SLIM_NODE_SYNC_INTERVAL=10000
       - SLIM_NODE_MAX_MEMORY=384M
 
+      # Database Configuration (read-only for slim nodes)
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
+      - QUARKUS_DATASOURCE_USERNAME=aurigraph
+      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
+
+    ports:
+      - "19203:9003"  # REST API (slim-1)
+      - "19204:9004"  # gRPC (slim-1)
+
     volumes:
       - dlt-slim-node-1-data:/deployments/data/leveldb
+      - dlt-logs:/deployments/logs
 
     networks:
       dlt-backend:
         ipv4_address: 172.21.1.30
+
+    depends_on:
+      - postgres
+      - redis
 
     deploy:
       resources:
@@ -496,11 +590,11 @@ services:
           memory: 128M
 
     healthcheck:
-      test: ["CMD-SHELL", "test -d /deployments/data/leveldb || exit 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9003/q/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 45s
 
     labels:
       - "com.dlt.service=slim-1"
