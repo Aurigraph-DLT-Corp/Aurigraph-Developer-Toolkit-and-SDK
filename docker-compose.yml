@@ -83,7 +83,12 @@ services:
       - dlt-backend
 
     depends_on:
-      - aurigraph-v11-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      aurigraph-v11-service:
+        condition: service_started
 
     labels:
       - "com.dlt.service=nginx-gateway"
