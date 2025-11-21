@@ -3,12 +3,14 @@
 # Runs multiple node instances within a single container
 # Usage: ./start-multi-nodes.sh [node_type] [num_instances] [base_port] [base_node_id]
 
-set -e
-
 NODE_TYPE=${1:-validator}
 NUM_INSTANCES=${2:-5}
 BASE_PORT=${3:-9003}
 BASE_NODE_ID=${4:-1}
+
+# Setup logging
+LOG_FILE="/tmp/start-multi-nodes-${NODE_TYPE}-$$.log"
+exec 1>"$LOG_FILE" 2>&1
 
 echo "🚀 Starting $NUM_INSTANCES $NODE_TYPE nodes (Base Port: $BASE_PORT, Base ID: $BASE_NODE_ID)"
 
@@ -93,4 +95,4 @@ echo ""
 
 # Keep container running - wait for all background processes
 echo "🔄 Container running - monitoring node processes"
-tail -f /dev/null
+while true; do sleep 3600; done
