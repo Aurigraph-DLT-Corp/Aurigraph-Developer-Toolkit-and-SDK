@@ -59,7 +59,7 @@ services:
     restart: unless-stopped
 
     # Command to keep container alive while node processes run in background
-    command: sh -c "echo '🚀 Validator Nodes (5 instances: ports 19003-19007)' && exec tail -f /dev/null"
+    command: sh -c "echo '🚀 Validator Nodes (5 instances: ports 19003-19007, autoscaling enabled 5-20)' && exec tail -f /dev/null"
 
     environment:
       # Base configuration shared across all instances
@@ -137,6 +137,12 @@ services:
       - "com.dlt.tier=consensus"
       - "com.dlt.instances=5"
       - "com.dlt.type=node-cluster"
+      - "com.dlt.autoscale.min=5"
+      - "com.dlt.autoscale.max=20"
+      - "com.dlt.autoscale.target-cpu=70"
+      - "com.dlt.autoscale.target-memory=80"
+      - "com.dlt.autoscale.scale-up-threshold=85"
+      - "com.dlt.autoscale.scale-down-threshold=20"
 
   # =========================================================================
   # Business Nodes Container 1 (Runs 8 business node instances)
@@ -147,7 +153,7 @@ services:
     container_name: dlt-business-nodes-1-multi
     restart: unless-stopped
 
-    command: sh -c "echo '🚀 Business Nodes Group 1 (8 instances: ports 21003-21010)' && exec tail -f /dev/null"
+    command: sh -c "echo '🚀 Business Nodes Group 1 (8 instances: ports 21003-21010, autoscaling enabled 8-32)' && exec tail -f /dev/null"
 
     environment:
       # Base configuration
@@ -229,6 +235,12 @@ services:
       - "com.dlt.tier=transaction-processing"
       - "com.dlt.instances=8"
       - "com.dlt.type=node-cluster"
+      - "com.dlt.autoscale.min=8"
+      - "com.dlt.autoscale.max=32"
+      - "com.dlt.autoscale.target-cpu=75"
+      - "com.dlt.autoscale.target-memory=80"
+      - "com.dlt.autoscale.scale-up-threshold=85"
+      - "com.dlt.autoscale.scale-down-threshold=25"
 
   # =========================================================================
   # Business Nodes Container 2 (Runs 7 business node instances)
@@ -239,7 +251,7 @@ services:
     container_name: dlt-business-nodes-2-multi
     restart: unless-stopped
 
-    command: sh -c "echo '🚀 Business Nodes Group 2 (7 instances: ports 23003-23009)' && exec tail -f /dev/null"
+    command: sh -c "echo '🚀 Business Nodes Group 2 (7 instances: ports 23003-23009, autoscaling enabled 7-28)' && exec tail -f /dev/null"
 
     environment:
       # Base configuration
@@ -319,6 +331,12 @@ services:
       - "com.dlt.tier=transaction-processing"
       - "com.dlt.instances=7"
       - "com.dlt.type=node-cluster"
+      - "com.dlt.autoscale.min=7"
+      - "com.dlt.autoscale.max=28"
+      - "com.dlt.autoscale.target-cpu=75"
+      - "com.dlt.autoscale.target-memory=80"
+      - "com.dlt.autoscale.scale-up-threshold=85"
+      - "com.dlt.autoscale.scale-down-threshold=25"
 
   # =========================================================================
   # Slim Nodes Container (Runs 5 slim node instances for edge/archive)
@@ -329,7 +347,7 @@ services:
     container_name: dlt-slim-nodes-multi
     restart: unless-stopped
 
-    command: sh -c "echo '🚀 Slim Nodes (5 instances: ports 25003-25007)' && exec tail -f /dev/null"
+    command: sh -c "echo '🚀 Slim Nodes (5 instances: ports 25003-25007, autoscaling enabled 5-30)' && exec tail -f /dev/null"
 
     environment:
       # Base configuration
@@ -407,3 +425,9 @@ services:
       - "com.dlt.tier=edge-node"
       - "com.dlt.instances=5"
       - "com.dlt.type=node-cluster"
+      - "com.dlt.autoscale.min=5"
+      - "com.dlt.autoscale.max=30"
+      - "com.dlt.autoscale.target-cpu=70"
+      - "com.dlt.autoscale.target-memory=75"
+      - "com.dlt.autoscale.scale-up-threshold=80"
+      - "com.dlt.autoscale.scale-down-threshold=20"
