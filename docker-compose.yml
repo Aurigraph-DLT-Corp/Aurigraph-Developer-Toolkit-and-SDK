@@ -299,7 +299,7 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_DOMAIN=dlt.aurigraph.io
       - GF_SERVER_ROOT_URL=https://dlt.aurigraph.io/grafana
-      - GF_INSTALL_PLUGINS=redis-datasource
+      - GF_PLUGINS_SKIP_PLUGIN_PREINSTALL_CHECK=true
 
     volumes:
       - dlt-grafana-data:/var/lib/grafana
