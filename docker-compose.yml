@@ -512,7 +512,7 @@ services:
 
       # Service configuration (used by both routers)
       - "traefik.http.services.portal.loadbalancer.server.port=3000"
-      - "traefik.http.services.portal.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.portal.loadbalancer.healthcheck.path=/"
       - "traefik.http.services.portal.loadbalancer.healthcheck.interval=30s"
 
       # Middleware (compression)
