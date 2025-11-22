@@ -256,15 +256,28 @@ services:
 
       # Traefik Labels (for Traefik profile)
       - "traefik.enable=true"
-      - "traefik.http.routers.aurigraph-api.rule=Host(`dlt.aurigraph.io`) && PathPrefix(`/api/v11`)"
-      - "traefik.http.routers.aurigraph-api.entrypoints=web,websecure"
-      - "traefik.http.routers.aurigraph-api.tls.certresolver=letsencrypt"
+
+      # HTTP Router (no redirect, allow both HTTP and HTTPS)
+      - "traefik.http.routers.aurigraph-api-http.rule=Host(`dlt.aurigraph.io`) && PathPrefix(`/api/v11`)"
+      - "traefik.http.routers.aurigraph-api-http.entrypoints=web"
+      - "traefik.http.routers.aurigraph-api-http.service=aurigraph-api"
+      - "traefik.http.routers.aurigraph-api-http.middlewares=aurigraph-ratelimit@docker"
+
+      # HTTPS Router (with TLS/Let's Encrypt)
+      - "traefik.http.routers.aurigraph-api-https.rule=Host(`dlt.aurigraph.io`) && PathPrefix(`/api/v11`)"
+      - "traefik.http.routers.aurigraph-api-https.entrypoints=websecure"
+      - "traefik.http.routers.aurigraph-api-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.aurigraph-api-https.service=aurigraph-api"
+      - "traefik.http.routers.aurigraph-api-https.middlewares=aurigraph-ratelimit@docker"
+
+      # Service configuration (used by both routers)
       - "traefik.http.services.aurigraph-api.loadbalancer.server.port=9003"
       - "traefik.http.services.aurigraph-api.loadbalancer.healthcheck.path=/q/health"
       - "traefik.http.services.aurigraph-api.loadbalancer.healthcheck.interval=30s"
+
+      # Middleware
       - "traefik.http.middlewares.aurigraph-ratelimit.ratelimit.average=1000"
       - "traefik.http.middlewares.aurigraph-ratelimit.ratelimit.period=1s"
-      - "traefik.http.routers.aurigraph-api.middlewares=aurigraph-ratelimit@docker"
 
   # =========================================================================
   # PostgreSQL Database (Port 5432 internal only)
