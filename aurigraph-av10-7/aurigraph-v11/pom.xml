@@ -46,12 +46,15 @@
         <!-- Core shared modules -->
         <module>aurigraph-core</module>
         <module>aurigraph-proto</module>
-        
+
         <!-- Service implementations -->
         <module>aurigraph-platform-service</module>
-        
+
         <!-- Cross-chain bridge module -->
         <module>crosschain-bridge</module>
+
+        <!-- Quantum Randomness Integration -->
+        <module>quantum-randomness-beacon</module>
     </modules>
 
     <dependencyManagement>

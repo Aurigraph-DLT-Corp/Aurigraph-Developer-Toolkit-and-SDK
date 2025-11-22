@@ -632,6 +632,13 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-elytron-security-common</artifactId>
         </dependency>
+
+        <!-- Quantum Randomness Beacon Integration -->
+        <dependency>
+            <groupId>io.aurigraph</groupId>
+            <artifactId>quantum-randomness-beacon</artifactId>
+            <version>11.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
