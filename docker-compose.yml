@@ -496,14 +496,27 @@ services:
 
       # Traefik Labels (for Traefik profile)
       - "traefik.enable=true"
-      - "traefik.http.routers.portal.rule=Host(`dlt.aurigraph.io`) || Host(`www.dlt.aurigraph.io`)"
-      - "traefik.http.routers.portal.entrypoints=websecure"
-      - "traefik.http.routers.portal.tls.certresolver=letsencrypt"
+
+      # HTTP Router (no redirect, allow both HTTP and HTTPS)
+      - "traefik.http.routers.portal-http.rule=Host(`dlt.aurigraph.io`) || Host(`www.dlt.aurigraph.io`)"
+      - "traefik.http.routers.portal-http.entrypoints=web"
+      - "traefik.http.routers.portal-http.service=portal"
+      - "traefik.http.routers.portal-http.middlewares=portal-gzip@docker"
+
+      # HTTPS Router (with TLS/Let's Encrypt)
+      - "traefik.http.routers.portal-https.rule=Host(`dlt.aurigraph.io`) || Host(`www.dlt.aurigraph.io`)"
+      - "traefik.http.routers.portal-https.entrypoints=websecure"
+      - "traefik.http.routers.portal-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.portal-https.service=portal"
+      - "traefik.http.routers.portal-https.middlewares=portal-gzip@docker"
+
+      # Service configuration (used by both routers)
       - "traefik.http.services.portal.loadbalancer.server.port=3000"
       - "traefik.http.services.portal.loadbalancer.healthcheck.path=/health"
       - "traefik.http.services.portal.loadbalancer.healthcheck.interval=30s"
+
+      # Middleware (compression)
       - "traefik.http.middlewares.portal-gzip.compress=true"
-      - "traefik.http.routers.portal.middlewares=portal-gzip@docker"
 
   # =========================================================================
   # Validator Node 1 (HyperRAFT++ Consensus)
