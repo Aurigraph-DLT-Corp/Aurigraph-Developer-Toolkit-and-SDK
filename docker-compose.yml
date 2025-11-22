@@ -257,7 +257,7 @@ services:
       # Traefik Labels (for Traefik profile)
       - "traefik.enable=true"
       - "traefik.http.routers.aurigraph-api.rule=Host(`dlt.aurigraph.io`) && PathPrefix(`/api/v11`)"
-      - "traefik.http.routers.aurigraph-api.entrypoints=websecure"
+      - "traefik.http.routers.aurigraph-api.entrypoints=web,websecure"
       - "traefik.http.routers.aurigraph-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.aurigraph-api.loadbalancer.server.port=9003"
       - "traefik.http.services.aurigraph-api.loadbalancer.healthcheck.path=/q/health"
