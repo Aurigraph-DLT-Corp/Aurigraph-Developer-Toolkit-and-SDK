@@ -69,8 +69,9 @@ services:
       # Entrypoints (HTTP/HTTPS)
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Temporarily disabled: HTTP to HTTPS redirect requires valid DNS and Let's Encrypt certs
+      # - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      # - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
 
       # Docker Provider with auto-discovery
       - "--providers.docker=true"
