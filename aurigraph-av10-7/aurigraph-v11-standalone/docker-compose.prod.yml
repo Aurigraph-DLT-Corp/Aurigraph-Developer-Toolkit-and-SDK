@@ -1,0 +1,326 @@
+version: '3.8'
+
+services:
+  validator-node-1:
+    image: aurigraph-validator:11.0.0-prod
+    container_name: validator-node-1
+    environment:
+      - JAVA_OPTS=-Xmx4g -Xms2g
+      - QUARKUS_HTTP_PORT=9003
+      - NODE_ID=validator-1
+      - NODE_TYPE=validator
+      - CONSENSUS_ROLE=active
+    ports:
+      - "9003:9003"
+      - "9004:9004"
+    networks:
+      - aurigraph-backend
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - validator-data-1:/app/data
+      - validator-logs-1:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/q/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  validator-node-2:
+    image: aurigraph-validator:11.0.0-prod
+    container_name: validator-node-2
+    environment:
+      - JAVA_OPTS=-Xmx4g -Xms2g
+      - QUARKUS_HTTP_PORT=9005
+      - NODE_ID=validator-2
+      - NODE_TYPE=validator
+      - CONSENSUS_ROLE=active
+    ports:
+      - "9005:9005"
+      - "9014:9004"
+    networks:
+      - aurigraph-backend
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - validator-data-2:/app/data
+      - validator-logs-2:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9005/q/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  business-node-1:
+    image: aurigraph-business:11.0.0-prod
+    container_name: business-node-1
+    environment:
+      - JAVA_OPTS=-Xmx3g -Xms1.5g
+      - QUARKUS_HTTP_PORT=9020
+      - NODE_ID=business-1
+      - NODE_TYPE=business
+      - CONSENSUS_ROLE=participant
+      - SMART_CONTRACT_ENABLED=true
+    ports:
+      - "9020:9020"
+      - "8080:8080"
+    networks:
+      - aurigraph-backend
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - business-data-1:/app/data
+      - business-logs-1:/app/logs
+      - business-contracts-1:/app/contracts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  business-node-2:
+    image: aurigraph-business:11.0.0-prod
+    container_name: business-node-2
+    environment:
+      - JAVA_OPTS=-Xmx3g -Xms1.5g
+      - QUARKUS_HTTP_PORT=9021
+      - NODE_ID=business-2
+      - NODE_TYPE=business
+      - CONSENSUS_ROLE=participant
+      - SMART_CONTRACT_ENABLED=true
+    ports:
+      - "9021:9021"
+      - "8081:8080"
+    networks:
+      - aurigraph-backend
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - business-data-2:/app/data
+      - business-logs-2:/app/logs
+      - business-contracts-2:/app/contracts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/q/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  integration-node-1:
+    image: aurigraph-integration:11.0.0-prod
+    container_name: integration-node-1
+    environment:
+      - JAVA_OPTS=-Xmx2g -Xms1g
+      - QUARKUS_HTTP_PORT=9040
+      - NODE_ID=integration-1
+      - NODE_TYPE=integration
+      - CONSENSUS_ROLE=observer
+      - LIGHT_MODE=true
+      - API_ENABLED=true
+      - EQUITY_API_ENABLED=true
+      - EQUITY_API_URL=https://api.polygon.io/v1
+      - CRYPTO_API_ENABLED=true
+      - CRYPTO_API_URL=https://api.coingecko.com/api/v3
+      - WEATHER_API_ENABLED=true
+      - WEATHER_API_URL=https://api.openweathermap.org/data/2.5
+      - NEWS_API_ENABLED=true
+      - NEWS_API_URL=https://newsapi.org/v2
+      - API_CACHE_TTL=900
+      - API_TIMEOUT=5
+      - API_CIRCUIT_BREAKER=enabled
+    ports:
+      - "9040:9040"
+      - "8090:8090"
+    networks:
+      - aurigraph-backend
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - integration-data-1:/app/data
+      - integration-logs-1:/app/logs
+      - integration-cache-1:/app/api-cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/q/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  integration-node-2:
+    image: aurigraph-integration:11.0.0-prod
+    container_name: integration-node-2
+    environment:
+      - JAVA_OPTS=-Xmx2g -Xms1g
+      - QUARKUS_HTTP_PORT=9041
+      - NODE_ID=integration-2
+      - NODE_TYPE=integration
+      - CONSENSUS_ROLE=observer
+      - LIGHT_MODE=true
+      - API_ENABLED=true
+      - EQUITY_API_ENABLED=true
+      - EQUITY_API_URL=https://api.polygon.io/v1
+      - CRYPTO_API_ENABLED=true
+      - CRYPTO_API_URL=https://api.coingecko.com/api/v3
+      - WEATHER_API_ENABLED=true
+      - WEATHER_API_URL=https://api.openweathermap.org/data/2.5
+      - NEWS_API_ENABLED=true
+      - NEWS_API_URL=https://newsapi.org/v2
+      - API_CACHE_TTL=900
+      - API_TIMEOUT=5
+      - API_CIRCUIT_BREAKER=enabled
+    ports:
+      - "9041:9041"
+      - "8091:8090"
+    networks:
+      - aurigraph-backend
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - integration-data-2:/app/data
+      - integration-logs-2:/app/logs
+      - integration-cache-2:/app/api-cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/q/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: aurigraph-postgres
+    environment:
+      - POSTGRES_USER=aurigraph
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-aurigraph-secure-pass}
+      - POSTGRES_DB=aurigraph_v11
+    ports:
+      - "5432:5432"
+    networks:
+      - aurigraph-backend
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurigraph"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: aurigraph-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - aurigraph-backend
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aurigraph-prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - aurigraph-backend
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aurigraph-grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - aurigraph-backend
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  validator-data-1:
+  validator-data-2:
+  validator-logs-1:
+  validator-logs-2:
+  business-data-1:
+  business-data-2:
+  business-logs-1:
+  business-logs-2:
+  business-contracts-1:
+  business-contracts-2:
+  integration-data-1:
+  integration-data-2:
+  integration-logs-1:
+  integration-logs-2:
+  integration-cache-1:
+  integration-cache-2:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  aurigraph-backend:
+    driver: bridge
+

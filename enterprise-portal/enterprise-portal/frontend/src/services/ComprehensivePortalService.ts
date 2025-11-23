@@ -5,6 +5,7 @@
  * quantum security, and cross-chain bridge endpoints
  */
 
+import { API_BASE_URL } from '../utils/constants';
 import type {
   Transaction,
   Block,
@@ -25,7 +26,7 @@ class ComprehensivePortalService {
   private baseUrl: string;
   private demoMode: boolean;
 
-  constructor(baseUrl: string = 'http://localhost:9003', demoMode: boolean = false) {
+  constructor(baseUrl: string = API_BASE_URL, demoMode: boolean = false) {
     this.baseUrl = baseUrl;
     this.demoMode = demoMode;
   }

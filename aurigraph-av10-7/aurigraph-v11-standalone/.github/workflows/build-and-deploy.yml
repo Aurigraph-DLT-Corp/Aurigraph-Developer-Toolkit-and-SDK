@@ -1,0 +1,162 @@
+name: Build and Deploy Aurigraph V11 Node Variants
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+      - '.github/workflows/build-and-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      node_type:
+        description: 'Node type to build (validator, business, integration, all)'
+        required: true
+        default: 'all'
+      build_variant:
+        description: 'Build variant (dev, staging, prod, all)'
+        required: true
+        default: 'all'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/aurigraph
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_type: [validator, business, integration]
+        build_variant: [dev, staging, prod]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.node_type }}
+          tags: |
+            type=semver,pattern={{version}}-${{ matrix.build_variant }}
+            type=ref,event=branch
+            type=sha,suffix=-${{ matrix.build_variant }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./aurigraph-av10-7/aurigraph-v11-standalone
+          file: ./aurigraph-av10-7/aurigraph-v11-standalone/Dockerfile.${{ matrix.node_type }}-${{ matrix.build_variant }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=11.0.0
+            BUILD_TYPE=${{ matrix.build_variant }}
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_type: [validator, business, integration]
+        build_variant: [dev, staging, prod]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.node_type }}:${{ github.sha }}-${{ matrix.build_variant }}
+          docker run --rm --entrypoint=/bin/sh ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.node_type }}:${{ github.sha }}-${{ matrix.build_variant }} -c "[ -f /app/aurigraph-v11 ] && echo 'Image validation passed' || exit 1"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 22 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy to remote server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 22 subbu@dlt.aurigraph.io << 'DEPLOY_SCRIPT'
+          cd ~/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone
+
+          echo "========== AURIGRAPH V11 DEPLOYMENT =========="
+          echo "Timestamp: $(date)"
+          echo ""
+
+          # Login to registry
+          echo "[STEP 1] Authenticating to container registry..."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+          # Pull latest images
+          echo "[STEP 2] Pulling latest Docker images..."
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}-validator:main-prod
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}-business:main-prod
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}-integration:main-prod
+
+          # Tag images
+          echo "[STEP 3] Tagging images..."
+          docker tag ghcr.io/${{ env.IMAGE_NAME }}-validator:main-prod aurigraph-validator:11.0.0-prod
+          docker tag ghcr.io/${{ env.IMAGE_NAME }}-business:main-prod aurigraph-business:11.0.0-prod
+          docker tag ghcr.io/${{ env.IMAGE_NAME }}-integration:main-prod aurigraph-integration:11.0.0-prod
+
+          # Deploy using docker-compose
+          echo "[STEP 4] Deploying services..."
+          docker-compose -f docker-compose.prod.yml up -d
+
+          # Verify deployment
+          echo "[STEP 5] Verifying deployment..."
+          sleep 10
+          curl -f http://localhost:9003/q/health || echo "Health check failed"
+
+          echo ""
+          echo "========== DEPLOYMENT COMPLETE =========="
+          DEPLOY_SCRIPT
+
+      - name: Notify deployment status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = context.job.status === 'success' ? '✅ Success' : '❌ Failed'
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Deployment ${status}\n\nBuilt and deployed Aurigraph V11 node variants to dlt.aurigraph.io`
+            })

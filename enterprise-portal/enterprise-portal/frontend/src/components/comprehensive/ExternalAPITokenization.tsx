@@ -31,6 +31,7 @@ import {
   Switch,
   InputNumber,
 } from 'antd';
+import { API_BASE_URL } from '../../utils/constants';
 import {
   ApiOutlined,
   DatabaseOutlined,
@@ -112,7 +113,7 @@ const ExternalAPITokenization: React.FC = () => {
   // Fetch API sources
   const fetchAPISources = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:9003/api/v11/tokenization/sources');
+      const response = await fetch(`${API_BASE_URL}/tokenization/sources`);
       if (!response.ok) {
         // Use mock data if endpoint not available yet
         const mockSources: APISource[] = [
@@ -170,7 +171,7 @@ const ExternalAPITokenization: React.FC = () => {
   const fetchTokenizedTransactions = useCallback(async () => {
     try {
       const response = await fetch(
-        'http://localhost:9003/api/v11/tokenization/transactions?limit=50'
+        `${API_BASE_URL}/tokenization/transactions?limit=50`
       );
       if (!response.ok) {
         // Use mock data
@@ -221,7 +222,7 @@ const ExternalAPITokenization: React.FC = () => {
   // Fetch channel statistics
   const fetchChannelStats = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:9003/api/v11/tokenization/channels/stats');
+      const response = await fetch(`${API_BASE_URL}/tokenization/channels/stats`);
       if (!response.ok) {
         // Use mock data
         const mockChannelStats: ChannelStats[] = [
@@ -307,7 +308,7 @@ const ExternalAPITokenization: React.FC = () => {
   const handleAddSource = async (values: any) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:9003/api/v11/tokenization/sources', {
+      const response = await fetch(`${API_BASE_URL}/tokenization/sources`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

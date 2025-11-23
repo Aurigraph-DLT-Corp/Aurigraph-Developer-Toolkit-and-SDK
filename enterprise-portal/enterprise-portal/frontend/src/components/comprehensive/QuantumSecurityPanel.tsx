@@ -43,6 +43,7 @@ import type {
   SecurityMetrics,
   SecurityAudit,
 } from '../../types/comprehensive';
+import { API_BASE_URL } from '../../utils/constants';
 import { comprehensivePortalService } from '../../services/ComprehensivePortalService';
 
 const { Text, Title } = Typography;
@@ -132,7 +133,7 @@ const QuantumSecurityPanel: React.FC = () => {
       message.loading('Running vulnerability scan...', 0);
 
       // Call REAL backend vulnerability scan API
-      const response = await fetch('http://localhost:9003/api/v11/security/scan', {
+      const response = await fetch(`${API_BASE_URL}/security/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });

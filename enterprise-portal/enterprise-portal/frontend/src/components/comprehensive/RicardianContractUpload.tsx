@@ -50,6 +50,7 @@ import {
   Visibility,
   Edit,
 } from '@mui/icons-material';
+import { API_BASE_URL } from '../../utils/constants';
 
 interface ContractParty {
   id: string;
@@ -144,7 +145,7 @@ export const RicardianContractUpload: React.FC = () => {
 
       // Call backend API
       const response = await fetch(
-        'https://dlt.aurigraph.io:8443/api/v11/contracts/ricardian/upload',
+        `${API_BASE_URL}/contracts/ricardian/upload`,
         {
           method: 'POST',
           body: formData,
@@ -232,7 +233,7 @@ export const RicardianContractUpload: React.FC = () => {
 
     try {
       // Call backend API to create contract
-      const response = await fetch('https://dlt.aurigraph.io:8443/api/v11/contracts/ricardian', {
+      const response = await fetch(`${API_BASE_URL}/contracts/ricardian`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(convertedContract),
