@@ -8,7 +8,7 @@
  *           http://localhost:9003/api/v11 (Development)
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -269,9 +269,15 @@ export class AurigraphAPIService {
    */
   private getBaseURL(): string {
     const isProduction = window.location.hostname === 'dlt.aurigraph.io';
+
+    // Use environment variable if available, otherwise fallback to defaults
+    if (!isProduction && import.meta.env.VITE_API_BASE_URL) {
+      return import.meta.env.VITE_API_BASE_URL;
+    }
+
     return isProduction
       ? 'https://dlt.aurigraph.io/api/v11'
-      : 'http://localhost:9003/api/v11';
+      : 'http://localhost:9004/api/v11'; // Fixed: was 9003, now 9004
   }
 
   /**
