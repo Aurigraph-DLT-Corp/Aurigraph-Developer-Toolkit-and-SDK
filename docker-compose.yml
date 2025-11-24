@@ -177,7 +177,7 @@ services:
   #     - "com.dlt.tier=frontend"
 
   # =========================================================================
-  # Aurigraph V11 Standalone Service (Port 9003 internally, exposed via NGINX)
+  # Aurigraph V11 Standalone Service (Port 9004 internally, exposed via NGINX)
   # =========================================================================
   aurigraph-v11-service:
     image: aurigraph-v11:11.4.4
