@@ -1,0 +1,6 @@
+# Aurigraph DLT - Default Multi-Agent Configuration (MEMORIZED)
+project: "Aurigraph-DLT"
+default_mode: "multi-agent-j4c"
+agents: 15
+worktrees_location: "worktrees"
+auto_initialize: true
