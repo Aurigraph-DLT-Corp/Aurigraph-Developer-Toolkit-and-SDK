@@ -9,10 +9,12 @@ Welcome to the Aurigraph CI/CD documentation! This folder contains all guides an
 - **[Remote Deployment Setup](./REMOTE_DEPLOYMENT_SETUP.md)** - Complete setup instructions (7 steps)
 - **[CI/CD Summary](./CI_CD_REMOTE_DEPLOYMENT_SUMMARY.md)** - Architecture and overview
 
-### Workflow Files
+### Workflow & Script Files
 - **GitHub Actions Workflow**: [`.github/workflows/remote-deployment.yml`](../../.github/workflows/remote-deployment.yml)
-- **Setup Script**: [`.github/setup-remote-deployment.sh`](../../.github/setup-remote-deployment.sh)
+- **Setup Script**: [`scripts/ci-cd/setup-remote-deployment.sh`](../../scripts/ci-cd/setup-remote-deployment.sh)
+- **Backup Script**: [`.github/setup-remote-deployment.sh`](../../.github/setup-remote-deployment.sh)
 - **GitHub Secrets Setup**: [`.github/GITHUB_SECRETS_SETUP.md`](../../.github/GITHUB_SECRETS_SETUP.md)
+- **All Scripts**: [`scripts/README.md`](../../scripts/README.md)
 
 ---
 
@@ -33,6 +35,11 @@ A **complete, production-ready CI/CD pipeline** for automating Aurigraph V11 dep
 ## 🚀 Quick Start (4 Steps)
 
 ### 1. Run Setup Script (5-10 minutes)
+```bash
+bash scripts/ci-cd/setup-remote-deployment.sh
+```
+
+Or from .github/:
 ```bash
 bash .github/setup-remote-deployment.sh
 ```

@@ -42,7 +42,8 @@ Comprehensive CI/CD pipeline with 6 phases:
 - ✅ GitHub deployment tracking
 
 ### 2. Setup Automation
-**File**: `.github/setup-remote-deployment.sh`
+**File**: `scripts/ci-cd/setup-remote-deployment.sh`
+**Backup**: `.github/setup-remote-deployment.sh`
 
 Automated setup script that:
 - ✅ Checks prerequisites (GitHub CLI, Git, SSH)
@@ -64,6 +65,11 @@ Automated setup script that:
 ### Option 1: Automated Setup (Recommended)
 ```bash
 # From repository root
+bash scripts/ci-cd/setup-remote-deployment.sh
+```
+
+Or from .github/:
+```bash
 bash .github/setup-remote-deployment.sh
 ```
 
@@ -309,7 +315,8 @@ EOF
 - Manual workflow_dispatch option
 
 ### Deployment Script
-**`.github/setup-remote-deployment.sh`**
+**`scripts/ci-cd/setup-remote-deployment.sh`** (Primary)
+**`.github/setup-remote-deployment.sh`** (Backup copy)
 - Automated setup assistant
 - SSH key generation
 - GitHub Secrets configuration
@@ -343,12 +350,23 @@ EOF
 
 ### Local Repository
 ```
+scripts/
+├── ci-cd/
+│   └── setup-remote-deployment.sh         ← Automated setup (PRIMARY)
+└── README.md                              ← Scripts index
+
 .github/
 ├── workflows/
-│   └── remote-deployment.yml          ← Main CI/CD pipeline
-├── setup-remote-deployment.sh         ← Automated setup
-├── REMOTE_DEPLOYMENT_SETUP.md         ← Setup guide
-└── CI_CD_REMOTE_DEPLOYMENT_SUMMARY.md ← This file
+│   └── remote-deployment.yml              ← Main CI/CD pipeline
+├── setup-remote-deployment.sh             ← Setup (BACKUP)
+├── REMOTE_DEPLOYMENT_SETUP.md             ← Setup guide
+└── CI_CD_REMOTE_DEPLOYMENT_SUMMARY.md     ← This file
+
+docs/cicd/
+├── README.md                              ← Index
+├── CI_CD_DEPLOYMENT_COMPLETE.md           ← Summary
+├── REMOTE_DEPLOYMENT_SETUP.md             ← Setup guide
+└── CI_CD_REMOTE_DEPLOYMENT_SUMMARY.md     ← Architecture
 
 docker-compose.yml                     ← Service definitions
 docker-compose.production.yml          ← Production config
