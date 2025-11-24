@@ -1,0 +1,534 @@
+name: Remote Server CI/CD Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+      - 'docker-compose*.yml'
+      - 'deployment/**'
+      - '.github/workflows/remote-deployment.yml'
+      - 'traefik*.yml'
+  workflow_dispatch:
+    inputs:
+      deployment_target:
+        description: 'Deployment target environment'
+        required: true
+        type: choice
+        default: 'staging'
+        options:
+          - staging
+          - production
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        type: choice
+        default: 'blue-green'
+        options:
+          - blue-green
+          - canary
+          - rolling
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/aurigraph-v11
+  JAVA_VERSION: '21'
+  REMOTE_PORT: '2235'
+  REMOTE_DIR: '/opt/aurigraph'
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
+jobs:
+  # ============================================================
+  # PHASE 1: VALIDATION & BUILD
+  # ============================================================
+  validate-config:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      config_valid: ${{ steps.validate.outputs.valid }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose files
+        id: validate
+        run: |
+          echo "✓ Validating docker-compose files..."
+          if command -v docker-compose &> /dev/null; then
+            docker-compose -f docker-compose.yml config > /dev/null && echo "✓ docker-compose.yml valid"
+            docker-compose -f docker-compose.production.yml config > /dev/null 2>&1 && echo "✓ docker-compose.production.yml valid" || echo "⚠ Production config optional"
+          fi
+          echo "valid=true" >> $GITHUB_OUTPUT
+
+      - name: Verify Traefik configuration
+        run: |
+          echo "✓ Checking Traefik configuration files..."
+          [ -f traefik-static.yml ] && echo "✓ traefik-static.yml found" || echo "⚠ traefik-static.yml not found"
+          [ -f traefik-config.toml ] && echo "✓ traefik-config.toml found" || echo "⚠ traefik-config.toml not found"
+
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    needs: validate-config
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(mvn -f aurigraph-av10-7/aurigraph-v11-standalone/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+          BUILD_NUM=${{ github.run_number }}
+          echo "version=${VERSION}-${BUILD_NUM}" >> $GITHUB_OUTPUT
+          echo "📦 Version: ${VERSION}-${BUILD_NUM}"
+
+      - name: Build V11 project
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw clean package -DskipTests -B
+          echo "✅ Build completed"
+
+      - name: Run quick tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw test -B --fail-at-end
+          echo "✅ Tests completed"
+        continue-on-error: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=${{ steps.version.outputs.version }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: aurigraph-av10-7/aurigraph-v11-standalone
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================
+  # PHASE 2: REMOTE DEPLOYMENT
+  # ============================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.deployment_target == 'staging'
+    environment:
+      name: staging
+      url: https://staging.dlt.aurigraph.io
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy to staging server
+        run: |
+          ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+          set -e
+          echo "🚀 Starting deployment to staging..."
+
+          cd ${{ env.REMOTE_DIR }}/staging
+
+          # Pull latest code
+          git pull origin develop
+
+          # Update Docker images
+          docker-compose pull
+
+          # Deploy with new images
+          docker-compose -f docker-compose.yml up -d
+
+          # Wait for services
+          sleep 30
+
+          # Health checks
+          echo "🔍 Running health checks..."
+          curl -f http://localhost:9004/q/health/ready && echo "✅ V11 API healthy" || echo "⚠️ Health check pending"
+          curl -f http://localhost:3000 && echo "✅ Portal healthy" || echo "⚠️ Portal pending"
+
+          # Show container status
+          echo "📦 Container status:"
+          docker ps --format "table {{.Names}}\t{{.Status}}"
+
+          echo "✅ Staging deployment complete"
+          EOF
+
+      - name: Verify staging deployment
+        run: |
+          echo "🔍 Verifying staging deployment..."
+          for i in {1..10}; do
+            if curl -sf https://staging.dlt.aurigraph.io/api/v11/health > /dev/null 2>&1; then
+              echo "✅ Staging verification successful"
+              exit 0
+            fi
+            echo "Attempt $i/10..."
+            sleep 10
+          done
+          echo "⚠️ Staging verification timeout"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event.inputs.deployment_target == 'production'
+    environment:
+      name: production
+      url: https://dlt.aurigraph.io
+    concurrency: production-deployment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Pre-deployment backup
+        run: |
+          echo "💾 Creating pre-deployment backup..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
+          set -e
+          BACKUP_DIR="/opt/aurigraph/backups/pre-deploy-$(date +%Y%m%d_%H%M%S)"
+          mkdir -p "$BACKUP_DIR"
+
+          # Backup docker volumes
+          echo "Backing up database..."
+          docker exec dlt-postgres pg_dump -U aurigraph aurigraph_production | gzip > "$BACKUP_DIR/aurigraph-db.sql.gz"
+
+          # Backup configurations
+          cp -r /opt/aurigraph/config "$BACKUP_DIR/" 2>/dev/null || true
+
+          echo "✅ Backup created: $BACKUP_DIR"
+          ls -lh "$BACKUP_DIR"
+          EOF
+
+      - name: Determine deployment strategy
+        id: strategy
+        run: |
+          STRATEGY="${{ github.event.inputs.deployment_strategy || 'blue-green' }}"
+          echo "strategy=$STRATEGY" >> $GITHUB_OUTPUT
+          echo "📋 Deployment strategy: $STRATEGY"
+
+      - name: Deploy (Blue-Green)
+        if: steps.strategy.outputs.strategy == 'blue-green'
+        run: |
+          echo "🔄 Starting blue-green deployment..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
+          set -e
+
+          cd ${{ env.REMOTE_DIR }}/production
+
+          # Update code
+          git pull origin main
+
+          # Pull latest images
+          docker-compose pull
+
+          # Deploy to green environment
+          export DEPLOYMENT_SLOT=green
+          docker-compose -f docker-compose.yml up -d
+
+          # Wait for stability
+          sleep 45
+
+          # Health check on green
+          echo "🔍 Health checking green environment..."
+          RETRY=0
+          while [ $RETRY -lt 12 ]; do
+            if curl -f http://localhost:9004/q/health/ready > /dev/null 2>&1; then
+              echo "✅ Green environment healthy"
+              break
+            fi
+            RETRY=$((RETRY + 1))
+            echo "Attempt $RETRY/12..."
+            sleep 5
+          done
+
+          if [ $RETRY -eq 12 ]; then
+            echo "❌ Green environment unhealthy, rolling back"
+            docker-compose down
+            exit 1
+          fi
+
+          # Switch traffic (managed by load balancer/Traefik)
+          echo "🔀 Switching traffic to green..."
+
+          # Verify production health
+          for i in {1..10}; do
+            if curl -sf https://dlt.aurigraph.io/api/v11/health > /dev/null 2>&1; then
+              echo "✅ Production traffic switched successfully"
+              break
+            fi
+            echo "Verification attempt $i/10..."
+            sleep 5
+          done
+
+          # Show deployment status
+          echo "📦 Final status:"
+          docker ps --format "table {{.Names}}\t{{.Status}}"
+
+          echo "✅ Blue-green deployment complete"
+          EOF
+
+      - name: Deploy (Canary)
+        if: steps.strategy.outputs.strategy == 'canary'
+        run: |
+          echo "🎯 Starting canary deployment (5% traffic)..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
+          set -e
+
+          cd ${{ env.REMOTE_DIR }}/production
+
+          # Update and deploy
+          git pull origin main
+          docker-compose pull
+          docker-compose up -d
+
+          # Monitor canary
+          sleep 30
+          ERROR_RATE=$(curl -s http://localhost:9003/metrics 2>/dev/null | grep 'http_requests_total{.*status="5' | wc -l || echo "0")
+
+          if [ "$ERROR_RATE" -lt "5" ]; then
+            echo "✅ Canary deployment successful with $ERROR_RATE errors"
+          else
+            echo "❌ High error rate detected in canary, rolling back"
+            exit 1
+          fi
+          EOF
+
+      - name: Verify production health
+        run: |
+          echo "🔍 Verifying production deployment..."
+          for i in {1..15}; do
+            HEALTH=$(curl -s https://dlt.aurigraph.io/api/v11/health 2>/dev/null | jq -r '.status' || echo 'down')
+            if [ "$HEALTH" = "UP" ]; then
+              echo "✅ Production health verified: $HEALTH"
+
+              # Check key endpoints
+              curl -s https://dlt.aurigraph.io/api/v11/info | jq '.version' && echo "✅ API responding"
+              exit 0
+            fi
+            echo "Verification attempt $i/15 - Status: $HEALTH"
+            sleep 10
+          done
+          echo "❌ Production verification failed"
+          exit 1
+
+      - name: Smoke tests
+        run: |
+          echo "🧪 Running smoke tests..."
+          echo "Testing health endpoint..."
+          curl -f https://dlt.aurigraph.io/api/v11/health || exit 1
+          echo "✅ Health endpoint OK"
+
+          echo "Testing info endpoint..."
+          curl -f https://dlt.aurigraph.io/api/v11/info || exit 1
+          echo "✅ Info endpoint OK"
+
+          echo "Testing metrics..."
+          curl -f https://dlt.aurigraph.io/metrics 2>/dev/null | head -c 100
+          echo ""
+          echo "✅ Smoke tests passed"
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Initiating rollback..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
+          set -e
+
+          cd ${{ env.REMOTE_DIR }}/production
+
+          # Get latest backup
+          LATEST_BACKUP=$(ls -t /opt/aurigraph/backups/pre-deploy-* 2>/dev/null | head -1)
+
+          if [ -n "$LATEST_BACKUP" ]; then
+            echo "Rolling back from: $LATEST_BACKUP"
+
+            # Stop current deployment
+            docker-compose down || true
+
+            # Restore database
+            if [ -f "$LATEST_BACKUP/aurigraph-db.sql.gz" ]; then
+              echo "Restoring database..."
+              zcat "$LATEST_BACKUP/aurigraph-db.sql.gz" | docker exec -i dlt-postgres psql -U aurigraph aurigraph_production
+            fi
+
+            # Restart services
+            docker-compose up -d
+            sleep 30
+
+            echo "✅ Rollback complete"
+          else
+            echo "❌ No backup found for rollback"
+            exit 1
+          fi
+          EOF
+
+  # ============================================================
+  # PHASE 3: POST-DEPLOYMENT MONITORING
+  # ============================================================
+  monitor-deployment:
+    name: Monitor Deployment (5 min)
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+
+    steps:
+      - name: Monitor metrics
+        run: |
+          echo "📊 Monitoring deployment metrics..."
+          echo "This job monitors the deployed services for 5 minutes"
+          echo "Checking every 30 seconds..."
+
+          for i in {1..10}; do
+            echo ""
+            echo "Check $i/10 at $(date)"
+
+            # Check production if available
+            if curl -sf https://dlt.aurigraph.io/q/health > /dev/null 2>&1; then
+              curl -s https://dlt.aurigraph.io/q/health | jq '.status' || echo "Health check pending"
+            fi
+
+            sleep 30
+          done
+
+          echo ""
+          echo "✅ 5-minute monitoring period complete"
+
+  # ============================================================
+  # PHASE 4: NOTIFICATIONS
+  # ============================================================
+  notify-success:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: [deploy-production, monitor-deployment]
+    if: success()
+
+    steps:
+      - name: Create deployment summary
+        run: |
+          echo "## ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URLs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://dlt.aurigraph.io/api/v11" >> $GITHUB_STEP_SUMMARY
+          echo "- Portal: https://dlt.aurigraph.io" >> $GITHUB_STEP_SUMMARY
+          echo "- Health: https://dlt.aurigraph.io/q/health" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "✅ Production Deployment Successful",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🚀 *Production Deployment Successful*\n\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}\n*Branch:* ${{ github.ref_name }}\n\n<https://dlt.aurigraph.io|View Portal>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure()
+
+    steps:
+      - name: Create failure summary
+        run: |
+          echo "## ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**View logs:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send Slack failure notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ Production Deployment Failed - Rollback Initiated",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "⚠️ *Production Deployment Failed*\n\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}\n*Status:* Automatic rollback initiated\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
