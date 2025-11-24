@@ -79,12 +79,19 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 echo "Current branch: $BRANCH"
 
 log_info "Checking for uncommitted changes..."
-if ! git diff-index --quiet HEAD --; then
-    log_warn "Uncommitted changes detected"
-    echo "Please commit or stash changes before deploying"
-    exit 1
+# Check for uncommitted changes excluding submodules (worktrees are independent)
+if git diff-index --quiet HEAD -- -- ':(exclude)worktrees/**' 2>/dev/null || ! git diff-index --quiet HEAD --; then
+    # Use a more lenient check - only fail if there are actual file changes (not submodules)
+    TRACKED_CHANGES=$(git diff-index --name-only HEAD -- | grep -v "^worktrees/" | wc -l)
+    if [ "$TRACKED_CHANGES" -gt 0 ]; then
+        log_warn "Uncommitted changes detected in main repository"
+        echo "Please commit or stash changes before deploying"
+        exit 1
+    else
+        log_warn "Detected changes in git submodules (worktrees) - these are independent and safe to ignore"
+    fi
 fi
-log_success "Working directory clean"
+log_success "Working directory clean (submodule changes ignored)"
 
 log_info "Checking Git status..."
 GIT_COMMIT=$(git rev-parse --short HEAD)
