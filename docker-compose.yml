@@ -78,11 +78,12 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=dlt-frontend"
 
-      # Let's Encrypt ACME
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@aurigraph.io"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Static certificate configuration (self-signed for development/testing)
+      - "--providers.file.filename=/etc/traefik/traefik-static.yml"
+      - "--providers.file.watch=true"
+
+      # Security Headers
+      - "--entrypoints.websecure.http.middlewares=security-headers@docker"
 
       # Logging
       - "--log.level=INFO"
@@ -91,14 +92,15 @@ services:
     ports:
       - "80:80"      # HTTP
       - "443:443"    # HTTPS
-      - "8080:8080"  # Dashboard (access at http://localhost:8080/dashboard/)
+      - "127.0.0.1:8080:8080"  # Dashboard (localhost only for security)
 
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - letsencrypt:/letsencrypt
+      - ./certs:/etc/traefik/certs:ro
+      - ./traefik-static.yml:/etc/traefik/traefik-static.yml:ro
 
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/ping"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/dashboard/"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -111,6 +113,16 @@ services:
     labels:
       - "com.dlt.service=traefik"
       - "com.dlt.tier=frontend"
+
+      # Security Headers Middleware
+      - "traefik.http.middlewares.security-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.security-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.security-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.security-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.security-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
 
     # profiles: ["traefik"]  # Removed - Traefik is now primary reverse proxy
 
@@ -184,7 +196,7 @@ services:
       # Quarkus Configuration
       - QUARKUS_PROFILE=production
       - QUARKUS_HTTP_HOST=0.0.0.0
-      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_PORT=9004
       - QUARKUS_HTTP_HTTP2=true
 
       # Aurigraph Node Configuration
@@ -211,7 +223,7 @@ services:
       # Database Configuration (Docker network DNS)
       - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph_production
       - QUARKUS_DATASOURCE_USERNAME=aurigraph
-      - QUARKUS_DATASOURCE_PASSWORD=aurigraph-prod-secure-2025
+      - QUARKUS_DATASOURCE_PASSWORD=${QUARKUS_DATASOURCE_PASSWORD:-aurigraph-prod-secure-2025}
 
       # Hibernate ORM Configuration - Skip schema validation/generation
       - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
@@ -219,8 +231,8 @@ services:
       - QUARKUS_HIBERNATE_ORM_JDBC_FETCH_SIZE=50
 
     ports:
-      - "9003:9003"  # REST API (internal)
-      - "9004:9004"  # gRPC (internal)
+      - "9004:9004"  # REST API (internal)
+      - "9005:9005"  # gRPC (internal)
 
     volumes:
       - dlt-data:/deployments/data
@@ -228,7 +240,7 @@ services:
       - ./config/v11:/deployments/config:ro
 
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9003/q/health/ready"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9004/q/health/ready"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -272,7 +284,7 @@ services:
       - "traefik.http.routers.aurigraph-api-https.middlewares=aurigraph-ratelimit@docker"
 
       # Service configuration (used by both routers)
-      - "traefik.http.services.aurigraph-api.loadbalancer.server.port=9003"
+      - "traefik.http.services.aurigraph-api.loadbalancer.server.port=9004"
       - "traefik.http.services.aurigraph-api.loadbalancer.healthcheck.path=/q/health"
       - "traefik.http.services.aurigraph-api.loadbalancer.healthcheck.interval=30s"
 
@@ -291,7 +303,7 @@ services:
     environment:
       - POSTGRES_DB=aurigraph_production
       - POSTGRES_USER=aurigraph
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-aurigraph-prod-secure-2025}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-aurigraph-prod-secure-2025}
       - POSTGRES_INITDB_ARGS=--auth-local=trust
 
     volumes:
@@ -504,10 +516,9 @@ services:
       - "traefik.http.routers.portal-http.service=portal"
       - "traefik.http.routers.portal-http.middlewares=portal-gzip@docker"
 
-      # HTTPS Router (with TLS/Let's Encrypt)
+      # HTTPS Router (with TLS)
       - "traefik.http.routers.portal-https.rule=Host(`dlt.aurigraph.io`) || Host(`www.dlt.aurigraph.io`)"
       - "traefik.http.routers.portal-https.entrypoints=websecure"
-      - "traefik.http.routers.portal-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.portal-https.service=portal"
       - "traefik.http.routers.portal-https.middlewares=portal-gzip@docker"
 
@@ -532,7 +543,7 @@ services:
       # Quarkus Configuration
       - QUARKUS_PROFILE=production
       - QUARKUS_HTTP_HOST=0.0.0.0
-      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_PORT=9004
       - QUARKUS_HTTP_HTTP2=true
 
       # Node Configuration
@@ -554,15 +565,15 @@ services:
       - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
 
     ports:
-      - "19003:9003"  # REST API (validator-1)
-      - "19004:9004"  # gRPC (validator-1)
+      - "19003:9004"  # REST API (validator-1)
+      - "19004:9005"  # gRPC (validator-1)
 
     volumes:
       - dlt-data:/deployments/data
       - dlt-logs:/deployments/logs
 
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9003/q/health/ready"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9004/q/health/ready"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -601,7 +612,7 @@ services:
       # Quarkus Configuration
       - QUARKUS_PROFILE=production
       - QUARKUS_HTTP_HOST=0.0.0.0
-      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_PORT=9004
       - QUARKUS_HTTP_HTTP2=true
 
       # Node Configuration
@@ -621,15 +632,15 @@ services:
       - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
 
     ports:
-      - "19103:9003"  # REST API (business-1)
-      - "19104:9004"  # gRPC (business-1)
+      - "19103:9004"  # REST API (business-1)
+      - "19104:9005"  # gRPC (business-1)
 
     volumes:
       - dlt-data:/deployments/data
       - dlt-logs:/deployments/logs
 
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9003/q/health/ready"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9004/q/health/ready"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -668,7 +679,7 @@ services:
       # Quarkus Configuration
       - QUARKUS_PROFILE=production
       - QUARKUS_HTTP_HOST=0.0.0.0
-      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_HTTP_PORT=9004
       - QUARKUS_HTTP_HTTP2=true
 
       # Node Configuration
@@ -690,8 +701,8 @@ services:
       - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=validate
 
     ports:
-      - "19203:9003"  # REST API (slim-1)
-      - "19204:9004"  # gRPC (slim-1)
+      - "19203:9004"  # REST API (slim-1)
+      - "19204:9005"  # gRPC (slim-1)
 
     volumes:
       - dlt-slim-node-1-data:/deployments/data/leveldb
@@ -714,7 +725,7 @@ services:
           memory: 128M
 
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9003/q/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9004/q/health"]
       interval: 30s
       timeout: 10s
       retries: 3
