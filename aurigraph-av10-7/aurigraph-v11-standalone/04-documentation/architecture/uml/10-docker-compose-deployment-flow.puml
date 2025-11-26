@@ -1,0 +1,215 @@
+@startuml Docker Compose Deployment Flow
+title Aurigraph V11 - Docker Compose Deployment Sequence
+
+actor "DevOps Engineer" as DevOps
+participant "Orchestration\nFile" as Orch
+participant "Docker\nCompose" as DC
+participant "Core\nServices" as Core
+participant "Monitoring\nModule" as Mon
+participant "Security\nModule" as Sec
+participant "Backup\nModule" as Backup
+participant "Health Check\nService" as Health
+
+== Initialization Phase ==
+
+DevOps -> Orch : docker-compose -f docker-compose.orchestration.yml up
+activate Orch
+
+Orch -> DC : Load configuration
+activate DC
+
+DC -> DC : Parse all included modules
+note right: Loads 9 modular compose files:\n• core, monitoring, security\n• backup, scaling, testing\n• ci/cd, staging, migration
+
+DC -> DC : Merge service definitions
+DC -> DC : Resolve network dependencies
+DC -> DC : Create global networks
+
+note over DC
+  **Global Networks Created:**
+  • aurigraph-frontend (172.20.0.0/16)
+  • aurigraph-backend (172.21.0.0/16)
+  • monitoring (172.22.0.0/16)
+end note
+
+DC -> DC : Create global volumes
+note over DC
+  **Global Volumes Created:**
+  • aurigraph-data
+  • prometheus-data
+  • grafana-data
+  • vault-data
+  • consul-data
+end note
+
+== Service Startup Phase ==
+
+par Core Services Startup
+    DC -> Core : Start aurigraph-v11-native
+    activate Core
+    Core -> Core : Initialize GraalVM runtime\n(startup time: <1s)
+    Core -> Core : Load configuration from Vault
+    Core -> Core : Connect to Consul for service discovery
+    Core --> DC : Service healthy (port 9003, 9004)
+end
+
+par Infrastructure Services
+    DC -> Sec : Start Vault
+    activate Sec
+    Sec -> Sec : Initialize secrets engine
+    Sec -> Sec : Unseal vault (if production)
+    Sec --> DC : Vault ready (port 8200)
+
+    DC -> Sec : Start Keycloak
+    Sec -> Sec : Wait for keycloak-db
+    Sec -> Sec : Initialize realms (AWD, AurCarbonTrace)
+    Sec --> DC : Keycloak ready (port 8180)
+    deactivate Sec
+
+    DC -> Core : Start Consul
+    Core -> Core : Bootstrap cluster
+    Core -> Core : Register services
+    Core --> DC : Consul ready (port 8500)
+
+    DC -> Core : Start Redis
+    Core -> Core : Configure cache policies
+    Core --> DC : Redis ready (port 6379)
+end
+
+par Monitoring Services (if profile enabled)
+    DC -> Mon : Start Prometheus
+    activate Mon
+    Mon -> Mon : Load scrape configs
+    Mon -> Mon : Start metric collection
+    Mon -> Core : Scrape metrics from /q/metrics
+    Mon --> DC : Prometheus ready (port 9090)
+
+    DC -> Mon : Start Grafana
+    Mon -> Mon : Wait for Prometheus
+    Mon -> Mon : Provision dashboards
+    Mon -> Mon : Configure data sources
+    Mon --> DC : Grafana ready (port 3000)
+    deactivate Mon
+end
+
+par Load Balancer
+    DC -> Core : Start NGINX
+    Core -> Core : Load SSL certificates
+    Core -> Core : Configure upstream servers
+    Core -> Core : Enable rate limiting
+    Core --> DC : NGINX ready (port 80, 443)
+    deactivate Core
+end
+
+== Health Check Phase ==
+
+DevOps -> Health : docker-compose --profile health-check run orchestration-health
+activate Health
+
+Health -> Core : GET /q/health (Core App)
+Core --> Health : 200 OK (status: UP)
+
+Health -> Mon : GET /-/healthy (Prometheus)
+Mon --> Health : 200 OK
+
+Health -> Mon : GET /api/health (Grafana)
+Mon --> Health : 200 OK
+
+Health -> Sec : GET /v1/sys/health (Vault)
+Sec --> Health : 200 OK (initialized: true, sealed: false)
+
+Health -> Sec : GET /health/ready (Keycloak)
+Sec --> Health : 200 OK
+
+Health -> Core : GET /health (NGINX)
+Core --> Health : 200 OK
+
+Health --> DevOps : All services healthy
+deactivate Health
+
+== Optional: Backup Activation ==
+
+DevOps -> Backup : docker-compose --profile backup run postgres-backup
+activate Backup
+Backup -> Backup : Connect to PostgreSQL
+Backup -> Backup : Create backup (compressed)
+Backup -> Backup : Store to /backups (local)
+Backup -> Backup : Sync to S3 (if configured)
+Backup --> DevOps : Backup completed\n(backup_20251126_142530.sql)
+deactivate Backup
+
+== Optional: Database Migration ==
+
+DevOps -> DC : docker-compose --profile flyway run flyway-migrate
+activate DC
+DC -> DC : Connect to PostgreSQL
+DC -> DC : Check flyway_schema_history
+DC -> DC : Apply pending migrations
+DC -> DC : Update schema version
+DC --> DevOps : Migration successful\n(schema version: 1.5.0)
+deactivate DC
+
+== Scaling Phase (Optional) ==
+
+DevOps -> DC : docker-compose --profile scaling up --scale business-node=5
+activate DC
+DC -> DC : Create 5 business node replicas
+loop For each replica
+    DC -> DC : Start business-node-1 to business-node-5
+    DC -> DC : Register with Consul
+    DC -> DC : Add to HAProxy backend pool
+end
+DC --> DevOps : Scaled to 5 business nodes
+deactivate DC
+
+== Shutdown Phase ==
+
+DevOps -> DC : docker-compose down
+activate DC
+
+DC -> DC : Stop all services (graceful)
+note right: Shutdown order:\n1. Application services\n2. Load balancers\n3. Infrastructure services\n4. Monitoring
+
+DC -> Core : Stop aurigraph-v11-native
+Core -> Core : Flush pending transactions
+Core -> Core : Close database connections
+Core -> Core : Shutdown gRPC server
+Core --> DC : Service stopped
+
+DC -> Mon : Stop Grafana & Prometheus
+Mon -> Mon : Save current state
+Mon --> DC : Monitoring stopped
+
+DC -> Sec : Stop Keycloak & Vault
+Sec -> Sec : Close connections
+Sec --> DC : Security services stopped
+
+DC -> DC : Remove networks (if no other containers)
+DC -> DC : Preserve volumes (data retained)
+
+DC --> DevOps : All services stopped\nVolumes preserved for next startup
+deactivate DC
+
+deactivate Orch
+
+note over DevOps, Health
+  **Deployment Characteristics:**
+  • Total startup time: <30 seconds (native app)
+  • Graceful shutdown with data persistence
+  • Zero-downtime with blue-green deployment
+  • Health checks at every layer
+  • Automatic service registration (Consul)
+  • Centralized secret management (Vault)
+  • Observable via Prometheus/Grafana
+
+  **Production Best Practices:**
+  1. Always run health checks after deployment
+  2. Enable monitoring profile in production
+  3. Schedule regular backups (daily recommended)
+  4. Use blue-green deployment for updates
+  5. Monitor resource utilization via cAdvisor
+  6. Set up alerting via Alertmanager
+  7. Keep Docker volumes for data persistence
+end note
+
+@enduml

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The HMS Integration module provides high-performance, real-time integration between Aurigraph DLT V11 and Alpaca Markets' Hermes trading platform. This Java-native implementation achieves enterprise-grade performance with sub-10ms tokenization latency and 100K+ trades/second processing capacity.
+The HMS Integration module provides high-performance, real-time integration between Aurigraph V11 and Alpaca Markets' Hermes trading platform. This Java-native implementation achieves enterprise-grade performance with sub-10ms tokenization latency and 100K+ trades/second processing capacity.
 
 ## Architecture
 

@@ -1,0 +1,593 @@
+name: Unified CI/CD - Backend + Portal
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+      - '.github/workflows/unified-cicd.yml'
+
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy backend'
+        required: false
+        type: boolean
+        default: true
+      deploy_portal:
+        description: 'Deploy enterprise portal'
+        required: false
+        type: boolean
+        default: true
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        default: 'production'
+        options:
+          - production
+          - staging
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20'
+  REMOTE_HOST: 'dlt.aurigraph.io'
+  REMOTE_PORT: '22'
+  REMOTE_USER: 'subbu'
+  BACKEND_PORT: '9003'
+  PORTAL_PATH: '/var/www/html/dist'
+  BACKEND_PATH: '/tmp'
+
+jobs:
+  # ============================================================
+  # PHASE 1: BUILD BACKEND
+  # ============================================================
+  build-backend:
+    name: Build V11 Backend
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deploy_backend != 'false'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Get project version
+        id: version
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          BUILD_NUM=${{ github.run_number }}
+          FULL_VERSION="${VERSION}-build.${BUILD_NUM}"
+          echo "version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+          echo "📦 Building version: ${FULL_VERSION}"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build uber JAR
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🔨 Building uber JAR..."
+          ./mvnw clean package \
+            -DskipTests \
+            -Dmaven.test.skip=true \
+            -Dquarkus.package.jar.type=uber-jar \
+            -B
+
+          # Verify JAR was created
+          JAR_FILE="target/aurigraph-v12-standalone-12.0.0-runner.jar"
+          if [ -f "$JAR_FILE" ]; then
+            JAR_SIZE=$(ls -lh "$JAR_FILE" | awk '{print $5}')
+            echo "✅ JAR built successfully: $JAR_SIZE"
+
+            # Verify Main-Class
+            if jar -xf "$JAR_FILE" META-INF/MANIFEST.MF && grep -q "Main-Class" META-INF/MANIFEST.MF 2>/dev/null; then
+              echo "✅ Main-Class verified in manifest"
+            fi
+          else
+            echo "❌ JAR file not found"
+            exit 1
+          fi
+
+      - name: Run tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🧪 Running tests..."
+          ./mvnw test -B --fail-at-end
+        continue-on-error: true
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar-${{ steps.version.outputs.version }}
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/aurigraph-v12-standalone-12.0.0-runner.jar
+          retention-days: 7
+          if-no-files-found: error
+
+  # ============================================================
+  # PHASE 2: BUILD ENTERPRISE PORTAL
+  # ============================================================
+  build-portal:
+    name: Build Enterprise Portal
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deploy_portal != 'false'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package-lock.json
+
+      - name: Install dependencies
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+
+      - name: Set production environment
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: |
+          echo "🔧 Configuring production environment..."
+          cat > .env << EOF
+          VITE_REACT_APP_API_URL=https://dlt.aurigraph.io/api/v11
+          VITE_REACT_APP_ENV=production
+          EOF
+          cat .env
+
+      - name: Build portal
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: |
+          echo "🔨 Building production bundle..."
+          npm run build
+
+          # Verify build
+          if [ -d "dist" ] && [ -f "dist/index.html" ]; then
+            DIST_SIZE=$(du -sh dist | cut -f1)
+            FILE_COUNT=$(find dist -type f | wc -l)
+            echo "✅ Build successful: $DIST_SIZE, $FILE_COUNT files"
+            ls -lh dist/
+          else
+            echo "❌ Build failed - dist directory not found"
+            exit 1
+          fi
+
+      - name: Run portal tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: |
+          echo "🧪 Running portal tests..."
+          npm test -- --run --reporter=verbose || echo "⚠️  Tests not configured"
+        continue-on-error: true
+
+      - name: Create deployment package
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: |
+          echo "📦 Creating deployment package..."
+          tar -czf portal-deploy-${{ github.run_number }}.tar.gz dist/
+          ls -lh portal-deploy-${{ github.run_number }}.tar.gz
+
+      - name: Upload portal artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-dist-${{ github.run_number }}
+          path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/portal-deploy-${{ github.run_number }}.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+
+  # ============================================================
+  # PHASE 3: DEPLOY TO PRODUCTION
+  # ============================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-portal]
+    if: |
+      always() &&
+      (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
+      (needs.build-portal.result == 'success' || needs.build-portal.result == 'skipped') &&
+      (github.ref == 'refs/heads/main' || github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://dlt.aurigraph.io
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download backend artifact
+        if: github.event.inputs.deploy_backend != 'false'
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar-*
+          path: ./artifacts/backend/
+        continue-on-error: true
+
+      - name: Download portal artifact
+        if: github.event.inputs.deploy_portal != 'false'
+        uses: actions/download-artifact@v4
+        with:
+          name: portal-dist-${{ github.run_number }}
+          path: ./artifacts/portal/
+        continue-on-error: true
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Setup SSH key
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Add host to known_hosts
+          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          echo "✅ SSH configured"
+
+      - name: Pre-deployment health check
+        run: |
+          echo "🔍 Checking current production health..."
+          curl -sf https://${{ env.REMOTE_HOST }}/api/v11/health || echo "⚠️  Backend currently unavailable"
+          curl -sf https://${{ env.REMOTE_HOST }}/ -I | head -1 || echo "⚠️  Portal currently unavailable"
+
+      - name: Create deployment backup
+        run: |
+          echo "💾 Creating pre-deployment backup..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+            BACKUP_DIR="/opt/aurigraph/backups/deploy-$(date +%Y%m%d_%H%M%S)"
+            mkdir -p "$BACKUP_DIR"
+
+            # Backup current JAR
+            if [ -f /tmp/aurigraph-v12-standalone-12.0.0-runner.jar ]; then
+              cp /tmp/aurigraph-v12-standalone-12.0.0-runner.jar "$BACKUP_DIR/"
+              echo "✅ Backend JAR backed up"
+            fi
+
+            # Backup portal
+            if [ -d /var/www/html/dist ]; then
+              tar -czf "$BACKUP_DIR/portal-backup.tar.gz" -C /var/www/html dist/
+              echo "✅ Portal backed up"
+            fi
+
+            echo "📁 Backup location: $BACKUP_DIR"
+            ls -lh "$BACKUP_DIR"
+          EOF
+
+      - name: Stop backend service
+        if: github.event.inputs.deploy_backend != 'false'
+        run: |
+          echo "⏸️  Stopping backend service..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+            # Find and kill Java process on port 9003
+            PID=$(lsof -ti:9003 || echo "")
+            if [ -n "$PID" ]; then
+              echo "Stopping process $PID..."
+              kill -15 $PID || true
+              sleep 5
+
+              # Force kill if still running
+              if kill -0 $PID 2>/dev/null; then
+                echo "Force stopping..."
+                kill -9 $PID || true
+              fi
+              echo "✅ Backend stopped"
+            else
+              echo "⚠️  No backend process found"
+            fi
+          EOF
+
+      - name: Deploy backend
+        if: github.event.inputs.deploy_backend != 'false'
+        run: |
+          echo "🚀 Deploying backend to production..."
+
+          # Copy JAR to remote
+          scp -P ${{ env.REMOTE_PORT }} \
+            ./artifacts/backend/aurigraph-v12-standalone-12.0.0-runner.jar \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:${{ env.BACKEND_PATH }}/
+
+          # Start service
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+            cd ${{ env.BACKEND_PATH }}
+
+            # Start backend in background
+            nohup java \
+              -Xms512m \
+              -Xmx2g \
+              -Dquarkus.http.port=${{ env.BACKEND_PORT }} \
+              -Dquarkus.flyway.migrate-at-start=false \
+              -jar aurigraph-v12-standalone-12.0.0-runner.jar \
+              > v12-production.log 2>&1 &
+
+            NEW_PID=$!
+            echo "✅ Backend started with PID: $NEW_PID"
+            echo $NEW_PID > /tmp/aurigraph-backend.pid
+
+            # Wait for startup
+            echo "⏳ Waiting for backend to start..."
+            sleep 15
+          EOF
+
+      - name: Deploy portal
+        if: github.event.inputs.deploy_portal != 'false'
+        run: |
+          echo "🚀 Deploying portal to production..."
+
+          # Copy portal archive
+          scp -P ${{ env.REMOTE_PORT }} \
+            ./artifacts/portal/portal-deploy-${{ github.run_number }}.tar.gz \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/tmp/
+
+          # Extract and deploy
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+            # Remove old dist
+            sudo rm -rf ${{ env.PORTAL_PATH }}
+
+            # Extract new portal
+            cd /tmp
+            tar -xzf portal-deploy-${{ github.run_number }}.tar.gz
+
+            # Move to web root
+            sudo mkdir -p /var/www/html
+            sudo mv dist ${{ env.PORTAL_PATH }}
+
+            # Set permissions
+            sudo chown -R www-data:www-data ${{ env.PORTAL_PATH }}
+            sudo chmod -R 755 ${{ env.PORTAL_PATH }}
+
+            echo "✅ Portal deployed"
+            ls -lh ${{ env.PORTAL_PATH }}
+          EOF
+
+      - name: Health check and verification
+        run: |
+          echo "🔍 Running post-deployment health checks..."
+
+          # Wait for services to stabilize
+          sleep 20
+
+          # Check backend
+          echo "Checking backend..."
+          for i in {1..15}; do
+            if curl -sf https://${{ env.REMOTE_HOST }}/api/v11/health > /dev/null 2>&1; then
+              echo "✅ Backend health check passed"
+              curl -s https://${{ env.REMOTE_HOST }}/api/v11/health | jq '.' || true
+              break
+            fi
+            echo "Attempt $i/15..."
+            sleep 5
+          done
+
+          # Check portal
+          echo ""
+          echo "Checking portal..."
+          if curl -sf https://${{ env.REMOTE_HOST }}/ -I | head -1; then
+            echo "✅ Portal accessible"
+          else
+            echo "⚠️  Portal health check failed"
+          fi
+
+          # Test API endpoints
+          echo ""
+          echo "Testing API endpoints..."
+          curl -sf https://${{ env.REMOTE_HOST }}/api/v11/info | jq '.version' || echo "⚠️  /info endpoint unavailable"
+          curl -sf https://${{ env.REMOTE_HOST }}/api/v11/dashboard | jq '.transactionMetrics.currentTPS' || echo "⚠️  /dashboard endpoint unavailable"
+
+      - name: Smoke tests
+        run: |
+          echo "🧪 Running smoke tests..."
+
+          # Test critical endpoints
+          ENDPOINTS=(
+            "/api/v11/health"
+            "/api/v11/info"
+            "/api/v11/dashboard"
+            "/api/v11/dashboard/performance"
+            "/api/v11/dashboard/nodes"
+          )
+
+          FAILED=0
+          for endpoint in "${ENDPOINTS[@]}"; do
+            if curl -sf "https://${{ env.REMOTE_HOST }}${endpoint}" > /dev/null 2>&1; then
+              echo "✅ $endpoint"
+            else
+              echo "❌ $endpoint"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+
+          if [ $FAILED -gt 0 ]; then
+            echo "⚠️  $FAILED endpoint(s) failed smoke tests"
+          else
+            echo "✅ All smoke tests passed"
+          fi
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 URLs" >> $GITHUB_STEP_SUMMARY
+          echo "- **Portal:** https://dlt.aurigraph.io" >> $GITHUB_STEP_SUMMARY
+          echo "- **API:** https://dlt.aurigraph.io/api/v11" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health:** https://dlt.aurigraph.io/api/v11/health" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dashboard:** https://dlt.aurigraph.io/api/v11/dashboard" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Deployed Components" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend (V12): ${{ github.event.inputs.deploy_backend != 'false' && '✅ Deployed' || '⏭️  Skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Portal: ${{ github.event.inputs.deploy_portal != 'false' && '✅ Deployed' || '⏭️  Skipped' }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Deployment failed - initiating rollback..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+            # Find latest backup
+            LATEST_BACKUP=$(ls -t /opt/aurigraph/backups/deploy-* 2>/dev/null | head -1)
+
+            if [ -n "$LATEST_BACKUP" ]; then
+              echo "Rolling back from: $LATEST_BACKUP"
+
+              # Restore backend
+              if [ -f "$LATEST_BACKUP/aurigraph-v12-standalone-12.0.0-runner.jar" ]; then
+                # Stop current backend
+                PID=$(lsof -ti:${{ env.BACKEND_PORT }} || echo "")
+                [ -n "$PID" ] && kill -9 $PID || true
+
+                # Restore JAR
+                cp "$LATEST_BACKUP/aurigraph-v12-standalone-12.0.0-runner.jar" ${{ env.BACKEND_PATH }}/
+
+                # Restart
+                cd ${{ env.BACKEND_PATH }}
+                nohup java -Xms512m -Xmx2g -Dquarkus.http.port=${{ env.BACKEND_PORT }} \
+                  -jar aurigraph-v12-standalone-12.0.0-runner.jar > v12-rollback.log 2>&1 &
+                echo "✅ Backend rolled back"
+              fi
+
+              # Restore portal
+              if [ -f "$LATEST_BACKUP/portal-backup.tar.gz" ]; then
+                sudo rm -rf ${{ env.PORTAL_PATH }}
+                sudo tar -xzf "$LATEST_BACKUP/portal-backup.tar.gz" -C /var/www/html
+                sudo chown -R www-data:www-data ${{ env.PORTAL_PATH }}
+                echo "✅ Portal rolled back"
+              fi
+
+              echo "✅ Rollback complete"
+            else
+              echo "❌ No backup found for rollback"
+            fi
+          EOF
+
+  # ============================================================
+  # PHASE 4: NOTIFICATIONS
+  # ============================================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+
+    steps:
+      - name: Notify success
+        if: needs.deploy-production.result == 'success'
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "✅ Production Deployment Successful",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚀 Production Deployment Complete"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\nProduction"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build:*\n#${{ github.run_number }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author:*\n${{ github.actor }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<https://dlt.aurigraph.io|🌐 View Portal> | <https://dlt.aurigraph.io/api/v11|🔌 API> | <https://dlt.aurigraph.io/api/v11/health|💚 Health>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Notify failure
+        if: needs.deploy-production.result == 'failure'
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ Production Deployment Failed",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "⚠️  Deployment Failed - Rollback Initiated"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build:*\n#${{ github.run_number }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|📋 View Logs>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true

@@ -1,0 +1,188 @@
+# Aurigraph V11 - Monitoring Services Module
+# Description: Prometheus, Grafana, and metrics collection
+version: '3.8'
+
+networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+
+services:
+  # ================================
+  # Metrics Collection - Prometheus
+  # ================================
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: aurigraph-prometheus
+    restart: unless-stopped
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--web.listen-address=0.0.0.0:9090'
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - prometheus-data:/prometheus
+      - ./config/prometheus:/etc/prometheus:ro
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    networks:
+      - monitoring
+
+    labels:
+      - "com.aurigraph.service=monitoring"
+      - "com.aurigraph.component=prometheus"
+
+  # ================================
+  # Visualization - Grafana
+  # ================================
+  grafana:
+    image: grafana/grafana:10.3.3
+    container_name: aurigraph-grafana
+    restart: unless-stopped
+
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=${DOMAIN:-localhost}
+      - GF_SMTP_ENABLED=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    networks:
+      - monitoring
+
+    depends_on:
+      prometheus:
+        condition: service_healthy
+
+    labels:
+      - "com.aurigraph.service=monitoring"
+      - "com.aurigraph.component=grafana"
+
+  # ================================
+  # Alert Manager
+  # ================================
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: aurigraph-alertmanager
+    restart: unless-stopped
+
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.listen-address=0.0.0.0:9093'
+
+    ports:
+      - "9093:9093"
+
+    volumes:
+      - alertmanager-data:/alertmanager
+      - ./config/alertmanager:/etc/alertmanager:ro
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    networks:
+      - monitoring
+
+    labels:
+      - "com.aurigraph.service=monitoring"
+      - "com.aurigraph.component=alertmanager"
+
+  # ================================
+  # Node Exporter (System Metrics)
+  # ================================
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: aurigraph-node-exporter
+    restart: unless-stopped
+
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+    ports:
+      - "9100:9100"
+
+    volumes:
+      - /:/host:ro,rslave
+
+    networks:
+      - monitoring
+
+    labels:
+      - "com.aurigraph.service=monitoring"
+      - "com.aurigraph.component=node-exporter"
+
+  # ================================
+  # cAdvisor (Container Metrics)
+  # ================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: aurigraph-cadvisor
+    restart: unless-stopped
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+    privileged: true
+
+    networks:
+      - monitoring
+
+    labels:
+      - "com.aurigraph.service=monitoring"
+      - "com.aurigraph.component=cadvisor"

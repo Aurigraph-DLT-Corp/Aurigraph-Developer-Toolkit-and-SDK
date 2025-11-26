@@ -1,6 +1,7 @@
 package io.aurigraph.v11.grpc;
 
 import io.grpc.*;
+import io.quarkus.grpc.GlobalInterceptor;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -25,6 +26,7 @@ import jakarta.enterprise.context.ApplicationScoped;
  * - Minimal overhead with lazy logging (checks log level before building strings)
  * - Uses try-finally for guaranteed cleanup
  */
+@GlobalInterceptor
 @ApplicationScoped
 public class LoggingInterceptor implements ServerInterceptor {
 

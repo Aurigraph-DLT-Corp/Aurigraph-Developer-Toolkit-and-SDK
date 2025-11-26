@@ -388,4 +388,31 @@ public class CrossChainBridgeService {
     public static class TransferLimitExceededException extends IllegalArgumentException {
         public TransferLimitExceededException(String message) { super(message); }
     }
+
+    /**
+     * Get total bridge transfers (for real-time analytics)
+     *
+     * @return Total bridge transfer count
+     */
+    public long getTotalBridgeTransfers() {
+        return totalBridgeOperations.get();
+    }
+
+    /**
+     * Get pending bridge transfers (for real-time analytics)
+     *
+     * @return Number of pending bridge transfers
+     */
+    public long getPendingBridgeTransfers() {
+        return pendingBridges.get();
+    }
+
+    /**
+     * Get active chains count (for real-time analytics)
+     *
+     * @return Number of active chains
+     */
+    public int getActiveChainsCount() {
+        return supportedChains.size();
+    }
 }

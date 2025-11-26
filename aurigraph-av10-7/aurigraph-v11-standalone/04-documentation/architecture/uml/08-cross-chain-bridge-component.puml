@@ -1,0 +1,193 @@
+@startuml Cross-Chain Bridge Architecture
+title Aurigraph V11 - Cross-Chain Bridge Component Diagram
+
+skinparam componentStyle rectangle
+
+' External Blockchains
+package "External Blockchains" {
+    [Ethereum\nMainnet] as ETH
+    [Binance Smart Chain\n(BSC)] as BSC
+    [Polygon\n(Matic)] as POLY
+    [Avalanche] as AVAX
+    [Bitcoin\n(via HTLC)] as BTC
+}
+
+' Bridge Gateway Layer
+package "Bridge Gateway Layer" {
+    [Bridge API\nREST/gRPC] as API
+    [Bridge WebSocket\nEvent Streaming] as WS
+    [Rate Limiter\n1000 req/min] as RL
+}
+
+' Chain Adapters
+package "Chain Adapters" {
+    [Ethereum Adapter\nWeb3.js] as ETH_ADAPTER
+    [BSC Adapter\nWeb3.js] as BSC_ADAPTER
+    [Polygon Adapter\nWeb3.js] as POLY_ADAPTER
+    [Avalanche Adapter\nAvalanche.js] as AVAX_ADAPTER
+    [Bitcoin Adapter\nBitcoinJS] as BTC_ADAPTER
+}
+
+' Bridge Core Services
+package "Bridge Core Services" {
+    [Token Bridge Service\nAsset Transfer] as TOKEN_SVC
+    [Cross-Chain Messenger\nMessage Routing] as MSG_SVC
+    [Relayer Service\nTransaction Relay] as RELAY_SVC
+    [Lock-Mint-Burn\nToken Mechanism] as LMB_SVC
+    [Fee Calculator\nDynamic Pricing] as FEE_SVC
+}
+
+' Verification & Security
+package "Verification & Security" {
+    [Oracle Network\nChainlink/Band] as ORACLE
+    [Multi-Signature Wallet\n3-of-5 Validators] as MULTISIG
+    [Fraud Proof System\nChallenge Period] as FRAUD
+    [Signature Aggregator\nBLS Signatures] as SIG_AGG
+}
+
+' State Management
+package "State Management" {
+    [Bridge State\nRocksDB] as STATE
+    [Pending Transfers\nRedis Queue] as QUEUE
+    [Transaction History\nPostgreSQL] as HISTORY
+    [Merkle Root Store\nState Proofs] as MERKLE
+}
+
+' Monitoring & Alerts
+package "Monitoring" {
+    [Bridge Monitor\nHealth Checks] as MONITOR
+    [Alert System\nSlack/PagerDuty] as ALERT
+    [Metrics Collector\nPrometheus] as METRICS
+}
+
+' External to Gateway
+ETH --> API : Bridge request
+BSC --> API : Bridge request
+POLY --> API : Bridge request
+AVAX --> API : Bridge request
+BTC --> API : Bridge request
+
+' Gateway to Core
+API --> RL
+RL --> TOKEN_SVC
+RL --> MSG_SVC
+WS --> TOKEN_SVC : Real-time updates
+
+' Core Services to Adapters
+TOKEN_SVC --> ETH_ADAPTER : Execute transfer
+TOKEN_SVC --> BSC_ADAPTER : Execute transfer
+TOKEN_SVC --> POLY_ADAPTER : Execute transfer
+TOKEN_SVC --> AVAX_ADAPTER : Execute transfer
+TOKEN_SVC --> BTC_ADAPTER : Execute transfer (HTLC)
+
+' Core Service Dependencies
+TOKEN_SVC --> LMB_SVC : Lock/Mint/Burn
+TOKEN_SVC --> FEE_SVC : Calculate fees
+TOKEN_SVC --> RELAY_SVC : Submit TX
+MSG_SVC --> RELAY_SVC : Route message
+
+' Verification Flow
+RELAY_SVC --> ORACLE : Verify external state
+RELAY_SVC --> MULTISIG : Multi-sig approval
+RELAY_SVC --> SIG_AGG : Aggregate signatures
+RELAY_SVC --> FRAUD : Check fraud proofs
+
+' State Management
+TOKEN_SVC --> STATE : Update bridge state
+TOKEN_SVC --> QUEUE : Queue pending
+TOKEN_SVC --> HISTORY : Record TX
+RELAY_SVC --> MERKLE : Store proof
+
+' Monitoring Integration
+TOKEN_SVC ..> METRICS : Export metrics
+RELAY_SVC ..> METRICS : Export metrics
+MONITOR ..> STATE : Health check
+MONITOR ..> ALERT : Trigger alerts
+
+note right of TOKEN_SVC
+  **Token Bridge Flow:**
+  1. Lock tokens on source chain
+  2. Verify lock via oracle
+  3. Mint wrapped tokens on target chain
+  4. Aggregate validator signatures
+  5. Submit to target chain
+  6. Confirm on source chain
+
+  **Reverse Flow (Burn-Unlock):**
+  1. Burn wrapped tokens
+  2. Verify burn
+  3. Unlock original tokens
+  4. Transfer to user
+end note
+
+note right of LMB_SVC
+  **Lock-Mint-Burn Mechanism:**
+
+  **Lock Phase:**
+  • User locks tokens in bridge contract
+  • Emit LockEvent with proof
+  • Wait for confirmations (12 blocks ETH)
+
+  **Mint Phase:**
+  • Oracle verifies lock
+  • Multi-sig validators approve
+  • Mint wrapped tokens on target chain
+
+  **Burn Phase:**
+  • User burns wrapped tokens
+  • Emit BurnEvent with proof
+  • Unlock original tokens on source chain
+
+  **Security:**
+  • 24-hour challenge period
+  • Fraud proof submission
+  • Multi-sig threshold (3-of-5)
+end note
+
+note right of ORACLE
+  **Oracle Network Integration:**
+
+  • Chainlink Price Feeds
+  • Band Protocol data sources
+  • Custom validator oracles
+  • Aggregated consensus (median)
+
+  **Verified Data:**
+  • Token prices (dynamic fees)
+  • Transaction finality
+  • Chain state roots
+  • Smart contract events
+end note
+
+note right of FRAUD
+  **Fraud Proof System:**
+
+  • 24-hour challenge window
+  • Optimistic verification
+  • Slash malicious validators
+  • Dispute resolution via voting
+
+  **Fraud Types:**
+  • Double-spend attempts
+  • Invalid state transitions
+  • Signature forgery
+  • Oracle manipulation
+end note
+
+note bottom of STATE
+  **Bridge State Storage:**
+
+  • Pending transfers (in-flight)
+  • Completed transfers (archive)
+  • Failed transfers (retry queue)
+  • Validator set (active/inactive)
+  • Chain configurations (gas limits, fees)
+
+  **Performance:**
+  • Bridge throughput: 1000 TPS per chain
+  • Average latency: 3-5 minutes (finality)
+  • Success rate: 99.95%
+  • Supported chains: 5+ (extensible)
+end note
+
+@enduml

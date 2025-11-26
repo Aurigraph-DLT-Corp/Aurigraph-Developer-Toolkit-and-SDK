@@ -1,0 +1,278 @@
+@startuml Quantum Cryptography Services Class Diagram
+title Aurigraph V11 - Quantum-Resistant Cryptography Architecture
+
+' Main Crypto Service Interface
+interface ICryptoService {
+    +sign(data: byte[]): Signature
+    +verify(data: byte[], signature: Signature): boolean
+    +encrypt(data: byte[], publicKey: PublicKey): byte[]
+    +decrypt(ciphertext: byte[], privateKey: PrivateKey): byte[]
+    +generateKeyPair(): KeyPair
+    +rotateKeys(): void
+}
+
+' Quantum Crypto Service Implementation
+class QuantumCryptoService implements ICryptoService {
+    -dilithiumService: DilithiumService
+    -kyberService: KyberService
+    -keyManager: KeyManager
+    -hsmConnector: HSMConnector
+    -metricsCollector: MetricsCollector
+
+    +sign(data: byte[]): Signature
+    +verify(data: byte[], signature: Signature): boolean
+    +encrypt(data: byte[], publicKey: PublicKey): byte[]
+    +decrypt(ciphertext: byte[], privateKey: PrivateKey): byte[]
+    +generateKeyPair(): KeyPair
+    +rotateKeys(): void
+    +getQuantumSecurityLevel(): int
+    -trackCryptoOperation(operation: String)
+}
+
+' CRYSTALS-Dilithium (Digital Signatures)
+class DilithiumService {
+    -securityLevel: int = 5
+    -publicKeySize: int = 2592
+    -privateKeySize: int = 4896
+    -signatureSize: int = 3309
+    -parameterSet: DilithiumParams
+
+    +generateKeyPair(): DilithiumKeyPair
+    +sign(message: byte[], privateKey: PrivateKey): byte[]
+    +verify(message: byte[], signature: byte[], publicKey: PublicKey): boolean
+    +getSecurityLevel(): int
+    -expandSeedToKeys(seed: byte[]): KeyPair
+    -hashMessage(message: byte[]): byte[]
+    -compressSignature(sig: byte[]): byte[]
+}
+
+class DilithiumKeyPair {
+    -publicKey: DilithiumPublicKey
+    -privateKey: DilithiumPrivateKey
+    -securityLevel: int
+    -createdAt: Timestamp
+    -expiresAt: Timestamp
+
+    +getPublicKey(): DilithiumPublicKey
+    +getPrivateKey(): DilithiumPrivateKey
+    +isExpired(): boolean
+    +export(): String
+}
+
+class DilithiumPublicKey {
+    -keyBytes: byte[2592]
+    -parameterSet: String = "Dilithium5"
+
+    +getEncoded(): byte[]
+    +toBase64(): String
+    +toHex(): String
+    +verify(): boolean
+}
+
+class DilithiumPrivateKey {
+    -keyBytes: byte[4896]
+    -isProtected: boolean
+
+    +getEncoded(): byte[]
+    +sign(data: byte[]): byte[]
+    +wipe(): void
+}
+
+' CRYSTALS-Kyber (Encryption/KEM)
+class KyberService {
+    -securityLevel: int = 5
+    -publicKeySize: int = 1568
+    -privateKeySize: int = 3168
+    -ciphertextSize: int = 1568
+    -parameterSet: KyberParams
+
+    +generateKeyPair(): KyberKeyPair
+    +encapsulate(publicKey: PublicKey): EncapsulationResult
+    +decapsulate(ciphertext: byte[], privateKey: PrivateKey): byte[]
+    +encrypt(plaintext: byte[], publicKey: PublicKey): byte[]
+    +decrypt(ciphertext: byte[], privateKey: PrivateKey): byte[]
+    -deriveSharedSecret(ciphertext: byte[], privateKey: PrivateKey): byte[]
+}
+
+class KyberKeyPair {
+    -publicKey: KyberPublicKey
+    -privateKey: KyberPrivateKey
+    -securityLevel: int
+
+    +getPublicKey(): KyberPublicKey
+    +getPrivateKey(): KyberPrivateKey
+    +encapsulate(): EncapsulationResult
+}
+
+class KyberPublicKey {
+    -keyBytes: byte[1568]
+    -parameterSet: String = "Kyber1024"
+
+    +getEncoded(): byte[]
+    +toBase64(): String
+    +encapsulate(): EncapsulationResult
+}
+
+class KyberPrivateKey {
+    -keyBytes: byte[3168]
+    -isProtected: boolean
+
+    +getEncoded(): byte[]
+    +decapsulate(ciphertext: byte[]): byte[]
+    +wipe(): void
+}
+
+class EncapsulationResult {
+    -sharedSecret: byte[32]
+    -ciphertext: byte[1568]
+
+    +getSharedSecret(): byte[]
+    +getCiphertext(): byte[]
+    +clear(): void
+}
+
+' Key Management
+class KeyManager {
+    -keyStore: Map<String, KeyPair>
+    -keyRotationScheduler: ScheduledExecutorService
+    -rotationInterval: Duration = 90_DAYS
+    -keyVersioning: Map<String, Integer>
+
+    +storeKey(keyId: String, keyPair: KeyPair): void
+    +retrieveKey(keyId: String): KeyPair
+    +rotateKey(keyId: String): KeyPair
+    +deleteKey(keyId: String): void
+    +scheduleRotation(keyId: String): void
+    +getCurrentVersion(keyId: String): int
+    -incrementVersion(keyId: String): void
+}
+
+' HSM Integration
+class HSMConnector {
+    -hsmEndpoint: String
+    -hsmProvider: String = "PKCS11"
+    -sessionPool: Pool<HSMSession>
+
+    +generateKeyInHSM(keyType: String): KeyReference
+    +signWithHSM(data: byte[], keyRef: KeyReference): byte[]
+    +verifyWithHSM(data: byte[], sig: byte[], keyRef: KeyReference): boolean
+    +deleteKeyInHSM(keyRef: KeyReference): void
+    -openSession(): HSMSession
+    -closeSession(session: HSMSession): void
+}
+
+' Signature and Encryption classes
+class Signature {
+    -algorithm: String = "Dilithium5"
+    -signatureBytes: byte[3309]
+    -timestamp: Timestamp
+    -signerPublicKey: PublicKey
+
+    +getBytes(): byte[]
+    +getAlgorithm(): String
+    +verify(data: byte[], publicKey: PublicKey): boolean
+    +toBase64(): String
+}
+
+class EncryptedData {
+    -algorithm: String = "Kyber1024-AES256-GCM"
+    -ciphertext: byte[]
+    -nonce: byte[12]
+    -authTag: byte[16]
+    -keyEncapsulation: byte[1568]
+
+    +decrypt(privateKey: PrivateKey): byte[]
+    +getSize(): int
+    +serialize(): byte[]
+}
+
+' Metrics Collector
+class CryptoMetricsCollector {
+    -signOperationsCount: AtomicLong
+    -verifyOperationsCount: AtomicLong
+    -encryptOperationsCount: AtomicLong
+    -decryptOperationsCount: AtomicLong
+    -averageSignTime: DoubleAdder
+    -averageVerifyTime: DoubleAdder
+
+    +recordSignOperation(duration: long): void
+    +recordVerifyOperation(duration: long): void
+    +getMetrics(): CryptoMetrics
+    +resetMetrics(): void
+}
+
+' Relationships
+QuantumCryptoService --> DilithiumService : uses for signing
+QuantumCryptoService --> KyberService : uses for encryption
+QuantumCryptoService --> KeyManager : manages keys
+QuantumCryptoService --> HSMConnector : optional HSM
+QuantumCryptoService --> CryptoMetricsCollector : tracks metrics
+
+DilithiumService --> DilithiumKeyPair : generates
+DilithiumKeyPair --> DilithiumPublicKey : contains
+DilithiumKeyPair --> DilithiumPrivateKey : contains
+DilithiumService --> Signature : creates
+
+KyberService --> KyberKeyPair : generates
+KyberKeyPair --> KyberPublicKey : contains
+KyberKeyPair --> KyberPrivateKey : contains
+KyberService --> EncapsulationResult : produces
+KyberService --> EncryptedData : creates
+
+KeyManager --> DilithiumKeyPair : stores
+KeyManager --> KyberKeyPair : stores
+
+note right of QuantumCryptoService
+  **NIST Post-Quantum Cryptography**
+
+  Selected algorithms for standardization:
+  • CRYSTALS-Dilithium (Digital Signatures)
+  • CRYSTALS-Kyber (Key Encapsulation)
+
+  **Security Level: 5 (Highest)**
+  Resistant to both classical and quantum attacks
+
+  Performance:
+  • Dilithium signing: ~100µs
+  • Dilithium verification: ~50µs
+  • Kyber encapsulation: ~80µs
+  • Kyber decapsulation: ~90µs
+end note
+
+note right of DilithiumService
+  **CRYSTALS-Dilithium Level 5**
+
+  Key sizes:
+  • Public key: 2,592 bytes
+  • Private key: 4,896 bytes
+  • Signature: 3,309 bytes
+
+  Based on Module-LWE hardness problem
+  Provides 256-bit quantum security
+end note
+
+note right of KyberService
+  **CRYSTALS-Kyber Level 5**
+
+  Key sizes:
+  • Public key: 1,568 bytes
+  • Private key: 3,168 bytes
+  • Ciphertext: 1,568 bytes
+  • Shared secret: 32 bytes (256-bit)
+
+  Based on Module-LWE hardness problem
+  KEM for hybrid encryption schemes
+end note
+
+note bottom of KeyManager
+  **Key Management Features**
+
+  • Automatic key rotation (90-day cycle)
+  • Key versioning and migration
+  • Secure key storage (encrypted at rest)
+  • HSM integration for production
+  • Key backup and recovery
+  • Compliance with FIPS 140-3
+end note
+
+@enduml

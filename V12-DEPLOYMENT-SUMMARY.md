@@ -196,3 +196,5 @@ ssh -p 22 subbu@dlt.aurigraph.io "cd ~/Aurigraph-DLT && docker-compose restart"
 **Status**: Production Ready & Deployed
 
 For detailed documentation, see: `CICD-README.md`
+
+git commit -m commit Only J4C enhancements to glowing-adventure repo. exclude aurigraph-dlt code in glowing-adventure repo and vice versa

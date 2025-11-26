@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
  * All internal V11 communication MUST use HTTP/2 gRPC, not HTTP/1.1 REST.
  *
  * Architecture:
- * - Port 9003: REST API (HTTP/1.1) for external clients (Enterprise Portal, Exchanges, etc.)
- * - Port 9004: gRPC API (HTTP/2) for internal V11 services only
+ * - Port 9004: REST API (HTTP/1.1) for external clients (Enterprise Portal, Exchanges, etc.)
+ * - Port 9005: gRPC API (HTTP/2) for internal V11 services only
  *
  * HTTP/2 Benefits:
  * - Multiplexing: 100+ concurrent streams per single TCP connection
@@ -66,7 +66,7 @@ import java.util.concurrent.TimeUnit;
 public class GrpcClientFactory {
 
     private static final String GRPC_HOST = "localhost";
-    private static final int GRPC_PORT = 9004;
+    private static final int GRPC_PORT = 9005;
 
     // Singleton channels - reused across all threads
     private ManagedChannel transactionChannel;
@@ -133,7 +133,7 @@ public class GrpcClientFactory {
      * Initialize HTTP/2 channel for TransactionService
      *
      * HTTP/2 Configuration:
-     * - forAddress("localhost", 9004): Connect to local gRPC server
+     * - forAddress("localhost", 9005): Connect to local gRPC server
      * - usePlaintext(): Development mode (TLS in production)
      * - keepAliveWithoutCalls(true): Maintain connection without activity
      * - keepAliveTime(30s): Send keepalive ping every 30 seconds
@@ -198,7 +198,7 @@ public class GrpcClientFactory {
      * Initialize HTTP/2 channel for ConsensusService
      *
      * HTTP/2 Configuration:
-     * - forAddress("localhost", 9004): Connect to local gRPC server
+     * - forAddress("localhost", 9005): Connect to local gRPC server
      * - usePlaintext(): Development mode (TLS in production)
      * - keepAliveWithoutCalls(true): Maintain connection without activity
      * - keepAliveTime(30s): Send keepalive ping every 30 seconds
@@ -470,7 +470,7 @@ public class GrpcClientFactory {
      * Log all available gRPC services
      */
     private void logAvailableServices() {
-        Log.info("=== Available gRPC Services (HTTP/2, Port 9004) ===");
+        Log.info("=== Available gRPC Services (HTTP/2, Port 9005) ===");
         Log.info("✅ TransactionService (Phase 1 - Sprint 7)");
         Log.info("   Methods: submitTransaction, validateTransaction, submitBatch, getMempool, getTransaction, streamTransactions");
         Log.info("   Status: Implemented");
@@ -486,7 +486,7 @@ public class GrpcClientFactory {
         Log.info("[TODO] StorageService (Phase 3 - Sprint 9)");
         Log.info("[TODO] NetworkService (Phase 3 - Sprint 9)");
         Log.info("");
-        Log.info("For configuration: quarkus.http.port=9003 (REST), gRPC port=9004 (HTTP/2)");
+        Log.info("For configuration: quarkus.http.port=9004 (REST), gRPC port=9005 (HTTP/2)");
         Log.info("All internal communication MUST use HTTP/2 gRPC, never HTTP/1.1 REST");
         Log.info("================================================");
     }

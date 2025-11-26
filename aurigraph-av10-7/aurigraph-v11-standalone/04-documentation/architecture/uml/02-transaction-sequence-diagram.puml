@@ -1,0 +1,113 @@
+@startuml Aurigraph V11 Transaction Flow with gRPC
+title Transaction Submission and Consensus Sequence (with gRPC)
+
+actor "Client\n(Enterprise Portal)" as Client
+participant "NGINX\nLoad Balancer" as NGINX
+participant "REST API\nAurigraphResource" as REST
+participant "gRPC\nTransactionService" as TXSVC
+participant "Transaction\nProcessor" as TXP
+participant "gRPC\nConsensusService" as CONSVC
+participant "HyperRAFT++\nEngine" as RAFT
+participant "gRPC\nCryptoService" as CRYPTOSVC
+participant "Quantum\nCrypto" as QC
+participant "gRPC\nStorageService" as STORESVC
+participant "RocksDB\nState Storage" as ROCKS
+
+== Transaction Submission (External → Internal gRPC) ==
+
+Client -> NGINX : POST /api/v11/transactions\n(JSON payload)
+activate NGINX
+NGINX -> REST : Forward request\n(TLS + Rate limiting)
+activate REST
+
+REST -> TXSVC : submitTransaction()\n**gRPC call** (HTTP/2 + Protobuf)
+activate TXSVC
+
+TXSVC -> TXP : validateTransaction()
+activate TXP
+
+TXP -> CRYPTOSVC : verifySignature()\n**gRPC call**
+activate CRYPTOSVC
+CRYPTOSVC -> QC : Dilithium.verify(signature)
+activate QC
+QC --> CRYPTOSVC : signature_valid = true
+deactivate QC
+CRYPTOSVC --> TXP : VerifyResponse(success=true)
+deactivate CRYPTOSVC
+
+TXP -> STORESVC : getNonce(sender)\n**gRPC call**
+activate STORESVC
+STORESVC -> ROCKS : GET account_nonce
+activate ROCKS
+ROCKS --> STORESVC : nonce = 42
+deactivate ROCKS
+STORESVC --> TXP : GetResponse(nonce=42)
+deactivate STORESVC
+
+TXP -> TXP : validateNonce()\nvalidateBalance()\nvalidateGasLimit()
+TXP --> TXSVC : validation_result = VALID
+deactivate TXP
+
+TXSVC -> TXSVC : addToMempool()\nmempool_size++
+TXSVC --> REST : SubmitTransactionResponse\n(success=true, tx_hash, mempool_size)
+deactivate TXSVC
+
+REST --> NGINX : HTTP 200 OK\n(JSON response)
+deactivate REST
+NGINX --> Client : Transaction accepted\n{tx_hash: "0xabc...", status: "pending"}
+deactivate NGINX
+
+== Consensus Phase (Internal gRPC Only) ==
+
+RAFT -> RAFT : Leader selects TX batch\nfrom mempool (priority-based)
+activate RAFT
+
+RAFT -> CONSVC : appendEntries()\n**gRPC call** (log replication)
+activate CONSVC
+note right: Parallel log replication\nto all followers
+
+CONSVC -> RAFT : AppendEntriesResponse\n(success=true, term=5)
+deactivate CONSVC
+
+RAFT -> RAFT : Quorum reached\n(majority of validators)
+RAFT -> RAFT : commitIndex++
+RAFT -> RAFT : applyToStateMachine()
+
+RAFT -> STORESVC : batchPut(state_updates)\n**gRPC call**
+activate STORESVC
+STORESVC -> ROCKS : BATCH_WRITE\n(sender_balance, receiver_balance)
+activate ROCKS
+ROCKS --> STORESVC : write_success
+deactivate ROCKS
+STORESVC --> RAFT : PutResponse(success=true)
+deactivate STORESVC
+
+RAFT -> RAFT : updateBlockHeight()\nblock_height++
+deactivate RAFT
+
+== State Finalization ==
+
+RAFT -> TXSVC : notifyTxConfirmed(tx_hash)\n**gRPC streaming**
+activate TXSVC
+TXSVC -> TXSVC : updateTxStatus(CONFIRMED)
+TXSVC -> TXSVC : removeFromMempool()
+deactivate TXSVC
+
+note over Client, ROCKS
+  **Key Performance Characteristics:**
+  - REST → gRPC conversion: <1ms overhead
+  - gRPC serialization: ~0.5µs (vs 5µs for JSON)
+  - Message size: ~300 bytes (Protobuf) vs ~1.2KB (JSON)
+  - Total latency: <100ms (target), <500ms (current)
+  - Throughput: 2M+ TPS (target), 776K TPS (baseline)
+end note
+
+note over TXSVC, CONSVC
+  **Internal gRPC Communication:**
+  - Port 9004 (HTTP/2)
+  - Binary Protocol Buffers
+  - Bidirectional streaming support
+  - Auto-generated service stubs
+end note
+
+@enduml

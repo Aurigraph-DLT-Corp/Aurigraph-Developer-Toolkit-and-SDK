@@ -1,0 +1,147 @@
+@startuml Aurigraph V11 System Component Diagram
+!define RECTANGLE class
+
+title Aurigraph V11 - System Component Diagram
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+package "External Clients" {
+    [Enterprise Portal] as EP
+    [Mobile Wallets] as MW
+    [Exchanges] as EX
+    [Third-Party Apps] as TPA
+}
+
+package "API Gateway Layer" {
+    [NGINX Load Balancer] as NGINX
+    [TLS Termination] as TLS
+    [Rate Limiter] as RL
+}
+
+package "REST API Layer (HTTP/1.1 + JSON)" {
+    [AurigraphResource\nREST Endpoints] as REST
+    [DAMNResource\nAsset Mgmt] as DAMN
+    [TokenizationResource\nRWA Tokenization] as TOKEN
+    [ContractResource\nSmart Contracts] as CONTRACT
+}
+
+package "gRPC Service Layer (HTTP/2 + Protobuf)" {
+    [TransactionService\nTX Processing] as TXSVC
+    [ConsensusService\nHyperRAFT++] as CONSVC
+    [CryptoService\nQuantum Crypto] as CRYPTOSVC
+    [ContractService\nSmart Contract VM] as CONTRACTSVC
+    [StorageService\nState Management] as STORESVC
+    [NetworkService\nP2P Communication] as NETSVC
+    [TraceabilityService\nContract-Asset Links] as TRACESVC
+}
+
+package "Core Business Logic" {
+    [TransactionProcessor\nValidation & Execution] as TXP
+    [HyperRAFT++ Engine\nConsensus Logic] as RAFT
+    [AI Optimization\nML-based Tuning] as AI
+    [Quantum Crypto\nDilithium/Kyber] as QC
+    [Smart Contract VM\nEVM Compatible] as SCVM
+    [RWAT Registry\nAsset Tokenization] as RWAT
+    [Cross-Chain Bridge\nInteroperability] as BRIDGE
+}
+
+package "Storage Layer" {
+    [RocksDB\nState Storage] as ROCKS
+    [PostgreSQL\nMetadata DB] as PG
+    [Redis\nCache Layer] as REDIS
+    [Merkle Tree\nAsset Proofs] as MERKLE
+}
+
+package "Infrastructure Services" {
+    [Consul\nService Discovery] as CONSUL
+    [Vault\nSecrets Management] as VAULT
+    [Prometheus\nMetrics Collection] as PROM
+    [Grafana\nVisualization] as GRAF
+    [Keycloak\nIAM/OAuth] as KEYCLOAK
+}
+
+' External to API Gateway
+EP --> NGINX
+MW --> NGINX
+EX --> NGINX
+TPA --> NGINX
+
+' API Gateway to REST Layer
+NGINX --> TLS
+TLS --> RL
+RL --> REST
+RL --> DAMN
+RL --> TOKEN
+RL --> CONTRACT
+
+' REST to gRPC (Internal Communication)
+REST --> TXSVC : gRPC Call
+REST --> CONSVC : gRPC Call
+DAMN --> TRACESVC : gRPC Call
+DAMN --> STORESVC : gRPC Call
+TOKEN --> CONTRACTSVC : gRPC Call
+TOKEN --> STORESVC : gRPC Call
+CONTRACT --> CONTRACTSVC : gRPC Call
+
+' gRPC to Core Logic
+TXSVC --> TXP
+CONSVC --> RAFT
+CRYPTOSVC --> QC
+CONTRACTSVC --> SCVM
+STORESVC --> ROCKS
+NETSVC --> BRIDGE
+TRACESVC --> RWAT
+
+' Core Logic to Storage
+TXP --> ROCKS : Write State
+RAFT --> ROCKS : Write Logs
+SCVM --> ROCKS : Contract State
+RWAT --> MERKLE : Asset Proofs
+TXP --> PG : TX Metadata
+RAFT --> REDIS : Cache
+
+' AI Optimization Integration
+AI --> TXP : Optimize Routing
+AI --> RAFT : Leader Selection
+AI --> NETSVC : Network Tuning
+
+' Infrastructure Integration
+REST ..> KEYCLOAK : OAuth/JWT
+REST ..> PROM : Metrics
+TXSVC ..> CONSUL : Service Discovery
+CONSVC ..> VAULT : Key Management
+GRAF ..> PROM : Query Metrics
+
+note right of TXSVC
+  **gRPC Services** (Port 9004)
+  - Binary Protocol Buffers
+  - HTTP/2 Multiplexing
+  - 10x faster than JSON
+  - Internal service communication
+end note
+
+note right of REST
+  **REST APIs** (Port 9003)
+  - External client access
+  - JSON over HTTP/1.1
+  - OpenAPI/Swagger docs
+  - Public-facing endpoints
+end note
+
+note bottom of RAFT
+  **HyperRAFT++ Consensus**
+  - Byzantine fault tolerance (f < n/3)
+  - Parallel log replication
+  - AI-driven optimization
+  - <500ms finality target
+end note
+
+note bottom of QC
+  **Quantum-Resistant Crypto**
+  - CRYSTALS-Dilithium (signatures)
+  - CRYSTALS-Kyber (encryption)
+  - NIST Level 5 security
+  - Post-quantum ready
+end note
+
+@enduml

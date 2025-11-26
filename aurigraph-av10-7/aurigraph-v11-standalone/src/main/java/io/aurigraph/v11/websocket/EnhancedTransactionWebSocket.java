@@ -1,12 +1,16 @@
 package io.aurigraph.v11.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.runtime.ShutdownEvent;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import org.jboss.logging.Logger;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -51,34 +55,76 @@ public class EnhancedTransactionWebSocket {
 
     private static final Logger LOG = Logger.getLogger(EnhancedTransactionWebSocket.class);
     private static final int HEARTBEAT_INTERVAL_SECONDS = 30;
-    private static final ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(4);
+
+    // SECURITY FIX: Managed executor service with proper shutdown
+    private static final ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(4, r -> {
+        Thread t = new Thread(r);
+        t.setName("WebSocket-Heartbeat-" + t.getId());
+        t.setDaemon(true);
+        return t;
+    });
 
     @Inject
     WebSocketSessionManager sessionManager;
 
     @Inject
+    WebSocketSubscriptionService subscriptionService;
+
+    @Inject
+    WebSocketAuthService authService;
+
+    @Inject
+    MessageQueueService messageQueueService;
+
+    @Inject
     ObjectMapper objectMapper;
+
+    /**
+     * Shutdown observer to cleanly stop executor service
+     * SECURITY FIX: Prevents resource leak on application shutdown
+     */
+    void onShutdown(@Observes ShutdownEvent event) {
+        LOG.info("Shutting down WebSocket heartbeat executor service");
+        heartbeatExecutor.shutdown();
+        try {
+            if (!heartbeatExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                LOG.warn("Heartbeat executor did not terminate gracefully, forcing shutdown");
+                heartbeatExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            LOG.error("Interrupted while waiting for executor shutdown", e);
+            heartbeatExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
         try {
-            // Extract authentication info from config
-            Object userIdObj = config.getUserProperties().get("userId");
+            // SECURITY: Validate authentication IMMEDIATELY before any processing
             Object authenticatedObj = config.getUserProperties().get("authenticated");
 
-            String userId = userIdObj != null ? userIdObj.toString() : null;
-            boolean authenticated = authenticatedObj != null && (boolean) authenticatedObj;
-
-            // Log connection attempt
-            if (!authenticated) {
-                LOG.warnf("⚠️ Unauthenticated WebSocket connection attempt: %s", session.getId());
-                session.getAsyncRemote().sendText("ERROR: Authentication required. Provide JWT token via query param or header.");
+            // Reject unauthenticated connections immediately
+            if (authenticatedObj == null || !(boolean) authenticatedObj) {
+                LOG.warnf("⚠️ SECURITY: Unauthenticated WebSocket connection blocked: %s", session.getId());
                 session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "Authentication required"));
-                return;
+                return; // Exit immediately - no further processing
             }
 
-            // Register session with manager
-            WebSocketSession wsSession = sessionManager.registerSession(session, userId, authenticated);
+            // Extract user ID only after authentication confirmed
+            Object userIdObj = config.getUserProperties().get("userId");
+            String userId = userIdObj != null ? userIdObj.toString() : null;
+
+            // Register session with auth service for timeout tracking
+            authService.registerSession(session.getId(), userId);
+
+            // Create device fingerprint for security
+            String clientIp = (String) config.getUserProperties().get("clientIp");
+            String userAgent = (String) config.getUserProperties().get("userAgent");
+            authService.createDeviceFingerprint(session.getId(), clientIp, userAgent, Map.of());
+
+            // Register session with manager (user is authenticated if we reach here)
+            WebSocketSession wsSession = sessionManager.registerSession(session, userId, true);
 
             // Send welcome message
             String welcome = String.format(
@@ -87,15 +133,21 @@ public class EnhancedTransactionWebSocket {
             );
             session.getAsyncRemote().sendText(welcome);
 
-            // Load subscription preferences (if any stored in DB)
-            // TODO: Load from database in Phase 2
-            // For now, auto-subscribe to default channels
-            sessionManager.subscribe(session.getId(), "transactions");
-            sessionManager.subscribe(session.getId(), "system");
+            // Load subscription preferences from database
+            List<WebSocketSubscription> userSubscriptions = subscriptionService.getActiveSubscriptions(userId);
 
-            // Send subscription confirmations
-            session.getAsyncRemote().sendText("SUBSCRIBED transactions");
-            session.getAsyncRemote().sendText("SUBSCRIBED system");
+            if (userSubscriptions.isEmpty()) {
+                // First-time user: create default subscriptions
+                subscriptionService.subscribe(userId, "transactions", 5);
+                subscriptionService.subscribe(userId, "system", 8);
+                userSubscriptions = subscriptionService.getActiveSubscriptions(userId);
+            }
+
+            // Subscribe to all persisted channels
+            for (WebSocketSubscription subscription : userSubscriptions) {
+                sessionManager.subscribe(session.getId(), subscription.channel);
+                session.getAsyncRemote().sendText("SUBSCRIBED " + subscription.channel);
+            }
 
             // Deliver any queued messages
             int deliveredCount = sessionManager.deliverQueuedMessages(session.getId());
@@ -116,8 +168,8 @@ public class EnhancedTransactionWebSocket {
             );
             wsSession.setHeartbeatTimer(heartbeatTimer);
 
-            LOG.infof("✅ Enhanced WebSocket opened: session=%s, user=%s, authenticated=%s",
-                    session.getId(), userId, authenticated);
+            LOG.infof("✅ Enhanced WebSocket opened: session=%s, user=%s, authenticated=true",
+                    session.getId(), userId);
 
         } catch (Exception e) {
             LOG.errorf(e, "❌ Error opening WebSocket connection: %s", session.getId());
@@ -140,8 +192,23 @@ public class EnhancedTransactionWebSocket {
                 return;
             }
 
-            // Update heartbeat
+            // Update heartbeat and session activity
             wsSession.updateHeartbeat();
+            authService.updateActivity(session.getId());
+
+            // Check for session timeout
+            if (authService.isSessionTimedOut(session.getId())) {
+                LOG.warnf("Session %s timed out, closing connection", session.getId());
+                session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Session timeout"));
+                return;
+            }
+
+            // Detect suspicious activity
+            if (authService.detectSuspiciousActivity(session.getId(), wsSession.getUserId())) {
+                LOG.warnf("Suspicious activity detected for session %s, closing connection", session.getId());
+                session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "Suspicious activity"));
+                return;
+            }
 
             // Parse command
             String[] parts = message.trim().split("\\s+", 2);
@@ -207,6 +274,15 @@ public class EnhancedTransactionWebSocket {
                         wsSession.getSubscribedChannels().size());
             }
 
+            // Cleanup auth service tracking
+            authService.cleanupSession(session.getId());
+
+            // Cleanup rate limit tracking
+            subscriptionService.cleanupRateLimitTracking(session.getId());
+
+            // Cleanup message queue service
+            messageQueueService.cleanupExpiredMessages();
+
             // Unregister session (cleans up all subscriptions)
             sessionManager.unregisterSession(session.getId());
 
@@ -241,14 +317,25 @@ public class EnhancedTransactionWebSocket {
      * Handle SUBSCRIBE command
      */
     private void handleSubscribe(Session session, WebSocketSession wsSession, String channel) {
-        boolean success = sessionManager.subscribe(session.getId(), channel);
+        String userId = wsSession.getUserId();
 
-        if (success) {
-            String response = String.format("SUBSCRIBED %s", channel);
-            session.getAsyncRemote().sendText(response);
-            LOG.infof("✅ Session %s subscribed to channel: %s", session.getId(), channel);
+        // Persist subscription to database
+        WebSocketSubscription subscription = subscriptionService.subscribe(userId, channel, 5);
+
+        if (subscription != null) {
+            // Add to session manager
+            boolean success = sessionManager.subscribe(session.getId(), channel);
+
+            if (success) {
+                String response = String.format("SUBSCRIBED %s", channel);
+                session.getAsyncRemote().sendText(response);
+                LOG.infof("✅ Session %s subscribed to channel: %s (persisted)", session.getId(), channel);
+            } else {
+                String error = String.format("ERROR: Failed to subscribe to channel '%s'", channel);
+                session.getAsyncRemote().sendText(error);
+            }
         } else {
-            String error = String.format("ERROR: Failed to subscribe to channel '%s'", channel);
+            String error = String.format("ERROR: Failed to create subscription for channel '%s' (limit reached?)", channel);
             session.getAsyncRemote().sendText(error);
         }
     }
@@ -257,12 +344,18 @@ public class EnhancedTransactionWebSocket {
      * Handle UNSUBSCRIBE command
      */
     private void handleUnsubscribe(Session session, WebSocketSession wsSession, String channel) {
-        boolean success = sessionManager.unsubscribe(session.getId(), channel);
+        String userId = wsSession.getUserId();
 
-        if (success) {
+        // Remove from session manager
+        boolean sessionSuccess = sessionManager.unsubscribe(session.getId(), channel);
+
+        // Remove from database (persistent unsubscribe)
+        boolean dbSuccess = subscriptionService.unsubscribe(userId, channel);
+
+        if (sessionSuccess || dbSuccess) {
             String response = String.format("UNSUBSCRIBED %s", channel);
             session.getAsyncRemote().sendText(response);
-            LOG.infof("✅ Session %s unsubscribed from channel: %s", session.getId(), channel);
+            LOG.infof("✅ Session %s unsubscribed from channel: %s (removed from DB)", session.getId(), channel);
         } else {
             String error = String.format("ERROR: Failed to unsubscribe from channel '%s'", channel);
             session.getAsyncRemote().sendText(error);

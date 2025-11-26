@@ -567,3 +567,324 @@ For issues or questions:
 **Last Updated**: November 12, 2025
 **Version**: 1.0.0
 **Maintained by**: CI/CD Agent (Agent 1)
+
+---
+
+## Unified CI/CD Workflow
+
+### `unified-cicd.yml` - Complete Deployment Pipeline
+
+**Added:** November 26, 2024  
+**Purpose:** Streamlined, production-ready CI/CD pipeline combining backend and portal deployment
+
+**Key Features:**
+- Single workflow for complete stack deployment
+- Parallel backend and portal builds
+- Automated health verification
+- Pre-deployment backups
+- Automatic rollback on failure
+- Comprehensive smoke tests
+- Slack notifications
+
+**Manual Trigger Options:**
+```yaml
+deploy_backend: boolean    # Deploy V12 backend (default: true)
+deploy_portal: boolean     # Deploy enterprise portal (default: true)
+environment: choice        # production | staging
+skip_tests: boolean        # Skip test execution (default: false)
+```
+
+**Required GitHub Secrets:**
+- `PROD_SSH_KEY` - SSH private key for server access
+- `PROD_HOST` - Production hostname (dlt.aurigraph.io)
+- `SLACK_WEBHOOK_URL` - Slack webhook for notifications (optional)
+
+**Deployment Artifacts:**
+- Backend: `backend-jar-{version}` (~180MB uber JAR)
+- Portal: `portal-dist-{build_number}` (~2.3MB tarball)
+
+**Health Verification:**
+- Backend: 15 retry attempts, 5s intervals
+- Endpoints: `/health`, `/info`, `/dashboard`, `/dashboard/performance`
+- Portal: Accessibility and asset verification
+
+---
+
+## Deployment Scripts
+
+### Local Deployment Tools
+
+Located in `aurigraph-av10-7/aurigraph-v11-standalone/scripts/`:
+
+#### 1. `deploy-backend.sh`
+
+Automated backend deployment from local machine.
+
+**Usage:**
+```bash
+# Full deployment (build + deploy)
+./scripts/deploy-backend.sh
+
+# Deploy existing JAR
+./scripts/deploy-backend.sh --jar target/aurigraph-v12-standalone-12.0.0-runner.jar --skip-build
+
+# Custom host configuration
+./scripts/deploy-backend.sh --host dlt.aurigraph.io --port 22 --user subbu
+
+# Fast deployment (skip backup)
+./scripts/deploy-backend.sh --skip-backup
+```
+
+**Steps:**
+1. Build uber JAR (Maven)
+2. Test SSH connection
+3. Create pre-deployment backup
+4. Stop running backend
+5. Upload JAR to server
+6. Start backend service
+7. Health checks (15 attempts)
+8. Endpoint verification
+
+#### 2. `deploy-portal.sh`
+
+Automated portal deployment from local machine.
+
+**Usage:**
+```bash
+# Full deployment (build + deploy)
+./scripts/deploy-portal.sh
+
+# Deploy existing build
+./scripts/deploy-portal.sh --skip-build
+
+# Custom configuration
+./scripts/deploy-portal.sh --host dlt.aurigraph.io --port 22
+```
+
+**Steps:**
+1. Build production bundle (Vite)
+2. Configure environment (.env)
+3. Test SSH connection
+4. Create backup
+5. Create deployment tarball
+6. Upload to server
+7. Extract and set permissions
+8. Verify accessibility
+
+---
+
+## SSH Configuration
+
+### Setup SSH Access
+
+1. **Generate SSH Key:**
+```bash
+ssh-keygen -t ed25519 -C "github-actions@aurigraph.io" -f ~/.ssh/aurigraph-deploy
+```
+
+2. **Add Public Key to Server:**
+```bash
+cat ~/.ssh/aurigraph-deploy.pub | ssh -p 22 subbu@dlt.aurigraph.io 'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys'
+```
+
+3. **Test Connection:**
+```bash
+ssh -i ~/.ssh/aurigraph-deploy -p 22 subbu@dlt.aurigraph.io 'echo "Connection successful"'
+```
+
+4. **Add Private Key to GitHub Secrets:**
+   - Navigate to: `Settings` → `Secrets and variables` → `Actions`
+   - Click `New repository secret`
+   - Name: `PROD_SSH_KEY`
+   - Value: Contents of `~/.ssh/aurigraph-deploy` (private key)
+
+---
+
+## Monitoring and Verification
+
+### Production Health Checks
+
+```bash
+# Backend health
+curl https://dlt.aurigraph.io/api/v11/health | jq '.'
+
+# Backend info
+curl https://dlt.aurigraph.io/api/v11/info | jq '.version'
+
+# Dashboard metrics
+curl https://dlt.aurigraph.io/api/v11/dashboard | jq '.transactionMetrics.currentTPS'
+
+# Portal accessibility
+curl -I https://dlt.aurigraph.io/ | head -1
+```
+
+### Server Logs
+
+```bash
+# Backend application logs
+ssh -p 22 subbu@dlt.aurigraph.io 'tail -f /tmp/v12-production.log'
+
+# NGINX access logs
+ssh -p 22 subbu@dlt.aurigraph.io 'sudo tail -f /var/log/nginx/access.log'
+
+# NGINX error logs
+ssh -p 22 subbu@dlt.aurigraph.io 'sudo tail -f /var/log/nginx/error.log'
+
+# System logs
+ssh -p 22 subbu@dlt.aurigraph.io 'sudo journalctl -f -u nginx'
+```
+
+---
+
+## Rollback Procedures
+
+### Automatic Rollback
+
+The `unified-cicd.yml` workflow automatically triggers rollback on deployment failure:
+- Finds latest pre-deployment backup
+- Restores backend JAR
+- Restores portal dist
+- Restarts services
+- Sends failure notification
+
+### Manual Rollback
+
+```bash
+# SSH to server
+ssh -p 22 subbu@dlt.aurigraph.io
+
+# List available backups
+ls -lt /opt/aurigraph/backups/
+
+# Select backup to restore
+BACKUP_DIR="/opt/aurigraph/backups/deploy-20241126_143022"
+
+# Rollback backend
+PID=$(lsof -ti:9003)
+[ -n "$PID" ] && kill -9 $PID
+cp "$BACKUP_DIR/aurigraph-v12-standalone-12.0.0-runner.jar" /tmp/
+cd /tmp
+nohup java -Xms512m -Xmx2g -Dquarkus.http.port=9003 -jar aurigraph-v12-standalone-12.0.0-runner.jar > v12-rollback.log 2>&1 &
+
+# Rollback portal
+sudo tar -xzf "$BACKUP_DIR/portal-backup.tar.gz" -C /var/www/html
+sudo chown -R www-data:www-data /var/www/html/dist
+
+# Verify services
+curl http://localhost:9003/api/v11/health
+curl -I http://localhost/ | head -1
+```
+
+---
+
+## Troubleshooting
+
+### Build Failures
+
+**Backend build fails:**
+```bash
+cd aurigraph-av10-7/aurigraph-v11-standalone
+./mvnw clean
+./mvnw clean package -DskipTests -Dquarkus.package.jar.type=uber-jar
+```
+
+**Portal build fails:**
+```bash
+cd enterprise-portal
+rm -rf node_modules dist
+npm ci
+npm run build
+```
+
+### Deployment Health Check Failures
+
+**Check backend service:**
+```bash
+ssh -p 22 subbu@dlt.aurigraph.io 'lsof -i:9003'
+ssh -p 22 subbu@dlt.aurigraph.io 'tail -100 /tmp/v12-production.log'
+```
+
+**Test endpoints locally on server:**
+```bash
+ssh -p 22 subbu@dlt.aurigraph.io 'curl -s http://localhost:9003/api/v11/health | jq .'
+```
+
+**Check NGINX:**
+```bash
+ssh -p 22 subbu@dlt.aurigraph.io 'sudo systemctl status nginx'
+ssh -p 22 subbu@dlt.aurigraph.io 'sudo nginx -t'
+```
+
+### SSH Connection Issues
+
+**Test SSH connectivity:**
+```bash
+ssh -p 22 -v subbu@dlt.aurigraph.io
+```
+
+**Verify SSH key permissions:**
+```bash
+chmod 600 ~/.ssh/aurigraph-deploy
+ls -l ~/.ssh/aurigraph-deploy
+```
+
+**Test key-based authentication:**
+```bash
+ssh -i ~/.ssh/aurigraph-deploy -p 22 subbu@dlt.aurigraph.io 'whoami'
+```
+
+---
+
+## Best Practices
+
+1. **Pre-Deployment:**
+   - Review changes in staging environment first
+   - Ensure all tests pass locally
+   - Notify team of upcoming deployment
+   - Schedule during low-traffic periods
+
+2. **During Deployment:**
+   - Monitor GitHub Actions workflow progress
+   - Watch health check logs
+   - Be ready to trigger manual rollback if needed
+
+3. **Post-Deployment:**
+   - Verify all critical endpoints
+   - Monitor error rates for 15 minutes
+   - Check application logs for errors
+   - Confirm with team that services are operational
+
+4. **Backup Management:**
+   - Backups are automatically created before each deployment
+   - Retention: 7 days in `/opt/aurigraph/backups/`
+   - Clean old backups periodically: `ssh subbu@dlt.aurigraph.io 'find /opt/aurigraph/backups/ -mtime +7 -delete'`
+
+---
+
+## Workflow Comparison
+
+| Feature | `unified-cicd.yml` | `remote-deployment.yml` | `enterprise-portal-ci.yml` |
+|---------|-------------------|------------------------|---------------------------|
+| Backend Deployment | ✅ | ✅ | ❌ |
+| Portal Deployment | ✅ | ❌ | ✅ |
+| Docker Support | ❌ | ✅ | ❌ |
+| Deployment Strategies | Blue-Green (basic) | Blue-Green, Canary, Rolling | Symlink-based |
+| Automatic Rollback | ✅ | ✅ | ✅ |
+| Health Checks | ✅ (comprehensive) | ✅ (basic) | ✅ (basic) |
+| Smoke Tests | ✅ | ✅ | ❌ |
+| Slack Notifications | ✅ | ✅ | ✅ |
+| Manual Trigger Options | ✅ (granular) | ✅ (strategy choice) | ❌ |
+| Test Coverage | Optional | Optional | ✅ |
+| Security Scanning | ❌ | ❌ | ✅ (npm audit, Snyk) |
+
+**Recommendation:** Use `unified-cicd.yml` for standard deployments. Use `remote-deployment.yml` for Docker-based or advanced deployment strategies.
+
+---
+
+## Related Documentation
+
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) - System architecture
+- [DEVELOPMENT.md](../../DEVELOPMENT.md) - Development setup
+- [CLAUDE.md](../../aurigraph-av10-7/CLAUDE.md) - Project-specific guidance
+- [GitHub Actions Docs](https://docs.github.com/en/actions)
+

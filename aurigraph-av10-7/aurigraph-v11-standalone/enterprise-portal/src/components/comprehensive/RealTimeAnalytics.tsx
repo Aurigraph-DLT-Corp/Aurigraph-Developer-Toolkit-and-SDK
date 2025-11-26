@@ -10,8 +10,8 @@
  * - Node Performance Grid (4x4)
  * - Anomaly Alerts Panel
  *
- * WebSocket: Updates every 1 second via /ws/metrics
- * API: GET /api/v11/analytics/dashboard
+ * WebSocket: Updates every 1 second via /ws/dashboard
+ * API: GET /api/v11/dashboard
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
@@ -164,7 +164,7 @@ export const RealTimeAnalytics: React.FC = () => {
           ? 'https://dlt.aurigraph.io/api/v11'
           : 'http://localhost:9003/api/v11'
 
-        const response = await axios.get<DashboardData>(`${API_BASE_URL}/analytics/dashboard`)
+        const response = await axios.get<DashboardData>(`${API_BASE_URL}/dashboard`)
         const data = response.data
 
         setDashboardData(data)

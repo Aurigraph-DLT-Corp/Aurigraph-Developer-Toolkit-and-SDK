@@ -1,0 +1,199 @@
+@startuml Real-World Asset Tokenization Activity Diagram
+title Aurigraph V11 - RWAT Asset Tokenization Workflow
+
+|Asset Owner|
+start
+:Submit Asset\nTokenization Request;
+note right
+  Asset details:
+  • Type (real estate, gold, art, etc.)
+  • Value ($1M - $100M+)
+  • Legal documents
+  • Ownership proof
+end note
+
+:Upload Supporting\nDocuments;
+note right: • Title deed\n• Appraisal report\n• Legal contracts
+
+|Compliance Agent|
+:Review Asset\nDocuments;
+
+if (Documents Valid?) then (yes)
+    :Approve Asset\nfor Tokenization;
+else (no)
+    :Reject Request;
+    |Asset Owner|
+    :Receive Rejection\nNotification;
+    stop
+endif
+
+|Oracle Verification|
+:Query External\nOracles;
+note right
+  External data sources:
+  • Property registries
+  • Appraisal services
+  • Legal databases
+  • KYC/AML providers
+end note
+
+:Verify Asset\nOwnership & Value;
+
+if (Oracle Verification\nPassed?) then (yes)
+    :Generate Verification\nProof;
+else (no)
+    :Escalate to Manual\nReview;
+    |Compliance Agent|
+    :Manual Verification;
+    if (Manual Approval?) then (no)
+        |Asset Owner|
+        :Receive Rejection;
+        stop
+    else (yes)
+        |Oracle Verification|
+        :Override Verification;
+    endif
+endif
+
+|Smart Contract|
+:Deploy RWAT\nSmart Contract;
+note right
+  Contract parameters:
+  • Token symbol: RWAT-XXXXX
+  • Total supply: asset_value / token_price
+  • Divisibility: 18 decimals
+  • Metadata URI: IPFS hash
+end note
+
+:Mint Tokens\n(ERC-20 compatible);
+
+|Merkle Tree|
+:Generate Asset\nMerkle Proof;
+note right: Cryptographic proof linking\ntoken to physical asset
+
+:Store Proof\non-chain;
+
+|Traceability Service|
+:Link Contract\nto Asset ID;
+note right
+  Bidirectional mapping:
+  • contract_id → asset_id
+  • asset_id → contract_id
+  • O(1) lookup via indexing
+end note
+
+:Create Lineage\nRecord;
+
+|Registry Service|
+:Register in RWAT\nRegistry;
+note right
+  Registry metadata:
+  • Asset type
+  • Token contract address
+  • Creation timestamp
+  • Owner address
+  • Current valuation
+end note
+
+if (Fractional\nOwnership?) then (yes)
+    |Smart Contract|
+    :Enable Token\nTransfers;
+    :Allow Secondary\nMarket Trading;
+else (no)
+    :Lock Token\nto Single Owner;
+endif
+
+|Asset Owner|
+:Receive Tokenized\nAsset (RWAT tokens);
+
+fork
+    |Marketplace|
+    :List on Secondary\nMarket;
+    :Enable Trading;
+fork again
+    |Portfolio Manager|
+    :Track Asset\nPerformance;
+    :Monitor Valuation\nChanges;
+fork again
+    |Compliance Agent|
+    :Schedule Periodic\nAudits;
+    :Update Oracle Data;
+end fork
+
+== Ongoing Operations ==
+
+repeat
+    |Oracle Verification|
+    :Periodic Oracle\nVerification (quarterly);
+
+    if (Asset Status\nChanged?) then (yes)
+        |Smart Contract|
+        :Update Asset\nMetadata;
+        |Merkle Tree|
+        :Update Merkle\nProof;
+    else (no)
+        :No Action Needed;
+    endif
+
+    |Compliance Agent|
+    :Compliance Check;
+
+    if (Compliance Issue?) then (yes)
+        |Smart Contract|
+        :Freeze Token\nTransfers;
+        |Asset Owner|
+        :Notify Owner;
+        :Resolve Issue;
+        |Smart Contract|
+        :Unfreeze Tokens;
+    else (no)
+        :Continue Operations;
+    endif
+
+    :Wait for Next\nAudit Cycle;
+repeat while (Asset Active?) is (yes)
+
+== Asset Redemption ==
+
+|Asset Owner|
+:Request Asset\nRedemption;
+
+|Smart Contract|
+:Burn Tokens;
+
+|Registry Service|
+:Mark Asset as\nRedeemed;
+
+|Traceability Service|
+:Archive Lineage;
+
+|Asset Owner|
+:Receive Physical\nAsset Back;
+
+stop
+
+note bottom
+  **Key Features:**
+  • Multi-oracle verification for accuracy
+  • Cryptographic Merkle proofs for asset linking
+  • Bidirectional traceability (contract ↔ asset)
+  • Fractional ownership support
+  • Secondary market liquidity
+  • Periodic compliance audits
+  • Immutable audit trail
+
+  **Performance:**
+  • Tokenization time: <5 minutes
+  • Oracle verification: <30 seconds
+  • Merkle proof generation: <1 second
+  • Token minting: <10 seconds
+  • Registry update: <1 second
+
+  **Security:**
+  • Quantum-resistant signatures
+  • Multi-signature approval (2-of-3)
+  • Role-based access control (RBAC)
+  • Compliance freeze mechanism
+end note
+
+@enduml

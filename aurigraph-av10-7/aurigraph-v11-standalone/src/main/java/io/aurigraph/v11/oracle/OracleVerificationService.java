@@ -63,6 +63,7 @@ public class OracleVerificationService {
      * @param claimedValue The claimed value to verify
      * @return Verification result with consensus decision
      */
+    @Transactional
     public Uni<OracleVerificationResult> verifyAssetValue(String assetId, BigDecimal claimedValue) {
         Log.infof("Starting oracle verification for asset: %s, claimed value: %s", assetId, claimedValue);
 
@@ -194,6 +195,7 @@ public class OracleVerificationService {
             oracle.getOracleName(),
             oracle.getProvider()
         );
+        priceData.setAssetId(assetId); // Store assetId for signature verification
 
         try {
             // Simulate oracle price fetch
@@ -235,8 +237,17 @@ public class OracleVerificationService {
      * In production, oracles would sign their responses with CRYSTALS-Dilithium
      */
     private String simulateSignature(String assetId, BigDecimal price, OracleStatus.OracleNode oracle) {
-        String data = assetId + ":" + price.toString() + ":" + oracle.getOracleId();
+        // IMPORTANT: Use consistent data format for signature generation and verification
+        String data = buildSignatureData(assetId, price, oracle.getOracleId());
         return Base64.getEncoder().encodeToString(data.getBytes());
+    }
+
+    /**
+     * Build consistent signature data format
+     * Format: assetId:price:oracleId
+     */
+    private String buildSignatureData(String assetId, BigDecimal price, String oracleId) {
+        return assetId + ":" + price.toString() + ":" + oracleId;
     }
 
     /**
@@ -246,7 +257,12 @@ public class OracleVerificationService {
         return responses.stream()
             .peek(response -> {
                 if ("success".equals(response.getStatus()) && response.getSignature() != null) {
-                    String data = response.getOracleId() + ":" + response.getPrice().toString();
+                    // SECURITY: Use same data format for verification as generation
+                    String data = buildSignatureData(
+                        response.getAssetId(), // Assuming assetId is available in response
+                        response.getPrice(),
+                        response.getOracleId()
+                    );
                     boolean valid = signatureVerificationService.verifySignature(
                         data,
                         response.getSignature(),
@@ -259,7 +275,9 @@ public class OracleVerificationService {
     }
 
     /**
-     * Calculate median price from valid oracle responses
+     * Calculate median price from valid oracle responses with outlier detection
+     * Uses Interquartile Range (IQR) method to detect and remove outliers
+     * Implements Byzantine fault tolerance by removing up to f < n/3 outliers
      */
     private BigDecimal calculateMedianPrice(List<OraclePriceData> validResponses) {
         if (validResponses.isEmpty()) {
@@ -276,16 +294,150 @@ public class OracleVerificationService {
             throw new IllegalStateException("No valid prices available for median calculation");
         }
 
-        int size = prices.size();
+        // Remove outliers using IQR method (Byzantine fault tolerance)
+        List<BigDecimal> cleanedPrices = removeOutliers(prices);
+
+        Log.infof("Price analysis: %d raw prices, %d after outlier removal",
+            prices.size(), cleanedPrices.size());
+
+        if (cleanedPrices.isEmpty()) {
+            Log.warnf("All prices identified as outliers, using raw data");
+            cleanedPrices = prices;
+        }
+
+        int size = cleanedPrices.size();
         if (size % 2 == 0) {
             // Even number of prices: average of two middle values
-            BigDecimal mid1 = prices.get(size / 2 - 1);
-            BigDecimal mid2 = prices.get(size / 2);
+            BigDecimal mid1 = cleanedPrices.get(size / 2 - 1);
+            BigDecimal mid2 = cleanedPrices.get(size / 2);
             return mid1.add(mid2).divide(BigDecimal.valueOf(2), SCALE, RoundingMode.HALF_UP);
         } else {
             // Odd number of prices: middle value
-            return prices.get(size / 2);
+            return cleanedPrices.get(size / 2);
         }
+    }
+
+    /**
+     * Remove outliers using Interquartile Range (IQR) method
+     * Byzantine fault tolerance: Remove up to f < n/3 outliers
+     *
+     * @param prices Sorted list of prices
+     * @return List of prices with outliers removed
+     */
+    private List<BigDecimal> removeOutliers(List<BigDecimal> prices) {
+        if (prices.size() < 4) {
+            // Need at least 4 data points for meaningful outlier detection
+            return prices;
+        }
+
+        // Calculate Q1, Q3, and IQR
+        int n = prices.size();
+        int q1Index = n / 4;
+        int q3Index = (3 * n) / 4;
+
+        BigDecimal q1 = prices.get(q1Index);
+        BigDecimal q3 = prices.get(q3Index);
+        BigDecimal iqr = q3.subtract(q1);
+
+        // Calculate bounds (1.5 * IQR is standard for outlier detection)
+        final BigDecimal initialLowerBound = q1.subtract(iqr.multiply(BigDecimal.valueOf(1.5)));
+        final BigDecimal initialUpperBound = q3.add(iqr.multiply(BigDecimal.valueOf(1.5)));
+
+        // Filter out outliers
+        List<BigDecimal> cleaned = prices.stream()
+            .filter(price -> price.compareTo(initialLowerBound) >= 0 && price.compareTo(initialUpperBound) <= 0)
+            .collect(Collectors.toList());
+
+        // Byzantine fault tolerance: Ensure we don't remove more than n/3 values
+        int maxOutliers = n / 3;
+        int outliersRemoved = n - cleaned.size();
+
+        if (outliersRemoved > maxOutliers) {
+            Log.warnf("Too many outliers detected (%d > %d), Byzantine attack suspected",
+                outliersRemoved, maxOutliers);
+            // In case of suspected attack, use more conservative bounds
+            BigDecimal conservativeBound = iqr.multiply(BigDecimal.valueOf(2.5));
+            final BigDecimal conservativeLowerBound = q1.subtract(conservativeBound);
+            final BigDecimal conservativeUpperBound = q3.add(conservativeBound);
+
+            cleaned = prices.stream()
+                .filter(price -> price.compareTo(conservativeLowerBound) >= 0 && price.compareTo(conservativeUpperBound) <= 0)
+                .collect(Collectors.toList());
+        }
+
+        return cleaned;
+    }
+
+    /**
+     * Calculate weighted median price using oracle stake weights
+     * Higher stake = more influence on final price
+     *
+     * @param validResponses Oracle responses with stake information
+     * @return Weighted median price
+     */
+    private BigDecimal calculateWeightedMedian(List<OraclePriceData> validResponses) {
+        if (validResponses.isEmpty()) {
+            throw new IllegalStateException("No valid oracle responses available");
+        }
+
+        // For now, use equal weights since OraclePriceData doesn't have stake info
+        // In production, this would fetch stake weights from oracle registry
+        Map<BigDecimal, Double> priceWeights = validResponses.stream()
+            .filter(OraclePriceData::isValidForConsensus)
+            .collect(Collectors.toMap(
+                OraclePriceData::getPrice,
+                r -> getOracleStakeWeight(r.getOracleId()),
+                Double::sum
+            ));
+
+        // Sort prices by value
+        List<Map.Entry<BigDecimal, Double>> sortedEntries = priceWeights.entrySet()
+            .stream()
+            .sorted(Map.Entry.comparingByKey())
+            .collect(Collectors.toList());
+
+        // Calculate total weight
+        double totalWeight = sortedEntries.stream()
+            .mapToDouble(Map.Entry::getValue)
+            .sum();
+
+        // Find weighted median (50th percentile)
+        double cumulativeWeight = 0;
+        double targetWeight = totalWeight / 2.0;
+
+        for (Map.Entry<BigDecimal, Double> entry : sortedEntries) {
+            cumulativeWeight += entry.getValue();
+            if (cumulativeWeight >= targetWeight) {
+                return entry.getKey();
+            }
+        }
+
+        // Fallback to last price (should not happen)
+        return sortedEntries.get(sortedEntries.size() - 1).getKey();
+    }
+
+    /**
+     * Get oracle stake weight from oracle registry
+     * Higher stake = more voting power in consensus
+     *
+     * @param oracleId Oracle identifier
+     * @return Stake weight (default 1.0)
+     */
+    private double getOracleStakeWeight(String oracleId) {
+        // In production, this would query the oracle registry for stake information
+        // For now, use provider-specific weights:
+        // - Chainlink: 1.5 (highest reliability)
+        // - Pyth: 1.3 (high frequency, institutional)
+        // - Band Protocol: 1.2 (good cross-chain support)
+
+        if (oracleId.contains("chainlink")) {
+            return 1.5;
+        } else if (oracleId.contains("pyth")) {
+            return 1.3;
+        } else if (oracleId.contains("band")) {
+            return 1.2;
+        }
+        return 1.0;
     }
 
     /**
@@ -428,9 +580,9 @@ public class OracleVerificationService {
 
     /**
      * Persist verification result to database
+     * Note: Transaction is managed at verifyAssetValue() level
      */
-    @Transactional
-    public Uni<Void> persistVerificationResult(OracleVerificationResult result) {
+    private Uni<Void> persistVerificationResult(OracleVerificationResult result) {
         return Uni.createFrom().item(() -> {
             OracleVerificationEntity entity = OracleVerificationEntity.fromDTO(result);
             verificationRepository.persist(entity);

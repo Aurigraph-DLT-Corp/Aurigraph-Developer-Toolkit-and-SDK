@@ -1350,4 +1350,23 @@ public class HyperRAFTConsensusService {
         leaderId = null;
         LOG.debug("Service reset to FOLLOWER state");
     }
+
+    /**
+     * Get active validator count (for real-time analytics)
+     *
+     * @return Number of active validators
+     */
+    public int getActiveValidatorCount() {
+        // Count all cluster nodes plus this node (leader/follower)
+        return clusterNodes.size() + 1;
+    }
+
+    /**
+     * Get current block height (for real-time analytics)
+     *
+     * @return Current block height
+     */
+    public long getCurrentBlockHeight() {
+        return commitIndex.get();
+    }
 }

@@ -1,6 +1,7 @@
 package io.aurigraph.v11.grpc;
 
 import io.grpc.*;
+import io.quarkus.grpc.GlobalInterceptor;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -30,6 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
  * If a service method throws IllegalArgumentException("Invalid asset ID"),
  * the client receives Status.INVALID_ARGUMENT with description "Invalid asset ID"
  */
+@GlobalInterceptor
 @ApplicationScoped
 public class ExceptionInterceptor implements ServerInterceptor {
 

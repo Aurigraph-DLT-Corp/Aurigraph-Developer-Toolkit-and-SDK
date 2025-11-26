@@ -1319,4 +1319,22 @@ public class TransactionService {
             return String.format("OPTIMIZING (%.0f TPS)", achievedTPS);
         }
     }
+
+    /**
+     * Get total transactions processed (for real-time analytics)
+     *
+     * @return Total transaction count
+     */
+    public long getTotalTransactionsProcessed() {
+        return transactionCounter.get();
+    }
+
+    /**
+     * Get pending transaction count (for real-time analytics)
+     *
+     * @return Number of pending transactions
+     */
+    public long getPendingTransactionCount() {
+        return batchQueue.size();
+    }
 }

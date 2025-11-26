@@ -1,0 +1,139 @@
+@startuml Aurigraph V11 Multi-Cloud Deployment Architecture
+!include <C4/C4_Deployment>
+
+title Aurigraph V11 - Multi-Cloud Deployment Diagram
+
+' Global Load Balancing
+Deployment_Node(cloudflare, "Cloudflare Global CDN", "Global Traffic Management") {
+    System(geodns, "GeoDNS Routing", "Route users to nearest region")
+    System(ddos, "DDoS Protection", "WAF + Rate limiting")
+}
+
+' AWS Deployment (US-East-1)
+Deployment_Node(aws, "AWS Cloud", "us-east-1") {
+    Deployment_Node(aws_vpc, "VPC (10.0.1.0/24)") {
+        Deployment_Node(aws_val, "EC2 Instance\n32 vCPUs, 8GB RAM") {
+            Container(aws_validator, "Validator Node #1", "Aurigraph V11 Native", "Consensus participation\nPort 9003/9004")
+        }
+        Deployment_Node(aws_biz, "EC2 Instance\n16 vCPUs, 4GB RAM") {
+            Container(aws_business, "Business Node #1", "Aurigraph V11 Native", "Transaction processing\nPort 9013/8080")
+        }
+        Deployment_Node(aws_slim, "EC2 Auto-Scaling Group\n8 vCPUs, 2GB RAM") {
+            Container(aws_slim_nodes, "Slim Nodes #1-#4", "Aurigraph V11 Native", "Read-only queries\nPorts 9023-9053")
+        }
+        ContainerDb(aws_consul, "Consul", "Service Discovery", "WAN federation")
+        ContainerDb(aws_rocks, "RocksDB", "State Storage", "100GB SSD")
+        ContainerDb(aws_pg, "PostgreSQL RDS", "Metadata DB", "Multi-AZ HA")
+    }
+}
+
+' Azure Deployment (West Europe)
+Deployment_Node(azure, "Azure Cloud", "westeurope") {
+    Deployment_Node(azure_vnet, "VNet (10.0.2.0/24)") {
+        Deployment_Node(azure_val, "Azure VM\nD32s v5 (32 vCPUs, 8GB)") {
+            Container(azure_validator, "Validator Node #2", "Aurigraph V11 Native", "Consensus participation\nPort 9003/9004")
+        }
+        Deployment_Node(azure_biz, "Azure VM\nD16s v5 (16 vCPUs, 4GB)") {
+            Container(azure_business, "Business Node #2", "Aurigraph V11 Native", "Transaction processing\nPort 9013/8080")
+        }
+        Deployment_Node(azure_slim, "VMSS\nD8s v5 (8 vCPUs, 2GB)") {
+            Container(azure_slim_nodes, "Slim Nodes #5-#8", "Aurigraph V11 Native", "Read-only queries\nPorts 9043-9073")
+        }
+        ContainerDb(azure_consul, "Consul", "Service Discovery", "WAN federation")
+        ContainerDb(azure_rocks, "RocksDB", "State Storage", "100GB Premium SSD")
+        ContainerDb(azure_pg, "PostgreSQL Flexible Server", "Metadata DB", "Zone-redundant")
+    }
+}
+
+' GCP Deployment (Asia-Pacific)
+Deployment_Node(gcp, "GCP Cloud", "asia-northeast1") {
+    Deployment_Node(gcp_vpc, "VPC Network (10.0.3.0/24)") {
+        Deployment_Node(gcp_val, "Compute Engine\nn2-standard-32 (32 vCPUs, 8GB)") {
+            Container(gcp_validator, "Validator Node #3", "Aurigraph V11 Native", "Consensus participation\nPort 9003/9004")
+        }
+        Deployment_Node(gcp_biz, "Compute Engine\nn2-standard-16 (16 vCPUs, 4GB)") {
+            Container(gcp_business, "Business Node #3", "Aurigraph V11 Native", "Transaction processing\nPort 9013/8080")
+        }
+        Deployment_Node(gcp_slim, "Instance Group\nn2-standard-8 (8 vCPUs, 2GB)") {
+            Container(gcp_slim_nodes, "Slim Nodes #9-#12", "Aurigraph V11 Native", "Read-only queries\nPorts 9063-9093")
+        }
+        ContainerDb(gcp_consul, "Consul", "Service Discovery", "WAN federation")
+        ContainerDb(gcp_rocks, "RocksDB", "State Storage", "100GB Persistent SSD")
+        ContainerDb(gcp_pg, "Cloud SQL PostgreSQL", "Metadata DB", "Regional HA")
+    }
+}
+
+' On-Premise Backup (Optional)
+Deployment_Node(onprem, "On-Premise", "Backup/Dev") {
+    Deployment_Node(onprem_k8s, "Kubernetes Cluster") {
+        Container(onprem_validator, "Validator Node #4", "Aurigraph V11 Native", "Backup validator")
+        Container(onprem_business, "Business Nodes", "Aurigraph V11 Native", "Testing/Dev")
+    }
+}
+
+' Cross-Cloud Networking
+Deployment_Node(network, "Cross-Cloud Networking") {
+    System(wireguard, "WireGuard VPN Mesh", "Encrypted cross-cloud connectivity")
+    System(istio, "Istio Service Mesh", "mTLS + Load balancing")
+}
+
+' Monitoring & Observability
+Deployment_Node(monitoring, "Centralized Monitoring", "Multi-Cloud") {
+    Container(prometheus, "Prometheus Federation", "Metrics aggregation", "All clouds")
+    Container(grafana, "Grafana", "Visualization", "Unified dashboards")
+    Container(elk, "ELK Stack", "Log aggregation", "Centralized logs")
+}
+
+' External Connections
+Rel(cloudflare, aws_business, "Route US traffic", "HTTPS")
+Rel(cloudflare, azure_business, "Route EU traffic", "HTTPS")
+Rel(cloudflare, gcp_business, "Route Asia traffic", "HTTPS")
+
+' Cross-Cloud Validator Mesh (HyperRAFT++)
+Rel(aws_validator, azure_validator, "RAFT AppendEntries", "gRPC/WireGuard\n<50ms latency")
+Rel(aws_validator, gcp_validator, "RAFT AppendEntries", "gRPC/WireGuard\n<50ms latency")
+Rel(azure_validator, gcp_validator, "RAFT AppendEntries", "gRPC/WireGuard\n<50ms latency")
+Rel(aws_validator, onprem_validator, "RAFT Replication", "gRPC/WireGuard")
+
+' Business Node to Validator Communication
+Rel(aws_business, aws_validator, "TX submission", "gRPC")
+Rel(azure_business, azure_validator, "TX submission", "gRPC")
+Rel(gcp_business, gcp_validator, "TX submission", "gRPC")
+
+' Slim Node to Business Node Communication
+Rel(aws_slim_nodes, aws_business, "Read queries", "REST")
+Rel(azure_slim_nodes, azure_business, "Read queries", "REST")
+Rel(gcp_slim_nodes, gcp_business, "Read queries", "REST")
+
+' Service Discovery (Consul WAN)
+Rel(aws_consul, azure_consul, "Consul WAN gossip", "8302/tcp")
+Rel(azure_consul, gcp_consul, "Consul WAN gossip", "8302/tcp")
+Rel(gcp_consul, aws_consul, "Consul WAN gossip", "8302/tcp")
+
+' Monitoring
+Rel(aws_validator, prometheus, "Push metrics", "9003/metrics")
+Rel(azure_validator, prometheus, "Push metrics", "9003/metrics")
+Rel(gcp_validator, prometheus, "Push metrics", "9003/metrics")
+Rel(grafana, prometheus, "Query metrics", "PromQL")
+
+' Storage Replication
+Rel(aws_rocks, azure_rocks, "State sync", "Incremental")
+Rel(azure_rocks, gcp_rocks, "State sync", "Incremental")
+
+SHOW_LEGEND()
+
+note as deployment_notes
+**Key Deployment Characteristics:**
+• **Total Nodes**: 3 Validators + 3 Business + 12 Slim = 18 nodes
+• **Geographic Coverage**: US (AWS), EU (Azure), Asia (GCP)
+• **Aggregate TPS**: 2M+ (750K per validator)
+• **Availability**: 99.99% (multi-cloud redundancy)
+• **Latency**:
+  - Intra-cloud: <10ms
+  - Inter-cloud validators: <50ms
+  - Global API (slim nodes): <200ms
+• **Resilience**: Survives single-cloud outage
+• **Network**: WireGuard mesh + Istio service mesh
+end note
+
+@enduml

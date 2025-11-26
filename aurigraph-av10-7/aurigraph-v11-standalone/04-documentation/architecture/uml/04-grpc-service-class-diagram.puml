@@ -1,0 +1,262 @@
+@startuml Aurigraph V11 gRPC Services Class Diagram
+title gRPC Service Architecture - Class Diagram
+
+' Protocol Buffer Base Classes
+package "Generated Protocol Buffer Classes" <<Rectangle>> {
+    abstract class TransactionServiceGrpc {
+        {abstract} +submitTransaction(request, observer)
+        {abstract} +validateTransaction(request, observer)
+        {abstract} +submitBatch(request, observer)
+        {abstract} +getMempool(request, observer)
+        {abstract} +streamTransactions(observer) : Stream
+    }
+
+    abstract class ConsensusServiceGrpc {
+        {abstract} +appendEntries(request, observer)
+        {abstract} +requestVote(request, observer)
+        {abstract} +getMetrics(request, observer)
+        {abstract} +getNodeState(request, observer)
+        {abstract} +streamConsensusEvents(observer) : Stream
+    }
+
+    abstract class CryptoServiceGrpc {
+        {abstract} +signData(request, observer)
+        {abstract} +verifySignature(request, observer)
+        {abstract} +rotateKeys(request, observer)
+        {abstract} +deriveKey(request, observer)
+    }
+
+    abstract class ContractServiceGrpc {
+        {abstract} +deployContract(request, observer)
+        {abstract} +executeFunction(request, observer)
+        {abstract} +getState(request, observer)
+        {abstract} +streamStateChanges(observer) : Stream
+    }
+
+    abstract class StorageServiceGrpc {
+        {abstract} +put(request, observer)
+        {abstract} +get(request, observer)
+        {abstract} +delete(request, observer)
+        {abstract} +scan(request, observer) : Stream
+        {abstract} +getVersion(request, observer)
+    }
+
+    abstract class NetworkServiceGrpc {
+        {abstract} +broadcastMessage(request, observer)
+        {abstract} +sendDirectMessage(request, observer)
+        {abstract} +getPeerList(request, observer)
+        {abstract} +streamNetworkEvents(observer) : Stream
+    }
+
+    abstract class TraceabilityServiceGrpc {
+        {abstract} +linkContractToAsset(request, observer)
+        {abstract} +getAssetsByContract(request, observer)
+        {abstract} +getContractsByAsset(request, observer)
+        {abstract} +getCompleteLineage(request, observer)
+        {abstract} +searchLinks(request, observer)
+    }
+}
+
+' Service Implementations
+package "gRPC Service Implementations" <<Rectangle>> {
+    class TransactionServiceImpl {
+        -mempool : ConcurrentHashMap<String, GRPCTransaction>
+        -maxMempoolSize : int = 100000
+        -metricsCollector : MetricsCollector
+
+        +submitTransaction(request, observer)
+        +validateTransaction(request, observer)
+        +submitBatch(request, observer)
+        +getMempool(request, observer)
+        +streamTransactions(observer)
+        -validateTx(transaction) : boolean
+        -addToMempool(transaction) : boolean
+        -evictOldTransactions()
+    }
+
+    class ConsensusServiceImpl {
+        -nodeId : String
+        -currentTerm : AtomicLong
+        -votedFor : String
+        -commitIndex : AtomicLong
+        -log : List<LogEntry>
+        -role : NodeRole
+
+        +appendEntries(request, observer)
+        +requestVote(request, observer)
+        +getMetrics(request, observer)
+        +getNodeState(request, observer)
+        +streamConsensusEvents(observer)
+        -replicateLog(entries) : boolean
+        -checkLeaderStatus() : boolean
+        -updateCommitIndex(newIndex)
+    }
+
+    class CryptoServiceImpl {
+        -dilithiumKeyPair : KeyPair
+        -kyberKeyPair : KeyPair
+        -keyRotationScheduler : ScheduledExecutorService
+
+        +signData(request, observer)
+        +verifySignature(request, observer)
+        +rotateKeys(request, observer)
+        +deriveKey(request, observer)
+        -generateDilithiumSignature(data) : byte[]
+        -verifyDilithiumSignature(data, sig) : boolean
+    }
+
+    class ContractServiceImpl {
+        -contractStorage : Map<String, ContractState>
+        -contractExecutor : ExecutorService
+        -gasTracker : GasTracker
+
+        +deployContract(request, observer)
+        +executeFunction(request, observer)
+        +getState(request, observer)
+        +streamStateChanges(observer)
+        -compileBytecode(source) : byte[]
+        -executeInVM(bytecode, params) : ExecutionResult
+        -trackGasUsage(operation) : long
+    }
+
+    class StorageServiceImpl {
+        -rocksDB : RocksDB
+        -writeOptions : WriteOptions
+        -readOptions : ReadOptions
+        -versionHistory : Map<String, List<Version>>
+
+        +put(request, observer)
+        +get(request, observer)
+        +delete(request, observer)
+        +scan(request, observer)
+        +getVersion(request, observer)
+        -serializeValue(value) : byte[]
+        -deserializeValue(bytes) : Object
+        -createSnapshot() : Snapshot
+    }
+
+    class NetworkServiceImpl {
+        -peerManager : PeerManager
+        -messageRouter : MessageRouter
+        -eventBroadcaster : EventBroadcaster
+
+        +broadcastMessage(request, observer)
+        +sendDirectMessage(request, observer)
+        +getPeerList(request, observer)
+        +streamNetworkEvents(observer)
+        -routeMessage(destination, message)
+        -discoverPeers() : List<Peer>
+    }
+
+    class TraceabilityServiceImpl {
+        -contractAssetIndex : Map<String, Set<String>>
+        -assetContractIndex : Map<String, Set<String>>
+        -lineageGraph : DirectedGraph<String, Link>
+
+        +linkContractToAsset(request, observer)
+        +getAssetsByContract(request, observer)
+        +getContractsByAsset(request, observer)
+        +getCompleteLineage(request, observer)
+        +searchLinks(request, observer)
+        -buildLineageTree(rootId) : LineageTree
+        -traverseGraph(startNode, depth) : Set<Node>
+    }
+}
+
+' Core Business Logic
+package "Core Business Logic" <<Rectangle>> {
+    class TransactionProcessor {
+        -validator : TransactionValidator
+        -stateManager : StateManager
+
+        +processTransaction(tx) : boolean
+        +validateSignature(tx) : boolean
+        +updateAccountState(tx)
+    }
+
+    class HyperRAFTEngine {
+        -consensusAlgorithm : RAFTAlgorithm
+        -aiOptimizer : AIOptimizer
+
+        +electLeader() : String
+        +replicateLogs(entries)
+        +commitEntries(index)
+    }
+
+    class QuantumCryptoEngine {
+        -dilithium : DilithiumSigner
+        -kyber : KyberEncryption
+
+        +sign(data) : Signature
+        +verify(data, sig) : boolean
+        +encrypt(data, publicKey) : byte[]
+        +decrypt(ciphertext, privateKey) : byte[]
+    }
+}
+
+' gRPC Configuration
+class GrpcServiceConfiguration {
+    -port : int = 9004
+    -maxMessageSize : int = 50MB
+    -keepAliveTime : Duration = 30s
+
+    +startServer()
+    +registerServices()
+    +shutdownServer()
+    -configureInterceptors()
+}
+
+' Inheritance relationships
+TransactionServiceGrpc <|-- TransactionServiceImpl
+ConsensusServiceGrpc <|-- ConsensusServiceImpl
+CryptoServiceGrpc <|-- CryptoServiceImpl
+ContractServiceGrpc <|-- ContractServiceImpl
+StorageServiceGrpc <|-- StorageServiceImpl
+NetworkServiceGrpc <|-- NetworkServiceImpl
+TraceabilityServiceGrpc <|-- TraceabilityServiceImpl
+
+' Dependencies
+TransactionServiceImpl --> TransactionProcessor : uses
+ConsensusServiceImpl --> HyperRAFTEngine : uses
+CryptoServiceImpl --> QuantumCryptoEngine : uses
+StorageServiceImpl --> "RocksDB" : uses
+
+' Configuration relationships
+GrpcServiceConfiguration --> TransactionServiceImpl : registers
+GrpcServiceConfiguration --> ConsensusServiceImpl : registers
+GrpcServiceConfiguration --> CryptoServiceImpl : registers
+GrpcServiceConfiguration --> ContractServiceImpl : registers
+GrpcServiceConfiguration --> StorageServiceImpl : registers
+GrpcServiceConfiguration --> NetworkServiceImpl : registers
+GrpcServiceConfiguration --> TraceabilityServiceImpl : registers
+
+note right of TransactionServiceGrpc
+  **Base class generated from**
+  **aurigraph_core.proto**
+
+  Uses Protocol Buffer serialization
+  for 10x performance improvement
+  over JSON REST APIs
+end note
+
+note right of GrpcServiceConfiguration
+  **gRPC Server Configuration**
+
+  • Port: 9004 (HTTP/2)
+  • Max message: 50MB
+  • Keepalive: 30s
+  • TLS: Optional (dev) / Required (prod)
+  • Interceptors: Logging, Auth, Metrics
+end note
+
+note bottom of StorageServiceImpl
+  **Storage Layer**
+
+  • RocksDB for state persistence
+  • Version history tracking
+  • Atomic batch operations
+  • Snapshot support
+  • TTL-based expiry
+end note
+
+@enduml

@@ -1,0 +1,154 @@
+@startuml HyperRAFT++ Consensus Sequence Diagram
+title Aurigraph V11 - HyperRAFT++ Consensus Flow with AI Optimization
+
+participant "Validator 1\n(Leader)" as V1
+participant "Validator 2\n(Follower)" as V2
+participant "Validator 3\n(Follower)" as V3
+participant "Validator 4\n(Follower)" as V4
+participant "AI Optimizer\nML-based" as AI
+participant "Transaction\nMempool" as Mempool
+participant "State\nStorage" as Storage
+
+== Leader Election (Initial State) ==
+
+note over V1, V4: All validators start as Followers\nElection timeout: 150-300ms (randomized)
+
+V2 -> V2 : Election timeout\nBecome CANDIDATE
+activate V2
+V2 -> V1 : RequestVote(term=1)
+V2 -> V3 : RequestVote(term=1)
+V2 -> V4 : RequestVote(term=1)
+
+V1 --> V2 : VoteGranted(true)
+V3 --> V2 : VoteGranted(true)
+V4 --> V2 : VoteGranted(true)
+
+V2 -> V2 : Majority reached (3/4 votes)\nBecome LEADER
+deactivate V2
+
+note over V2: V2 is now LEADER for term=1
+
+== Normal Operation (AI-Optimized Batch Processing) ==
+
+loop Every 50ms (heartbeat interval)
+    Client -> V2 : Submit transaction batch (10K TXs)
+    activate V2
+
+    V2 -> Mempool : Add transactions to mempool
+    Mempool --> V2 : Mempool size: 50K TXs
+
+    V2 -> AI : OptimizeBatch(mempool, network_state, validator_load)
+    activate AI
+    AI -> AI : Analyze transaction graph\nDetect dependencies\nOptimize execution order
+    AI --> V2 : OptimizedBatch(10K TXs, priority_sorted)
+    deactivate AI
+
+    V2 -> V2 : Create LogEntry\nindex=100, term=1\ndata=<10K TXs>
+
+    par Parallel Log Replication (HyperRAFT++ Enhancement)
+        V2 -> V1 : AppendEntries(prevIndex=99, entries=[100])\n**Async gRPC call**
+        V2 -> V3 : AppendEntries(prevIndex=99, entries=[100])\n**Async gRPC call**
+        V2 -> V4 : AppendEntries(prevIndex=99, entries=[100])\n**Async gRPC call**
+    end
+
+    note over V2, V4: Parallel replication reduces latency\nfrom ~150ms (sequential) to ~50ms (parallel)
+
+    V1 --> V2 : AppendEntriesResponse(success=true, term=1)
+    V3 --> V2 : AppendEntriesResponse(success=true, term=1)
+    V4 --> V2 : AppendEntriesResponse(success=true, term=1)
+
+    V2 -> V2 : Quorum reached (3/4 replicas)\ncommitIndex = 100
+
+    V2 -> V2 : applyToStateMachine(entries[100])
+    activate V2
+
+    V2 -> Storage : BatchWrite(10K state updates)
+    activate Storage
+    Storage -> Storage : Atomic batch commit
+    Storage --> V2 : WriteSuccess(latency=5ms)
+    deactivate Storage
+
+    V2 -> Mempool : Remove committed TXs
+    Mempool --> V2 : Mempool size: 40K TXs
+
+    V2 -> V2 : lastApplied = 100
+    deactivate V2
+
+    V2 --> Client : TransactionConfirmed\n(block_height=100, 10K TXs)
+    deactivate V2
+end
+
+== Follower Commit Phase ==
+
+par Followers apply committed entries
+    V1 -> V1 : commitIndex = 100\napplyToStateMachine()
+    V1 -> Storage : BatchWrite(10K state updates)
+
+    V3 -> V3 : commitIndex = 100\napplyToStateMachine()
+    V3 -> Storage : BatchWrite(10K state updates)
+
+    V4 -> V4 : commitIndex = 100\napplyToStateMachine()
+    V4 -> Storage : BatchWrite(10K state updates)
+end
+
+== Leader Failure & Re-Election ==
+
+note over V2: Leader V2 crashes or becomes unreachable
+
+V1 -> V1 : Heartbeat timeout (200ms)\nBecome CANDIDATE\nterm=2
+activate V1
+
+V1 -> V3 : RequestVote(term=2, lastLogIndex=100)
+V1 -> V4 : RequestVote(term=2, lastLogIndex=100)
+
+V3 --> V1 : VoteGranted(true)\n(log is up-to-date)
+V4 --> V1 : VoteGranted(true)\n(log is up-to-date)
+
+V1 -> V1 : Majority reached (2/3 active)\nBecome LEADER
+deactivate V1
+
+note over V1: V1 is now LEADER for term=2
+
+V1 -> V3 : AppendEntries(heartbeat, term=2)
+V1 -> V4 : AppendEntries(heartbeat, term=2)
+V3 --> V1 : AppendEntriesResponse(success=true)
+V4 --> V1 : AppendEntriesResponse(success=true)
+
+note over V1, V4: System recovered in <500ms\nZero data loss (all entries committed)
+
+== AI Optimization Feedback Loop ==
+
+V1 -> AI : ReportPerformance(tps=776K, latency=450ms, replication_lag=50ms)
+activate AI
+AI -> AI : Update ML model\nOptimize future batches\nAdjust priority weights
+AI --> V1 : NewOptimizationParams(batch_size=15K, priority_threshold=120)
+deactivate AI
+
+note over AI
+  **AI Optimization Features:**
+  • Transaction dependency analysis
+  • Dynamic batch sizing (5K-20K TXs)
+  • Priority-based ordering (0-255)
+  • Network latency prediction
+  • Validator load balancing
+  • Adaptive timeout tuning
+
+  **Performance Impact:**
+  • 30% reduction in confirmation time
+  • 40% increase in effective TPS
+  • 50% reduction in network overhead
+end note
+
+note over V1, V4
+  **HyperRAFT++ Key Characteristics:**
+  • Byzantine fault tolerance: f < n/3 (tolerates 1/4 failures)
+  • Parallel log replication (vs sequential RAFT)
+  • AI-driven transaction ordering
+  • Finality: <500ms current, <100ms target
+  • Throughput: 776K TPS current, 2M+ TPS target
+  • Leader election: <500ms
+  • Heartbeat interval: 50ms
+  • Election timeout: 150-300ms (randomized)
+end note
+
+@enduml

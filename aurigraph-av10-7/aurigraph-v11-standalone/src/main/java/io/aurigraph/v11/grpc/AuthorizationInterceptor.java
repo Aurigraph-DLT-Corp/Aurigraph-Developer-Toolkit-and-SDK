@@ -1,6 +1,7 @@
 package io.aurigraph.v11.grpc;
 
 import io.grpc.*;
+import io.quarkus.grpc.GlobalInterceptor;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -28,6 +29,7 @@ import java.util.*;
  * - Returns Status.UNAUTHENTICATED for missing/invalid tokens
  * - Returns Status.PERMISSION_DENIED for insufficient privileges
  */
+@GlobalInterceptor
 @ApplicationScoped
 public class AuthorizationInterceptor implements ServerInterceptor {
 

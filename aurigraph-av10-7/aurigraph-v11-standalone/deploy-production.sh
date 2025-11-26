@@ -1,83 +1,68 @@
 #!/bin/bash
-#
-# Deployment Script for Aurigraph V11 Portal v4.9.0
-# Deploys built JAR to production server at dlt.aurigraph.io
-#
-# Usage: ./deploy-production.sh
-#
+# Aurigraph V12 Production Deployment Script
 
 set -e
 
 # Configuration
-REMOTE_USER="subbu"
 REMOTE_HOST="dlt.aurigraph.io"
-REMOTE_PORT="2235"
-REMOTE_APP_DIR="/opt/aurigraph/v11"
+REMOTE_USER="subbu"
+REMOTE_PASSWORD="subbuFuture@2025"
+JAR_NAME="aurigraph-v12-standalone-12.0.0-runner.jar"
 
-JAR_NAME="aurigraph-v11-standalone-11.4.4-runner.jar"
-JAR_PATH="./target/${JAR_NAME}"
+echo "========================================="
+echo "Aurigraph V12 Production Deployment"
+echo "========================================="
 
-echo "=========================================="
-echo "Aurigraph V11 Portal v4.9.0 Deployment"
-echo "=========================================="
-echo ""
-
-# Step 1: Verify JAR exists
-echo "[1/5] Verifying build artifact..."
-if [ ! -f "$JAR_PATH" ]; then
-    echo "ERROR: JAR file not found: $JAR_PATH"
-    exit 1
+# Build if needed
+if [ ! -f "target/$JAR_NAME" ]; then
+    echo "Building JAR..."
+    ./mvnw clean package -DskipTests -Dquarkus.package.jar.type=uber-jar
 fi
 
-JAR_SIZE=$(du -h "$JAR_PATH" | cut -f1)
-echo "✓ Found JAR: $JAR_PATH ($JAR_SIZE)"
-echo ""
+echo "JAR Size: $(du -h target/$JAR_NAME | cut -f1)"
 
-# Step 2: Check remote server connectivity
-echo "[2/5] Testing remote server connectivity..."
-if ! ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "echo 'Connected'" > /dev/null 2>&1; then
-    echo "ERROR: Cannot connect to remote server"
-    exit 1
-fi
-echo "✓ Connected to $REMOTE_HOST:$REMOTE_PORT"
-echo ""
+# Stop existing service
+echo "Stopping existing service..."
+sshpass -p "$REMOTE_PASSWORD" ssh "$REMOTE_USER@$REMOTE_HOST" "pkill -f aurigraph-v12 || true"
+sleep 2
 
-# Step 3: Create backup
-echo "[3/5] Creating backup of current deployment..."
-ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << 'REMOTE_CMD'
-mkdir -p /opt/aurigraph/v11/backups
-if [ -f /opt/aurigraph/v11/aurigraph-v11-standalone-11.4.4-runner.jar ]; then
-    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    cp /opt/aurigraph/v11/aurigraph-v11-standalone-11.4.4-runner.jar \
-       /opt/aurigraph/v11/backups/aurigraph-v11-standalone-11.4.4-runner_${TIMESTAMP}.jar
-    echo "✓ Backup created"
-else
-    echo "ℹ No previous deployment found"
-fi
-REMOTE_CMD
-echo ""
+# Copy JAR
+echo "Copying JAR to production..."
+sshpass -p "$REMOTE_PASSWORD" scp "target/$JAR_NAME" "$REMOTE_USER@$REMOTE_HOST:/tmp/"
 
-# Step 4: Deploy JAR
-echo "[4/5] Uploading JAR to production server..."
-scp -P $REMOTE_PORT "$JAR_PATH" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_APP_DIR/"
-echo "✓ JAR uploaded successfully"
-echo ""
+# Start service
+echo "Starting service..."
+sshpass -p "$REMOTE_PASSWORD" ssh "$REMOTE_USER@$REMOTE_HOST" << 'SSHEOF'
+cd /tmp
+nohup java -Xms512m -Xmx2g \
+    -Dquarkus.http.port=9003 \
+    -Dquarkus.flyway.migrate-at-start=false \
+    -jar aurigraph-v12-standalone-12.0.0-runner.jar \
+    > v12-production.log 2>&1 &
+echo $! > aurigraph-v12.pid
+echo "Service started with PID: $(cat aurigraph-v12.pid)"
+SSHEOF
 
-# Step 5: Restart service
-echo "[5/5] Restarting Aurigraph V11 service..."
-ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << 'REMOTE_CMD'
-echo "Restarting service..."
-sudo systemctl restart aurigraph-v11
-sleep 3
-if sudo systemctl is-active --quiet aurigraph-v11; then
-    echo "✓ Service started successfully"
-else
-    echo "✗ Service failed to start"
-    exit 1
-fi
-REMOTE_CMD
-echo ""
+# Wait for service
+echo "Waiting for service to be ready..."
+sleep 10
 
-echo "=========================================="
+# Verify
+for i in {1..10}; do
+    if curl -f http://$REMOTE_HOST:9003/q/health > /dev/null 2>&1; then
+        echo "✅ Service is ready!"
+        break
+    fi
+    echo "Attempt $i/10..."
+    sleep 2
+done
+
+# Final check
+curl -s http://$REMOTE_HOST:9003/q/health | jq '.'
+
+echo ""
+echo "========================================="
 echo "✅ Deployment Complete!"
-echo "=========================================="
+echo "========================================="
+echo "Health: http://$REMOTE_HOST:9003/q/health"
+echo "Info: http://$REMOTE_HOST:9003/api/v11/info"

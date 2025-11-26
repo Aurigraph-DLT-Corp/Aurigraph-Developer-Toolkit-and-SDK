@@ -1,6 +1,7 @@
 package io.aurigraph.v11.grpc;
 
 import io.grpc.*;
+import io.quarkus.grpc.GlobalInterceptor;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * - Compatible with Prometheus scraping
  * - Lightweight with minimal memory footprint
  */
+@GlobalInterceptor
 @ApplicationScoped
 public class MetricsInterceptor implements ServerInterceptor {
 

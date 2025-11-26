@@ -26,12 +26,12 @@ Before activating the CI/CD pipeline, verify:
 
 ### 1. SSH Access to Remote Server
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io
+ssh -p 22 subbu@dlt.aurigraph.io
 ```
 
 ### 2. Docker Installed on Remote Server
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io "docker --version && docker-compose --version"
+ssh -p 22 subbu@dlt.aurigraph.io "docker --version && docker-compose --version"
 ```
 
 ### 3. GitHub CLI Installed (optional but recommended)
@@ -59,7 +59,7 @@ cat ~/.ssh/aurigraph-deploy-key.pub
 Copy the output and add it to the remote server:
 
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io "mkdir -p ~/.ssh && echo 'PASTE_PUBLIC_KEY_HERE' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+ssh -p 22 subbu@dlt.aurigraph.io "mkdir -p ~/.ssh && echo 'PASTE_PUBLIC_KEY_HERE' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
 ### Step 3: Configure GitHub Secrets
@@ -110,7 +110,7 @@ You should see:
 ### Step 6: Setup Remote Directories
 
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 mkdir -p /opt/aurigraph/{production,staging,backups}
 cd /opt/aurigraph/production
 # Clone the repository if not already present
@@ -143,7 +143,7 @@ After the workflow completes:
 
 // turbo
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps"
+ssh -p 22 subbu@dlt.aurigraph.io "docker ps"
 ```
 
 // turbo
@@ -154,7 +154,7 @@ curl https://dlt.aurigraph.io/api/v11/health
 ### Test 3: Check Deployment Logs
 
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 --tail 50"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 --tail 50"
 ```
 
 ---
@@ -208,7 +208,7 @@ One instance at a time
 
 ### Check Remote Server
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 echo "=== Docker Containers ==="
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
@@ -232,7 +232,7 @@ The pipeline automatically rolls back if:
 
 ### Manual Rollback
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 cd /opt/aurigraph/production
 
 # Find latest backup
@@ -261,7 +261,7 @@ EOF
 ### Issue: SSH Connection Failed
 ```bash
 # Test SSH manually
-ssh -p 2235 -v subbu@dlt.aurigraph.io
+ssh -p 22 -v subbu@dlt.aurigraph.io
 
 # Verify key permissions
 chmod 600 ~/.ssh/aurigraph-deploy-key
@@ -276,17 +276,17 @@ Check workflow logs for Maven build errors:
 ### Issue: Health Checks Timeout
 ```bash
 # Check service logs on remote
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 --tail 100"
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs dlt-postgres --tail 50"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 --tail 100"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs dlt-postgres --tail 50"
 ```
 
 ### Issue: Port Already in Use
 ```bash
 # Check what's using the port
-ssh -p 2235 subbu@dlt.aurigraph.io "netstat -tlnp | grep -E '9003|9004|3000|80|443'"
+ssh -p 22 subbu@dlt.aurigraph.io "netstat -tlnp | grep -E '9003|9004|3000|80|443'"
 
 # Stop conflicting containers
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps -a | grep -v 'CONTAINER'"
+ssh -p 22 subbu@dlt.aurigraph.io "docker ps -a | grep -v 'CONTAINER'"
 ```
 
 ---
@@ -308,10 +308,10 @@ gh run watch
 ### Remote Server Quick Checks
 ```bash
 # One-liner health check
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps && curl -s http://localhost:9004/q/health | jq '.status'"
+ssh -p 22 subbu@dlt.aurigraph.io "docker ps && curl -s http://localhost:9004/q/health | jq '.status'"
 
 # View all service logs
-ssh -p 2235 subbu@dlt.aurigraph.io "cd /opt/aurigraph/production && docker-compose logs --tail=20"
+ssh -p 22 subbu@dlt.aurigraph.io "cd /opt/aurigraph/production && docker-compose logs --tail=20"
 ```
 
 ---

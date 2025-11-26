@@ -151,7 +151,8 @@ public class BridgeChainConfigTest {
         BigDecimal amount = new BigDecimal("100");
 
         BigDecimal expectedFee = amount.multiply(config.getBaseFeePercent());
-        assertEquals(new BigDecimal("0.1"), expectedFee);
+        // Use compareTo for BigDecimal comparison as 0.1 and 0.100 are equal but have different scale
+        assertEquals(0, new BigDecimal("0.1").compareTo(expectedFee), "Fee should be 0.1");
     }
 
     @Test

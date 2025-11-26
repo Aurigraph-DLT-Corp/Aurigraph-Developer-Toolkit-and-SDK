@@ -1,0 +1,331 @@
+@startuml Docker Compose Modular Architecture
+title Aurigraph V11 - Docker Compose Modular Architecture
+
+!define COMPOSE_MODULE rectangle
+
+' Main Orchestration
+package "Orchestration Layer" {
+    COMPOSE_MODULE "docker-compose.orchestration.yml" as ORCH {
+        Includes all modules
+        Global network management
+        Profile-based activation
+    }
+}
+
+' Core Application
+package "Core Application Module" {
+    COMPOSE_MODULE "docker-compose.yml" as CORE {
+        **Services:**
+        • aurigraph-v11-native (main app)
+        • aurigraph-v11-jvm (backup)
+        • consul (service discovery)
+        • vault (secrets mgmt)
+        • prometheus (metrics)
+        • grafana (visualization)
+        • nginx (load balancer)
+        • fluentd (log aggregation)
+        • redis (cache)
+
+        **Networks:**
+        • aurigraph-frontend
+        • aurigraph-backend
+        • monitoring
+
+        **Volumes:**
+        • aurigraph-data
+        • prometheus-data
+        • grafana-data
+        • consul-data
+        • vault-data
+    }
+}
+
+' Monitoring Module
+package "Monitoring Module" {
+    COMPOSE_MODULE "docker-compose.monitoring.yml" as MON {
+        **Services:**
+        • prometheus (metrics collection)
+        • grafana (dashboards)
+        • alertmanager (alerts)
+        • node-exporter (system metrics)
+        • cadvisor (container metrics)
+
+        **Profile:** monitoring
+
+        **Ports:**
+        • 9090 (Prometheus)
+        • 3000 (Grafana)
+        • 9093 (Alertmanager)
+        • 9100 (Node Exporter)
+        • 8080 (cAdvisor)
+    }
+}
+
+' Security Module
+package "Security Module" {
+    COMPOSE_MODULE "docker-compose.security.yml" as SEC {
+        **Services:**
+        • vault (HashiCorp Vault)
+        • keycloak (IAM)
+        • keycloak-db (PostgreSQL)
+        • cert-manager (certbot)
+        • trivy (security scanner)
+
+        **Profiles:**
+        • cert-renewal
+        • security-scan
+
+        **Ports:**
+        • 8200 (Vault)
+        • 8180 (Keycloak)
+        • 8443 (Keycloak HTTPS)
+    }
+}
+
+' Backup Module
+package "Backup Module" {
+    COMPOSE_MODULE "docker-compose.backup.yml" as BACKUP {
+        **Services:**
+        • postgres-backup (scheduled)
+        • rocksdb-backup (manual)
+        • config-backup (manual)
+        • s3-backup-sync (cloud sync)
+        • restore-service (restore)
+        • backup-monitor (metrics)
+
+        **Profiles:**
+        • backup
+        • cloud-backup
+        • restore
+        • backup-monitoring
+
+        **Schedule:**
+        • Daily PostgreSQL backup
+        • Weekly RocksDB snapshot
+        • Monthly config backup
+    }
+}
+
+' Scaling Module
+package "Horizontal Scaling Module" {
+    COMPOSE_MODULE "docker-compose.scaling.yml" as SCALE {
+        **Services:**
+        • haproxy (load balancer)
+        • business-node (replicated)
+        • slim-node (replicated)
+        • redis-cluster (3+ nodes)
+        • autoscaler (dynamic scaling)
+        • consul (service discovery)
+
+        **Profile:** scaling
+
+        **Replication:**
+        • Business nodes: 3-10 replicas
+        • Slim nodes: 5-20 replicas
+        • Redis cluster: 3+ nodes
+    }
+}
+
+' Testing Module
+package "Testing Module" {
+    COMPOSE_MODULE "docker-compose.testing.yml" as TEST {
+        **Services:**
+        • postgres-test (test DB)
+        • redis-test (test cache)
+        • unit-tests (Maven)
+        • integration-tests (TestContainers)
+        • selenium-hub (E2E tests)
+        • selenium-chrome (browser)
+        • e2e-tests (Portal tests)
+        • k6-load-test (performance)
+        • allure-report (test reports)
+        • coverage-report (JaCoCo)
+
+        **Profiles:**
+        • testing
+        • unit-tests
+        • integration-tests
+        • e2e-tests
+        • performance-tests
+        • test-reports
+    }
+}
+
+' CI/CD Module
+package "CI/CD Module" {
+    COMPOSE_MODULE "docker-compose.ci.yml" as CICD {
+        **Services:**
+        • jenkins (CI/CD server)
+        • gitlab-runner (GitLab CI)
+        • nexus (artifact repo)
+        • sonarqube (code quality)
+        • sonarqube-db (PostgreSQL)
+        • docker-registry (private)
+        • build-agent (Maven)
+        • deploy-agent (deployment)
+
+        **Profiles:**
+        • jenkins
+        • gitlab
+        • artifacts
+        • sonarqube
+        • registry
+        • build
+        • deploy
+
+        **Ports:**
+        • 8081 (Jenkins)
+        • 8082 (Nexus)
+        • 9000 (SonarQube)
+        • 5000 (Docker Registry)
+    }
+}
+
+' Staging Module
+package "Staging Environment" {
+    COMPOSE_MODULE "docker-compose.staging.yml" as STAGING {
+        **Services:**
+        • aurigraph-staging (app)
+        • postgres-staging (DB)
+        • redis-staging (cache)
+        • enterprise-portal-staging
+        • nginx-staging (reverse proxy)
+        • smoke-tests (validation)
+
+        **Profile:** staging
+
+        **Purpose:**
+        Pre-production testing
+        UAT environment
+        Integration validation
+    }
+}
+
+' Migration Module
+package "Database Migration" {
+    COMPOSE_MODULE "docker-compose.migration.yml" as MIG {
+        **Services:**
+        • flyway-migrate (DB migrations)
+        • flyway-info (migration status)
+        • flyway-validate (validation)
+        • liquibase-update (Liquibase)
+        • liquibase-rollback (rollback)
+        • data-migration (data scripts)
+        • schema-version (version check)
+        • pre-migration-backup (backup)
+
+        **Profiles:**
+        • flyway
+        • flyway-info
+        • flyway-validate
+        • liquibase
+        • liquibase-rollback
+        • data-migration
+        • schema-check
+        • pre-migration-backup
+    }
+}
+
+' Relationships and Dependencies
+ORCH ..> CORE : includes
+ORCH ..> MON : includes
+ORCH ..> SEC : includes
+ORCH ..> BACKUP : includes
+ORCH ..> SCALE : includes
+ORCH ..> TEST : includes
+ORCH ..> CICD : includes
+ORCH ..> STAGING : includes
+ORCH ..> MIG : includes
+
+CORE --> MON : metrics export
+CORE --> SEC : authentication
+CORE --> BACKUP : data backup
+SCALE --> CORE : app replication
+
+TEST --> CORE : test target
+CICD --> TEST : runs tests
+CICD --> STAGING : deploys to
+STAGING --> MIG : applies migrations
+
+note right of ORCH
+  **Orchestration Features:**
+  • Profile-based activation
+  • Global network management
+  • Shared volume coordination
+  • Service dependency resolution
+  • Health check orchestration
+
+  **Usage Examples:**
+  # Production
+  docker-compose -f docker-compose.orchestration.yml up
+
+  # Dev + Monitoring
+  docker-compose -f docker-compose.orchestration.yml \
+    --profile monitoring up
+
+  # Full stack
+  docker-compose -f docker-compose.orchestration.yml \
+    --profile monitoring \
+    --profile backup \
+    --profile scaling up -d
+end note
+
+note right of CORE
+  **Core Services:**
+  • Native app (GraalVM)
+  • JVM fallback
+  • Service discovery (Consul)
+  • Secrets (Vault)
+  • Monitoring (Prometheus/Grafana)
+  • Load balancing (NGINX)
+  • Caching (Redis)
+
+  **Deployment:**
+  Standalone or orchestrated
+  Minimum production setup
+end note
+
+note right of SCALE
+  **Horizontal Scaling:**
+  • Dynamic replica management
+  • Load balancing (HAProxy)
+  • Auto-scaling based on metrics
+  • Service discovery integration
+  • Redis cluster for cache distribution
+
+  **Targets:**
+  • 2M+ TPS aggregate
+  • 99.99% availability
+  • <200ms API latency
+end note
+
+note right of TEST
+  **Testing Layers:**
+  1. Unit tests (JUnit + Maven)
+  2. Integration tests (TestContainers)
+  3. E2E tests (Selenium)
+  4. Performance tests (K6)
+  5. Coverage reports (JaCoCo)
+
+  **CI/CD Integration:**
+  • Jenkins pipeline
+  • GitLab CI/CD
+  • Automated test execution
+end note
+
+note right of BACKUP
+  **Backup Strategy:**
+  • Automated daily backups
+  • Cloud sync (S3/Azure/GCP)
+  • Point-in-time recovery
+  • Retention policies:
+    - Daily: 7 days
+    - Weekly: 4 weeks
+    - Monthly: 6 months
+
+  **Disaster Recovery:**
+  • RTO: 15 minutes
+  • RPO: 1 hour
+end note
+
+@enduml
