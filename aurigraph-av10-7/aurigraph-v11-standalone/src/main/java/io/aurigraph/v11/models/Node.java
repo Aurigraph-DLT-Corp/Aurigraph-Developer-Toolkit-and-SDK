@@ -54,7 +54,7 @@ public class Node {
     private String publicKey;
 
     @JsonProperty("nodeVersion")
-    private String nodeVersion = "11.0.0";
+    private String nodeVersion = "12.0.0";
 
     @JsonProperty("consensusAlgorithm")
     private String consensusAlgorithm = "HyperRAFT++";
@@ -125,7 +125,7 @@ public class Node {
         this.p2pPort = 30303;
         this.rpcPort = 8545;
         this.grpcPort = 9000;
-        this.nodeVersion = "11.0.0";
+        this.nodeVersion = "12.0.0";
         this.consensusAlgorithm = "HyperRAFT++";
         this.blocksValidated = 0L;
         this.blocksProduced = 0L;

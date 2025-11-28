@@ -137,7 +137,7 @@ public class ConsensusApiResource {
             // Use HashMap to avoid Map.of() 10-parameter limit
             Map<String, Object> metrics = new HashMap<>();
             metrics.put("algorithm", "HyperRAFT++");
-            metrics.put("version", "11.0.0");
+            metrics.put("version", "12.0.0");
             metrics.put("status", "ACTIVE");
 
             // Throughput metrics

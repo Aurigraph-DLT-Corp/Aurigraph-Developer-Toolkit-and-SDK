@@ -72,7 +72,7 @@ public class ValidatorManagementApiResource {
             response.stake = 3500000.0 + (Math.random() * 2000000);
             response.commission = 5.0 + (Math.random() * 5);
             response.region = "us-east";
-            response.version = "11.0.0";
+            response.version = "12.0.0";
 
             // Performance metrics
             response.blocksProposed = 1234 + (int)(Math.random() * 500);

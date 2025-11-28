@@ -186,7 +186,7 @@ public class NetworkResource {
 
                 // Overall network metadata
                 topology.put("networkId", "aurigraph-mainnet-v11");
-                topology.put("networkVersion", "11.0.0");
+                topology.put("networkVersion", "12.0.0");
                 topology.put("consensusAlgorithm", "HyperRAFT++");
                 topology.put("totalNodes", 145);
                 topology.put("activeNodes", 132);

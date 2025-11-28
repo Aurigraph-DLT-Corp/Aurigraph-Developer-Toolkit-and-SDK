@@ -95,7 +95,7 @@ public class Sprint10ConfigurationResource {
             config.performanceLimits.cacheSize = "2GB";
 
             config.lastUpdated = Instant.now().toString();
-            config.version = "11.0.0";
+            config.version = "12.0.0";
 
             return config;
         });
@@ -201,7 +201,7 @@ public class Sprint10ConfigurationResource {
             settings.loggingSettings.elasticsearchUrl = "https://logs.aurigraph.io:9200";
 
             settings.lastUpdated = Instant.now().toString();
-            settings.version = "11.0.0";
+            settings.version = "12.0.0";
 
             return settings;
         });

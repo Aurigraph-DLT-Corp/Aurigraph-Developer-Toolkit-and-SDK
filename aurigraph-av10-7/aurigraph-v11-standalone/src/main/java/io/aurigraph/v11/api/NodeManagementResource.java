@@ -278,7 +278,7 @@ public class NodeManagementResource {
                 nodeId,
                 "VALIDATOR",
                 status,
-                "11.0.0",
+                "12.0.0",
                 (long) (Math.random() * 30 * 24 * 3600), // 0-30 days uptime
                 new ResourceUsage(
                     45.5 + (i % 30),      // CPU %
@@ -309,7 +309,7 @@ public class NodeManagementResource {
                 nodeId,
                 "API",
                 "ACTIVE",
-                "11.0.0",
+                "12.0.0",
                 (long) (Math.random() * 60 * 24 * 3600),
                 new ResourceUsage(35.2 + i * 3, 55.8 + i * 2, 42.1 + i * 2, 78.5 + i),
                 100.0,
@@ -329,7 +329,7 @@ public class NodeManagementResource {
                 nodeId,
                 "BUSINESS",
                 i < 4 ? "ACTIVE" : "SYNCING",
-                "11.0.0",
+                "12.0.0",
                 (long) (Math.random() * 15 * 24 * 3600),
                 new ResourceUsage(28.3 + i * 4, 48.7 + i * 3, 38.9 + i * 2, 65.4 + i * 2),
                 i < 4 ? 100.0 : 98.5,
@@ -349,7 +349,7 @@ public class NodeManagementResource {
                 nodeId,
                 "CHANNEL",
                 "ACTIVE",
-                "11.0.0",
+                "12.0.0",
                 (long) (Math.random() * 45 * 24 * 3600),
                 new ResourceUsage(32.1 + i * 3, 51.2 + i * 2, 44.5 + i * 2, 72.8 + i),
                 100.0,

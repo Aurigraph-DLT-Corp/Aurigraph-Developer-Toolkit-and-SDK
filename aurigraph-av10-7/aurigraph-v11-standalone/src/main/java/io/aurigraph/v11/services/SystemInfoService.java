@@ -62,8 +62,8 @@ public class SystemInfoService {
      */
     private SystemInfo.PlatformInfo buildPlatformInfo() {
         return new SystemInfo.PlatformInfo(
-                "Aurigraph V11",
-                "11.3.0",
+                "Aurigraph V12",
+                "12.0.0",
                 "High-performance blockchain platform with quantum-resistant cryptography",
                 getEnvironment()
         );
@@ -154,7 +154,7 @@ public class SystemInfoService {
     private SystemInfo.BuildInfo buildBuildInfo() {
         SystemInfo.BuildInfo build = new SystemInfo.BuildInfo();
 
-        build.setVersion("11.3.0");
+        build.setVersion("12.0.0");
         build.setBuildTimestamp(Instant.now().toString());
         build.setCommitHash(getGitCommitHash());
         build.setBranch("main");

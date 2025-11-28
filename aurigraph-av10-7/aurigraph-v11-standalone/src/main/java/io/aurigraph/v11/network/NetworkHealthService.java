@@ -116,30 +116,30 @@ public class NetworkHealthService {
         peers = new ArrayList<>();
 
         // North America peers
-        peers.add(createPeer("peer-na-01", "52.12.45.123", 9000, "New York", "USA", 40.7128, -74.0060, 25, "EXCELLENT", "11.0.0"));
-        peers.add(createPeer("peer-na-02", "34.56.78.90", 9000, "San Francisco", "USA", 37.7749, -122.4194, 35, "GOOD", "11.0.0"));
-        peers.add(createPeer("peer-na-03", "13.24.56.78", 9000, "Toronto", "Canada", 43.6532, -79.3832, 28, "EXCELLENT", "11.0.0"));
-        peers.add(createPeer("peer-na-04", "45.67.89.12", 9000, "Chicago", "USA", 41.8781, -87.6298, 32, "GOOD", "11.0.0"));
+        peers.add(createPeer("peer-na-01", "52.12.45.123", 9000, "New York", "USA", 40.7128, -74.0060, 25, "EXCELLENT", "12.0.0"));
+        peers.add(createPeer("peer-na-02", "34.56.78.90", 9000, "San Francisco", "USA", 37.7749, -122.4194, 35, "GOOD", "12.0.0"));
+        peers.add(createPeer("peer-na-03", "13.24.56.78", 9000, "Toronto", "Canada", 43.6532, -79.3832, 28, "EXCELLENT", "12.0.0"));
+        peers.add(createPeer("peer-na-04", "45.67.89.12", 9000, "Chicago", "USA", 41.8781, -87.6298, 32, "GOOD", "12.0.0"));
 
         // Europe peers
-        peers.add(createPeer("peer-eu-01", "85.45.67.89", 9000, "London", "UK", 51.5074, -0.1278, 45, "GOOD", "11.0.0"));
-        peers.add(createPeer("peer-eu-02", "92.34.56.78", 9000, "Frankfurt", "Germany", 50.1109, 8.6821, 40, "EXCELLENT", "11.0.0"));
-        peers.add(createPeer("peer-eu-03", "88.12.34.56", 9000, "Amsterdam", "Netherlands", 52.3702, 4.8952, 42, "GOOD", "11.0.0"));
+        peers.add(createPeer("peer-eu-01", "85.45.67.89", 9000, "London", "UK", 51.5074, -0.1278, 45, "GOOD", "12.0.0"));
+        peers.add(createPeer("peer-eu-02", "92.34.56.78", 9000, "Frankfurt", "Germany", 50.1109, 8.6821, 40, "EXCELLENT", "12.0.0"));
+        peers.add(createPeer("peer-eu-03", "88.12.34.56", 9000, "Amsterdam", "Netherlands", 52.3702, 4.8952, 42, "GOOD", "12.0.0"));
         peers.add(createPeer("peer-eu-04", "95.67.89.12", 9000, "Paris", "France", 48.8566, 2.3522, 48, "FAIR", "10.9.5"));
-        peers.add(createPeer("peer-eu-05", "87.23.45.67", 9000, "Stockholm", "Sweden", 59.3293, 18.0686, 50, "FAIR", "11.0.0"));
+        peers.add(createPeer("peer-eu-05", "87.23.45.67", 9000, "Stockholm", "Sweden", 59.3293, 18.0686, 50, "FAIR", "12.0.0"));
 
         // Asia-Pacific peers
-        peers.add(createPeer("peer-ap-01", "103.45.67.89", 9000, "Singapore", "Singapore", 1.3521, 103.8198, 120, "GOOD", "11.0.0"));
-        peers.add(createPeer("peer-ap-02", "202.34.56.78", 9000, "Tokyo", "Japan", 35.6762, 139.6503, 135, "FAIR", "11.0.0"));
+        peers.add(createPeer("peer-ap-01", "103.45.67.89", 9000, "Singapore", "Singapore", 1.3521, 103.8198, 120, "GOOD", "12.0.0"));
+        peers.add(createPeer("peer-ap-02", "202.34.56.78", 9000, "Tokyo", "Japan", 35.6762, 139.6503, 135, "FAIR", "12.0.0"));
         peers.add(createPeer("peer-ap-03", "115.23.45.67", 9000, "Sydney", "Australia", -33.8688, 151.2093, 180, "FAIR", "10.9.5"));
-        peers.add(createPeer("peer-ap-04", "119.12.34.56", 9000, "Seoul", "South Korea", 37.5665, 126.9780, 140, "GOOD", "11.0.0"));
+        peers.add(createPeer("peer-ap-04", "119.12.34.56", 9000, "Seoul", "South Korea", 37.5665, 126.9780, 140, "GOOD", "12.0.0"));
 
         // South America peers
-        peers.add(createPeer("peer-sa-01", "177.45.67.89", 9000, "São Paulo", "Brazil", -23.5505, -46.6333, 155, "FAIR", "11.0.0"));
+        peers.add(createPeer("peer-sa-01", "177.45.67.89", 9000, "São Paulo", "Brazil", -23.5505, -46.6333, 155, "FAIR", "12.0.0"));
         peers.add(createPeer("peer-sa-02", "190.34.56.78", 9000, "Buenos Aires", "Argentina", -34.6037, -58.3816, 160, "FAIR", "10.9.5"));
 
         // Africa/Middle East peers
-        peers.add(createPeer("peer-me-01", "41.45.67.89", 9000, "Dubai", "UAE", 25.2048, 55.2708, 95, "GOOD", "11.0.0"));
+        peers.add(createPeer("peer-me-01", "41.45.67.89", 9000, "Dubai", "UAE", 25.2048, 55.2708, 95, "GOOD", "12.0.0"));
         peers.add(createPeer("peer-af-01", "102.34.56.78", 9000, "Cape Town", "South Africa", -33.9249, 18.4241, 170, "FAIR", "10.9.5"));
 
         LOG.infof("Initialized %d geographically distributed peers", peers.size());

@@ -355,7 +355,7 @@ public class SmartContractRegistryService {
             stats.put("averageAssetsPerContract",
                     totalContracts > 0 ? (double) totalAssetLinks / totalContracts : 0.0);
             stats.put("timestamp", Instant.now().toString());
-            stats.put("registryVersion", "11.5.0");
+            stats.put("registryVersion", "12.0.0");
 
             Log.debugf("Contract statistics calculated - Total: %d, Active: %d", totalContracts, activeContracts);
             return stats;

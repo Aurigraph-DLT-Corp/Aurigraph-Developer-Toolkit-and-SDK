@@ -51,9 +51,9 @@ public abstract class NodeConfiguration {
 
     /**
      * Version of the node software.
-     * Format: MAJOR.MINOR.PATCH (e.g., "11.0.0")
+     * Format: MAJOR.MINOR.PATCH (e.g., "12.0.0")
      */
-    private String version = "11.0.0";
+    private String version = "12.0.0";
 
     /**
      * Network-level configuration.

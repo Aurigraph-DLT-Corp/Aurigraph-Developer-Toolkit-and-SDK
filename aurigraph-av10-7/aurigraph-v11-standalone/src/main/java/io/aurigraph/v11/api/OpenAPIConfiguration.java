@@ -26,7 +26,7 @@ import jakarta.ws.rs.core.Application;
 @OpenAPIDefinition(
     info = @Info(
         title = "Aurigraph V11 REST API",
-        version = "11.3.4",
+        version = "12.0.0",
         description = "High-performance blockchain platform with quantum-resistant cryptography, " +
                       "AI-driven consensus optimization, real-world asset tokenization, and cross-chain interoperability. " +
                       "Supports 2M+ TPS with sub-100ms finality.",

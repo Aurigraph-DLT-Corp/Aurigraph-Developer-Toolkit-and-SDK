@@ -432,7 +432,7 @@ public class BlockchainApiResource {
             ));
 
             stats.put("timestamp", currentTime);
-            stats.put("apiVersion", "11.0.0");
+            stats.put("apiVersion", "12.0.0");
 
             LOG.debug("Blockchain statistics retrieved successfully");
             return Response.ok(stats).build();
@@ -481,7 +481,7 @@ public class BlockchainApiResource {
             Map<String, Object> chainInfo = new HashMap<>();
             chainInfo.put("chainId", "aurigraph-mainnet-1");
             chainInfo.put("chainName", "Aurigraph V11 Mainnet");
-            chainInfo.put("networkVersion", "11.0.0");
+            chainInfo.put("networkVersion", "12.0.0");
             chainInfo.put("blockHeight", 1_450_789L);
             chainInfo.put("averageBlockTime", 2.0); // seconds
             chainInfo.put("totalTransactions", 125_678_000L);

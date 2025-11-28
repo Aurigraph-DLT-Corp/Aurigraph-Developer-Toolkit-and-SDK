@@ -201,7 +201,7 @@ public class EnterpriseSettingsResource {
 
         // System Configuration
         defaults.put("systemConfiguration", Map.of(
-            "platformVersion", "11.0.0",
+            "platformVersion", "12.0.0",
             "environment", "production",
             "region", "us-east-1",
             "timezone", "UTC",

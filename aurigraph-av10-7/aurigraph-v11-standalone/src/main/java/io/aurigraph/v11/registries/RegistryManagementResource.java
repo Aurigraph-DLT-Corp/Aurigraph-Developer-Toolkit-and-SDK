@@ -370,7 +370,7 @@ public class RegistryManagementResource {
         Map<String, String> healthStatus = Map.of(
             "status", "UP",
             "service", "Registry Management API",
-            "version", "11.5.0"
+            "version", "12.0.0"
         );
         return Response.ok(healthStatus).build();
     }

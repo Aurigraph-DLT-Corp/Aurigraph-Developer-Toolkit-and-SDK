@@ -81,7 +81,7 @@ public class BlockchainDataService {
             Log.info("Fetching system information");
 
             return SystemInfoDTO.builder()
-                .version("11.0.0")
+                .version("12.0.0")
                 .buildTime("2025-10-31T10:30:00Z")
                 .environment("production")
                 .uptimeMs(System.currentTimeMillis() - STARTUP_TIME)
@@ -100,7 +100,7 @@ public class BlockchainDataService {
              Log.error("Failed to get system info", throwable);
              return SystemInfoDTO.builder()
                  .error(throwable.getMessage())
-                 .version("11.0.0")
+                 .version("12.0.0")
                  .build();
          });
     }

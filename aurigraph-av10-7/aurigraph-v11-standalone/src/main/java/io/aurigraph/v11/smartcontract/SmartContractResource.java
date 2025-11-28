@@ -340,7 +340,7 @@ public class SmartContractResource {
             "success", true,
             "sdk", Map.of(
                 "name", "Aurigraph Smart Contract SDK",
-                "version", "11.2.1",
+                "version", "12.0.0",
                 "platform", "Aurigraph DLT",
                 "supportedLanguages", List.of("SOLIDITY", "JAVA", "JAVASCRIPT", "WASM", "PYTHON"),
                 "features", List.of(

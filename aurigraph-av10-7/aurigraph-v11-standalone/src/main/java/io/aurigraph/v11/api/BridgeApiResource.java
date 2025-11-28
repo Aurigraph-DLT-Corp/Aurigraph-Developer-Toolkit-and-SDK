@@ -145,7 +145,7 @@ public class BridgeApiResource {
                 "activeChains", 7,
                 "betaChains", 1,
                 "chains", chains,
-                "bridgeVersion", "11.0.0",
+                "bridgeVersion", "12.0.0",
                 "lastUpdated", System.currentTimeMillis()
             );
 

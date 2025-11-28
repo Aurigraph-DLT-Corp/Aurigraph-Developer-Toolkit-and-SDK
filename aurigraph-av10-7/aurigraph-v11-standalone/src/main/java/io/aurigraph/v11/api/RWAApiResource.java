@@ -55,7 +55,7 @@ public class RWAApiResource {
             // Use HashMap to avoid Map.of() 10-parameter limit
             Map<String, Object> status = new HashMap<>();
             status.put("systemStatus", "OPERATIONAL");
-            status.put("version", "11.0.0");
+            status.put("version", "12.0.0");
             status.put("serviceHealth", "HEALTHY");
 
             // Tokenization statistics

@@ -90,7 +90,7 @@ public class AurigraphResource {
     public SystemInfo info() {
         return new SystemInfo(
             "Aurigraph V11 Java Nexus",
-            "11.0.0",
+            "12.0.0",
             "Java " + System.getProperty("java.version"),
             "Quarkus Native Ready",
             System.getProperty("os.name"),
@@ -268,7 +268,7 @@ public class AurigraphResource {
 
         return new SystemStatus(
             "Aurigraph V11 Platform",
-            "11.0.0",
+            "12.0.0",
             System.currentTimeMillis() - startupTime.getEpochSecond() * 1000,
             true, // Overall health
             txStats,

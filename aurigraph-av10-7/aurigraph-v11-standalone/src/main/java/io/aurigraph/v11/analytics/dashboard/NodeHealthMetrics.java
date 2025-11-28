@@ -160,7 +160,7 @@ public record NodeHealthMetrics(
         return new NodeHealthMetrics(
             nodeId,
             "VALIDATOR",
-            "11.0.0",
+            "12.0.0",
             new NodeStatus("ACTIVE", "LEADER", true, true, true, 0, now, now, 100.0),
             new NodePerformance(0, 0, 0, 0, 0, 0, 0, 100.0),
             new NodeResources(0, 0, 0, Runtime.getRuntime().availableProcessors(),

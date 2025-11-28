@@ -146,7 +146,7 @@ public class BridgeTransferApiResource {
             BridgeStatusResponse response = new BridgeStatusResponse();
             response.timestamp = Instant.now().toEpochMilli();
             response.overallStatus = "OPERATIONAL";
-            response.bridgeVersion = "11.0.0";
+            response.bridgeVersion = "12.0.0";
 
             // Supported chains
             response.supportedChains = new ArrayList<>();

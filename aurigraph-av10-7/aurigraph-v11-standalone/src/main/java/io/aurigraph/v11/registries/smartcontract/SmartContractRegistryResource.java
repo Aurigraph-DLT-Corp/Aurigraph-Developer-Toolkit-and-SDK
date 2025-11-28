@@ -428,7 +428,7 @@ public class SmartContractRegistryResource {
         return Response.ok(Map.of(
                 "status", "healthy",
                 "service", "SmartContractRegistry",
-                "version", "11.5.0",
+                "version", "12.0.0",
                 "timestamp", new Date().toString()
         )).build();
     }
@@ -463,7 +463,7 @@ public class SmartContractRegistryResource {
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("service", "Smart Contract Registry");
-        response.put("version", "11.5.0");
+        response.put("version", "12.0.0");
         response.put("basePath", "/api/v11/registries/smart-contract");
         response.put("endpoints", endpoints);
         response.put("features", List.of(

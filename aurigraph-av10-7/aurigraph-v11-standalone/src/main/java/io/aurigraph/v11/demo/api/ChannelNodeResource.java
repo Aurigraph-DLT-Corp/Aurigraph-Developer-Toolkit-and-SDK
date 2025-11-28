@@ -334,7 +334,7 @@ public class ChannelNodeResource {
                 "nodeId", channelNodeService.getNodeId(),
                 "nodeType", "CHANNEL",
                 "status", channelNodeService.getNodeStatus().toString(),
-                "version", "11.0.0",
+                "version", "12.0.0",
                 "description", "Aurigraph V11 Channel Node - Multi-channel data flow coordination"
         )).build();
     }

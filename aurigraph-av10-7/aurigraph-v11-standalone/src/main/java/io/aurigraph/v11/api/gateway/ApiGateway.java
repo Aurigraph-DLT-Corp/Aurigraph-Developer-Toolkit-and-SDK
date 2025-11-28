@@ -58,7 +58,7 @@ public class ApiGateway {
     public GatewayStatus getGatewayStatus() {
         return new GatewayStatus(
             "ACTIVE",
-            "11.0.0",
+            "12.0.0",
             metrics.getTotalRequests(),
             metrics.getSuccessfulRequests(),
             metrics.getRateLimitedRequests(),

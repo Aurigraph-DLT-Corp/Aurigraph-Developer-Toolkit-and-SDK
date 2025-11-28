@@ -224,7 +224,7 @@ public class AIApiResource {
             status.systemStatus = "OPERATIONAL";
             status.aiEnabled = true;
             status.mlOptimizationEnabled = true;
-            status.version = "11.0.0";
+            status.version = "12.0.0";
             status.totalModels = 5;
             status.activeModels = 4;
             status.modelsInTraining = 0;

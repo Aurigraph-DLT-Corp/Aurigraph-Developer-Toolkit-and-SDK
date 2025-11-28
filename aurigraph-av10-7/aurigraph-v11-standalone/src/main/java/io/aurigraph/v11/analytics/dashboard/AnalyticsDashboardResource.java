@@ -264,7 +264,7 @@ public class AnalyticsDashboardResource {
             return Response.ok(Map.of(
                 "status", "healthy",
                 "service", "analytics-dashboard",
-                "version", "11.0.0",
+                "version", "12.0.0",
                 "timestamp", System.currentTimeMillis()
             )).build();
         } catch (Exception e) {
@@ -296,7 +296,7 @@ public class AnalyticsDashboardResource {
         LOG.debug("GET /api/v11/dashboard/config - Fetching dashboard configuration");
 
         return Response.ok(Map.of(
-            "version", "11.0.0",
+            "version", "12.0.0",
             "features", Map.of(
                 "realTimeStreaming", true,
                 "historicalData", true,

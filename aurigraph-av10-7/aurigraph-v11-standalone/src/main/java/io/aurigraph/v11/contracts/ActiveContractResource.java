@@ -441,7 +441,7 @@ public class ActiveContractResource {
 
         Map<String, Object> sdkInfo = new HashMap<>();
         sdkInfo.put("name", "Aurigraph ActiveContracts Platform");
-        sdkInfo.put("version", "11.3.0");
+        sdkInfo.put("version", "12.0.0");
         sdkInfo.put("description", "Unified smart contract platform combining legal contracts, multi-language SDK, and RWA tokenization");
         sdkInfo.put("features", List.of(
             "Multi-language smart contracts (Solidity, Java, JavaScript, WASM, Python, Custom)",
@@ -478,7 +478,7 @@ public class ActiveContractResource {
         Map<String, Object> health = new HashMap<>();
         health.put("status", "UP");
         health.put("platform", "Aurigraph ActiveContracts");
-        health.put("version", "11.3.0");
+        health.put("version", "12.0.0");
         health.put("timestamp", java.time.Instant.now().toString());
 
         Map<String, Long> metrics = contractService.getMetrics();

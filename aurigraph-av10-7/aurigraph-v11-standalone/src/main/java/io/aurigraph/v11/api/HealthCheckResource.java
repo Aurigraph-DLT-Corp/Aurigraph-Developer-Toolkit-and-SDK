@@ -72,7 +72,7 @@ public class HealthCheckResource {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("timestamp", Instant.now().toString());
-        response.put("version", "11.0.0");
+        response.put("version", "12.0.0");
         response.put("uptime", getUptimeSeconds());
         response.put("checks", checks);
 

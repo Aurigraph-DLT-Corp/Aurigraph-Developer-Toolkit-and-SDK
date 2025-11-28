@@ -163,7 +163,7 @@ public class CryptoApiResource {
             // Use HashMap to avoid Map.of() 10-parameter limit
             java.util.Map<String, Object> metrics = new java.util.HashMap<>();
             metrics.put("cryptoSystem", "Post-Quantum Cryptography");
-            metrics.put("version", "11.0.0");
+            metrics.put("version", "12.0.0");
             metrics.put("status", "ACTIVE");
 
             // Algorithms in use

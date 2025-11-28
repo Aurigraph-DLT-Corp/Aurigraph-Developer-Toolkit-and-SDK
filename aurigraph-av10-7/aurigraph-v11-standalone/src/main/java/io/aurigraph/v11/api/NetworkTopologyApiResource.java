@@ -71,7 +71,7 @@ public class NetworkTopologyApiResource {
                 node.latency = 25.0 + (Math.random() * 30);
                 node.stake = 1000000.0 + (Math.random() * 5000000);
                 node.uptime = 99.5 + (Math.random() * 0.5);
-                node.version = "11.0.0";
+                node.version = "12.0.0";
                 response.nodes.add(node);
             }
 
@@ -86,7 +86,7 @@ public class NetworkTopologyApiResource {
                 node.latency = 40.0 + (Math.random() * 50);
                 node.stake = 0.0;
                 node.uptime = 95.0 + (Math.random() * 5);
-                node.version = i % 10 == 0 ? "10.9.5" : "11.0.0";
+                node.version = i % 10 == 0 ? "10.9.5" : "12.0.0";
                 response.nodes.add(node);
             }
 
