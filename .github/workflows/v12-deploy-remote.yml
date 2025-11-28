@@ -38,8 +38,8 @@ env:
   REMOTE_PORT: 22
   REMOTE_USER: subbu
   REMOTE_DIR: /home/subbu
-  APP_PORT: 9003
-  GRPC_PORT: 9004
+  APP_PORT: 9000
+  GRPC_PORT: 9001
 
 jobs:
   # ============================================================
@@ -144,7 +144,7 @@ jobs:
           echo "=== Current V12 Status ==="
           if pgrep -f 'aurigraph-v12.jar' > /dev/null; then
             echo "✅ V12 is currently running"
-            curl -s http://localhost:9003/api/v11/health | head -c 200 || echo "⚠️ Health endpoint not responding"
+            curl -s http://localhost:9000/api/v11/health | head -c 200 || echo "⚠️ Health endpoint not responding"
           else
             echo "⚠️ V12 is not running"
           fi
@@ -224,8 +224,16 @@ jobs:
             -XX:MaxGCPauseMillis=200 \
             -XX:+HeapDumpOnOutOfMemoryError \
             -XX:HeapDumpPath=/home/subbu/logs/heapdump.hprof \
-            -Dquarkus.http.port=9003 \
+            -Dquarkus.http.port=9000 \
+            -Dquarkus.grpc.server.port=9001 \
             -Dquarkus.log.level=INFO \
+            -Dquarkus.profile=prod \
+            -Dcurby.quantum.api-key=placeholder \
+            -Dquarkus.datasource.db-kind=postgresql \
+            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/aurigraph_demos \
+            -Dquarkus.datasource.username=aurigraph \
+            -Dquarkus.datasource.password=aurigraph2025 \
+            -Dquarkus.flyway.migrate-at-start=false \
             -jar /home/subbu/aurigraph-v12.jar \
             > /home/subbu/logs/v12.log 2>&1 &
 
@@ -258,11 +266,11 @@ jobs:
             echo "Health check attempt $i/$MAX_RETRIES..."
 
             HEALTH=$(ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} \
-              "curl -s http://localhost:9003/api/v11/health 2>/dev/null" || echo '{"status":"error"}')
+              "curl -s http://localhost:9000/api/v11/health 2>/dev/null" || echo '{"status":"error"}')
 
             STATUS=$(echo "$HEALTH" | jq -r '.status // "error"' 2>/dev/null || echo "error")
 
-            if [ "$STATUS" = "healthy" ]; then
+            if [ "$STATUS" = "UP" ]; then
               echo "✅ Health check passed!"
               echo "$HEALTH" | jq .
               echo "health_status=healthy" >> $GITHUB_OUTPUT
@@ -286,15 +294,15 @@ jobs:
 
           ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
           echo "1. Health endpoint:"
-          curl -s http://localhost:9003/api/v11/health | jq -r '.status' || echo "❌ Failed"
+          curl -s http://localhost:9000/api/v11/health | jq -r '.status' || echo "❌ Failed"
 
           echo ""
           echo "2. Info endpoint:"
-          curl -s http://localhost:9003/api/v11/info | jq -r '.platform.version' || echo "❌ Failed"
+          curl -s http://localhost:9000/api/v11/info | jq -r '.platform.version' || echo "❌ Failed"
 
           echo ""
           echo "3. Analytics dashboard:"
-          curl -s http://localhost:9003/api/v11/analytics/dashboard | jq -r '.tpsOverTime | length' | xargs -I {} echo "Data points: {}" || echo "❌ Failed"
+          curl -s http://localhost:9000/api/v11/analytics/dashboard | jq -r '.tpsOverTime | length' | xargs -I {} echo "Data points: {}" || echo "❌ Failed"
 
           echo ""
           echo "4. Process status:"
@@ -323,13 +331,20 @@ jobs:
 
             echo "=== Starting previous version ==="
             nohup /usr/bin/java -Xmx8g -Xms4g -XX:+UseG1GC \
-              -Dquarkus.http.port=9003 \
+              -Dquarkus.http.port=9000 \
+              -Dquarkus.profile=prod \
+              -Dcurby.quantum.api-key=placeholder \
+              -Dquarkus.datasource.db-kind=postgresql \
+              -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/aurigraph_demos \
+              -Dquarkus.datasource.username=aurigraph \
+              -Dquarkus.datasource.password=aurigraph2025 \
+              -Dquarkus.flyway.migrate-at-start=false \
               -jar aurigraph-v12.jar \
               > logs/v12.log 2>&1 &
 
             sleep 15
 
-            if curl -s http://localhost:9003/api/v11/health | grep -q "healthy"; then
+            if curl -s http://localhost:9000/api/v11/health | grep -q "UP"; then
               echo "✅ Rollback successful"
             else
               echo "❌ Rollback health check failed"
@@ -344,7 +359,14 @@ jobs:
               cp "$LATEST_BACKUP" aurigraph-v12.jar
 
               nohup /usr/bin/java -Xmx8g -Xms4g -XX:+UseG1GC \
-                -Dquarkus.http.port=9003 \
+                -Dquarkus.http.port=9000 \
+                -Dquarkus.profile=prod \
+                -Dcurby.quantum.api-key=placeholder \
+                -Dquarkus.datasource.db-kind=postgresql \
+                -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/aurigraph_demos \
+                -Dquarkus.datasource.username=aurigraph \
+                -Dquarkus.datasource.password=aurigraph2025 \
+                -Dquarkus.flyway.migrate-at-start=false \
                 -jar aurigraph-v12.jar \
                 > logs/v12.log 2>&1 &
 
