@@ -261,6 +261,28 @@ jobs:
             exit 1
           fi
 
+      - name: Update NGINX configuration
+        run: |
+          echo "🔧 Updating NGINX configuration..."
+
+          # Create NGINX config for API proxy to port 9000
+          sudo tee /etc/nginx/conf.d/api-proxy.conf > /dev/null << 'NGINX_EOF'
+          upstream v12_backend {
+              server 127.0.0.1:9000 max_fails=3 fail_timeout=30s;
+              keepalive 32;
+          }
+          NGINX_EOF
+
+          # Update main site config to use upstream
+          if grep -q "proxy_pass.*9003" /etc/nginx/sites-available/dlt.aurigraph.io 2>/dev/null; then
+            sudo sed -i 's/proxy_pass.*9003/proxy_pass http:\/\/127.0.0.1:9000/g' /etc/nginx/sites-available/dlt.aurigraph.io
+            echo "✅ Updated proxy_pass from 9003 to 9000"
+          fi
+
+          # Test and reload NGINX
+          sudo nginx -t && sudo systemctl reload nginx
+          echo "✅ NGINX configuration updated and reloaded"
+
       - name: Verify endpoints
         run: |
           echo "🧪 Verifying API endpoints..."
