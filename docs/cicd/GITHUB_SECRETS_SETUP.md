@@ -22,7 +22,7 @@ This document describes the GitHub Secrets required for automated CI/CD deployme
 
 2. Add the public key to the remote server:
    ```bash
-   ssh -p 2235 subbu@dlt.aurigraph.io "cat >> ~/.ssh/authorized_keys" < ~/.ssh/github-deploy-key.pub
+   ssh subbu@dlt.aurigraph.io "cat >> ~/.ssh/authorized_keys" < ~/.ssh/github-deploy-key.pub
    ```
 
 3. Update in GitHub Secrets:
@@ -53,7 +53,7 @@ This document describes the GitHub Secrets required for automated CI/CD deployme
 | Property | Value |
 |----------|-------|
 | **Host** | dlt.aurigraph.io |
-| **SSH Port** | 2235 |
+| **SSH Port** | 22 |
 | **Username** | subbu |
 | **App Directory** | /home/subbu |
 | **App Port** | 9003 |

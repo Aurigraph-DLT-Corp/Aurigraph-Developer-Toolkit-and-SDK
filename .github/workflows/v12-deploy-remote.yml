@@ -35,7 +35,7 @@ env:
   MAVEN_OPTS: '-Xmx4g'
   # Remote server configuration
   REMOTE_HOST: dlt.aurigraph.io
-  REMOTE_PORT: 2235
+  REMOTE_PORT: 22
   REMOTE_USER: subbu
   REMOTE_DIR: /home/subbu
   APP_PORT: 9003
