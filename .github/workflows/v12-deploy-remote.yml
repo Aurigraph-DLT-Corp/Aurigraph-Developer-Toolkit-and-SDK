@@ -122,24 +122,12 @@ jobs:
           name: v12-jar
           path: ./artifact
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-
-          # Test SSH connection
-          ssh -p ${{ env.REMOTE_PORT }} -o ConnectTimeout=10 ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} "echo '✅ SSH connection successful'"
-
       - name: Pre-deployment health check
         id: pre_health
         run: |
           echo "🔍 Checking current deployment status..."
-
-          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
           echo "=== Current V12 Status ==="
-          if pgrep -f 'aurigraph-v12.jar' > /dev/null; then
+          if pgrep -f 'aurigraph-v12' > /dev/null; then
             echo "✅ V12 is currently running"
             curl -s http://localhost:9000/api/v11/health | head -c 200 || echo "⚠️ Health endpoint not responding"
           else
@@ -153,13 +141,10 @@ jobs:
           echo ""
           echo "=== Memory ==="
           free -h | head -2
-          EOF
 
       - name: Create backup
         run: |
           echo "💾 Creating pre-deployment backup..."
-
-          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
           cd /home/subbu
           BACKUP_NAME="aurigraph-v12.jar.backup-$(date +%Y%m%d_%H%M%S)"
 
@@ -174,30 +159,23 @@ jobs:
           else
             echo "⚠️ No existing JAR to backup"
           fi
-          EOF
 
-      - name: Upload new JAR
+      - name: Copy new JAR
         run: |
-          echo "📤 Uploading new JAR to remote server..."
-
+          echo "📤 Copying new JAR..."
           JAR_FILE=$(ls artifact/*-runner.jar | head -1)
-          echo "Uploading: $JAR_FILE"
-
-          scp -P ${{ env.REMOTE_PORT }} "$JAR_FILE" ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/home/subbu/aurigraph-v12-new.jar
-
-          echo "✅ Upload complete"
+          echo "Copying: $JAR_FILE to /home/subbu/aurigraph-v12-new.jar"
+          cp "$JAR_FILE" /home/subbu/aurigraph-v12-new.jar
+          echo "✅ Copy complete"
 
       - name: Deploy application
         run: |
           echo "🚀 Deploying V12 application..."
-
-          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'DEPLOY_EOF'
-          set -e
           cd /home/subbu
 
           echo "=== Stopping current V12 ==="
-          if pgrep -f 'aurigraph-v12.jar' > /dev/null; then
-            pkill -f 'aurigraph-v12.jar' && echo "✅ Stopped old process" || echo "⚠️ Could not stop process"
+          if pgrep -f 'aurigraph-v12' > /dev/null; then
+            pkill -f 'aurigraph-v12' && echo "✅ Stopped old process" || echo "⚠️ Could not stop process"
             sleep 3
           fi
 
@@ -241,7 +219,7 @@ jobs:
           sleep 15
 
           # Verify process is still running
-          if ps -p $NEW_PID > /dev/null 2>&1 || pgrep -f 'aurigraph-v12.jar' > /dev/null; then
+          if pgrep -f 'aurigraph-v12' > /dev/null; then
             echo "✅ Process is running"
           else
             echo "❌ Process died during startup!"
@@ -249,7 +227,6 @@ jobs:
             tail -50 logs/v12.log
             exit 1
           fi
-          DEPLOY_EOF
 
       - name: Health check
         id: health_check
@@ -262,8 +239,7 @@ jobs:
           for i in $(seq 1 $MAX_RETRIES); do
             echo "Health check attempt $i/$MAX_RETRIES..."
 
-            HEALTH=$(ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} \
-              "curl -s http://localhost:9000/api/v11/health 2>/dev/null" || echo '{"status":"error"}')
+            HEALTH=$(curl -s http://localhost:9000/api/v11/health 2>/dev/null || echo '{"status":"error"}')
 
             STATUS=$(echo "$HEALTH" | jq -r '.status // "error"' 2>/dev/null || echo "error")
 
@@ -289,7 +265,6 @@ jobs:
         run: |
           echo "🧪 Verifying API endpoints..."
 
-          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
           echo "1. Health endpoint:"
           curl -s http://localhost:9000/api/v11/health | jq -r '.status' || echo "❌ Failed"
 
@@ -307,14 +282,11 @@ jobs:
 
           echo ""
           echo "✅ Endpoint verification complete"
-          EOF
 
       - name: Rollback on failure
         if: failure() && steps.health_check.outputs.health_status == 'unhealthy'
         run: |
           echo "🔄 Initiating rollback..."
-
-          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
           cd /home/subbu
 
           echo "=== Stopping failed deployment ==="
@@ -371,7 +343,6 @@ jobs:
               echo "Backup restoration attempted"
             fi
           fi
-          EOF
 
   # ============================================================
   # PHASE 3: POST-DEPLOYMENT
