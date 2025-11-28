@@ -7,7 +7,7 @@ services:
     expose:
       - "3000"
     environment:
-      - AURIGRAPH_API_URL=http://localhost:9003
+      - AURIGRAPH_API_URL=http://localhost:9000
       - PORT=3000
       - API_VERSION=v11
     volumes:

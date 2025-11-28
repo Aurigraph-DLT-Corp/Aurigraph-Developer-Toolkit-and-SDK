@@ -8,6 +8,7 @@ import org.junit.jupiter.api.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
@@ -379,8 +380,9 @@ public class CURByQuantumPerformanceTest {
         long testStartTime = System.currentTimeMillis();
         long testEndTime = testStartTime + (LOAD_TEST_DURATION_SECONDS * 1000L);
 
-        List<Future<?>> futures = IntStream.range(0, 10)
-            .mapToObj(i -> executor.submit(() -> {
+        List<Future<?>> futures = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            futures.add(executor.submit(() -> {
                 while (System.currentTimeMillis() < testEndTime) {
                     try {
                         Response response = given()
@@ -403,8 +405,8 @@ public class CURByQuantumPerformanceTest {
                         errorCount.incrementAndGet();
                     }
                 }
-            }))
-            .toList();
+            }));
+        }
 
         // Wait for all threads to complete
         for (Future<?> future : futures) {
