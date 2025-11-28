@@ -265,58 +265,32 @@ jobs:
         run: |
           echo "🔧 Updating NGINX configuration..."
 
-          # Create proper API routing config with /api/v11/ to port 9000
-          sudo tee /etc/nginx/conf.d/api-v12-proxy.conf > /dev/null << 'NGINX_EOF'
-          # V12 API Proxy Configuration
-          # This file ensures /api/v11/* routes go to the Java backend on port 9000
+          # Enable aurigraph-portal site if it exists
+          if [ -f /etc/nginx/sites-available/aurigraph-portal ]; then
+            echo "Found aurigraph-portal site config"
 
-          # Upstream definition for V12 backend
-          upstream v12_api_backend {
-              server 127.0.0.1:9000 max_fails=3 fail_timeout=30s;
-              keepalive 32;
-          }
-          NGINX_EOF
+            # Update the API proxy port from 9003 to 9000
+            sudo sed -i 's|proxy_pass http://localhost:9003|proxy_pass http://localhost:9000|g' /etc/nginx/sites-available/aurigraph-portal
+            sudo sed -i 's|proxy_pass http://127.0.0.1:9003|proxy_pass http://127.0.0.1:9000|g' /etc/nginx/sites-available/aurigraph-portal
 
-          # Check if site config exists and add/update API location block
-          SITE_CONF=""
-          if [ -f /etc/nginx/sites-available/dlt.aurigraph.io ]; then
-            SITE_CONF="/etc/nginx/sites-available/dlt.aurigraph.io"
-          elif [ -f /etc/nginx/sites-enabled/dlt.aurigraph.io ]; then
-            SITE_CONF="/etc/nginx/sites-enabled/dlt.aurigraph.io"
-          elif [ -f /etc/nginx/conf.d/dlt.aurigraph.io.conf ]; then
-            SITE_CONF="/etc/nginx/conf.d/dlt.aurigraph.io.conf"
+            # Enable the site if not already enabled
+            if [ ! -L /etc/nginx/sites-enabled/aurigraph-portal ]; then
+              echo "Enabling aurigraph-portal site..."
+              sudo ln -sf /etc/nginx/sites-available/aurigraph-portal /etc/nginx/sites-enabled/aurigraph-portal
+              echo "✅ aurigraph-portal enabled"
+            else
+              echo "aurigraph-portal already enabled"
+            fi
+
+            echo "Updated aurigraph-portal to use port 9000"
+          else
+            echo "⚠️ aurigraph-portal config not found"
           fi
 
-          if [ -n "$SITE_CONF" ]; then
-            echo "Found site config: $SITE_CONF"
-
-            # Check if /api/v11/ location block exists
-            if grep -q "location /api/v11/" "$SITE_CONF"; then
-              echo "API location block exists, updating proxy_pass..."
-              sudo sed -i 's|proxy_pass http://[^/;]*:[0-9]*/api/v11/|proxy_pass http://127.0.0.1:9000/api/v11/|g' "$SITE_CONF"
-              sudo sed -i 's|proxy_pass http://localhost:[0-9]*/api/v11/|proxy_pass http://127.0.0.1:9000/api/v11/|g' "$SITE_CONF"
-            else
-              echo "⚠️ API location block not found in config"
-            fi
-          else
-            echo "⚠️ No site configuration file found, creating standalone API config..."
-            # Create a server block that handles API routes
-            sudo tee /etc/nginx/conf.d/api-v12-server.conf > /dev/null << 'NGINX_SERVER_EOF'
-          # Catch-all for API routes
-          server {
-              listen 443 ssl;
-              server_name dlt.aurigraph.io;
-
-              # Only handle API routes
-              location /api/v11/ {
-                  proxy_pass http://127.0.0.1:9000/api/v11/;
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Real-IP $remote_addr;
-                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header X-Forwarded-Proto $scheme;
-              }
-          }
-          NGINX_SERVER_EOF
+          # Remove any standalone API configs that might conflict
+          if [ -f /etc/nginx/conf.d/api-v12-server.conf ]; then
+            echo "Removing standalone API server config..."
+            sudo rm /etc/nginx/conf.d/api-v12-server.conf
           fi
 
           # Test and reload NGINX
