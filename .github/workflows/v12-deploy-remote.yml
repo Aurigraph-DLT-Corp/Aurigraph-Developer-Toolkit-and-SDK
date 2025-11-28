@@ -265,11 +265,22 @@ jobs:
         run: |
           echo "🔧 Updating NGINX configuration..."
 
-          # Enable aurigraph-portal site if it exists
-          if [ -f /etc/nginx/sites-available/aurigraph-portal ]; then
-            echo "Found aurigraph-portal site config"
+          # CRITICAL: Update the upstream backend_api in nginx.conf to point to port 9000
+          echo "=== Updating upstream backend_api in nginx.conf ==="
+          if grep -q "upstream backend_api" /etc/nginx/nginx.conf; then
+            echo "Found upstream backend_api, updating to port 9000..."
+            sudo sed -i 's|server 127.0.0.1:9003|server 127.0.0.1:9000|g' /etc/nginx/nginx.conf
+            sudo sed -i 's|server localhost:9003|server localhost:9000|g' /etc/nginx/nginx.conf
+            echo "✅ Updated upstream backend_api to port 9000"
+          fi
 
-            # Update the API proxy port from 9003 to 9000
+          # Also update any direct proxy_pass to port 9003 in nginx.conf
+          sudo sed -i 's|proxy_pass http://localhost:9003|proxy_pass http://localhost:9000|g' /etc/nginx/nginx.conf
+          sudo sed -i 's|proxy_pass http://127.0.0.1:9003|proxy_pass http://127.0.0.1:9000|g' /etc/nginx/nginx.conf
+
+          # Update aurigraph-portal site config
+          if [ -f /etc/nginx/sites-available/aurigraph-portal ]; then
+            echo "=== Updating aurigraph-portal site config ==="
             sudo sed -i 's|proxy_pass http://localhost:9003|proxy_pass http://localhost:9000|g' /etc/nginx/sites-available/aurigraph-portal
             sudo sed -i 's|proxy_pass http://127.0.0.1:9003|proxy_pass http://127.0.0.1:9000|g' /etc/nginx/sites-available/aurigraph-portal
 
@@ -281,10 +292,6 @@ jobs:
             else
               echo "aurigraph-portal already enabled"
             fi
-
-            echo "Updated aurigraph-portal to use port 9000"
-          else
-            echo "⚠️ aurigraph-portal config not found"
           fi
 
           # Remove any standalone API configs that might conflict
@@ -293,7 +300,13 @@ jobs:
             sudo rm /etc/nginx/conf.d/api-v12-server.conf
           fi
 
+          # Show what the upstream now looks like
+          echo ""
+          echo "=== Current upstream backend_api configuration ==="
+          grep -A 3 "upstream backend_api" /etc/nginx/nginx.conf || echo "No upstream found"
+
           # Test and reload NGINX
+          echo ""
           echo "Testing NGINX configuration..."
           if sudo nginx -t 2>&1; then
             sudo systemctl reload nginx
