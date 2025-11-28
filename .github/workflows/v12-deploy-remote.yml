@@ -265,23 +265,86 @@ jobs:
         run: |
           echo "🔧 Updating NGINX configuration..."
 
-          # Create NGINX config for API proxy to port 9000
-          sudo tee /etc/nginx/conf.d/api-proxy.conf > /dev/null << 'NGINX_EOF'
-          upstream v12_backend {
+          # Create proper API routing config with /api/v11/ to port 9000
+          sudo tee /etc/nginx/conf.d/api-v12-proxy.conf > /dev/null << 'NGINX_EOF'
+          # V12 API Proxy Configuration
+          # This file ensures /api/v11/* routes go to the Java backend on port 9000
+
+          # Upstream definition for V12 backend
+          upstream v12_api_backend {
               server 127.0.0.1:9000 max_fails=3 fail_timeout=30s;
               keepalive 32;
           }
           NGINX_EOF
 
-          # Update main site config to use upstream
-          if grep -q "proxy_pass.*9003" /etc/nginx/sites-available/dlt.aurigraph.io 2>/dev/null; then
-            sudo sed -i 's/proxy_pass.*9003/proxy_pass http:\/\/127.0.0.1:9000/g' /etc/nginx/sites-available/dlt.aurigraph.io
-            echo "✅ Updated proxy_pass from 9003 to 9000"
+          # Check if site config exists and add/update API location block
+          SITE_CONF=""
+          if [ -f /etc/nginx/sites-available/dlt.aurigraph.io ]; then
+            SITE_CONF="/etc/nginx/sites-available/dlt.aurigraph.io"
+          elif [ -f /etc/nginx/sites-enabled/dlt.aurigraph.io ]; then
+            SITE_CONF="/etc/nginx/sites-enabled/dlt.aurigraph.io"
+          elif [ -f /etc/nginx/conf.d/dlt.aurigraph.io.conf ]; then
+            SITE_CONF="/etc/nginx/conf.d/dlt.aurigraph.io.conf"
+          fi
+
+          if [ -n "$SITE_CONF" ]; then
+            echo "Found site config: $SITE_CONF"
+
+            # Check if /api/v11/ location block exists
+            if grep -q "location /api/v11/" "$SITE_CONF"; then
+              echo "API location block exists, updating proxy_pass..."
+              sudo sed -i 's|proxy_pass http://[^/;]*:[0-9]*/api/v11/|proxy_pass http://127.0.0.1:9000/api/v11/|g' "$SITE_CONF"
+              sudo sed -i 's|proxy_pass http://localhost:[0-9]*/api/v11/|proxy_pass http://127.0.0.1:9000/api/v11/|g' "$SITE_CONF"
+            else
+              echo "⚠️ API location block not found in config"
+            fi
+          else
+            echo "⚠️ No site configuration file found, creating standalone API config..."
+            # Create a server block that handles API routes
+            sudo tee /etc/nginx/conf.d/api-v12-server.conf > /dev/null << 'NGINX_SERVER_EOF'
+          # Catch-all for API routes
+          server {
+              listen 443 ssl;
+              server_name dlt.aurigraph.io;
+
+              # Only handle API routes
+              location /api/v11/ {
+                  proxy_pass http://127.0.0.1:9000/api/v11/;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+          NGINX_SERVER_EOF
           fi
 
           # Test and reload NGINX
-          sudo nginx -t && sudo systemctl reload nginx
-          echo "✅ NGINX configuration updated and reloaded"
+          echo "Testing NGINX configuration..."
+          if sudo nginx -t 2>&1; then
+            sudo systemctl reload nginx
+            echo "✅ NGINX configuration updated and reloaded"
+          else
+            echo "❌ NGINX configuration test failed!"
+            sudo nginx -t
+          fi
+
+      - name: Debug NGINX configuration
+        run: |
+          echo "🔍 Debugging NGINX configuration..."
+
+          echo "=== NGINX config files ==="
+          ls -la /etc/nginx/sites-available/ 2>/dev/null || echo "No sites-available"
+          ls -la /etc/nginx/sites-enabled/ 2>/dev/null || echo "No sites-enabled"
+          ls -la /etc/nginx/conf.d/ 2>/dev/null || echo "No conf.d"
+
+          echo ""
+          echo "=== Looking for API proxy config ==="
+          grep -r "api/v11" /etc/nginx/ 2>/dev/null || echo "No /api/v11 config found"
+
+          echo ""
+          echo "=== Current NGINX main config ==="
+          head -100 /etc/nginx/nginx.conf
 
       - name: Verify endpoints
         run: |
