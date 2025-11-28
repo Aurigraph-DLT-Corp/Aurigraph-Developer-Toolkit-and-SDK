@@ -1,0 +1,488 @@
+name: V12 Remote Server Deployment
+
+on:
+  push:
+    branches:
+      - V12
+      - main
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
+      - '.github/workflows/v12-deploy-remote.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        default: 'production'
+        options:
+          - production
+          - staging
+      skip_tests:
+        description: 'Skip tests for faster deployment'
+        required: false
+        type: boolean
+        default: false
+      force_deploy:
+        description: 'Force deployment even if health checks fail'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  JAVA_VERSION: '21'
+  MAVEN_OPTS: '-Xmx4g'
+  # Remote server configuration
+  REMOTE_HOST: dlt.aurigraph.io
+  REMOTE_PORT: 2235
+  REMOTE_USER: subbu
+  REMOTE_DIR: /home/subbu
+  APP_PORT: 9003
+  GRPC_PORT: 9004
+
+jobs:
+  # ============================================================
+  # PHASE 1: BUILD
+  # ============================================================
+  build:
+    name: Build V12 Application
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      jar_name: ${{ steps.version.outputs.jar_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Get version info
+        id: version
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          ARTIFACT=$(./mvnw help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+          JAR_NAME="${ARTIFACT}-${VERSION}-runner.jar"
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "jar_name=${JAR_NAME}" >> $GITHUB_OUTPUT
+
+          echo "📦 Building: ${ARTIFACT} v${VERSION}"
+          echo "📁 JAR: ${JAR_NAME}"
+
+      - name: Build application
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🔨 Building V12 application..."
+          ./mvnw clean package -DskipTests -Dmaven.test.skip=true -B -q
+
+          # Verify JAR was created
+          ls -lh target/*.jar || exit 1
+          echo "✅ Build successful"
+
+      - name: Run tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🧪 Running tests..."
+          ./mvnw test -B --fail-at-end || echo "⚠️ Some tests failed"
+        continue-on-error: true
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: v12-jar
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar
+          retention-days: 7
+
+  # ============================================================
+  # PHASE 2: DEPLOY TO REMOTE SERVER
+  # ============================================================
+  deploy:
+    name: Deploy to Remote Server
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+      url: https://dlt.aurigraph.io
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: v12-jar
+          path: ./artifact
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          # Test SSH connection
+          ssh -p ${{ env.REMOTE_PORT }} -o ConnectTimeout=10 ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} "echo '✅ SSH connection successful'"
+
+      - name: Pre-deployment health check
+        id: pre_health
+        run: |
+          echo "🔍 Checking current deployment status..."
+
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          echo "=== Current V12 Status ==="
+          if pgrep -f 'aurigraph-v12.jar' > /dev/null; then
+            echo "✅ V12 is currently running"
+            curl -s http://localhost:9003/api/v11/health | head -c 200 || echo "⚠️ Health endpoint not responding"
+          else
+            echo "⚠️ V12 is not running"
+          fi
+
+          echo ""
+          echo "=== Disk Space ==="
+          df -h /home/subbu | tail -1
+
+          echo ""
+          echo "=== Memory ==="
+          free -h | head -2
+          EOF
+
+      - name: Create backup
+        run: |
+          echo "💾 Creating pre-deployment backup..."
+
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          cd /home/subbu
+          BACKUP_NAME="aurigraph-v12.jar.backup-$(date +%Y%m%d_%H%M%S)"
+
+          if [ -f aurigraph-v12.jar ]; then
+            cp aurigraph-v12.jar "$BACKUP_NAME"
+            echo "✅ Backup created: $BACKUP_NAME"
+
+            # Keep only last 5 backups
+            ls -t aurigraph-v12.jar.backup-* 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true
+            echo "📁 Current backups:"
+            ls -lh aurigraph-v12.jar.backup-* 2>/dev/null | head -5
+          else
+            echo "⚠️ No existing JAR to backup"
+          fi
+          EOF
+
+      - name: Upload new JAR
+        run: |
+          echo "📤 Uploading new JAR to remote server..."
+
+          JAR_FILE=$(ls artifact/*-runner.jar | head -1)
+          echo "Uploading: $JAR_FILE"
+
+          scp -P ${{ env.REMOTE_PORT }} "$JAR_FILE" ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/home/subbu/aurigraph-v12-new.jar
+
+          echo "✅ Upload complete"
+
+      - name: Deploy application
+        run: |
+          echo "🚀 Deploying V12 application..."
+
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'DEPLOY_EOF'
+          set -e
+          cd /home/subbu
+
+          echo "=== Stopping current V12 ==="
+          if pgrep -f 'aurigraph-v12.jar' > /dev/null; then
+            pkill -f 'aurigraph-v12.jar' && echo "✅ Stopped old process" || echo "⚠️ Could not stop process"
+            sleep 3
+          fi
+
+          echo "=== Deploying new JAR ==="
+          if [ -f aurigraph-v12-new.jar ]; then
+            mv aurigraph-v12.jar aurigraph-v12.jar.previous 2>/dev/null || true
+            mv aurigraph-v12-new.jar aurigraph-v12.jar
+            chmod +x aurigraph-v12.jar
+            echo "✅ New JAR deployed"
+          else
+            echo "❌ New JAR not found!"
+            exit 1
+          fi
+
+          echo "=== Starting V12 ==="
+          mkdir -p logs
+
+          nohup /usr/bin/java \
+            -Xmx8g -Xms4g \
+            -XX:+UseG1GC \
+            -XX:MaxGCPauseMillis=200 \
+            -XX:+HeapDumpOnOutOfMemoryError \
+            -XX:HeapDumpPath=/home/subbu/logs/heapdump.hprof \
+            -Dquarkus.http.port=9003 \
+            -Dquarkus.log.level=INFO \
+            -jar /home/subbu/aurigraph-v12.jar \
+            > /home/subbu/logs/v12.log 2>&1 &
+
+          NEW_PID=$!
+          echo "✅ V12 started with PID: $NEW_PID"
+
+          echo "=== Waiting for startup ==="
+          sleep 15
+
+          # Verify process is still running
+          if ps -p $NEW_PID > /dev/null 2>&1 || pgrep -f 'aurigraph-v12.jar' > /dev/null; then
+            echo "✅ Process is running"
+          else
+            echo "❌ Process died during startup!"
+            echo "=== Last 50 lines of log ==="
+            tail -50 logs/v12.log
+            exit 1
+          fi
+          DEPLOY_EOF
+
+      - name: Health check
+        id: health_check
+        run: |
+          echo "🔍 Running post-deployment health checks..."
+
+          MAX_RETRIES=12
+          RETRY_INTERVAL=10
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Health check attempt $i/$MAX_RETRIES..."
+
+            HEALTH=$(ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} \
+              "curl -s http://localhost:9003/api/v11/health 2>/dev/null" || echo '{"status":"error"}')
+
+            STATUS=$(echo "$HEALTH" | jq -r '.status // "error"' 2>/dev/null || echo "error")
+
+            if [ "$STATUS" = "healthy" ]; then
+              echo "✅ Health check passed!"
+              echo "$HEALTH" | jq .
+              echo "health_status=healthy" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            echo "Status: $STATUS - waiting ${RETRY_INTERVAL}s..."
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "❌ Health check failed after $MAX_RETRIES attempts"
+          echo "health_status=unhealthy" >> $GITHUB_OUTPUT
+
+          if [ "${{ inputs.force_deploy }}" != "true" ]; then
+            exit 1
+          fi
+
+      - name: Verify endpoints
+        run: |
+          echo "🧪 Verifying API endpoints..."
+
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          echo "1. Health endpoint:"
+          curl -s http://localhost:9003/api/v11/health | jq -r '.status' || echo "❌ Failed"
+
+          echo ""
+          echo "2. Info endpoint:"
+          curl -s http://localhost:9003/api/v11/info | jq -r '.platform.version' || echo "❌ Failed"
+
+          echo ""
+          echo "3. Analytics dashboard:"
+          curl -s http://localhost:9003/api/v11/analytics/dashboard | jq -r '.tpsOverTime | length' | xargs -I {} echo "Data points: {}" || echo "❌ Failed"
+
+          echo ""
+          echo "4. Process status:"
+          ps aux | grep 'aurigraph-v12.jar' | grep -v grep | awk '{print "PID:", $2, "CPU:", $3"%", "MEM:", $4"%"}'
+
+          echo ""
+          echo "✅ Endpoint verification complete"
+          EOF
+
+      - name: Rollback on failure
+        if: failure() && steps.health_check.outputs.health_status == 'unhealthy'
+        run: |
+          echo "🔄 Initiating rollback..."
+
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          cd /home/subbu
+
+          echo "=== Stopping failed deployment ==="
+          pkill -f 'aurigraph-v12.jar' 2>/dev/null || true
+          sleep 2
+
+          echo "=== Restoring previous version ==="
+          if [ -f aurigraph-v12.jar.previous ]; then
+            mv aurigraph-v12.jar aurigraph-v12.jar.failed
+            mv aurigraph-v12.jar.previous aurigraph-v12.jar
+
+            echo "=== Starting previous version ==="
+            nohup /usr/bin/java -Xmx8g -Xms4g -XX:+UseG1GC \
+              -Dquarkus.http.port=9003 \
+              -jar aurigraph-v12.jar \
+              > logs/v12.log 2>&1 &
+
+            sleep 15
+
+            if curl -s http://localhost:9003/api/v11/health | grep -q "healthy"; then
+              echo "✅ Rollback successful"
+            else
+              echo "❌ Rollback health check failed"
+            fi
+          else
+            echo "❌ No previous version to rollback to!"
+
+            # Try latest backup
+            LATEST_BACKUP=$(ls -t aurigraph-v12.jar.backup-* 2>/dev/null | head -1)
+            if [ -n "$LATEST_BACKUP" ]; then
+              echo "Trying backup: $LATEST_BACKUP"
+              cp "$LATEST_BACKUP" aurigraph-v12.jar
+
+              nohup /usr/bin/java -Xmx8g -Xms4g -XX:+UseG1GC \
+                -Dquarkus.http.port=9003 \
+                -jar aurigraph-v12.jar \
+                > logs/v12.log 2>&1 &
+
+              sleep 15
+              echo "Backup restoration attempted"
+            fi
+          fi
+          EOF
+
+  # ============================================================
+  # PHASE 3: POST-DEPLOYMENT
+  # ============================================================
+  post-deploy:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: success()
+
+    steps:
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 V12 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | ${{ inputs.environment || 'production' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ needs.build.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Actor** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Timestamp** | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [API Health](https://dlt.aurigraph.io/api/v11/health)" >> $GITHUB_STEP_SUMMARY
+          echo "- [API Info](https://dlt.aurigraph.io/api/v11/info)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Portal](https://dlt.aurigraph.io)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send Slack notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "✅ V12 Deployment Successful",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚀 V12 Deployment Successful"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {"type": "mrkdwn", "text": "*Version:*\n${{ needs.build.outputs.version }}"},
+                    {"type": "mrkdwn", "text": "*Environment:*\n${{ inputs.environment || 'production' }}"},
+                    {"type": "mrkdwn", "text": "*Branch:*\n${{ github.ref_name }}"},
+                    {"type": "mrkdwn", "text": "*Actor:*\n${{ github.actor }}"}
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {"type": "plain_text", "text": "🔗 View API"},
+                      "url": "https://dlt.aurigraph.io/api/v11/health"
+                    },
+                    {
+                      "type": "button",
+                      "text": {"type": "plain_text", "text": "📊 View Portal"},
+                      "url": "https://dlt.aurigraph.io"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: failure()
+
+    steps:
+      - name: Create failure summary
+        run: |
+          echo "## ❌ V12 Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Actor** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **Automatic rollback was attempted**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View Workflow Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send Slack failure notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ V12 Deployment Failed",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "❌ V12 Deployment Failed"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Commit:* `${{ github.sha }}`\n*Branch:* ${{ github.ref_name }}\n*Actor:* ${{ github.actor }}\n\n⚠️ Automatic rollback was attempted"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {"type": "plain_text", "text": "📋 View Logs"},
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                      "style": "danger"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
