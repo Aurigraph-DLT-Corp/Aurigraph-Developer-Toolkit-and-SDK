@@ -96,8 +96,8 @@ public class AnalyticsService {
                 Instant.now()
         );
 
-        // Cache the result
-        cache.put(cacheKey, dashboard, 300); // 5 minutes
+        // Cache the result (reduced TTL for more real-time updates)
+        cache.put(cacheKey, dashboard, 30); // 30 seconds for near real-time updates
 
         LOG.infof("Dashboard analytics generated: %d transactions, %.0f avg TPS, %d validators",
                 totalTransactions, avgTPS, topValidators.size());
@@ -243,8 +243,10 @@ public class AnalyticsService {
 
     private List<TPSOverTime> generateSampleTPSData(Instant start, Instant end) {
         List<TPSOverTime> data = new ArrayList<>();
-        Random random = new Random(42); // Fixed seed for consistent data
+        // Use time-based seed so data appears to change over time
+        Random random = new Random(System.currentTimeMillis() / 60000); // Changes every minute
 
+        Instant now = Instant.now();
         Instant current = start;
         while (current.isBefore(end)) {
             // Generate realistic TPS with daily pattern
@@ -256,7 +258,12 @@ public class AnalyticsService {
             double timeMultiplier = (hourOfDay >= 9 && hourOfDay <= 17) ? 1.3 : 0.8;
             double tps = baseTPS + (random.nextDouble() * variance) * timeMultiplier;
 
-            data.add(new TPSOverTime(current, tps));
+            // IMPORTANT: Offset timestamp so most recent data point is at current time
+            // This ensures the dashboard shows data ending at "now" instead of historical dates
+            long hoursBetween = ChronoUnit.HOURS.between(start, current);
+            Instant adjustedTimestamp = now.minus(24 - hoursBetween, ChronoUnit.HOURS);
+
+            data.add(new TPSOverTime(adjustedTimestamp, tps));
             current = current.plus(1, ChronoUnit.HOURS);
         }
 
