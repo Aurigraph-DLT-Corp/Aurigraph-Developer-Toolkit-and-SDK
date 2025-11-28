@@ -8,12 +8,14 @@ This document describes the GitHub Secrets required for automated CI/CD deployme
 
 ## Required Secrets
 
-### 1. PROD_SSH_KEY (Required)
+### 1. SERVER_SSH_PRIVATE_KEY (Required) - Already Configured
 
 **Purpose**: SSH private key for authentication to dlt.aurigraph.io
 
-**Setup Steps**:
-1. Generate an SSH key pair (or use existing):
+**Status**: Already configured in GitHub Secrets (since 2025-09-22)
+
+**If you need to update**:
+1. Generate an SSH key pair:
    ```bash
    ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github-deploy-key
    ```
@@ -23,19 +25,15 @@ This document describes the GitHub Secrets required for automated CI/CD deployme
    ssh -p 2235 subbu@dlt.aurigraph.io "cat >> ~/.ssh/authorized_keys" < ~/.ssh/github-deploy-key.pub
    ```
 
-3. Add the private key to GitHub Secrets:
+3. Update in GitHub Secrets:
    - Go to: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT/settings/secrets/actions
-   - Click "New repository secret"
-   - Name: `PROD_SSH_KEY`
+   - Update: `SERVER_SSH_PRIVATE_KEY`
    - Value: Contents of `~/.ssh/github-deploy-key` (private key)
 
-**Example Value** (format only):
-```
------BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAA...
-...
------END OPENSSH PRIVATE KEY-----
-```
+**Related Secrets** (also already configured):
+- `SERVER_HOST` - dlt.aurigraph.io
+- `SERVER_PORT` - 2235
+- `SERVER_USERNAME` - subbu
 
 ### 2. SLACK_WEBHOOK_URL (Optional)
 
