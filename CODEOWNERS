@@ -1,0 +1,177 @@
+# Aurigraph DLT Code Ownership
+# =============================
+# This file defines code ownership for the Aurigraph DLT repository.
+# Owners are automatically requested for review when relevant files are changed.
+#
+# Format: <pattern> @owner1 @owner2
+# Order matters: later patterns take precedence over earlier ones.
+#
+# Teams:
+# @Aurigraph-DLT-Corp/core-team        - Core blockchain developers
+# @Aurigraph-DLT-Corp/frontend-team    - Portal and UI developers
+# @Aurigraph-DLT-Corp/devops-team      - DevOps and infrastructure
+# @Aurigraph-DLT-Corp/security-team    - Security specialists
+# @Aurigraph-DLT-Corp/qa-team          - Quality assurance
+
+# ==============================================================================
+# DEFAULT OWNERSHIP
+# ==============================================================================
+# Default owners for everything in the repo
+*                                       @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# DOCUMENTATION
+# ==============================================================================
+*.md                                    @Aurigraph-DLT-Corp/core-team
+/doc/                                   @Aurigraph-DLT-Corp/core-team
+/ARCHITECTURE.md                        @Aurigraph-DLT-Corp/core-team
+/DEVELOPMENT.md                         @Aurigraph-DLT-Corp/core-team
+/CLAUDE.md                              @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# CI/CD & DEVOPS
+# ==============================================================================
+/.github/                               @Aurigraph-DLT-Corp/devops-team
+/.github/workflows/                     @Aurigraph-DLT-Corp/devops-team
+/.github/workflows/security.yml         @Aurigraph-DLT-Corp/security-team
+/deployment/                            @Aurigraph-DLT-Corp/devops-team
+/docker-compose*.yml                    @Aurigraph-DLT-Corp/devops-team
+Dockerfile*                             @Aurigraph-DLT-Corp/devops-team
+
+# ==============================================================================
+# BACKEND - V11/V12 CORE
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/   @Aurigraph-DLT-Corp/core-team
+
+# API Layer (Agent 1.1)
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/api/
+                                        @agent-1.1 @Aurigraph-DLT-Corp/core-team
+
+# Consensus Engine (Agent 1.2)
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/consensus/
+                                        @agent-1.2 @Aurigraph-DLT-Corp/core-team
+
+# Smart Contracts (Agent 1.3)
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/contracts/
+                                        @agent-1.3 @Aurigraph-DLT-Corp/core-team
+
+# Quantum Cryptography (Agent 1.4)
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/crypto/
+                                        @agent-1.4 @Aurigraph-DLT-Corp/security-team
+
+# Storage Layer (Agent 1.5)
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/storage/
+                                        @agent-1.5 @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# GRPC SERVICES
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/grpc/
+                                        @Aurigraph-DLT-Corp/core-team
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/grpc/
+                                        @Aurigraph-DLT-Corp/core-team
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/proto/
+                                        @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# TRACEABILITY & RWA (Agent 2.x)
+# ==============================================================================
+# Traceability (Agent 2.1)
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/traceability/
+                                        @agent-2.1 @Aurigraph-DLT-Corp/core-team
+
+# RWA Registry (Agent 2.5)
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/rwa/
+                                        @agent-2.5 @Aurigraph-DLT-Corp/core-team
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/registry/
+                                        @agent-2.5 @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# CROSS-CHAIN BRIDGE
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/bridge/
+                                        @Aurigraph-DLT-Corp/core-team
+/aurigraph-av10-7/aurigraph-v11/crosschain-bridge/
+                                        @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# ANALYTICS & MONITORING
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/analytics/
+                                        @Aurigraph-DLT-Corp/core-team
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/metrics/
+                                        @Aurigraph-DLT-Corp/devops-team
+
+# ==============================================================================
+# DATABASE & MIGRATIONS
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/repositories/
+                                        @agent-db @Aurigraph-DLT-Corp/core-team
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/resources/db/migration/
+                                        @agent-db @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# FRONTEND / ENTERPRISE PORTAL
+# ==============================================================================
+/enterprise-portal/                     @agent-frontend @Aurigraph-DLT-Corp/frontend-team
+/enterprise-portal/enterprise-portal/frontend/src/
+                                        @agent-frontend @Aurigraph-DLT-Corp/frontend-team
+
+# ==============================================================================
+# WEBSOCKET SERVICES
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/websocket/
+                                        @agent-ws @Aurigraph-DLT-Corp/core-team
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/channels/
+                                        @agent-ws @Aurigraph-DLT-Corp/core-team
+
+# ==============================================================================
+# TESTING
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/src/test/
+                                        @agent-tests @Aurigraph-DLT-Corp/qa-team
+
+# ==============================================================================
+# CONFIGURATION
+# ==============================================================================
+/aurigraph-av10-7/aurigraph-v11-standalone/src/main/resources/application*.properties
+                                        @Aurigraph-DLT-Corp/devops-team
+/aurigraph-av10-7/aurigraph-v11-standalone/pom.xml
+                                        @Aurigraph-DLT-Corp/core-team @Aurigraph-DLT-Corp/devops-team
+
+# ==============================================================================
+# SECURITY-SENSITIVE FILES
+# ==============================================================================
+# These files require security team review
+**/crypto/**                            @Aurigraph-DLT-Corp/security-team
+**/security/**                          @Aurigraph-DLT-Corp/security-team
+**/auth/**                              @Aurigraph-DLT-Corp/security-team
+**/*Credential*                         @Aurigraph-DLT-Corp/security-team
+**/*Secret*                             @Aurigraph-DLT-Corp/security-team
+**/*Token*                              @Aurigraph-DLT-Corp/security-team
+.env*                                   @Aurigraph-DLT-Corp/security-team @Aurigraph-DLT-Corp/devops-team
+
+# ==============================================================================
+# SCRIPTS
+# ==============================================================================
+/scripts/                               @Aurigraph-DLT-Corp/devops-team
+*.sh                                    @Aurigraph-DLT-Corp/devops-team
+
+# ==============================================================================
+# AGENT WORKTREES (for reference - these are separate working directories)
+# ==============================================================================
+# /worktrees/agent-1.1/  -> @agent-1.1 (REST/gRPC Bridge)
+# /worktrees/agent-1.2/  -> @agent-1.2 (Consensus gRPC)
+# /worktrees/agent-1.3/  -> @agent-1.3 (Contracts gRPC)
+# /worktrees/agent-1.4/  -> @agent-1.4 (Crypto gRPC)
+# /worktrees/agent-1.5/  -> @agent-1.5 (Storage gRPC)
+# /worktrees/agent-2.1/  -> @agent-2.1 (Traceability)
+# /worktrees/agent-2.2/  -> @agent-2.2 (Secondary Token)
+# /worktrees/agent-2.3/  -> @agent-2.3 (Composite Creation)
+# /worktrees/agent-2.4/  -> @agent-2.4 (Contract Binding)
+# /worktrees/agent-2.5/  -> @agent-2.5 (Merkle Registry)
+# /worktrees/agent-2.6/  -> @agent-2.6 (Portal Integration)
+# /worktrees/agent-db/   -> @agent-db (Database)
+# /worktrees/agent-frontend/ -> @agent-frontend (Portal UI)
+# /worktrees/agent-tests/ -> @agent-tests (QA)
+# /worktrees/agent-ws/   -> @agent-ws (WebSocket)
