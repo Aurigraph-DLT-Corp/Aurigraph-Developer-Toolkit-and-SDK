@@ -3,6 +3,7 @@ package io.aurigraph.v11;
 import io.aurigraph.v11.grpc.DTOConverter;
 import io.aurigraph.v11.grpc.GrpcClientFactory;
 import io.aurigraph.v11.portal.models.TransactionDTO;
+import io.aurigraph.v11.portal.services.BlockchainDataService;
 import io.aurigraph.v11.proto.*;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -59,6 +60,40 @@ public class TransactionResource {
 
     @Inject
     DTOConverter dtoConverter;
+
+    @Inject
+    BlockchainDataService blockchainDataService;
+
+    // ==================== List Transactions (Dashboard API) ====================
+
+    /**
+     * Get list of transactions for dashboard display
+     *
+     * GET /api/v11/transactions?limit=20
+     *
+     * This endpoint is used by the Enterprise Portal dashboard to display
+     * recent transactions. Returns mock data for now (will connect to
+     * real blockchain data in production).
+     *
+     * @param limit Maximum number of transactions to return (default 20, max 100)
+     * @return Uni<Response> with list of transactions
+     */
+    @GET
+    public Uni<Response> getTransactions(@QueryParam("limit") @DefaultValue("20") int limit) {
+        Log.infof("[REST] Fetching transactions for dashboard: limit=%d", limit);
+
+        return blockchainDataService.getTransactions(Math.min(limit, 100))
+            .map(transactions -> {
+                Log.infof("[REST] ✓ Returned %d transactions", transactions.size());
+                return Response.ok(transactions).build();
+            })
+            .onFailure().recoverWithItem(error -> {
+                Log.errorf(error, "[REST] ✗ Failed to fetch transactions");
+                return Response.serverError()
+                    .entity(new ErrorResponse("FETCH_ERROR", "Failed to retrieve transactions: " + error.getMessage()))
+                    .build();
+            });
+    }
 
     // ==================== Single Transaction Submission ====================
 
