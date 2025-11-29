@@ -38,7 +38,7 @@ env:
   REMOTE_PORT: 22
   REMOTE_USER: subbu
   REMOTE_DIR: /home/subbu
-  APP_PORT: 9000
+  APP_PORT: 9003
   GRPC_PORT: 9001
 
 jobs:
@@ -126,12 +126,13 @@ jobs:
         id: pre_health
         run: |
           echo "🔍 Checking current deployment status..."
-          echo "=== Current V12 Status ==="
-          if pgrep -f 'aurigraph-v12' > /dev/null; then
-            echo "✅ V12 is currently running"
-            curl -s http://localhost:9000/api/v11/health | head -c 200 || echo "⚠️ Health endpoint not responding"
+          echo "=== Current V12 Service Status ==="
+          if systemctl is-active --quiet aurigraph-v12; then
+            echo "✅ V12 systemd service is running"
+            curl -s http://localhost:9003/api/v11/health | head -c 200 || echo "⚠️ Health endpoint not responding"
           else
-            echo "⚠️ V12 is not running"
+            echo "⚠️ V12 service is not running"
+            sudo systemctl status aurigraph-v12 --no-pager 2>/dev/null | head -5 || echo "Service may not exist yet"
           fi
 
           echo ""
@@ -173,11 +174,9 @@ jobs:
           echo "🚀 Deploying V12 application..."
           cd /home/subbu
 
-          echo "=== Stopping current V12 ==="
-          if pgrep -f 'aurigraph-v12' > /dev/null; then
-            pkill -f 'aurigraph-v12' && echo "✅ Stopped old process" || echo "⚠️ Could not stop process"
-            sleep 3
-          fi
+          echo "=== Stopping current V12 via systemd ==="
+          sudo systemctl stop aurigraph-v12 2>/dev/null || echo "⚠️ Service not running or doesn't exist"
+          sleep 2
 
           echo "=== Deploying new JAR ==="
           if [ -f aurigraph-v12-new.jar ]; then
@@ -190,41 +189,62 @@ jobs:
             exit 1
           fi
 
-          echo "=== Starting V12 ==="
-          mkdir -p logs
+          echo "=== Creating/Updating systemd service ==="
+          sudo tee /etc/systemd/system/aurigraph-v12.service > /dev/null << 'EOF'
+          [Unit]
+          Description=Aurigraph V12 Backend Service
+          After=network.target postgresql.service
+          Wants=postgresql.service
 
-          nohup /usr/bin/java \
+          [Service]
+          Type=simple
+          User=subbu
+          WorkingDirectory=/home/subbu
+          ExecStart=/usr/bin/java \
             -Xmx8g -Xms4g \
             -XX:+UseG1GC \
             -XX:MaxGCPauseMillis=200 \
             -XX:+HeapDumpOnOutOfMemoryError \
             -XX:HeapDumpPath=/home/subbu/logs/heapdump.hprof \
-            -Dquarkus.http.port=9000 \
+            -Dquarkus.http.port=9003 \
             -Dquarkus.grpc.server.port=9001 \
             -Dquarkus.log.level=INFO \
             -Dquarkus.profile=prod \
             -Dcurby.quantum.api-key=placeholder \
             -Dquarkus.datasource.db-kind=postgresql \
-            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/aurigraph_demos \
-            -Dquarkus.datasource.username=aurigraph \
-            -Dquarkus.datasource.password=aurigraph2025 \
+            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/j4c_db \
+            -Dquarkus.datasource.username=j4c_user \
+            -Dquarkus.datasource.password=j4c_password \
             -Dquarkus.flyway.migrate-at-start=false \
-            -jar /home/subbu/aurigraph-v12.jar \
-            > /home/subbu/logs/v12.log 2>&1 &
+            -jar /home/subbu/aurigraph-v12.jar
+          Restart=on-failure
+          RestartSec=10
+          StandardOutput=journal
+          StandardError=journal
+          SyslogIdentifier=aurigraph-v12
 
-          NEW_PID=$!
-          echo "✅ V12 started with PID: $NEW_PID"
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+          echo "=== Reloading systemd and starting V12 ==="
+          sudo systemctl daemon-reload
+          sudo systemctl enable aurigraph-v12
+          sudo systemctl start aurigraph-v12
 
           echo "=== Waiting for startup ==="
           sleep 15
 
-          # Verify process is still running
-          if pgrep -f 'aurigraph-v12' > /dev/null; then
-            echo "✅ Process is running"
+          # Verify service is running
+          if systemctl is-active --quiet aurigraph-v12; then
+            echo "✅ Service is running"
+            sudo systemctl status aurigraph-v12 --no-pager | head -20
           else
-            echo "❌ Process died during startup!"
-            echo "=== Last 50 lines of log ==="
-            tail -50 logs/v12.log
+            echo "❌ Service failed to start!"
+            echo "=== Service status ==="
+            sudo systemctl status aurigraph-v12 --no-pager
+            echo "=== Last 50 lines of journal ==="
+            sudo journalctl -u aurigraph-v12 -n 50 --no-pager
             exit 1
           fi
 
@@ -240,11 +260,11 @@ jobs:
             echo "Health check attempt $i/$MAX_RETRIES..."
 
             # Use Quarkus liveness endpoint which doesn't depend on database
-            LIVENESS=$(curl -s http://localhost:9000/q/health/live 2>/dev/null || echo '{"status":"error"}')
+            LIVENESS=$(curl -s http://localhost:9003/q/health/live 2>/dev/null || echo '{"status":"error"}')
             LIVE_STATUS=$(echo "$LIVENESS" | jq -r '.status // "error"' 2>/dev/null || echo "error")
 
             # Also check our custom health endpoint
-            HEALTH=$(curl -s http://localhost:9000/api/v11/health 2>/dev/null || echo '{"status":"error"}')
+            HEALTH=$(curl -s http://localhost:9003/api/v11/health 2>/dev/null || echo '{"status":"error"}')
             HEALTH_STATUS=$(echo "$HEALTH" | jq -r '.status // "error"' 2>/dev/null || echo "error")
 
             echo "  Liveness: $LIVE_STATUS, Health: $HEALTH_STATUS"
@@ -280,24 +300,24 @@ jobs:
         run: |
           echo "🔧 Updating NGINX configuration..."
 
-          # CRITICAL: Update the upstream backend_api in nginx.conf to point to port 9000
-          echo "=== Updating upstream backend_api in nginx.conf ==="
+          # CRITICAL: Ensure upstream backend_api in nginx.conf points to port 9003
+          echo "=== Ensuring upstream backend_api points to port 9003 ==="
           if grep -q "upstream backend_api" /etc/nginx/nginx.conf; then
-            echo "Found upstream backend_api, updating to port 9000..."
-            sudo sed -i 's|server 127.0.0.1:9003|server 127.0.0.1:9000|g' /etc/nginx/nginx.conf
-            sudo sed -i 's|server localhost:9003|server localhost:9000|g' /etc/nginx/nginx.conf
-            echo "✅ Updated upstream backend_api to port 9000"
+            echo "Found upstream backend_api, ensuring port 9003..."
+            sudo sed -i 's|server 127.0.0.1:9000|server 127.0.0.1:9003|g' /etc/nginx/nginx.conf
+            sudo sed -i 's|server localhost:9000|server localhost:9003|g' /etc/nginx/nginx.conf
+            echo "✅ Verified upstream backend_api uses port 9003"
           fi
 
-          # Also update any direct proxy_pass to port 9003 in nginx.conf
-          sudo sed -i 's|proxy_pass http://localhost:9003|proxy_pass http://localhost:9000|g' /etc/nginx/nginx.conf
-          sudo sed -i 's|proxy_pass http://127.0.0.1:9003|proxy_pass http://127.0.0.1:9000|g' /etc/nginx/nginx.conf
+          # Also update any direct proxy_pass that might use wrong port
+          sudo sed -i 's|proxy_pass http://localhost:9000|proxy_pass http://localhost:9003|g' /etc/nginx/nginx.conf
+          sudo sed -i 's|proxy_pass http://127.0.0.1:9000|proxy_pass http://127.0.0.1:9003|g' /etc/nginx/nginx.conf
 
           # Update aurigraph-portal site config
           if [ -f /etc/nginx/sites-available/aurigraph-portal ]; then
             echo "=== Updating aurigraph-portal site config ==="
-            sudo sed -i 's|proxy_pass http://localhost:9003|proxy_pass http://localhost:9000|g' /etc/nginx/sites-available/aurigraph-portal
-            sudo sed -i 's|proxy_pass http://127.0.0.1:9003|proxy_pass http://127.0.0.1:9000|g' /etc/nginx/sites-available/aurigraph-portal
+            sudo sed -i 's|proxy_pass http://localhost:9000|proxy_pass http://localhost:9003|g' /etc/nginx/sites-available/aurigraph-portal
+            sudo sed -i 's|proxy_pass http://127.0.0.1:9000|proxy_pass http://127.0.0.1:9003|g' /etc/nginx/sites-available/aurigraph-portal
 
             # Enable the site if not already enabled
             if [ ! -L /etc/nginx/sites-enabled/aurigraph-portal ]; then
@@ -353,19 +373,19 @@ jobs:
           echo "🧪 Verifying API endpoints..."
 
           echo "1. Health endpoint:"
-          curl -s http://localhost:9000/api/v11/health | jq -r '.status' || echo "❌ Failed"
+          curl -s http://localhost:9003/api/v11/health | jq -r '.status' || echo "❌ Failed"
 
           echo ""
           echo "2. Info endpoint:"
-          curl -s http://localhost:9000/api/v11/info | jq -r '.platform.version' || echo "❌ Failed"
+          curl -s http://localhost:9003/api/v11/info | jq -r '.platform.version' || echo "❌ Failed"
 
           echo ""
           echo "3. Analytics dashboard:"
-          curl -s http://localhost:9000/api/v11/analytics/dashboard | jq -r '.tpsOverTime | length' | xargs -I {} echo "Data points: {}" || echo "❌ Failed"
+          curl -s http://localhost:9003/api/v11/analytics/dashboard | jq -r '.tpsOverTime | length' | xargs -I {} echo "Data points: {}" || echo "❌ Failed"
 
           echo ""
-          echo "4. Process status:"
-          ps aux | grep 'aurigraph-v12.jar' | grep -v grep | awk '{print "PID:", $2, "CPU:", $3"%", "MEM:", $4"%"}'
+          echo "4. Service status:"
+          sudo systemctl status aurigraph-v12 --no-pager | head -10
 
           echo ""
           echo "✅ Endpoint verification complete"
@@ -376,8 +396,8 @@ jobs:
           echo "🔄 Initiating rollback..."
           cd /home/subbu
 
-          echo "=== Stopping failed deployment ==="
-          pkill -f 'aurigraph-v12.jar' 2>/dev/null || true
+          echo "=== Stopping failed deployment via systemd ==="
+          sudo systemctl stop aurigraph-v12 2>/dev/null || true
           sleep 2
 
           echo "=== Restoring previous version ==="
@@ -385,25 +405,15 @@ jobs:
             mv aurigraph-v12.jar aurigraph-v12.jar.failed
             mv aurigraph-v12.jar.previous aurigraph-v12.jar
 
-            echo "=== Starting previous version ==="
-            nohup /usr/bin/java -Xmx8g -Xms4g -XX:+UseG1GC \
-              -Dquarkus.http.port=9000 \
-              -Dquarkus.profile=prod \
-              -Dcurby.quantum.api-key=placeholder \
-              -Dquarkus.datasource.db-kind=postgresql \
-              -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/aurigraph_demos \
-              -Dquarkus.datasource.username=aurigraph \
-              -Dquarkus.datasource.password=aurigraph2025 \
-              -Dquarkus.flyway.migrate-at-start=false \
-              -jar aurigraph-v12.jar \
-              > logs/v12.log 2>&1 &
-
+            echo "=== Starting previous version via systemd ==="
+            sudo systemctl start aurigraph-v12
             sleep 15
 
-            if curl -s http://localhost:9000/api/v11/health | grep -q "UP"; then
+            if curl -s http://localhost:9003/api/v11/health | grep -q "UP"; then
               echo "✅ Rollback successful"
             else
               echo "❌ Rollback health check failed"
+              sudo journalctl -u aurigraph-v12 -n 20 --no-pager
             fi
           else
             echo "❌ No previous version to rollback to!"
@@ -414,20 +424,10 @@ jobs:
               echo "Trying backup: $LATEST_BACKUP"
               cp "$LATEST_BACKUP" aurigraph-v12.jar
 
-              nohup /usr/bin/java -Xmx8g -Xms4g -XX:+UseG1GC \
-                -Dquarkus.http.port=9000 \
-                -Dquarkus.profile=prod \
-                -Dcurby.quantum.api-key=placeholder \
-                -Dquarkus.datasource.db-kind=postgresql \
-                -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/aurigraph_demos \
-                -Dquarkus.datasource.username=aurigraph \
-                -Dquarkus.datasource.password=aurigraph2025 \
-                -Dquarkus.flyway.migrate-at-start=false \
-                -jar aurigraph-v12.jar \
-                > logs/v12.log 2>&1 &
-
+              sudo systemctl start aurigraph-v12
               sleep 15
               echo "Backup restoration attempted"
+              sudo systemctl status aurigraph-v12 --no-pager | head -10
             fi
           fi
 
