@@ -653,16 +653,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     // ============================================================
-    // ERROR HANDLING
+    // NOTE: Catch-all route removed to avoid CDI proxy issues
+    // JAX-RS will return 404 for unknown endpoints by default
     // ============================================================
-
-    /**
-     * Default error handler
-     */
-    @Path("/{path:.*}")
-    @GET
-    public PortalResponse<Object> notFound(@PathParam("path") String path) {
-        LOG.warnf("Endpoint not found: /api/v11/%s", path);
-        return PortalResponse.error(404, "Endpoint not found: /api/v11/" + path);
-    }
 }
