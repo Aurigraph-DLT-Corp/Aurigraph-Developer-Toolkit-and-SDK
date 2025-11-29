@@ -22,7 +22,6 @@ const ValidatorDashboard = lazy(() => import('../components/comprehensive/Valida
 // AI & Security components
 const AIOptimizationControls = lazy(() => import('../components/comprehensive/AIOptimizationControls'));
 const QuantumSecurityPanel = lazy(() => import('../components/comprehensive/QuantumSecurityPanel'));
-const MentalModelsPage = lazy(() => import('../components/comprehensive/MentalModelsPage'));
 
 // Integration components
 const CrossChainBridge = lazy(() => import('../components/comprehensive/CrossChainBridge'));
@@ -62,7 +61,7 @@ export interface RouteDefinition {
   parent?: string;
   icon?: string;
   description?: string;
-  category?: 'demo' | 'blockchain' | 'contracts' | 'tokenization' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin' | 'j4c';
+  category?: 'demo' | 'blockchain' | 'contracts' | 'tokenization' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin';
   order?: number;
 }
 
@@ -444,32 +443,6 @@ export const routes: RouteDefinition[] = [
     description: 'RWAT tokenization form',
     category: 'admin',
     order: 81,
-  },
-
-  // =========================================================================
-  // J4C - JEEVES4CODER (Category)
-  // =========================================================================
-  {
-    path: '/j4c',
-    component: MentalModelsPage,
-    label: 'J4C',
-    breadcrumbLabel: 'Jeeves4Coder',
-    parent: '/',
-    icon: 'CodeOutlined',
-    description: 'Jeeves4Coder AI development tools',
-    category: 'j4c',
-    order: 90,
-  },
-  {
-    path: '/j4c/mental-models',
-    component: MentalModelsPage,
-    label: 'Mental Models',
-    breadcrumbLabel: 'Mental Models & Reasoning',
-    parent: '/j4c',
-    icon: 'BulbOutlined',
-    description: 'Mental models library and custom reasoning orchestration',
-    category: 'j4c',
-    order: 91,
   },
 
   // =========================================================================
