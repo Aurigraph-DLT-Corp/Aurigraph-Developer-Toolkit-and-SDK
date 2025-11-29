@@ -62,7 +62,7 @@ export interface RouteDefinition {
   parent?: string;
   icon?: string;
   description?: string;
-  category?: 'demo' | 'blockchain' | 'contracts' | 'tokenization' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin';
+  category?: 'demo' | 'blockchain' | 'contracts' | 'tokenization' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin' | 'j4c';
   order?: number;
 }
 
@@ -394,18 +394,6 @@ export const routes: RouteDefinition[] = [
     category: 'ai',
     order: 62,
   },
-  {
-    path: '/ai/mental-models',
-    component: MentalModelsPage,
-    label: 'Mental Models',
-    breadcrumbLabel: 'Mental Models & Reasoning',
-    parent: '/ai',
-    icon: 'BulbOutlined',
-    description: 'Mental models library and custom reasoning orchestration',
-    category: 'ai',
-    order: 63,
-  },
-
   // =========================================================================
   // INTEGRATION (Category)
   // =========================================================================
@@ -456,6 +444,32 @@ export const routes: RouteDefinition[] = [
     description: 'RWAT tokenization form',
     category: 'admin',
     order: 81,
+  },
+
+  // =========================================================================
+  // J4C - JEEVES4CODER (Category)
+  // =========================================================================
+  {
+    path: '/j4c',
+    component: MentalModelsPage,
+    label: 'J4C',
+    breadcrumbLabel: 'Jeeves4Coder',
+    parent: '/',
+    icon: 'CodeOutlined',
+    description: 'Jeeves4Coder AI development tools',
+    category: 'j4c',
+    order: 90,
+  },
+  {
+    path: '/j4c/mental-models',
+    component: MentalModelsPage,
+    label: 'Mental Models',
+    breadcrumbLabel: 'Mental Models & Reasoning',
+    parent: '/j4c',
+    icon: 'BulbOutlined',
+    description: 'Mental models library and custom reasoning orchestration',
+    category: 'j4c',
+    order: 91,
   },
 
   // =========================================================================
