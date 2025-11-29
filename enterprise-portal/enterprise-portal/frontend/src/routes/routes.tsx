@@ -61,7 +61,7 @@ export interface RouteDefinition {
   parent?: string;
   icon?: string;
   description?: string;
-  category?: 'blockchain' | 'contracts' | 'tokenization' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin';
+  category?: 'demo' | 'blockchain' | 'contracts' | 'tokenization' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin';
   order?: number;
 }
 
@@ -149,8 +149,9 @@ export const routes: RouteDefinition[] = [
     component: DemoApp,
     label: 'Demo App',
     breadcrumbLabel: 'Demo Application',
-    icon: 'AppstoreOutlined',
-    description: 'Test demo application',
+    icon: 'RocketOutlined',
+    description: 'Interactive demo application with real-time performance monitoring',
+    category: 'demo',
     order: 5,
   },
   {
@@ -158,8 +159,9 @@ export const routes: RouteDefinition[] = [
     component: DemoChannelApp,
     label: 'Demo Channel',
     breadcrumbLabel: 'Demo Channel App',
-    icon: 'AppstoreOutlined',
-    description: 'Channel-based demo',
+    icon: 'NodeIndexOutlined',
+    description: 'Channel-based demo with multi-node simulation',
+    category: 'demo',
     order: 6,
   },
 

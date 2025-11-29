@@ -51,6 +51,7 @@ function App() {
 
     // Category display labels
     const categoryLabels: Record<string, string> = {
+      demo: 'Live Demo',
       blockchain: 'Blockchain',
       contracts: 'Smart Contracts',
       tokenization: 'RWA Tokenization',
