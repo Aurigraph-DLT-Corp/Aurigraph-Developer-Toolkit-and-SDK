@@ -662,47 +662,82 @@ public class PortalAPIGateway {
     public PortalResponse<PerformanceConfigDTO> getPerformanceBenchmark() {
         LOG.info("Performance benchmark requested");
 
-        PerformanceConfigDTO config = new PerformanceConfigDTO();
-        config.version = "V12.0.0";
-        config.targetTps = 2000000L;
-        config.currentTpsBaseline = 776000L;
-        config.mlOptimizationEnabled = true;
-        config.mlBatchThreshold = 10;
-        config.virtualThreadsEnabled = true;
-        config.consensusBatchSize = 175000;
-        config.consensusPipelineDepth = 90;
-        config.consensusParallelThreads = 1152;
-        config.replicationParallelism = 32;
-        config.optimizationsApplied = java.util.List.of(
-            "ML batch threshold lowered (50 -> 10)",
-            "Virtual threads enabled for consensus",
-            "Replication parallelism increased (16 -> 32)",
-            "Election timeout optimized (50-100ms)",
-            "Adaptive heartbeat enabled"
-        );
-        config.expectedImprovement = "+158% (776K -> 2M+ TPS)";
-        config.timestamp = java.time.Instant.now().toString();
+        try {
+            PerformanceConfigDTO config = new PerformanceConfigDTO();
+            config.setVersion("V12.0.0");
+            config.setTargetTps(2000000L);
+            config.setCurrentTpsBaseline(776000L);
+            config.setMlOptimizationEnabled(true);
+            config.setMlBatchThreshold(10);
+            config.setVirtualThreadsEnabled(true);
+            config.setConsensusBatchSize(175000);
+            config.setConsensusPipelineDepth(90);
+            config.setConsensusParallelThreads(1152);
+            config.setReplicationParallelism(32);
+            config.setOptimizationsApplied(java.util.Arrays.asList(
+                "ML batch threshold lowered (50 -> 10)",
+                "Virtual threads enabled for consensus",
+                "Replication parallelism increased (16 -> 32)",
+                "Election timeout optimized (50-100ms)",
+                "Adaptive heartbeat enabled"
+            ));
+            config.setExpectedImprovement("+158% (776K -> 2M+ TPS)");
+            config.setTimestamp(java.time.Instant.now().toString());
 
-        return PortalResponse.success(config, "Performance benchmark retrieved");
+            return PortalResponse.success(config, "Performance benchmark retrieved");
+        } catch (Exception e) {
+            LOG.error("Failed to get performance benchmark", e);
+            return PortalResponse.error(500, "Failed to retrieve performance benchmark: " + e.getMessage());
+        }
     }
 
     /**
-     * Performance configuration DTO
+     * Performance configuration DTO with proper getters/setters for Jackson serialization
      */
     public static class PerformanceConfigDTO {
-        public String version;
-        public long targetTps;
-        public long currentTpsBaseline;
-        public boolean mlOptimizationEnabled;
-        public int mlBatchThreshold;
-        public boolean virtualThreadsEnabled;
-        public int consensusBatchSize;
-        public int consensusPipelineDepth;
-        public int consensusParallelThreads;
-        public int replicationParallelism;
-        public java.util.List<String> optimizationsApplied;
-        public String expectedImprovement;
-        public String timestamp;
+        private String version;
+        private long targetTps;
+        private long currentTpsBaseline;
+        private boolean mlOptimizationEnabled;
+        private int mlBatchThreshold;
+        private boolean virtualThreadsEnabled;
+        private int consensusBatchSize;
+        private int consensusPipelineDepth;
+        private int consensusParallelThreads;
+        private int replicationParallelism;
+        private java.util.List<String> optimizationsApplied;
+        private String expectedImprovement;
+        private String timestamp;
+
+        // Getters
+        public String getVersion() { return version; }
+        public long getTargetTps() { return targetTps; }
+        public long getCurrentTpsBaseline() { return currentTpsBaseline; }
+        public boolean isMlOptimizationEnabled() { return mlOptimizationEnabled; }
+        public int getMlBatchThreshold() { return mlBatchThreshold; }
+        public boolean isVirtualThreadsEnabled() { return virtualThreadsEnabled; }
+        public int getConsensusBatchSize() { return consensusBatchSize; }
+        public int getConsensusPipelineDepth() { return consensusPipelineDepth; }
+        public int getConsensusParallelThreads() { return consensusParallelThreads; }
+        public int getReplicationParallelism() { return replicationParallelism; }
+        public java.util.List<String> getOptimizationsApplied() { return optimizationsApplied; }
+        public String getExpectedImprovement() { return expectedImprovement; }
+        public String getTimestamp() { return timestamp; }
+
+        // Setters
+        public void setVersion(String version) { this.version = version; }
+        public void setTargetTps(long targetTps) { this.targetTps = targetTps; }
+        public void setCurrentTpsBaseline(long currentTpsBaseline) { this.currentTpsBaseline = currentTpsBaseline; }
+        public void setMlOptimizationEnabled(boolean mlOptimizationEnabled) { this.mlOptimizationEnabled = mlOptimizationEnabled; }
+        public void setMlBatchThreshold(int mlBatchThreshold) { this.mlBatchThreshold = mlBatchThreshold; }
+        public void setVirtualThreadsEnabled(boolean virtualThreadsEnabled) { this.virtualThreadsEnabled = virtualThreadsEnabled; }
+        public void setConsensusBatchSize(int consensusBatchSize) { this.consensusBatchSize = consensusBatchSize; }
+        public void setConsensusPipelineDepth(int consensusPipelineDepth) { this.consensusPipelineDepth = consensusPipelineDepth; }
+        public void setConsensusParallelThreads(int consensusParallelThreads) { this.consensusParallelThreads = consensusParallelThreads; }
+        public void setReplicationParallelism(int replicationParallelism) { this.replicationParallelism = replicationParallelism; }
+        public void setOptimizationsApplied(java.util.List<String> optimizationsApplied) { this.optimizationsApplied = optimizationsApplied; }
+        public void setExpectedImprovement(String expectedImprovement) { this.expectedImprovement = expectedImprovement; }
+        public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
     }
 
     // ============================================================
