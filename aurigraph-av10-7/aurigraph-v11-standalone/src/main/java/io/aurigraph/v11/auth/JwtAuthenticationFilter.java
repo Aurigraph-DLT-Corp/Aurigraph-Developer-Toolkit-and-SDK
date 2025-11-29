@@ -143,7 +143,10 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             path.startsWith("/api/v11/nodes") ||
             path.startsWith("/api/v11/consensus/") ||
             path.startsWith("/api/v11/blockchain/") ||
-            path.startsWith("/api/v11/network/")) {
+            path.startsWith("/api/v11/network/") ||
+            path.startsWith("/api/v11/blocks") ||
+            path.startsWith("/api/v11/transactions") ||
+            path.startsWith("/api/v11/validators")) {
             LOG.debugf("Dashboard endpoint detected - allowing public access: %s", path);
             return true;
         }
