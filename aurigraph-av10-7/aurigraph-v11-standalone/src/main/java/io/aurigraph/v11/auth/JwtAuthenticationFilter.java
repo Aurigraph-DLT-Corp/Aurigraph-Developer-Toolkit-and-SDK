@@ -105,6 +105,7 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
      * - Login and authentication endpoints
      * - Health check endpoints
      * - Demo endpoints (for Enterprise Portal integration)
+     * - Dashboard/analytics endpoints (for Enterprise Portal)
      * - Quarkus metrics endpoints
      */
     private boolean isPublicEndpoint(String path) {
@@ -133,6 +134,17 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // This allows the portal to access demo features without authentication
         if (path.startsWith("/api/v11/demo/")) {
             LOG.debugf("Demo endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Dashboard and analytics endpoints for Enterprise Portal public access
+        // These endpoints provide read-only data for the portal dashboard
+        if (path.startsWith("/api/v11/analytics/") ||
+            path.startsWith("/api/v11/nodes") ||
+            path.startsWith("/api/v11/consensus/") ||
+            path.startsWith("/api/v11/blockchain/") ||
+            path.startsWith("/api/v11/network/")) {
+            LOG.debugf("Dashboard endpoint detected - allowing public access: %s", path);
             return true;
         }
 
