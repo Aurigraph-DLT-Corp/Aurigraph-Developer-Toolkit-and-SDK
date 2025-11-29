@@ -22,6 +22,7 @@ const ValidatorDashboard = lazy(() => import('../components/comprehensive/Valida
 // AI & Security components
 const AIOptimizationControls = lazy(() => import('../components/comprehensive/AIOptimizationControls'));
 const QuantumSecurityPanel = lazy(() => import('../components/comprehensive/QuantumSecurityPanel'));
+const MentalModelsPage = lazy(() => import('../components/comprehensive/MentalModelsPage'));
 
 // Integration components
 const CrossChainBridge = lazy(() => import('../components/comprehensive/CrossChainBridge'));
@@ -392,6 +393,17 @@ export const routes: RouteDefinition[] = [
     description: 'Quantum-resistant security',
     category: 'ai',
     order: 62,
+  },
+  {
+    path: '/ai/mental-models',
+    component: MentalModelsPage,
+    label: 'Mental Models',
+    breadcrumbLabel: 'Mental Models & Reasoning',
+    parent: '/ai',
+    icon: 'BulbOutlined',
+    description: 'Mental models library and custom reasoning orchestration',
+    category: 'ai',
+    order: 63,
   },
 
   // =========================================================================
