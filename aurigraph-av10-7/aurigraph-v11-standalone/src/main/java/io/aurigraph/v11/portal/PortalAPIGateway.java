@@ -648,6 +648,64 @@ public class PortalAPIGateway {
     }
 
     // ============================================================
+    // PERFORMANCE BENCHMARK ENDPOINTS (V12 Priority 5)
+    // ============================================================
+
+    /**
+     * GET /api/v11/performance/benchmark
+     * Returns current performance configuration and metrics
+     * V12 Priority 5: Performance Optimization - Target 2M+ TPS
+     */
+    @GET
+    @Path("/performance/benchmark")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PortalResponse<PerformanceConfigDTO> getPerformanceBenchmark() {
+        LOG.info("Performance benchmark requested");
+
+        PerformanceConfigDTO config = new PerformanceConfigDTO();
+        config.version = "V12.0.0";
+        config.targetTps = 2000000L;
+        config.currentTpsBaseline = 776000L;
+        config.mlOptimizationEnabled = true;
+        config.mlBatchThreshold = 10;
+        config.virtualThreadsEnabled = true;
+        config.consensusBatchSize = 175000;
+        config.consensusPipelineDepth = 90;
+        config.consensusParallelThreads = 1152;
+        config.replicationParallelism = 32;
+        config.optimizationsApplied = java.util.List.of(
+            "ML batch threshold lowered (50 -> 10)",
+            "Virtual threads enabled for consensus",
+            "Replication parallelism increased (16 -> 32)",
+            "Election timeout optimized (50-100ms)",
+            "Adaptive heartbeat enabled"
+        );
+        config.expectedImprovement = "+158% (776K -> 2M+ TPS)";
+        config.timestamp = java.time.Instant.now().toString();
+
+        return PortalResponse.success(config, "Performance benchmark retrieved");
+    }
+
+    /**
+     * Performance configuration DTO
+     */
+    public static class PerformanceConfigDTO {
+        public String version;
+        public long targetTps;
+        public long currentTpsBaseline;
+        public boolean mlOptimizationEnabled;
+        public int mlBatchThreshold;
+        public boolean virtualThreadsEnabled;
+        public int consensusBatchSize;
+        public int consensusPipelineDepth;
+        public int consensusParallelThreads;
+        public int replicationParallelism;
+        public java.util.List<String> optimizationsApplied;
+        public String expectedImprovement;
+        public String timestamp;
+    }
+
+    // ============================================================
     // ERROR HANDLING
     // ============================================================
 

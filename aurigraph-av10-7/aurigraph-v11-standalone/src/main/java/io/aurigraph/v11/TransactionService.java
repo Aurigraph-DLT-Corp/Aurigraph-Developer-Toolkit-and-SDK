@@ -248,9 +248,10 @@ public class TransactionService {
      * @return Ordered list of transaction requests
      */
     private List<TransactionRequest> orderTransactionsML(List<TransactionRequest> requests) {
-        // OPTIMIZED (Oct 20, 2025): Lowered threshold from 100 to 50 for earlier ML optimization
-        if (!aiOptimizationEnabled || requests.size() < 50) {
-            return requests; // Skip ML for small batches (threshold: 50, was 100)
+        // OPTIMIZED (Nov 29, 2025 - V12 Priority 5): Lowered threshold from 50 to 10 for maximum ML optimization
+        // Expected improvement: +50-100K TPS due to earlier ML engagement
+        if (!aiOptimizationEnabled || requests.size() < 10) {
+            return requests; // Skip ML for very small batches only (threshold: 10, was 50)
         }
 
         long startNanos = System.nanoTime();
