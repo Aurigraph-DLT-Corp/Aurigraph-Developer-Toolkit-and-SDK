@@ -288,30 +288,40 @@ public class BlockchainDataService {
         return Uni.createFrom().item(() -> {
             Log.infof("Fetching %d transactions", limit);
 
-            List<TransactionDTO> transactions = new ArrayList<>();
-            Instant now = Instant.now();
+            try {
+                List<TransactionDTO> transactions = new ArrayList<>();
+                Instant now = Instant.now();
+                String[] statuses = {"confirmed", "confirmed", "confirmed", "confirmed", "confirmed",
+                                     "confirmed", "confirmed", "confirmed", "pending", "confirmed"};
+                String[] types = {"transfer", "contract_call", "stake", "delegate", "transfer"};
 
-            for (int i = 0; i < Math.min(limit, 20); i++) {
-                transactions.add(TransactionDTO.builder()
-                    .txHash(generateHash())
-                    .from("0x" + String.format("%040x", 1000 + i))
-                    .to("0x" + String.format("%040x", 2000 + i))
-                    .amount("100.5 AUR")
-                    .gasUsed(21000L)
-                    .gasPrice("25 Gwei")
-                    .status("confirmed")
-                    .blockHeight(15847L - (i / 10))
-                    .timestamp(now.minusSeconds((long) i * 15))
-                    .nonce(1000L + i)
-                    .type("transfer")
-                    .fee("0.525 AUR")
-                    .build());
+                for (int i = 0; i < Math.min(limit, 20); i++) {
+                    TransactionDTO tx = TransactionDTO.builder()
+                        .txHash(generateHash())
+                        .from("0x" + String.format("%040x", 1000 + i))
+                        .to("0x" + String.format("%040x", 2000 + i))
+                        .amount(String.format("%.2f AUR", 100.5 + (i * 10.5)))
+                        .gasUsed(21000L + (i * 100))
+                        .gasPrice("25 Gwei")
+                        .status(statuses[i % statuses.length])
+                        .blockHeight(15847L - (i / 10))
+                        .timestamp(now.minusSeconds((long) i * 15))
+                        .nonce(1000L + i)
+                        .type(types[i % types.length])
+                        .fee(String.format("%.4f AUR", 0.525 + (i * 0.001)))
+                        .build();
+                    transactions.add(tx);
+                }
+
+                Log.infof("Successfully generated %d transactions", transactions.size());
+                return transactions;
+            } catch (Exception e) {
+                Log.errorf(e, "Error building transactions: %s", e.getMessage());
+                throw e;
             }
-
-            return transactions;
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r))
          .onFailure().recoverWithItem(throwable -> {
-             Log.error("Failed to get transactions", throwable);
+             Log.errorf(throwable, "Failed to get transactions: %s", throwable.getMessage());
              return Collections.emptyList();
          });
     }

@@ -203,13 +203,21 @@ public class PortalAPIGateway {
             @QueryParam("limit") @DefaultValue("20") int limit) {
         LOG.infof("Transactions requested (limit: %d)", limit);
 
-        return blockchainDataService.getTransactions(Math.min(limit, 100))
-            .map(transactions -> PortalResponse.success(transactions, "Transactions retrieved"))
-            .onFailure()
-            .recoverWithItem(throwable -> {
-                LOG.error("Failed to get transactions", throwable);
-                return PortalResponse.error(500, "Failed to retrieve transactions");
-            });
+        try {
+            return blockchainDataService.getTransactions(Math.min(limit, 100))
+                .map(transactions -> {
+                    LOG.infof("Retrieved %d transactions successfully", transactions.size());
+                    return PortalResponse.success(transactions, "Transactions retrieved");
+                })
+                .onFailure()
+                .recoverWithItem(throwable -> {
+                    LOG.errorf(throwable, "Failed to get transactions: %s", throwable.getMessage());
+                    return PortalResponse.error(500, "Failed to retrieve transactions: " + throwable.getMessage());
+                });
+        } catch (Exception e) {
+            LOG.errorf(e, "Exception in getTransactions: %s", e.getMessage());
+            return Uni.createFrom().item(PortalResponse.error(500, "Exception in getTransactions: " + e.getMessage()));
+        }
     }
 
     /**
