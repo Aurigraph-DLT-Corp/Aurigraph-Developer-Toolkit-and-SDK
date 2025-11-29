@@ -6,13 +6,14 @@ version: '3.8'
 
 # Database environment variables (shared across all nodes)
 # Uses host's native PostgreSQL via extra_hosts mapping
+# Same credentials as main V12 service (j4c_db)
 x-db-env: &db-env
   QUARKUS_DATASOURCE_DB_KIND: postgresql
-  QUARKUS_DATASOURCE_USERNAME: aurigraph
-  QUARKUS_DATASOURCE_PASSWORD: aurigraph-prod-secure-2025
-  QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/aurigraph_production
+  QUARKUS_DATASOURCE_USERNAME: j4c_user
+  QUARKUS_DATASOURCE_PASSWORD: j4c_password
+  QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/j4c_db
   QUARKUS_FLYWAY_MIGRATE_AT_START: "false"
-  CURBY_QUANTUM_API_KEY: demo-key-for-testing
+  CURBY_QUANTUM_API_KEY: placeholder
 
 x-validator-common: &validator-common
   image: eclipse-temurin:21-jre-alpine
@@ -119,6 +120,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=validator
       -Dnode.type=validator
       -Dnode.id=validator-1
@@ -146,6 +151,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=validator
       -Dnode.type=validator
       -Dnode.id=validator-2
@@ -173,6 +182,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=validator
       -Dnode.type=validator
       -Dnode.id=validator-3
@@ -200,6 +213,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=validator
       -Dnode.type=validator
       -Dnode.id=validator-4
@@ -227,6 +244,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=validator
       -Dnode.type=validator
       -Dnode.id=validator-5
@@ -254,6 +275,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=validator
       -Dnode.type=validator
       -Dnode.id=validator-6
@@ -281,6 +306,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=validator
       -Dnode.type=validator
       -Dnode.id=validator-7
@@ -310,6 +339,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-1
@@ -333,6 +366,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-2
@@ -356,6 +393,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-3
@@ -379,6 +420,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-4
@@ -402,6 +447,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-5
@@ -425,6 +474,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-6
@@ -448,6 +501,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-7
@@ -471,6 +528,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-8
@@ -494,6 +555,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-9
@@ -517,6 +582,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-10
@@ -540,6 +609,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-11
@@ -563,6 +636,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-12
@@ -586,6 +663,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-13
@@ -609,6 +690,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-14
@@ -632,6 +717,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-15
@@ -655,6 +744,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-16
@@ -678,6 +771,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-17
@@ -701,6 +798,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-18
@@ -724,6 +825,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-19
@@ -747,6 +852,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=business
       -Dnode.type=business
       -Dnode.id=business-20
@@ -776,6 +885,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=slim
       -Dnode.type=slim
       -Dnode.id=slim-1
@@ -800,6 +913,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=slim
       -Dnode.type=slim
       -Dnode.id=slim-2
@@ -824,6 +941,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=slim
       -Dnode.type=slim
       -Dnode.id=slim-3
@@ -848,6 +969,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=slim
       -Dnode.type=slim
       -Dnode.id=slim-4
@@ -872,6 +997,10 @@ services:
     command: >
       java -jar /app/aurigraph-v12.jar
       -Dquarkus.http.port=9003
+      -Dquarkus.datasource.jdbc.url=jdbc:postgresql://host.docker.internal:5432/j4c_db
+      -Dquarkus.datasource.username=j4c_user
+      -Dquarkus.datasource.password=j4c_password
+      -Dquarkus.flyway.migrate-at-start=false
       -Dquarkus.profile=slim
       -Dnode.type=slim
       -Dnode.id=slim-5
