@@ -1,0 +1,240 @@
+# Deploy Aurigraph V12 Multi-Node Infrastructure
+# 7 Validators, 20 Business Nodes, 5 Slim Nodes
+name: Deploy V12 Nodes
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_validators:
+        description: 'Deploy Validator Nodes (7)'
+        required: true
+        default: 'true'
+        type: boolean
+      deploy_business:
+        description: 'Deploy Business Nodes (20)'
+        required: true
+        default: 'true'
+        type: boolean
+      deploy_slim:
+        description: 'Deploy Slim Nodes (5)'
+        required: true
+        default: 'true'
+        type: boolean
+      clean_start:
+        description: 'Clean start (remove existing node containers)'
+        required: true
+        default: 'false'
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: aurigraph-dlt-corp/aurigraph-v12
+
+jobs:
+  deploy-nodes:
+    name: Deploy V12 Node Infrastructure
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Display deployment configuration
+        run: |
+          echo "=== V12 Node Deployment Configuration ==="
+          echo "Deploy Validators: ${{ inputs.deploy_validators }}"
+          echo "Deploy Business Nodes: ${{ inputs.deploy_business }}"
+          echo "Deploy Slim Nodes: ${{ inputs.deploy_slim }}"
+          echo "Clean Start: ${{ inputs.clean_start }}"
+          echo ""
+          echo "Node Distribution:"
+          echo "  - Validators: 7 nodes"
+          echo "  - Business: 20 nodes"
+          echo "  - Slim: 5 nodes"
+          echo "  - Total: 32 nodes"
+
+      - name: Check Docker status
+        run: |
+          echo "=== Docker Status ==="
+          docker --version
+          docker-compose --version || docker compose version
+          echo ""
+          echo "=== Current containers ==="
+          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -20
+
+      - name: Clean existing node containers (if requested)
+        if: ${{ inputs.clean_start == 'true' }}
+        run: |
+          echo "=== Cleaning existing node containers ==="
+
+          # Stop and remove validator containers
+          for i in $(seq 1 7); do
+            docker stop aurigraph-validator-$i 2>/dev/null || true
+            docker rm aurigraph-validator-$i 2>/dev/null || true
+          done
+
+          # Stop and remove business containers
+          for i in $(seq 1 20); do
+            docker stop aurigraph-business-$i 2>/dev/null || true
+            docker rm aurigraph-business-$i 2>/dev/null || true
+          done
+
+          # Stop and remove slim containers
+          for i in $(seq 1 5); do
+            docker stop aurigraph-slim-$i 2>/dev/null || true
+            docker rm aurigraph-slim-$i 2>/dev/null || true
+          done
+
+          echo "Cleanup complete"
+          docker ps -a | grep -E "(validator|business|slim)" || echo "No node containers remaining"
+
+      - name: Prepare deployment directory
+        run: |
+          echo "=== Preparing deployment directory ==="
+          mkdir -p /home/subbu/nodes
+
+          # Copy docker-compose file
+          cp deploy-package/docker-compose-nodes.yml /home/subbu/nodes/
+
+          # Copy JAR file if it exists
+          if [ -f /home/subbu/aurigraph-v12.jar ]; then
+            cp /home/subbu/aurigraph-v12.jar /home/subbu/nodes/
+            echo "JAR file copied"
+          else
+            echo "WARNING: aurigraph-v12.jar not found at /home/subbu/"
+            echo "Nodes will fail to start without the JAR file"
+          fi
+
+          ls -la /home/subbu/nodes/
+
+      - name: Deploy Validator Nodes
+        if: ${{ inputs.deploy_validators == 'true' }}
+        run: |
+          echo "=== Deploying 7 Validator Nodes ==="
+          cd /home/subbu/nodes
+
+          # Start validators one by one to stagger startup
+          for i in $(seq 1 7); do
+            echo "Starting validator-$i..."
+            docker-compose -f docker-compose-nodes.yml up -d validator-$i
+            sleep 5
+          done
+
+          echo ""
+          echo "Validator nodes status:"
+          docker ps --filter "name=validator" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+      - name: Deploy Business Nodes
+        if: ${{ inputs.deploy_business == 'true' }}
+        run: |
+          echo "=== Deploying 20 Business Nodes ==="
+          cd /home/subbu/nodes
+
+          # Start business nodes in batches of 5
+          for batch in 1 2 3 4; do
+            start=$(( (batch - 1) * 5 + 1 ))
+            end=$(( batch * 5 ))
+            echo "Starting business nodes $start to $end..."
+
+            for i in $(seq $start $end); do
+              docker-compose -f docker-compose-nodes.yml up -d business-$i
+            done
+            sleep 10
+          done
+
+          echo ""
+          echo "Business nodes status:"
+          docker ps --filter "name=business" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+      - name: Deploy Slim Nodes
+        if: ${{ inputs.deploy_slim == 'true' }}
+        run: |
+          echo "=== Deploying 5 Slim Nodes ==="
+          cd /home/subbu/nodes
+
+          # Start all slim nodes
+          for i in $(seq 1 5); do
+            echo "Starting slim-$i..."
+            docker-compose -f docker-compose-nodes.yml up -d slim-$i
+            sleep 3
+          done
+
+          echo ""
+          echo "Slim nodes status:"
+          docker ps --filter "name=slim" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+      - name: Wait for nodes to start
+        run: |
+          echo "=== Waiting for nodes to initialize (60 seconds) ==="
+          sleep 60
+
+      - name: Verify node deployment
+        run: |
+          echo "=== Node Deployment Verification ==="
+          echo ""
+
+          # Count running containers
+          VALIDATORS=$(docker ps --filter "name=validator" --filter "status=running" -q | wc -l)
+          BUSINESS=$(docker ps --filter "name=business" --filter "status=running" -q | wc -l)
+          SLIM=$(docker ps --filter "name=slim" --filter "status=running" -q | wc -l)
+          TOTAL=$((VALIDATORS + BUSINESS + SLIM))
+
+          echo "Running Nodes Summary:"
+          echo "  - Validators: $VALIDATORS / 7"
+          echo "  - Business:   $BUSINESS / 20"
+          echo "  - Slim:       $SLIM / 5"
+          echo "  - Total:      $TOTAL / 32"
+          echo ""
+
+          echo "=== All Node Containers ==="
+          docker ps --filter "name=aurigraph" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+          echo ""
+          echo "=== Health Check Sample ==="
+
+          # Check a few nodes
+          echo "Validator-1:"
+          curl -s http://localhost:19001/q/health/live 2>/dev/null | head -1 || echo "Not responding yet"
+
+          echo "Business-1:"
+          curl -s http://localhost:19011/q/health/live 2>/dev/null | head -1 || echo "Not responding yet"
+
+          echo "Slim-1:"
+          curl -s http://localhost:19041/q/health/live 2>/dev/null | head -1 || echo "Not responding yet"
+
+      - name: Display resource usage
+        run: |
+          echo "=== Resource Usage ==="
+          echo ""
+          echo "Docker Stats (snapshot):"
+          docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" | head -35
+
+          echo ""
+          echo "System Memory:"
+          free -h 2>/dev/null || cat /proc/meminfo | head -5
+
+          echo ""
+          echo "Disk Usage:"
+          df -h / | head -2
+
+      - name: Final deployment summary
+        run: |
+          echo ""
+          echo "=============================================="
+          echo "  V12 Node Deployment Complete"
+          echo "=============================================="
+          echo ""
+          echo "Node Ports:"
+          echo "  Validators:  19001-19007 (HTTP), 19101-19107 (gRPC)"
+          echo "  Business:    19011-19030 (HTTP)"
+          echo "  Slim:        19041-19045 (HTTP)"
+          echo ""
+          echo "Monitor nodes:"
+          echo "  docker ps --filter 'name=aurigraph'"
+          echo ""
+          echo "View logs:"
+          echo "  docker logs -f aurigraph-validator-1"
+          echo ""
+          echo "Stop all nodes:"
+          echo "  cd /home/subbu/nodes && docker-compose -f docker-compose-nodes.yml down"

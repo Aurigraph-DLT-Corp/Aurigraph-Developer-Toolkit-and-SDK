@@ -1,0 +1,896 @@
+# Aurigraph V12 Multi-Node Infrastructure
+# 7 Validators, 20 Business Nodes, 5 Slim Nodes
+# Total: 32 nodes
+
+version: '3.8'
+
+x-validator-common: &validator-common
+  image: eclipse-temurin:21-jre-alpine
+  restart: unless-stopped
+  networks:
+    - aurigraph-network
+  healthcheck:
+    test: ["CMD", "wget", "-q", "--spider", "http://localhost:9003/q/health/live"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 60s
+  deploy:
+    resources:
+      limits:
+        cpus: '2'
+        memory: 2G
+      reservations:
+        cpus: '1'
+        memory: 1G
+
+x-business-common: &business-common
+  image: eclipse-temurin:21-jre-alpine
+  restart: unless-stopped
+  networks:
+    - aurigraph-network
+  healthcheck:
+    test: ["CMD", "wget", "-q", "--spider", "http://localhost:9003/q/health/live"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 60s
+  deploy:
+    resources:
+      limits:
+        cpus: '1'
+        memory: 1G
+      reservations:
+        cpus: '0.5'
+        memory: 512M
+
+x-slim-common: &slim-common
+  image: eclipse-temurin:21-jre-alpine
+  restart: unless-stopped
+  networks:
+    - aurigraph-network
+  healthcheck:
+    test: ["CMD", "wget", "-q", "--spider", "http://localhost:9003/q/health/live"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 60s
+  deploy:
+    resources:
+      limits:
+        cpus: '0.5'
+        memory: 512M
+      reservations:
+        cpus: '0.25'
+        memory: 256M
+
+services:
+  # ==========================================
+  # VALIDATOR NODES (7 nodes)
+  # High-performance consensus participants
+  # ==========================================
+
+  validator-1:
+    <<: *validator-common
+    container_name: aurigraph-validator-1
+    hostname: validator-1
+    environment:
+      - NODE_TYPE=validator
+      - NODE_ID=validator-1
+      - NODE_NAME=Aurigraph Validator 1
+      - CLUSTER_ROLE=leader
+      - JAVA_OPTS=-Xmx1536m -Xms1024m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - QUARKUS_GRPC_SERVER_PORT=9004
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - CONSENSUS_ENABLED=true
+      - VALIDATOR_STAKE=500000000
+    volumes:
+      - validator-1-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=validator
+      -Dnode.type=validator
+      -Dnode.id=validator-1
+    ports:
+      - "19001:9003"
+      - "19101:9004"
+
+  validator-2:
+    <<: *validator-common
+    container_name: aurigraph-validator-2
+    hostname: validator-2
+    environment:
+      - NODE_TYPE=validator
+      - NODE_ID=validator-2
+      - NODE_NAME=Aurigraph Validator 2
+      - CLUSTER_ROLE=follower
+      - JAVA_OPTS=-Xmx1536m -Xms1024m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - CONSENSUS_ENABLED=true
+      - VALIDATOR_STAKE=480000000
+    volumes:
+      - validator-2-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=validator
+      -Dnode.type=validator
+      -Dnode.id=validator-2
+    ports:
+      - "19002:9003"
+      - "19102:9004"
+
+  validator-3:
+    <<: *validator-common
+    container_name: aurigraph-validator-3
+    hostname: validator-3
+    environment:
+      - NODE_TYPE=validator
+      - NODE_ID=validator-3
+      - NODE_NAME=Aurigraph Validator 3
+      - CLUSTER_ROLE=follower
+      - JAVA_OPTS=-Xmx1536m -Xms1024m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - CONSENSUS_ENABLED=true
+      - VALIDATOR_STAKE=460000000
+    volumes:
+      - validator-3-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=validator
+      -Dnode.type=validator
+      -Dnode.id=validator-3
+    ports:
+      - "19003:9003"
+      - "19103:9004"
+
+  validator-4:
+    <<: *validator-common
+    container_name: aurigraph-validator-4
+    hostname: validator-4
+    environment:
+      - NODE_TYPE=validator
+      - NODE_ID=validator-4
+      - NODE_NAME=Aurigraph Validator 4
+      - CLUSTER_ROLE=follower
+      - JAVA_OPTS=-Xmx1536m -Xms1024m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - CONSENSUS_ENABLED=true
+      - VALIDATOR_STAKE=440000000
+    volumes:
+      - validator-4-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=validator
+      -Dnode.type=validator
+      -Dnode.id=validator-4
+    ports:
+      - "19004:9003"
+      - "19104:9004"
+
+  validator-5:
+    <<: *validator-common
+    container_name: aurigraph-validator-5
+    hostname: validator-5
+    environment:
+      - NODE_TYPE=validator
+      - NODE_ID=validator-5
+      - NODE_NAME=Aurigraph Validator 5
+      - CLUSTER_ROLE=follower
+      - JAVA_OPTS=-Xmx1536m -Xms1024m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - CONSENSUS_ENABLED=true
+      - VALIDATOR_STAKE=420000000
+    volumes:
+      - validator-5-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=validator
+      -Dnode.type=validator
+      -Dnode.id=validator-5
+    ports:
+      - "19005:9003"
+      - "19105:9004"
+
+  validator-6:
+    <<: *validator-common
+    container_name: aurigraph-validator-6
+    hostname: validator-6
+    environment:
+      - NODE_TYPE=validator
+      - NODE_ID=validator-6
+      - NODE_NAME=Aurigraph Validator 6
+      - CLUSTER_ROLE=follower
+      - JAVA_OPTS=-Xmx1536m -Xms1024m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - CONSENSUS_ENABLED=true
+      - VALIDATOR_STAKE=400000000
+    volumes:
+      - validator-6-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=validator
+      -Dnode.type=validator
+      -Dnode.id=validator-6
+    ports:
+      - "19006:9003"
+      - "19106:9004"
+
+  validator-7:
+    <<: *validator-common
+    container_name: aurigraph-validator-7
+    hostname: validator-7
+    environment:
+      - NODE_TYPE=validator
+      - NODE_ID=validator-7
+      - NODE_NAME=Aurigraph Validator 7
+      - CLUSTER_ROLE=follower
+      - JAVA_OPTS=-Xmx1536m -Xms1024m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - CONSENSUS_ENABLED=true
+      - VALIDATOR_STAKE=380000000
+    volumes:
+      - validator-7-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=validator
+      -Dnode.type=validator
+      -Dnode.id=validator-7
+    ports:
+      - "19007:9003"
+      - "19107:9004"
+
+  # ==========================================
+  # BUSINESS NODES (20 nodes)
+  # Transaction processing and smart contracts
+  # ==========================================
+
+  business-1:
+    <<: *business-common
+    container_name: aurigraph-business-1
+    hostname: business-1
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-1
+      - NODE_NAME=Aurigraph Business Node 1
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-1-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-1
+    ports:
+      - "19011:9003"
+
+  business-2:
+    <<: *business-common
+    container_name: aurigraph-business-2
+    hostname: business-2
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-2
+      - NODE_NAME=Aurigraph Business Node 2
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-2-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-2
+    ports:
+      - "19012:9003"
+
+  business-3:
+    <<: *business-common
+    container_name: aurigraph-business-3
+    hostname: business-3
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-3
+      - NODE_NAME=Aurigraph Business Node 3
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-3-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-3
+    ports:
+      - "19013:9003"
+
+  business-4:
+    <<: *business-common
+    container_name: aurigraph-business-4
+    hostname: business-4
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-4
+      - NODE_NAME=Aurigraph Business Node 4
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-4-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-4
+    ports:
+      - "19014:9003"
+
+  business-5:
+    <<: *business-common
+    container_name: aurigraph-business-5
+    hostname: business-5
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-5
+      - NODE_NAME=Aurigraph Business Node 5
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-5-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-5
+    ports:
+      - "19015:9003"
+
+  business-6:
+    <<: *business-common
+    container_name: aurigraph-business-6
+    hostname: business-6
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-6
+      - NODE_NAME=Aurigraph Business Node 6
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-6-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-6
+    ports:
+      - "19016:9003"
+
+  business-7:
+    <<: *business-common
+    container_name: aurigraph-business-7
+    hostname: business-7
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-7
+      - NODE_NAME=Aurigraph Business Node 7
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-7-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-7
+    ports:
+      - "19017:9003"
+
+  business-8:
+    <<: *business-common
+    container_name: aurigraph-business-8
+    hostname: business-8
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-8
+      - NODE_NAME=Aurigraph Business Node 8
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-8-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-8
+    ports:
+      - "19018:9003"
+
+  business-9:
+    <<: *business-common
+    container_name: aurigraph-business-9
+    hostname: business-9
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-9
+      - NODE_NAME=Aurigraph Business Node 9
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-9-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-9
+    ports:
+      - "19019:9003"
+
+  business-10:
+    <<: *business-common
+    container_name: aurigraph-business-10
+    hostname: business-10
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-10
+      - NODE_NAME=Aurigraph Business Node 10
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-10-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-10
+    ports:
+      - "19020:9003"
+
+  business-11:
+    <<: *business-common
+    container_name: aurigraph-business-11
+    hostname: business-11
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-11
+      - NODE_NAME=Aurigraph Business Node 11
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-11-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-11
+    ports:
+      - "19021:9003"
+
+  business-12:
+    <<: *business-common
+    container_name: aurigraph-business-12
+    hostname: business-12
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-12
+      - NODE_NAME=Aurigraph Business Node 12
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-12-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-12
+    ports:
+      - "19022:9003"
+
+  business-13:
+    <<: *business-common
+    container_name: aurigraph-business-13
+    hostname: business-13
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-13
+      - NODE_NAME=Aurigraph Business Node 13
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-13-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-13
+    ports:
+      - "19023:9003"
+
+  business-14:
+    <<: *business-common
+    container_name: aurigraph-business-14
+    hostname: business-14
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-14
+      - NODE_NAME=Aurigraph Business Node 14
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-14-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-14
+    ports:
+      - "19024:9003"
+
+  business-15:
+    <<: *business-common
+    container_name: aurigraph-business-15
+    hostname: business-15
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-15
+      - NODE_NAME=Aurigraph Business Node 15
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-15-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-15
+    ports:
+      - "19025:9003"
+
+  business-16:
+    <<: *business-common
+    container_name: aurigraph-business-16
+    hostname: business-16
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-16
+      - NODE_NAME=Aurigraph Business Node 16
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-16-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-16
+    ports:
+      - "19026:9003"
+
+  business-17:
+    <<: *business-common
+    container_name: aurigraph-business-17
+    hostname: business-17
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-17
+      - NODE_NAME=Aurigraph Business Node 17
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-17-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-17
+    ports:
+      - "19027:9003"
+
+  business-18:
+    <<: *business-common
+    container_name: aurigraph-business-18
+    hostname: business-18
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-18
+      - NODE_NAME=Aurigraph Business Node 18
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-18-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-18
+    ports:
+      - "19028:9003"
+
+  business-19:
+    <<: *business-common
+    container_name: aurigraph-business-19
+    hostname: business-19
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-19
+      - NODE_NAME=Aurigraph Business Node 19
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-19-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-19
+    ports:
+      - "19029:9003"
+
+  business-20:
+    <<: *business-common
+    container_name: aurigraph-business-20
+    hostname: business-20
+    environment:
+      - NODE_TYPE=business
+      - NODE_ID=business-20
+      - NODE_NAME=Aurigraph Business Node 20
+      - JAVA_OPTS=-Xmx768m -Xms512m -XX:+UseG1GC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+    volumes:
+      - business-20-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=business
+      -Dnode.type=business
+      -Dnode.id=business-20
+    ports:
+      - "19030:9003"
+
+  # ==========================================
+  # SLIM NODES (5 nodes)
+  # Lightweight read-only nodes
+  # ==========================================
+
+  slim-1:
+    <<: *slim-common
+    container_name: aurigraph-slim-1
+    hostname: slim-1
+    environment:
+      - NODE_TYPE=slim
+      - NODE_ID=slim-1
+      - NODE_NAME=Aurigraph Slim Node 1
+      - JAVA_OPTS=-Xmx384m -Xms256m -XX:+UseSerialGC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - READ_ONLY=true
+    volumes:
+      - slim-1-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=slim
+      -Dnode.type=slim
+      -Dnode.id=slim-1
+    ports:
+      - "19041:9003"
+
+  slim-2:
+    <<: *slim-common
+    container_name: aurigraph-slim-2
+    hostname: slim-2
+    environment:
+      - NODE_TYPE=slim
+      - NODE_ID=slim-2
+      - NODE_NAME=Aurigraph Slim Node 2
+      - JAVA_OPTS=-Xmx384m -Xms256m -XX:+UseSerialGC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - READ_ONLY=true
+    volumes:
+      - slim-2-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=slim
+      -Dnode.type=slim
+      -Dnode.id=slim-2
+    ports:
+      - "19042:9003"
+
+  slim-3:
+    <<: *slim-common
+    container_name: aurigraph-slim-3
+    hostname: slim-3
+    environment:
+      - NODE_TYPE=slim
+      - NODE_ID=slim-3
+      - NODE_NAME=Aurigraph Slim Node 3
+      - JAVA_OPTS=-Xmx384m -Xms256m -XX:+UseSerialGC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - READ_ONLY=true
+    volumes:
+      - slim-3-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=slim
+      -Dnode.type=slim
+      -Dnode.id=slim-3
+    ports:
+      - "19043:9003"
+
+  slim-4:
+    <<: *slim-common
+    container_name: aurigraph-slim-4
+    hostname: slim-4
+    environment:
+      - NODE_TYPE=slim
+      - NODE_ID=slim-4
+      - NODE_NAME=Aurigraph Slim Node 4
+      - JAVA_OPTS=-Xmx384m -Xms256m -XX:+UseSerialGC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - READ_ONLY=true
+    volumes:
+      - slim-4-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=slim
+      -Dnode.type=slim
+      -Dnode.id=slim-4
+    ports:
+      - "19044:9003"
+
+  slim-5:
+    <<: *slim-common
+    container_name: aurigraph-slim-5
+    hostname: slim-5
+    environment:
+      - NODE_TYPE=slim
+      - NODE_ID=slim-5
+      - NODE_NAME=Aurigraph Slim Node 5
+      - JAVA_OPTS=-Xmx384m -Xms256m -XX:+UseSerialGC
+      - QUARKUS_HTTP_PORT=9003
+      - API_BASE_URL=http://dlt.aurigraph.io/api/v11
+      - READ_ONLY=true
+    volumes:
+      - slim-5-data:/data
+      - ./aurigraph-v12.jar:/app/aurigraph-v12.jar:ro
+    command: >
+      java -jar /app/aurigraph-v12.jar
+      -Dquarkus.http.port=9003
+      -Dquarkus.profile=slim
+      -Dnode.type=slim
+      -Dnode.id=slim-5
+    ports:
+      - "19045:9003"
+
+networks:
+  aurigraph-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  # Validator volumes
+  validator-1-data:
+  validator-2-data:
+  validator-3-data:
+  validator-4-data:
+  validator-5-data:
+  validator-6-data:
+  validator-7-data:
+  # Business node volumes
+  business-1-data:
+  business-2-data:
+  business-3-data:
+  business-4-data:
+  business-5-data:
+  business-6-data:
+  business-7-data:
+  business-8-data:
+  business-9-data:
+  business-10-data:
+  business-11-data:
+  business-12-data:
+  business-13-data:
+  business-14-data:
+  business-15-data:
+  business-16-data:
+  business-17-data:
+  business-18-data:
+  business-19-data:
+  business-20-data:
+  # Slim node volumes
+  slim-1-data:
+  slim-2-data:
+  slim-3-data:
+  slim-4-data:
+  slim-5-data:
