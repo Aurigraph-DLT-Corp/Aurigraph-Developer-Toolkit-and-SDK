@@ -54,7 +54,7 @@ jobs:
   # ============================================================
   validate-config:
     name: Validate Configuration
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       config_valid: ${{ steps.validate.outputs.valid }}
 
@@ -80,7 +80,7 @@ jobs:
 
   build:
     name: Build & Test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: validate-config
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -156,7 +156,7 @@ jobs:
   # ============================================================
   deploy-staging:
     name: Deploy to Staging
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     if: github.ref == 'refs/heads/develop' || github.event.inputs.deployment_target == 'staging'
     environment:
@@ -221,7 +221,7 @@ jobs:
 
   deploy-production:
     name: Deploy to Production
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     if: github.ref == 'refs/heads/main' || github.event.inputs.deployment_target == 'production'
     environment:
@@ -427,7 +427,7 @@ jobs:
   # ============================================================
   monitor-deployment:
     name: Monitor Deployment (5 min)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [deploy-staging, deploy-production]
     if: always()
 
@@ -458,7 +458,7 @@ jobs:
   # ============================================================
   notify-success:
     name: Notify Success
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [deploy-production, monitor-deployment]
     if: success()
 
@@ -500,7 +500,7 @@ jobs:
 
   notify-failure:
     name: Notify Failure
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [deploy-production]
     if: failure()
 
