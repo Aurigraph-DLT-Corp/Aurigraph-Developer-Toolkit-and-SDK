@@ -2,7 +2,10 @@ package io.aurigraph.v11.oracle.adapter;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import io.aurigraph.v11.live.LiveExternalDataService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,6 +44,12 @@ public class ChainlinkAdapter extends BaseOracleAdapter {
 
     @ConfigProperty(name = "oracle.chainlink.fallback.enabled", defaultValue = "true")
     boolean fallbackEnabled;
+
+    @ConfigProperty(name = "oracle.chainlink.use.live.data", defaultValue = "true")
+    boolean useLiveData;
+
+    @Inject
+    LiveExternalDataService liveDataService;
 
     // Cache for price feed addresses
     private final Map<String, String> priceFeedAddresses;
@@ -100,29 +109,36 @@ public class ChainlinkAdapter extends BaseOracleAdapter {
 
     /**
      * Fetch price from Chainlink primary endpoint
-     * In production, this would use Web3j or similar library to call smart contract
+     * Uses LiveExternalDataService for REAL prices from CoinGecko/Binance
      *
-     * @param assetId The asset pair identifier
+     * @param assetId The asset pair identifier (e.g., "BTC/USD")
      * @param feedAddress The Chainlink price feed contract address
-     * @return Price from Chainlink
+     * @return Price from external API (real data)
      */
     private BigDecimal fetchFromChainlink(String assetId, String feedAddress) throws Exception {
-        // Simulate API call latency
-        Thread.sleep(50 + new Random().nextInt(50));
+        // Use REAL data from LiveExternalDataService if enabled
+        if (useLiveData && liveDataService != null) {
+            try {
+                // Extract symbol from assetId (e.g., "BTC/USD" -> "BTC")
+                String symbol = assetId.split("/")[0];
 
-        // In production, this would be:
-        // 1. Connect to Ethereum node via Web3j
-        // 2. Call latestRoundData() on the price feed contract
-        // 3. Parse the response and convert to BigDecimal
-        //
-        // Example pseudo-code:
-        // Web3j web3j = Web3j.build(new HttpService(chainlinkApiUrl));
-        // AggregatorV3Interface priceFeed = AggregatorV3Interface.load(feedAddress, web3j, credentials, gasProvider);
-        // Tuple5<BigInteger, BigInteger, BigInteger, BigInteger, BigInteger> roundData = priceFeed.latestRoundData().send();
-        // BigInteger answer = roundData.component2();
-        // return new BigDecimal(answer).divide(BigDecimal.TEN.pow(8), RoundingMode.HALF_UP);
+                LiveExternalDataService.LivePriceData priceData =
+                    liveDataService.getLivePrice(symbol).await().indefinitely();
 
-        // Simulate realistic price data
+                if (priceData != null && priceData.price > 0) {
+                    Log.infof("Using LIVE price for %s: $%.2f (source: %s)",
+                        symbol, priceData.price, priceData.source);
+                    return BigDecimal.valueOf(priceData.price)
+                        .setScale(8, RoundingMode.HALF_UP);
+                }
+            } catch (Exception e) {
+                Log.warnf("Live data fetch failed for %s, falling back to simulation: %s",
+                    assetId, e.getMessage());
+            }
+        }
+
+        // Fallback to simulated data if live data is disabled or failed
+        Log.debugf("Using simulated price for %s (live data: %s)", assetId, useLiveData);
         return simulateChainlinkPrice(assetId);
     }
 

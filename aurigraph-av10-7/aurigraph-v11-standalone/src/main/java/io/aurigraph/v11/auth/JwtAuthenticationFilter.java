@@ -147,8 +147,22 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             path.startsWith("/api/v11/blocks") ||
             path.startsWith("/api/v11/transactions") ||
             path.startsWith("/api/v11/validators") ||
-            path.startsWith("/api/v11/performance/")) {
+            path.startsWith("/api/v11/performance/") ||
+            path.startsWith("/api/v11/live/")) {
             LOG.debugf("Dashboard endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Portal API endpoints for Enterprise Portal (read-only data)
+        // These are handled by PortalAPIGateway and provide demo/mock data
+        if (path.equals("/api/v11/tokens") ||
+            path.startsWith("/api/v11/tokens/") ||
+            path.startsWith("/api/v11/rwa/") ||
+            path.startsWith("/api/v11/staking/") ||
+            path.startsWith("/api/v11/contracts/") ||
+            path.startsWith("/api/v11/governance/") ||
+            path.equals("/api/v11/stats")) {
+            LOG.debugf("Portal API endpoint detected - allowing public access: %s", path);
             return true;
         }
 

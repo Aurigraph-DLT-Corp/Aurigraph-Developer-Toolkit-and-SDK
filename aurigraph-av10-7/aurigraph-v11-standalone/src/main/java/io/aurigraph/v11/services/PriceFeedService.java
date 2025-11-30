@@ -2,8 +2,12 @@ package io.aurigraph.v11.services;
 
 import io.aurigraph.v11.models.PriceFeed;
 import io.aurigraph.v11.models.PriceFeed.*;
+import io.aurigraph.v11.live.LiveExternalDataService;
+import io.aurigraph.v11.live.LiveExternalDataService.LivePriceData;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
@@ -23,13 +27,40 @@ public class PriceFeedService {
 
     private static final Logger LOG = Logger.getLogger(PriceFeedService.class);
 
+    @Inject
+    LiveExternalDataService liveDataService;
+
+    @ConfigProperty(name = "price.feed.use.live.data", defaultValue = "true")
+    boolean useLiveData;
+
     /**
      * Get current price feed for all supported assets
+     * Uses REAL data from CoinGecko/Binance when available
      */
     public Uni<PriceFeed> getPriceFeed() {
         return Uni.createFrom().item(() -> {
             PriceFeed feed = new PriceFeed();
 
+            // Use real data from LiveExternalDataService if enabled
+            if (useLiveData && liveDataService != null) {
+                try {
+                    List<LivePriceData> livePrices = liveDataService.getAllLivePrices()
+                        .await().indefinitely();
+
+                    if (livePrices != null && !livePrices.isEmpty()) {
+                        LOG.info("Using LIVE price data from external APIs");
+                        feed.setPrices(buildLiveAssetPrices(livePrices));
+                        feed.setSources(buildPriceSources());
+                        feed.setAggregationMethod("live-external");
+                        feed.setUpdateFrequencyMs(30000); // 30 second updates from CoinGecko
+                        return feed;
+                    }
+                } catch (Exception e) {
+                    LOG.warnf("Failed to fetch live prices, using simulated: %s", e.getMessage());
+                }
+            }
+
+            // Fallback to simulated data
             feed.setPrices(buildAssetPrices());
             feed.setSources(buildPriceSources());
             feed.setAggregationMethod("median");
@@ -41,6 +72,53 @@ public class PriceFeedService {
 
             return feed;
         });
+    }
+
+    /**
+     * Build asset prices from LIVE external data
+     */
+    private List<AssetPrice> buildLiveAssetPrices(List<LivePriceData> livePrices) {
+        List<AssetPrice> prices = new ArrayList<>();
+
+        for (LivePriceData livePrice : livePrices) {
+            String name = getAssetName(livePrice.symbol);
+            prices.add(new AssetPrice(
+                livePrice.symbol,
+                name,
+                livePrice.price,
+                livePrice.priceChange24h,
+                livePrice.volume24h,
+                livePrice.marketCap,
+                0.98, // High confidence from external API
+                1 // Single source (aggregated by CoinGecko)
+            ));
+        }
+
+        return prices;
+    }
+
+    /**
+     * Get full asset name from symbol
+     */
+    private String getAssetName(String symbol) {
+        return switch (symbol) {
+            case "BTC" -> "Bitcoin";
+            case "ETH" -> "Ethereum";
+            case "MATIC" -> "Polygon";
+            case "SOL" -> "Solana";
+            case "AVAX" -> "Avalanche";
+            case "DOT" -> "Polkadot";
+            case "LINK" -> "Chainlink";
+            case "UNI" -> "Uniswap";
+            case "ATOM" -> "Cosmos";
+            case "XRP" -> "Ripple";
+            case "ADA" -> "Cardano";
+            case "DOGE" -> "Dogecoin";
+            case "BNB" -> "Binance Coin";
+            case "USDT" -> "Tether";
+            case "USDC" -> "USD Coin";
+            default -> symbol;
+        };
     }
 
     /**
