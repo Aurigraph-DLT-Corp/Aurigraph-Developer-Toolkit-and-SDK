@@ -240,6 +240,80 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
+      - name: Pre-deployment cleanup
+        run: |
+          echo "🧹 Pre-deployment cleanup - Checking for old instances..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
+          set -e
+          echo "=== J4C Deployment Agent - Pre-Deployment Cleanup ==="
+          echo "Timestamp: $(date)"
+          echo ""
+
+          # Check for running Java processes (aurigraph/quarkus)
+          echo "📋 Checking running Java processes..."
+          JAVA_PROCS=$(pgrep -f 'quarkus-run.jar\|aurigraph' 2>/dev/null || true)
+          if [ -n "$JAVA_PROCS" ]; then
+            echo "Found running processes: $JAVA_PROCS"
+            echo "Stopping old Java processes..."
+            pkill -f 'quarkus-run.jar' 2>/dev/null || true
+            pkill -f 'aurigraph-v12.jar' 2>/dev/null || true
+            sleep 5
+            echo "✅ Old Java processes stopped"
+          else
+            echo "✅ No old Java processes found"
+          fi
+
+          # Check for old Docker containers
+          echo ""
+          echo "🐳 Checking Docker containers..."
+          OLD_CONTAINERS=$(docker ps -a --filter "name=aurigraph" --filter "status=exited" -q 2>/dev/null || true)
+          if [ -n "$OLD_CONTAINERS" ]; then
+            echo "Found stopped containers: $OLD_CONTAINERS"
+            echo "Removing stopped aurigraph containers..."
+            docker rm -f $OLD_CONTAINERS 2>/dev/null || true
+            echo "✅ Old containers removed"
+          else
+            echo "✅ No stopped containers found"
+          fi
+
+          # Check for dangling Docker images
+          echo ""
+          echo "🖼️ Checking dangling Docker images..."
+          DANGLING_IMAGES=$(docker images -f "dangling=true" -q 2>/dev/null || true)
+          if [ -n "$DANGLING_IMAGES" ]; then
+            echo "Found dangling images"
+            echo "Removing dangling images..."
+            docker image prune -f 2>/dev/null || true
+            echo "✅ Dangling images removed"
+          else
+            echo "✅ No dangling images found"
+          fi
+
+          # Check for old aurigraph images (keep last 3)
+          echo ""
+          echo "🗑️ Cleaning old aurigraph images (keeping last 3)..."
+          docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep aurigraph | tail -n +4 | awk '{print $2}' | xargs -r docker rmi 2>/dev/null || true
+
+          # Clean up old deployment backups (keep last 5)
+          echo ""
+          echo "💾 Cleaning old backups (keeping last 5)..."
+          ls -dt $HOME/quarkus-app.backup.* 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
+
+          # Show disk usage
+          echo ""
+          echo "📊 Disk usage:"
+          df -h / | tail -1
+
+          # Show memory usage
+          echo ""
+          echo "💻 Memory usage:"
+          free -h | head -2
+
+          echo ""
+          echo "✅ Pre-deployment cleanup complete"
+          echo "==================================================="
+          EOF
+
       - name: Pre-deployment backup
         run: |
           echo "💾 Creating pre-deployment backup..."
