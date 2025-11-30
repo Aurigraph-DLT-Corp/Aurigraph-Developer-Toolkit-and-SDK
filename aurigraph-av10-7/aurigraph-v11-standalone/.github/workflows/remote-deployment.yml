@@ -30,7 +30,7 @@ jobs:
   # Job 1: Build JAR
   build:
     name: Build Application
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 20
 
     steps:
@@ -84,7 +84,7 @@ jobs:
   # Job 2: Deploy to Remote Server
   deploy:
     name: Deploy to Production
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     timeout-minutes: 15
     environment:
@@ -229,7 +229,7 @@ jobs:
   # Job 3: Smoke Tests
   smoke-tests:
     name: Post-Deployment Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: deploy
     timeout-minutes: 5
 
