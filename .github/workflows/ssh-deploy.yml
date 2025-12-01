@@ -1,0 +1,128 @@
+name: SSH Deploy to Remote
+
+on:
+  push:
+    branches:
+      - V12
+      - main
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
+      - '.github/workflows/ssh-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: 'Skip build (deploy existing JAR on server)'
+        type: boolean
+        default: false
+
+env:
+  JAVA_VERSION: '21'
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy via SSH
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        if: ${{ !inputs.skip_build }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build V12 JAR
+        if: ${{ !inputs.skip_build }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Building V12 application..."
+          ./mvnw clean package -DskipTests -B
+          echo "Build complete!"
+          ls -lh target/*.jar || ls -lh target/quarkus-app/
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 22 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Upload JAR to Server
+        if: ${{ !inputs.skip_build }}
+        run: |
+          echo "Uploading JAR to server..."
+          scp -P 22 aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app/quarkus-run.jar subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12.jar
+          echo "Upload complete!"
+
+      - name: Deploy on Remote Server
+        run: |
+          ssh -p 22 subbu@dlt.aurigraph.io << 'DEPLOY_SCRIPT'
+          set -e
+          echo "=== Aurigraph V12 Deployment ==="
+          echo "Timestamp: $(date)"
+          echo ""
+
+          # Stop existing service
+          echo "Stopping existing service..."
+          pkill -f 'aurigraph-v12.jar' 2>/dev/null || echo "No existing process found"
+          sleep 5
+
+          # Verify port is free
+          if ss -tlnp | grep -q ':9003 '; then
+            echo "Warning: Port 9003 still in use, forcing cleanup..."
+            fuser -k 9003/tcp 2>/dev/null || true
+            sleep 3
+          fi
+
+          # Start new service
+          echo "Starting V12 service..."
+          cd /home/subbu
+          nohup java -Xmx8g -Xms4g \
+            -XX:+UseG1GC \
+            -XX:MaxGCPauseMillis=200 \
+            -Dquarkus.http.port=9003 \
+            -Dcurby.quantum.api-key=placeholder \
+            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/j4c_db \
+            -Dquarkus.datasource.username=j4c_user \
+            -Dquarkus.datasource.password=j4c_password \
+            -Dquarkus.flyway.migrate-at-start=false \
+            -jar aurigraph-v12.jar \
+            > aurigraph/logs/main-api.log 2>&1 &
+
+          echo "Service starting with PID: $!"
+
+          # Wait for startup
+          echo "Waiting for service to start (30s)..."
+          sleep 30
+
+          # Health check
+          echo ""
+          echo "=== Health Check ==="
+          for i in 1 2 3 4 5; do
+            if curl -s http://localhost:9003/api/v11/health | grep -q 'status'; then
+              echo "Health check passed!"
+              curl -s http://localhost:9003/api/v11/health
+              echo ""
+              exit 0
+            fi
+            echo "Attempt $i/5..."
+            sleep 5
+          done
+
+          echo "Warning: Health check didn't return expected response"
+          curl -v http://localhost:9003/api/v11/health || true
+          DEPLOY_SCRIPT
+
+      - name: Verify Deployment
+        run: |
+          echo "Verifying public endpoint..."
+          sleep 5
+          curl -sf https://dlt.aurigraph.io/api/v11/health && echo "Deployment verified!"
+          echo ""
+          echo "Testing additional endpoints..."
+          curl -sf https://dlt.aurigraph.io/api/v11/demos && echo "Demos endpoint OK"
