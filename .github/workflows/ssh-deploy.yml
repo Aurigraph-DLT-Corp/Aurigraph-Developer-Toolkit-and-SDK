@@ -56,7 +56,15 @@ jobs:
         if: ${{ !inputs.skip_build }}
         run: |
           echo "Uploading JAR to server..."
-          scp -P 22 aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app/quarkus-run.jar subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12.jar
+          # Use the uber JAR (runner JAR) created by Quarkus build
+          JAR_FILE=$(ls aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar 2>/dev/null | head -1)
+          if [ -z "$JAR_FILE" ]; then
+            echo "Error: No runner JAR found!"
+            ls -la aurigraph-av10-7/aurigraph-v11-standalone/target/
+            exit 1
+          fi
+          echo "Found JAR: $JAR_FILE"
+          scp -P 22 "$JAR_FILE" subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12.jar
           echo "Upload complete!"
 
       - name: Deploy on Remote Server
