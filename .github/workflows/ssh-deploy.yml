@@ -47,42 +47,34 @@ jobs:
           echo "Build complete!"
           ls -lh target/*.jar
 
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p 22 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Upload JAR to Server
+      - name: Copy JAR (Local Runner)
         if: ${{ !inputs.skip_build }}
         run: |
-          echo "Uploading JAR to server..."
+          echo "Copying JAR locally (runner is on production server)..."
           cd aurigraph-av10-7/aurigraph-v11-standalone/target
 
           # Check for runner JAR first, then quarkus-app
           if [ -f *-runner.jar ]; then
             JAR_FILE=$(ls *-runner.jar | head -1)
             echo "Found runner JAR: $JAR_FILE"
-            scp -P 22 "$JAR_FILE" subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12.jar
+            cp "$JAR_FILE" /home/subbu/aurigraph-v12.jar
           elif [ -d quarkus-app ]; then
-            echo "Found quarkus-app directory, uploading full package..."
-            tar czf quarkus-app.tar.gz quarkus-app/
-            scp -P 22 quarkus-app.tar.gz subbu@dlt.aurigraph.io:/home/subbu/
-            ssh -p 22 subbu@dlt.aurigraph.io 'cd /home/subbu && rm -rf quarkus-app && tar xzf quarkus-app.tar.gz && rm quarkus-app.tar.gz'
+            echo "Found quarkus-app directory, copying..."
+            rm -rf /home/subbu/quarkus-app
+            cp -r quarkus-app /home/subbu/
           else
             echo "Error: No JAR or quarkus-app found!"
             ls -la
             exit 1
           fi
-          echo "Upload complete!"
+          echo "Copy complete!"
 
-      - name: Deploy on Remote Server
+      - name: Deploy Service (Local Runner)
         run: |
-          ssh -p 22 subbu@dlt.aurigraph.io << 'DEPLOY_SCRIPT'
           set -e
-          echo "=== Aurigraph V12 Deployment ==="
+          echo "=== Aurigraph V12 Deployment (Local Runner) ==="
           echo "Timestamp: $(date)"
+          echo "Runner is on production server - using local commands"
           echo ""
 
           # Stop existing service
@@ -134,7 +126,6 @@ jobs:
 
           echo "Warning: Health check didn't return expected response"
           curl -v http://localhost:9003/api/v11/health || true
-          DEPLOY_SCRIPT
 
       - name: Verify Deployment
         run: |

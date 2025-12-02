@@ -52,30 +52,24 @@ jobs:
           echo "Build complete!"
           ls -lh dist/
 
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p 22 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Deploy Frontend to Server
+      - name: Deploy Frontend (Local Runner)
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
         run: |
-          echo "=== Frontend Deployment ==="
+          echo "=== Frontend Deployment (Local Runner) ==="
           echo "Timestamp: $(date)"
+          echo "Runner is on the production server - using local file operations"
 
-          # Clear old files on server
+          # Clear old files
           echo "Clearing old frontend files..."
-          ssh -p 22 subbu@dlt.aurigraph.io 'rm -rf /home/subbu/enterprise-portal/*'
+          rm -rf /home/subbu/enterprise-portal/*
 
-          # Upload new build
-          echo "Uploading new build..."
-          scp -r -P 22 dist/* subbu@dlt.aurigraph.io:/home/subbu/enterprise-portal/
+          # Copy new build
+          echo "Copying new build..."
+          cp -r dist/* /home/subbu/enterprise-portal/
 
           # Verify deployment
-          echo "Verifying files on server..."
-          ssh -p 22 subbu@dlt.aurigraph.io 'ls -la /home/subbu/enterprise-portal/'
+          echo "Verifying files..."
+          ls -la /home/subbu/enterprise-portal/
 
           echo "Frontend deployment complete!"
 
