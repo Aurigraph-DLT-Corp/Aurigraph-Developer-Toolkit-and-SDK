@@ -1,0 +1,102 @@
+name: Frontend Deploy to Remote
+
+on:
+  push:
+    branches:
+      - V12
+      - main
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package.json'
+      - '.github/workflows/frontend-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      deploy_only:
+        description: 'Deploy without rebuild (use existing dist)'
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Frontend
+    runs-on: [self-hosted, linux, aurigraph]
+    # Fallback to ubuntu-latest if self-hosted unavailable:
+    # runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: ${{ !inputs.deploy_only }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package-lock.json
+
+      - name: Install dependencies
+        if: ${{ !inputs.deploy_only }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: npm ci
+
+      - name: Build Frontend
+        if: ${{ !inputs.deploy_only }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: |
+          echo "Building Enterprise Portal..."
+          npm run build
+          echo "Build complete!"
+          ls -lh dist/
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 22 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy Frontend to Server
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: |
+          echo "=== Frontend Deployment ==="
+          echo "Timestamp: $(date)"
+
+          # Clear old files on server
+          echo "Clearing old frontend files..."
+          ssh -p 22 subbu@dlt.aurigraph.io 'rm -rf /home/subbu/enterprise-portal/*'
+
+          # Upload new build
+          echo "Uploading new build..."
+          scp -r -P 22 dist/* subbu@dlt.aurigraph.io:/home/subbu/enterprise-portal/
+
+          # Verify deployment
+          echo "Verifying files on server..."
+          ssh -p 22 subbu@dlt.aurigraph.io 'ls -la /home/subbu/enterprise-portal/'
+
+          echo "Frontend deployment complete!"
+
+      - name: Verify Frontend
+        run: |
+          echo "Verifying frontend is accessible..."
+          sleep 3
+
+          # Check main page loads
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://dlt.aurigraph.io/)
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "Frontend accessible (HTTP $HTTP_CODE)"
+          else
+            echo "Warning: Frontend returned HTTP $HTTP_CODE"
+          fi
+
+          # Check API health
+          curl -sf https://dlt.aurigraph.io/api/v11/health && echo "API healthy"
+
+          echo ""
+          echo "=== Deployment Summary ==="
+          echo "Frontend: https://dlt.aurigraph.io"
+          echo "Demo: https://dlt.aurigraph.io/demo"
+          echo "Tokenize: https://dlt.aurigraph.io/rwa/tokenize"

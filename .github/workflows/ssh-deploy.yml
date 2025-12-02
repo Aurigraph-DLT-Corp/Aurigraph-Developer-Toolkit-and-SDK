@@ -22,9 +22,9 @@ env:
 jobs:
   build-and-deploy:
     name: Build & Deploy via SSH
-    # Use GitHub-hosted runner when self-hosted is unavailable
-    # Change to [self-hosted, linux, aurigraph] when runners are configured
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, aurigraph]
+    # Fallback to ubuntu-latest if self-hosted unavailable:
+    # runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code

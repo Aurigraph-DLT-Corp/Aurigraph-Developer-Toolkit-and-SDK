@@ -25,6 +25,7 @@ import {
   Assessment,
   Info,
   AttachMoney,
+  Hub,
 } from '@mui/icons-material'
 import { useState } from 'react'
 import { apiService, safeApiCall } from '../../services/api'
@@ -54,6 +55,7 @@ const ASSET_TYPES = [
   { value: 'art', label: 'Art & Collectibles', icon: <Palette /> },
   { value: 'commodities', label: 'Commodities', icon: <LocalShipping /> },
   { value: 'securities', label: 'Securities', icon: <Assessment /> },
+  { value: 'aggregation', label: 'Aggregation', icon: <Hub />, description: 'Bundle multiple assets into a single token' },
   { value: 'other', label: 'Other Assets', icon: <Description /> },
 ]
 
