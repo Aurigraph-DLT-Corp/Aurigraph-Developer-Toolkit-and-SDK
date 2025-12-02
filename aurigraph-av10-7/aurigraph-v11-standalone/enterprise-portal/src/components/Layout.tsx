@@ -9,70 +9,45 @@ import { useAppDispatch } from '../hooks'
 import { logout } from '../store/authSlice'
 import { useState } from 'react'
 
+// Simplified navigation - RWAT focused with Admin menu for technical pages
 const navigationMenus = [
   {
-    title: 'Main',
+    title: 'Assets',
     items: [
-      { text: 'Dashboard', path: '/' },
-    ]
-  },
-  {
-    title: 'Core',
-    items: [
-      { text: 'Transactions', path: '/transactions' },
-      { text: 'Performance', path: '/performance' },
-      { text: 'ML Performance', path: '/ml-performance', badge: 'AI' },
-      { text: 'Nodes', path: '/nodes' },
-      { text: 'Analytics', path: '/analytics' },
-    ]
-  },
-  {
-    title: 'Channels',
-    items: [
-      { text: 'Multi-Channel', path: '/channels' },
-      { text: 'Smart Contracts', path: '/contracts' },
-      { text: 'Active Contracts', path: '/active-contracts' },
-    ]
-  },
-  {
-    title: 'Tokenization',
-    items: [
-      { text: 'Token Registry', path: '/tokens' },
-      { text: 'Tokenization', path: '/tokenization' },
-      { text: 'Merkle Tree Registry', path: '/merkle-tree' },
-      { text: 'QuantConnect Registry', path: '/quantconnect' },
-    ]
-  },
-  {
-    title: 'RWA',
-    badge: 'NEW',
-    items: [
-      { text: 'Registry Navigation', path: '/rwa/registry-navigation', badge: 'NEW' },
+      { text: 'Asset Registry', path: '/rwa/registry-navigation' },
       { text: 'Tokenize Asset', path: '/rwa/tokenize' },
       { text: 'My Portfolio', path: '/rwa/portfolio' },
-      { text: 'Asset Valuation', path: '/rwa/valuation' },
-      { text: 'Dividends', path: '/rwa/dividends' },
-      { text: 'Compliance', path: '/rwa/compliance' },
+      { text: 'Marketplace', path: '/marketplace' },
     ]
   },
   {
-    title: 'Dashboards',
+    title: 'Finance',
+    items: [
+      { text: 'Asset Valuation', path: '/rwa/valuation' },
+      { text: 'Dividends & Yields', path: '/rwa/dividends' },
+      { text: 'Transactions', path: '/transactions' },
+    ]
+  },
+  {
+    title: 'Compliance',
+    items: [
+      { text: 'KYC/AML Status', path: '/rwa/compliance' },
+      { text: 'Audit Trail', path: '/dashboards/security-audit' },
+      { text: 'Smart Contracts', path: '/active-contracts' },
+    ]
+  },
+  {
+    title: 'Admin',
     items: [
       { text: 'System Health', path: '/dashboards/system-health' },
+      { text: 'Nodes & Network', path: '/nodes' },
+      { text: 'Performance', path: '/performance' },
+      { text: 'ML Optimization', path: '/ml-performance', badge: 'AI' },
       { text: 'Blockchain Ops', path: '/dashboards/blockchain-operations' },
-      { text: 'Consensus', path: '/dashboards/consensus-monitoring' },
-      { text: 'External APIs', path: '/dashboards/external-api' },
-      { text: 'Oracles', path: '/dashboards/oracle-service' },
-      { text: 'Performance', path: '/dashboards/performance-metrics' },
-      { text: 'Security', path: '/dashboards/security-audit' },
-      { text: 'Developer', path: '/dashboards/developer' },
-      { text: 'Ricardian', path: '/dashboards/ricardian-contracts' },
-    ]
-  },
-  {
-    title: 'Settings',
-    items: [
-      { text: 'Channel Config', path: '/channel-management' },
+      { text: 'Consensus Monitor', path: '/dashboards/consensus-monitoring' },
+      { text: 'Oracle Services', path: '/dashboards/oracle-service' },
+      { text: 'Channels', path: '/channels' },
+      { text: 'Developer Tools', path: '/dashboards/developer' },
       { text: 'Settings', path: '/settings' },
     ]
   },

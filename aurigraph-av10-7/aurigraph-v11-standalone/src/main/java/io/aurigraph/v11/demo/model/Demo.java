@@ -75,6 +75,18 @@ public class Demo extends PanacheEntityBase {
     @Column(name = "slim_nodes_json", columnDefinition = "TEXT")
     public String slimNodesJson;
 
+    // New fields for data feeds and tokenization
+    @Column(name = "tokenization_mode", length = 20)
+    public String tokenizationMode = "live-feed";
+
+    // Store selected data feeds as JSON array
+    @Column(name = "selected_data_feeds_json", columnDefinition = "TEXT")
+    public String selectedDataFeedsJson;
+
+    // Store tokenization config as JSON
+    @Column(name = "tokenization_config_json", columnDefinition = "TEXT")
+    public String tokenizationConfigJson;
+
     public enum DemoStatus {
         PENDING,
         RUNNING,

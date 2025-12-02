@@ -3,14 +3,57 @@ import React, { useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
   Grid, MenuItem, Typography, Box, Stepper, Step, StepLabel,
-  FormControl, InputLabel, Select, Chip, IconButton, Paper, Alert
+  FormControl, InputLabel, Select, Chip, IconButton, Paper, Alert,
+  Checkbox, FormControlLabel, FormGroup, Radio, RadioGroup, Divider,
+  Card, CardContent, Tooltip
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, CheckCircle, Error as ErrorIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon, Delete as DeleteIcon, CheckCircle, Error as ErrorIcon,
+  ShowChart as ChartIcon, TrendingUp as TradingIcon, Cloud as WeatherIcon,
+  Sensors as IoTIcon, LocalShipping as SupplyChainIcon, AccountBalance as FinanceIcon,
+  Security as SecurityIcon, Storage as StorageIcon
+} from '@mui/icons-material';
+
+// Available Data Feeds for Slim Nodes
+export const DATA_FEEDS = [
+  { id: 'quantconnect', name: 'QuantConnect', icon: 'chart', description: 'Algorithmic trading data & equities', category: 'financial' },
+  { id: 'chainlink', name: 'Chainlink', icon: 'security', description: 'Decentralized oracle price feeds', category: 'oracle' },
+  { id: 'pyth', name: 'Pyth Network', icon: 'trading', description: 'High-fidelity financial market data', category: 'oracle' },
+  { id: 'band-protocol', name: 'Band Protocol', icon: 'security', description: 'Cross-chain oracle data', category: 'oracle' },
+  { id: 'coingecko', name: 'CoinGecko', icon: 'chart', description: 'Cryptocurrency market data', category: 'crypto' },
+  { id: 'binance', name: 'Binance', icon: 'trading', description: 'Exchange trading data', category: 'crypto' },
+  { id: 'alpaca', name: 'Alpaca Markets', icon: 'trading', description: 'Stock market trading API', category: 'financial' },
+  { id: 'weather', name: 'Weather API', icon: 'weather', description: 'Global weather conditions', category: 'environmental' },
+  { id: 'iot-sensors', name: 'IoT Sensors', icon: 'iot', description: 'Temperature, humidity, power data', category: 'environmental' },
+  { id: 'supply-chain', name: 'Supply Chain', icon: 'supply', description: 'Shipment & logistics tracking', category: 'logistics' },
+];
+
+// Tokenization Modes
+export const TOKENIZATION_MODES = [
+  { id: 'live-feed', name: 'Live Data Feed', description: 'Tokenize real-time data streams from connected feeds', icon: 'chart' },
+  { id: 'trades', name: 'Trade Execution', description: 'Tokenize executed trades and market transactions', icon: 'trading' },
+  { id: 'hybrid', name: 'Hybrid Mode', description: 'Combine live feeds with trade tokenization', icon: 'storage' },
+];
 
 interface Channel {
   id: string;
   name: string;
   type: 'PUBLIC' | 'PRIVATE' | 'CONSORTIUM';
+}
+
+interface DataFeedConfig {
+  feedId: string;
+  enabled: boolean;
+  refreshInterval: number; // seconds
+}
+
+interface SlimNodeExtended {
+  id: string;
+  name: string;
+  type: 'SLIM';
+  endpoint: string;
+  channelId: string;
+  dataFeeds: DataFeedConfig[];
 }
 
 interface Node {
@@ -19,6 +62,7 @@ interface Node {
   type: 'VALIDATOR' | 'BUSINESS' | 'SLIM';
   endpoint: string;
   channelId: string;
+  dataFeeds?: DataFeedConfig[];
 }
 
 interface DemoRegistration {
@@ -30,6 +74,14 @@ interface DemoRegistration {
   validators: Node[];
   businessNodes: Node[];
   slimNodes: Node[];
+  // New fields for data feeds and tokenization
+  tokenizationMode: 'live-feed' | 'trades' | 'hybrid';
+  selectedDataFeeds: string[];
+  tokenizationConfig: {
+    autoStart: boolean;
+    batchSize: number;
+    merkleTreeEnabled: boolean;
+  };
 }
 
 interface Props {
@@ -37,6 +89,20 @@ interface Props {
   onClose: () => void;
   onSubmit: (demo: DemoRegistration) => void;
 }
+
+// Helper function to get icon component
+const getDataFeedIcon = (iconType: string) => {
+  switch (iconType) {
+    case 'chart': return <ChartIcon />;
+    case 'trading': return <TradingIcon />;
+    case 'weather': return <WeatherIcon />;
+    case 'iot': return <IoTIcon />;
+    case 'supply': return <SupplyChainIcon />;
+    case 'security': return <SecurityIcon />;
+    case 'storage': return <StorageIcon />;
+    default: return <ChartIcon />;
+  }
+};
 
 export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   const [activeStep, setActiveStep] = useState(0);
@@ -49,6 +115,14 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
     validators: [],
     businessNodes: [],
     slimNodes: [],
+    // New fields
+    tokenizationMode: 'live-feed',
+    selectedDataFeeds: ['quantconnect', 'chainlink'], // Default selections
+    tokenizationConfig: {
+      autoStart: true,
+      batchSize: 100,
+      merkleTreeEnabled: true,
+    },
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -67,7 +141,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
     namePrefix: ''
   });
 
-  const steps = ['User Info', 'Configure Channels', 'Configure Nodes', 'Review & Submit'];
+  const steps = ['User Info', 'Configure Channels', 'Configure Nodes', 'Data Feeds', 'Tokenization', 'Review & Submit'];
 
   const validateStep = (): { valid: boolean; errors: string[] } => {
     const validationErrors: string[] = [];
@@ -91,6 +165,14 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
           validationErrors.push('At least one validator node is required');
         }
         break;
+      case 3:
+        if (formData.selectedDataFeeds.length === 0) {
+          validationErrors.push('At least one data feed must be selected');
+        }
+        break;
+      case 4:
+        // Tokenization mode always has a default, so no validation needed
+        break;
       default:
         break;
     }
@@ -99,6 +181,28 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
       valid: validationErrors.length === 0,
       errors: validationErrors
     };
+  };
+
+  // Toggle data feed selection
+  const toggleDataFeed = (feedId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedDataFeeds: prev.selectedDataFeeds.includes(feedId)
+        ? prev.selectedDataFeeds.filter(id => id !== feedId)
+        : [...prev.selectedDataFeeds, feedId]
+    }));
+  };
+
+  // Get category color
+  const getCategoryColor = (category: string): "primary" | "secondary" | "success" | "warning" | "info" | "error" => {
+    switch (category) {
+      case 'financial': return 'primary';
+      case 'oracle': return 'secondary';
+      case 'crypto': return 'warning';
+      case 'environmental': return 'success';
+      case 'logistics': return 'info';
+      default: return 'primary';
+    }
   };
 
   const handleNext = () => {
@@ -236,6 +340,13 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
       validators: [],
       businessNodes: [],
       slimNodes: [],
+      tokenizationMode: 'live-feed',
+      selectedDataFeeds: ['quantconnect', 'chainlink'],
+      tokenizationConfig: {
+        autoStart: true,
+        batchSize: 100,
+        merkleTreeEnabled: true,
+      },
     });
     setActiveStep(0);
   };
@@ -524,29 +635,308 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
         );
 
       case 3:
+        // Data Feeds Selection Step
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>Configure Data Feeds for Slim Nodes</Typography>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Select the data feeds that your Slim nodes will connect to. Each Slim node will receive data from the selected feeds for tokenization.
+            </Alert>
+
+            {/* Category Filters */}
+            <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Typography variant="subtitle2" sx={{ width: '100%', mb: 1 }}>Filter by Category:</Typography>
+              <Chip label="All" variant="outlined" onClick={() => {}} />
+              <Chip label="Financial" color="primary" variant="outlined" />
+              <Chip label="Oracle" color="secondary" variant="outlined" />
+              <Chip label="Crypto" color="warning" variant="outlined" />
+              <Chip label="Environmental" color="success" variant="outlined" />
+              <Chip label="Logistics" color="info" variant="outlined" />
+            </Box>
+
+            {/* Data Feed Grid */}
+            <Grid container spacing={2}>
+              {DATA_FEEDS.map((feed) => (
+                <Grid item xs={12} sm={6} md={4} key={feed.id}>
+                  <Card
+                    sx={{
+                      cursor: 'pointer',
+                      border: formData.selectedDataFeeds.includes(feed.id) ? 2 : 1,
+                      borderColor: formData.selectedDataFeeds.includes(feed.id) ? 'primary.main' : 'divider',
+                      bgcolor: formData.selectedDataFeeds.includes(feed.id) ? 'action.selected' : 'background.paper',
+                      transition: 'all 0.2s',
+                      '&:hover': { boxShadow: 4 }
+                    }}
+                    onClick={() => toggleDataFeed(feed.id)}
+                  >
+                    <CardContent sx={{ p: 2 }}>
+                      <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          {getDataFeedIcon(feed.icon)}
+                          <Typography variant="subtitle1" fontWeight="bold">{feed.name}</Typography>
+                        </Box>
+                        <Checkbox
+                          checked={formData.selectedDataFeeds.includes(feed.id)}
+                          onChange={() => toggleDataFeed(feed.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {feed.description}
+                      </Typography>
+                      <Chip
+                        label={feed.category}
+                        size="small"
+                        color={getCategoryColor(feed.category)}
+                        variant="outlined"
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Selected Feeds Summary */}
+            <Paper sx={{ p: 2, mt: 3, bgcolor: 'background.default' }}>
+              <Typography variant="subtitle1" gutterBottom>
+                <strong>Selected Data Feeds ({formData.selectedDataFeeds.length})</strong>
+              </Typography>
+              <Box display="flex" gap={1} flexWrap="wrap">
+                {formData.selectedDataFeeds.map(feedId => {
+                  const feed = DATA_FEEDS.find(f => f.id === feedId);
+                  return feed ? (
+                    <Chip
+                      key={feedId}
+                      label={feed.name}
+                      onDelete={() => toggleDataFeed(feedId)}
+                      color={getCategoryColor(feed.category)}
+                    />
+                  ) : null;
+                })}
+                {formData.selectedDataFeeds.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">No data feeds selected</Typography>
+                )}
+              </Box>
+            </Paper>
+          </Box>
+        );
+
+      case 4:
+        // Tokenization Mode Selection Step
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>Configure Tokenization</Typography>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              Choose how you want to tokenize the data from your connected feeds.
+            </Alert>
+
+            {/* Tokenization Mode Selection */}
+            <Typography variant="subtitle1" gutterBottom><strong>Tokenization Mode</strong></Typography>
+            <RadioGroup
+              value={formData.tokenizationMode}
+              onChange={(e) => setFormData({ ...formData, tokenizationMode: e.target.value as any })}
+            >
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {TOKENIZATION_MODES.map((mode) => (
+                  <Grid item xs={12} md={4} key={mode.id}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        border: formData.tokenizationMode === mode.id ? 2 : 1,
+                        borderColor: formData.tokenizationMode === mode.id ? 'primary.main' : 'divider',
+                        bgcolor: formData.tokenizationMode === mode.id ? 'action.selected' : 'background.paper',
+                        transition: 'all 0.2s',
+                        '&:hover': { boxShadow: 2 }
+                      }}
+                      onClick={() => setFormData({ ...formData, tokenizationMode: mode.id as any })}
+                    >
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <FormControlLabel
+                          value={mode.id}
+                          control={<Radio />}
+                          label=""
+                          sx={{ m: 0 }}
+                        />
+                        {getDataFeedIcon(mode.icon)}
+                        <Typography variant="subtitle1" fontWeight="bold">{mode.name}</Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {mode.description}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </RadioGroup>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Additional Configuration */}
+            <Typography variant="subtitle1" gutterBottom><strong>Additional Settings</strong></Typography>
+            <Paper sx={{ p: 2 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.tokenizationConfig.autoStart}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          tokenizationConfig: { ...formData.tokenizationConfig, autoStart: e.target.checked }
+                        })}
+                      />
+                    }
+                    label="Auto-start tokenization when demo begins"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.tokenizationConfig.merkleTreeEnabled}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          tokenizationConfig: { ...formData.tokenizationConfig, merkleTreeEnabled: e.target.checked }
+                        })}
+                      />
+                    }
+                    label="Enable Merkle tree verification for tokenized data"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Batch Size (transactions per batch)"
+                    value={formData.tokenizationConfig.batchSize}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      tokenizationConfig: { ...formData.tokenizationConfig, batchSize: parseInt(e.target.value) || 100 }
+                    })}
+                    inputProps={{ min: 10, max: 1000 }}
+                    helperText="Number of transactions to process per batch (10-1000)"
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Mode-specific info */}
+            <Alert severity="success" sx={{ mt: 3 }}>
+              {formData.tokenizationMode === 'live-feed' && (
+                <>
+                  <strong>Live Data Feed Mode:</strong> Real-time data from {formData.selectedDataFeeds.length} connected feeds
+                  will be continuously tokenized and recorded on the blockchain.
+                </>
+              )}
+              {formData.tokenizationMode === 'trades' && (
+                <>
+                  <strong>Trade Execution Mode:</strong> Only executed trades and transactions from connected exchanges
+                  will be tokenized, providing audit trails for financial operations.
+                </>
+              )}
+              {formData.tokenizationMode === 'hybrid' && (
+                <>
+                  <strong>Hybrid Mode:</strong> Combines live data feeds with trade execution tokenization,
+                  providing comprehensive coverage for both market data and trading activities.
+                </>
+              )}
+            </Alert>
+          </Box>
+        );
+
+      case 5:
+        // Review Step
         return (
           <Box>
             <Typography variant="h6" gutterBottom>Review Your Demo Configuration</Typography>
+
+            {/* User Info */}
             <Paper sx={{ p: 2, mb: 2 }}>
               <Typography variant="subtitle1"><strong>User Information</strong></Typography>
               <Typography>Name: {formData.userName}</Typography>
               <Typography>Email: {formData.userEmail}</Typography>
               <Typography>Demo: {formData.demoName}</Typography>
-              <Typography>Description: {formData.description}</Typography>
+              <Typography>Description: {formData.description || '(none)'}</Typography>
             </Paper>
+
+            {/* Channels */}
             <Paper sx={{ p: 2, mb: 2 }}>
               <Typography variant="subtitle1"><strong>Channels ({formData.channels.length})</strong></Typography>
               {formData.channels.map((ch) => (
                 <Chip key={ch.id} label={`${ch.name} (${ch.type})`} sx={{ mr: 1, mb: 1 }} />
               ))}
             </Paper>
-            <Paper sx={{ p: 2 }}>
+
+            {/* Nodes */}
+            <Paper sx={{ p: 2, mb: 2 }}>
               <Typography variant="subtitle1"><strong>Nodes</strong></Typography>
-              <Typography>Validators: {formData.validators.length}</Typography>
-              <Typography>Business Nodes: {formData.businessNodes.length}</Typography>
-              <Typography>Slim Nodes: {formData.slimNodes.length}</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={4}>
+                  <Typography variant="body2">Validators: <strong>{formData.validators.length}</strong></Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="body2">Business: <strong>{formData.businessNodes.length}</strong></Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="body2">Slim: <strong>{formData.slimNodes.length}</strong></Typography>
+                </Grid>
+              </Grid>
+              <Divider sx={{ my: 1 }} />
               <Typography><strong>Total Nodes: {formData.validators.length + formData.businessNodes.length + formData.slimNodes.length}</strong></Typography>
             </Paper>
+
+            {/* Data Feeds */}
+            <Paper sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1"><strong>Data Feeds ({formData.selectedDataFeeds.length})</strong></Typography>
+              <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                {formData.selectedDataFeeds.map(feedId => {
+                  const feed = DATA_FEEDS.find(f => f.id === feedId);
+                  return feed ? (
+                    <Chip
+                      key={feedId}
+                      icon={getDataFeedIcon(feed.icon)}
+                      label={feed.name}
+                      color={getCategoryColor(feed.category)}
+                      size="small"
+                    />
+                  ) : null;
+                })}
+              </Box>
+            </Paper>
+
+            {/* Tokenization */}
+            <Paper sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1"><strong>Tokenization Settings</strong></Typography>
+              <Grid container spacing={1} sx={{ mt: 1 }}>
+                <Grid item xs={12}>
+                  <Typography variant="body2">
+                    Mode: <Chip
+                      label={TOKENIZATION_MODES.find(m => m.id === formData.tokenizationMode)?.name || formData.tokenizationMode}
+                      color="primary"
+                      size="small"
+                    />
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2">
+                    Auto-start: {formData.tokenizationConfig.autoStart ? <Chip label="Yes" color="success" size="small" /> : <Chip label="No" size="small" />}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2">
+                    Merkle Tree: {formData.tokenizationConfig.merkleTreeEnabled ? <Chip label="Enabled" color="success" size="small" /> : <Chip label="Disabled" size="small" />}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2">Batch Size: {formData.tokenizationConfig.batchSize} transactions</Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            <Alert severity="success">
+              <strong>Ready to Register!</strong> Click "Register Demo" to create your demo environment with the configuration above.
+            </Alert>
           </Box>
         );
 

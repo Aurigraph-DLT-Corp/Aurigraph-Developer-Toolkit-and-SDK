@@ -25,6 +25,12 @@ export interface Node {
   channelId: string;
 }
 
+export interface TokenizationConfig {
+  autoStart: boolean;
+  batchSize: number;
+  merkleTreeEnabled: boolean;
+}
+
 export interface DemoRegistration {
   userName: string;
   userEmail: string;
@@ -34,6 +40,10 @@ export interface DemoRegistration {
   validators: Node[];
   businessNodes: Node[];
   slimNodes: Node[];
+  // New fields for data feeds and tokenization
+  tokenizationMode: 'live-feed' | 'trades' | 'hybrid';
+  selectedDataFeeds: string[];
+  tokenizationConfig: TokenizationConfig;
 }
 
 export interface DemoInstance extends DemoRegistration {
@@ -85,6 +95,10 @@ class DemoServiceClass {
       validators: JSON.parse(backendDemo.validatorsJson || '[]'),
       businessNodes: JSON.parse(backendDemo.businessNodesJson || '[]'),
       slimNodes: JSON.parse(backendDemo.slimNodesJson || '[]'),
+      // New fields for data feeds and tokenization
+      tokenizationMode: backendDemo.tokenizationMode || 'live-feed',
+      selectedDataFeeds: JSON.parse(backendDemo.selectedDataFeedsJson || '[]'),
+      tokenizationConfig: JSON.parse(backendDemo.tokenizationConfigJson || '{"autoStart":true,"batchSize":100,"merkleTreeEnabled":true}'),
     };
   }
 
@@ -108,6 +122,10 @@ class DemoServiceClass {
         businessNodesJson: JSON.stringify(registration.businessNodes),
         slimNodesJson: JSON.stringify(registration.slimNodes),
         merkleRoot: '', // Will be updated after tree generation
+        // New fields for data feeds and tokenization
+        tokenizationMode: registration.tokenizationMode || 'live-feed',
+        selectedDataFeedsJson: JSON.stringify(registration.selectedDataFeeds || []),
+        tokenizationConfigJson: JSON.stringify(registration.tokenizationConfig || { autoStart: true, batchSize: 100, merkleTreeEnabled: true }),
       };
 
       // Create demo via API
@@ -157,6 +175,10 @@ class DemoServiceClass {
           merkleRoot: '',
           durationMinutes: durationMinutes || 30,
           isAdminDemo: isAdmin,
+          // Ensure new fields have defaults
+          tokenizationMode: registration.tokenizationMode || 'live-feed',
+          selectedDataFeeds: registration.selectedDataFeeds || [],
+          tokenizationConfig: registration.tokenizationConfig || { autoStart: true, batchSize: 100, merkleTreeEnabled: true },
         };
 
         // Generate Merkle tree locally
@@ -469,6 +491,9 @@ class DemoServiceClass {
           slimNodes: [
             { id: 's1', name: 'Retailer Node', type: 'SLIM', endpoint: 'https://retailer.demo', channelId: 'ch2' },
           ],
+          tokenizationMode: 'live-feed',
+          selectedDataFeeds: ['supply-chain', 'iot-sensors'],
+          tokenizationConfig: { autoStart: true, batchSize: 100, merkleTreeEnabled: true },
         },
         {
           demoName: 'Healthcare Records Management',
@@ -486,6 +511,9 @@ class DemoServiceClass {
             { id: 'hb2', name: 'Specialist Clinic', type: 'BUSINESS', endpoint: 'https://specialist.demo', channelId: 'hc1' },
           ],
           slimNodes: [],
+          tokenizationMode: 'trades',
+          selectedDataFeeds: [],
+          tokenizationConfig: { autoStart: false, batchSize: 50, merkleTreeEnabled: true },
         },
         {
           demoName: 'Financial Settlement Network',
@@ -506,6 +534,9 @@ class DemoServiceClass {
           slimNodes: [
             { id: 'fs1', name: 'Payment Provider', type: 'SLIM', endpoint: 'https://payment.demo', channelId: 'fc1' },
           ],
+          tokenizationMode: 'hybrid',
+          selectedDataFeeds: ['quantconnect', 'chainlink', 'binance'],
+          tokenizationConfig: { autoStart: true, batchSize: 200, merkleTreeEnabled: true },
         },
       ];
 

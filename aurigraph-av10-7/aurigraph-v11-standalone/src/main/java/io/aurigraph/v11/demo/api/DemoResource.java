@@ -106,6 +106,10 @@ public class DemoResource {
         demo.slimNodesJson = request.slimNodesJson;
         demo.merkleRoot = request.merkleRoot != null ? request.merkleRoot : "";
         demo.transactionCount = 0;
+        // New fields for data feeds and tokenization
+        demo.tokenizationMode = request.tokenizationMode != null ? request.tokenizationMode : "live-feed";
+        demo.selectedDataFeedsJson = request.selectedDataFeedsJson;
+        demo.tokenizationConfigJson = request.tokenizationConfigJson;
 
         demo.persist();
 
@@ -316,6 +320,10 @@ public class DemoResource {
         public String businessNodesJson;
         public String slimNodesJson;
         public String merkleRoot;
+        // New fields for data feeds and tokenization
+        public String tokenizationMode;
+        public String selectedDataFeedsJson;
+        public String tokenizationConfigJson;
     }
 
     public static class DemoUpdateRequest {
