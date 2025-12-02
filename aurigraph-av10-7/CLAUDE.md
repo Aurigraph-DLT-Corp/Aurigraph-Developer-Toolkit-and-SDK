@@ -364,3 +364,4 @@ docs/
 - [Agent_Team.md](docs/development/guides/Agent_Team.md) - Development framework
 - [PROJECT_STRUCTURE.md](aurigraph-v11/PROJECT_STRUCTURE.md) - V11 architecture
 - [JIRA_TICKET_STRUCTURE.md](aurigraph-v11/JIRA_TICKET_STRUCTURE.md) - Sprint planning
+- memorize this deployment process to J4C deployment agent

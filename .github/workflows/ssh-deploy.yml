@@ -42,10 +42,10 @@ jobs:
         if: ${{ !inputs.skip_build }}
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone
         run: |
-          echo "Building V12 application..."
-          ./mvnw clean package -DskipTests -B
+          echo "Building V12 application (uber-jar)..."
+          ./mvnw clean package -DskipTests -B -Dquarkus.package.jar.type=uber-jar
           echo "Build complete!"
-          ls -lh target/*.jar || ls -lh target/quarkus-app/
+          ls -lh target/*.jar
 
       - name: Setup SSH Key
         run: |
@@ -58,15 +58,23 @@ jobs:
         if: ${{ !inputs.skip_build }}
         run: |
           echo "Uploading JAR to server..."
-          # Use the uber JAR (runner JAR) created by Quarkus build
-          JAR_FILE=$(ls aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar 2>/dev/null | head -1)
-          if [ -z "$JAR_FILE" ]; then
-            echo "Error: No runner JAR found!"
-            ls -la aurigraph-av10-7/aurigraph-v11-standalone/target/
+          cd aurigraph-av10-7/aurigraph-v11-standalone/target
+
+          # Check for runner JAR first, then quarkus-app
+          if [ -f *-runner.jar ]; then
+            JAR_FILE=$(ls *-runner.jar | head -1)
+            echo "Found runner JAR: $JAR_FILE"
+            scp -P 22 "$JAR_FILE" subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12.jar
+          elif [ -d quarkus-app ]; then
+            echo "Found quarkus-app directory, uploading full package..."
+            tar czf quarkus-app.tar.gz quarkus-app/
+            scp -P 22 quarkus-app.tar.gz subbu@dlt.aurigraph.io:/home/subbu/
+            ssh -p 22 subbu@dlt.aurigraph.io 'cd /home/subbu && rm -rf quarkus-app && tar xzf quarkus-app.tar.gz && rm quarkus-app.tar.gz'
+          else
+            echo "Error: No JAR or quarkus-app found!"
+            ls -la
             exit 1
           fi
-          echo "Found JAR: $JAR_FILE"
-          scp -P 22 "$JAR_FILE" subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12.jar
           echo "Upload complete!"
 
       - name: Deploy on Remote Server
