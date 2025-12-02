@@ -22,7 +22,7 @@ env:
 jobs:
   build-and-deploy:
     name: Build & Deploy Frontend
-    runs-on: [self-hosted, linux, aurigraph]
+    runs-on: [self-hosted, Linux, aurigraph-prod]
     # Fallback to ubuntu-latest if self-hosted unavailable:
     # runs-on: ubuntu-latest
 
