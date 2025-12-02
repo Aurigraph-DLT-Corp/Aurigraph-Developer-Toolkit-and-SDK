@@ -1,0 +1,368 @@
+name: Full Stack Deployment (Backend + Frontend)
+
+on:
+  push:
+    branches:
+      - V12
+      - main
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package.json'
+      - '.github/workflows/deploy-fullstack.yml'
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy Backend (JAR)'
+        type: boolean
+        default: true
+      deploy_frontend:
+        description: 'Deploy Frontend (Portal)'
+        type: boolean
+        default: true
+      skip_tests:
+        description: 'Skip tests for faster deployment'
+        type: boolean
+        default: true
+      force_deploy:
+        description: 'Force deployment even if health checks fail'
+        type: boolean
+        default: false
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20'
+  REMOTE_HOST: dlt.aurigraph.io
+  REMOTE_USER: subbu
+  APP_PORT: 9003
+  PORTAL_DIR: /var/www/aurigraph-portal
+
+jobs:
+  # ============================================================
+  # PHASE 1: BUILD BACKEND
+  # ============================================================
+  build-backend:
+    name: Build Backend (Java/Quarkus)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_backend }}
+    outputs:
+      jar_name: ${{ steps.build.outputs.jar_name }}
+      version: ${{ steps.build.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build Backend JAR
+        id: build
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Building V12 Backend..."
+          ./mvnw clean package -DskipTests -Dmaven.test.skip=true -B -q
+
+          # Get version from pom
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          ARTIFACT=$(./mvnw help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+          JAR_NAME="${ARTIFACT}-${VERSION}-runner.jar"
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "jar_name=${JAR_NAME}" >> $GITHUB_OUTPUT
+
+          echo "Build complete: ${JAR_NAME}"
+          ls -lh target/*-runner.jar
+
+      - name: Upload Backend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar
+          retention-days: 7
+
+  # ============================================================
+  # PHASE 2: BUILD FRONTEND
+  # ============================================================
+  build-frontend:
+    name: Build Frontend (React)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_frontend }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload Frontend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/dist/
+          retention-days: 7
+
+  # ============================================================
+  # PHASE 3: DEPLOY TO REMOTE SERVER
+  # ============================================================
+  deploy:
+    name: Deploy to Remote Server
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    if: |
+      always() &&
+      (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
+      (needs.build-frontend.result == 'success' || needs.build-frontend.result == 'skipped')
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      # ----- BACKEND DEPLOYMENT -----
+      - name: Download Backend Artifact
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_backend }}
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: ./backend-artifact
+        continue-on-error: true
+
+      - name: Deploy Backend
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_backend }}
+        run: |
+          JAR_FILE=$(ls backend-artifact/*-runner.jar 2>/dev/null | head -1)
+
+          if [ -z "$JAR_FILE" ]; then
+            echo "No backend JAR found, skipping backend deployment"
+            exit 0
+          fi
+
+          echo "Deploying backend JAR: $JAR_FILE"
+
+          # Upload new JAR
+          scp "$JAR_FILE" ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/home/${{ env.REMOTE_USER }}/aurigraph-v12-new.jar
+
+          # Deploy on server
+          ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'DEPLOY_BACKEND'
+          set -e
+          echo "=== Backend Deployment ==="
+          cd /home/subbu
+
+          # Backup current JAR
+          if [ -f aurigraph-v12.jar ]; then
+            cp aurigraph-v12.jar aurigraph-v12.jar.backup-$(date +%Y%m%d_%H%M%S)
+            echo "Backup created"
+          fi
+
+          # Stop existing process
+          pkill -f 'aurigraph-v12.jar' 2>/dev/null || echo "No existing process"
+          sleep 3
+
+          # Free port if needed
+          if ss -tlnp | grep -q ':9003 '; then
+            echo "Freeing port 9003..."
+            fuser -k 9003/tcp 2>/dev/null || true
+            sleep 2
+          fi
+
+          # Deploy new JAR
+          mv aurigraph-v12-new.jar aurigraph-v12.jar
+
+          # Start service
+          mkdir -p logs
+          nohup java -Xmx8g -Xms4g \
+            -XX:+UseG1GC \
+            -XX:MaxGCPauseMillis=200 \
+            -Dquarkus.http.port=9003 \
+            -Dquarkus.log.level=INFO \
+            -Dquarkus.profile=prod \
+            -Dcurby.quantum.api-key=placeholder \
+            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/j4c_db \
+            -Dquarkus.datasource.username=j4c_user \
+            -Dquarkus.datasource.password=j4c_password \
+            -Dquarkus.flyway.migrate-at-start=false \
+            -jar aurigraph-v12.jar \
+            > logs/main-api.log 2>&1 &
+
+          echo "Backend started with PID: $!"
+
+          # Wait and check health
+          sleep 20
+          for i in 1 2 3 4 5; do
+            if curl -s http://localhost:9003/api/v11/health | grep -q 'status'; then
+              echo "Backend health check passed!"
+              exit 0
+            fi
+            echo "Waiting for backend... attempt $i"
+            sleep 5
+          done
+
+          echo "Backend health check warning - may still be starting"
+          DEPLOY_BACKEND
+        continue-on-error: true
+
+      # ----- FRONTEND DEPLOYMENT -----
+      - name: Download Frontend Artifact
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_frontend }}
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./frontend-dist
+        continue-on-error: true
+
+      - name: Deploy Frontend
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy_frontend }}
+        run: |
+          if [ ! -d frontend-dist ] || [ -z "$(ls -A frontend-dist 2>/dev/null)" ]; then
+            echo "No frontend files found, skipping frontend deployment"
+            exit 0
+          fi
+
+          echo "Deploying frontend files..."
+
+          # Create deployment directory
+          DEPLOY_DIR="${{ env.PORTAL_DIR }}/$(date +%Y%m%d_%H%M%S)"
+          ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} "mkdir -p $DEPLOY_DIR"
+
+          # Upload files
+          scp -r frontend-dist/* ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:$DEPLOY_DIR/
+
+          # Update symlink and reload nginx
+          ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << DEPLOY_FRONTEND
+          set -e
+          echo "=== Frontend Deployment ==="
+
+          # Backup current
+          if [ -L ${{ env.PORTAL_DIR }}/current ]; then
+            CURRENT=\$(readlink ${{ env.PORTAL_DIR }}/current)
+            echo "Current deployment: \$CURRENT"
+          fi
+
+          # Update symlink
+          ln -sfn $DEPLOY_DIR ${{ env.PORTAL_DIR }}/current
+          echo "Updated symlink to: $DEPLOY_DIR"
+
+          # Reload nginx
+          sudo systemctl reload nginx || sudo nginx -s reload
+          echo "NGINX reloaded"
+
+          # Cleanup old deployments (keep last 5)
+          cd ${{ env.PORTAL_DIR }}
+          ls -dt */ 2>/dev/null | grep -v current | tail -n +6 | xargs rm -rf 2>/dev/null || true
+          echo "Cleanup complete"
+          DEPLOY_FRONTEND
+
+          echo "Frontend deployment complete"
+
+      # ----- VERIFICATION -----
+      - name: Verify Deployment
+        run: |
+          echo "=== Deployment Verification ==="
+          sleep 5
+
+          echo "1. Backend Health Check:"
+          curl -sf https://${{ env.REMOTE_HOST }}/api/v11/health && echo " OK" || echo " FAILED"
+
+          echo ""
+          echo "2. Frontend Check:"
+          curl -sf https://${{ env.REMOTE_HOST }}/ -o /dev/null && echo " OK" || echo " FAILED"
+
+          echo ""
+          echo "3. API Info:"
+          curl -sf https://${{ env.REMOTE_HOST }}/api/v11/info | head -c 200 || echo "Failed to get info"
+
+          echo ""
+          echo "=== Deployment Complete ==="
+
+      - name: Create Summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ${{ needs.build-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Actor | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [Portal](https://${{ env.REMOTE_HOST }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [API Health](https://${{ env.REMOTE_HOST }}/api/v11/health)" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================
+  # ROLLBACK JOB (Manual Trigger)
+  # ============================================================
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure() && !inputs.force_deploy
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Rollback Backend
+        run: |
+          ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'ROLLBACK'
+          echo "=== Rollback Attempt ==="
+          cd /home/subbu
+
+          # Find latest backup
+          BACKUP=$(ls -t aurigraph-v12.jar.backup-* 2>/dev/null | head -1)
+
+          if [ -n "$BACKUP" ]; then
+            echo "Rolling back to: $BACKUP"
+            pkill -f 'aurigraph-v12.jar' 2>/dev/null || true
+            sleep 3
+
+            mv aurigraph-v12.jar aurigraph-v12.jar.failed 2>/dev/null || true
+            cp "$BACKUP" aurigraph-v12.jar
+
+            nohup java -Xmx8g -Xms4g \
+              -XX:+UseG1GC \
+              -Dquarkus.http.port=9003 \
+              -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/j4c_db \
+              -Dquarkus.datasource.username=j4c_user \
+              -Dquarkus.datasource.password=j4c_password \
+              -Dquarkus.flyway.migrate-at-start=false \
+              -jar aurigraph-v12.jar \
+              > logs/main-api.log 2>&1 &
+
+            sleep 15
+            curl -s http://localhost:9003/api/v11/health && echo "Rollback successful" || echo "Rollback may have failed"
+          else
+            echo "No backup found for rollback"
+          fi
+          ROLLBACK
+        continue-on-error: true

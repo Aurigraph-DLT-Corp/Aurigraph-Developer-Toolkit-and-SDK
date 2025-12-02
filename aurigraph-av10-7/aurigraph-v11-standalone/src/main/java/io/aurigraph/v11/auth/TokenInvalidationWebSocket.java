@@ -33,7 +33,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *   "timestamp": "2025-11-11T10:15:00"
  * }
  */
-@ServerEndpoint("/ws/tokens")
+// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
+// @ServerEndpoint("/ws/tokens")
 @ApplicationScoped
 public class TokenInvalidationWebSocket {
 

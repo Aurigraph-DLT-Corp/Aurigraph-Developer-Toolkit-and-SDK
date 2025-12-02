@@ -26,7 +26,8 @@ import java.util.logging.Logger;
  * @version 11.3.2
  * @since 2025-10-18
  */
-@ServerEndpoint("/ws/channels")
+// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
+// @ServerEndpoint("/ws/channels")
 @ApplicationScoped
 public class ChannelWebSocket {
 

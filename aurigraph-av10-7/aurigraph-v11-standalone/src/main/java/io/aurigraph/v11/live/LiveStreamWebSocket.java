@@ -35,7 +35,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Frontend Development Agent (FDA)
  * @version 1.0.0
  */
-@ServerEndpoint("/api/v11/live/stream")
+// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
+// @ServerEndpoint("/api/v11/live/stream")
 @ApplicationScoped
 public class LiveStreamWebSocket {
 

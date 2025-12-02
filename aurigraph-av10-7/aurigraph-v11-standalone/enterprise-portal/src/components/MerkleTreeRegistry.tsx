@@ -8,7 +8,7 @@ import {
   AccountTree, VerifiedUser, CheckCircle, Error, ContentCopy,
   ExpandMore, ExpandLess, Security, Info
 } from '@mui/icons-material';
-import { apiService } from '../services/api';
+import { apiService, safeApiCall } from '../services/api';
 
 interface MerkleRootData {
   rootHash: string;
@@ -60,20 +60,23 @@ const MerkleTreeRegistry: React.FC = () => {
   }, []);
 
   const fetchMerkleData = async () => {
-    try {
-      const [root, stats] = await Promise.all([
-        apiService.getMerkleRootHash(),
-        apiService.getMerkleTreeStats()
-      ]);
-      setRootData(root);
-      setTreeStats(stats);
-      setLoading(false);
+    const [rootResult, statsResult] = await Promise.all([
+      safeApiCall(() => apiService.getMerkleRootHash(), { rootHash: '', timestamp: '', entryCount: 0, treeHeight: 0 }),
+      safeApiCall(() => apiService.getMerkleTreeStats(), { rootHash: '', entryCount: 0, treeHeight: 0, lastUpdate: '', rebuildCount: 0 })
+    ]);
+
+    if (rootResult.success && statsResult.success) {
+      setRootData(rootResult.data);
+      setTreeStats(statsResult.data);
       setError(null);
-    } catch (err: any) {
-      console.error('Failed to fetch Merkle data:', err);
-      setError(err.message || 'Failed to load Merkle tree data');
-      setLoading(false);
+    } else {
+      const errorMsg = rootResult.error?.message || statsResult.error?.message || 'Failed to load Merkle tree data';
+      setError(errorMsg);
+      // Set fallback data so UI doesn't break
+      if (rootResult.success) setRootData(rootResult.data);
+      if (statsResult.success) setTreeStats(statsResult.data);
     }
+    setLoading(false);
   };
 
   const handleGenerateProof = async () => {
@@ -84,16 +87,20 @@ const MerkleTreeRegistry: React.FC = () => {
 
     setLoading(true);
     setError(null);
-    try {
-      const proof = await apiService.generateMerkleProof(rwatId);
-      setProofData(proof);
+
+    const result = await safeApiCall(
+      () => apiService.generateMerkleProof(rwatId),
+      { leafHash: '', rootHash: '', leafIndex: 0, proofPath: [] }
+    );
+
+    if (result.success) {
+      setProofData(result.data);
       setVerificationResult(null);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to generate proof');
+    } else {
+      setError(result.error?.message || 'Failed to generate proof');
       setProofData(null);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleVerifyProof = async () => {
@@ -104,15 +111,19 @@ const MerkleTreeRegistry: React.FC = () => {
 
     setLoading(true);
     setError(null);
-    try {
-      const result = await apiService.verifyMerkleProof(proofData);
-      setVerificationResult(result);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to verify proof');
+
+    const result = await safeApiCall(
+      () => apiService.verifyMerkleProof(proofData),
+      { valid: false, message: 'Verification failed' }
+    );
+
+    if (result.success) {
+      setVerificationResult(result.data);
+    } else {
+      setError(result.error?.message || 'Failed to verify proof');
       setVerificationResult(null);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const copyToClipboard = (text: string) => {

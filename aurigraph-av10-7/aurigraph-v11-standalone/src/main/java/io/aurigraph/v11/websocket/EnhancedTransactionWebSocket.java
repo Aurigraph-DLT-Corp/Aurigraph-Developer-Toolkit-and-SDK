@@ -46,10 +46,11 @@ import java.util.concurrent.TimeUnit;
  * @author WebSocket Development Agent (WDA)
  * @since V11.6.0 (Sprint 16 - AV11-484)
  */
-@ServerEndpoint(
-        value = "/ws/transactions",
-        configurator = AuthenticatedWebSocketConfigurator.class
-)
+// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
+// @ServerEndpoint(
+//         value = "/ws/transactions",
+//         configurator = AuthenticatedWebSocketConfigurator.class
+// )
 @ApplicationScoped
 public class EnhancedTransactionWebSocket {
 

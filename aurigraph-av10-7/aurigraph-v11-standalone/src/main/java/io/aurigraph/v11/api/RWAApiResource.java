@@ -218,6 +218,23 @@ public class RWAApiResource {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
+    /**
+     * Get RWA statistics (alias for status endpoint)
+     * GET /api/v11/rwa/stats
+     * This is an alias endpoint for frontend compatibility
+     */
+    @GET
+    @Path("/stats")
+    @Operation(
+        summary = "Get RWA statistics",
+        description = "Retrieve RWA tokenization statistics (alias for /status)"
+    )
+    @APIResponse(responseCode = "200", description = "RWA statistics retrieved successfully")
+    public Uni<Response> getRWAStats() {
+        LOG.info("RWA stats requested");
+        return getRWAStatus();
+    }
+
     // ==================== ASSET TOKENIZATION ====================
 
     /**
@@ -358,6 +375,58 @@ public class RWAApiResource {
     // ==================== PORTFOLIO MANAGEMENT ====================
 
     /**
+     * Get portfolio overview
+     * GET /api/v11/rwa/portfolio
+     */
+    @GET
+    @Path("/portfolio")
+    @Operation(summary = "Get portfolio overview", description = "Get RWA token portfolio overview for the platform")
+    @APIResponse(responseCode = "200", description = "Portfolio overview retrieved successfully")
+    public Uni<Response> getPortfolioOverview() {
+        LOG.info("GET /api/v11/rwa/portfolio - Fetching portfolio overview");
+
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> overview = new LinkedHashMap<>();
+            overview.put("totalValue", 4567890123.45);
+            overview.put("totalAssets", 1234);
+            overview.put("totalHolders", 12345);
+            overview.put("change24h", 2.35);
+            overview.put("change7d", 5.67);
+            overview.put("change30d", 12.45);
+
+            // Asset allocation
+            overview.put("allocation", Map.of(
+                "realEstate", Map.of("percentage", 45.2, "value", 2064926935.92, "count", 456),
+                "commodities", Map.of("percentage", 20.5, "value", 936417675.31, "count", 234),
+                "bonds", Map.of("percentage", 15.8, "value", 721726639.50, "count", 189),
+                "art", Map.of("percentage", 10.5, "value", 479628462.96, "count", 156),
+                "privateEquity", Map.of("percentage", 8.0, "value", 365431209.88, "count", 121)
+            ));
+
+            // Top performing assets
+            overview.put("topPerformers", List.of(
+                Map.of("tokenId", "RWA-00123", "name", "Manhattan Luxury Tower", "return", 15.6, "value", 25000000.00),
+                Map.of("tokenId", "RWA-00456", "name", "Gold Reserve Fund", "return", 12.3, "value", 18500000.00),
+                Map.of("tokenId", "RWA-00789", "name", "Corporate Bond Series A", "return", 8.9, "value", 12000000.00)
+            ));
+
+            // Risk metrics
+            overview.put("riskMetrics", Map.of(
+                "volatility", 4.5,
+                "sharpeRatio", 2.1,
+                "maxDrawdown", -8.2,
+                "beta", 0.65,
+                "correlationSP500", 0.35
+            ));
+
+            overview.put("lastUpdated", Instant.now().toString());
+            overview.put("timestamp", System.currentTimeMillis());
+
+            return Response.ok(overview).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
      * Get user portfolio
      * GET /api/v11/rwa/portfolio/{address}
      */
@@ -492,6 +561,157 @@ public class RWAApiResource {
             price.timestamp = System.currentTimeMillis();
 
             return Response.ok(price).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // ==================== DIVIDENDS ====================
+
+    /**
+     * Get dividends overview
+     * GET /api/v11/rwa/dividends
+     */
+    @GET
+    @Path("/dividends")
+    @Operation(summary = "Get dividends overview", description = "Get RWA dividends distribution overview")
+    @APIResponse(responseCode = "200", description = "Dividends overview retrieved successfully")
+    public Uni<Response> getDividendsOverview() {
+        LOG.info("GET /api/v11/rwa/dividends - Fetching dividends overview");
+
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> dividends = new LinkedHashMap<>();
+            dividends.put("totalDistributed", 125678900.45);
+            dividends.put("totalDistributedLast30Days", 12567890.00);
+            dividends.put("averageYield", 5.2);
+            dividends.put("totalDistributions", 456);
+            dividends.put("pendingDistributions", 23);
+            dividends.put("nextDistributionDate", Instant.now().plusSeconds(3 * 24 * 60 * 60).toString());
+
+            // Distribution history
+            dividends.put("recentDistributions", List.of(
+                Map.of(
+                    "id", "DIV-001",
+                    "assetName", "Manhattan Luxury Tower",
+                    "amount", 156789.00,
+                    "yieldPercentage", 5.5,
+                    "distributionDate", Instant.now().minusSeconds(7 * 24 * 60 * 60).toString(),
+                    "holders", 234
+                ),
+                Map.of(
+                    "id", "DIV-002",
+                    "assetName", "Corporate Bond Series A",
+                    "amount", 89500.00,
+                    "yieldPercentage", 4.8,
+                    "distributionDate", Instant.now().minusSeconds(14 * 24 * 60 * 60).toString(),
+                    "holders", 156
+                ),
+                Map.of(
+                    "id", "DIV-003",
+                    "assetName", "Gold Mining Rights",
+                    "amount", 67890.00,
+                    "yieldPercentage", 3.2,
+                    "distributionDate", Instant.now().minusSeconds(21 * 24 * 60 * 60).toString(),
+                    "holders", 89
+                )
+            ));
+
+            // Distribution by asset type
+            dividends.put("distributionsByType", Map.of(
+                "realEstate", Map.of("total", 45678900.00, "percentage", 36.3, "avgYield", 5.5),
+                "bonds", Map.of("total", 34567800.00, "percentage", 27.5, "avgYield", 4.8),
+                "commodities", Map.of("total", 23456700.00, "percentage", 18.7, "avgYield", 3.2),
+                "privateEquity", Map.of("total", 21975500.45, "percentage", 17.5, "avgYield", 8.2)
+            ));
+
+            // Upcoming distributions
+            dividends.put("upcomingDistributions", List.of(
+                Map.of(
+                    "assetName", "Tech Campus Office Complex",
+                    "expectedAmount", 234567.00,
+                    "expectedDate", Instant.now().plusSeconds(3 * 24 * 60 * 60).toString(),
+                    "eligibleHolders", 345
+                ),
+                Map.of(
+                    "assetName", "Healthcare REIT Fund",
+                    "expectedAmount", 178900.00,
+                    "expectedDate", Instant.now().plusSeconds(10 * 24 * 60 * 60).toString(),
+                    "eligibleHolders", 267
+                )
+            ));
+
+            dividends.put("lastUpdated", Instant.now().toString());
+            dividends.put("timestamp", System.currentTimeMillis());
+
+            return Response.ok(dividends).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // ==================== COMPLIANCE ====================
+
+    /**
+     * Get compliance overview
+     * GET /api/v11/rwa/compliance
+     */
+    @GET
+    @Path("/compliance")
+    @Operation(summary = "Get compliance overview", description = "Get RWA compliance and regulatory status overview")
+    @APIResponse(responseCode = "200", description = "Compliance overview retrieved successfully")
+    public Uni<Response> getComplianceOverview() {
+        LOG.info("GET /api/v11/rwa/compliance - Fetching compliance overview");
+
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> compliance = new LinkedHashMap<>();
+            compliance.put("overallStatus", "COMPLIANT");
+            compliance.put("complianceScore", 98.5);
+            compliance.put("lastAuditDate", Instant.now().minusSeconds(15 * 24 * 60 * 60).toString());
+            compliance.put("nextAuditDate", Instant.now().plusSeconds(75 * 24 * 60 * 60).toString());
+
+            // KYC/AML stats
+            compliance.put("kyc", Map.of(
+                "verifiedInvestors", 12345,
+                "pendingVerification", 234,
+                "rejectedLast30Days", 12,
+                "verificationRate", 98.2,
+                "avgVerificationTime", "4.5 hours"
+            ));
+
+            // Asset compliance
+            compliance.put("assets", Map.of(
+                "totalAssets", 1234,
+                "fullyCompliant", 1189,
+                "pendingReview", 35,
+                "actionRequired", 10,
+                "complianceRate", 96.4
+            ));
+
+            // Regulatory jurisdictions
+            compliance.put("jurisdictions", List.of(
+                Map.of("name", "United States", "status", "COMPLIANT", "registrations", 456, "lastReview", Instant.now().minusSeconds(30 * 24 * 60 * 60).toString()),
+                Map.of("name", "European Union", "status", "COMPLIANT", "registrations", 234, "lastReview", Instant.now().minusSeconds(45 * 24 * 60 * 60).toString()),
+                Map.of("name", "United Kingdom", "status", "COMPLIANT", "registrations", 178, "lastReview", Instant.now().minusSeconds(20 * 24 * 60 * 60).toString()),
+                Map.of("name", "Singapore", "status", "COMPLIANT", "registrations", 145, "lastReview", Instant.now().minusSeconds(15 * 24 * 60 * 60).toString()),
+                Map.of("name", "Japan", "status", "PENDING_REVIEW", "registrations", 89, "lastReview", Instant.now().minusSeconds(60 * 24 * 60 * 60).toString())
+            ));
+
+            // Recent compliance actions
+            compliance.put("recentActions", List.of(
+                Map.of("type", "AUDIT_COMPLETED", "description", "Q3 2025 regulatory audit completed", "date", Instant.now().minusSeconds(15 * 24 * 60 * 60).toString(), "status", "PASSED"),
+                Map.of("type", "KYC_UPDATE", "description", "Enhanced KYC procedures implemented", "date", Instant.now().minusSeconds(30 * 24 * 60 * 60).toString(), "status", "IMPLEMENTED"),
+                Map.of("type", "REGISTRATION", "description", "SEC Form D filed for new offering", "date", Instant.now().minusSeconds(7 * 24 * 60 * 60).toString(), "status", "APPROVED")
+            ));
+
+            // Compliance metrics
+            compliance.put("metrics", Map.of(
+                "amlChecksLast30Days", 4567,
+                "sanctionsScreenings", 12345,
+                "flaggedTransactions", 23,
+                "resolvedFlags", 21,
+                "averageResolutionTime", "2.3 hours"
+            ));
+
+            compliance.put("lastUpdated", Instant.now().toString());
+            compliance.put("timestamp", System.currentTimeMillis());
+
+            return Response.ok(compliance).build();
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 

@@ -53,7 +53,7 @@ public class AnalyticsStreamServiceImpl implements AnalyticsStreamService {
     public Multi<DashboardAnalytics> interactiveDashboard(Multi<DashboardCommand> request) {
         // Simple implementation: ignore commands for now and just stream analytics
         // In a real implementation, we would use the commands to filter/modify the stream
-        return request.onItem().transformToMulti(command ->
+        return request.onItem().transformToMultiAndConcatenate(command ->
             realTimeAnalyticsService.streamMetrics()
                 .map(metrics -> mapToDashboardAnalytics(metrics, "interactive"))
         );
@@ -93,8 +93,8 @@ public class AnalyticsStreamServiceImpl implements AnalyticsStreamService {
                         .build())
                 .setResources(ResourceUtilization.newBuilder()
                         .setSystem(SystemMetrics.newBuilder()
-                                .setCpuUsage(metrics.resources.cpuUsage)
-                                .setMemoryUsage(metrics.resources.memoryUsage)
+                                .setCpuUsagePercent(metrics.resources.cpuUsage)
+                                .setMemoryUsedBytes((long)(metrics.resources.memoryUsage * 1024 * 1024 * 1024))
                                 .build())
                         .build())
                 .build();

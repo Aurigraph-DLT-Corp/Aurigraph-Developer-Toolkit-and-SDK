@@ -8,6 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * StakingDataService provides staking and reward distribution data
@@ -143,6 +144,45 @@ public class StakingDataService {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r))
          .onFailure().recoverWithItem(throwable -> {
              Log.error("Failed to get distribution pools", throwable);
+             return Collections.emptyList();
+         });
+    }
+
+    /**
+     * Get list of validators for staking
+     */
+    public Uni<List<ValidatorDTO>> getValidators() {
+        return Uni.createFrom().item(() -> {
+            Log.info("Fetching validators list");
+
+            List<ValidatorDTO> validators = new ArrayList<>();
+            String[] statuses = {"active", "active", "active", "active", "active", "active", "jailed", "inactive"};
+
+            for (int i = 1; i <= 16; i++) {
+                String status = statuses[ThreadLocalRandom.current().nextInt(statuses.length)];
+                double uptime = status.equals("active") ? 95.0 + ThreadLocalRandom.current().nextDouble(5) :
+                               ThreadLocalRandom.current().nextDouble(80);
+
+                validators.add(ValidatorDTO.builder()
+                    .validatorId("validator-" + i)
+                    .address("0xAUR" + String.format("%040d", i))
+                    .status(status)
+                    .stake(String.format("%,d AUR", 2500000 + ThreadLocalRandom.current().nextInt(500000)))
+                    .commissionRate(5.0 + ThreadLocalRandom.current().nextDouble(10))
+                    .uptime(uptime)
+                    .blockProposals(1000 + ThreadLocalRandom.current().nextInt(5000))
+                    .missedBlocks(ThreadLocalRandom.current().nextInt(50))
+                    .consensusParticipation(90.0 + ThreadLocalRandom.current().nextDouble(10))
+                    .joinedAt(Instant.now().minusSeconds(86400L * (30 + ThreadLocalRandom.current().nextInt(365))))
+                    .lastProposalTime(Instant.now().minusSeconds(ThreadLocalRandom.current().nextInt(3600)))
+                    .totalRewards(String.format("$%,d", 10000 + ThreadLocalRandom.current().nextInt(100000)))
+                    .build());
+            }
+
+            return validators;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r))
+         .onFailure().recoverWithItem(throwable -> {
+             Log.error("Failed to get validators", throwable);
              return Collections.emptyList();
          });
     }

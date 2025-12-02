@@ -63,6 +63,21 @@ export const NetworkHealthViz: React.FC<Props> = ({ validators = [], businessNod
     stakingRatio: 68.5,
   };
 
+  // Safe division helper to avoid NaN/undefined
+  const safeDivide = (a: number | undefined | null, b: number | undefined | null, fallback: number = 100): number => {
+    const numA = a ?? 0;
+    const numB = b ?? 1; // Avoid division by zero
+    if (numB === 0) return fallback;
+    const result = (numA / numB) * 100;
+    return isNaN(result) || !isFinite(result) ? fallback : result;
+  };
+
+  // Safe number accessor to avoid undefined.toFixed() errors
+  const safeNumber = (val: number | undefined | null, fallback: number = 0): number => {
+    if (val === undefined || val === null || isNaN(val) || !isFinite(val)) return fallback;
+    return val;
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'optimal': return colors.brand.success;
@@ -71,6 +86,10 @@ export const NetworkHealthViz: React.FC<Props> = ({ validators = [], businessNod
       default: return colors.brand.secondary;
     }
   };
+
+  const peerNetworkValue = safeDivide(metrics.activePeers, metrics.totalPeers);
+  const validatorValue = safeDivide(metrics.activeValidators, metrics.totalValidators);
+  const uptimeValue = safeNumber(metrics.uptime, 99.9);
 
   const healthMetrics: HealthMetric[] = [
     {
@@ -81,34 +100,36 @@ export const NetworkHealthViz: React.FC<Props> = ({ validators = [], businessNod
     },
     {
       label: 'Uptime',
-      value: metrics.uptime,
-      status: metrics.uptime > 99.5 ? 'optimal' : metrics.uptime > 95 ? 'warning' : 'critical',
+      value: uptimeValue,
+      status: uptimeValue > 99.5 ? 'optimal' : uptimeValue > 95 ? 'warning' : 'critical',
       icon: <Speed />,
     },
     {
       label: 'Peer Network',
-      value: (metrics.activePeers / metrics.totalPeers) * 100,
-      status: metrics.activePeers > 0.9 * metrics.totalPeers ? 'optimal' : 'warning',
+      value: peerNetworkValue,
+      status: peerNetworkValue > 90 ? 'optimal' : 'warning',
       icon: <Dns />,
     },
     {
       label: 'Validators',
-      value: (metrics.activeValidators / metrics.totalValidators) * 100,
-      status: metrics.activeValidators > 0.9 * metrics.totalValidators ? 'optimal' : 'warning',
+      value: validatorValue,
+      status: validatorValue > 90 ? 'optimal' : 'warning',
       icon: <Security />,
     },
     {
       label: 'Staking',
-      value: metrics.stakingRatio,
-      status: metrics.stakingRatio > 60 ? 'optimal' : metrics.stakingRatio > 40 ? 'warning' : 'critical',
+      value: safeNumber(metrics.stakingRatio, 68.5),
+      status: safeNumber(metrics.stakingRatio, 68.5) > 60 ? 'optimal' : safeNumber(metrics.stakingRatio, 68.5) > 40 ? 'warning' : 'critical',
       icon: <CloudQueue />,
     },
   ];
 
   // Pie chart data for validator distribution
+  const activeValidators = safeNumber(metrics.activeValidators, 0);
+  const totalValidators = safeNumber(metrics.totalValidators, 1);
   const validatorData = [
-    { name: 'Active', value: metrics.activeValidators, color: colors.brand.primary },
-    { name: 'Standby', value: metrics.totalValidators - metrics.activeValidators, color: alpha(colors.dark.bgLighter, 0.5) },
+    { name: 'Active', value: activeValidators, color: colors.brand.primary },
+    { name: 'Standby', value: Math.max(0, totalValidators - activeValidators), color: alpha(colors.dark.bgLighter, 0.5) },
   ];
 
   return (
@@ -276,16 +297,16 @@ export const NetworkHealthViz: React.FC<Props> = ({ validators = [], businessNod
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  {metrics.activePeers}
+                  {safeNumber(metrics.activePeers, 0)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  of {metrics.totalPeers} total peers
+                  of {safeNumber(metrics.totalPeers, 0)} total peers
                 </Typography>
               </Box>
 
               <LinearProgress
                 variant="determinate"
-                value={(metrics.activePeers / metrics.totalPeers) * 100}
+                value={safeDivide(metrics.activePeers, metrics.totalPeers)}
                 sx={{
                   height: 12,
                   borderRadius: 6,
@@ -301,7 +322,7 @@ export const NetworkHealthViz: React.FC<Props> = ({ validators = [], businessNod
                 <Box display="flex" justifyContent="space-between" mb={1}>
                   <Typography variant="body2" color="text.secondary">Connection Rate</Typography>
                   <Typography variant="body2" fontWeight={600} sx={{ color: colors.brand.success }}>
-                    {((metrics.activePeers / metrics.totalPeers) * 100).toFixed(1)}%
+                    {safeDivide(metrics.activePeers, metrics.totalPeers).toFixed(1)}%
                   </Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">

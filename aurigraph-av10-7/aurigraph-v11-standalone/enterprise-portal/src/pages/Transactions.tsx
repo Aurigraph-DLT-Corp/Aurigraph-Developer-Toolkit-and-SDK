@@ -153,63 +153,28 @@ const Transactions: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<string>('all'); // all, today, week, month
   const [bulkFile, setBulkFile] = useState<File | null>(null);
 
-  // WebSocket for real-time updates - with fallback to polling
+  // HTTP polling for real-time updates (gRPC/HTTP2 architecture - WebSocket removed in V12)
   useEffect(() => {
-    let ws: WebSocket | null = null;
     let pollInterval: NodeJS.Timeout | null = null;
 
-    const connectWebSocket = () => {
-      try {
-        const wsUrl = API_BASE.replace('https', 'wss') + '/ws/channels';
-        ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-          console.log('WebSocket connected for real-time transactions');
-          setError(null);
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'new_transaction' || data.type === 'transaction') {
-              const newTx = convertBackendToFrontend(data.transaction);
-              setTransactions(prev => [newTx, ...prev.slice(0, pageSize - 1)]);
-            }
-          } catch (error) {
-            console.error('WebSocket message error:', error);
-          }
-        };
-
-        ws.onerror = (error) => {
-          console.warn('WebSocket connection failed, falling back to polling', error);
-          setupPolling();
-        };
-
-        ws.onclose = () => {
-          console.log('WebSocket closed, setting up polling fallback');
-          setupPolling();
-        };
-      } catch (error) {
-        console.warn('WebSocket not available, using polling', error);
-        setupPolling();
-      }
-    };
-
+    // Use HTTP polling for real-time transaction updates
+    // This replaces WebSocket with more reliable HTTP/2 polling
     const setupPolling = () => {
-      if (!pollInterval) {
-        pollInterval = setInterval(() => {
-          fetchTransactions();
-        }, 5000); // Poll every 5 seconds
-      }
+      console.log('Setting up HTTP polling for real-time transactions (5s interval)');
+      pollInterval = setInterval(() => {
+        fetchTransactions();
+      }, 5000); // Poll every 5 seconds for real-time updates
     };
 
-    connectWebSocket();
+    setupPolling();
 
     return () => {
-      if (ws) ws.close();
-      if (pollInterval) clearInterval(pollInterval);
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        console.log('HTTP polling stopped');
+      }
     };
-  }, [pageSize]);
+  }, [pageSize, fetchTransactions]);
 
   // Helper function to convert backend transaction to frontend format
   const convertBackendToFrontend = (tx: BackendTransaction): Transaction => {

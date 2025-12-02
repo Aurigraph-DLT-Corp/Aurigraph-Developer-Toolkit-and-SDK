@@ -1,6 +1,7 @@
 /**
  * NetworkTopologyService.ts
  * Handles API calls for network topology data
+ * HTTP-only implementation - uses polling for real-time updates
  * API Endpoint: /api/v11/blockchain/network/topology
  */
 
@@ -55,48 +56,40 @@ export async function fetchNetworkTopology(): Promise<NetworkTopologyData> {
 }
 
 /**
- * Subscribe to real-time network topology updates via WebSocket
+ * Subscribe to network topology updates via HTTP polling
  * @param callback Function to call when topology changes
+ * @param intervalMs Polling interval in milliseconds (default: 5000)
  * @returns Unsubscribe function
  */
 export function subscribeToNetworkTopology(
-  callback: (data: NetworkTopologyData) => void
+  callback: (data: NetworkTopologyData) => void,
+  intervalMs: number = 5000
 ): () => void {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const baseUrl = import.meta.env.PROD ? 'dlt.aurigraph.io' : 'localhost:9003'
-  const wsUrl = `${protocol}//${baseUrl}/api/v11/ws/network/topology`
+  let isActive = true
 
-  try {
-    const ws = new WebSocket(wsUrl)
+  const poll = async () => {
+    if (!isActive) return
 
-    ws.onopen = () => {
-      console.log('[NetworkTopologyService] WebSocket connected for real-time topology')
-    }
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data) as NetworkTopologyData
+    try {
+      const data = await fetchNetworkTopology()
+      if (isActive) {
         callback(data)
-      } catch (error) {
-        console.error('[NetworkTopologyService] Error parsing WebSocket message:', error)
       }
+    } catch (error) {
+      console.error('[NetworkTopologyService] Polling error:', error)
     }
 
-    ws.onerror = (error) => {
-      console.error('[NetworkTopologyService] WebSocket error:', error)
+    if (isActive) {
+      setTimeout(poll, intervalMs)
     }
+  }
 
-    ws.onclose = () => {
-      console.log('[NetworkTopologyService] WebSocket disconnected')
-    }
+  // Start polling
+  poll()
 
-    // Return unsubscribe function
-    return () => {
-      ws.close()
-    }
-  } catch (error) {
-    console.error('[NetworkTopologyService] Error setting up WebSocket:', error)
-    return () => {} // Return no-op unsubscribe
+  // Return unsubscribe function
+  return () => {
+    isActive = false
   }
 }
 

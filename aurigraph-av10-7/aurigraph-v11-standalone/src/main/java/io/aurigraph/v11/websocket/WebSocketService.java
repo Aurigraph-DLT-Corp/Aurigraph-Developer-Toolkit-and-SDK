@@ -52,7 +52,8 @@ import java.util.concurrent.TimeUnit;
  * @since V11.6.0 (Sprint 16 - AV11-484)
  * @epic AV11-491 Real-Time Communication Infrastructure
  */
-@ServerEndpoint(value = "/ws/v11", configurator = AuthenticatedWebSocketConfigurator.class)
+// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
+// @ServerEndpoint(value = "/ws/v11", configurator = AuthenticatedWebSocketConfigurator.class)
 @ApplicationScoped
 public class WebSocketService {
 

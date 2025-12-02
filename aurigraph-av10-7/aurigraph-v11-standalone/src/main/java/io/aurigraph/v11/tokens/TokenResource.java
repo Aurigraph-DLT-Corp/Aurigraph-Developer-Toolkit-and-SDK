@@ -26,7 +26,10 @@ import java.util.stream.Collectors;
  * Provides HTTP endpoints for Enterprise Portal token operations.
  * Implements 8 core endpoints matching frontend TokenService expectations.
  *
- * API Base Path: /api/v11/tokens
+ * API Base Path: /api/v11/token-management
+ *
+ * NOTE: This uses /token-management instead of /tokens to avoid route conflict
+ * with PortalAPIGateway which provides the public /api/v11/tokens endpoint.
  *
  * Endpoints:
  * - POST   /create                          - Create new token
@@ -38,10 +41,10 @@ import java.util.stream.Collectors;
  * - GET    /{tokenId}/balance/{address}   - Get balance for address
  * - GET    /stats                          - Get token statistics
  *
- * @version 1.0.0 (Oct 15, 2025)
+ * @version 1.0.1 (Nov 30, 2025)
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/tokens")
+@Path("/api/v11/token-management")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

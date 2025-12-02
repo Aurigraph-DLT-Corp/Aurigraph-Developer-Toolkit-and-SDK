@@ -1,13 +1,13 @@
 // Real-Time TPS Visualization - Vizor Style
 // Animated, responsive, stunning visual display of blockchain performance
-// Integrated with backend API and WebSocket real-time updates
+// HTTP-only implementation - uses polling for real-time updates
 
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Card, CardContent, Grid, alpha, CircularProgress } from '@mui/material';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
 import { TrendingUp, Speed, Bolt } from '@mui/icons-material';
 import { colors, animations } from '../styles/v0-theme';
-import { apiService, webSocketManager } from '../services/api';
+import { apiService } from '../services/api';
 
 interface TPSDataPoint {
   timestamp: number;
@@ -90,55 +90,11 @@ export const RealTimeTPSChart: React.FC<Props> = ({
     fetchInitialStats();
   }, []);
 
-  // Setup WebSocket for real-time updates
+  // HTTP polling for real-time updates (no WebSocket)
   useEffect(() => {
     if (!isLive) return;
 
-    const setupWebSocket = async () => {
-      try {
-        // Register handler for TPS updates
-        webSocketManager.onMessage('tps_update', (data: any) => {
-          const now = Date.now();
-          const newDataPoint: TPSDataPoint = {
-            timestamp: now,
-            time: new Date(now).toLocaleTimeString(),
-            tps: data.currentTPS || data.tps || currentTPS,
-            latency: data.latency || 40,
-            throughput: data.throughput || (data.currentTPS || currentTPS) * 0.85,
-          };
-
-          setTPSHistory(prev => {
-            const updated = [...prev, newDataPoint];
-            return updated.slice(-60); // Keep last 60 data points
-          });
-
-          // Update current metrics
-          if (data.currentTPS) setCurrentTPS(data.currentTPS);
-          if (data.peakTPS) setPeakTPS(data.peakTPS);
-          if (data.averageTPS) setAverageTPS(data.averageTPS);
-        });
-
-        // Connect to WebSocket
-        await webSocketManager.connect();
-      } catch (err) {
-        console.warn('WebSocket connection failed, falling back to polling:', err);
-        // Fallback: poll the API if WebSocket fails
-        setupPolling();
-      }
-    };
-
-    setupWebSocket();
-
-    return () => {
-      webSocketManager.disconnect();
-    };
-  }, [isLive, currentTPS]);
-
-  // Fallback polling mechanism if WebSocket unavailable
-  const setupPolling = () => {
-    const interval = setInterval(async () => {
-      if (!isLive) return;
-
+    const pollInterval = setInterval(async () => {
       try {
         const stats = await apiService.getBlockchainStats();
 
@@ -154,21 +110,21 @@ export const RealTimeTPSChart: React.FC<Props> = ({
 
           setTPSHistory(prev => {
             const updated = [...prev, newDataPoint];
-            return updated.slice(-60);
+            return updated.slice(-60); // Keep last 60 data points
           });
 
           // Update current metrics
-          setCurrentTPS(stats.currentTPS || stats.tps || currentTPS);
-          setPeakTPS(stats.peakTPS || stats.peak || peakTPS);
-          setAverageTPS(stats.averageTPS || stats.average || averageTPS);
+          if (stats.currentTPS || stats.tps) setCurrentTPS(stats.currentTPS || stats.tps);
+          if (stats.peakTPS || stats.peak) setPeakTPS(stats.peakTPS || stats.peak);
+          if (stats.averageTPS || stats.average) setAverageTPS(stats.averageTPS || stats.average);
         }
       } catch (err) {
-        console.warn('Polling failed:', err);
+        console.warn('[RealTimeTPSChart] Polling failed:', err);
       }
-    }, 1000);
+    }, 1000); // Poll every second for real-time feel
 
-    return () => clearInterval(interval);
-  };
+    return () => clearInterval(pollInterval);
+  }, [isLive, currentTPS, peakTPS, averageTPS]);
 
   const tpsPercentage = Math.min((currentTPS / targetTPS) * 100, 100);
   const radialData = [{ name: 'TPS', value: tpsPercentage, fill: colors.brand.primary }];

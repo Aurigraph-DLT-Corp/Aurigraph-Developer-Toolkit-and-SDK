@@ -23,7 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @deprecated Use EnhancedTransactionWebSocket for authenticated connections
  */
 @Deprecated
-@ServerEndpoint("/ws/transactions/legacy")
+// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
+// @ServerEndpoint("/ws/transactions/legacy")
 @ApplicationScoped
 public class TransactionWebSocket {
 

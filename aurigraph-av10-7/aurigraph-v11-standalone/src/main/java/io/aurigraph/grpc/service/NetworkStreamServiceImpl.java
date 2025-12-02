@@ -106,7 +106,7 @@ public class NetworkStreamServiceImpl implements NetworkStreamService {
 
     @Override
     public Multi<NetworkEventStream> interactiveNetworkMonitor(Multi<NetworkCommand> request) {
-        return request.onItem().transformToMulti(cmd -> streamNetworkEvents(NetworkSubscribeRequest.newBuilder().build()));
+        return request.onItem().transformToMultiAndConcatenate(cmd -> streamNetworkEvents(NetworkSubscribeRequest.newBuilder().build()));
     }
 
     @Override
@@ -162,9 +162,9 @@ public class NetworkStreamServiceImpl implements NetworkStreamService {
         return NodeTopologyInfo.newBuilder()
                 .setNode(NodeInfo.newBuilder()
                         .setNodeId(peer.peerId())
-                        .setIpAddress(peer.ipAddress())
-                        .setPort(peer.port())
+                        .setNodeType("FULL_NODE")
                         .setVersion(peer.version())
+                        .setNetwork(peer.ipAddress() + ":" + peer.port())
                         .build())
                 .setGeoLocation(GeoLocation.newBuilder()
                         .setLatitude(peer.location().coordinates().latitude())

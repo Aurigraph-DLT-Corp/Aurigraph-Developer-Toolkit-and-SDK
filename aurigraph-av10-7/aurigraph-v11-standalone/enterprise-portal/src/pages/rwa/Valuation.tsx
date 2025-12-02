@@ -13,6 +13,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Alert,
 } from '@mui/material'
 import {
   TrendingUp,
@@ -21,7 +22,8 @@ import {
   ShowChart,
   CompareArrows,
 } from '@mui/icons-material'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { apiService, safeApiCall } from '../../services/api'
 import {
   AreaChart,
   Area,
@@ -94,15 +96,54 @@ const SAMPLE_MARKET_COMPARISONS: MarketComparison[] = [
 ]
 
 export default function Valuation() {
-  const [valuationHistory] = useState<ValuationData[]>(SAMPLE_VALUATION_HISTORY)
-  const [marketComparisons] = useState<MarketComparison[]>(SAMPLE_MARKET_COMPARISONS)
+  const [valuationHistory, setValuationHistory] = useState<ValuationData[]>(SAMPLE_VALUATION_HISTORY)
+  const [marketComparisons, setMarketComparisons] = useState<MarketComparison[]>(SAMPLE_MARKET_COMPARISONS)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchValuationData = async () => {
+    setLoading(true)
+    setError(null)
+
+    const result = await safeApiCall(
+      () => apiService.getRWAValuation(),
+      { total: 0, assets: [] }
+    )
+
+    if (result.success && result.data.assets && result.data.assets.length > 0) {
+      // Transform API data to market comparisons
+      const transformedComparisons: MarketComparison[] = result.data.assets.map((asset: any) => ({
+        assetName: asset.name || asset.assetName || 'Unknown Asset',
+        yourValue: parseFloat(asset.currentValue || asset.value || '0'),
+        marketAverage: parseFloat(asset.marketAverage || asset.currentValue || '0'),
+        difference: parseFloat(asset.difference || '0'),
+        differencePercent: parseFloat(asset.differencePercent || '0'),
+      }))
+      setMarketComparisons(transformedComparisons)
+
+      // Generate historical data if available
+      if (asset.history && Array.isArray(asset.history)) {
+        const transformedHistory: ValuationData[] = asset.history.map((h: any) => ({
+          date: h.date || h.month || '',
+          value: parseFloat(h.value || '0'),
+        }))
+        setValuationHistory(transformedHistory)
+      }
+    } else if (!result.success) {
+      setError(result.error?.message || 'Failed to load valuation data')
+      // Keep sample data on error
+    }
+
+    setLoading(false)
+  }
 
   const handleRefresh = () => {
-    setLoading(true)
-    // TODO: Fetch from API
-    setTimeout(() => setLoading(false), 1000)
+    fetchValuationData()
   }
+
+  useEffect(() => {
+    fetchValuationData()
+  }, [])
 
   const currentValue = valuationHistory[valuationHistory.length - 1]?.value || 0
   const previousValue = valuationHistory[valuationHistory.length - 2]?.value || 0
@@ -132,6 +173,12 @@ export default function Valuation() {
       </Box>
 
       {loading && <LinearProgress sx={{ mb: 2 }} />}
+
+      {error && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {error} - Displaying sample data
+        </Alert>
+      )}
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>

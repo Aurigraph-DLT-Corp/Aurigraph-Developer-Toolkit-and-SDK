@@ -62,7 +62,7 @@ public class MetricsStreamServiceImpl implements MetricsStreamService {
 
     @Override
     public Multi<PerformanceMetricsUpdate> interactiveMetrics(Multi<MetricsCommand> request) {
-        return request.onItem().transformToMulti(cmd -> streamMetrics(MetricsSubscription.newBuilder().build()));
+        return request.onItem().transformToMultiAndConcatenate(cmd -> streamMetrics(MetricsSubscription.newBuilder().build()));
     }
 
     private PerformanceMetricsUpdate createMetricsUpdate() {

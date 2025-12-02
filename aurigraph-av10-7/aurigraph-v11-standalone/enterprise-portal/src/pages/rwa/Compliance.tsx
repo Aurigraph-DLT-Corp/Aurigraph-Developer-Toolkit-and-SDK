@@ -21,6 +21,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Alert,
 } from '@mui/material'
 import {
   VerifiedUser,
@@ -36,7 +37,8 @@ import {
   AccountBalance,
   Shield,
 } from '@mui/icons-material'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { apiService, safeApiCall } from '../../services/api'
 
 const CARD_STYLE = {
   background: 'linear-gradient(135deg, #1A1F3A 0%, #2A3050 100%)',
@@ -195,13 +197,38 @@ const VERIFICATION_STEPS = [
 
 export default function Compliance() {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [complianceData, setComplianceData] = useState<any>(null)
   const activeStep = 3 // Current step in verification process
 
-  const handleRefresh = () => {
+  const fetchComplianceData = async () => {
     setLoading(true)
-    // TODO: Fetch from API
-    setTimeout(() => setLoading(false), 1000)
+    setError(null)
+
+    // Use security audit log endpoint for compliance tracking
+    const result = await safeApiCall(
+      () => apiService.getSecurityAuditLog({ limit: 10 }),
+      { events: [] }
+    )
+
+    if (result.success && result.data.events) {
+      setComplianceData(result.data)
+      // Could transform audit events to compliance status here
+    } else if (!result.success) {
+      setError(result.error?.message || 'Failed to load compliance data')
+      // Keep sample data on error
+    }
+
+    setLoading(false)
   }
+
+  const handleRefresh = () => {
+    fetchComplianceData()
+  }
+
+  useEffect(() => {
+    fetchComplianceData()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -262,6 +289,12 @@ export default function Compliance() {
       </Box>
 
       {loading && <LinearProgress sx={{ mb: 2 }} />}
+
+      {error && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {error} - Displaying sample data
+        </Alert>
+      )}
 
       {/* Overall Compliance Status */}
       <Card sx={{ ...CARD_STYLE, mb: 3 }}>

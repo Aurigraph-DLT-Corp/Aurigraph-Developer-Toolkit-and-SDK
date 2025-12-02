@@ -3,17 +3,13 @@
  * Master dashboard layout component with KPI metrics
  * Displays key performance indicators and provides navigation to dashboard pages
  *
- * ENHANCED FEATURES:
- * - Real-time WebSocket updates for metrics, network, and validators
- * - Automatic fallback to REST API when WebSocket unavailable
- * - Live indicator badges showing connection status
- * - Animated KPI cards with smooth value transitions
- * - Data source tracking (WebSocket vs REST)
- * - Connection latency monitoring
- * - Auto-reconnection with exponential backoff
+ * HTTP-ONLY IMPLEMENTATION:
+ * - Uses REST API calls for all data fetching
+ * - Auto-refresh via polling (every 30 seconds)
+ * - No WebSocket dependencies
  */
 
-import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   Box,
   Card,
@@ -23,16 +19,11 @@ import {
   CircularProgress,
   Alert,
   Button,
-  Paper,
   Divider,
   Container,
   LinearProgress,
   Chip,
   IconButton,
-  Tooltip,
-  Badge,
-  Fade,
-  keyframes,
 } from '@mui/material'
 import {
   TrendingUp as TrendingUpIcon,
@@ -41,35 +32,13 @@ import {
   VerifiedUser as VerifiedUserIcon,
   Security as SecurityIcon,
   Storage as StorageIcon,
-  WifiTethering as LiveIcon,
-  CloudOff as OfflineIcon,
-  AccessTime as TimeIcon,
-  SignalCellularAlt as SignalIcon,
 } from '@mui/icons-material'
-import { networkTopologyApi } from '../services/phase1Api'
 import { validatorApi } from '../services/phase1Api'
 import { aiMetricsApi } from '../services/phase1Api'
-
-// Import WebSocket hooks
-import { useMetricsWebSocket } from '../hooks/useMetricsWebSocket'
-import { useNetworkStream } from '../hooks/useNetworkStream'
-import { useValidatorStream } from '../hooks/useValidatorStream'
 
 // ============================================================================
 // TYPES
 // ============================================================================
-
-// Data source tracking for metrics
-type DataSource = 'WebSocket' | 'REST' | 'Cache'
-
-// Metadata for each metric
-interface MetricMetadata {
-  source: DataSource
-  timestamp: Date
-  confidence: number // 0-100
-  latency?: number // milliseconds
-  isLive?: boolean // true if from WebSocket
-}
 
 interface DashboardKPI {
   label: string
@@ -79,8 +48,6 @@ interface DashboardKPI {
   icon: React.ReactNode
   color: string
   description?: string
-  metadata?: MetricMetadata
-  previousValue?: string | number // For animation
 }
 
 interface DashboardStats {
@@ -94,17 +61,6 @@ interface DashboardStats {
   systemUptime: number
   transactionsThroughput: number
   lastRefresh: Date
-  metadata?: Record<string, MetricMetadata>
-}
-
-// WebSocket connection status
-interface WebSocketConnectionStatus {
-  metrics: boolean
-  network: boolean
-  validators: boolean
-  overallHealth: 'CONNECTED' | 'PARTIAL' | 'DISCONNECTED'
-  activeConnections: number
-  totalConnections: number
 }
 
 // ============================================================================

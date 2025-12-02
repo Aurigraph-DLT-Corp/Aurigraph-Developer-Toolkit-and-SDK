@@ -128,13 +128,13 @@ public class ValidatorStreamServiceImpl implements ValidatorStreamService {
 
     @Override
     public Multi<ValidatorEventStream> interactiveValidatorMonitor(Multi<ValidatorCommand> request) {
-        return request.onItem().transformToMulti(cmd ->
+        return request.onItem().transformToMultiAndConcatenate(cmd ->
             streamValidatorEvents(ValidatorSubscribeRequest.newBuilder().build())
                 .map(event -> ValidatorEventStream.newBuilder()
-                    .setStreamId("interactive-" + System.currentTimeMillis())
+                    .setEventId("interactive-" + System.currentTimeMillis())
                     .setTimestamp(toTimestamp(Instant.now()))
                     .build())
-        ).concatenate();
+        );
     }
 
     @Override

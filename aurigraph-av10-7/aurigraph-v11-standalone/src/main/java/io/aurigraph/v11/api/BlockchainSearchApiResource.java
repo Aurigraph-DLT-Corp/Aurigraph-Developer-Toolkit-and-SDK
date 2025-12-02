@@ -14,9 +14,13 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 import io.aurigraph.v11.TransactionService;
+import io.aurigraph.v11.portal.services.BlockchainDataService;
+import io.aurigraph.v11.portal.models.TransactionDTO;
+import io.aurigraph.v11.portal.models.PortalResponse;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.List;
 
 /**
  * Blockchain Search and Transaction Submission API Resource
@@ -39,6 +43,78 @@ public class BlockchainSearchApiResource {
 
     @Inject
     TransactionService transactionService;
+
+    @Inject
+    BlockchainDataService blockchainDataService;
+
+    // ==================== ENDPOINT 0: Get Blockchain Stats ====================
+
+    /**
+     * GET /api/v11/blockchain/stats
+     * Returns detailed blockchain statistics
+     */
+    @GET
+    @Path("/stats")
+    @Operation(summary = "Get blockchain stats", description = "Returns detailed blockchain statistics")
+    @APIResponse(responseCode = "200", description = "Blockchain statistics retrieved successfully")
+    public Uni<PortalResponse<Map<String, Object>>> getBlockchainStats() {
+        LOG.info("GET /api/v11/blockchain/stats - Blockchain stats requested");
+
+        return blockchainDataService.getBlockchainStats()
+            .map(stats -> {
+                Map<String, Object> statsMap = new LinkedHashMap<>();
+                statsMap.put("totalBlocks", stats.getTotalBlocks());
+                statsMap.put("totalTransactions", stats.getTotalTransactions());
+                statsMap.put("totalValidators", stats.getTotalValidators());
+                statsMap.put("activeValidators", stats.getActiveValidators());
+                statsMap.put("totalStaked", stats.getTotalStaked());
+                statsMap.put("medianBlockTime", stats.getMedianBlockTime());
+                statsMap.put("minBlockTime", stats.getMinBlockTime());
+                statsMap.put("maxBlockTime", stats.getMaxBlockTime());
+                statsMap.put("avgTransactionSize", stats.getAvgTransactionSize());
+                statsMap.put("totalContractDeployments", stats.getTotalContractDeployments());
+                statsMap.put("activeSmartContracts", stats.getActiveSmartContracts());
+                statsMap.put("totalAssetTokens", stats.getTotalAssetTokens());
+                statsMap.put("totalRWATokens", stats.getTotalRWATokens());
+                statsMap.put("networkUptime", stats.getNetworkUptime());
+                statsMap.put("consensusEfficiency", stats.getConsensusEfficiency());
+                statsMap.put("forkCount", stats.getForkCount());
+                statsMap.put("timestamp", System.currentTimeMillis());
+                return PortalResponse.success(statsMap, "Blockchain statistics retrieved");
+            })
+            .onFailure()
+            .recoverWithItem(throwable -> {
+                LOG.errorf(throwable, "Failed to get blockchain stats: %s", throwable.getMessage());
+                return PortalResponse.error(500, "Failed to retrieve blockchain statistics");
+            });
+    }
+
+    // ==================== ENDPOINT 1: Get Transactions ====================
+
+    /**
+     * GET /api/v11/blockchain/transactions
+     * Returns list of recent transactions for the blockchain explorer
+     * Routes to BlockchainDataService for mock/real data
+     */
+    @GET
+    @Path("/transactions")
+    @Operation(summary = "Get blockchain transactions", description = "Returns list of recent blockchain transactions")
+    @APIResponse(responseCode = "200", description = "Transactions retrieved successfully")
+    public Uni<PortalResponse<List<TransactionDTO>>> getTransactions(
+            @QueryParam("limit") @DefaultValue("20") int limit) {
+        LOG.infof("Blockchain transactions requested (limit: %d) via BlockchainSearchApiResource", limit);
+
+        return blockchainDataService.getTransactions(Math.min(limit, 100))
+            .map(transactions -> {
+                LOG.infof("Retrieved %d transactions successfully", transactions.size());
+                return PortalResponse.success(transactions, "Blockchain transactions retrieved");
+            })
+            .onFailure()
+            .recoverWithItem(throwable -> {
+                LOG.errorf(throwable, "Failed to get blockchain transactions: %s", throwable.getMessage());
+                return PortalResponse.error(500, "Failed to retrieve blockchain transactions: " + throwable.getMessage());
+            });
+    }
 
     // ==================== ENDPOINT 2: Block Search ====================
 

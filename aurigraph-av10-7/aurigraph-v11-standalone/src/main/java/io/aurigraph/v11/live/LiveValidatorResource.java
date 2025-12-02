@@ -15,31 +15,31 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 
 /**
- * Live Data API Resource
+ * Live Validator API Resource
  *
- * Provides real-time monitoring endpoints for the Aurigraph V11 platform.
- * This resource exposes live data about validators, network state, and
- * performance metrics.
+ * Provides real-time monitoring endpoints for validators in the Aurigraph V11 platform.
+ * This resource exposes live data about validators, their status, and performance metrics.
  *
  * Endpoints:
  * - GET /api/v11/live/validators - Get live validator monitoring data
  * - GET /api/v11/live/validators/{id} - Get specific validator details
+ * - GET /api/v11/live/validators/health - Health check for validator monitoring
  *
  * All endpoints return reactive Uni types for non-blocking operation
  * and leverage Java 21 virtual threads for high concurrency.
  *
  * @author Backend Development Agent (BDA) - Real-time Data Specialist
  * @ticket AV11-268
- * @version 1.0.0
+ * @version 1.0.1
  */
 @Path("/api/v11/live")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Tag(name = "Live Data API", description = "Real-time monitoring and live data endpoints")
-public class LiveDataResource {
+@Tag(name = "Live Validator API", description = "Real-time validator monitoring endpoints")
+public class LiveValidatorResource {
 
-    private static final Logger LOG = Logger.getLogger(LiveDataResource.class);
+    private static final Logger LOG = Logger.getLogger(LiveValidatorResource.class);
 
     @Inject
     LiveValidatorsService validatorService;

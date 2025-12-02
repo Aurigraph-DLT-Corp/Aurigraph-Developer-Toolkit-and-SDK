@@ -124,7 +124,7 @@ public class ChannelStreamServiceImpl implements ChannelStreamService {
 
     @Override
     public Multi<ChannelEventStream> interactiveChannelMonitor(Multi<ChannelCommand> request) {
-        return request.onItem().transformToMulti(cmd -> streamChannelEvents(ChannelSubscribeRequest.newBuilder().build()));
+        return request.onItem().transformToMultiAndConcatenate(cmd -> streamChannelEvents(ChannelSubscribeRequest.newBuilder().build()));
     }
 
     @Override

@@ -1,11 +1,9 @@
 package io.aurigraph.v11.portal.services;
 
 import io.aurigraph.v11.portal.models.*;
-import io.aurigraph.v11.tokens.TokenManagementService;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
 
@@ -13,17 +11,16 @@ import java.util.*;
  * TokenDataService provides token and RWA tokenization data
  * Bridges Portal frontend requests to token management services
  *
- * INTEGRATION NOTE: This service is configured to receive dependency-injected
- * TokenManagementService for real token data. Currently uses mock data for demo.
- * Replace mock data calls with:
- * - tokenManagementService.getRWATokens() for real RWA tokens
- * - tokenManagementService.getTokenBalance(tokenId, address) for balance queries
+ * INTEGRATION NOTE: This service uses mock data for demo purposes.
+ * For future integration with real token data:
+ * - Inject TokenManagementService when ready
+ * - Call tokenManagementService.getRWATokens() for real RWA tokens
+ * - Call tokenManagementService.getTokenBalance(tokenId, address) for balance queries
  */
 @ApplicationScoped
 public class TokenDataService {
-
-    @Inject
-    TokenManagementService tokenManagementService;
+    // TokenManagementService injection removed to avoid LevelDB initialization issues
+    // Re-add when ready for real token integration
 
     /**
      * Get all tokens on the platform

@@ -22,7 +22,7 @@ env:
 jobs:
   build-and-deploy:
     name: Build & Deploy via SSH
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, aurigraph]
 
     steps:
       - name: Checkout code

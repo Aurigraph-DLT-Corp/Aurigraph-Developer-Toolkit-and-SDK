@@ -9,6 +9,8 @@ import io.aurigraph.v11.proto.ConsensusEventStream;
 import io.aurigraph.v11.proto.ConsensusHistoricalQuery;
 import io.aurigraph.v11.proto.ConsensusHistoricalResponse;
 import io.aurigraph.v11.proto.ConsensusMetrics;
+import io.aurigraph.v11.proto.ConsensusPhase;
+import io.aurigraph.v11.proto.ConsensusRole;
 import io.aurigraph.v11.proto.ConsensusState;
 import io.aurigraph.v11.proto.ConsensusStateUpdate;
 import io.aurigraph.v11.proto.ConsensusStreamService;
@@ -73,7 +75,7 @@ public class ConsensusStreamServiceImpl implements ConsensusStreamService {
 
     @Override
     public Multi<ConsensusEventStream> interactiveConsensusMonitor(Multi<ConsensusCommand> request) {
-        return request.onItem().transformToMulti(cmd -> streamConsensusEvents(ConsensusSubscribeRequest.newBuilder().build()));
+        return request.onItem().transformToMultiAndConcatenate(cmd -> streamConsensusEvents(ConsensusSubscribeRequest.newBuilder().build()));
     }
 
     @Override
@@ -100,12 +102,19 @@ public class ConsensusStreamServiceImpl implements ConsensusStreamService {
 
         return ConsensusStateUpdate.newBuilder()
                 .setTimestamp(toTimestamp(Instant.now()))
-                .setCurrentState(ConsensusState.LEADER) // Placeholder
-                .setMetrics(ConsensusMetrics.newBuilder()
+                .setCurrentState(ConsensusState.newBuilder()
+                        .setCurrentRole(ConsensusRole.ROLE_LEADER)
+                        .setCurrentPhase(ConsensusPhase.PHASE_FINALIZATION)
                         .setCurrentTerm(1)
-                        .setCommitIndex(100)
-                        .setLastApplied(100)
-                        .setConnectedPeers(6)
+                        .setActiveValidators(6)
+                        .setRequiredMajority(4)
+                        .build())
+                .setMetrics(ConsensusMetrics.newBuilder()
+                        .setConsensusLatencyMs(15.0)
+                        .setTotalValidators(6)
+                        .setActiveValidators(6)
+                        .setTotalBlocksCommitted(100)
+                        .setAverageBlockTimeMs(500.0)
                         .build())
                 .build();
     }

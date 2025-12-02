@@ -34,9 +34,9 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
     private static final Logger LOG = Logger.getLogger(RateLimitingFilter.class);
 
-    // Rate limit configurations
-    private static final int LOGIN_ATTEMPTS_PER_HOUR = 100;
-    // API_CALLS_PER_HOUR = 1000 (planned for per-user limiting in future enhancement)
+    // Rate limit configurations - increased for development/demo use
+    private static final int LOGIN_ATTEMPTS_PER_HOUR = 10000;
+    // API_CALLS_PER_HOUR = 10000 (planned for per-user limiting in future enhancement)
     private static final long CLEANUP_INTERVAL_MS = TimeUnit.HOURS.toMillis(1);
     private static final long RATE_LIMIT_WINDOW_MS = TimeUnit.HOURS.toMillis(1);
 

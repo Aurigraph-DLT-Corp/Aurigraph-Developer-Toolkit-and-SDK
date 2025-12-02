@@ -21,33 +21,34 @@ const navigationMenus = [
     items: [
       { text: 'Transactions', path: '/transactions' },
       { text: 'Performance', path: '/performance' },
-      { text: 'ML Performance', path: '/ml-performance', badge: 'NEW' },
+      { text: 'ML Performance', path: '/ml-performance', badge: 'AI' },
       { text: 'Nodes', path: '/nodes' },
       { text: 'Analytics', path: '/analytics' },
     ]
   },
   {
     title: 'Channels',
-    badge: 'NEW',
     items: [
-      { text: 'Multi-Channel', path: '/channels', badge: 'NEW' },
-      { text: 'Smart Contracts', path: '/contracts', badge: 'NEW' },
+      { text: 'Multi-Channel', path: '/channels' },
+      { text: 'Smart Contracts', path: '/contracts' },
       { text: 'Active Contracts', path: '/active-contracts' },
     ]
   },
   {
     title: 'Tokenization',
     items: [
-      { text: 'Token Registry', path: '/tokens', badge: '3.1' },
+      { text: 'Token Registry', path: '/tokens' },
       { text: 'Tokenization', path: '/tokenization' },
-      { text: 'Merkle Tree Registry', path: '/merkle-tree', badge: 'NEW' },
+      { text: 'Merkle Tree Registry', path: '/merkle-tree' },
+      { text: 'QuantConnect Registry', path: '/quantconnect' },
     ]
   },
   {
     title: 'RWA',
     badge: 'NEW',
     items: [
-      { text: 'Tokenize Asset', path: '/rwa/tokenize', badge: 'NEW' },
+      { text: 'Registry Navigation', path: '/rwa/registry-navigation', badge: 'NEW' },
+      { text: 'Tokenize Asset', path: '/rwa/tokenize' },
       { text: 'My Portfolio', path: '/rwa/portfolio' },
       { text: 'Asset Valuation', path: '/rwa/valuation' },
       { text: 'Dividends', path: '/rwa/dividends' },
@@ -56,7 +57,6 @@ const navigationMenus = [
   },
   {
     title: 'Dashboards',
-    badge: 'NEW',
     items: [
       { text: 'System Health', path: '/dashboards/system-health' },
       { text: 'Blockchain Ops', path: '/dashboards/blockchain-operations' },

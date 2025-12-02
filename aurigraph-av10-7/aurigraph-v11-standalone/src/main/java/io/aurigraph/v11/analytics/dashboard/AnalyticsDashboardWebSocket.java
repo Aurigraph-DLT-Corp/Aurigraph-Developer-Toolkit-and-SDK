@@ -36,7 +36,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 11.0.0
  * @since Sprint 13
  */
-@ServerEndpoint("/ws/dashboard")
+// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
+// @ServerEndpoint("/ws/dashboard")
 @ApplicationScoped
 public class AnalyticsDashboardWebSocket {
 

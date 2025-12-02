@@ -23,12 +23,12 @@ CREATE TABLE IF NOT EXISTS bridge_chain_config (
     notes TEXT
 );
 
--- Create indexes for optimal query performance
-CREATE INDEX idx_chain_name ON bridge_chain_config(chain_name);
-CREATE INDEX idx_chain_family ON bridge_chain_config(chain_family);
-CREATE INDEX idx_enabled ON bridge_chain_config(enabled);
-CREATE INDEX idx_created_at ON bridge_chain_config(created_at);
-CREATE INDEX idx_updated_at ON bridge_chain_config(updated_at);
+-- Create indexes for optimal query performance (use IF NOT EXISTS to avoid conflicts)
+CREATE INDEX IF NOT EXISTS idx_bcc_chain_name ON bridge_chain_config(chain_name);
+CREATE INDEX IF NOT EXISTS idx_bcc_chain_family ON bridge_chain_config(chain_family);
+CREATE INDEX IF NOT EXISTS idx_bcc_enabled ON bridge_chain_config(enabled);
+CREATE INDEX IF NOT EXISTS idx_bcc_created_at ON bridge_chain_config(created_at);
+CREATE INDEX IF NOT EXISTS idx_bcc_updated_at ON bridge_chain_config(updated_at);
 
 -- Insert sample chain configurations for initial setup
 INSERT INTO bridge_chain_config (

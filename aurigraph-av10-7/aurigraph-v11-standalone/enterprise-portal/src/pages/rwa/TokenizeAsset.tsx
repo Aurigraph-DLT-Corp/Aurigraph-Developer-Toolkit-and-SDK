@@ -27,6 +27,7 @@ import {
   AttachMoney,
 } from '@mui/icons-material'
 import { useState } from 'react'
+import { apiService, safeApiCall } from '../../services/api'
 
 const CARD_STYLE = {
   background: 'linear-gradient(135deg, #1A1F3A 0%, #2A3050 100%)',
@@ -67,6 +68,7 @@ export default function TokenizeAsset() {
   })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleInputChange = (field: keyof AssetForm) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -82,12 +84,44 @@ export default function TokenizeAsset() {
 
   const handleSubmit = async () => {
     setLoading(true)
-    // TODO: Implement backend API call
-    setTimeout(() => {
-      setLoading(false)
+    setError(null)
+    setSuccess(false)
+
+    // Prepare tokenization request
+    const tokenizeRequest = {
+      assetType: formData.assetType,
+      name: formData.assetName,
+      description: formData.description,
+      value: parseFloat(formData.value),
+      location: formData.location,
+      // In a real implementation, documents would be uploaded separately
+      // and their URLs/hashes would be included here
+      documents: formData.documents.map(f => f.name),
+    }
+
+    const result = await safeApiCall(
+      () => apiService.createToken(tokenizeRequest),
+      { success: false }
+    )
+
+    if (result.success && result.data.success) {
       setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
-    }, 2000)
+      // Reset form on success
+      setFormData({
+        assetType: '',
+        assetName: '',
+        description: '',
+        value: '',
+        location: '',
+        documents: [],
+      })
+      setTimeout(() => setSuccess(false), 5000)
+    } else {
+      setError(result.error?.message || 'Failed to tokenize asset. Please try again.')
+      setTimeout(() => setError(null), 5000)
+    }
+
+    setLoading(false)
   }
 
   const isFormValid = formData.assetType && formData.assetName && formData.value
@@ -104,6 +138,12 @@ export default function TokenizeAsset() {
       {success && (
         <Alert severity="success" sx={{ mb: 3 }}>
           Asset tokenization submitted successfully! Processing in blockchain...
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
         </Alert>
       )}
 
