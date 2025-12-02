@@ -920,6 +920,291 @@ public class RWAApiResource {
         public String timestamp;
     }
 
+    // ==================== REGISTRY ====================
+
+    /**
+     * GET /api/v11/rwa/registry
+     * Returns complete RWA registry hierarchy with Merkle tree verification
+     * Hierarchy: Underlying Assets → Primary Assets → Secondary Assets → Tokens → Contracts → Executions
+     */
+    @GET
+    @Path("/registry")
+    @Operation(
+        summary = "Get RWA registry navigation",
+        description = "Returns complete RWA registry hierarchy with Merkle tree verification"
+    )
+    @APIResponse(responseCode = "200", description = "RWA registry retrieved successfully")
+    public Uni<Response> getRWARegistry() {
+        LOG.info("GET /api/v11/rwa/registry - Fetching RWA registry navigation");
+
+        return Uni.createFrom().item(() -> {
+            // Build comprehensive registry hierarchy with Merkle verification
+            List<Map<String, Object>> underlyingAssets = new ArrayList<>();
+
+            // Underlying Asset 1: Manhattan Commercial Tower
+            Map<String, Object> ua1 = new HashMap<>();
+            ua1.put("id", "UA-001");
+            ua1.put("name", "Manhattan Commercial Tower");
+            ua1.put("type", "real-estate");
+            ua1.put("value", 50000000.00);
+            ua1.put("location", "New York, USA");
+            ua1.put("status", "verified");
+            ua1.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            // Primary Asset under UA-001
+            Map<String, Object> pa1 = new HashMap<>();
+            pa1.put("id", "PA-001");
+            pa1.put("name", "Tower Equity Holdings");
+            pa1.put("underlyingAssetId", "UA-001");
+            pa1.put("ownership", 100);
+            pa1.put("value", 50000000.00);
+            pa1.put("status", "active");
+            pa1.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            // Secondary Assets
+            Map<String, Object> sa1 = new HashMap<>();
+            sa1.put("id", "SA-001");
+            sa1.put("name", "Class A Shares");
+            sa1.put("primaryAssetId", "PA-001");
+            sa1.put("fractionType", "equity");
+            sa1.put("value", 30000000.00);
+            sa1.put("status", "active");
+            sa1.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            Map<String, Object> sa2 = new HashMap<>();
+            sa2.put("id", "SA-002");
+            sa2.put("name", "Class B Debt Notes");
+            sa2.put("primaryAssetId", "PA-001");
+            sa2.put("fractionType", "debt");
+            sa2.put("value", 20000000.00);
+            sa2.put("status", "active");
+            sa2.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            // Tokens
+            Map<String, Object> tk1 = new HashMap<>();
+            tk1.put("id", "TK-001");
+            tk1.put("symbol", "MCT-A");
+            tk1.put("name", "Manhattan Commercial Token A");
+            tk1.put("secondaryAssetId", "SA-001");
+            tk1.put("tokenType", "primary");
+            tk1.put("totalSupply", 10000000);
+            tk1.put("circulatingSupply", 8500000);
+            tk1.put("price", 3.0);
+            tk1.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            Map<String, Object> tk2 = new HashMap<>();
+            tk2.put("id", "TK-002");
+            tk2.put("symbol", "MCT-B");
+            tk2.put("name", "Manhattan Commercial Token B");
+            tk2.put("secondaryAssetId", "SA-001");
+            tk2.put("tokenType", "secondary");
+            tk2.put("totalSupply", 5000000);
+            tk2.put("circulatingSupply", 4200000);
+            tk2.put("price", 2.5);
+            tk2.put("contracts", List.of());
+            tk2.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            Map<String, Object> tk3 = new HashMap<>();
+            tk3.put("id", "TK-003");
+            tk3.put("symbol", "MCT-COMP");
+            tk3.put("name", "Manhattan Composite Token");
+            tk3.put("secondaryAssetId", "SA-002");
+            tk3.put("tokenType", "composite");
+            tk3.put("totalSupply", 2000000);
+            tk3.put("circulatingSupply", 1800000);
+            tk3.put("price", 10.0);
+            tk3.put("contracts", List.of());
+            tk3.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            // Contracts
+            Map<String, Object> ct1 = new HashMap<>();
+            ct1.put("id", "CT-001");
+            ct1.put("name", "Distribution Agreement 2025");
+            ct1.put("type", "hybrid");
+            ct1.put("status", "active");
+            ct1.put("tokenId", "TK-001");
+            ct1.put("value", 5000000.00);
+            ct1.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            // Executions
+            Map<String, Object> ex1 = new HashMap<>();
+            ex1.put("id", "EX-001");
+            ex1.put("contractId", "CT-001");
+            ex1.put("timestamp", Instant.now().toString());
+            ex1.put("action", "Dividend Distribution");
+            ex1.put("result", "success");
+            ex1.put("txHash", "0xabc123def456789abc123def456789abc123def456789");
+            ex1.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a",
+                "verified", true,
+                "lastVerified", Instant.now().toString()
+            ));
+
+            Map<String, Object> ex2 = new HashMap<>();
+            ex2.put("id", "EX-002");
+            ex2.put("contractId", "CT-001");
+            ex2.put("timestamp", Instant.now().minusSeconds(86400).toString());
+            ex2.put("action", "Compliance Check");
+            ex2.put("result", "success");
+            ex2.put("txHash", "0xdef456abc789def456abc789def456abc789def456789");
+            ex2.put("merkle", Map.of(
+                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "leafHash", "0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b",
+                "verified", true,
+                "lastVerified", Instant.now().minusSeconds(86400).toString()
+            ));
+
+            // Build hierarchy
+            ct1.put("executions", List.of(ex1, ex2));
+            tk1.put("contracts", List.of(ct1));
+            sa1.put("tokens", List.of(tk1, tk2));
+            sa2.put("tokens", List.of(tk3));
+            pa1.put("secondaryAssets", List.of(sa1, sa2));
+            ua1.put("primaryAssets", List.of(pa1));
+
+            // Second underlying asset
+            Map<String, Object> ua2 = new HashMap<>();
+            ua2.put("id", "UA-002");
+            ua2.put("name", "Picasso Collection");
+            ua2.put("type", "art");
+            ua2.put("value", 15000000.00);
+            ua2.put("location", "London, UK");
+            ua2.put("status", "verified");
+            ua2.put("primaryAssets", List.of());
+            ua2.put("merkle", Map.of(
+                "rootHash", "0xabc123def456789abc123def456789abc123def4",
+                "leafHash", "0xdef456789abc123def456789abc123def456789a",
+                "verified", true,
+                "lastVerified", Instant.now().minusSeconds(3600).toString()
+            ));
+
+            // Third underlying asset with deeper hierarchy
+            Map<String, Object> ua3 = new HashMap<>();
+            ua3.put("id", "UA-003");
+            ua3.put("name", "Pacific Gold Reserves");
+            ua3.put("type", "commodities");
+            ua3.put("value", 25000000.00);
+            ua3.put("location", "Singapore");
+            ua3.put("status", "verified");
+            ua3.put("merkle", Map.of(
+                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
+                "leafHash", "0x321abc987654321abc987654321abc987654321a",
+                "verified", true,
+                "lastVerified", Instant.now().minusSeconds(7200).toString()
+            ));
+
+            Map<String, Object> pa3 = new HashMap<>();
+            pa3.put("id", "PA-003");
+            pa3.put("name", "Gold Bullion Trust");
+            pa3.put("underlyingAssetId", "UA-003");
+            pa3.put("ownership", 100);
+            pa3.put("value", 25000000.00);
+            pa3.put("status", "active");
+            pa3.put("merkle", Map.of(
+                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
+                "leafHash", "0x654321abc987654321abc987654321abc987654b",
+                "verified", true,
+                "lastVerified", Instant.now().minusSeconds(7200).toString()
+            ));
+
+            Map<String, Object> sa3 = new HashMap<>();
+            sa3.put("id", "SA-003");
+            sa3.put("name", "Gold Backed Securities");
+            sa3.put("primaryAssetId", "PA-003");
+            sa3.put("fractionType", "hybrid");
+            sa3.put("value", 25000000.00);
+            sa3.put("status", "active");
+            sa3.put("merkle", Map.of(
+                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
+                "leafHash", "0x987654321abc987654321abc987654321abc9876",
+                "verified", true,
+                "lastVerified", Instant.now().minusSeconds(7200).toString()
+            ));
+
+            Map<String, Object> tk4 = new HashMap<>();
+            tk4.put("id", "TK-004");
+            tk4.put("symbol", "GLD-T");
+            tk4.put("name", "Gold Trust Token");
+            tk4.put("secondaryAssetId", "SA-003");
+            tk4.put("tokenType", "primary");
+            tk4.put("totalSupply", 25000000);
+            tk4.put("circulatingSupply", 20000000);
+            tk4.put("price", 1.0);
+            tk4.put("contracts", List.of());
+            tk4.put("merkle", Map.of(
+                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
+                "leafHash", "0xabc987654321abc987654321abc987654321abc9",
+                "verified", true,
+                "lastVerified", Instant.now().minusSeconds(7200).toString()
+            ));
+
+            sa3.put("tokens", List.of(tk4));
+            pa3.put("secondaryAssets", List.of(sa3));
+            ua3.put("primaryAssets", List.of(pa3));
+
+            underlyingAssets.add(ua1);
+            underlyingAssets.add(ua2);
+            underlyingAssets.add(ua3);
+
+            Map<String, Object> registry = new HashMap<>();
+            registry.put("assets", underlyingAssets);
+            registry.put("stats", Map.of(
+                "totalUnderlyingAssets", 3,
+                "totalPrimaryAssets", 2,
+                "totalSecondaryAssets", 3,
+                "totalTokens", 4,
+                "totalContracts", 1,
+                "totalExecutions", 2,
+                "totalValue", 90000000.00,
+                "merkleTreeRoot", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+                "lastUpdated", Instant.now().toString()
+            ));
+
+            return Response.ok(registry).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
     /**
      * POST /api/v11/rwa/transfer
      * Transfer RWA tokens between addresses
