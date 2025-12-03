@@ -269,3 +269,11 @@ quarkus.log
 # GraalVM native image build
 *.h
 native-image-build/
+
+# ============================================================================
+# GIT WORKTREES (Local development only)
+# ============================================================================
+
+# Git worktrees used for parallel agent development
+# These should never be committed to the repository
+worktrees/
