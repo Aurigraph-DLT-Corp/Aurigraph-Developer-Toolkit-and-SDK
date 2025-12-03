@@ -239,6 +239,15 @@ export const DemoApp: React.FC = () => {
               >
                 Tokenize Real Asset
               </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                sx={{ borderColor: 'white', color: 'white', fontWeight: 600, px: 4 }}
+                onClick={() => navigate('/demo/high-throughput')}
+                startIcon={<Speed />}
+              >
+                High Throughput Demo
+              </Button>
             </Box>
           </Grid>
           <Grid item xs={12} md={5}>

@@ -9,6 +9,7 @@ import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
 import DemoApp from './DemoApp'
+import HighThroughputDemo from './components/HighThroughputDemo'
 import MultiChannelDashboard from './components/MultiChannelDashboard'
 import ChannelDemo from './components/ChannelDemo'
 import SmartContractRegistry from './components/SmartContractRegistry'
@@ -56,6 +57,7 @@ function App() {
           <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}>
             <Route index element={<Dashboard />} />
             <Route path="demo" element={<DemoApp />} />
+            <Route path="demo/high-throughput" element={<HighThroughputDemo />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="performance" element={<Performance />} />
             <Route path="nodes" element={<NodeManagement />} />
