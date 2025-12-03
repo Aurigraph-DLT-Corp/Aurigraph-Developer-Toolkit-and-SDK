@@ -47,7 +47,7 @@ jobs:
   # ============================================================
   build:
     name: Build V12 Application
-    runs-on: [self-hosted, linux, aurigraph]
+    runs-on: [self-hosted, Linux, aurigraph-prod]
     outputs:
       version: ${{ steps.version.outputs.version }}
       jar_name: ${{ steps.version.outputs.jar_name }}
@@ -109,7 +109,7 @@ jobs:
   # ============================================================
   deploy:
     name: Deploy to Remote Server
-    runs-on: [self-hosted, linux, aurigraph]
+    runs-on: [self-hosted, Linux, aurigraph-prod]
     needs: build
 
     steps:
@@ -436,7 +436,7 @@ jobs:
   # ============================================================
   post-deploy:
     name: Post-Deployment Tasks
-    runs-on: [self-hosted, linux, aurigraph]
+    runs-on: [self-hosted, Linux, aurigraph-prod]
     needs: [build, deploy]
     if: success()
 
@@ -505,7 +505,7 @@ jobs:
 
   notify-failure:
     name: Notify Failure
-    runs-on: [self-hosted, linux, aurigraph]
+    runs-on: [self-hosted, Linux, aurigraph-prod]
     needs: [build, deploy]
     if: failure()
 
