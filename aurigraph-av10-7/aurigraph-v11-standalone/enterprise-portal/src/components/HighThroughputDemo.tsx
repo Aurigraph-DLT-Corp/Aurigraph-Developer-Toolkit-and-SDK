@@ -34,14 +34,24 @@ interface DemoConfig {
   aiOptimization: boolean;
 }
 
-const NEON_GLOW = {
-  boxShadow: `0 0 30px ${alpha('#00FFA3', 0.4)}, 0 0 60px ${alpha('#00FFA3', 0.2)}`,
+// Peacock Blue theme colors
+const PEACOCK = {
+  primary: '#00A6A6',
+  secondary: '#007C91',
+  accent: '#4ECDC4',
+  warning: '#E8AA42',
+  bg: '#0D1B2A',
+  bgLight: '#1B2838',
+};
+
+const SUBTLE_GLOW = {
+  boxShadow: `0 0 20px ${alpha(PEACOCK.primary, 0.3)}, 0 0 40px ${alpha(PEACOCK.primary, 0.15)}`,
 };
 
 const GLASS_CARD = {
-  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%)',
-  backdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
+  background: 'linear-gradient(135deg, rgba(13, 27, 42, 0.95) 0%, rgba(27, 40, 56, 0.95) 100%)',
+  backdropFilter: 'blur(16px)',
+  border: `1px solid ${alpha(PEACOCK.primary, 0.15)}`,
   borderRadius: 3,
 };
 
@@ -49,8 +59,8 @@ const METRIC_CARD = {
   ...GLASS_CARD,
   transition: 'all 0.3s ease',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: `0 12px 48px rgba(0, 0, 0, 0.4), 0 0 30px ${alpha('#00FFA3', 0.3)}`,
+    transform: 'translateY(-3px)',
+    boxShadow: `0 12px 40px rgba(0, 0, 0, 0.35), 0 0 20px ${alpha(PEACOCK.primary, 0.2)}`,
   },
 };
 
@@ -171,7 +181,7 @@ export const HighThroughputDemo: React.FC = () => {
         <Paper
           sx={{
             ...GLASS_CARD,
-            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, rgba(0, 255, 163, 0.1) 100%)',
+            background: `linear-gradient(135deg, ${PEACOCK.bg} 0%, ${PEACOCK.bgLight} 50%, ${alpha(PEACOCK.primary, 0.08)} 100%)`,
             p: 4,
             mb: 4,
             position: 'relative',
@@ -184,7 +194,7 @@ export const HighThroughputDemo: React.FC = () => {
             right: 0,
             width: 300,
             height: 300,
-            background: `radial-gradient(circle, ${alpha('#00FFA3', 0.15)} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${alpha(PEACOCK.primary, 0.1)} 0%, transparent 70%)`,
             pointerEvents: 'none',
           }} />
 
@@ -192,25 +202,25 @@ export const HighThroughputDemo: React.FC = () => {
             <Grid item xs={12} md={7}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 <Avatar sx={{
-                  bgcolor: '#00FFA3',
-                  color: '#0F172A',
+                  bgcolor: PEACOCK.primary,
+                  color: PEACOCK.bg,
                   width: 56,
                   height: 56,
-                  ...NEON_GLOW,
+                  ...SUBTLE_GLOW,
                 }}>
                   <BoltOutlined sx={{ fontSize: 32 }} />
                 </Avatar>
                 <Box>
                   <Typography variant="h3" sx={{
                     fontWeight: 800,
-                    background: 'linear-gradient(135deg, #00FFA3 0%, #0A84FF 100%)',
+                    background: `linear-gradient(135deg, ${PEACOCK.primary} 0%, ${PEACOCK.accent} 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   }}>
                     High Throughput Demo
                   </Typography>
-                  <Typography variant="body1" sx={{ color: '#94A3B8' }}>
-                    Real-time performance demonstration • 2M+ TPS capable
+                  <Typography variant="body1" sx={{ color: '#8BA4B4' }}>
+                    Real-time performance demonstration - 2M+ TPS capable
                   </Typography>
                 </Box>
               </Box>
@@ -223,16 +233,16 @@ export const HighThroughputDemo: React.FC = () => {
                     onClick={handleStart}
                     startIcon={<PlayArrow />}
                     sx={{
-                      background: 'linear-gradient(135deg, #00FFA3 0%, #0A84FF 100%)',
-                      color: '#0F172A',
+                      background: `linear-gradient(135deg, ${PEACOCK.primary} 0%, ${PEACOCK.secondary} 100%)`,
+                      color: PEACOCK.bg,
                       fontWeight: 700,
                       px: 4,
                       py: 1.5,
                       fontSize: '1.1rem',
-                      ...NEON_GLOW,
+                      ...SUBTLE_GLOW,
                       '&:hover': {
                         transform: 'translateY(-2px)',
-                        boxShadow: `0 0 40px ${alpha('#00FFA3', 0.6)}, 0 0 80px ${alpha('#00FFA3', 0.3)}`,
+                        boxShadow: `0 0 30px ${alpha(PEACOCK.primary, 0.5)}, 0 0 60px ${alpha(PEACOCK.primary, 0.25)}`,
                       },
                     }}
                   >
@@ -245,7 +255,7 @@ export const HighThroughputDemo: React.FC = () => {
                     onClick={handleStop}
                     startIcon={<Pause />}
                     sx={{
-                      background: 'linear-gradient(135deg, #FF375F 0%, #FF6B9D 100%)',
+                      background: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)',
                       color: 'white',
                       fontWeight: 700,
                       px: 4,
@@ -261,8 +271,8 @@ export const HighThroughputDemo: React.FC = () => {
                   icon={<NetworkCheck />}
                   label={isRunning ? 'LIVE' : 'READY'}
                   sx={{
-                    bgcolor: isRunning ? alpha('#00FFA3', 0.2) : alpha('#94A3B8', 0.2),
-                    color: isRunning ? '#00FFA3' : '#94A3B8',
+                    bgcolor: isRunning ? alpha(PEACOCK.primary, 0.2) : alpha('#8BA4B4', 0.2),
+                    color: isRunning ? PEACOCK.primary : '#8BA4B4',
                     fontWeight: 600,
                     animation: isRunning ? 'pulse 2s infinite' : 'none',
                     '@keyframes pulse': {
@@ -284,22 +294,22 @@ export const HighThroughputDemo: React.FC = () => {
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h2" sx={{
                     fontWeight: 800,
-                    color: '#00FFA3',
-                    textShadow: `0 0 30px ${alpha('#00FFA3', 0.5)}`,
+                    color: PEACOCK.primary,
+                    textShadow: `0 0 20px ${alpha(PEACOCK.primary, 0.4)}`,
                   }}>
                     {formatNumber(currentTPS)}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#94A3B8' }}>Current TPS</Typography>
+                  <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Current TPS</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h2" sx={{
                     fontWeight: 800,
-                    color: '#0A84FF',
-                    textShadow: `0 0 30px ${alpha('#0A84FF', 0.5)}`,
+                    color: PEACOCK.accent,
+                    textShadow: `0 0 20px ${alpha(PEACOCK.accent, 0.4)}`,
                   }}>
                     {formatNumber(peakTPS)}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#94A3B8' }}>Peak TPS</Typography>
+                  <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Peak TPS</Typography>
                 </Box>
               </Box>
             </Grid>
@@ -313,8 +323,8 @@ export const HighThroughputDemo: React.FC = () => {
           <Card sx={METRIC_CARD}>
             <CardContent sx={{ textAlign: 'center', py: 3 }}>
               <Avatar sx={{
-                bgcolor: alpha('#00FFA3', 0.2),
-                color: '#00FFA3',
+                bgcolor: alpha(PEACOCK.primary, 0.15),
+                color: PEACOCK.primary,
                 width: 56,
                 height: 56,
                 mx: 'auto',
@@ -322,10 +332,10 @@ export const HighThroughputDemo: React.FC = () => {
               }}>
                 <Speed sx={{ fontSize: 28 }} />
               </Avatar>
-              <Typography variant="h4" sx={{ color: '#00FFA3', fontWeight: 700 }}>
+              <Typography variant="h4" sx={{ color: PEACOCK.primary, fontWeight: 700 }}>
                 {formatNumber(avgTPS)}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94A3B8' }}>Average TPS</Typography>
+              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Average TPS</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -334,8 +344,8 @@ export const HighThroughputDemo: React.FC = () => {
           <Card sx={METRIC_CARD}>
             <CardContent sx={{ textAlign: 'center', py: 3 }}>
               <Avatar sx={{
-                bgcolor: alpha('#0A84FF', 0.2),
-                color: '#0A84FF',
+                bgcolor: alpha(PEACOCK.secondary, 0.15),
+                color: PEACOCK.secondary,
                 width: 56,
                 height: 56,
                 mx: 'auto',
@@ -343,10 +353,10 @@ export const HighThroughputDemo: React.FC = () => {
               }}>
                 <Timer sx={{ fontSize: 28 }} />
               </Avatar>
-              <Typography variant="h4" sx={{ color: '#0A84FF', fontWeight: 700 }}>
+              <Typography variant="h4" sx={{ color: PEACOCK.secondary, fontWeight: 700 }}>
                 {latency.toFixed(1)}ms
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94A3B8' }}>Latency</Typography>
+              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Latency</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -355,8 +365,8 @@ export const HighThroughputDemo: React.FC = () => {
           <Card sx={METRIC_CARD}>
             <CardContent sx={{ textAlign: 'center', py: 3 }}>
               <Avatar sx={{
-                bgcolor: alpha('#FFB800', 0.2),
-                color: '#FFB800',
+                bgcolor: alpha(PEACOCK.warning, 0.15),
+                color: PEACOCK.warning,
                 width: 56,
                 height: 56,
                 mx: 'auto',
@@ -364,10 +374,10 @@ export const HighThroughputDemo: React.FC = () => {
               }}>
                 <TrendingUp sx={{ fontSize: 28 }} />
               </Avatar>
-              <Typography variant="h4" sx={{ color: '#FFB800', fontWeight: 700 }}>
+              <Typography variant="h4" sx={{ color: PEACOCK.warning, fontWeight: 700 }}>
                 {successRate.toFixed(2)}%
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94A3B8' }}>Success Rate</Typography>
+              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Success Rate</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -376,8 +386,8 @@ export const HighThroughputDemo: React.FC = () => {
           <Card sx={METRIC_CARD}>
             <CardContent sx={{ textAlign: 'center', py: 3 }}>
               <Avatar sx={{
-                bgcolor: alpha('#FF375F', 0.2),
-                color: '#FF375F',
+                bgcolor: alpha(PEACOCK.accent, 0.15),
+                color: PEACOCK.accent,
                 width: 56,
                 height: 56,
                 mx: 'auto',
@@ -385,10 +395,10 @@ export const HighThroughputDemo: React.FC = () => {
               }}>
                 <BarChart sx={{ fontSize: 28 }} />
               </Avatar>
-              <Typography variant="h4" sx={{ color: '#FF375F', fontWeight: 700 }}>
+              <Typography variant="h4" sx={{ color: PEACOCK.accent, fontWeight: 700 }}>
                 {formatNumber(totalTransactions)}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94A3B8' }}>Total Transactions</Typography>
+              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Total Transactions</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -405,12 +415,12 @@ export const HighThroughputDemo: React.FC = () => {
               <Chip
                 label={`Uptime: ${formatTime(uptime)}`}
                 size="small"
-                sx={{ bgcolor: alpha('#00FFA3', 0.2), color: '#00FFA3' }}
+                sx={{ bgcolor: alpha(PEACOCK.primary, 0.15), color: PEACOCK.primary }}
               />
               <Chip
                 label={`Memory: ${memoryUsage.toFixed(0)}%`}
                 size="small"
-                sx={{ bgcolor: alpha('#0A84FF', 0.2), color: '#0A84FF' }}
+                sx={{ bgcolor: alpha(PEACOCK.secondary, 0.15), color: PEACOCK.secondary }}
               />
             </Box>
           </Box>
@@ -419,38 +429,38 @@ export const HighThroughputDemo: React.FC = () => {
             <AreaChart data={tpsData}>
               <defs>
                 <linearGradient id="tpsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00FFA3" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#00FFA3" stopOpacity={0.05} />
+                  <stop offset="0%" stopColor={PEACOCK.primary} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={PEACOCK.primary} stopOpacity={0.05} />
                 </linearGradient>
                 <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0A84FF" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#0A84FF" stopOpacity={0.05} />
+                  <stop offset="0%" stopColor={PEACOCK.secondary} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={PEACOCK.secondary} stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 166, 166, 0.1)" />
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={(t) => new Date(t).toLocaleTimeString()}
-                stroke="#64748B"
-                tick={{ fill: '#64748B', fontSize: 11 }}
+                stroke="#5A7A8A"
+                tick={{ fill: '#5A7A8A', fontSize: 11 }}
               />
               <YAxis
                 yAxisId="left"
                 tickFormatter={(v) => formatNumber(v)}
-                stroke="#00FFA3"
-                tick={{ fill: '#00FFA3', fontSize: 11 }}
+                stroke={PEACOCK.primary}
+                tick={{ fill: PEACOCK.primary, fontSize: 11 }}
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
                 domain={[0, 100]}
-                stroke="#0A84FF"
-                tick={{ fill: '#0A84FF', fontSize: 11 }}
+                stroke={PEACOCK.secondary}
+                tick={{ fill: PEACOCK.secondary, fontSize: 11 }}
               />
               <RechartsTooltip
                 contentStyle={{
-                  background: 'rgba(15, 23, 42, 0.95)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(13, 27, 42, 0.95)',
+                  border: `1px solid ${alpha(PEACOCK.primary, 0.2)}`,
                   borderRadius: 8,
                 }}
                 labelFormatter={(t) => new Date(t).toLocaleTimeString()}
@@ -459,7 +469,7 @@ export const HighThroughputDemo: React.FC = () => {
                 yAxisId="left"
                 type="monotone"
                 dataKey="tps"
-                stroke="#00FFA3"
+                stroke={PEACOCK.primary}
                 strokeWidth={2}
                 fill="url(#tpsGradient)"
                 name="TPS"
@@ -468,7 +478,7 @@ export const HighThroughputDemo: React.FC = () => {
                 yAxisId="right"
                 type="monotone"
                 dataKey="latency"
-                stroke="#0A84FF"
+                stroke={PEACOCK.accent}
                 strokeWidth={2}
                 dot={false}
                 name="Latency (ms)"
@@ -482,7 +492,7 @@ export const HighThroughputDemo: React.FC = () => {
       <Card sx={GLASS_CARD}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-            <Settings sx={{ color: '#00FFA3' }} />
+            <Settings sx={{ color: PEACOCK.primary }} />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               Demo Configuration
             </Typography>
@@ -490,7 +500,7 @@ export const HighThroughputDemo: React.FC = () => {
 
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#94A3B8', mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#8BA4B4', mb: 2 }}>
                 Target TPS: {formatNumber(config.targetTPS)}
               </Typography>
               <Slider
@@ -501,9 +511,9 @@ export const HighThroughputDemo: React.FC = () => {
                 onChange={(_, value) => setConfig(prev => ({ ...prev, targetTPS: value as number }))}
                 disabled={isRunning}
                 sx={{
-                  color: '#00FFA3',
+                  color: PEACOCK.primary,
                   '& .MuiSlider-thumb': {
-                    boxShadow: `0 0 10px ${alpha('#00FFA3', 0.5)}`,
+                    boxShadow: `0 0 8px ${alpha(PEACOCK.primary, 0.4)}`,
                   },
                 }}
               />
@@ -518,8 +528,8 @@ export const HighThroughputDemo: React.FC = () => {
                       onChange={(e) => setConfig(prev => ({ ...prev, aiOptimization: e.target.checked }))}
                       disabled={isRunning}
                       sx={{
-                        '& .Mui-checked': { color: '#00FFA3' },
-                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#00FFA3' },
+                        '& .Mui-checked': { color: PEACOCK.primary },
+                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.primary },
                       }}
                     />
                   }
@@ -532,8 +542,8 @@ export const HighThroughputDemo: React.FC = () => {
                       onChange={(e) => setConfig(prev => ({ ...prev, burstMode: e.target.checked }))}
                       disabled={isRunning}
                       sx={{
-                        '& .Mui-checked': { color: '#FFB800' },
-                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#FFB800' },
+                        '& .Mui-checked': { color: PEACOCK.warning },
+                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.warning },
                       }}
                     />
                   }
@@ -546,8 +556,8 @@ export const HighThroughputDemo: React.FC = () => {
                       onChange={(e) => setConfig(prev => ({ ...prev, quantumSecurity: e.target.checked }))}
                       disabled={isRunning}
                       sx={{
-                        '& .Mui-checked': { color: '#0A84FF' },
-                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#0A84FF' },
+                        '& .Mui-checked': { color: PEACOCK.secondary },
+                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.secondary },
                       }}
                     />
                   }
@@ -562,10 +572,10 @@ export const HighThroughputDemo: React.FC = () => {
       {/* Feature Highlights */}
       <Grid container spacing={3} sx={{ mt: 4 }}>
         {[
-          { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput blockchain processing', color: '#00FFA3' },
-          { icon: <Timer />, title: '<100ms Finality', desc: 'Near-instant transaction confirmation', color: '#0A84FF' },
-          { icon: <Memory />, title: '<256MB Memory', desc: 'Efficient native GraalVM compilation', color: '#FFB800' },
-          { icon: <CloudQueue />, title: 'Multi-Cloud', desc: 'Deploy across AWS, Azure, and GCP', color: '#FF375F' },
+          { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput blockchain processing', color: PEACOCK.primary },
+          { icon: <Timer />, title: '<100ms Finality', desc: 'Near-instant transaction confirmation', color: PEACOCK.accent },
+          { icon: <Memory />, title: '<256MB Memory', desc: 'Efficient native GraalVM compilation', color: PEACOCK.warning },
+          { icon: <CloudQueue />, title: 'Multi-Cloud', desc: 'Deploy across AWS, Azure, and GCP', color: PEACOCK.secondary },
         ].map((feature) => (
           <Grid item xs={6} md={3} key={feature.title}>
             <Paper
@@ -575,13 +585,13 @@ export const HighThroughputDemo: React.FC = () => {
                 textAlign: 'center',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: `0 12px 40px rgba(0, 0, 0, 0.3), 0 0 20px ${alpha(feature.color, 0.3)}`,
+                  transform: 'translateY(-3px)',
+                  boxShadow: `0 12px 36px rgba(0, 0, 0, 0.3), 0 0 15px ${alpha(feature.color, 0.25)}`,
                 },
               }}
             >
               <Avatar sx={{
-                bgcolor: alpha(feature.color, 0.2),
+                bgcolor: alpha(feature.color, 0.15),
                 color: feature.color,
                 width: 48,
                 height: 48,
@@ -593,7 +603,7 @@ export const HighThroughputDemo: React.FC = () => {
               <Typography variant="h6" sx={{ fontWeight: 700, color: feature.color }}>
                 {feature.title}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94A3B8' }}>
+              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>
                 {feature.desc}
               </Typography>
             </Paper>

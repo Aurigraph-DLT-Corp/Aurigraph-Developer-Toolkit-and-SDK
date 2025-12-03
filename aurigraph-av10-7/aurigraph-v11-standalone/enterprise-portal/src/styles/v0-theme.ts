@@ -1,50 +1,50 @@
-// V0-Inspired Modern Theme - Aurigraph Enterprise Portal
-// Dark mode, glassmorphism, gradients, and stunning visuals
+// Peacock Blue Theme - Aurigraph Enterprise Portal
+// Subtle, sophisticated dark mode with peacock blue accents
 
 import { createTheme, alpha } from '@mui/material/styles';
 
-// Color palette inspired by v0.dev and modern dark themes
+// Peacock Blue color palette - sophisticated and subtle
 const colors = {
-  // Primary brand colors
+  // Primary brand colors - Peacock Blue spectrum
   brand: {
-    primary: '#00FFA3',      // Neon green
-    secondary: '#0A84FF',    // Electric blue
-    accent: '#FF375F',       // Hot pink accent
-    warning: '#FFB800',      // Amber
-    success: '#00FFA3',      // Same as primary
-    error: '#FF375F',        // Same as accent
+    primary: '#00A6A6',      // Peacock teal - main accent
+    secondary: '#007C91',    // Deep peacock blue
+    accent: '#4ECDC4',       // Light teal accent
+    warning: '#E8AA42',      // Warm amber (subtle)
+    success: '#2ECC71',      // Soft green
+    error: '#E74C3C',        // Soft coral red
   },
 
-  // Background gradients
+  // Background gradients - subtle and professional
   gradients: {
-    primary: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
-    card: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%)',
-    accent: 'linear-gradient(135deg, #00FFA3 0%, #0A84FF 100%)',
-    danger: 'linear-gradient(135deg, #FF375F 0%, #FF6B9D 100%)',
-    warning: 'linear-gradient(135deg, #FFB800 0%, #FFC837 100%)',
-    glass: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+    primary: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 50%, #0D1B2A 100%)',
+    card: 'linear-gradient(135deg, rgba(13, 27, 42, 0.9) 0%, rgba(27, 40, 56, 0.9) 100%)',
+    accent: 'linear-gradient(135deg, #00A6A6 0%, #007C91 100%)',
+    danger: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)',
+    warning: 'linear-gradient(135deg, #E8AA42 0%, #D4942A 100%)',
+    glass: 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
   },
 
-  // Dark backgrounds
+  // Dark backgrounds - deep navy tones
   dark: {
-    bg: '#0F172A',           // Main background
-    bgLight: '#1E293B',      // Card background
-    bgLighter: '#334155',    // Hover states
-    border: 'rgba(255, 255, 255, 0.1)',
-    text: '#F8FAFC',         // Primary text
-    textSecondary: '#94A3B8', // Secondary text
+    bg: '#0D1B2A',           // Deep navy background
+    bgLight: '#1B2838',      // Card background
+    bgLighter: '#243447',    // Hover states
+    border: 'rgba(0, 166, 166, 0.15)',  // Subtle peacock tint
+    text: '#E8F4F8',         // Soft white with cool tint
+    textSecondary: '#8BA4B4', // Muted blue-gray
   },
 
-  // Chart colors
+  // Chart colors - peacock palette
   charts: {
-    line1: '#00FFA3',
-    line2: '#0A84FF',
-    line3: '#FF375F',
-    line4: '#FFB800',
-    area1: 'rgba(0, 255, 163, 0.3)',
-    area2: 'rgba(10, 132, 255, 0.3)',
-    area3: 'rgba(255, 55, 95, 0.3)',
-    area4: 'rgba(255, 184, 0, 0.3)',
+    line1: '#00A6A6',        // Peacock teal
+    line2: '#4ECDC4',        // Light teal
+    line3: '#007C91',        // Deep peacock
+    line4: '#E8AA42',        // Warm accent
+    area1: 'rgba(0, 166, 166, 0.25)',
+    area2: 'rgba(78, 205, 196, 0.25)',
+    area3: 'rgba(0, 124, 145, 0.25)',
+    area4: 'rgba(232, 170, 66, 0.25)',
   },
 };
 
@@ -54,30 +54,30 @@ export const v0Theme = createTheme({
     mode: 'dark',
     primary: {
       main: colors.brand.primary,
-      light: '#33FFB8',
-      dark: '#00CC82',
-      contrastText: '#0F172A',
+      light: '#33C4C4',
+      dark: '#008080',
+      contrastText: '#0D1B2A',
     },
     secondary: {
       main: colors.brand.secondary,
-      light: '#3D9BFF',
-      dark: '#0066CC',
+      light: '#339DAD',
+      dark: '#005A6A',
       contrastText: '#FFFFFF',
     },
     error: {
       main: colors.brand.error,
-      light: '#FF6B8D',
-      dark: '#CC2A4C',
+      light: '#EC7063',
+      dark: '#C0392B',
     },
     warning: {
       main: colors.brand.warning,
-      light: '#FFC633',
-      dark: '#CC9300',
+      light: '#F0C05A',
+      dark: '#C4872A',
     },
     success: {
       main: colors.brand.success,
-      light: '#33FFB8',
-      dark: '#00CC82',
+      light: '#58D68D',
+      dark: '#27AE60',
     },
     background: {
       default: colors.dark.bg,
