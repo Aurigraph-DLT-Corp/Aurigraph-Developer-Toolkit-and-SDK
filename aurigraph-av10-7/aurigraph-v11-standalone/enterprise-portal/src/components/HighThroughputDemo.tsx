@@ -5,17 +5,21 @@ import {
   Box, Card, CardContent, Typography, Grid, Button, Paper, Chip,
   LinearProgress, Avatar, CircularProgress, Slider, Switch,
   FormControlLabel, Fade, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Divider, TextField, InputAdornment, Tab, Tabs
+  TableHead, TableRow, Divider, TextField, InputAdornment, Tab, Tabs,
+  Dialog, DialogTitle, DialogContent, DialogActions, IconButton,
+  List, ListItem, ListItemIcon, ListItemText, Collapse
 } from '@mui/material';
 import {
   Speed, PlayArrow, Pause, TrendingUp, Memory,
   Timer, BoltOutlined, NetworkCheck, CloudQueue, BarChart,
   Settings, AccountTree, Cloud, Newspaper, ShowChart, Token,
-  Storage, CheckCircle, Hub, Dns
+  Storage, CheckCircle, Hub, Dns, Close, ExpandMore, ExpandLess,
+  Timeline, DataUsage, Analytics, ZoomIn, ArrowForward
 } from '@mui/icons-material';
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell
+  Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell,
+  BarChart as RechartsBarChart, Bar, RadialBarChart, RadialBar, Legend
 } from 'recharts';
 import { alpha } from '@mui/material/styles';
 
@@ -66,37 +70,47 @@ interface MerkleEntry {
   verified: boolean;
 }
 
-// Peacock Blue theme colors
-const PEACOCK = {
-  primary: '#00A6A6',
-  secondary: '#007C91',
-  accent: '#4ECDC4',
-  warning: '#E8AA42',
-  success: '#2ECC71',
-  error: '#E74C3C',
-  bg: '#0D1B2A',
-  bgLight: '#1B2838',
+// Sapphire Blue theme colors
+const SAPPHIRE = {
+  primary: '#2563EB',
+  secondary: '#1E40AF',
+  accent: '#60A5FA',
+  tertiary: '#3B82F6',
+  warning: '#F59E0B',
+  success: '#10B981',
+  error: '#EF4444',
+  info: '#0EA5E9',
+  bg: '#0F172A',
+  bgLight: '#1E293B',
+  bgLighter: '#334155',
+  text: '#F1F5F9',
+  textSecondary: '#94A3B8',
 };
 
 const SUBTLE_GLOW = {
-  boxShadow: `0 0 20px ${alpha(PEACOCK.primary, 0.3)}, 0 0 40px ${alpha(PEACOCK.primary, 0.15)}`,
+  boxShadow: `0 0 20px ${alpha(SAPPHIRE.primary, 0.35)}, 0 0 40px ${alpha(SAPPHIRE.primary, 0.15)}`,
 };
 
 const GLASS_CARD = {
-  background: 'linear-gradient(135deg, rgba(13, 27, 42, 0.95) 0%, rgba(27, 40, 56, 0.95) 100%)',
+  background: `linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)`,
   backdropFilter: 'blur(16px)',
-  border: `1px solid ${alpha(PEACOCK.primary, 0.15)}`,
+  border: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}`,
   borderRadius: 3,
 };
 
 const METRIC_CARD = {
   ...GLASS_CARD,
   transition: 'all 0.3s ease',
+  cursor: 'pointer',
   '&:hover': {
-    transform: 'translateY(-3px)',
-    boxShadow: `0 12px 40px rgba(0, 0, 0, 0.35), 0 0 20px ${alpha(PEACOCK.primary, 0.2)}`,
+    transform: 'translateY(-4px)',
+    boxShadow: `0 12px 40px rgba(0, 0, 0, 0.4), 0 0 25px ${alpha(SAPPHIRE.primary, 0.3)}`,
+    border: `1px solid ${alpha(SAPPHIRE.accent, 0.4)}`,
   },
 };
+
+// Drill-down detail types
+type DrillDownType = 'tps' | 'latency' | 'success' | 'transactions' | null;
 
 // Mock API data generators
 const generateQuantConnectData = () => ({
@@ -174,6 +188,15 @@ export const HighThroughputDemo: React.FC = () => {
     enableWeather: true,
     enableNews: true,
   });
+
+  // Drill-down state
+  const [drillDown, setDrillDown] = useState<DrillDownType>(null);
+  const [drillDownHistory, setDrillDownHistory] = useState<{
+    tps: number[];
+    latency: number[];
+    successRate: number[];
+    transactions: number[];
+  }>({ tps: [], latency: [], successRate: [], transactions: [] });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const apiIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -274,6 +297,14 @@ export const HighThroughputDemo: React.FC = () => {
 
       return newData;
     });
+
+    // Update drill-down history
+    setDrillDownHistory(prev => ({
+      tps: [...prev.tps.slice(-99), newTPS],
+      latency: [...prev.latency.slice(-99), newLatency],
+      successRate: [...prev.successRate.slice(-99), newSuccessRate],
+      transactions: [...prev.transactions.slice(-99), Math.round(newTPS / 10)],
+    }));
   }, [config, calculateNodeMultiplier]);
 
   // Fetch API data and tokenize
@@ -325,7 +356,43 @@ export const HighThroughputDemo: React.FC = () => {
     setTokenizedAssets([]);
     setMerkleRegistry([]);
     setTokensCreated(0);
+    setDrillDownHistory({ tps: [], latency: [], successRate: [], transactions: [] });
     setIsRunning(true);
+  };
+
+  const handleDrillDown = (type: DrillDownType) => {
+    setDrillDown(type);
+  };
+
+  const closeDrillDown = () => {
+    setDrillDown(null);
+  };
+
+  // Get drill-down chart data
+  const getDrillDownData = () => {
+    if (!drillDown) return [];
+    const history = drillDownHistory[drillDown];
+    return history.map((value, index) => ({
+      index,
+      value,
+      timestamp: Date.now() - (history.length - index) * 100,
+    }));
+  };
+
+  // Get drill-down statistics
+  const getDrillDownStats = () => {
+    if (!drillDown) return { min: 0, max: 0, avg: 0, current: 0, trend: 0 };
+    const history = drillDownHistory[drillDown];
+    if (history.length === 0) return { min: 0, max: 0, avg: 0, current: 0, trend: 0 };
+
+    const min = Math.min(...history);
+    const max = Math.max(...history);
+    const avg = history.reduce((a, b) => a + b, 0) / history.length;
+    const current = history[history.length - 1] || 0;
+    const prev = history[Math.max(0, history.length - 10)] || current;
+    const trend = prev > 0 ? ((current - prev) / prev) * 100 : 0;
+
+    return { min, max, avg, current, trend };
   };
 
   const handleStop = () => setIsRunning(false);
@@ -349,49 +416,202 @@ export const HighThroughputDemo: React.FC = () => {
 
   // Pie chart data for node distribution
   const nodeDistribution = [
-    { name: 'Validators', value: config.nodes.validators, color: PEACOCK.primary },
-    { name: 'Business', value: config.nodes.businessNodes, color: PEACOCK.secondary },
-    { name: 'Slim', value: config.nodes.slimNodes, color: PEACOCK.accent },
+    { name: 'Validators', value: config.nodes.validators, color: SAPPHIRE.primary },
+    { name: 'Business', value: config.nodes.businessNodes, color: SAPPHIRE.secondary },
+    { name: 'Slim', value: config.nodes.slimNodes, color: SAPPHIRE.accent },
   ];
 
   // API source distribution for pie chart
   const apiDistribution = [
-    { name: 'QuantConnect', value: config.enableQuantConnect ? 35 : 0, color: '#9B59B6' },
-    { name: 'Weather', value: config.enableWeather ? 25 : 0, color: '#3498DB' },
-    { name: 'News', value: config.enableNews ? 20 : 0, color: '#E67E22' },
-    { name: 'Internal', value: 20, color: PEACOCK.primary },
+    { name: 'QuantConnect', value: config.enableQuantConnect ? 35 : 0, color: '#8B5CF6' },
+    { name: 'Weather', value: config.enableWeather ? 25 : 0, color: SAPPHIRE.info },
+    { name: 'News', value: config.enableNews ? 20 : 0, color: '#F59E0B' },
+    { name: 'Internal', value: 20, color: SAPPHIRE.primary },
   ];
+
+  const drillDownConfig: Record<string, { icon: React.ReactNode; title: string; unit: string; color: string }> = {
+    tps: { icon: <Speed />, title: 'Transactions Per Second', unit: 'TPS', color: SAPPHIRE.primary },
+    latency: { icon: <Timer />, title: 'Network Latency', unit: 'ms', color: SAPPHIRE.info },
+    success: { icon: <TrendingUp />, title: 'Success Rate', unit: '%', color: SAPPHIRE.warning },
+    transactions: { icon: <BarChart />, title: 'Transaction Volume', unit: 'txns', color: SAPPHIRE.accent },
+  };
 
   return (
     <Box sx={{ p: 3, minHeight: '100vh' }}>
+      {/* Drill-Down Dialog */}
+      <Dialog
+        open={drillDown !== null}
+        onClose={closeDrillDown}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            ...GLASS_CARD,
+            background: `linear-gradient(135deg, ${SAPPHIRE.bg} 0%, ${SAPPHIRE.bgLight} 100%)`,
+          }
+        }}
+      >
+        {drillDown && (
+          <>
+            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2, borderBottom: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}` }}>
+              <Avatar sx={{ bgcolor: alpha(drillDownConfig[drillDown].color, 0.2), color: drillDownConfig[drillDown].color }}>
+                {drillDownConfig[drillDown].icon}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: SAPPHIRE.text }}>
+                  {drillDownConfig[drillDown].title}
+                </Typography>
+                <Typography variant="body2" sx={{ color: SAPPHIRE.textSecondary }}>
+                  Detailed analysis and historical data
+                </Typography>
+              </Box>
+              <IconButton onClick={closeDrillDown} sx={{ color: SAPPHIRE.textSecondary }}>
+                <Close />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ py: 3 }}>
+              {/* Stats Cards */}
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {[
+                  { label: 'Current', value: getDrillDownStats().current, icon: <Analytics /> },
+                  { label: 'Average', value: getDrillDownStats().avg, icon: <DataUsage /> },
+                  { label: 'Min', value: getDrillDownStats().min, icon: <ExpandMore /> },
+                  { label: 'Max', value: getDrillDownStats().max, icon: <ExpandLess /> },
+                ].map((stat) => (
+                  <Grid item xs={6} sm={3} key={stat.label}>
+                    <Paper sx={{ p: 2, bgcolor: alpha(SAPPHIRE.primary, 0.1), border: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}` }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Box sx={{ color: drillDownConfig[drillDown].color }}>{stat.icon}</Box>
+                        <Typography variant="caption" sx={{ color: SAPPHIRE.textSecondary }}>{stat.label}</Typography>
+                      </Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700, color: drillDownConfig[drillDown].color }}>
+                        {drillDown === 'tps' || drillDown === 'transactions' ? formatNumber(stat.value) : stat.value.toFixed(2)}
+                        <Typography component="span" variant="caption" sx={{ ml: 0.5, color: SAPPHIRE.textSecondary }}>
+                          {drillDownConfig[drillDown].unit}
+                        </Typography>
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* Trend Indicator */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, p: 2, bgcolor: alpha(SAPPHIRE.bgLighter, 0.5), borderRadius: 2 }}>
+                <Timeline sx={{ color: SAPPHIRE.accent }} />
+                <Box>
+                  <Typography variant="body2" sx={{ color: SAPPHIRE.textSecondary }}>Trend (last 10 samples)</Typography>
+                  <Typography variant="h6" sx={{
+                    fontWeight: 600,
+                    color: getDrillDownStats().trend >= 0 ? SAPPHIRE.success : SAPPHIRE.error
+                  }}>
+                    {getDrillDownStats().trend >= 0 ? '+' : ''}{getDrillDownStats().trend.toFixed(2)}%
+                  </Typography>
+                </Box>
+                <Box sx={{ flex: 1 }} />
+                <Chip
+                  label={`${drillDownHistory[drillDown]?.length || 0} samples`}
+                  size="small"
+                  sx={{ bgcolor: alpha(SAPPHIRE.primary, 0.2), color: SAPPHIRE.accent }}
+                />
+              </Box>
+
+              {/* Chart */}
+              <Typography variant="subtitle2" sx={{ mb: 2, color: SAPPHIRE.textSecondary }}>Historical Data</Typography>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={getDrillDownData()}>
+                  <defs>
+                    <linearGradient id="drillDownGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={drillDownConfig[drillDown].color} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={drillDownConfig[drillDown].color} stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(SAPPHIRE.primary, 0.1)} />
+                  <XAxis dataKey="index" stroke={SAPPHIRE.textSecondary} tick={{ fill: SAPPHIRE.textSecondary, fontSize: 10 }} />
+                  <YAxis
+                    tickFormatter={(v) => drillDown === 'tps' || drillDown === 'transactions' ? formatNumber(v) : v.toFixed(1)}
+                    stroke={drillDownConfig[drillDown].color}
+                    tick={{ fill: drillDownConfig[drillDown].color, fontSize: 10 }}
+                  />
+                  <RechartsTooltip
+                    contentStyle={{
+                      background: SAPPHIRE.bgLight,
+                      border: `1px solid ${alpha(SAPPHIRE.primary, 0.3)}`,
+                      borderRadius: 8
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke={drillDownConfig[drillDown].color}
+                    strokeWidth={2}
+                    fill="url(#drillDownGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+
+              {/* Distribution Bar Chart */}
+              <Typography variant="subtitle2" sx={{ mt: 3, mb: 2, color: SAPPHIRE.textSecondary }}>Distribution Analysis</Typography>
+              <ResponsiveContainer width="100%" height={150}>
+                <RechartsBarChart data={(() => {
+                  const history = drillDownHistory[drillDown] || [];
+                  if (history.length === 0) return [];
+                  const min = Math.min(...history);
+                  const max = Math.max(...history);
+                  const range = max - min || 1;
+                  const buckets = [0, 0, 0, 0, 0];
+                  history.forEach(v => {
+                    const idx = Math.min(4, Math.floor(((v - min) / range) * 5));
+                    buckets[idx]++;
+                  });
+                  return buckets.map((count, i) => ({
+                    range: `${(min + (range / 5) * i).toFixed(0)}-${(min + (range / 5) * (i + 1)).toFixed(0)}`,
+                    count
+                  }));
+                })()}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(SAPPHIRE.primary, 0.1)} />
+                  <XAxis dataKey="range" stroke={SAPPHIRE.textSecondary} tick={{ fill: SAPPHIRE.textSecondary, fontSize: 9 }} />
+                  <YAxis stroke={SAPPHIRE.textSecondary} tick={{ fill: SAPPHIRE.textSecondary, fontSize: 10 }} />
+                  <Bar dataKey="count" fill={drillDownConfig[drillDown].color} radius={[4, 4, 0, 0]} />
+                </RechartsBarChart>
+              </ResponsiveContainer>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, borderTop: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}` }}>
+              <Button onClick={closeDrillDown} variant="outlined" sx={{ color: SAPPHIRE.accent, borderColor: SAPPHIRE.accent }}>
+                Close
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
       {/* Hero Header */}
       <Fade in timeout={600}>
         <Paper sx={{
           ...GLASS_CARD,
-          background: `linear-gradient(135deg, ${PEACOCK.bg} 0%, ${PEACOCK.bgLight} 50%, ${alpha(PEACOCK.primary, 0.08)} 100%)`,
+          background: `linear-gradient(135deg, ${SAPPHIRE.bg} 0%, ${SAPPHIRE.bgLight} 50%, ${alpha(SAPPHIRE.primary, 0.08)} 100%)`,
           p: 4, mb: 4, position: 'relative', overflow: 'hidden',
         }}>
           <Box sx={{
             position: 'absolute', top: 0, right: 0, width: 300, height: 300,
-            background: `radial-gradient(circle, ${alpha(PEACOCK.primary, 0.1)} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${alpha(SAPPHIRE.primary, 0.15)} 0%, transparent 70%)`,
             pointerEvents: 'none',
           }} />
 
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <Avatar sx={{ bgcolor: PEACOCK.primary, color: PEACOCK.bg, width: 56, height: 56, ...SUBTLE_GLOW }}>
+                <Avatar sx={{ bgcolor: SAPPHIRE.primary, color: '#fff', width: 56, height: 56, ...SUBTLE_GLOW }}>
                   <BoltOutlined sx={{ fontSize: 32 }} />
                 </Avatar>
                 <Box>
                   <Typography variant="h3" sx={{
                     fontWeight: 800,
-                    background: `linear-gradient(135deg, ${PEACOCK.primary} 0%, ${PEACOCK.accent} 100%)`,
+                    background: `linear-gradient(135deg, ${SAPPHIRE.primary} 0%, ${SAPPHIRE.accent} 100%)`,
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                   }}>
                     High Throughput Demo
                   </Typography>
-                  <Typography variant="body1" sx={{ color: '#8BA4B4' }}>
+                  <Typography variant="body1" sx={{ color: SAPPHIRE.textSecondary }}>
                     Multi-Node Architecture with API Integration & Merkle Registry
                   </Typography>
                 </Box>
@@ -401,54 +621,55 @@ export const HighThroughputDemo: React.FC = () => {
                 {!isRunning ? (
                   <Button variant="contained" size="large" onClick={handleStart} startIcon={<PlayArrow />}
                     sx={{
-                      background: `linear-gradient(135deg, ${PEACOCK.primary} 0%, ${PEACOCK.secondary} 100%)`,
-                      color: PEACOCK.bg, fontWeight: 700, px: 4, py: 1.5, fontSize: '1.1rem',
+                      background: `linear-gradient(135deg, ${SAPPHIRE.primary} 0%, ${SAPPHIRE.secondary} 100%)`,
+                      color: '#fff', fontWeight: 700, px: 4, py: 1.5, fontSize: '1.1rem',
                       ...SUBTLE_GLOW,
-                      '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 0 30px ${alpha(PEACOCK.primary, 0.5)}` },
+                      '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 0 30px ${alpha(SAPPHIRE.primary, 0.5)}` },
                     }}>
                     Start Demo
                   </Button>
                 ) : (
                   <Button variant="contained" size="large" onClick={handleStop} startIcon={<Pause />}
-                    sx={{ background: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)', color: 'white', fontWeight: 700, px: 4, py: 1.5, fontSize: '1.1rem' }}>
+                    sx={{ background: `linear-gradient(135deg, ${SAPPHIRE.error} 0%, #DC2626 100%)`, color: 'white', fontWeight: 700, px: 4, py: 1.5, fontSize: '1.1rem' }}>
                     Stop Demo
                   </Button>
                 )}
                 <Chip icon={<NetworkCheck />} label={isRunning ? 'LIVE' : 'READY'}
                   sx={{
-                    bgcolor: isRunning ? alpha(PEACOCK.primary, 0.2) : alpha('#8BA4B4', 0.2),
-                    color: isRunning ? PEACOCK.primary : '#8BA4B4', fontWeight: 600,
+                    bgcolor: isRunning ? alpha(SAPPHIRE.primary, 0.2) : alpha(SAPPHIRE.textSecondary, 0.2),
+                    color: isRunning ? SAPPHIRE.primary : SAPPHIRE.textSecondary, fontWeight: 600,
                     animation: isRunning ? 'pulse 2s infinite' : 'none',
                     '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.7 } },
                   }} />
-                <Chip icon={<Hub />} label={`${totalNodes} Nodes`} sx={{ bgcolor: alpha(PEACOCK.secondary, 0.2), color: PEACOCK.secondary }} />
+                <Chip icon={<Hub />} label={`${totalNodes} Nodes`} sx={{ bgcolor: alpha(SAPPHIRE.secondary, 0.2), color: SAPPHIRE.accent }} />
               </Box>
             </Grid>
 
             <Grid item xs={12} md={6}>
               <Grid container spacing={2}>
                 <Grid item xs={4}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: PEACOCK.primary, textShadow: `0 0 20px ${alpha(PEACOCK.primary, 0.4)}` }}>
+                  <Box sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleDrillDown('tps')}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: SAPPHIRE.primary, textShadow: `0 0 20px ${alpha(SAPPHIRE.primary, 0.4)}` }}>
                       {formatNumber(currentTPS)}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Current TPS</Typography>
+                    <Typography variant="body2" sx={{ color: SAPPHIRE.textSecondary }}>Current TPS</Typography>
+                    <Chip icon={<ZoomIn />} label="Details" size="small" sx={{ mt: 1, bgcolor: alpha(SAPPHIRE.primary, 0.1), color: SAPPHIRE.accent, fontSize: '0.7rem' }} />
                   </Box>
                 </Grid>
                 <Grid item xs={4}>
                   <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: PEACOCK.accent, textShadow: `0 0 20px ${alpha(PEACOCK.accent, 0.4)}` }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: SAPPHIRE.accent, textShadow: `0 0 20px ${alpha(SAPPHIRE.accent, 0.4)}` }}>
                       {formatNumber(peakTPS)}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Peak TPS</Typography>
+                    <Typography variant="body2" sx={{ color: SAPPHIRE.textSecondary }}>Peak TPS</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={4}>
                   <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: PEACOCK.warning, textShadow: `0 0 20px ${alpha(PEACOCK.warning, 0.4)}` }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: SAPPHIRE.warning, textShadow: `0 0 20px ${alpha(SAPPHIRE.warning, 0.4)}` }}>
                       {tokensCreated}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Tokens Created</Typography>
+                    <Typography variant="body2" sx={{ color: SAPPHIRE.textSecondary }}>Tokens Created</Typography>
                   </Box>
                 </Grid>
               </Grid>
@@ -460,11 +681,11 @@ export const HighThroughputDemo: React.FC = () => {
       {/* Tabs for different views */}
       <Card sx={{ ...GLASS_CARD, mb: 4 }}>
         <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}
-          sx={{ borderBottom: `1px solid ${alpha(PEACOCK.primary, 0.2)}`, px: 2 }}>
-          <Tab label="Performance" icon={<Speed />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
-          <Tab label="Node Configuration" icon={<Dns />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
-          <Tab label="API Streams" icon={<CloudQueue />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
-          <Tab label="Merkle Registry" icon={<AccountTree />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
+          sx={{ borderBottom: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}`, px: 2 }}>
+          <Tab label="Performance" icon={<Speed />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
+          <Tab label="Node Configuration" icon={<Dns />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
+          <Tab label="API Streams" icon={<CloudQueue />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
+          <Tab label="Merkle Registry" icon={<AccountTree />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
         </Tabs>
 
         <CardContent>
@@ -473,19 +694,29 @@ export const HighThroughputDemo: React.FC = () => {
             <>
               <Grid container spacing={3} sx={{ mb: 4 }}>
                 {[
-                  { icon: <Speed />, value: formatNumber(avgTPS), label: 'Average TPS', color: PEACOCK.primary },
-                  { icon: <Timer />, value: `${latency.toFixed(1)}ms`, label: 'Latency', color: PEACOCK.secondary },
-                  { icon: <TrendingUp />, value: `${successRate.toFixed(2)}%`, label: 'Success Rate', color: PEACOCK.warning },
-                  { icon: <BarChart />, value: formatNumber(totalTransactions), label: 'Total Transactions', color: PEACOCK.accent },
+                  { icon: <Speed />, value: formatNumber(avgTPS), label: 'Average TPS', color: SAPPHIRE.primary, drillType: 'tps' as DrillDownType },
+                  { icon: <Timer />, value: `${latency.toFixed(1)}ms`, label: 'Latency', color: SAPPHIRE.info, drillType: 'latency' as DrillDownType },
+                  { icon: <TrendingUp />, value: `${successRate.toFixed(2)}%`, label: 'Success Rate', color: SAPPHIRE.warning, drillType: 'success' as DrillDownType },
+                  { icon: <BarChart />, value: formatNumber(totalTransactions), label: 'Total Transactions', color: SAPPHIRE.accent, drillType: 'transactions' as DrillDownType },
                 ].map((metric, i) => (
                   <Grid item xs={6} sm={3} key={i}>
-                    <Card sx={METRIC_CARD}>
-                      <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                    <Card sx={METRIC_CARD} onClick={() => handleDrillDown(metric.drillType)}>
+                      <CardContent sx={{ textAlign: 'center', py: 3, position: 'relative' }}>
                         <Avatar sx={{ bgcolor: alpha(metric.color, 0.15), color: metric.color, width: 48, height: 48, mx: 'auto', mb: 1 }}>
                           {metric.icon}
                         </Avatar>
                         <Typography variant="h5" sx={{ color: metric.color, fontWeight: 700 }}>{metric.value}</Typography>
-                        <Typography variant="body2" sx={{ color: '#8BA4B4' }}>{metric.label}</Typography>
+                        <Typography variant="body2" sx={{ color: SAPPHIRE.textSecondary }}>{metric.label}</Typography>
+                        <Box sx={{
+                          position: 'absolute', bottom: 8, right: 8,
+                          display: 'flex', alignItems: 'center', gap: 0.5,
+                          color: SAPPHIRE.accent, opacity: 0.7,
+                          transition: 'all 0.2s ease',
+                          '&:hover': { opacity: 1 }
+                        }}>
+                          <ZoomIn sx={{ fontSize: 14 }} />
+                          <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Drill Down</Typography>
+                        </Box>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -497,15 +728,15 @@ export const HighThroughputDemo: React.FC = () => {
                 <AreaChart data={tpsData}>
                   <defs>
                     <linearGradient id="tpsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={PEACOCK.primary} stopOpacity={0.35} />
-                      <stop offset="100%" stopColor={PEACOCK.primary} stopOpacity={0.05} />
+                      <stop offset="0%" stopColor={SAPPHIRE.primary} stopOpacity={0.35} />
+                      <stop offset="100%" stopColor={SAPPHIRE.primary} stopOpacity={0.05} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 166, 166, 0.1)" />
                   <XAxis dataKey="timestamp" tickFormatter={(t) => new Date(t).toLocaleTimeString()} stroke="#5A7A8A" tick={{ fill: '#5A7A8A', fontSize: 10 }} />
-                  <YAxis tickFormatter={(v) => formatNumber(v)} stroke={PEACOCK.primary} tick={{ fill: PEACOCK.primary, fontSize: 10 }} />
-                  <RechartsTooltip contentStyle={{ background: 'rgba(13, 27, 42, 0.95)', border: `1px solid ${alpha(PEACOCK.primary, 0.2)}`, borderRadius: 8 }} />
-                  <Area type="monotone" dataKey="tps" stroke={PEACOCK.primary} strokeWidth={2} fill="url(#tpsGradient)" name="Total TPS" />
+                  <YAxis tickFormatter={(v) => formatNumber(v)} stroke={SAPPHIRE.primary} tick={{ fill: SAPPHIRE.primary, fontSize: 10 }} />
+                  <RechartsTooltip contentStyle={{ background: 'rgba(13, 27, 42, 0.95)', border: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}`, borderRadius: 8 }} />
+                  <Area type="monotone" dataKey="tps" stroke={SAPPHIRE.primary} strokeWidth={2} fill="url(#tpsGradient)" name="Total TPS" />
                   <Line type="monotone" dataKey="quantconnect" stroke="#9B59B6" strokeWidth={1.5} dot={false} name="QuantConnect" />
                   <Line type="monotone" dataKey="weather" stroke="#3498DB" strokeWidth={1.5} dot={false} name="Weather" />
                   <Line type="monotone" dataKey="news" stroke="#E67E22" strokeWidth={1.5} dot={false} name="News" />
@@ -522,47 +753,47 @@ export const HighThroughputDemo: React.FC = () => {
 
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Chip icon={<CheckCircle />} label="Validators" sx={{ bgcolor: alpha(PEACOCK.primary, 0.2), color: PEACOCK.primary }} />
+                    <Chip icon={<CheckCircle />} label="Validators" sx={{ bgcolor: alpha(SAPPHIRE.primary, 0.2), color: SAPPHIRE.primary }} />
                     <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Consensus & Block Validation</Typography>
                   </Box>
                   <Slider value={config.nodes.validators} min={1} max={10} marks
                     onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, validators: v as number } }))}
                     disabled={isRunning}
-                    sx={{ color: PEACOCK.primary, '& .MuiSlider-thumb': { boxShadow: `0 0 8px ${alpha(PEACOCK.primary, 0.4)}` } }} />
+                    sx={{ color: SAPPHIRE.primary, '& .MuiSlider-thumb': { boxShadow: `0 0 8px ${alpha(SAPPHIRE.primary, 0.4)}` } }} />
                   <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.validators} validators (Consensus strength: {Math.round(config.nodes.validators / 3 * 100)}%)</Typography>
                 </Box>
 
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Chip icon={<Storage />} label="Business Nodes" sx={{ bgcolor: alpha(PEACOCK.secondary, 0.2), color: PEACOCK.secondary }} />
+                    <Chip icon={<Storage />} label="Business Nodes" sx={{ bgcolor: alpha(SAPPHIRE.secondary, 0.2), color: SAPPHIRE.secondary }} />
                     <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Transaction Processing</Typography>
                   </Box>
                   <Slider value={config.nodes.businessNodes} min={1} max={15} marks
                     onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, businessNodes: v as number } }))}
                     disabled={isRunning}
-                    sx={{ color: PEACOCK.secondary }} />
+                    sx={{ color: SAPPHIRE.secondary }} />
                   <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.businessNodes} business nodes (Processing capacity: {Math.round(config.nodes.businessNodes / 5 * 100)}%)</Typography>
                 </Box>
 
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Chip icon={<CloudQueue />} label="Slim Nodes" sx={{ bgcolor: alpha(PEACOCK.accent, 0.2), color: PEACOCK.accent }} />
+                    <Chip icon={<CloudQueue />} label="Slim Nodes" sx={{ bgcolor: alpha(SAPPHIRE.accent, 0.2), color: SAPPHIRE.accent }} />
                     <Typography variant="body2" sx={{ color: '#8BA4B4' }}>API Integration & Data Ingestion</Typography>
                   </Box>
                   <Slider value={config.nodes.slimNodes} min={1} max={30} marks
                     onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, slimNodes: v as number } }))}
                     disabled={isRunning}
-                    sx={{ color: PEACOCK.accent }} />
+                    sx={{ color: SAPPHIRE.accent }} />
                   <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.slimNodes} slim nodes (API throughput: {Math.round(config.nodes.slimNodes / 10 * 100)}%)</Typography>
                 </Box>
 
-                <Divider sx={{ my: 3, borderColor: alpha(PEACOCK.primary, 0.2) }} />
+                <Divider sx={{ my: 3, borderColor: alpha(SAPPHIRE.primary, 0.2) }} />
 
                 <Typography variant="subtitle2" sx={{ color: '#8BA4B4', mb: 2 }}>Performance Options</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <FormControlLabel control={<Switch checked={config.aiOptimization} onChange={(e) => setConfig(prev => ({ ...prev, aiOptimization: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: PEACOCK.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.primary } }} />} label={<Typography variant="body2">AI Optimization (+30% TPS)</Typography>} />
-                  <FormControlLabel control={<Switch checked={config.burstMode} onChange={(e) => setConfig(prev => ({ ...prev, burstMode: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: PEACOCK.warning }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.warning } }} />} label={<Typography variant="body2">Burst Mode (+50% peak capacity)</Typography>} />
-                  <FormControlLabel control={<Switch checked={config.quantumSecurity} onChange={(e) => setConfig(prev => ({ ...prev, quantumSecurity: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: PEACOCK.secondary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.secondary } }} />} label={<Typography variant="body2">Quantum-Resistant Security (NIST Level 5)</Typography>} />
+                  <FormControlLabel control={<Switch checked={config.aiOptimization} onChange={(e) => setConfig(prev => ({ ...prev, aiOptimization: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: SAPPHIRE.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: SAPPHIRE.primary } }} />} label={<Typography variant="body2">AI Optimization (+30% TPS)</Typography>} />
+                  <FormControlLabel control={<Switch checked={config.burstMode} onChange={(e) => setConfig(prev => ({ ...prev, burstMode: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: SAPPHIRE.warning }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: SAPPHIRE.warning } }} />} label={<Typography variant="body2">Burst Mode (+50% peak capacity)</Typography>} />
+                  <FormControlLabel control={<Switch checked={config.quantumSecurity} onChange={(e) => setConfig(prev => ({ ...prev, quantumSecurity: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: SAPPHIRE.secondary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: SAPPHIRE.secondary } }} />} label={<Typography variant="body2">Quantum-Resistant Security (NIST Level 5)</Typography>} />
                 </Box>
               </Grid>
 
@@ -588,8 +819,8 @@ export const HighThroughputDemo: React.FC = () => {
                   ))}
                 </Box>
 
-                <Box sx={{ mt: 4, p: 2, bgcolor: alpha(PEACOCK.primary, 0.1), borderRadius: 2 }}>
-                  <Typography variant="subtitle2" sx={{ color: PEACOCK.primary, mb: 1 }}>Estimated Performance</Typography>
+                <Box sx={{ mt: 4, p: 2, bgcolor: alpha(SAPPHIRE.primary, 0.1), borderRadius: 2 }}>
+                  <Typography variant="subtitle2" sx={{ color: SAPPHIRE.primary, mb: 1 }}>Estimated Performance</Typography>
                   <Typography variant="body2" sx={{ color: '#8BA4B4' }}>
                     Base TPS: {formatNumber(config.targetTPS)}<br/>
                     Node Multiplier: {calculateNodeMultiplier().toFixed(2)}x<br/>
@@ -629,7 +860,7 @@ export const HighThroughputDemo: React.FC = () => {
                       <Box>
                         <Typography variant="h4" sx={{ color: '#9B59B6', fontWeight: 700 }}>{latestQuantConnect.symbol}</Typography>
                         <Typography variant="h5" sx={{ color: '#E8F4F8' }}>${latestQuantConnect.price}</Typography>
-                        <Typography variant="body2" sx={{ color: parseFloat(latestQuantConnect.change) >= 0 ? PEACOCK.success : PEACOCK.error }}>
+                        <Typography variant="body2" sx={{ color: parseFloat(latestQuantConnect.change) >= 0 ? SAPPHIRE.success : SAPPHIRE.error }}>
                           {parseFloat(latestQuantConnect.change) >= 0 ? '+' : ''}{latestQuantConnect.change}%
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Vol: {formatNumber(latestQuantConnect.volume)}</Typography>
@@ -676,7 +907,7 @@ export const HighThroughputDemo: React.FC = () => {
                     {latestNews ? (
                       <Box>
                         <Typography variant="body1" sx={{ color: '#E8F4F8', fontWeight: 600, mb: 1 }}>{latestNews.headline}</Typography>
-                        <Chip label={latestNews.sentiment} size="small" sx={{ bgcolor: latestNews.sentiment === 'positive' ? alpha(PEACOCK.success, 0.2) : alpha('#5A7A8A', 0.2), color: latestNews.sentiment === 'positive' ? PEACOCK.success : '#8BA4B4' }} />
+                        <Chip label={latestNews.sentiment} size="small" sx={{ bgcolor: latestNews.sentiment === 'positive' ? alpha(SAPPHIRE.success, 0.2) : alpha('#5A7A8A', 0.2), color: latestNews.sentiment === 'positive' ? SAPPHIRE.success : '#8BA4B4' }} />
                         <Typography variant="caption" sx={{ color: '#5A7A8A', display: 'block', mt: 1 }}>Source: {latestNews.source}</Typography>
                       </Box>
                     ) : (
@@ -718,8 +949,8 @@ export const HighThroughputDemo: React.FC = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>Merkle Registry ({merkleRegistry.length} entries)</Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Chip icon={<Token />} label={`${tokensCreated} Tokens`} sx={{ bgcolor: alpha(PEACOCK.primary, 0.2), color: PEACOCK.primary }} />
-                  <Chip icon={<AccountTree />} label={`${merkleRegistry.filter(e => e.verified).length} Verified`} sx={{ bgcolor: alpha(PEACOCK.success, 0.2), color: PEACOCK.success }} />
+                  <Chip icon={<Token />} label={`${tokensCreated} Tokens`} sx={{ bgcolor: alpha(SAPPHIRE.primary, 0.2), color: SAPPHIRE.primary }} />
+                  <Chip icon={<AccountTree />} label={`${merkleRegistry.filter(e => e.verified).length} Verified`} sx={{ bgcolor: alpha(SAPPHIRE.success, 0.2), color: SAPPHIRE.success }} />
                 </Box>
               </Box>
 
@@ -727,18 +958,18 @@ export const HighThroughputDemo: React.FC = () => {
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Token ID</TableCell>
-                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Source</TableCell>
-                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Merkle Root</TableCell>
-                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Leaf Index</TableCell>
-                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Status</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Token ID</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Source</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Merkle Root</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Leaf Index</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Status</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {tokenizedAssets.slice(0, 20).map((asset) => {
                       const merkleEntry = merkleRegistry.find(e => e.tokenId === asset.id);
                       return (
-                        <TableRow key={asset.id} sx={{ '&:hover': { bgcolor: alpha(PEACOCK.primary, 0.05) } }}>
+                        <TableRow key={asset.id} sx={{ '&:hover': { bgcolor: alpha(SAPPHIRE.primary, 0.05) } }}>
                           <TableCell sx={{ color: '#E8F4F8', fontFamily: 'monospace', fontSize: '0.75rem' }}>{asset.id}</TableCell>
                           <TableCell>
                             <Chip label={asset.source} size="small" sx={{
@@ -748,13 +979,13 @@ export const HighThroughputDemo: React.FC = () => {
                                      asset.source === 'weather' ? '#3498DB' : '#E67E22',
                             }} />
                           </TableCell>
-                          <TableCell sx={{ color: PEACOCK.accent, fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                          <TableCell sx={{ color: SAPPHIRE.accent, fontFamily: 'monospace', fontSize: '0.7rem' }}>
                             {merkleEntry?.merkleRoot.substring(0, 18)}...
                           </TableCell>
                           <TableCell sx={{ color: '#8BA4B4' }}>{merkleEntry?.leafIndex}</TableCell>
                           <TableCell>
                             <Chip icon={<CheckCircle sx={{ fontSize: 14 }} />} label="Verified" size="small"
-                              sx={{ bgcolor: alpha(PEACOCK.success, 0.2), color: PEACOCK.success }} />
+                              sx={{ bgcolor: alpha(SAPPHIRE.success, 0.2), color: SAPPHIRE.success }} />
                           </TableCell>
                         </TableRow>
                       );
@@ -779,10 +1010,10 @@ export const HighThroughputDemo: React.FC = () => {
       {/* Feature Highlights */}
       <Grid container spacing={3}>
         {[
-          { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput with multi-node architecture', color: PEACOCK.primary },
-          { icon: <Hub />, title: 'Multi-Node', desc: 'Validators, Business & Slim node configuration', color: PEACOCK.secondary },
-          { icon: <CloudQueue />, title: 'API Integration', desc: 'QuantConnect, Weather & News data streams', color: PEACOCK.accent },
-          { icon: <AccountTree />, title: 'Merkle Registry', desc: 'Tokenized assets with proof verification', color: PEACOCK.warning },
+          { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput with multi-node architecture', color: SAPPHIRE.primary },
+          { icon: <Hub />, title: 'Multi-Node', desc: 'Validators, Business & Slim node configuration', color: SAPPHIRE.secondary },
+          { icon: <CloudQueue />, title: 'API Integration', desc: 'QuantConnect, Weather & News data streams', color: SAPPHIRE.accent },
+          { icon: <AccountTree />, title: 'Merkle Registry', desc: 'Tokenized assets with proof verification', color: SAPPHIRE.warning },
         ].map((feature) => (
           <Grid item xs={6} md={3} key={feature.title}>
             <Paper sx={{

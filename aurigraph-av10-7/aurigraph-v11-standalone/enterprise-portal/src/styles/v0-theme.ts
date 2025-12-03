@@ -1,50 +1,59 @@
-// Peacock Blue Theme - Aurigraph Enterprise Portal
-// Subtle, sophisticated dark mode with peacock blue accents
+// Sapphire Blue Theme - Aurigraph Enterprise Portal
+// Sophisticated dark mode with rich blue accents
 
 import { createTheme, alpha } from '@mui/material/styles';
 
-// Peacock Blue color palette - sophisticated and subtle
+// Sapphire Blue color palette - rich blues with subtle accents
 const colors = {
-  // Primary brand colors - Peacock Blue spectrum
+  // Primary brand colors - Sapphire Blue spectrum
   brand: {
-    primary: '#00A6A6',      // Peacock teal - main accent
-    secondary: '#007C91',    // Deep peacock blue
-    accent: '#4ECDC4',       // Light teal accent
-    warning: '#E8AA42',      // Warm amber (subtle)
-    success: '#2ECC71',      // Soft green
-    error: '#E74C3C',        // Soft coral red
+    primary: '#2563EB',      // Sapphire blue - main accent
+    secondary: '#1E40AF',    // Deep royal blue
+    accent: '#60A5FA',       // Sky blue accent
+    tertiary: '#3B82F6',     // Medium blue
+    warning: '#F59E0B',      // Warm amber
+    success: '#10B981',      // Emerald green
+    error: '#EF4444',        // Soft red
+    info: '#0EA5E9',         // Cyan blue
   },
 
-  // Background gradients - subtle and professional
+  // Background gradients - deep navy with blue hints
   gradients: {
-    primary: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 50%, #0D1B2A 100%)',
-    card: 'linear-gradient(135deg, rgba(13, 27, 42, 0.9) 0%, rgba(27, 40, 56, 0.9) 100%)',
-    accent: 'linear-gradient(135deg, #00A6A6 0%, #007C91 100%)',
-    danger: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)',
-    warning: 'linear-gradient(135deg, #E8AA42 0%, #D4942A 100%)',
-    glass: 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
+    primary: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
+    card: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
+    accent: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
+    accentLight: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+    danger: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+    warning: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+    success: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+    glass: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(30, 64, 175, 0.02) 100%)',
+    blueGlow: 'linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(96, 165, 250, 0.05) 100%)',
   },
 
-  // Dark backgrounds - deep navy tones
+  // Dark backgrounds - slate navy tones
   dark: {
-    bg: '#0D1B2A',           // Deep navy background
-    bgLight: '#1B2838',      // Card background
-    bgLighter: '#243447',    // Hover states
-    border: 'rgba(0, 166, 166, 0.15)',  // Subtle peacock tint
-    text: '#E8F4F8',         // Soft white with cool tint
-    textSecondary: '#8BA4B4', // Muted blue-gray
+    bg: '#0F172A',           // Deep slate background
+    bgLight: '#1E293B',      // Card background
+    bgLighter: '#334155',    // Hover states
+    bgAccent: '#1E3A5F',     // Blue-tinted background
+    border: 'rgba(37, 99, 235, 0.2)',   // Subtle blue tint
+    borderLight: 'rgba(96, 165, 250, 0.15)',
+    text: '#F1F5F9',         // Soft white
+    textSecondary: '#94A3B8', // Slate gray
+    textMuted: '#64748B',    // Muted slate
   },
 
-  // Chart colors - peacock palette
+  // Chart colors - blue palette
   charts: {
-    line1: '#00A6A6',        // Peacock teal
-    line2: '#4ECDC4',        // Light teal
-    line3: '#007C91',        // Deep peacock
-    line4: '#E8AA42',        // Warm accent
-    area1: 'rgba(0, 166, 166, 0.25)',
-    area2: 'rgba(78, 205, 196, 0.25)',
-    area3: 'rgba(0, 124, 145, 0.25)',
-    area4: 'rgba(232, 170, 66, 0.25)',
+    line1: '#2563EB',        // Sapphire blue
+    line2: '#60A5FA',        // Sky blue
+    line3: '#1E40AF',        // Royal blue
+    line4: '#0EA5E9',        // Cyan
+    line5: '#F59E0B',        // Amber accent
+    area1: 'rgba(37, 99, 235, 0.3)',
+    area2: 'rgba(96, 165, 250, 0.25)',
+    area3: 'rgba(30, 64, 175, 0.25)',
+    area4: 'rgba(14, 165, 233, 0.25)',
   },
 };
 
@@ -54,30 +63,35 @@ export const v0Theme = createTheme({
     mode: 'dark',
     primary: {
       main: colors.brand.primary,
-      light: '#33C4C4',
-      dark: '#008080',
-      contrastText: '#0D1B2A',
+      light: colors.brand.accent,
+      dark: colors.brand.secondary,
+      contrastText: '#FFFFFF',
     },
     secondary: {
       main: colors.brand.secondary,
-      light: '#339DAD',
-      dark: '#005A6A',
+      light: colors.brand.tertiary,
+      dark: '#1E3A8A',
       contrastText: '#FFFFFF',
     },
     error: {
       main: colors.brand.error,
-      light: '#EC7063',
-      dark: '#C0392B',
+      light: '#F87171',
+      dark: '#DC2626',
     },
     warning: {
       main: colors.brand.warning,
-      light: '#F0C05A',
-      dark: '#C4872A',
+      light: '#FBBF24',
+      dark: '#D97706',
     },
     success: {
       main: colors.brand.success,
-      light: '#58D68D',
-      dark: '#27AE60',
+      light: '#34D399',
+      dark: '#059669',
+    },
+    info: {
+      main: colors.brand.info,
+      light: '#38BDF8',
+      dark: '#0284C7',
     },
     background: {
       default: colors.dark.bg,
