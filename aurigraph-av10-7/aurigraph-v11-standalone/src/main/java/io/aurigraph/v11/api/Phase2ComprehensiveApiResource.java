@@ -27,7 +27,6 @@ import java.util.*;
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

@@ -151,6 +151,58 @@ public class Sprint9AnalyticsResource {
     }
 
     /**
+     * Get network usage analytics
+     * GET /api/v11/analytics/network-usage
+     */
+    @GET
+    @Path("/network-usage")
+    public Uni<NetworkUsageResponse> getNetworkUsage(
+            @QueryParam("period") @DefaultValue("24h") String period) {
+
+        LOG.infof("Fetching network usage analytics for period: %s", period);
+
+        return Uni.createFrom().item(() -> {
+            NetworkUsageResponse response = new NetworkUsageResponse();
+            response.timestamp = System.currentTimeMillis();
+            response.period = period;
+            response.totalBandwidth = 125000000000L; // 125 GB
+            response.inboundTraffic = 67000000000L;
+            response.outboundTraffic = 58000000000L;
+            response.averageBandwidthUtilization = 67.5;
+            response.peakBandwidthUtilization = 89.2;
+            response.totalConnections = 1547;
+            response.activeConnections = 1423;
+            response.averageLatency = 42.5;
+            response.packetLoss = 0.12;
+
+            // Hourly usage data
+            response.hourlyUsage = new ArrayList<>();
+            long now = System.currentTimeMillis();
+            for (int i = 23; i >= 0; i--) {
+                HourlyUsage usage = new HourlyUsage();
+                usage.hour = now - (i * 3600000L);
+                usage.bandwidth = 4000000000L + (long)(Math.random() * 2000000000L);
+                usage.connections = 1300 + (int)(Math.random() * 300);
+                usage.latency = 35.0 + (Math.random() * 25);
+                response.hourlyUsage.add(usage);
+            }
+
+            return response;
+        });
+    }
+
+    /**
+     * Get network analytics (alias for network-usage)
+     * GET /api/v11/analytics/network
+     */
+    @GET
+    @Path("/network")
+    public Uni<NetworkUsageResponse> getNetworkAlias(
+            @QueryParam("period") @DefaultValue("24h") String period) {
+        return getNetworkUsage(period);
+    }
+
+    /**
      * Generate volume data based on time range
      */
     private List<VolumeDataPoint> generateVolumeData(String timeRange) {
@@ -259,5 +311,28 @@ public class Sprint9AnalyticsResource {
             this.successRate = successRate;
             this.rewards = rewards;
         }
+    }
+
+    // Network Usage DTOs
+    public static class NetworkUsageResponse {
+        public long timestamp;
+        public String period;
+        public long totalBandwidth;
+        public long inboundTraffic;
+        public long outboundTraffic;
+        public double averageBandwidthUtilization;
+        public double peakBandwidthUtilization;
+        public int totalConnections;
+        public int activeConnections;
+        public double averageLatency;
+        public double packetLoss;
+        public List<HourlyUsage> hourlyUsage;
+    }
+
+    public static class HourlyUsage {
+        public long hour;
+        public long bandwidth;
+        public int connections;
+        public double latency;
     }
 }
