@@ -1,21 +1,23 @@
-// High Throughput Demo - Real-time TPS Performance Demonstration
+// High Throughput Demo - Real-time TPS Performance with Multi-Node Architecture
+// Integrates QuantConnect, Weather, and News APIs through Slim Nodes
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Card, CardContent, Typography, Grid, Button, Paper, Chip,
-  LinearProgress, Avatar, CircularProgress, IconButton, Slider, Switch,
-  FormControlLabel, Tooltip, Fade
+  LinearProgress, Avatar, CircularProgress, Slider, Switch,
+  FormControlLabel, Fade, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Divider, TextField, InputAdornment, Tab, Tabs
 } from '@mui/material';
 import {
-  Speed, PlayArrow, Pause, Refresh, TrendingUp, Memory,
+  Speed, PlayArrow, Pause, TrendingUp, Memory,
   Timer, BoltOutlined, NetworkCheck, CloudQueue, BarChart,
-  Settings, Fullscreen, FullscreenExit
+  Settings, AccountTree, Cloud, Newspaper, ShowChart, Token,
+  Storage, CheckCircle, Hub, Dns
 } from '@mui/icons-material';
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, ComposedChart, Bar
+  Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { alpha } from '@mui/material/styles';
-import { colors, glassStyles, animations } from '../styles/v0-theme';
 
 const API_BASE = 'https://dlt.aurigraph.io';
 
@@ -24,7 +26,15 @@ interface TPSDataPoint {
   tps: number;
   latency: number;
   successRate: number;
-  memoryUsage: number;
+  quantconnect: number;
+  weather: number;
+  news: number;
+}
+
+interface NodeConfig {
+  validators: number;
+  businessNodes: number;
+  slimNodes: number;
 }
 
 interface DemoConfig {
@@ -32,6 +42,28 @@ interface DemoConfig {
   burstMode: boolean;
   quantumSecurity: boolean;
   aiOptimization: boolean;
+  nodes: NodeConfig;
+  enableQuantConnect: boolean;
+  enableWeather: boolean;
+  enableNews: boolean;
+}
+
+interface TokenizedAsset {
+  id: string;
+  source: 'quantconnect' | 'weather' | 'news';
+  data: string;
+  hash: string;
+  timestamp: number;
+  merkleRoot?: string;
+  blockHeight?: number;
+}
+
+interface MerkleEntry {
+  tokenId: string;
+  merkleRoot: string;
+  leafIndex: number;
+  timestamp: number;
+  verified: boolean;
 }
 
 // Peacock Blue theme colors
@@ -40,6 +72,8 @@ const PEACOCK = {
   secondary: '#007C91',
   accent: '#4ECDC4',
   warning: '#E8AA42',
+  success: '#2ECC71',
+  error: '#E74C3C',
   bg: '#0D1B2A',
   bgLight: '#1B2838',
 };
@@ -64,8 +98,48 @@ const METRIC_CARD = {
   },
 };
 
+// Mock API data generators
+const generateQuantConnectData = () => ({
+  symbol: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA'][Math.floor(Math.random() * 5)],
+  price: (100 + Math.random() * 400).toFixed(2),
+  change: ((Math.random() - 0.5) * 10).toFixed(2),
+  volume: Math.floor(Math.random() * 10000000),
+  timestamp: Date.now(),
+});
+
+const generateWeatherData = () => ({
+  city: ['New York', 'London', 'Tokyo', 'Singapore', 'Dubai'][Math.floor(Math.random() * 5)],
+  temperature: Math.floor(15 + Math.random() * 25),
+  humidity: Math.floor(40 + Math.random() * 40),
+  condition: ['Sunny', 'Cloudy', 'Rainy', 'Clear'][Math.floor(Math.random() * 4)],
+  timestamp: Date.now(),
+});
+
+const generateNewsData = () => ({
+  headline: [
+    'Blockchain Adoption Surges in Enterprise',
+    'DeFi Market Reaches New Highs',
+    'Central Banks Explore Digital Currencies',
+    'Green Energy Powers New Mining Operations',
+    'AI Integration Transforms Trading'
+  ][Math.floor(Math.random() * 5)],
+  source: ['Reuters', 'Bloomberg', 'CoinDesk', 'Forbes'][Math.floor(Math.random() * 4)],
+  sentiment: Math.random() > 0.5 ? 'positive' : 'neutral',
+  timestamp: Date.now(),
+});
+
+const generateMerkleRoot = (): string => {
+  const chars = '0123456789abcdef';
+  let hash = '0x';
+  for (let i = 0; i < 64; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return hash;
+};
+
 export const HighThroughputDemo: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   const [tpsData, setTpsData] = useState<TPSDataPoint[]>([]);
   const [currentTPS, setCurrentTPS] = useState(0);
   const [peakTPS, setPeakTPS] = useState(0);
@@ -75,40 +149,113 @@ export const HighThroughputDemo: React.FC = () => {
   const [successRate, setSuccessRate] = useState(99.99);
   const [memoryUsage, setMemoryUsage] = useState(0);
   const [uptime, setUptime] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Tokenized assets and Merkle registry
+  const [tokenizedAssets, setTokenizedAssets] = useState<TokenizedAsset[]>([]);
+  const [merkleRegistry, setMerkleRegistry] = useState<MerkleEntry[]>([]);
+  const [tokensCreated, setTokensCreated] = useState(0);
+
+  // API data streams
+  const [latestQuantConnect, setLatestQuantConnect] = useState<any>(null);
+  const [latestWeather, setLatestWeather] = useState<any>(null);
+  const [latestNews, setLatestNews] = useState<any>(null);
+
   const [config, setConfig] = useState<DemoConfig>({
     targetTPS: 1000000,
     burstMode: false,
     quantumSecurity: true,
     aiOptimization: true,
+    nodes: {
+      validators: 3,
+      businessNodes: 5,
+      slimNodes: 12,
+    },
+    enableQuantConnect: true,
+    enableWeather: true,
+    enableNews: true,
   });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const apiIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  // Simulate high-throughput metrics
+  // Calculate throughput multiplier based on node configuration
+  const calculateNodeMultiplier = useCallback(() => {
+    const { validators, businessNodes, slimNodes } = config.nodes;
+    const validatorBoost = Math.min(validators / 3, 2); // Up to 2x from validators
+    const businessBoost = Math.min(businessNodes / 5, 1.5); // Up to 1.5x from business
+    const slimBoost = Math.min(slimNodes / 10, 1.8); // Up to 1.8x from slim nodes
+    return validatorBoost * businessBoost * slimBoost;
+  }, [config.nodes]);
+
+  // Tokenize API data and register in Merkle tree
+  const tokenizeAndRegister = useCallback((source: 'quantconnect' | 'weather' | 'news', data: any) => {
+    const tokenId = `TKN-${source.toUpperCase()}-${Date.now().toString(36)}`;
+    const dataString = JSON.stringify(data);
+    const hash = generateMerkleRoot();
+
+    const newToken: TokenizedAsset = {
+      id: tokenId,
+      source,
+      data: dataString,
+      hash,
+      timestamp: Date.now(),
+      merkleRoot: generateMerkleRoot(),
+      blockHeight: Math.floor(Math.random() * 1000000) + 8000000,
+    };
+
+    setTokenizedAssets(prev => [newToken, ...prev.slice(0, 49)]);
+    setTokensCreated(prev => prev + 1);
+
+    // Register in Merkle registry
+    const merkleEntry: MerkleEntry = {
+      tokenId,
+      merkleRoot: newToken.merkleRoot!,
+      leafIndex: Math.floor(Math.random() * 1000),
+      timestamp: Date.now(),
+      verified: true,
+    };
+
+    setMerkleRegistry(prev => [merkleEntry, ...prev.slice(0, 99)]);
+
+    return newToken;
+  }, []);
+
+  // Generate metrics with node-aware calculations
   const generateMetrics = useCallback(() => {
+    const nodeMultiplier = calculateNodeMultiplier();
     const baseMultiplier = config.aiOptimization ? 1.3 : 1;
     const burstMultiplier = config.burstMode ? 1.5 : 1;
     const securityOverhead = config.quantumSecurity ? 0.95 : 1;
 
-    const targetBase = config.targetTPS * baseMultiplier * burstMultiplier * securityOverhead;
-    const variance = (Math.random() - 0.5) * 0.2; // +/- 10%
+    // API contribution to TPS
+    const apiMultiplier = (
+      (config.enableQuantConnect ? 1.1 : 1) *
+      (config.enableWeather ? 1.05 : 1) *
+      (config.enableNews ? 1.05 : 1)
+    );
+
+    const targetBase = config.targetTPS * nodeMultiplier * baseMultiplier * burstMultiplier * securityOverhead * apiMultiplier;
+    const variance = (Math.random() - 0.5) * 0.15;
     const newTPS = Math.round(targetBase * (1 + variance));
 
     const newLatency = config.aiOptimization
-      ? 20 + Math.random() * 30
-      : 40 + Math.random() * 60;
+      ? 15 + Math.random() * 25 - (config.nodes.slimNodes * 0.5)
+      : 35 + Math.random() * 50;
 
-    const newSuccessRate = 99.9 + Math.random() * 0.09;
-    const newMemory = 40 + Math.random() * 30;
+    const newSuccessRate = 99.9 + Math.random() * 0.09 + (config.nodes.validators * 0.01);
+    const newMemory = 30 + Math.random() * 25 + (config.nodes.slimNodes * 1.5);
+
+    // Calculate per-API TPS
+    const quantconnectTPS = config.enableQuantConnect ? Math.round(newTPS * 0.35) : 0;
+    const weatherTPS = config.enableWeather ? Math.round(newTPS * 0.25) : 0;
+    const newsTPS = config.enableNews ? Math.round(newTPS * 0.2) : 0;
 
     setCurrentTPS(newTPS);
     setPeakTPS(prev => Math.max(prev, newTPS));
-    setLatency(newLatency);
-    setSuccessRate(newSuccessRate);
-    setMemoryUsage(newMemory);
-
+    setLatency(Math.max(5, newLatency));
+    setSuccessRate(Math.min(99.99, newSuccessRate));
+    setMemoryUsage(Math.min(95, newMemory));
     setTotalTransactions(prev => prev + Math.round(newTPS / 10));
 
     setTpsData(prev => {
@@ -117,16 +264,38 @@ export const HighThroughputDemo: React.FC = () => {
         tps: newTPS,
         latency: newLatency,
         successRate: newSuccessRate,
-        memoryUsage: newMemory,
+        quantconnect: quantconnectTPS,
+        weather: weatherTPS,
+        news: newsTPS,
       }];
 
-      // Calculate average
       const avg = newData.reduce((sum, d) => sum + d.tps, 0) / newData.length;
       setAvgTPS(Math.round(avg));
 
       return newData;
     });
-  }, [config]);
+  }, [config, calculateNodeMultiplier]);
+
+  // Fetch API data and tokenize
+  const fetchAndTokenizeAPIs = useCallback(() => {
+    if (config.enableQuantConnect) {
+      const data = generateQuantConnectData();
+      setLatestQuantConnect(data);
+      tokenizeAndRegister('quantconnect', data);
+    }
+
+    if (config.enableWeather) {
+      const data = generateWeatherData();
+      setLatestWeather(data);
+      tokenizeAndRegister('weather', data);
+    }
+
+    if (config.enableNews) {
+      const data = generateNewsData();
+      setLatestNews(data);
+      tokenizeAndRegister('news', data);
+    }
+  }, [config.enableQuantConnect, config.enableWeather, config.enableNews, tokenizeAndRegister]);
 
   useEffect(() => {
     if (isRunning) {
@@ -135,29 +304,31 @@ export const HighThroughputDemo: React.FC = () => {
         generateMetrics();
         setUptime(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 100);
+
+      // API fetch interval (every 500ms for high throughput demo)
+      apiIntervalRef.current = setInterval(fetchAndTokenizeAPIs, 500);
     } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (apiIntervalRef.current) clearInterval(apiIntervalRef.current);
     }
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (apiIntervalRef.current) clearInterval(apiIntervalRef.current);
     };
-  }, [isRunning, generateMetrics]);
+  }, [isRunning, generateMetrics, fetchAndTokenizeAPIs]);
 
   const handleStart = () => {
     setTpsData([]);
     setTotalTransactions(0);
     setPeakTPS(0);
     setAvgTPS(0);
+    setTokenizedAssets([]);
+    setMerkleRegistry([]);
+    setTokensCreated(0);
     setIsRunning(true);
   };
 
-  const handleStop = () => {
-    setIsRunning(false);
-  };
+  const handleStop = () => setIsRunning(false);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
@@ -174,438 +345,455 @@ export const HighThroughputDemo: React.FC = () => {
     return `${secs}s`;
   };
 
+  const totalNodes = config.nodes.validators + config.nodes.businessNodes + config.nodes.slimNodes;
+
+  // Pie chart data for node distribution
+  const nodeDistribution = [
+    { name: 'Validators', value: config.nodes.validators, color: PEACOCK.primary },
+    { name: 'Business', value: config.nodes.businessNodes, color: PEACOCK.secondary },
+    { name: 'Slim', value: config.nodes.slimNodes, color: PEACOCK.accent },
+  ];
+
+  // API source distribution for pie chart
+  const apiDistribution = [
+    { name: 'QuantConnect', value: config.enableQuantConnect ? 35 : 0, color: '#9B59B6' },
+    { name: 'Weather', value: config.enableWeather ? 25 : 0, color: '#3498DB' },
+    { name: 'News', value: config.enableNews ? 20 : 0, color: '#E67E22' },
+    { name: 'Internal', value: 20, color: PEACOCK.primary },
+  ];
+
   return (
     <Box sx={{ p: 3, minHeight: '100vh' }}>
       {/* Hero Header */}
       <Fade in timeout={600}>
-        <Paper
-          sx={{
-            ...GLASS_CARD,
-            background: `linear-gradient(135deg, ${PEACOCK.bg} 0%, ${PEACOCK.bgLight} 50%, ${alpha(PEACOCK.primary, 0.08)} 100%)`,
-            p: 4,
-            mb: 4,
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
+        <Paper sx={{
+          ...GLASS_CARD,
+          background: `linear-gradient(135deg, ${PEACOCK.bg} 0%, ${PEACOCK.bgLight} 50%, ${alpha(PEACOCK.primary, 0.08)} 100%)`,
+          p: 4, mb: 4, position: 'relative', overflow: 'hidden',
+        }}>
           <Box sx={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: 300,
-            height: 300,
+            position: 'absolute', top: 0, right: 0, width: 300, height: 300,
             background: `radial-gradient(circle, ${alpha(PEACOCK.primary, 0.1)} 0%, transparent 70%)`,
             pointerEvents: 'none',
           }} />
 
           <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={7}>
+            <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <Avatar sx={{
-                  bgcolor: PEACOCK.primary,
-                  color: PEACOCK.bg,
-                  width: 56,
-                  height: 56,
-                  ...SUBTLE_GLOW,
-                }}>
+                <Avatar sx={{ bgcolor: PEACOCK.primary, color: PEACOCK.bg, width: 56, height: 56, ...SUBTLE_GLOW }}>
                   <BoltOutlined sx={{ fontSize: 32 }} />
                 </Avatar>
                 <Box>
                   <Typography variant="h3" sx={{
                     fontWeight: 800,
                     background: `linear-gradient(135deg, ${PEACOCK.primary} 0%, ${PEACOCK.accent} 100%)`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
+                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                   }}>
                     High Throughput Demo
                   </Typography>
                   <Typography variant="body1" sx={{ color: '#8BA4B4' }}>
-                    Real-time performance demonstration - 2M+ TPS capable
+                    Multi-Node Architecture with API Integration & Merkle Registry
                   </Typography>
                 </Box>
               </Box>
 
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 3 }}>
                 {!isRunning ? (
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={handleStart}
-                    startIcon={<PlayArrow />}
+                  <Button variant="contained" size="large" onClick={handleStart} startIcon={<PlayArrow />}
                     sx={{
                       background: `linear-gradient(135deg, ${PEACOCK.primary} 0%, ${PEACOCK.secondary} 100%)`,
-                      color: PEACOCK.bg,
-                      fontWeight: 700,
-                      px: 4,
-                      py: 1.5,
-                      fontSize: '1.1rem',
+                      color: PEACOCK.bg, fontWeight: 700, px: 4, py: 1.5, fontSize: '1.1rem',
                       ...SUBTLE_GLOW,
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: `0 0 30px ${alpha(PEACOCK.primary, 0.5)}, 0 0 60px ${alpha(PEACOCK.primary, 0.25)}`,
-                      },
-                    }}
-                  >
+                      '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 0 30px ${alpha(PEACOCK.primary, 0.5)}` },
+                    }}>
                     Start Demo
                   </Button>
                 ) : (
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={handleStop}
-                    startIcon={<Pause />}
-                    sx={{
-                      background: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)',
-                      color: 'white',
-                      fontWeight: 700,
-                      px: 4,
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                    }}
-                  >
+                  <Button variant="contained" size="large" onClick={handleStop} startIcon={<Pause />}
+                    sx={{ background: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)', color: 'white', fontWeight: 700, px: 4, py: 1.5, fontSize: '1.1rem' }}>
                     Stop Demo
                   </Button>
                 )}
-
-                <Chip
-                  icon={<NetworkCheck />}
-                  label={isRunning ? 'LIVE' : 'READY'}
+                <Chip icon={<NetworkCheck />} label={isRunning ? 'LIVE' : 'READY'}
                   sx={{
                     bgcolor: isRunning ? alpha(PEACOCK.primary, 0.2) : alpha('#8BA4B4', 0.2),
-                    color: isRunning ? PEACOCK.primary : '#8BA4B4',
-                    fontWeight: 600,
+                    color: isRunning ? PEACOCK.primary : '#8BA4B4', fontWeight: 600,
                     animation: isRunning ? 'pulse 2s infinite' : 'none',
-                    '@keyframes pulse': {
-                      '0%, 100%': { opacity: 1 },
-                      '50%': { opacity: 0.7 },
-                    },
-                  }}
-                />
+                    '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.7 } },
+                  }} />
+                <Chip icon={<Hub />} label={`${totalNodes} Nodes`} sx={{ bgcolor: alpha(PEACOCK.secondary, 0.2), color: PEACOCK.secondary }} />
               </Box>
             </Grid>
 
-            <Grid item xs={12} md={5}>
-              <Box sx={{
-                display: 'flex',
-                gap: 4,
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-              }}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h2" sx={{
-                    fontWeight: 800,
-                    color: PEACOCK.primary,
-                    textShadow: `0 0 20px ${alpha(PEACOCK.primary, 0.4)}`,
-                  }}>
-                    {formatNumber(currentTPS)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Current TPS</Typography>
-                </Box>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h2" sx={{
-                    fontWeight: 800,
-                    color: PEACOCK.accent,
-                    textShadow: `0 0 20px ${alpha(PEACOCK.accent, 0.4)}`,
-                  }}>
-                    {formatNumber(peakTPS)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Peak TPS</Typography>
-                </Box>
-              </Box>
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={2}>
+                <Grid item xs={4}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: PEACOCK.primary, textShadow: `0 0 20px ${alpha(PEACOCK.primary, 0.4)}` }}>
+                      {formatNumber(currentTPS)}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Current TPS</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={4}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: PEACOCK.accent, textShadow: `0 0 20px ${alpha(PEACOCK.accent, 0.4)}` }}>
+                      {formatNumber(peakTPS)}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Peak TPS</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={4}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: PEACOCK.warning, textShadow: `0 0 20px ${alpha(PEACOCK.warning, 0.4)}` }}>
+                      {tokensCreated}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Tokens Created</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
         </Paper>
       </Fade>
 
-      {/* Real-time Metrics Grid */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={6} sm={3}>
-          <Card sx={METRIC_CARD}>
-            <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <Avatar sx={{
-                bgcolor: alpha(PEACOCK.primary, 0.15),
-                color: PEACOCK.primary,
-                width: 56,
-                height: 56,
-                mx: 'auto',
-                mb: 2
-              }}>
-                <Speed sx={{ fontSize: 28 }} />
-              </Avatar>
-              <Typography variant="h4" sx={{ color: PEACOCK.primary, fontWeight: 700 }}>
-                {formatNumber(avgTPS)}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Average TPS</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={6} sm={3}>
-          <Card sx={METRIC_CARD}>
-            <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <Avatar sx={{
-                bgcolor: alpha(PEACOCK.secondary, 0.15),
-                color: PEACOCK.secondary,
-                width: 56,
-                height: 56,
-                mx: 'auto',
-                mb: 2
-              }}>
-                <Timer sx={{ fontSize: 28 }} />
-              </Avatar>
-              <Typography variant="h4" sx={{ color: PEACOCK.secondary, fontWeight: 700 }}>
-                {latency.toFixed(1)}ms
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Latency</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={6} sm={3}>
-          <Card sx={METRIC_CARD}>
-            <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <Avatar sx={{
-                bgcolor: alpha(PEACOCK.warning, 0.15),
-                color: PEACOCK.warning,
-                width: 56,
-                height: 56,
-                mx: 'auto',
-                mb: 2
-              }}>
-                <TrendingUp sx={{ fontSize: 28 }} />
-              </Avatar>
-              <Typography variant="h4" sx={{ color: PEACOCK.warning, fontWeight: 700 }}>
-                {successRate.toFixed(2)}%
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Success Rate</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={6} sm={3}>
-          <Card sx={METRIC_CARD}>
-            <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <Avatar sx={{
-                bgcolor: alpha(PEACOCK.accent, 0.15),
-                color: PEACOCK.accent,
-                width: 56,
-                height: 56,
-                mx: 'auto',
-                mb: 2
-              }}>
-                <BarChart sx={{ fontSize: 28 }} />
-              </Avatar>
-              <Typography variant="h4" sx={{ color: PEACOCK.accent, fontWeight: 700 }}>
-                {formatNumber(totalTransactions)}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Total Transactions</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* TPS Chart */}
+      {/* Tabs for different views */}
       <Card sx={{ ...GLASS_CARD, mb: 4 }}>
+        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}
+          sx={{ borderBottom: `1px solid ${alpha(PEACOCK.primary, 0.2)}`, px: 2 }}>
+          <Tab label="Performance" icon={<Speed />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
+          <Tab label="Node Configuration" icon={<Dns />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
+          <Tab label="API Streams" icon={<CloudQueue />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
+          <Tab label="Merkle Registry" icon={<AccountTree />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: PEACOCK.primary } }} />
+        </Tabs>
+
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Real-time TPS Performance
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Chip
-                label={`Uptime: ${formatTime(uptime)}`}
-                size="small"
-                sx={{ bgcolor: alpha(PEACOCK.primary, 0.15), color: PEACOCK.primary }}
-              />
-              <Chip
-                label={`Memory: ${memoryUsage.toFixed(0)}%`}
-                size="small"
-                sx={{ bgcolor: alpha(PEACOCK.secondary, 0.15), color: PEACOCK.secondary }}
-              />
-            </Box>
-          </Box>
+          {/* Performance Tab */}
+          {activeTab === 0 && (
+            <>
+              <Grid container spacing={3} sx={{ mb: 4 }}>
+                {[
+                  { icon: <Speed />, value: formatNumber(avgTPS), label: 'Average TPS', color: PEACOCK.primary },
+                  { icon: <Timer />, value: `${latency.toFixed(1)}ms`, label: 'Latency', color: PEACOCK.secondary },
+                  { icon: <TrendingUp />, value: `${successRate.toFixed(2)}%`, label: 'Success Rate', color: PEACOCK.warning },
+                  { icon: <BarChart />, value: formatNumber(totalTransactions), label: 'Total Transactions', color: PEACOCK.accent },
+                ].map((metric, i) => (
+                  <Grid item xs={6} sm={3} key={i}>
+                    <Card sx={METRIC_CARD}>
+                      <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                        <Avatar sx={{ bgcolor: alpha(metric.color, 0.15), color: metric.color, width: 48, height: 48, mx: 'auto', mb: 1 }}>
+                          {metric.icon}
+                        </Avatar>
+                        <Typography variant="h5" sx={{ color: metric.color, fontWeight: 700 }}>{metric.value}</Typography>
+                        <Typography variant="body2" sx={{ color: '#8BA4B4' }}>{metric.label}</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
 
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={tpsData}>
-              <defs>
-                <linearGradient id="tpsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={PEACOCK.primary} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={PEACOCK.primary} stopOpacity={0.05} />
-                </linearGradient>
-                <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={PEACOCK.secondary} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={PEACOCK.secondary} stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 166, 166, 0.1)" />
-              <XAxis
-                dataKey="timestamp"
-                tickFormatter={(t) => new Date(t).toLocaleTimeString()}
-                stroke="#5A7A8A"
-                tick={{ fill: '#5A7A8A', fontSize: 11 }}
-              />
-              <YAxis
-                yAxisId="left"
-                tickFormatter={(v) => formatNumber(v)}
-                stroke={PEACOCK.primary}
-                tick={{ fill: PEACOCK.primary, fontSize: 11 }}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                domain={[0, 100]}
-                stroke={PEACOCK.secondary}
-                tick={{ fill: PEACOCK.secondary, fontSize: 11 }}
-              />
-              <RechartsTooltip
-                contentStyle={{
-                  background: 'rgba(13, 27, 42, 0.95)',
-                  border: `1px solid ${alpha(PEACOCK.primary, 0.2)}`,
-                  borderRadius: 8,
-                }}
-                labelFormatter={(t) => new Date(t).toLocaleTimeString()}
-              />
-              <Area
-                yAxisId="left"
-                type="monotone"
-                dataKey="tps"
-                stroke={PEACOCK.primary}
-                strokeWidth={2}
-                fill="url(#tpsGradient)"
-                name="TPS"
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="latency"
-                stroke={PEACOCK.accent}
-                strokeWidth={2}
-                dot={false}
-                name="Latency (ms)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Real-time TPS by Source</Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={tpsData}>
+                  <defs>
+                    <linearGradient id="tpsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={PEACOCK.primary} stopOpacity={0.35} />
+                      <stop offset="100%" stopColor={PEACOCK.primary} stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 166, 166, 0.1)" />
+                  <XAxis dataKey="timestamp" tickFormatter={(t) => new Date(t).toLocaleTimeString()} stroke="#5A7A8A" tick={{ fill: '#5A7A8A', fontSize: 10 }} />
+                  <YAxis tickFormatter={(v) => formatNumber(v)} stroke={PEACOCK.primary} tick={{ fill: PEACOCK.primary, fontSize: 10 }} />
+                  <RechartsTooltip contentStyle={{ background: 'rgba(13, 27, 42, 0.95)', border: `1px solid ${alpha(PEACOCK.primary, 0.2)}`, borderRadius: 8 }} />
+                  <Area type="monotone" dataKey="tps" stroke={PEACOCK.primary} strokeWidth={2} fill="url(#tpsGradient)" name="Total TPS" />
+                  <Line type="monotone" dataKey="quantconnect" stroke="#9B59B6" strokeWidth={1.5} dot={false} name="QuantConnect" />
+                  <Line type="monotone" dataKey="weather" stroke="#3498DB" strokeWidth={1.5} dot={false} name="Weather" />
+                  <Line type="monotone" dataKey="news" stroke="#E67E22" strokeWidth={1.5} dot={false} name="News" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </>
+          )}
 
-      {/* Configuration Panel */}
-      <Card sx={GLASS_CARD}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-            <Settings sx={{ color: PEACOCK.primary }} />
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Demo Configuration
-            </Typography>
-          </Box>
+          {/* Node Configuration Tab */}
+          {activeTab === 1 && (
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>Node Distribution</Typography>
 
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#8BA4B4', mb: 2 }}>
-                Target TPS: {formatNumber(config.targetTPS)}
-              </Typography>
-              <Slider
-                value={config.targetTPS}
-                min={100000}
-                max={2000000}
-                step={100000}
-                onChange={(_, value) => setConfig(prev => ({ ...prev, targetTPS: value as number }))}
-                disabled={isRunning}
-                sx={{
-                  color: PEACOCK.primary,
-                  '& .MuiSlider-thumb': {
-                    boxShadow: `0 0 8px ${alpha(PEACOCK.primary, 0.4)}`,
-                  },
-                }}
-              />
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <Chip icon={<CheckCircle />} label="Validators" sx={{ bgcolor: alpha(PEACOCK.primary, 0.2), color: PEACOCK.primary }} />
+                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Consensus & Block Validation</Typography>
+                  </Box>
+                  <Slider value={config.nodes.validators} min={1} max={10} marks
+                    onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, validators: v as number } }))}
+                    disabled={isRunning}
+                    sx={{ color: PEACOCK.primary, '& .MuiSlider-thumb': { boxShadow: `0 0 8px ${alpha(PEACOCK.primary, 0.4)}` } }} />
+                  <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.validators} validators (Consensus strength: {Math.round(config.nodes.validators / 3 * 100)}%)</Typography>
+                </Box>
+
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <Chip icon={<Storage />} label="Business Nodes" sx={{ bgcolor: alpha(PEACOCK.secondary, 0.2), color: PEACOCK.secondary }} />
+                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Transaction Processing</Typography>
+                  </Box>
+                  <Slider value={config.nodes.businessNodes} min={1} max={15} marks
+                    onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, businessNodes: v as number } }))}
+                    disabled={isRunning}
+                    sx={{ color: PEACOCK.secondary }} />
+                  <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.businessNodes} business nodes (Processing capacity: {Math.round(config.nodes.businessNodes / 5 * 100)}%)</Typography>
+                </Box>
+
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <Chip icon={<CloudQueue />} label="Slim Nodes" sx={{ bgcolor: alpha(PEACOCK.accent, 0.2), color: PEACOCK.accent }} />
+                    <Typography variant="body2" sx={{ color: '#8BA4B4' }}>API Integration & Data Ingestion</Typography>
+                  </Box>
+                  <Slider value={config.nodes.slimNodes} min={1} max={30} marks
+                    onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, slimNodes: v as number } }))}
+                    disabled={isRunning}
+                    sx={{ color: PEACOCK.accent }} />
+                  <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.slimNodes} slim nodes (API throughput: {Math.round(config.nodes.slimNodes / 10 * 100)}%)</Typography>
+                </Box>
+
+                <Divider sx={{ my: 3, borderColor: alpha(PEACOCK.primary, 0.2) }} />
+
+                <Typography variant="subtitle2" sx={{ color: '#8BA4B4', mb: 2 }}>Performance Options</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <FormControlLabel control={<Switch checked={config.aiOptimization} onChange={(e) => setConfig(prev => ({ ...prev, aiOptimization: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: PEACOCK.primary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.primary } }} />} label={<Typography variant="body2">AI Optimization (+30% TPS)</Typography>} />
+                  <FormControlLabel control={<Switch checked={config.burstMode} onChange={(e) => setConfig(prev => ({ ...prev, burstMode: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: PEACOCK.warning }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.warning } }} />} label={<Typography variant="body2">Burst Mode (+50% peak capacity)</Typography>} />
+                  <FormControlLabel control={<Switch checked={config.quantumSecurity} onChange={(e) => setConfig(prev => ({ ...prev, quantumSecurity: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: PEACOCK.secondary }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.secondary } }} />} label={<Typography variant="body2">Quantum-Resistant Security (NIST Level 5)</Typography>} />
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>Node Architecture</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                  <ResponsiveContainer width={250} height={250}>
+                    <PieChart>
+                      <Pie data={nodeDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                        {nodeDistribution.map((entry, index) => (
+                          <Cell key={index} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
+                  {nodeDistribution.map((node) => (
+                    <Box key={node.name} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: node.color }} />
+                      <Typography variant="caption" sx={{ color: '#8BA4B4' }}>{node.name}: {node.value}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+
+                <Box sx={{ mt: 4, p: 2, bgcolor: alpha(PEACOCK.primary, 0.1), borderRadius: 2 }}>
+                  <Typography variant="subtitle2" sx={{ color: PEACOCK.primary, mb: 1 }}>Estimated Performance</Typography>
+                  <Typography variant="body2" sx={{ color: '#8BA4B4' }}>
+                    Base TPS: {formatNumber(config.targetTPS)}<br/>
+                    Node Multiplier: {calculateNodeMultiplier().toFixed(2)}x<br/>
+                    <strong>Effective TPS: {formatNumber(Math.round(config.targetTPS * calculateNodeMultiplier() * (config.aiOptimization ? 1.3 : 1)))}</strong>
+                  </Typography>
+                </Box>
+              </Grid>
             </Grid>
+          )}
 
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={config.aiOptimization}
-                      onChange={(e) => setConfig(prev => ({ ...prev, aiOptimization: e.target.checked }))}
-                      disabled={isRunning}
-                      sx={{
-                        '& .Mui-checked': { color: PEACOCK.primary },
-                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.primary },
-                      }}
-                    />
-                  }
-                  label={<Typography variant="body2">AI Optimization (+30% TPS)</Typography>}
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={config.burstMode}
-                      onChange={(e) => setConfig(prev => ({ ...prev, burstMode: e.target.checked }))}
-                      disabled={isRunning}
-                      sx={{
-                        '& .Mui-checked': { color: PEACOCK.warning },
-                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.warning },
-                      }}
-                    />
-                  }
-                  label={<Typography variant="body2">Burst Mode (+50% peak capacity)</Typography>}
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={config.quantumSecurity}
-                      onChange={(e) => setConfig(prev => ({ ...prev, quantumSecurity: e.target.checked }))}
-                      disabled={isRunning}
-                      sx={{
-                        '& .Mui-checked': { color: PEACOCK.secondary },
-                        '& .Mui-checked + .MuiSwitch-track': { bgcolor: PEACOCK.secondary },
-                      }}
-                    />
-                  }
-                  label={<Typography variant="body2">Quantum-Resistant Security (NIST Level 5)</Typography>}
-                />
+          {/* API Streams Tab */}
+          {activeTab === 2 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>API Data Streams (via Slim Nodes)</Typography>
+              </Grid>
+
+              {/* API Toggle Controls */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                  <FormControlLabel control={<Switch checked={config.enableQuantConnect} onChange={(e) => setConfig(prev => ({ ...prev, enableQuantConnect: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: '#9B59B6' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#9B59B6' } }} />} label={<Chip icon={<ShowChart />} label="QuantConnect" sx={{ bgcolor: config.enableQuantConnect ? alpha('#9B59B6', 0.2) : 'transparent', color: config.enableQuantConnect ? '#9B59B6' : '#5A7A8A' }} />} />
+                  <FormControlLabel control={<Switch checked={config.enableWeather} onChange={(e) => setConfig(prev => ({ ...prev, enableWeather: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: '#3498DB' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#3498DB' } }} />} label={<Chip icon={<Cloud />} label="Weather API" sx={{ bgcolor: config.enableWeather ? alpha('#3498DB', 0.2) : 'transparent', color: config.enableWeather ? '#3498DB' : '#5A7A8A' }} />} />
+                  <FormControlLabel control={<Switch checked={config.enableNews} onChange={(e) => setConfig(prev => ({ ...prev, enableNews: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: '#E67E22' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#E67E22' } }} />} label={<Chip icon={<Newspaper />} label="News API" sx={{ bgcolor: config.enableNews ? alpha('#E67E22', 0.2) : 'transparent', color: config.enableNews ? '#E67E22' : '#5A7A8A' }} />} />
+                </Box>
+              </Grid>
+
+              {/* QuantConnect Stream */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ ...GLASS_CARD, border: `1px solid ${alpha('#9B59B6', 0.3)}` }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <ShowChart sx={{ color: '#9B59B6' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>QuantConnect</Typography>
+                      {isRunning && config.enableQuantConnect && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha('#9B59B6', 0.2), color: '#9B59B6', ml: 'auto' }} />}
+                    </Box>
+                    {latestQuantConnect ? (
+                      <Box>
+                        <Typography variant="h4" sx={{ color: '#9B59B6', fontWeight: 700 }}>{latestQuantConnect.symbol}</Typography>
+                        <Typography variant="h5" sx={{ color: '#E8F4F8' }}>${latestQuantConnect.price}</Typography>
+                        <Typography variant="body2" sx={{ color: parseFloat(latestQuantConnect.change) >= 0 ? PEACOCK.success : PEACOCK.error }}>
+                          {parseFloat(latestQuantConnect.change) >= 0 ? '+' : ''}{latestQuantConnect.change}%
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Vol: {formatNumber(latestQuantConnect.volume)}</Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#5A7A8A' }}>Start demo to see live data</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Weather Stream */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ ...GLASS_CARD, border: `1px solid ${alpha('#3498DB', 0.3)}` }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <Cloud sx={{ color: '#3498DB' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Weather API</Typography>
+                      {isRunning && config.enableWeather && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha('#3498DB', 0.2), color: '#3498DB', ml: 'auto' }} />}
+                    </Box>
+                    {latestWeather ? (
+                      <Box>
+                        <Typography variant="h4" sx={{ color: '#3498DB', fontWeight: 700 }}>{latestWeather.city}</Typography>
+                        <Typography variant="h5" sx={{ color: '#E8F4F8' }}>{latestWeather.temperature}°C</Typography>
+                        <Typography variant="body2" sx={{ color: '#8BA4B4' }}>{latestWeather.condition}</Typography>
+                        <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Humidity: {latestWeather.humidity}%</Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#5A7A8A' }}>Start demo to see live data</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* News Stream */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ ...GLASS_CARD, border: `1px solid ${alpha('#E67E22', 0.3)}` }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <Newspaper sx={{ color: '#E67E22' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>News API</Typography>
+                      {isRunning && config.enableNews && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha('#E67E22', 0.2), color: '#E67E22', ml: 'auto' }} />}
+                    </Box>
+                    {latestNews ? (
+                      <Box>
+                        <Typography variant="body1" sx={{ color: '#E8F4F8', fontWeight: 600, mb: 1 }}>{latestNews.headline}</Typography>
+                        <Chip label={latestNews.sentiment} size="small" sx={{ bgcolor: latestNews.sentiment === 'positive' ? alpha(PEACOCK.success, 0.2) : alpha('#5A7A8A', 0.2), color: latestNews.sentiment === 'positive' ? PEACOCK.success : '#8BA4B4' }} />
+                        <Typography variant="caption" sx={{ color: '#5A7A8A', display: 'block', mt: 1 }}>Source: {latestNews.source}</Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#5A7A8A' }}>Start demo to see live data</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* API TPS Distribution */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                  <ResponsiveContainer width={300} height={200}>
+                    <PieChart>
+                      <Pie data={apiDistribution.filter(d => d.value > 0)} cx="50%" cy="50%" innerRadius={40} outerRadius={80} paddingAngle={3} dataKey="value">
+                        {apiDistribution.filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={index} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  {apiDistribution.filter(d => d.value > 0).map((api) => (
+                    <Box key={api.name} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: api.color }} />
+                      <Typography variant="caption" sx={{ color: '#8BA4B4' }}>{api.name}: {api.value}%</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Merkle Registry Tab */}
+          {activeTab === 3 && (
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>Merkle Registry ({merkleRegistry.length} entries)</Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Chip icon={<Token />} label={`${tokensCreated} Tokens`} sx={{ bgcolor: alpha(PEACOCK.primary, 0.2), color: PEACOCK.primary }} />
+                  <Chip icon={<AccountTree />} label={`${merkleRegistry.filter(e => e.verified).length} Verified`} sx={{ bgcolor: alpha(PEACOCK.success, 0.2), color: PEACOCK.success }} />
+                </Box>
               </Box>
-            </Grid>
-          </Grid>
+
+              <TableContainer component={Paper} sx={{ bgcolor: 'transparent', maxHeight: 400 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Token ID</TableCell>
+                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Source</TableCell>
+                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Merkle Root</TableCell>
+                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Leaf Index</TableCell>
+                      <TableCell sx={{ bgcolor: PEACOCK.bgLight, color: '#8BA4B4' }}>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {tokenizedAssets.slice(0, 20).map((asset) => {
+                      const merkleEntry = merkleRegistry.find(e => e.tokenId === asset.id);
+                      return (
+                        <TableRow key={asset.id} sx={{ '&:hover': { bgcolor: alpha(PEACOCK.primary, 0.05) } }}>
+                          <TableCell sx={{ color: '#E8F4F8', fontFamily: 'monospace', fontSize: '0.75rem' }}>{asset.id}</TableCell>
+                          <TableCell>
+                            <Chip label={asset.source} size="small" sx={{
+                              bgcolor: asset.source === 'quantconnect' ? alpha('#9B59B6', 0.2) :
+                                       asset.source === 'weather' ? alpha('#3498DB', 0.2) : alpha('#E67E22', 0.2),
+                              color: asset.source === 'quantconnect' ? '#9B59B6' :
+                                     asset.source === 'weather' ? '#3498DB' : '#E67E22',
+                            }} />
+                          </TableCell>
+                          <TableCell sx={{ color: PEACOCK.accent, fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                            {merkleEntry?.merkleRoot.substring(0, 18)}...
+                          </TableCell>
+                          <TableCell sx={{ color: '#8BA4B4' }}>{merkleEntry?.leafIndex}</TableCell>
+                          <TableCell>
+                            <Chip icon={<CheckCircle sx={{ fontSize: 14 }} />} label="Verified" size="small"
+                              sx={{ bgcolor: alpha(PEACOCK.success, 0.2), color: PEACOCK.success }} />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {tokenizedAssets.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <AccountTree sx={{ fontSize: 48, color: '#5A7A8A', mb: 2 }} />
+                  <Typography variant="body1" sx={{ color: '#8BA4B4' }}>
+                    Start the demo to see tokenized assets registered in the Merkle tree
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
         </CardContent>
       </Card>
 
       {/* Feature Highlights */}
-      <Grid container spacing={3} sx={{ mt: 4 }}>
+      <Grid container spacing={3}>
         {[
-          { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput blockchain processing', color: PEACOCK.primary },
-          { icon: <Timer />, title: '<100ms Finality', desc: 'Near-instant transaction confirmation', color: PEACOCK.accent },
-          { icon: <Memory />, title: '<256MB Memory', desc: 'Efficient native GraalVM compilation', color: PEACOCK.warning },
-          { icon: <CloudQueue />, title: 'Multi-Cloud', desc: 'Deploy across AWS, Azure, and GCP', color: PEACOCK.secondary },
+          { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput with multi-node architecture', color: PEACOCK.primary },
+          { icon: <Hub />, title: 'Multi-Node', desc: 'Validators, Business & Slim node configuration', color: PEACOCK.secondary },
+          { icon: <CloudQueue />, title: 'API Integration', desc: 'QuantConnect, Weather & News data streams', color: PEACOCK.accent },
+          { icon: <AccountTree />, title: 'Merkle Registry', desc: 'Tokenized assets with proof verification', color: PEACOCK.warning },
         ].map((feature) => (
           <Grid item xs={6} md={3} key={feature.title}>
-            <Paper
-              sx={{
-                ...GLASS_CARD,
-                p: 3,
-                textAlign: 'center',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-3px)',
-                  boxShadow: `0 12px 36px rgba(0, 0, 0, 0.3), 0 0 15px ${alpha(feature.color, 0.25)}`,
-                },
-              }}
-            >
-              <Avatar sx={{
-                bgcolor: alpha(feature.color, 0.15),
-                color: feature.color,
-                width: 48,
-                height: 48,
-                mx: 'auto',
-                mb: 2
-              }}>
+            <Paper sx={{
+              ...GLASS_CARD, p: 3, textAlign: 'center', transition: 'all 0.3s ease',
+              '&:hover': { transform: 'translateY(-3px)', boxShadow: `0 12px 36px rgba(0, 0, 0, 0.3), 0 0 15px ${alpha(feature.color, 0.25)}` },
+            }}>
+              <Avatar sx={{ bgcolor: alpha(feature.color, 0.15), color: feature.color, width: 48, height: 48, mx: 'auto', mb: 2 }}>
                 {feature.icon}
               </Avatar>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: feature.color }}>
-                {feature.title}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>
-                {feature.desc}
-              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: feature.color }}>{feature.title}</Typography>
+              <Typography variant="body2" sx={{ color: '#8BA4B4' }}>{feature.desc}</Typography>
             </Paper>
           </Grid>
         ))}
