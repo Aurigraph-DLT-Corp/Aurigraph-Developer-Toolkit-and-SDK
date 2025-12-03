@@ -119,6 +119,25 @@ public class BlockchainSearchApiResource {
     // ==================== ENDPOINT 2: Block Search ====================
 
     /**
+     * GET /api/v11/blockchain/search
+     * Alias for block search (frontend compatibility)
+     */
+    @GET
+    @Path("/search")
+    @Operation(summary = "Search blockchain (alias)", description = "Alias for /blocks/search - Search blocks with various filters")
+    @APIResponse(responseCode = "200", description = "Search completed successfully")
+    public Uni<BlockSearchResponse> searchBlocksAlias(
+        @QueryParam("query") String query,
+        @QueryParam("fromBlock") Long fromBlock,
+        @QueryParam("toBlock") Long toBlock,
+        @QueryParam("validator") String validator,
+        @QueryParam("minTransactions") Integer minTransactions,
+        @QueryParam("limit") @DefaultValue("20") int limit) {
+        // Delegate to the main search method
+        return searchBlocks(query, fromBlock, toBlock, validator, minTransactions, limit);
+    }
+
+    /**
      * GET /api/v11/blockchain/blocks/search
      * Search blocks with filters
      */

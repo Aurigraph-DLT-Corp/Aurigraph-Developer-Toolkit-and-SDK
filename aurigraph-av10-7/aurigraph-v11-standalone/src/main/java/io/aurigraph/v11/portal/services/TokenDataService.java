@@ -292,6 +292,68 @@ public class TokenDataService {
     }
 
     /**
+     * Create a new token (RWAT tokenization)
+     * Accepts tokenization requests and returns the created token
+     *
+     * @param request Token creation request with asset details
+     * @return Created token DTO
+     */
+    public Uni<TokenDTO> createToken(TokenCreateRequest request) {
+        return Uni.createFrom().item(() -> {
+            Log.infof("Creating token: %s (%s)", request.name(), request.symbol());
+
+            // Generate unique token ID
+            String tokenId = "TOK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+            // Create and return the token
+            return TokenDTO.builder()
+                .tokenId(tokenId)
+                .name(request.name())
+                .symbol(request.symbol())
+                .decimals(request.decimals() != null ? request.decimals() : 18)
+                .totalSupply(String.valueOf(request.value()))
+                .circulatingSupply("0")
+                .contractAddress("0x" + UUID.randomUUID().toString().replace("-", "").substring(0, 40))
+                .type(request.assetType() != null ? request.assetType() : "rwa")
+                .price("$" + String.format("%.2f", request.value() / 1000000.0))
+                .priceChange24h(0.0)
+                .marketCap("$" + String.format("%.2f", request.value()))
+                .volume24h("$0.00")
+                .holders(1)
+                .createdAt(Instant.now())
+                .status("active")
+                .build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Token creation request record
+     */
+    public record TokenCreateRequest(
+        String assetType,
+        String name,
+        String symbol,
+        String description,
+        Double value,
+        String location,
+        List<String> documents,
+        Integer decimals
+    ) {
+        // Generate symbol from name if not provided
+        public String symbol() {
+            if (symbol != null && !symbol.isEmpty()) {
+                return symbol;
+            }
+            // Generate symbol from name (first 3-4 letters uppercase)
+            if (name != null && !name.isEmpty()) {
+                String cleaned = name.replaceAll("[^a-zA-Z]", "").toUpperCase();
+                return cleaned.substring(0, Math.min(4, cleaned.length()));
+            }
+            return "TOK";
+        }
+    }
+
+    /**
      * Get fractional token details
      */
     public Uni<List<FractionalTokenDTO>> getFractionalTokens() {

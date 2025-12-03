@@ -353,6 +353,27 @@ public class PortalAPIGateway {
             });
     }
 
+    /**
+     * POST /api/v11/tokens/create
+     * Create a new token (RWAT tokenization)
+     * Accepts asset details and returns created token
+     */
+    @POST
+    @Path("/tokens/create")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Uni<PortalResponse<TokenDTO>> createToken(TokenDataService.TokenCreateRequest request) {
+        LOG.infof("Token creation requested: %s", request.name());
+
+        return tokenDataService.createToken(request)
+            .map(token -> PortalResponse.success(token, "Token created successfully"))
+            .onFailure()
+            .recoverWithItem(throwable -> {
+                LOG.error("Failed to create token", throwable);
+                return PortalResponse.error(500, "Failed to create token: " + throwable.getMessage());
+            });
+    }
+
     // ============================================================
     // ANALYTICS ENDPOINTS
     // ============================================================

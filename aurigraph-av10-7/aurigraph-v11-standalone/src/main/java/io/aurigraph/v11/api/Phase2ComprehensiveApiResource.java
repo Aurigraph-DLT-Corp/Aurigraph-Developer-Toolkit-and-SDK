@@ -35,6 +35,20 @@ public class Phase2ComprehensiveApiResource {
     // ==================== ANALYTICS ENDPOINTS ====================
 
     /**
+     * ENDPOINT 16a: GET /api/v11/analytics/network
+     * Alias for network-usage (frontend compatibility)
+     */
+    @GET
+    @Path("/api/v11/analytics/network")
+    @Tag(name = "Analytics API", description = "Network analytics and metrics")
+    @Operation(summary = "Get network analytics (alias)", description = "Alias for /network-usage - Retrieve network bandwidth and usage statistics")
+    @APIResponse(responseCode = "200", description = "Analytics retrieved successfully")
+    public Uni<NetworkUsageResponse> getNetworkAlias(
+        @QueryParam("period") @DefaultValue("24h") String period) {
+        return getNetworkUsage(period);
+    }
+
+    /**
      * ENDPOINT 16: GET /api/v11/analytics/network-usage
      * Network bandwidth and usage analytics
      */
