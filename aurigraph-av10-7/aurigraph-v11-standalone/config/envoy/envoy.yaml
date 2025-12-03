@@ -1,0 +1,255 @@
+# Aurigraph V12 Envoy Proxy Configuration
+# gRPC-Web Transcoding for Browser Clients
+#
+# This configuration enables browser clients to consume gRPC streaming services
+# via the gRPC-Web protocol (HTTP/1.1 + XHR/Fetch compatible)
+#
+# Streaming Services:
+#   - MetricsStreamService     (port 9001)
+#   - ConsensusStreamService   (port 9001)
+#   - NetworkStreamService     (port 9001)
+#   - ValidatorStreamService   (port 9001)
+#   - ChannelStreamService     (port 9001)
+#   - AnalyticsStreamService   (port 9001)
+
+admin:
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901
+  access_log:
+    - name: envoy.access_loggers.stdout
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+
+static_resources:
+  listeners:
+    # ============================================
+    # gRPC-Web Listener (HTTP/1.1 for browsers)
+    # ============================================
+    - name: grpc_web_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8080
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: grpc_web
+                codec_type: AUTO
+
+                # Access logging
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+
+                # HTTP/2 settings for upstream gRPC
+                http2_protocol_options:
+                  max_concurrent_streams: 1000
+                  initial_stream_window_size: 65536
+                  initial_connection_window_size: 1048576
+
+                route_config:
+                  name: grpc_web_routes
+                  virtual_hosts:
+                    - name: grpc_web_services
+                      domains: ["*"]
+                      routes:
+                        # Route all gRPC-Web traffic to backend
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: content-type
+                                prefix_match: "application/grpc-web"
+                          route:
+                            cluster: aurigraph_grpc_cluster
+                            timeout: 0s  # No timeout for streaming
+                            max_stream_duration:
+                              grpc_timeout_header_max: 0s
+
+                        # Route standard gRPC traffic
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: content-type
+                                prefix_match: "application/grpc"
+                          route:
+                            cluster: aurigraph_grpc_cluster
+                            timeout: 0s
+
+                        # Fallback route for other traffic
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: aurigraph_grpc_cluster
+                            timeout: 60s
+
+                      # CORS configuration for browser clients
+                      cors:
+                        allow_origin_string_match:
+                          - prefix: "*"
+                        allow_methods: "GET, POST, PUT, DELETE, OPTIONS"
+                        allow_headers: "keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,authorization,x-api-key"
+                        expose_headers: "grpc-status,grpc-message,grpc-status-details-bin"
+                        max_age: "86400"
+                        allow_credentials: true
+
+                http_filters:
+                  # gRPC-Web filter - translates gRPC-Web to gRPC
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+
+                  # CORS filter
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+
+                  # Router filter (must be last)
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+    # ============================================
+    # HTTPS/TLS Listener (Production)
+    # ============================================
+    - name: grpc_web_https_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8443
+      filter_chains:
+        - transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              common_tls_context:
+                tls_certificates:
+                  - certificate_chain:
+                      filename: /etc/envoy/certs/fullchain.pem
+                    private_key:
+                      filename: /etc/envoy/certs/privkey.pem
+                alpn_protocols: ["h2", "http/1.1"]
+          filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: grpc_web_https
+                codec_type: AUTO
+
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+
+                http2_protocol_options:
+                  max_concurrent_streams: 1000
+                  initial_stream_window_size: 65536
+                  initial_connection_window_size: 1048576
+
+                route_config:
+                  name: grpc_web_https_routes
+                  virtual_hosts:
+                    - name: grpc_web_services_https
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: aurigraph_grpc_cluster
+                            timeout: 0s
+
+                      cors:
+                        allow_origin_string_match:
+                          - exact: "https://dlt.aurigraph.io"
+                          - exact: "https://localhost:3000"
+                          - exact: "https://localhost:5173"
+                        allow_methods: "GET, POST, PUT, DELETE, OPTIONS"
+                        allow_headers: "keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,authorization,x-api-key"
+                        expose_headers: "grpc-status,grpc-message,grpc-status-details-bin"
+                        max_age: "86400"
+                        allow_credentials: true
+
+                http_filters:
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+    # ============================================
+    # Aurigraph gRPC Backend Cluster
+    # ============================================
+    - name: aurigraph_grpc_cluster
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      connect_timeout: 10s
+
+      # HTTP/2 for gRPC
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options:
+              max_concurrent_streams: 1000
+              initial_stream_window_size: 1048576
+              initial_connection_window_size: 1048576
+
+      # Health checks
+      health_checks:
+        - timeout: 5s
+          interval: 10s
+          unhealthy_threshold: 3
+          healthy_threshold: 2
+          grpc_health_check:
+            service_name: "grpc.health.v1.Health"
+
+      # Load balancing endpoints
+      load_assignment:
+        cluster_name: aurigraph_grpc_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      # Connect to Quarkus gRPC server
+                      # In Docker: use service name
+                      # Locally: use localhost
+                      address: aurigraph-v11-native
+                      port_value: 9001
+              - endpoint:
+                  address:
+                    socket_address:
+                      # Fallback to localhost for local development
+                      address: localhost
+                      port_value: 9001
+
+      # Circuit breaker settings
+      circuit_breakers:
+        thresholds:
+          - priority: DEFAULT
+            max_connections: 1000
+            max_pending_requests: 1000
+            max_requests: 1000
+            max_retries: 3
+
+# Layered runtime configuration
+layered_runtime:
+  layers:
+    - name: static_layer
+      static_layer:
+        envoy:
+          resource_limits:
+            listener:
+              grpc_web_listener:
+                connection_limit: 10000
+        overload:
+          global_downstream_max_connections: 50000

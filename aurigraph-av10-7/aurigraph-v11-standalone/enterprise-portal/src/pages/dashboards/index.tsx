@@ -7,3 +7,4 @@ export { default as PerformanceMetrics } from './PerformanceMetrics';
 export { default as SecurityAudit } from './SecurityAudit';
 export { default as DeveloperDashboard } from './DeveloperDashboard';
 export { default as RicardianContracts } from './RicardianContracts';
+export { default as RealTimeStreamingDashboard } from './RealTimeStreamingDashboard';
