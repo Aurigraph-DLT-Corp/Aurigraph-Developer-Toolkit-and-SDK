@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph RWAT - Demo Explainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0F172A;
+            color: #F1F5F9;
+            overflow-x: hidden;
+        }
+
+        /* Slides Container */
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            position: relative;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo */
+        .logo {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo img {
+            height: 40px;
+            width: 40px;
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2563EB, #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Navigation */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            color: #60A5FA;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(37, 99, 235, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 35px;
+            right: 40px;
+            color: #94A3B8;
+            font-size: 0.9rem;
+        }
+
+        /* Slide 1: Opening */
+        .opening-title {
+            font-size: 4rem;
+            font-weight: 800;
+            text-align: center;
+            line-height: 1.2;
+            margin-bottom: 30px;
+        }
+
+        .opening-title span {
+            background: linear-gradient(135deg, #2563EB, #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            color: #94A3B8;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        /* Particles Background */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #2563EB;
+            border-radius: 50%;
+            animation: float 8s infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            50% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
+        }
+
+        /* Problem Slide */
+        .problem-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 30px 40px;
+            border-radius: 16px;
+            text-align: center;
+            animation: slideUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.2s; }
+        .stat-card:nth-child(2) { animation-delay: 0.4s; }
+        .stat-card:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(30px); }
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #EF4444;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #94A3B8;
+            margin-top: 10px;
+        }
+
+        /* Solution Slide */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 50px;
+            max-width: 1000px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(30, 64, 175, 0.1));
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: slideUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; }
+        .feature-card:nth-child(4) { animation-delay: 0.4s; }
+        .feature-card:nth-child(5) { animation-delay: 0.5s; }
+        .feature-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(37, 99, 235, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #60A5FA;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            font-size: 0.9rem;
+            color: #94A3B8;
+        }
+
+        /* Asset Categories Slide */
+        .categories-row {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-pill {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(96, 165, 250, 0.15));
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            padding: 20px 35px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideUp 0.8s ease forwards;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .category-pill:hover {
+            transform: scale(1.05);
+            border-color: #60A5FA;
+        }
+
+        .category-pill:nth-child(1) { animation-delay: 0.1s; }
+        .category-pill:nth-child(2) { animation-delay: 0.2s; }
+        .category-pill:nth-child(3) { animation-delay: 0.3s; }
+        .category-pill:nth-child(4) { animation-delay: 0.4s; }
+        .category-pill:nth-child(5) { animation-delay: 0.5s; }
+        .category-pill:nth-child(6) { animation-delay: 0.6s; }
+
+        .category-emoji {
+            font-size: 1.8rem;
+        }
+
+        .category-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Performance Slide */
+        .perf-metrics {
+            display: flex;
+            gap: 50px;
+            margin-top: 50px;
+        }
+
+        .perf-card {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .perf-value {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22C55E, #10B981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .perf-unit {
+            font-size: 1.5rem;
+            color: #22C55E;
+        }
+
+        .perf-label {
+            font-size: 1.1rem;
+            color: #94A3B8;
+            margin-top: 10px;
+        }
+
+        /* Lifecycle Slide */
+        .lifecycle-flow {
+            display: flex;
+            gap: 20px;
+            margin-top: 50px;
+            align-items: center;
+        }
+
+        .lifecycle-step {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(30, 64, 175, 0.1));
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            padding: 25px 30px;
+            border-radius: 16px;
+            text-align: center;
+            width: 150px;
+            animation: slideUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .lifecycle-step:nth-child(1) { animation-delay: 0.1s; }
+        .lifecycle-step:nth-child(3) { animation-delay: 0.3s; }
+        .lifecycle-step:nth-child(5) { animation-delay: 0.5s; }
+        .lifecycle-step:nth-child(7) { animation-delay: 0.7s; }
+        .lifecycle-step:nth-child(9) { animation-delay: 0.9s; }
+        .lifecycle-step:nth-child(11) { animation-delay: 1.1s; }
+
+        .lifecycle-arrow {
+            font-size: 1.5rem;
+            color: #60A5FA;
+            animation: slideUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .lifecycle-arrow:nth-child(2) { animation-delay: 0.2s; }
+        .lifecycle-arrow:nth-child(4) { animation-delay: 0.4s; }
+        .lifecycle-arrow:nth-child(6) { animation-delay: 0.6s; }
+        .lifecycle-arrow:nth-child(8) { animation-delay: 0.8s; }
+        .lifecycle-arrow:nth-child(10) { animation-delay: 1.0s; }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #2563EB, #1E40AF);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .step-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #60A5FA;
+        }
+
+        /* CTA Slide */
+        .cta-url {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2563EB, #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 30px;
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, #2563EB, #1E40AF);
+            color: white;
+            padding: 20px 50px;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            margin-top: 40px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.4);
+        }
+
+        .cta-features {
+            display: flex;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .cta-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #94A3B8;
+        }
+
+        .cta-feature .check {
+            color: #22C55E;
+            font-size: 1.3rem;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: #94A3B8;
+            text-align: center;
+            max-width: 700px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .lifecycle-flow {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px;
+            }
+            .opening-title {
+                font-size: 2.5rem;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .problem-stats, .perf-metrics {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Opening -->
+        <div class="slide active" id="slide1">
+            <div class="particles">
+                <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
+                <div class="particle" style="left: 20%; top: 60%; animation-delay: 1s;"></div>
+                <div class="particle" style="left: 30%; top: 40%; animation-delay: 2s;"></div>
+                <div class="particle" style="left: 50%; top: 10%; animation-delay: 0.5s;"></div>
+                <div class="particle" style="left: 60%; top: 70%; animation-delay: 1.5s;"></div>
+                <div class="particle" style="left: 70%; top: 30%; animation-delay: 2.5s;"></div>
+                <div class="particle" style="left: 80%; top: 50%; animation-delay: 3s;"></div>
+                <div class="particle" style="left: 90%; top: 80%; animation-delay: 0.8s;"></div>
+            </div>
+            <div class="logo">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:8px;"></div>
+                <span class="logo-text">Aurigraph</span>
+            </div>
+            <h1 class="opening-title">
+                Real-World Assets.<br>
+                <span>Tokenized.</span>
+            </h1>
+            <p class="tagline">Transform how you own, trade, and manage real-world assets on enterprise blockchain.</p>
+        </div>
+
+        <!-- Slide 2: The Problem -->
+        <div class="slide" id="slide2">
+            <div class="logo">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:8px;"></div>
+                <span class="logo-text">Aurigraph</span>
+            </div>
+            <h2 class="section-title">Traditional Asset Ownership is Broken</h2>
+            <p class="section-subtitle">High barriers. Illiquid markets. Slow settlements. Limited access.</p>
+            <div class="problem-stats">
+                <div class="stat-card">
+                    <div class="stat-value">$280T</div>
+                    <div class="stat-label">Real Estate Locked Away</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">30-90 Days</div>
+                    <div class="stat-label">Average Settlement Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$100K+</div>
+                    <div class="stat-label">Typical Minimum Investment</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: The Solution -->
+        <div class="slide" id="slide3">
+            <div class="logo">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:8px;"></div>
+                <span class="logo-text">Aurigraph</span>
+            </div>
+            <h2 class="section-title">Introducing Aurigraph RWAT</h2>
+            <p class="section-subtitle">Real-World Asset Tokenization Platform</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧩</div>
+                    <div class="feature-title">Fractional Ownership</div>
+                    <div class="feature-desc">Own any fraction of any asset</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">Instant Settlement</div>
+                    <div class="feature-desc">Seconds, not days or weeks</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <div class="feature-title">24/7 Trading</div>
+                    <div class="feature-desc">Global markets never close</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <div class="feature-title">Full Compliance</div>
+                    <div class="feature-desc">Built-in KYC/AML</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <div class="feature-title">Quantum Security</div>
+                    <div class="feature-desc">NIST Level 5 cryptography</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Merkle Verification</div>
+                    <div class="feature-desc">Cryptographic proof trails</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Asset Categories -->
+        <div class="slide" id="slide4">
+            <div class="logo">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:8px;"></div>
+                <span class="logo-text">Aurigraph</span>
+            </div>
+            <h2 class="section-title">Tokenize Any Asset Class</h2>
+            <p class="section-subtitle">From real estate to rare earth elements - one platform, unlimited possibilities.</p>
+            <div class="categories-row">
+                <div class="category-pill">
+                    <span class="category-emoji">🏢</span>
+                    <span class="category-name">Real Estate</span>
+                </div>
+                <div class="category-pill">
+                    <span class="category-emoji">🥇</span>
+                    <span class="category-name">Commodities</span>
+                </div>
+                <div class="category-pill">
+                    <span class="category-emoji">🎨</span>
+                    <span class="category-name">Art & Collectibles</span>
+                </div>
+            </div>
+            <div class="categories-row">
+                <div class="category-pill">
+                    <span class="category-emoji">🌱</span>
+                    <span class="category-name">Carbon Credits</span>
+                </div>
+                <div class="category-pill">
+                    <span class="category-emoji">💡</span>
+                    <span class="category-name">IP & Patents</span>
+                </div>
+                <div class="category-pill">
+                    <span class="category-emoji">📊</span>
+                    <span class="category-name">Financial Assets</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Performance -->
+        <div class="slide" id="slide5">
+            <div class="logo">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:8px;"></div>
+                <span class="logo-text">Aurigraph</span>
+            </div>
+            <h2 class="section-title">Enterprise-Grade Performance</h2>
+            <p class="section-subtitle">Built for scale. Built for speed. Built for the future.</p>
+            <div class="perf-metrics">
+                <div class="perf-card">
+                    <div class="perf-value">776K+</div>
+                    <div class="perf-unit">TPS</div>
+                    <div class="perf-label">Transactions Per Second</div>
+                </div>
+                <div class="perf-card">
+                    <div class="perf-value">&lt;50</div>
+                    <div class="perf-unit">ms</div>
+                    <div class="perf-label">Average Latency</div>
+                </div>
+                <div class="perf-card">
+                    <div class="perf-value">99.99%</div>
+                    <div class="perf-unit"></div>
+                    <div class="perf-label">Platform Uptime</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Asset Lifecycle -->
+        <div class="slide" id="slide6">
+            <div class="logo">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:8px;"></div>
+                <span class="logo-text">Aurigraph</span>
+            </div>
+            <h2 class="section-title">Complete Asset Lifecycle</h2>
+            <p class="section-subtitle">From physical asset to blockchain token - full transparency at every step.</p>
+            <div class="lifecycle-flow">
+                <div class="lifecycle-step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Underlying<br>Asset</div>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Primary<br>Asset</div>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Secondary<br>Asset</div>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Tokens</div>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-step">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Smart<br>Contracts</div>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-step">
+                    <div class="step-number">6</div>
+                    <div class="step-title">Executions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: CTA -->
+        <div class="slide" id="slide7">
+            <div class="logo">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:8px;"></div>
+                <span class="logo-text">Aurigraph</span>
+            </div>
+            <h2 class="section-title">Try It Now - Live Demo</h2>
+            <p class="section-subtitle">No signup required. Explore the full platform instantly.</p>
+            <div class="cta-url">dlt.aurigraph.io/demo</div>
+            <a href="https://dlt.aurigraph.io/demo" target="_blank" class="cta-btn">Launch Live Demo →</a>
+            <div class="cta-features">
+                <div class="cta-feature">
+                    <span class="check">✓</span>
+                    <span>Browse Marketplace</span>
+                </div>
+                <div class="cta-feature">
+                    <span class="check">✓</span>
+                    <span>Tokenize Test Assets</span>
+                </div>
+                <div class="cta-feature">
+                    <span class="check">✓</span>
+                    <span>Real-Time Metrics</span>
+                </div>
+                <div class="cta-feature">
+                    <span class="check">✓</span>
+                    <span>Full API Access</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Closing -->
+        <div class="slide" id="slide8">
+            <div class="particles">
+                <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
+                <div class="particle" style="left: 20%; top: 60%; animation-delay: 1s;"></div>
+                <div class="particle" style="left: 30%; top: 40%; animation-delay: 2s;"></div>
+                <div class="particle" style="left: 50%; top: 10%; animation-delay: 0.5s;"></div>
+                <div class="particle" style="left: 60%; top: 70%; animation-delay: 1.5s;"></div>
+                <div class="particle" style="left: 70%; top: 30%; animation-delay: 2.5s;"></div>
+                <div class="particle" style="left: 80%; top: 50%; animation-delay: 3s;"></div>
+                <div class="particle" style="left: 90%; top: 80%; animation-delay: 0.8s;"></div>
+            </div>
+            <div style="width:80px;height:80px;background:linear-gradient(135deg,#2563EB,#60A5FA);border-radius:16px;margin-bottom:30px;"></div>
+            <h1 class="opening-title" style="font-size:3.5rem;">
+                <span>Aurigraph</span>
+            </h1>
+            <p class="tagline" style="font-size:1.8rem;color:#60A5FA;margin-bottom:10px;">
+                Real-World Asset Tokenization
+            </p>
+            <p class="tagline">
+                Real Performance. Real Future.
+            </p>
+            <div style="margin-top:50px;color:#94A3B8;">
+                dlt.aurigraph.io
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="prevSlide()">← Previous</button>
+        <button class="nav-btn" onclick="nextSlide()">Next →</button>
+    </div>
+    <div class="slide-counter">
+        <span id="current">1</span> / <span id="total">8</span>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 8;
+
+        function showSlide(n) {
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // Show target slide
+            document.getElementById('slide' + n).classList.add('active');
+            document.getElementById('current').textContent = n;
+        }
+
+        function nextSlide() {
+            currentSlide = currentSlide >= totalSlides ? 1 : currentSlide + 1;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = currentSlide <= 1 ? totalSlides : currentSlide - 1;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Auto-advance option (uncomment for video recording)
+        // setInterval(nextSlide, 5000);
+    </script>
+</body>
+</html>
