@@ -1233,6 +1233,143 @@ public class RWAApiResource {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
+    // ==================== POOLS & FRACTIONAL ====================
+
+    /**
+     * GET /api/v11/rwa/pools
+     * Returns RWA liquidity pools
+     */
+    @GET
+    @Path("/pools")
+    @Operation(summary = "Get RWA pools", description = "Returns RWA liquidity and investment pools")
+    @APIResponse(responseCode = "200", description = "RWA pools retrieved successfully")
+    public Uni<Response> getRWAPools() {
+        LOG.info("GET /api/v11/rwa/pools - Fetching RWA pools");
+
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> pools = new ArrayList<>();
+
+            // Real Estate Pool
+            pools.add(Map.of(
+                "pool_id", "POOL-REAL-001",
+                "pool_name", "Premium Real Estate Pool",
+                "asset_class", "real-estate",
+                "total_value_locked", "$245,234,567",
+                "token_count", 456,
+                "lp_count", 34567,
+                "apy_percentage", 5.2,
+                "daily_volume", "$2,345,678",
+                "min_investment", "$1,000",
+                "lockup_period", "30 days",
+                "rebalance_frequency", "quarterly"
+            ));
+
+            // Carbon Credits Pool
+            pools.add(Map.of(
+                "pool_id", "POOL-CARBON-001",
+                "pool_name", "Global Carbon Pool",
+                "asset_class", "carbon-credits",
+                "total_value_locked", "$123,456,789",
+                "token_count", 234,
+                "lp_count", 56789,
+                "apy_percentage", 3.8,
+                "daily_volume", "$1,234,567",
+                "min_investment", "$500",
+                "lockup_period", "15 days",
+                "rebalance_frequency", "monthly"
+            ));
+
+            // Commodity Pool
+            pools.add(Map.of(
+                "pool_id", "POOL-COMMODITY-001",
+                "pool_name", "Precious Metals Pool",
+                "asset_class", "commodity",
+                "total_value_locked", "$89,567,234",
+                "token_count", 345,
+                "lp_count", 23456,
+                "apy_percentage", 2.9,
+                "daily_volume", "$890,234",
+                "min_investment", "$2,000",
+                "lockup_period", "60 days",
+                "rebalance_frequency", "semi-annual"
+            ));
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("status", 200);
+            response.put("message", "RWA pools retrieved");
+            response.put("data", pools);
+            response.put("timestamp", Instant.now().toString());
+
+            return Response.ok(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * GET /api/v11/rwa/fractional
+     * Returns fractional RWA tokens
+     */
+    @GET
+    @Path("/fractional")
+    @Operation(summary = "Get fractional tokens", description = "Returns fractional RWA token information")
+    @APIResponse(responseCode = "200", description = "Fractional tokens retrieved successfully")
+    public Uni<Response> getFractionalTokens() {
+        LOG.info("GET /api/v11/rwa/fractional - Fetching fractional tokens");
+
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> fractionalTokens = new ArrayList<>();
+
+            // AURREAL fractional tokens
+            fractionalTokens.add(Map.of(
+                "fractional_id", "FRAC-REAL-001",
+                "original_token_id", "AURREAL",
+                "fraction_value", "$0.01",
+                "total_fractions", "57,029,250,000",
+                "circulating_fractions", "456,234,891",
+                "min_purchase_unit", 1,
+                "transferable", true,
+                "tradable_on", "DEX-AURIGRAPH",
+                "created_at", Instant.now().minusSeconds(100000).toString(),
+                "status", "active"
+            ));
+
+            // AURCARBONX fractional tokens
+            fractionalTokens.add(Map.of(
+                "fractional_id", "FRAC-CARBON-001",
+                "original_token_id", "AURCARBONX",
+                "fraction_value", "$0.001",
+                "total_fractions", "234567890000",
+                "circulating_fractions", "123456789012",
+                "min_purchase_unit", 10,
+                "transferable", true,
+                "tradable_on", "DEX-AURIGRAPH",
+                "created_at", Instant.now().minusSeconds(50000).toString(),
+                "status", "active"
+            ));
+
+            // AUROGOLD fractional tokens
+            fractionalTokens.add(Map.of(
+                "fractional_id", "FRAC-GOLD-001",
+                "original_token_id", "AUROGOLD",
+                "fraction_value", "$0.001",
+                "total_fractions", "145234567000",
+                "circulating_fractions", "123456789012",
+                "min_purchase_unit", 10,
+                "transferable", true,
+                "tradable_on", "DEX-AURIGRAPH",
+                "created_at", Instant.now().minusSeconds(75000).toString(),
+                "status", "active"
+            ));
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("status", 200);
+            response.put("message", "Fractional tokens retrieved");
+            response.put("data", fractionalTokens);
+            response.put("timestamp", Instant.now().toString());
+
+            return Response.ok(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
     /**
      * RWA Transfer Request DTO
      */

@@ -778,6 +778,45 @@ public class PortalAPIGateway {
     }
 
     /**
+     * GET /api/v11/staking/pools
+     * Returns staking pools - alias for /api/v11/blockchain/staking/pools
+     */
+    @GET
+    @Path("/staking/pools")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<PortalResponse<java.util.Map<String, Object>>> getStakingPools() {
+        LOG.info("Staking pools requested");
+
+        return Uni.createFrom().item(() -> {
+            java.util.Map<String, Object> pools = new java.util.LinkedHashMap<>();
+            pools.put("totalPools", 25);
+            pools.put("totalStaked", 2450000000L);
+            pools.put("averageAPY", 12.5);
+
+            java.util.List<java.util.Map<String, Object>> poolList = new java.util.ArrayList<>();
+            for (int i = 1; i <= 5; i++) {
+                java.util.Map<String, Object> pool = new java.util.LinkedHashMap<>();
+                pool.put("poolId", "pool-" + i);
+                pool.put("poolName", "Aurigraph Pool " + i);
+                pool.put("totalStake", 500000000L);
+                pool.put("apr", 10.0 + i);
+                pool.put("participantCount", 1000 + (i * 100));
+                pool.put("minStake", 1000L);
+                pool.put("unbondingPeriod", "7 days");
+                poolList.add(pool);
+            }
+            pools.put("pools", poolList);
+
+            return PortalResponse.success(pools, "Staking pools retrieved");
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r))
+        .onFailure()
+        .recoverWithItem(throwable -> {
+            LOG.error("Failed to get staking pools", throwable);
+            return PortalResponse.error(500, "Failed to retrieve staking pools");
+        });
+    }
+
+    /**
      * GET /api/v11/distribution/pools
      * Returns distribution pools
      */
