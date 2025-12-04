@@ -1249,50 +1249,50 @@ public class RWAApiResource {
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> pools = new ArrayList<>();
 
-            // Real Estate Pool
-            pools.add(Map.of(
-                "pool_id", "POOL-REAL-001",
-                "pool_name", "Premium Real Estate Pool",
-                "asset_class", "real-estate",
-                "total_value_locked", "$245,234,567",
-                "token_count", 456,
-                "lp_count", 34567,
-                "apy_percentage", 5.2,
-                "daily_volume", "$2,345,678",
-                "min_investment", "$1,000",
-                "lockup_period", "30 days",
-                "rebalance_frequency", "quarterly"
-            ));
+            // Real Estate Pool - using LinkedHashMap because Map.of() max is 10 entries
+            Map<String, Object> realEstatePool = new LinkedHashMap<>();
+            realEstatePool.put("pool_id", "POOL-REAL-001");
+            realEstatePool.put("pool_name", "Premium Real Estate Pool");
+            realEstatePool.put("asset_class", "real-estate");
+            realEstatePool.put("total_value_locked", "$245,234,567");
+            realEstatePool.put("token_count", 456);
+            realEstatePool.put("lp_count", 34567);
+            realEstatePool.put("apy_percentage", 5.2);
+            realEstatePool.put("daily_volume", "$2,345,678");
+            realEstatePool.put("min_investment", "$1,000");
+            realEstatePool.put("lockup_period", "30 days");
+            realEstatePool.put("rebalance_frequency", "quarterly");
+            pools.add(realEstatePool);
 
             // Carbon Credits Pool
-            pools.add(Map.of(
-                "pool_id", "POOL-CARBON-001",
-                "pool_name", "Global Carbon Pool",
-                "asset_class", "carbon-credits",
-                "total_value_locked", "$123,456,789",
-                "token_count", 234,
-                "lp_count", 56789,
-                "apy_percentage", 3.8,
-                "daily_volume", "$1,234,567",
-                "min_investment", "$500",
-                "lockup_period", "15 days",
-                "rebalance_frequency", "monthly"
-            ));
+            Map<String, Object> carbonPool = new LinkedHashMap<>();
+            carbonPool.put("pool_id", "POOL-CARBON-001");
+            carbonPool.put("pool_name", "Global Carbon Pool");
+            carbonPool.put("asset_class", "carbon-credits");
+            carbonPool.put("total_value_locked", "$123,456,789");
+            carbonPool.put("token_count", 234);
+            carbonPool.put("lp_count", 56789);
+            carbonPool.put("apy_percentage", 3.8);
+            carbonPool.put("daily_volume", "$1,234,567");
+            carbonPool.put("min_investment", "$500");
+            carbonPool.put("lockup_period", "15 days");
+            carbonPool.put("rebalance_frequency", "monthly");
+            pools.add(carbonPool);
 
             // Commodity Pool
-            pools.add(Map.of(
-                "pool_id", "POOL-COMMODITY-001",
-                "pool_name", "Precious Metals Pool",
-                "asset_class", "commodity",
-                "total_value_locked", "$89,567,234",
-                "token_count", 345,
-                "lp_count", 23456,
-                "apy_percentage", 2.9,
-                "daily_volume", "$890,234",
-                "min_investment", "$2,000",
-                "lockup_period", "60 days",
-                "rebalance_frequency", "semi-annual"
-            ));
+            Map<String, Object> commodityPool = new LinkedHashMap<>();
+            commodityPool.put("pool_id", "POOL-COMMODITY-001");
+            commodityPool.put("pool_name", "Precious Metals Pool");
+            commodityPool.put("asset_class", "commodity");
+            commodityPool.put("total_value_locked", "$89,567,234");
+            commodityPool.put("token_count", 345);
+            commodityPool.put("lp_count", 23456);
+            commodityPool.put("apy_percentage", 2.9);
+            commodityPool.put("daily_volume", "$890,234");
+            commodityPool.put("min_investment", "$2,000");
+            commodityPool.put("lockup_period", "60 days");
+            commodityPool.put("rebalance_frequency", "semi-annual");
+            pools.add(commodityPool);
 
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", 200);
@@ -1328,7 +1328,6 @@ public class RWAApiResource {
                 "min_purchase_unit", 1,
                 "transferable", true,
                 "tradable_on", "DEX-AURIGRAPH",
-                "created_at", Instant.now().minusSeconds(100000).toString(),
                 "status", "active"
             ));
 
@@ -1342,7 +1341,6 @@ public class RWAApiResource {
                 "min_purchase_unit", 10,
                 "transferable", true,
                 "tradable_on", "DEX-AURIGRAPH",
-                "created_at", Instant.now().minusSeconds(50000).toString(),
                 "status", "active"
             ));
 
@@ -1356,7 +1354,6 @@ public class RWAApiResource {
                 "min_purchase_unit", 10,
                 "transferable", true,
                 "tradable_on", "DEX-AURIGRAPH",
-                "created_at", Instant.now().minusSeconds(75000).toString(),
                 "status", "active"
             ));
 
