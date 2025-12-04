@@ -43,8 +43,11 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        // Get request path
-        String path = requestContext.getUriInfo().getPath();
+        // Get request path - normalize to always start with /
+        String rawPath = requestContext.getUriInfo().getPath();
+        String path = rawPath.startsWith("/") ? rawPath : "/" + rawPath;
+
+        LOG.debugf("JWT filter processing path: %s (raw: %s)", path, rawPath);
 
         // Skip authentication for public endpoints
         if (isPublicEndpoint(path)) {
@@ -153,8 +156,8 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         }
 
         // Token management endpoints (including /tokens/create for portal tokenization)
+        // Path is normalized to start with / so we only check with leading slash
         if (path.startsWith("/api/v11/tokens/") || path.equals("/api/v11/tokens") ||
-            path.startsWith("api/v11/tokens/") || path.equals("api/v11/tokens") ||
             path.contains("/tokens/create") || path.contains("/tokens/")) {
             LOG.debugf("Token endpoint detected - allowing public access: %s", path);
             return true;
