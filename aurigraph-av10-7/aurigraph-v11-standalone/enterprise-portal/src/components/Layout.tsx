@@ -3,7 +3,7 @@ import { Box, AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Button, C
 import { Dashboard, Receipt, Speed, Hub, Analytics, Settings, Logout, PlayCircleOutline,
   AccountTree, Code, Token, Gavel, SwapHoriz, Inventory, AccountBalance, ShowChart,
   VerifiedUser, Assessment, TrendingUp, HealthAndSafety, Storage, Schema, Api,
-  Security, DeveloperBoard, Description, Insights, ArrowDropDown } from '@mui/icons-material'
+  Security, DeveloperBoard, Description, Insights, ArrowDropDown, Home } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../hooks'
 import { logout } from '../store/authSlice'
@@ -85,8 +85,18 @@ export default function Layout() {
         borderBottom: '1px solid rgba(37, 99, 235, 0.2)'
       }}>
         <Toolbar sx={{ gap: 3, py: 1.5 }}>
-          {/* Logo and Title */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mr: 2 }}>
+          {/* Logo and Title - Clickable to go Home */}
+          <Box
+            onClick={() => navigate('/')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              mr: 2,
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.85 }
+            }}
+          >
             <img
               src="/logo.svg"
               alt="Aurigraph Logo"
@@ -111,6 +121,22 @@ export default function Layout() {
 
           {/* Top Navigation Menus */}
           <Box sx={{ flexGrow: 1, display: 'flex', gap: 0.5, alignItems: 'center' }}>
+            {/* Home Button */}
+            <Button
+              color="inherit"
+              onClick={() => navigate('/')}
+              startIcon={<Home />}
+              sx={{
+                textTransform: 'none',
+                bgcolor: 'rgba(37, 99, 235, 0.1)',
+                '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.2)' },
+                borderRadius: 1,
+                px: 2,
+              }}
+            >
+              Home
+            </Button>
+
             {/* Demo Tab - Direct Access */}
             <Button
               color="inherit"
