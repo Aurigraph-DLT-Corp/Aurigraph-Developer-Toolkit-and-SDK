@@ -152,8 +152,10 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
-        // Token management endpoints
-        if (path.startsWith("/api/v11/tokens/") || path.equals("/api/v11/tokens")) {
+        // Token management endpoints (including /tokens/create for portal tokenization)
+        if (path.startsWith("/api/v11/tokens/") || path.equals("/api/v11/tokens") ||
+            path.startsWith("api/v11/tokens/") || path.equals("api/v11/tokens") ||
+            path.contains("/tokens/create") || path.contains("/tokens/")) {
             LOG.debugf("Token endpoint detected - allowing public access: %s", path);
             return true;
         }
