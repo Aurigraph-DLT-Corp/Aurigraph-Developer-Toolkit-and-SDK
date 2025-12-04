@@ -41,7 +41,7 @@ const CARD_STYLE = {
 };
 
 const ACCENT_CARD = {
-  background: 'linear-gradient(135deg, #00BFA5 0%, #00897B 100%)',
+  background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
   borderRadius: 3,
   color: 'white'
 };
@@ -212,7 +212,7 @@ export const DemoApp: React.FC = () => {
                 <Button
                   variant="contained"
                   size="large"
-                  sx={{ bgcolor: 'white', color: '#00897B', fontWeight: 600, px: 4, '&:hover': { bgcolor: '#f5f5f5' } }}
+                  sx={{ bgcolor: 'white', color: '#1E40AF', fontWeight: 600, px: 4, '&:hover': { bgcolor: '#f5f5f5' } }}
                   onClick={startQuickDemo}
                   startIcon={loading ? <CircularProgress size={20} /> : <PlayArrow />}
                   disabled={loading}
@@ -287,7 +287,7 @@ export const DemoApp: React.FC = () => {
                 <Step key={label} completed={index < activeStep}>
                   <StepLabel sx={{
                     '& .MuiStepLabel-label': { color: 'rgba(255,255,255,0.7)' },
-                    '& .MuiStepLabel-label.Mui-active': { color: '#00BFA5' },
+                    '& .MuiStepLabel-label.Mui-active': { color: '#2563EB' },
                     '& .MuiStepLabel-label.Mui-completed': { color: '#4ECDC4' }
                   }}>
                     {label}
@@ -312,7 +312,7 @@ export const DemoApp: React.FC = () => {
                   contentStyle={{ background: '#1A1F3A', border: '1px solid rgba(255,255,255,0.1)' }}
                   labelStyle={{ color: '#fff' }}
                 />
-                <Area type="monotone" dataKey="tokensCreated" stroke="#00BFA5" fill="#00BFA5" fillOpacity={0.3} name="Tokens Created" />
+                <Area type="monotone" dataKey="tokensCreated" stroke="#2563EB" fill="#2563EB" fillOpacity={0.3} name="Tokens Created" />
                 <Area type="monotone" dataKey="assetsProcessed" stroke="#4ECDC4" fill="#4ECDC4" fillOpacity={0.3} name="Assets Processed" />
               </AreaChart>
             </ResponsiveContainer>
@@ -325,10 +325,10 @@ export const DemoApp: React.FC = () => {
         <Grid item xs={6} md={3}>
           <Card sx={CARD_STYLE}>
             <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <Avatar sx={{ bgcolor: '#00BFA520', color: '#00BFA5', width: 56, height: 56, mx: 'auto', mb: 2 }}>
+              <Avatar sx={{ bgcolor: '#2563EB20', color: '#2563EB', width: 56, height: 56, mx: 'auto', mb: 2 }}>
                 <PlayArrow sx={{ fontSize: 28 }} />
               </Avatar>
-              <Typography variant="h4" sx={{ color: '#00BFA5', fontWeight: 700 }}>{runningDemos.length}</Typography>
+              <Typography variant="h4" sx={{ color: '#2563EB', fontWeight: 700 }}>{runningDemos.length}</Typography>
               <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>Active Demos</Typography>
             </CardContent>
           </Card>
@@ -377,7 +377,7 @@ export const DemoApp: React.FC = () => {
               variant="outlined"
               startIcon={<Refresh />}
               onClick={loadDemos}
-              sx={{ color: '#00BFA5', borderColor: '#00BFA5' }}
+              sx={{ color: '#2563EB', borderColor: '#2563EB' }}
             >
               Refresh
             </Button>
@@ -385,7 +385,7 @@ export const DemoApp: React.FC = () => {
               variant="contained"
               startIcon={<Add />}
               onClick={() => setCreateDialogOpen(true)}
-              sx={{ bgcolor: '#00BFA5' }}
+              sx={{ bgcolor: '#2563EB' }}
             >
               Create Demo
             </Button>
@@ -404,7 +404,7 @@ export const DemoApp: React.FC = () => {
               variant="contained"
               onClick={startQuickDemo}
               startIcon={<PlayArrow />}
-              sx={{ bgcolor: '#00BFA5' }}
+              sx={{ bgcolor: '#2563EB' }}
             >
               Start Your First Demo
             </Button>
@@ -423,8 +423,8 @@ export const DemoApp: React.FC = () => {
                         label={demo.status}
                         size="small"
                         sx={{
-                          bgcolor: demo.status === 'RUNNING' ? '#00BFA520' : 'rgba(255,255,255,0.1)',
-                          color: demo.status === 'RUNNING' ? '#00BFA5' : 'rgba(255,255,255,0.6)'
+                          bgcolor: demo.status === 'RUNNING' ? '#2563EB20' : 'rgba(255,255,255,0.1)',
+                          color: demo.status === 'RUNNING' ? '#2563EB' : 'rgba(255,255,255,0.6)'
                         }}
                       />
                     </Box>
@@ -444,7 +444,7 @@ export const DemoApp: React.FC = () => {
                       </Box>
                       <Box>
                         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>Tokens</Typography>
-                        <Typography variant="body2" sx={{ color: '#00BFA5' }}>{demo.transactionCount || 0}</Typography>
+                        <Typography variant="body2" sx={{ color: '#2563EB' }}>{demo.transactionCount || 0}</Typography>
                       </Box>
                     </Box>
 
@@ -455,7 +455,7 @@ export const DemoApp: React.FC = () => {
                           variant="contained"
                           startIcon={<PlayArrow />}
                           onClick={() => DemoService.startDemo(demo.id).then(loadDemos)}
-                          sx={{ bgcolor: '#00BFA5', flex: 1 }}
+                          sx={{ bgcolor: '#2563EB', flex: 1 }}
                         >
                           Start
                         </Button>
@@ -512,7 +512,7 @@ export const DemoApp: React.FC = () => {
                 onClick={() => navigate('/rwa/tokenize')}
               >
                 <Typography variant="h4" sx={{ mb: 1 }}>{cat.icon}</Typography>
-                <Typography variant="body2" sx={{ color: '#00BFA5', fontWeight: 600 }}>{cat.name}</Typography>
+                <Typography variant="body2" sx={{ color: '#2563EB', fontWeight: 600 }}>{cat.name}</Typography>
                 <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>{cat.desc}</Typography>
               </Paper>
             </Grid>
@@ -535,7 +535,7 @@ export const DemoApp: React.FC = () => {
             <Button
               variant="contained"
               size="large"
-              sx={{ bgcolor: 'white', color: '#00897B', fontWeight: 600, px: 4 }}
+              sx={{ bgcolor: 'white', color: '#1E40AF', fontWeight: 600, px: 4 }}
               onClick={() => navigate('/rwa/tokenize')}
               endIcon={<ArrowForward />}
             >
