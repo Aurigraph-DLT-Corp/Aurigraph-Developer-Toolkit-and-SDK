@@ -212,9 +212,17 @@ export const DemoApp: React.FC = () => {
                 <Button
                   variant="contained"
                   size="large"
-                  sx={{ bgcolor: 'white', color: '#1E40AF', fontWeight: 600, px: 4, '&:hover': { bgcolor: '#f5f5f5' } }}
+                  sx={{
+                    bgcolor: 'white',
+                    color: '#1E40AF',
+                    fontWeight: 700,
+                    px: 4,
+                    fontSize: '1rem',
+                    '&:hover': { bgcolor: '#f0f4ff', color: '#1E40AF' },
+                    '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.7)', color: '#1E40AF' }
+                  }}
                   onClick={startQuickDemo}
-                  startIcon={loading ? <CircularProgress size={20} /> : <PlayArrow />}
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
                   disabled={loading}
                 >
                   {loading ? 'Starting...' : 'Start Demo'}
