@@ -80,27 +80,34 @@ export default function Layout() {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="fixed" sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        bgcolor: '#1A1F3A',
-        boxShadow: '0 4px 20px rgba(0, 255, 163, 0.1)',
-        borderBottom: '1px solid rgba(0, 255, 163, 0.1)'
+        bgcolor: '#0F172A',
+        boxShadow: '0 4px 20px rgba(37, 99, 235, 0.15)',
+        borderBottom: '1px solid rgba(37, 99, 235, 0.2)'
       }}>
         <Toolbar sx={{ gap: 3, py: 1.5 }}>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{
-              mr: 2,
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #00FFA3, #0A84FF)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              minWidth: 'fit-content'
-            }}
-          >
-            Aurigraph V11 Enterprise Portal - v4.8.0
-          </Typography>
+          {/* Logo and Title */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mr: 2 }}>
+            <img
+              src="/logo.svg"
+              alt="Aurigraph Logo"
+              style={{ height: 36, width: 36 }}
+            />
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #2563EB, #60A5FA)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                minWidth: 'fit-content'
+              }}
+            >
+              Aurigraph Enterprise Portal
+            </Typography>
+          </Box>
 
           {/* Top Navigation Menus */}
           <Box sx={{ flexGrow: 1, display: 'flex', gap: 0.5, alignItems: 'center' }}>
@@ -111,8 +118,8 @@ export default function Layout() {
               startIcon={<PlayCircleOutline />}
               sx={{
                 textTransform: 'none',
-                bgcolor: 'rgba(0, 191, 165, 0.15)',
-                '&:hover': { bgcolor: 'rgba(0, 191, 165, 0.25)' },
+                bgcolor: 'rgba(37, 99, 235, 0.15)',
+                '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.25)' },
                 borderRadius: 1,
                 px: 2,
               }}
@@ -141,11 +148,11 @@ export default function Layout() {
                     transition: 'all 0.2s ease',
                     borderRadius: 1,
                     '&:hover': {
-                      bgcolor: 'rgba(0, 255, 163, 0.15)',
+                      bgcolor: 'rgba(37, 99, 235, 0.15)',
                       transform: 'translateY(-2px)',
                     },
                     '&:active': {
-                      bgcolor: 'rgba(0, 255, 163, 0.25)',
+                      bgcolor: 'rgba(37, 99, 235, 0.25)',
                     }
                   }}
                 >
@@ -165,9 +172,10 @@ export default function Layout() {
                   onClose={() => handleMenuClose(menu.title)}
                   PaperProps={{
                     sx: {
-                      bgcolor: '#1A1F3A',
+                      bgcolor: '#0F172A',
                       color: 'white',
                       minWidth: 200,
+                      border: '1px solid rgba(37, 99, 235, 0.2)',
                     }
                   }}
                 >
@@ -176,7 +184,7 @@ export default function Layout() {
                       key={item.path}
                       onClick={() => handleNavigate(item.path, menu.title)}
                       sx={{
-                        '&:hover': { bgcolor: 'rgba(0, 191, 165, 0.1)' }
+                        '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' }
                       }}
                     >
                       {item.text}
