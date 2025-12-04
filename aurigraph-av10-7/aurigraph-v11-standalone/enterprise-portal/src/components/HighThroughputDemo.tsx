@@ -14,7 +14,9 @@ import {
   Timer, BoltOutlined, NetworkCheck, CloudQueue, BarChart,
   Settings, AccountTree, Cloud, Newspaper, ShowChart, Token,
   Storage, CheckCircle, Hub, Dns, Close, ExpandMore, ExpandLess,
-  Timeline, DataUsage, Analytics, ZoomIn, ArrowForward
+  Timeline, DataUsage, Analytics, ZoomIn, ArrowForward,
+  Description, Gavel, Code, PlayCircle, PauseCircle, ErrorOutline,
+  Assignment, Security, AttachMoney, LocalOffer
 } from '@mui/icons-material';
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -70,6 +72,33 @@ interface MerkleEntry {
   verified: boolean;
 }
 
+interface SmartContract {
+  id: string;
+  name: string;
+  type: 'Ricardian' | 'Standard' | 'DeFi' | 'NFT' | 'Token';
+  status: 'Deployed' | 'Pending' | 'Paused' | 'Failed';
+  address: string;
+  version: string;
+  gasUsed: number;
+  executions: number;
+  lastExecuted: number;
+  creator: string;
+}
+
+interface ActiveContract {
+  id: string;
+  contractId: string;
+  name: string;
+  type: 'Escrow' | 'Payment' | 'Swap' | 'Stake' | 'Bridge';
+  status: 'Active' | 'Completed' | 'Expired' | 'Disputed';
+  value: number;
+  currency: string;
+  parties: string[];
+  createdAt: number;
+  expiresAt: number;
+  executionCount: number;
+}
+
 // Sapphire Blue theme colors - All blue spectrum
 const SAPPHIRE = {
   primary: '#2563EB',      // Sapphire blue
@@ -114,7 +143,7 @@ const METRIC_CARD = {
 };
 
 // Drill-down detail types - expanded for all cards
-type DrillDownType = 'tps' | 'latency' | 'success' | 'transactions' | 'quantconnect' | 'weather' | 'news' | 'nodes' | 'merkle' | 'tokens' | null;
+type DrillDownType = 'tps' | 'latency' | 'success' | 'transactions' | 'quantconnect' | 'weather' | 'news' | 'nodes' | 'merkle' | 'tokens' | 'contracts' | 'activeContracts' | null;
 
 // Mock API data generators
 const generateQuantConnectData = () => ({
@@ -155,6 +184,41 @@ const generateMerkleRoot = (): string => {
   return hash;
 };
 
+const generateSmartContract = (): SmartContract => {
+  const types: SmartContract['type'][] = ['Ricardian', 'Standard', 'DeFi', 'NFT', 'Token'];
+  const names = ['AssetTransfer', 'TokenSwap', 'LiquidityPool', 'NFTMinter', 'StakingRewards', 'GovernanceVote', 'PriceOracle', 'BridgeContract'];
+  return {
+    id: `SC-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 6)}`,
+    name: names[Math.floor(Math.random() * names.length)],
+    type: types[Math.floor(Math.random() * types.length)],
+    status: 'Deployed',
+    address: generateMerkleRoot().substring(0, 42),
+    version: `${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 100)}`,
+    gasUsed: Math.floor(Math.random() * 500000) + 21000,
+    executions: Math.floor(Math.random() * 10000),
+    lastExecuted: Date.now() - Math.floor(Math.random() * 3600000),
+    creator: generateMerkleRoot().substring(0, 42),
+  };
+};
+
+const generateActiveContract = (): ActiveContract => {
+  const types: ActiveContract['type'][] = ['Escrow', 'Payment', 'Swap', 'Stake', 'Bridge'];
+  const currencies = ['ETH', 'USDC', 'AUR', 'BTC', 'USDT'];
+  return {
+    id: `AC-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 4)}`,
+    contractId: `SC-${Math.random().toString(36).substr(2, 8)}`,
+    name: ['Trade Settlement', 'Token Lockup', 'Cross-Chain Transfer', 'Yield Distribution', 'Collateral Swap'][Math.floor(Math.random() * 5)],
+    type: types[Math.floor(Math.random() * types.length)],
+    status: 'Active',
+    value: Math.floor(Math.random() * 1000000) / 100,
+    currency: currencies[Math.floor(Math.random() * currencies.length)],
+    parties: [generateMerkleRoot().substring(0, 42), generateMerkleRoot().substring(0, 42)],
+    createdAt: Date.now() - Math.floor(Math.random() * 86400000),
+    expiresAt: Date.now() + Math.floor(Math.random() * 604800000),
+    executionCount: Math.floor(Math.random() * 50),
+  };
+};
+
 export const HighThroughputDemo: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -172,6 +236,12 @@ export const HighThroughputDemo: React.FC = () => {
   const [tokenizedAssets, setTokenizedAssets] = useState<TokenizedAsset[]>([]);
   const [merkleRegistry, setMerkleRegistry] = useState<MerkleEntry[]>([]);
   const [tokensCreated, setTokensCreated] = useState(0);
+
+  // Smart Contracts and Active Contracts
+  const [smartContracts, setSmartContracts] = useState<SmartContract[]>([]);
+  const [activeContracts, setActiveContracts] = useState<ActiveContract[]>([]);
+  const [contractsDeployed, setContractsDeployed] = useState(0);
+  const [activeContractsCount, setActiveContractsCount] = useState(0);
 
   // API data streams
   const [latestQuantConnect, setLatestQuantConnect] = useState<any>(null);
@@ -206,9 +276,12 @@ export const HighThroughputDemo: React.FC = () => {
     nodes: number[];
     merkle: number[];
     tokens: number[];
+    contracts: number[];
+    activeContracts: number[];
   }>({
     tps: [], latency: [], successRate: [], transactions: [],
-    quantconnect: [], weather: [], news: [], nodes: [], merkle: [], tokens: []
+    quantconnect: [], weather: [], news: [], nodes: [], merkle: [], tokens: [],
+    contracts: [], activeContracts: []
   });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -345,6 +418,20 @@ export const HighThroughputDemo: React.FC = () => {
       setLatestNews(data);
       tokenizeAndRegister('news', data);
     }
+
+    // Generate smart contracts periodically (every 5th call ~2.5s)
+    if (Math.random() < 0.2) {
+      const newContract = generateSmartContract();
+      setSmartContracts(prev => [newContract, ...prev.slice(0, 49)]);
+      setContractsDeployed(prev => prev + 1);
+    }
+
+    // Generate active contracts periodically (every 3rd call ~1.5s)
+    if (Math.random() < 0.33) {
+      const newActiveContract = generateActiveContract();
+      setActiveContracts(prev => [newActiveContract, ...prev.slice(0, 49)]);
+      setActiveContractsCount(prev => prev + 1);
+    }
   }, [config.enableQuantConnect, config.enableWeather, config.enableNews, tokenizeAndRegister]);
 
   useEffect(() => {
@@ -375,9 +462,14 @@ export const HighThroughputDemo: React.FC = () => {
     setTokenizedAssets([]);
     setMerkleRegistry([]);
     setTokensCreated(0);
+    setSmartContracts([]);
+    setActiveContracts([]);
+    setContractsDeployed(0);
+    setActiveContractsCount(0);
     setDrillDownHistory({
       tps: [], latency: [], successRate: [], transactions: [],
-      quantconnect: [], weather: [], news: [], nodes: [], merkle: [], tokens: []
+      quantconnect: [], weather: [], news: [], nodes: [], merkle: [], tokens: [],
+      contracts: [], activeContracts: []
     });
     setIsRunning(true);
   };
@@ -463,6 +555,8 @@ export const HighThroughputDemo: React.FC = () => {
     nodes: { icon: <Hub />, title: 'Node Distribution', unit: 'nodes', color: SAPPHIRE.secondary, description: 'Active node count over time' },
     merkle: { icon: <AccountTree />, title: 'Merkle Registry', unit: 'entries', color: SAPPHIRE.accent, description: 'Registry growth analysis' },
     tokens: { icon: <Token />, title: 'Token Generation', unit: 'tokens', color: SAPPHIRE.primary, description: 'Token creation rate' },
+    contracts: { icon: <Code />, title: 'Smart Contracts', unit: 'contracts', color: SAPPHIRE.indigo, description: 'Deployed contract analytics' },
+    activeContracts: { icon: <Gavel />, title: 'Active Contracts', unit: 'contracts', color: SAPPHIRE.secondary, description: 'Live contract execution tracking' },
   };
 
   return (
@@ -710,11 +804,14 @@ export const HighThroughputDemo: React.FC = () => {
       {/* Tabs for different views */}
       <Card sx={{ ...GLASS_CARD, mb: 4 }}>
         <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}
-          sx={{ borderBottom: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}`, px: 2 }}>
+          sx={{ borderBottom: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}`, px: 2 }}
+          variant="scrollable" scrollButtons="auto">
           <Tab label="Performance" icon={<Speed />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
           <Tab label="Node Configuration" icon={<Dns />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
           <Tab label="API Streams" icon={<CloudQueue />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
           <Tab label="Merkle Registry" icon={<AccountTree />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
+          <Tab label="Smart Contracts" icon={<Code />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.indigo } }} />
+          <Tab label="Active Contracts" icon={<Gavel />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.secondary } }} />
         </Tabs>
 
         <CardContent>
@@ -1150,6 +1247,184 @@ export const HighThroughputDemo: React.FC = () => {
               )}
             </Box>
           )}
+
+          {/* Smart Contracts Tab */}
+          {activeTab === 4 && (
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>Smart Contracts Registry ({smartContracts.length} contracts)</Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Chip icon={<Code />} label={`${contractsDeployed} Deployed`} sx={{ bgcolor: alpha(SAPPHIRE.indigo, 0.2), color: SAPPHIRE.indigo }} />
+                  <Chip icon={<CheckCircle />} label={`${smartContracts.filter(c => c.status === 'Deployed').length} Active`} sx={{ bgcolor: alpha(SAPPHIRE.success, 0.2), color: SAPPHIRE.success }} />
+                </Box>
+              </Box>
+
+              {/* Contract Stats Cards */}
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {[
+                  { icon: <Description />, label: 'Ricardian', count: smartContracts.filter(c => c.type === 'Ricardian').length, color: SAPPHIRE.primary },
+                  { icon: <AttachMoney />, label: 'DeFi', count: smartContracts.filter(c => c.type === 'DeFi').length, color: SAPPHIRE.indigo },
+                  { icon: <LocalOffer />, label: 'NFT', count: smartContracts.filter(c => c.type === 'NFT').length, color: SAPPHIRE.violet },
+                  { icon: <Token />, label: 'Token', count: smartContracts.filter(c => c.type === 'Token').length, color: SAPPHIRE.accent },
+                ].map((stat) => (
+                  <Grid item xs={6} sm={3} key={stat.label}>
+                    <Card sx={{ ...METRIC_CARD }} onClick={() => handleDrillDown('contracts')}>
+                      <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                        <Avatar sx={{ bgcolor: alpha(stat.color, 0.15), color: stat.color, width: 40, height: 40, mx: 'auto', mb: 1 }}>
+                          {stat.icon}
+                        </Avatar>
+                        <Typography variant="h5" sx={{ color: stat.color, fontWeight: 700 }}>{stat.count}</Typography>
+                        <Typography variant="caption" sx={{ color: SAPPHIRE.textSecondary }}>{stat.label}</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <TableContainer component={Paper} sx={{ bgcolor: 'transparent', maxHeight: 400 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Contract ID</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Name</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Type</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Version</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Executions</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {smartContracts.slice(0, 20).map((contract) => (
+                      <TableRow key={contract.id} sx={{ '&:hover': { bgcolor: alpha(SAPPHIRE.indigo, 0.05) } }}>
+                        <TableCell sx={{ color: '#E8F4F8', fontFamily: 'monospace', fontSize: '0.75rem' }}>{contract.id}</TableCell>
+                        <TableCell sx={{ color: SAPPHIRE.accent }}>{contract.name}</TableCell>
+                        <TableCell>
+                          <Chip label={contract.type} size="small" sx={{
+                            bgcolor: contract.type === 'Ricardian' ? alpha(SAPPHIRE.primary, 0.2) :
+                                     contract.type === 'DeFi' ? alpha(SAPPHIRE.indigo, 0.2) :
+                                     contract.type === 'NFT' ? alpha(SAPPHIRE.violet, 0.2) : alpha(SAPPHIRE.accent, 0.2),
+                            color: contract.type === 'Ricardian' ? SAPPHIRE.primary :
+                                   contract.type === 'DeFi' ? SAPPHIRE.indigo :
+                                   contract.type === 'NFT' ? SAPPHIRE.violet : SAPPHIRE.accent,
+                          }} />
+                        </TableCell>
+                        <TableCell sx={{ color: '#8BA4B4' }}>{contract.version}</TableCell>
+                        <TableCell sx={{ color: SAPPHIRE.accent }}>{formatNumber(contract.executions)}</TableCell>
+                        <TableCell>
+                          <Chip icon={<CheckCircle sx={{ fontSize: 14 }} />} label={contract.status} size="small"
+                            sx={{ bgcolor: alpha(SAPPHIRE.success, 0.2), color: SAPPHIRE.success }} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {smartContracts.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Code sx={{ fontSize: 48, color: '#5A7A8A', mb: 2 }} />
+                  <Typography variant="body1" sx={{ color: '#8BA4B4' }}>
+                    Start the demo to see smart contracts being deployed
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+
+          {/* Active Contracts Tab */}
+          {activeTab === 5 && (
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>Active Contracts ({activeContracts.length} live)</Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Chip icon={<Gavel />} label={`${activeContractsCount} Total Created`} sx={{ bgcolor: alpha(SAPPHIRE.secondary, 0.2), color: SAPPHIRE.secondary }} />
+                  <Chip icon={<PlayCircle />} label={`${activeContracts.filter(c => c.status === 'Active').length} Running`} sx={{ bgcolor: alpha(SAPPHIRE.success, 0.2), color: SAPPHIRE.success }} />
+                </Box>
+              </Box>
+
+              {/* Active Contract Type Stats */}
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {[
+                  { icon: <Security />, label: 'Escrow', count: activeContracts.filter(c => c.type === 'Escrow').length, color: SAPPHIRE.primary },
+                  { icon: <AttachMoney />, label: 'Payment', count: activeContracts.filter(c => c.type === 'Payment').length, color: SAPPHIRE.indigo },
+                  { icon: <Token />, label: 'Swap', count: activeContracts.filter(c => c.type === 'Swap').length, color: SAPPHIRE.cyan },
+                  { icon: <Assignment />, label: 'Stake', count: activeContracts.filter(c => c.type === 'Stake').length, color: SAPPHIRE.accent },
+                  { icon: <Hub />, label: 'Bridge', count: activeContracts.filter(c => c.type === 'Bridge').length, color: SAPPHIRE.violet },
+                ].map((stat) => (
+                  <Grid item xs={6} sm={2.4} key={stat.label}>
+                    <Card sx={{ ...METRIC_CARD }} onClick={() => handleDrillDown('activeContracts')}>
+                      <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                        <Avatar sx={{ bgcolor: alpha(stat.color, 0.15), color: stat.color, width: 36, height: 36, mx: 'auto', mb: 1 }}>
+                          {stat.icon}
+                        </Avatar>
+                        <Typography variant="h6" sx={{ color: stat.color, fontWeight: 700 }}>{stat.count}</Typography>
+                        <Typography variant="caption" sx={{ color: SAPPHIRE.textSecondary }}>{stat.label}</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <TableContainer component={Paper} sx={{ bgcolor: 'transparent', maxHeight: 400 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Contract ID</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Name</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Type</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Value</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Executions</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {activeContracts.slice(0, 20).map((contract) => (
+                      <TableRow key={contract.id} sx={{ '&:hover': { bgcolor: alpha(SAPPHIRE.secondary, 0.05) } }}>
+                        <TableCell sx={{ color: '#E8F4F8', fontFamily: 'monospace', fontSize: '0.75rem' }}>{contract.id}</TableCell>
+                        <TableCell sx={{ color: SAPPHIRE.accent }}>{contract.name}</TableCell>
+                        <TableCell>
+                          <Chip label={contract.type} size="small" sx={{
+                            bgcolor: contract.type === 'Escrow' ? alpha(SAPPHIRE.primary, 0.2) :
+                                     contract.type === 'Payment' ? alpha(SAPPHIRE.indigo, 0.2) :
+                                     contract.type === 'Swap' ? alpha(SAPPHIRE.cyan, 0.2) :
+                                     contract.type === 'Stake' ? alpha(SAPPHIRE.accent, 0.2) : alpha(SAPPHIRE.violet, 0.2),
+                            color: contract.type === 'Escrow' ? SAPPHIRE.primary :
+                                   contract.type === 'Payment' ? SAPPHIRE.indigo :
+                                   contract.type === 'Swap' ? SAPPHIRE.cyan :
+                                   contract.type === 'Stake' ? SAPPHIRE.accent : SAPPHIRE.violet,
+                          }} />
+                        </TableCell>
+                        <TableCell sx={{ color: SAPPHIRE.warning, fontWeight: 600 }}>
+                          {contract.value.toFixed(2)} {contract.currency}
+                        </TableCell>
+                        <TableCell sx={{ color: '#8BA4B4' }}>{contract.executionCount}</TableCell>
+                        <TableCell>
+                          <Chip
+                            icon={contract.status === 'Active' ? <PlayCircle sx={{ fontSize: 14 }} /> : <PauseCircle sx={{ fontSize: 14 }} />}
+                            label={contract.status}
+                            size="small"
+                            sx={{
+                              bgcolor: contract.status === 'Active' ? alpha(SAPPHIRE.success, 0.2) : alpha(SAPPHIRE.warning, 0.2),
+                              color: contract.status === 'Active' ? SAPPHIRE.success : SAPPHIRE.warning
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {activeContracts.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Gavel sx={{ fontSize: 48, color: '#5A7A8A', mb: 2 }} />
+                  <Typography variant="body1" sx={{ color: '#8BA4B4' }}>
+                    Start the demo to see active contracts being created
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
         </CardContent>
       </Card>
 
@@ -1158,10 +1433,12 @@ export const HighThroughputDemo: React.FC = () => {
         {[
           { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput with multi-node architecture', color: SAPPHIRE.primary },
           { icon: <Hub />, title: 'Multi-Node', desc: 'Validators, Business & Slim node configuration', color: SAPPHIRE.secondary },
+          { icon: <Code />, title: 'Smart Contracts', desc: 'Ricardian, DeFi, NFT & Token contracts', color: SAPPHIRE.indigo },
+          { icon: <Gavel />, title: 'Active Contracts', desc: 'Escrow, Payment, Swap & Bridge execution', color: SAPPHIRE.violet },
           { icon: <CloudQueue />, title: 'API Integration', desc: 'QuantConnect, Weather & News data streams', color: SAPPHIRE.accent },
           { icon: <AccountTree />, title: 'Merkle Registry', desc: 'Tokenized assets with proof verification', color: SAPPHIRE.warning },
         ].map((feature) => (
-          <Grid item xs={6} md={3} key={feature.title}>
+          <Grid item xs={6} md={2} key={feature.title}>
             <Paper sx={{
               ...GLASS_CARD, p: 3, textAlign: 'center', transition: 'all 0.3s ease',
               '&:hover': { transform: 'translateY(-3px)', boxShadow: `0 12px 36px rgba(0, 0, 0, 0.3), 0 0 15px ${alpha(feature.color, 0.25)}` },
