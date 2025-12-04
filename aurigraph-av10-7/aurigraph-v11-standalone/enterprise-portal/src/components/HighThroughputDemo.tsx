@@ -70,16 +70,20 @@ interface MerkleEntry {
   verified: boolean;
 }
 
-// Sapphire Blue theme colors
+// Sapphire Blue theme colors - All blue spectrum
 const SAPPHIRE = {
-  primary: '#2563EB',
-  secondary: '#1E40AF',
-  accent: '#60A5FA',
-  tertiary: '#3B82F6',
-  warning: '#F59E0B',
-  success: '#10B981',
-  error: '#EF4444',
-  info: '#0EA5E9',
+  primary: '#2563EB',      // Sapphire blue
+  secondary: '#1E40AF',    // Royal blue
+  accent: '#60A5FA',       // Sky blue
+  tertiary: '#3B82F6',     // Medium blue
+  info: '#0EA5E9',         // Cyan blue
+  indigo: '#6366F1',       // Indigo (for QuantConnect)
+  cyan: '#06B6D4',         // Cyan (for Weather)
+  violet: '#8B5CF6',       // Violet (for News)
+  slate: '#475569',        // Slate blue
+  warning: '#F59E0B',      // Amber (minimal use)
+  success: '#22C55E',      // Green (status only)
+  error: '#EF4444',        // Red (status only)
   bg: '#0F172A',
   bgLight: '#1E293B',
   bgLighter: '#334155',
@@ -109,8 +113,8 @@ const METRIC_CARD = {
   },
 };
 
-// Drill-down detail types
-type DrillDownType = 'tps' | 'latency' | 'success' | 'transactions' | null;
+// Drill-down detail types - expanded for all cards
+type DrillDownType = 'tps' | 'latency' | 'success' | 'transactions' | 'quantconnect' | 'weather' | 'news' | 'nodes' | 'merkle' | 'tokens' | null;
 
 // Mock API data generators
 const generateQuantConnectData = () => ({
@@ -196,7 +200,16 @@ export const HighThroughputDemo: React.FC = () => {
     latency: number[];
     successRate: number[];
     transactions: number[];
-  }>({ tps: [], latency: [], successRate: [], transactions: [] });
+    quantconnect: number[];
+    weather: number[];
+    news: number[];
+    nodes: number[];
+    merkle: number[];
+    tokens: number[];
+  }>({
+    tps: [], latency: [], successRate: [], transactions: [],
+    quantconnect: [], weather: [], news: [], nodes: [], merkle: [], tokens: []
+  });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const apiIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -298,12 +311,18 @@ export const HighThroughputDemo: React.FC = () => {
       return newData;
     });
 
-    // Update drill-down history
+    // Update drill-down history for all metrics
     setDrillDownHistory(prev => ({
       tps: [...prev.tps.slice(-99), newTPS],
       latency: [...prev.latency.slice(-99), newLatency],
       successRate: [...prev.successRate.slice(-99), newSuccessRate],
       transactions: [...prev.transactions.slice(-99), Math.round(newTPS / 10)],
+      quantconnect: [...prev.quantconnect.slice(-99), quantconnectTPS],
+      weather: [...prev.weather.slice(-99), weatherTPS],
+      news: [...prev.news.slice(-99), newsTPS],
+      nodes: [...prev.nodes.slice(-99), config.nodes.validators + config.nodes.businessNodes + config.nodes.slimNodes],
+      merkle: prev.merkle,
+      tokens: prev.tokens,
     }));
   }, [config, calculateNodeMultiplier]);
 
@@ -356,7 +375,10 @@ export const HighThroughputDemo: React.FC = () => {
     setTokenizedAssets([]);
     setMerkleRegistry([]);
     setTokensCreated(0);
-    setDrillDownHistory({ tps: [], latency: [], successRate: [], transactions: [] });
+    setDrillDownHistory({
+      tps: [], latency: [], successRate: [], transactions: [],
+      quantconnect: [], weather: [], news: [], nodes: [], merkle: [], tokens: []
+    });
     setIsRunning(true);
   };
 
@@ -421,19 +443,26 @@ export const HighThroughputDemo: React.FC = () => {
     { name: 'Slim', value: config.nodes.slimNodes, color: SAPPHIRE.accent },
   ];
 
-  // API source distribution for pie chart
+  // API source distribution for pie chart - All blue spectrum
   const apiDistribution = [
-    { name: 'QuantConnect', value: config.enableQuantConnect ? 35 : 0, color: '#8B5CF6' },
-    { name: 'Weather', value: config.enableWeather ? 25 : 0, color: SAPPHIRE.info },
-    { name: 'News', value: config.enableNews ? 20 : 0, color: '#F59E0B' },
+    { name: 'QuantConnect', value: config.enableQuantConnect ? 35 : 0, color: SAPPHIRE.indigo },
+    { name: 'Weather', value: config.enableWeather ? 25 : 0, color: SAPPHIRE.cyan },
+    { name: 'News', value: config.enableNews ? 20 : 0, color: SAPPHIRE.violet },
     { name: 'Internal', value: 20, color: SAPPHIRE.primary },
   ];
 
-  const drillDownConfig: Record<string, { icon: React.ReactNode; title: string; unit: string; color: string }> = {
-    tps: { icon: <Speed />, title: 'Transactions Per Second', unit: 'TPS', color: SAPPHIRE.primary },
-    latency: { icon: <Timer />, title: 'Network Latency', unit: 'ms', color: SAPPHIRE.info },
-    success: { icon: <TrendingUp />, title: 'Success Rate', unit: '%', color: SAPPHIRE.warning },
-    transactions: { icon: <BarChart />, title: 'Transaction Volume', unit: 'txns', color: SAPPHIRE.accent },
+  // Expanded drill-down configuration for ALL card types
+  const drillDownConfig: Record<string, { icon: React.ReactNode; title: string; unit: string; color: string; description: string }> = {
+    tps: { icon: <Speed />, title: 'Transactions Per Second', unit: 'TPS', color: SAPPHIRE.primary, description: 'Real-time throughput metrics' },
+    latency: { icon: <Timer />, title: 'Network Latency', unit: 'ms', color: SAPPHIRE.info, description: 'Response time analysis' },
+    success: { icon: <TrendingUp />, title: 'Success Rate', unit: '%', color: SAPPHIRE.accent, description: 'Transaction success tracking' },
+    transactions: { icon: <BarChart />, title: 'Transaction Volume', unit: 'txns', color: SAPPHIRE.tertiary, description: 'Cumulative transaction count' },
+    quantconnect: { icon: <ShowChart />, title: 'QuantConnect Feed', unit: 'TPS', color: SAPPHIRE.indigo, description: 'Stock market data ingestion' },
+    weather: { icon: <Cloud />, title: 'Weather API Feed', unit: 'TPS', color: SAPPHIRE.cyan, description: 'Weather data ingestion' },
+    news: { icon: <Newspaper />, title: 'News API Feed', unit: 'TPS', color: SAPPHIRE.violet, description: 'News data ingestion' },
+    nodes: { icon: <Hub />, title: 'Node Distribution', unit: 'nodes', color: SAPPHIRE.secondary, description: 'Active node count over time' },
+    merkle: { icon: <AccountTree />, title: 'Merkle Registry', unit: 'entries', color: SAPPHIRE.accent, description: 'Registry growth analysis' },
+    tokens: { icon: <Token />, title: 'Token Generation', unit: 'tokens', color: SAPPHIRE.primary, description: 'Token creation rate' },
   };
 
   return (
@@ -737,9 +766,9 @@ export const HighThroughputDemo: React.FC = () => {
                   <YAxis tickFormatter={(v) => formatNumber(v)} stroke={SAPPHIRE.primary} tick={{ fill: SAPPHIRE.primary, fontSize: 10 }} />
                   <RechartsTooltip contentStyle={{ background: 'rgba(13, 27, 42, 0.95)', border: `1px solid ${alpha(SAPPHIRE.primary, 0.2)}`, borderRadius: 8 }} />
                   <Area type="monotone" dataKey="tps" stroke={SAPPHIRE.primary} strokeWidth={2} fill="url(#tpsGradient)" name="Total TPS" />
-                  <Line type="monotone" dataKey="quantconnect" stroke="#9B59B6" strokeWidth={1.5} dot={false} name="QuantConnect" />
-                  <Line type="monotone" dataKey="weather" stroke="#3498DB" strokeWidth={1.5} dot={false} name="Weather" />
-                  <Line type="monotone" dataKey="news" stroke="#E67E22" strokeWidth={1.5} dot={false} name="News" />
+                  <Line type="monotone" dataKey="quantconnect" stroke={SAPPHIRE.indigo} strokeWidth={1.5} dot={false} name="QuantConnect" />
+                  <Line type="monotone" dataKey="weather" stroke={SAPPHIRE.cyan} strokeWidth={1.5} dot={false} name="Weather" />
+                  <Line type="monotone" dataKey="news" stroke={SAPPHIRE.violet} strokeWidth={1.5} dot={false} name="News" />
                 </AreaChart>
               </ResponsiveContainer>
             </>
@@ -841,24 +870,24 @@ export const HighThroughputDemo: React.FC = () => {
               {/* API Toggle Controls */}
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-                  <FormControlLabel control={<Switch checked={config.enableQuantConnect} onChange={(e) => setConfig(prev => ({ ...prev, enableQuantConnect: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: '#9B59B6' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#9B59B6' } }} />} label={<Chip icon={<ShowChart />} label="QuantConnect" sx={{ bgcolor: config.enableQuantConnect ? alpha('#9B59B6', 0.2) : 'transparent', color: config.enableQuantConnect ? '#9B59B6' : '#5A7A8A' }} />} />
-                  <FormControlLabel control={<Switch checked={config.enableWeather} onChange={(e) => setConfig(prev => ({ ...prev, enableWeather: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: '#3498DB' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#3498DB' } }} />} label={<Chip icon={<Cloud />} label="Weather API" sx={{ bgcolor: config.enableWeather ? alpha('#3498DB', 0.2) : 'transparent', color: config.enableWeather ? '#3498DB' : '#5A7A8A' }} />} />
-                  <FormControlLabel control={<Switch checked={config.enableNews} onChange={(e) => setConfig(prev => ({ ...prev, enableNews: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: '#E67E22' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#E67E22' } }} />} label={<Chip icon={<Newspaper />} label="News API" sx={{ bgcolor: config.enableNews ? alpha('#E67E22', 0.2) : 'transparent', color: config.enableNews ? '#E67E22' : '#5A7A8A' }} />} />
+                  <FormControlLabel control={<Switch checked={config.enableQuantConnect} onChange={(e) => setConfig(prev => ({ ...prev, enableQuantConnect: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: SAPPHIRE.indigo }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: SAPPHIRE.indigo } }} />} label={<Chip icon={<ShowChart />} label="QuantConnect" sx={{ bgcolor: config.enableQuantConnect ? alpha(SAPPHIRE.indigo, 0.2) : 'transparent', color: config.enableQuantConnect ? SAPPHIRE.indigo : '#5A7A8A' }} />} />
+                  <FormControlLabel control={<Switch checked={config.enableWeather} onChange={(e) => setConfig(prev => ({ ...prev, enableWeather: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: SAPPHIRE.cyan }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: SAPPHIRE.cyan } }} />} label={<Chip icon={<Cloud />} label="Weather API" sx={{ bgcolor: config.enableWeather ? alpha(SAPPHIRE.cyan, 0.2) : 'transparent', color: config.enableWeather ? SAPPHIRE.cyan : '#5A7A8A' }} />} />
+                  <FormControlLabel control={<Switch checked={config.enableNews} onChange={(e) => setConfig(prev => ({ ...prev, enableNews: e.target.checked }))} disabled={isRunning} sx={{ '& .Mui-checked': { color: SAPPHIRE.violet }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: SAPPHIRE.violet } }} />} label={<Chip icon={<Newspaper />} label="News API" sx={{ bgcolor: config.enableNews ? alpha(SAPPHIRE.violet, 0.2) : 'transparent', color: config.enableNews ? SAPPHIRE.violet : '#5A7A8A' }} />} />
                 </Box>
               </Grid>
 
-              {/* QuantConnect Stream */}
+              {/* QuantConnect Stream - Clickable */}
               <Grid item xs={12} md={4}>
-                <Card sx={{ ...GLASS_CARD, border: `1px solid ${alpha('#9B59B6', 0.3)}` }}>
+                <Card sx={{ ...METRIC_CARD, border: `1px solid ${alpha(SAPPHIRE.indigo, 0.3)}`, position: 'relative' }} onClick={() => handleDrillDown('quantconnect')}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <ShowChart sx={{ color: '#9B59B6' }} />
+                      <ShowChart sx={{ color: SAPPHIRE.indigo }} />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>QuantConnect</Typography>
-                      {isRunning && config.enableQuantConnect && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha('#9B59B6', 0.2), color: '#9B59B6', ml: 'auto' }} />}
+                      {isRunning && config.enableQuantConnect && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha(SAPPHIRE.indigo, 0.2), color: SAPPHIRE.indigo, ml: 'auto' }} />}
                     </Box>
                     {latestQuantConnect ? (
                       <Box>
-                        <Typography variant="h4" sx={{ color: '#9B59B6', fontWeight: 700 }}>{latestQuantConnect.symbol}</Typography>
+                        <Typography variant="h4" sx={{ color: SAPPHIRE.indigo, fontWeight: 700 }}>{latestQuantConnect.symbol}</Typography>
                         <Typography variant="h5" sx={{ color: '#E8F4F8' }}>${latestQuantConnect.price}</Typography>
                         <Typography variant="body2" sx={{ color: parseFloat(latestQuantConnect.change) >= 0 ? SAPPHIRE.success : SAPPHIRE.error }}>
                           {parseFloat(latestQuantConnect.change) >= 0 ? '+' : ''}{latestQuantConnect.change}%
@@ -868,22 +897,26 @@ export const HighThroughputDemo: React.FC = () => {
                     ) : (
                       <Typography variant="body2" sx={{ color: '#5A7A8A' }}>Start demo to see live data</Typography>
                     )}
+                    <Box sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', alignItems: 'center', gap: 0.5, color: SAPPHIRE.indigo, opacity: 0.7 }}>
+                      <ZoomIn sx={{ fontSize: 14 }} />
+                      <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Drill Down</Typography>
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
 
-              {/* Weather Stream */}
+              {/* Weather Stream - Clickable */}
               <Grid item xs={12} md={4}>
-                <Card sx={{ ...GLASS_CARD, border: `1px solid ${alpha('#3498DB', 0.3)}` }}>
+                <Card sx={{ ...METRIC_CARD, border: `1px solid ${alpha(SAPPHIRE.cyan, 0.3)}`, position: 'relative' }} onClick={() => handleDrillDown('weather')}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <Cloud sx={{ color: '#3498DB' }} />
+                      <Cloud sx={{ color: SAPPHIRE.cyan }} />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>Weather API</Typography>
-                      {isRunning && config.enableWeather && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha('#3498DB', 0.2), color: '#3498DB', ml: 'auto' }} />}
+                      {isRunning && config.enableWeather && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha(SAPPHIRE.cyan, 0.2), color: SAPPHIRE.cyan, ml: 'auto' }} />}
                     </Box>
                     {latestWeather ? (
                       <Box>
-                        <Typography variant="h4" sx={{ color: '#3498DB', fontWeight: 700 }}>{latestWeather.city}</Typography>
+                        <Typography variant="h4" sx={{ color: SAPPHIRE.cyan, fontWeight: 700 }}>{latestWeather.city}</Typography>
                         <Typography variant="h5" sx={{ color: '#E8F4F8' }}>{latestWeather.temperature}°C</Typography>
                         <Typography variant="body2" sx={{ color: '#8BA4B4' }}>{latestWeather.condition}</Typography>
                         <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Humidity: {latestWeather.humidity}%</Typography>
@@ -891,18 +924,22 @@ export const HighThroughputDemo: React.FC = () => {
                     ) : (
                       <Typography variant="body2" sx={{ color: '#5A7A8A' }}>Start demo to see live data</Typography>
                     )}
+                    <Box sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', alignItems: 'center', gap: 0.5, color: SAPPHIRE.cyan, opacity: 0.7 }}>
+                      <ZoomIn sx={{ fontSize: 14 }} />
+                      <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Drill Down</Typography>
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
 
-              {/* News Stream */}
+              {/* News Stream - Clickable */}
               <Grid item xs={12} md={4}>
-                <Card sx={{ ...GLASS_CARD, border: `1px solid ${alpha('#E67E22', 0.3)}` }}>
+                <Card sx={{ ...METRIC_CARD, border: `1px solid ${alpha(SAPPHIRE.violet, 0.3)}`, position: 'relative' }} onClick={() => handleDrillDown('news')}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <Newspaper sx={{ color: '#E67E22' }} />
+                      <Newspaper sx={{ color: SAPPHIRE.violet }} />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>News API</Typography>
-                      {isRunning && config.enableNews && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha('#E67E22', 0.2), color: '#E67E22', ml: 'auto' }} />}
+                      {isRunning && config.enableNews && <Chip label="LIVE" size="small" sx={{ bgcolor: alpha(SAPPHIRE.violet, 0.2), color: SAPPHIRE.violet, ml: 'auto' }} />}
                     </Box>
                     {latestNews ? (
                       <Box>
@@ -913,6 +950,10 @@ export const HighThroughputDemo: React.FC = () => {
                     ) : (
                       <Typography variant="body2" sx={{ color: '#5A7A8A' }}>Start demo to see live data</Typography>
                     )}
+                    <Box sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', alignItems: 'center', gap: 0.5, color: SAPPHIRE.violet, opacity: 0.7 }}>
+                      <ZoomIn sx={{ fontSize: 14 }} />
+                      <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Drill Down</Typography>
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
@@ -939,6 +980,111 @@ export const HighThroughputDemo: React.FC = () => {
                     </Box>
                   ))}
                 </Box>
+              </Grid>
+
+              {/* Node Type Data Feed Cards */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 3, borderColor: alpha(SAPPHIRE.primary, 0.2) }} />
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>Node Data Feeds by Type</Typography>
+              </Grid>
+
+              {/* Validator Nodes Card */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ ...METRIC_CARD, border: `1px solid ${alpha(SAPPHIRE.primary, 0.3)}`, position: 'relative' }} onClick={() => handleDrillDown('nodes')}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <CheckCircle sx={{ color: SAPPHIRE.primary }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Validator Nodes</Typography>
+                      <Chip label={`${config.nodes.validators} Active`} size="small" sx={{ bgcolor: alpha(SAPPHIRE.primary, 0.2), color: SAPPHIRE.primary, ml: 'auto' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h4" sx={{ color: SAPPHIRE.primary, fontWeight: 700 }}>
+                        {formatNumber(Math.round(currentTPS * 0.15 / Math.max(1, config.nodes.validators)))}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#8BA4B4' }}>TPS per validator</Typography>
+                      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Consensus Blocks</Typography>
+                          <Typography variant="caption" sx={{ color: SAPPHIRE.primary }}>{isRunning ? Math.floor(uptime / 2) : 0}</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Validation Rate</Typography>
+                          <Typography variant="caption" sx={{ color: SAPPHIRE.success }}>{successRate.toFixed(2)}%</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', alignItems: 'center', gap: 0.5, color: SAPPHIRE.primary, opacity: 0.7 }}>
+                      <ZoomIn sx={{ fontSize: 14 }} />
+                      <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Drill Down</Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Business Nodes Card - Random generators */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ ...METRIC_CARD, border: `1px solid ${alpha(SAPPHIRE.secondary, 0.3)}`, position: 'relative' }} onClick={() => handleDrillDown('transactions')}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <Storage sx={{ color: SAPPHIRE.secondary }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Business Nodes</Typography>
+                      <Chip label={`${config.nodes.businessNodes} Active`} size="small" sx={{ bgcolor: alpha(SAPPHIRE.secondary, 0.2), color: SAPPHIRE.secondary, ml: 'auto' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h4" sx={{ color: SAPPHIRE.secondary, fontWeight: 700 }}>
+                        {formatNumber(Math.round(currentTPS * 0.2 / Math.max(1, config.nodes.businessNodes)))}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#8BA4B4' }}>TPS per business node</Typography>
+                      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Gap Fill (RNG)</Typography>
+                          <Typography variant="caption" sx={{ color: SAPPHIRE.secondary }}>{isRunning ? formatNumber(Math.floor(Math.random() * 50000 + 10000)) : 0} tx</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Processing Queue</Typography>
+                          <Typography variant="caption" sx={{ color: SAPPHIRE.warning }}>{isRunning ? Math.floor(Math.random() * 1000 + 100) : 0}</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', alignItems: 'center', gap: 0.5, color: SAPPHIRE.secondary, opacity: 0.7 }}>
+                      <ZoomIn sx={{ fontSize: 14 }} />
+                      <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Drill Down</Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Slim Nodes Card - External APIs */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ ...METRIC_CARD, border: `1px solid ${alpha(SAPPHIRE.accent, 0.3)}`, position: 'relative' }} onClick={() => handleDrillDown('tokens')}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <CloudQueue sx={{ color: SAPPHIRE.accent }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Slim Nodes</Typography>
+                      <Chip label={`${config.nodes.slimNodes} Active`} size="small" sx={{ bgcolor: alpha(SAPPHIRE.accent, 0.2), color: SAPPHIRE.accent, ml: 'auto' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h4" sx={{ color: SAPPHIRE.accent, fontWeight: 700 }}>
+                        {formatNumber(Math.round(currentTPS * 0.65 / Math.max(1, config.nodes.slimNodes)))}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#8BA4B4' }}>TPS per slim node</Typography>
+                      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: '#5A7A8A' }}>API Ingestion</Typography>
+                          <Typography variant="caption" sx={{ color: SAPPHIRE.indigo }}>{config.enableQuantConnect ? 'QC' : ''} {config.enableWeather ? 'WX' : ''} {config.enableNews ? 'NW' : ''}</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Tokens Created</Typography>
+                          <Typography variant="caption" sx={{ color: SAPPHIRE.accent }}>{tokensCreated}</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', alignItems: 'center', gap: 0.5, color: SAPPHIRE.accent, opacity: 0.7 }}>
+                      <ZoomIn sx={{ fontSize: 14 }} />
+                      <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Drill Down</Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
           )}
@@ -973,10 +1119,10 @@ export const HighThroughputDemo: React.FC = () => {
                           <TableCell sx={{ color: '#E8F4F8', fontFamily: 'monospace', fontSize: '0.75rem' }}>{asset.id}</TableCell>
                           <TableCell>
                             <Chip label={asset.source} size="small" sx={{
-                              bgcolor: asset.source === 'quantconnect' ? alpha('#9B59B6', 0.2) :
-                                       asset.source === 'weather' ? alpha('#3498DB', 0.2) : alpha('#E67E22', 0.2),
-                              color: asset.source === 'quantconnect' ? '#9B59B6' :
-                                     asset.source === 'weather' ? '#3498DB' : '#E67E22',
+                              bgcolor: asset.source === 'quantconnect' ? alpha(SAPPHIRE.indigo, 0.2) :
+                                       asset.source === 'weather' ? alpha(SAPPHIRE.cyan, 0.2) : alpha(SAPPHIRE.violet, 0.2),
+                              color: asset.source === 'quantconnect' ? SAPPHIRE.indigo :
+                                     asset.source === 'weather' ? SAPPHIRE.cyan : SAPPHIRE.violet,
                             }} />
                           </TableCell>
                           <TableCell sx={{ color: SAPPHIRE.accent, fontFamily: 'monospace', fontSize: '0.7rem' }}>
