@@ -34,7 +34,7 @@ const CARD_STYLE = {
 }
 
 const ACCENT_CARD = {
-  background: 'linear-gradient(135deg, #00BFA5 0%, #00897B 100%)',
+  background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)',
   borderRadius: 3,
   color: 'white'
 }
@@ -107,7 +107,7 @@ export default function Dashboard() {
               <Button
                 variant="contained"
                 size="large"
-                sx={{ bgcolor: 'white', color: '#00897B', fontWeight: 600, px: 4, '&:hover': { bgcolor: '#f5f5f5' } }}
+                sx={{ bgcolor: '#1E3A8A', color: 'white', fontWeight: 600, px: 4, '&:hover': { bgcolor: '#1E40AF' } }}
                 onClick={() => navigate('/rwa/tokenize')}
                 startIcon={<Token />}
               >
@@ -116,16 +116,16 @@ export default function Dashboard() {
               <Button
                 variant="contained"
                 size="large"
-                sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, px: 4, '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                sx={{ bgcolor: '#1E40AF', color: 'white', fontWeight: 600, px: 4, '&:hover': { bgcolor: '#2563EB' } }}
                 onClick={() => navigate('/rwa/registry-navigation')}
                 startIcon={<AccountTree />}
               >
                 Asset Registry
               </Button>
               <Button
-                variant="outlined"
+                variant="contained"
                 size="large"
-                sx={{ borderColor: 'white', color: 'white', fontWeight: 600, px: 4, '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}
+                sx={{ bgcolor: '#172554', color: 'white', fontWeight: 600, px: 4, '&:hover': { bgcolor: '#1E3A8A' } }}
                 onClick={() => navigate('/demo')}
                 startIcon={<PlayArrow />}
               >
