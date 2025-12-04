@@ -313,7 +313,7 @@ public class TokenDataService {
                 .decimals(request.decimals() != null ? request.decimals() : 18)
                 .totalSupply(String.valueOf(request.value()))
                 .circulatingSupply("0")
-                .contractAddress("0x" + UUID.randomUUID().toString().replace("-", "").substring(0, 40))
+                .contractAddress(generateContractAddress())
                 .type(request.assetType() != null ? request.assetType() : "rwa")
                 .price("$" + String.format("%.2f", request.value() / 1000000.0))
                 .priceChange24h(0.0)
@@ -381,5 +381,15 @@ public class TokenDataService {
              Log.error("Failed to get fractional tokens", throwable);
              return Collections.emptyList();
          });
+    }
+
+    /**
+     * Generate contract address (40 hex chars for Ethereum-style address)
+     * UUID is 32 chars without dashes, so concatenate two UUIDs
+     */
+    private String generateContractAddress() {
+        String uuid1 = UUID.randomUUID().toString().replace("-", "");
+        String uuid2 = UUID.randomUUID().toString().replace("-", "");
+        return "0x" + (uuid1 + uuid2).substring(0, 40);
     }
 }

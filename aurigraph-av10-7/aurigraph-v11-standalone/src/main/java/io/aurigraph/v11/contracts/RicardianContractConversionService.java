@@ -234,7 +234,7 @@ public class RicardianContractConversionService {
             return ContractParty.builder()
                     .partyId(partyId)
                     .name(name)
-                    .address(address != null ? address : "0x" + UUID.randomUUID().toString().replace("-", "").substring(0, 40))
+                    .address(address != null ? address : generateContractAddress())
                     .role(role)
                     .signatureRequired(true)
                     .kycVerified(false)
@@ -418,6 +418,15 @@ public class RicardianContractConversionService {
         } else {
             return String.join("; ", risks);
         }
+    }
+
+    /**
+     * Generate contract address (40 hex chars for Ethereum-style address)
+     */
+    private String generateContractAddress() {
+        String uuid1 = UUID.randomUUID().toString().replace("-", "");
+        String uuid2 = UUID.randomUUID().toString().replace("-", "");
+        return "0x" + (uuid1 + uuid2).substring(0, 40);
     }
 
     /**
