@@ -106,6 +106,10 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
      * - Health check endpoints
      * - Demo endpoints (for Enterprise Portal integration)
      * - Quarkus metrics endpoints
+     * - RWA/tokenization endpoints (for demo portal)
+     * - Marketplace endpoints (for demo portal)
+     * - Channel endpoints (for demo portal)
+     * - Token endpoints (for demo portal)
      */
     private boolean isPublicEndpoint(String path) {
         // Authentication endpoints
@@ -131,8 +135,97 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
 
         // Demo endpoints for Enterprise Portal (all demo/* endpoints are public)
         // This allows the portal to access demo features without authentication
-        if (path.startsWith("/api/v11/demo/")) {
+        if (path.startsWith("/api/v11/demo/") || path.startsWith("/api/v11/demos/")) {
             LOG.debugf("Demo endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // ============================================================
+        // Enterprise Portal Public Endpoints
+        // These endpoints are public for the demo portal experience
+        // ============================================================
+
+        // RWA (Real-World Asset) tokenization endpoints
+        if (path.startsWith("/api/v11/rwa/")) {
+            LOG.debugf("RWA endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Token management endpoints
+        if (path.startsWith("/api/v11/tokens/") || path.equals("/api/v11/tokens")) {
+            LOG.debugf("Token endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Token-management service endpoints
+        if (path.startsWith("/api/v11/token-management/")) {
+            LOG.debugf("Token management endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Channel management endpoints
+        if (path.startsWith("/api/v11/channels/") || path.equals("/api/v11/channels")) {
+            LOG.debugf("Channel endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Marketplace endpoints
+        if (path.startsWith("/api/v11/marketplace/")) {
+            LOG.debugf("Marketplace endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Blockchain/transaction endpoints for portal dashboards
+        if (path.startsWith("/api/v11/blockchain/") ||
+            path.startsWith("/api/v11/transactions/") ||
+            path.equals("/api/v11/transactions")) {
+            LOG.debugf("Blockchain/transaction endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Analytics and stats endpoints
+        if (path.startsWith("/api/v11/analytics/") ||
+            path.equals("/api/v11/analytics") ||
+            path.startsWith("/api/v11/stats/") ||
+            path.equals("/api/v11/stats")) {
+            LOG.debugf("Analytics endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Node and network endpoints
+        if (path.startsWith("/api/v11/nodes/") || path.equals("/api/v11/nodes") ||
+            path.startsWith("/api/v11/network/")) {
+            LOG.debugf("Network endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Consensus monitoring endpoints
+        if (path.startsWith("/api/v11/consensus/")) {
+            LOG.debugf("Consensus endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Smart contract endpoints
+        if (path.startsWith("/api/v11/contracts/") || path.equals("/api/v11/contracts")) {
+            LOG.debugf("Contract endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Validator endpoints
+        if (path.startsWith("/api/v11/validators/") || path.equals("/api/v11/validators")) {
+            LOG.debugf("Validator endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Block endpoints
+        if (path.startsWith("/api/v11/blocks/") || path.equals("/api/v11/blocks")) {
+            LOG.debugf("Block endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Staking endpoints
+        if (path.startsWith("/api/v11/staking/")) {
+            LOG.debugf("Staking endpoint detected - allowing public access: %s", path);
             return true;
         }
 
