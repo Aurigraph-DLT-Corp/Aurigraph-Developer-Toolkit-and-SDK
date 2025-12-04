@@ -2,6 +2,7 @@ package io.aurigraph.v11.demo.api;
 
 import io.aurigraph.v11.demo.model.Demo;
 import io.quarkus.scheduler.Scheduled;
+import jakarta.annotation.security.PermitAll;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -19,11 +20,13 @@ import java.util.UUID;
 /**
  * Demo Management REST API
  * Provides CRUD operations and timeout management for demos
+ * Security: @PermitAll to allow public access for demo purposes
  */
 @Path("/api/v11/demos")
 @Tag(name = "Demo Management", description = "Manage live demos with persistence and timeout")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@PermitAll
 public class DemoResource {
 
     private static final Logger LOG = Logger.getLogger(DemoResource.class);

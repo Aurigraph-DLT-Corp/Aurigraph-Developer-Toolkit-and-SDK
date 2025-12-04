@@ -1,6 +1,7 @@
 package io.aurigraph.v11.api;
 
 import io.smallrye.mutiny.Uni;
+import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -20,6 +21,8 @@ import java.util.*;
  * - Member management
  * - Channel metrics and analytics
  *
+ * Security: @PermitAll to allow public access for demo purposes
+ *
  * @version 11.0.0 (Priority #3 - Backend Development Agent)
  * @author Aurigraph V11 Development Team
  */
@@ -27,6 +30,7 @@ import java.util.*;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Channel Management", description = "Real-time communication channel operations")
+@PermitAll
 public class ChannelResource {
 
     private static final Logger LOG = Logger.getLogger(ChannelResource.class);
