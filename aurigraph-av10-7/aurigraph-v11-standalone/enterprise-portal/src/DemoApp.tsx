@@ -213,13 +213,21 @@ export const DemoApp: React.FC = () => {
                   variant="contained"
                   size="large"
                   sx={{
-                    bgcolor: 'white',
-                    color: '#1E40AF',
+                    backgroundColor: 'white !important',
+                    color: '#1E40AF !important',
                     fontWeight: 700,
                     px: 4,
                     fontSize: '1rem',
-                    '&:hover': { bgcolor: '#f0f4ff', color: '#1E40AF' },
-                    '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.7)', color: '#1E40AF' }
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                    '&:hover': {
+                      backgroundColor: '#f0f4ff !important',
+                      color: '#1E40AF !important',
+                      boxShadow: '0 6px 20px rgba(0,0,0,0.3)'
+                    },
+                    '&.Mui-disabled': {
+                      backgroundColor: 'rgba(255,255,255,0.85) !important',
+                      color: '#1E40AF !important'
+                    }
                   }}
                   onClick={startQuickDemo}
                   startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
