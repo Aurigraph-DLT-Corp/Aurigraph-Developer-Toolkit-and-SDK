@@ -37,8 +37,8 @@ import java.util.UUID;
 public class FilesystemDemoResource {
 
     private static final Logger LOG = Logger.getLogger(FilesystemDemoResource.class);
-    private static final int DEFAULT_DURATION_MINUTES = 10;
-    private static final int MAX_ADMIN_DURATION_MINUTES = 1440; // 24 hours
+    private static final int DEFAULT_DURATION_MINUTES = 1440; // 24 hours - persistent demos
+    private static final int MAX_ADMIN_DURATION_MINUTES = 10080; // 7 days for admins
 
     @Inject
     FilesystemDemoRepository demoRepository;
