@@ -24,7 +24,7 @@ public class DemoDTO {
     public LocalDateTime createdAt = LocalDateTime.now();
     public LocalDateTime lastActivity = LocalDateTime.now();
     public LocalDateTime expiresAt;
-    public int durationMinutes = 10;
+    public int durationMinutes = 1440; // 24 hours default for persistent demos
     public boolean isAdminDemo = false;
     public long transactionCount = 0;
     public String merkleRoot;

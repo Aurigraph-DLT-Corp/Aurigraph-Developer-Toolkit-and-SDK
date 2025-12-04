@@ -48,7 +48,7 @@ public class Demo extends PanacheEntityBase {
     public LocalDateTime expiresAt;
 
     @Column(name = "duration_minutes", nullable = false)
-    public int durationMinutes = 10;
+    public int durationMinutes = 1440; // 24 hours default for persistent demos
 
     @Column(name = "is_admin_demo", nullable = false)
     public boolean isAdminDemo = false;
