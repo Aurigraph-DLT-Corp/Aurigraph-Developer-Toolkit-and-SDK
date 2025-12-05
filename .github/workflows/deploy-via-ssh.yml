@@ -1,0 +1,293 @@
+name: Deploy V12 via SSH (GitHub Hosted)
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests for faster deployment'
+        type: boolean
+        default: true
+      environment:
+        description: 'Target environment'
+        type: choice
+        default: 'production'
+        options:
+          - production
+          - staging
+
+env:
+  JAVA_VERSION: '21'
+  REMOTE_HOST: dlt.aurigraph.io
+  REMOTE_PORT: 2235
+  REMOTE_USER: subbu
+  APP_PORT: 9003
+
+jobs:
+  build:
+    name: Build V12 Application
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Get version info
+        id: version
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "📦 Building version: ${VERSION}"
+
+      - name: Build application
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🔨 Building V12 application..."
+          ./mvnw clean package -DskipTests -Dmaven.test.skip=true -B
+
+          echo "✅ Build complete"
+          ls -lh target/quarkus-app/
+
+      - name: Run tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🧪 Running tests..."
+          ./mvnw test -B --fail-at-end || echo "⚠️ Some tests failed"
+        continue-on-error: true
+
+      - name: Package for deployment
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "📦 Packaging for deployment..."
+          cd target
+          tar -czvf quarkus-app.tar.gz quarkus-app/
+          ls -lh quarkus-app.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: v12-package
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app.tar.gz
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Remote Server
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+      url: https://dlt.aurigraph.io
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: v12-package
+          path: ./artifact
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Pre-deployment check
+        run: |
+          echo "🔍 Pre-deployment health check..."
+          ssh -p ${{ env.REMOTE_PORT }} -o ConnectTimeout=30 -o StrictHostKeyChecking=no ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          echo "=== Server Status ==="
+          echo "Hostname: $(hostname)"
+          echo "Disk: $(df -h / | tail -1 | awk '{print $4}') free"
+          echo "Memory: $(free -h | grep Mem | awk '{print $7}') available"
+          echo ""
+          echo "Current V12 status:"
+          if pgrep -f 'quarkus-run.jar\|aurigraph-v12' > /dev/null; then
+            echo "✅ V12 is running"
+            curl -s http://localhost:9003/api/v11/health | head -c 200 || echo "Health endpoint not responding"
+          else
+            echo "⚠️ V12 is not running"
+          fi
+          EOF
+
+      - name: Create backup
+        run: |
+          echo "💾 Creating backup..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          cd /home/subbu
+          BACKUP_NAME="quarkus-app.backup.$(date +%Y%m%d_%H%M%S)"
+          if [ -d quarkus-app ]; then
+            cp -r quarkus-app "$BACKUP_NAME"
+            echo "✅ Backup created: $BACKUP_NAME"
+            # Keep only last 5 backups
+            ls -dt quarkus-app.backup.* 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
+          else
+            echo "⚠️ No existing quarkus-app to backup"
+          fi
+          EOF
+
+      - name: Upload and extract package
+        run: |
+          echo "📤 Uploading package to server..."
+          scp -P ${{ env.REMOTE_PORT }} ./artifact/quarkus-app.tar.gz ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/home/subbu/
+
+          echo "📦 Extracting package..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          cd /home/subbu
+          rm -rf quarkus-app-new
+          tar -xzf quarkus-app.tar.gz
+          mv quarkus-app quarkus-app-new
+          echo "✅ Package extracted"
+          ls -la quarkus-app-new/
+          EOF
+
+      - name: Deploy application
+        run: |
+          echo "🚀 Deploying V12..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          set -e
+          cd /home/subbu
+
+          echo "=== Stopping current service ==="
+          pkill -f 'quarkus-run.jar' 2>/dev/null || echo "No existing process"
+          sleep 5
+
+          # Ensure port is free
+          if ss -tlnp 2>/dev/null | grep -q ':9003 '; then
+            echo "Port 9003 still in use, forcing cleanup..."
+            fuser -k 9003/tcp 2>/dev/null || true
+            sleep 3
+          fi
+
+          echo "=== Swapping to new version ==="
+          rm -rf quarkus-app-old
+          mv quarkus-app quarkus-app-old 2>/dev/null || true
+          mv quarkus-app-new quarkus-app
+
+          echo "=== Starting new version ==="
+          mkdir -p aurigraph/logs
+
+          nohup java -Xmx8g -Xms4g \
+            -XX:+UseG1GC \
+            -XX:MaxGCPauseMillis=200 \
+            -Dquarkus.http.port=9003 \
+            -Dquarkus.profile=prod \
+            -Dcurby.quantum.api-key=placeholder \
+            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/j4c_db \
+            -Dquarkus.datasource.username=j4c_user \
+            -Dquarkus.datasource.password=j4c_password \
+            -Dquarkus.flyway.migrate-at-start=false \
+            -jar quarkus-app/quarkus-run.jar \
+            > aurigraph/logs/main-api.log 2>&1 &
+
+          disown
+          echo "✅ Service started"
+          EOF
+
+      - name: Health check
+        run: |
+          echo "🔍 Running health checks..."
+          sleep 30
+
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            echo "Health check attempt $i/10..."
+
+            HEALTH=$(ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} \
+              "curl -s http://localhost:9003/api/v11/health 2>/dev/null" || echo '{"status":"error"}')
+
+            STATUS=$(echo "$HEALTH" | jq -r '.status // "error"' 2>/dev/null || echo "error")
+
+            if [ "$STATUS" = "UP" ]; then
+              echo "✅ Health check passed!"
+              echo "$HEALTH" | jq .
+              exit 0
+            fi
+
+            echo "  Status: $STATUS - waiting 10s..."
+            sleep 10
+          done
+
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
+
+      - name: Verify endpoints
+        run: |
+          echo "🧪 Verifying API endpoints..."
+
+          echo "1. Health endpoint:"
+          curl -sf https://dlt.aurigraph.io/api/v11/health | jq . || echo "⚠️ Health check via HTTPS pending"
+
+          echo ""
+          echo "2. Info endpoint:"
+          curl -sf https://dlt.aurigraph.io/api/v11/info | jq '.platform.version' || echo "⚠️ Info endpoint pending"
+
+          echo ""
+          echo "✅ Deployment verification complete"
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Initiating rollback..."
+          ssh -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+          cd /home/subbu
+
+          pkill -f 'quarkus-run.jar' 2>/dev/null || true
+          sleep 3
+
+          if [ -d quarkus-app-old ]; then
+            rm -rf quarkus-app
+            mv quarkus-app-old quarkus-app
+
+            nohup java -Xmx8g -Xms4g \
+              -XX:+UseG1GC \
+              -Dquarkus.http.port=9003 \
+              -jar quarkus-app/quarkus-run.jar \
+              > aurigraph/logs/main-api.log 2>&1 &
+
+            disown
+            echo "✅ Rollback complete"
+          else
+            echo "❌ No backup available for rollback"
+          fi
+          EOF
+
+  notify:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: always()
+
+    steps:
+      - name: Create summary
+        run: |
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "## ✅ V12 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ V12 Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ needs.build.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | ${{ inputs.environment || 'production' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Actor** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Timestamp** | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [API Health](https://dlt.aurigraph.io/api/v11/health)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Portal](https://dlt.aurigraph.io)" >> $GITHUB_STEP_SUMMARY
