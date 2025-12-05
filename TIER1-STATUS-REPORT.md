@@ -114,80 +114,59 @@
 
 ---
 
-### Fix 3: Re-enable TokenManagementService ⏳
-**Priority**: 🔴 CRITICAL
-**Status**: Code changes prepared (not yet applied)
-**Estimated Time**: 15 minutes
-**Depends On**: Fix 2 (LevelDB must be working)
+### TIER 1 & 2 FIXES - STATUS REPORT
+**Date:** December 5, 2025
+**Status:** 🟡 BLOCKED (Ready for Deployment, Waiting for Access)
 
-**Code Changes Required**:
+## 🚨 CRITICAL BLOCKER
+**Remote Server Inaccessible**
+- **Host:** `dlt.aurigraph.io`
+- **Port:** `2235`
+- **Issue:** SSH Connection Refused / Packet Loss
+- **Impact:** Cannot execute infrastructure fixes or deploy the new build.
+- **Action Required:** Restore SSH access to the server.
 
-#### File: `TokenDataService.java`
-**Location**: Line 22
+## ✅ Completed Tasks (Local)
+1.  **Application Fixes (Token Creation API)**
+    - [x] `TokenDataService.java`: Re-enabled `TokenManagementService` injection.
+    - [x] `TokenDataService.java`: Updated `createToken` to use real `createRWAToken` logic.
+    - [x] `TokenManagementService.java`: Added `@Builder` and fixed deprecations.
+    - [x] **Verification:** Local build PASSED.
 
-**BEFORE**:
-```java
-// TokenManagementService injection removed to avoid LevelDB initialization issues
-// Re-add when ready for real token integration
-```
+2.  **Configuration Cleanup**
+    - [x] `application.properties`: Updated deprecated `quarkus.http.cors` to `quarkus.http.cors.enabled`.
+    - [x] `application.properties`: Updated deprecated Hibernate and Flyway properties.
 
-**AFTER**:
-```java
-@Inject
-TokenManagementService tokenManagementService;
-```
+3.  **Dependency Resolution**
+    - [x] `pom.xml`: Resolved BouncyCastle version conflicts.
+    - [x] `pom.xml`: Excluded duplicate logging dependencies.
+    - [x] **Verification:** `mvn clean package` PASSED.
 
-#### File: `TokenDataService.java`
-**Location**: Lines 301-327 (createToken method)
+4.  **Infrastructure Preparation**
+    - [x] Created `scripts/fix-tier1-infrastructure.sh` to automate:
+        - PostgreSQL service start/restart.
+        - LevelDB directory creation and permissions.
+    - [x] Created `TIER1-FIXES-EXECUTION-PLAN.md` for step-by-step guidance.
 
-**Current Implementation**: Uses mock data
-**Required Change**: Integrate with TokenManagementService
+## ⏭️ Next Steps (Once Access Restored)
+1.  **Connect to Server:** `ssh -p 2235 subbu@dlt.aurigraph.io`
+2.  **Run Infrastructure Fix:**
+    ```bash
+    scp -P 2235 scripts/fix-tier1-infrastructure.sh subbu@dlt.aurigraph.io:~/
+    ssh -p 2235 subbu@dlt.aurigraph.io "chmod +x ~/fix-tier1-infrastructure.sh && ~/fix-tier1-infrastructure.sh"
+    ```
+3.  **Deploy Application:**
+    - Build Docker image locally (already verified).
+    - Push to registry or copy to server.
+    - Restart service.
+4.  **Verify Fixes:**
+    - Test Login API (PostgreSQL check).
+    - Test Token Creation API (LevelDB check).
 
-**Note**: Detailed implementation will be provided once Fix 2 is verified
-
-**Expected Outcome**:
-- Token Creation API returns 200 with real token data
-- Tokens are persisted to LevelDB
-- No LevelDB initialization errors in logs
-
----
-
-## 🎯 NEXT STEPS
-
-### Immediate (When Server Accessible)
-1. **Verify Server Status**
-   ```bash
-   # Test basic connectivity
-   ping dlt.aurigraph.io
-   
-   # Test SSH
-   ssh -p 2235 subbu@dlt.aurigraph.io
-   
-   # Test HTTPS
-   curl -I https://dlt.aurigraph.io
-   ```
-
-2. **Execute Infrastructure Fixes**
-   ```bash
-   cd /Users/subbujois/subbuworkingdir/Aurigraph-DLT
-   ./scripts/fix-tier1-infrastructure.sh
-   ```
-
-3. **Verify Fixes**
-   ```bash
-   # Test Login API
-   curl -X POST https://dlt.aurigraph.io/api/v11/auth/login \
-     -H "Content-Type: application/json" \
-     -d '{"username":"test","password":"test"}'
-   
-   # Test Demo Registration
-   curl -X POST https://dlt.aurigraph.io/api/v11/auth/demo-register \
-     -H "Content-Type: application/json" \
-     -d '{"email":"test@example.com"}'
-   ```
-
-4. **Apply Code Changes**
-   - Update TokenDataService.java
+## 📂 Key Files
+- `scripts/fix-tier1-infrastructure.sh`: The "magic button" to fix the server.
+- `TIER1-FIXES-EXECUTION-PLAN.md`: Detailed manual.
+- `aurigraph-av10-7/aurigraph-v11-standalone/target/`: Contains the build artifacts (once packaged).
    - Rebuild application
    - Deploy to server
    - Test Token Creation API
