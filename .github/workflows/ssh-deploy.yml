@@ -41,10 +41,10 @@ jobs:
         if: ${{ !inputs.skip_build }}
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone
         run: |
-          echo "Building V12 application (uber-jar)..."
-          ./mvnw clean package -DskipTests -B -Dquarkus.package.jar.type=uber-jar
+          echo "Building V12 application..."
+          ./mvnw clean package -DskipTests -B
           echo "Build complete!"
-          ls -lh target/*.jar
+          ls -lh target/quarkus-app/
 
       - name: Setup SSH
         run: |
