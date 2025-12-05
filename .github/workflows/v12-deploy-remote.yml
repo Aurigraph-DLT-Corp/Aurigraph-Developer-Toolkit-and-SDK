@@ -122,6 +122,47 @@ jobs:
           name: v12-jar
           path: ./artifact
 
+      - name: Pre-deployment infrastructure fixes
+        id: infra_fixes
+        run: |
+          echo "🔧 Fixing infrastructure issues before deployment..."
+          
+          echo "=== Fix 1: PostgreSQL Container ==="
+          if docker ps | grep -q dlt-postgres; then
+            echo "✅ PostgreSQL already running"
+          else
+            echo "⚠️  PostgreSQL not running, starting it..."
+            cd ~/Aurigraph-DLT
+            docker-compose up -d postgres || echo "Failed to start PostgreSQL"
+            sleep 10
+          fi
+          
+          # Verify PostgreSQL health
+          if docker exec dlt-postgres pg_isready -U aurigraph > /dev/null 2>&1; then
+            echo "✅ PostgreSQL is healthy"
+          else
+            echo "⚠️  PostgreSQL not responding (may affect Login/Demo APIs)"
+          fi
+          
+          echo ""
+          echo "=== Fix 2: LevelDB Directory ==="
+          if [ ! -d "/var/lib/aurigraph/leveldb" ]; then
+            echo "Creating LevelDB directory..."
+            sudo mkdir -p /var/lib/aurigraph/leveldb
+            sudo chown -R subbu:subbu /var/lib/aurigraph
+            sudo chmod -R 755 /var/lib/aurigraph
+            echo "✅ LevelDB directory created"
+          else
+            echo "✅ LevelDB directory exists"
+          fi
+          
+          # Verify writable
+          if touch /var/lib/aurigraph/leveldb/test.txt 2>/dev/null && rm /var/lib/aurigraph/leveldb/test.txt 2>/dev/null; then
+            echo "✅ LevelDB directory is writable"
+          else
+            echo "⚠️  LevelDB directory not writable (may affect Token Creation API)"
+          fi
+
       - name: Pre-deployment health check
         id: pre_health
         run: |

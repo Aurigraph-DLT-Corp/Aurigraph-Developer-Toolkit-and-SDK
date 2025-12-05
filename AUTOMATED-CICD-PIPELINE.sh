@@ -148,14 +148,18 @@ build_v11_jar() {
     fi
 
     log_info "Verifying JAR artifact..."
-    # Check for new Quarkus 3.x format (runner JAR in target/)
-    if [ -f "target/aurigraph-v11-standalone-11.4.4-runner.jar" ]; then
+    # Check for V12 JAR (new version)
+    if [ -f "target/aurigraph-v12-standalone-12.0.0-runner.jar" ]; then
+        local JAR_SIZE=$(du -sh target/aurigraph-v12-standalone-12.0.0-runner.jar | cut -f1)
+        log_success "JAR artifact verified - V12 ($JAR_SIZE)"
+    # Check for V11 JAR (legacy)
+    elif [ -f "target/aurigraph-v11-standalone-11.4.4-runner.jar" ]; then
         local JAR_SIZE=$(du -sh target/aurigraph-v11-standalone-11.4.4-runner.jar | cut -f1)
-        log_success "JAR artifact verified ($JAR_SIZE)"
+        log_success "JAR artifact verified - V11 ($JAR_SIZE)"
     # Fallback to older format
     elif [ -f "target/quarkus-app/quarkus-run.jar" ]; then
         local JAR_SIZE=$(du -sh target/quarkus-app/quarkus-run.jar | cut -f1)
-        log_success "JAR artifact verified ($JAR_SIZE)"
+        log_success "JAR artifact verified - Legacy ($JAR_SIZE)"
     else
         log_error "JAR artifact not found at expected locations"
         log_info "Available artifacts:"
