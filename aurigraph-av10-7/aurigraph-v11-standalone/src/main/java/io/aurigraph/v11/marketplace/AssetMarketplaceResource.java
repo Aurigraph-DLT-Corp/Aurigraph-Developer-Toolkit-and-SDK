@@ -46,6 +46,39 @@ public class AssetMarketplaceResource {
     @Inject
     MarketplaceService marketplaceService;
 
+    // ==================== Root Endpoint ====================
+
+    /**
+     * Get marketplace assets overview
+     * GET /api/v11/marketplace/assets
+     * Returns paginated list of marketplace assets with default sorting
+     */
+    @GET
+    @Path("/assets")
+    @Operation(
+        summary = "Get marketplace assets",
+        description = "Returns paginated list of all marketplace assets"
+    )
+    @APIResponse(
+        responseCode = "200",
+        description = "Assets retrieved successfully"
+    )
+    public Uni<MarketplaceService.MarketplaceSearchResponse> getAssets(
+            @QueryParam("offset") @DefaultValue("0") Integer offset,
+            @QueryParam("limit") @DefaultValue("20") Integer limit) {
+
+        LOG.infof("GET /api/v11/marketplace/assets - offset=%d, limit=%d", offset, limit);
+
+        // Create default search request with no filters
+        MarketplaceService.MarketplaceSearchRequest request = new MarketplaceService.MarketplaceSearchRequest();
+        request.setSortBy("newest");
+        request.setSortOrder("desc");
+        request.setOffset(offset);
+        request.setLimit(Math.min(limit, 100));
+
+        return marketplaceService.searchAssets(request);
+    }
+
     // ==================== Search & Browse ====================
 
     /**

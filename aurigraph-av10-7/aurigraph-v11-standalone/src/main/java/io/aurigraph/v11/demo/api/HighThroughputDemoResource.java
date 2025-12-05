@@ -38,6 +38,37 @@ public class HighThroughputDemoResource {
     private final Map<String, DemoChannel> channels = new ConcurrentHashMap<>();
     private final Map<String, DemoChannelState> channelStates = new ConcurrentHashMap<>();
 
+    // ==================== ROOT ENDPOINT ====================
+
+    /**
+     * GET /api/v11/demo
+     * Returns demo service overview and status
+     */
+    @GET
+    @Operation(summary = "Get demo overview", description = "Returns demo service overview and channel summary")
+    @APIResponse(responseCode = "200", description = "Demo overview retrieved successfully")
+    public Uni<Response> getDemoOverview() {
+        LOG.info("GET /api/v11/demo - Demo overview requested");
+
+        return Uni.createFrom().item(() -> {
+            int activeChannels = (int) channelStates.values().stream().filter(s -> s.isRunning).count();
+            long totalTransactions = channelStates.values().stream().mapToLong(s -> s.transactionCount).sum();
+            double maxTps = channelStates.values().stream().mapToDouble(s -> s.peakTPS).max().orElse(0);
+
+            return Response.ok(Map.of(
+                "status", "operational",
+                "service", "High-Throughput Demo Service",
+                "version", "11.0.0",
+                "totalChannels", channels.size(),
+                "activeChannels", activeChannels,
+                "totalTransactions", totalTransactions,
+                "peakTPS", maxTps,
+                "features", List.of("multi-channel", "ai-optimization", "quantum-security", "high-throughput"),
+                "timestamp", System.currentTimeMillis()
+            )).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
     // ==================== CHANNEL MANAGEMENT ====================
 
     /**
