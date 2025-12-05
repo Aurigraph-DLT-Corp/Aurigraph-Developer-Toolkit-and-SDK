@@ -44,7 +44,7 @@ jobs:
           echo "Building V12 application..."
           ./mvnw clean package -DskipTests -B
           echo "Build complete!"
-          ls -lh target/quarkus-app/
+          ls -lh target/*.jar
 
       - name: Setup SSH
         run: |
@@ -53,20 +53,13 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p 2235 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Package for deployment
-        if: ${{ !inputs.skip_build }}
-        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
-        run: |
-          echo "📦 Packaging for deployment..."
-          cd target
-          tar -czvf quarkus-app.tar.gz quarkus-app/
-          ls -lh quarkus-app.tar.gz
-
       - name: Upload and Deploy via SSH
         if: ${{ !inputs.skip_build }}
         run: |
-          echo "📤 Uploading to remote server..."
-          scp -P 2235 aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app.tar.gz subbu@dlt.aurigraph.io:/home/subbu/
+          echo "📤 Uploading JAR to remote server..."
+          JAR_FILE=$(ls aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar | head -1)
+          echo "Found JAR: $JAR_FILE"
+          scp -P 2235 "$JAR_FILE" subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12-new.jar
 
           echo "🚀 Deploying on remote server..."
           ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
@@ -76,27 +69,24 @@ jobs:
           echo "=== Aurigraph V12 Deployment via SSH ==="
           echo "Timestamp: $(date)"
 
-          # Backup existing
-          if [ -d quarkus-app ]; then
-            BACKUP="quarkus-app.backup.$(date +%Y%m%d_%H%M%S)"
-            cp -r quarkus-app "$BACKUP"
+          # Backup existing JAR
+          if [ -f aurigraph-v12.jar ]; then
+            BACKUP="aurigraph-v12.jar.backup.$(date +%Y%m%d_%H%M%S)"
+            cp aurigraph-v12.jar "$BACKUP"
             echo "✅ Backup: $BACKUP"
+            # Keep only last 5 backups
+            ls -t aurigraph-v12.jar.backup.* 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true
           fi
-
-          # Extract new version
-          rm -rf quarkus-app-new
-          tar -xzf quarkus-app.tar.gz
-          mv quarkus-app quarkus-app-new 2>/dev/null || true
 
           # Stop existing service
           echo "Stopping existing service..."
-          pkill -f 'quarkus-run.jar' 2>/dev/null || echo "No existing process"
+          pkill -f 'aurigraph-v12.jar' 2>/dev/null || echo "No existing process"
           sleep 5
 
-          # Swap versions
-          rm -rf quarkus-app-old
-          mv quarkus-app quarkus-app-old 2>/dev/null || true
-          mv quarkus-app-new quarkus-app
+          # Swap JAR
+          mv aurigraph-v12.jar aurigraph-v12.jar.old 2>/dev/null || true
+          mv aurigraph-v12-new.jar aurigraph-v12.jar
+          chmod +x aurigraph-v12.jar
 
           # Start new service
           echo "Starting V12 service..."
@@ -112,7 +102,7 @@ jobs:
             -Dquarkus.datasource.username=j4c_user \
             -Dquarkus.datasource.password=j4c_password \
             -Dquarkus.flyway.migrate-at-start=false \
-            -jar quarkus-app/quarkus-run.jar \
+            -jar aurigraph-v12.jar \
             > aurigraph/logs/main-api.log 2>&1 &
 
           disown
