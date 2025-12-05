@@ -51,7 +51,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p 2235 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -p 22 dlt.aurigraph.io >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Upload and Deploy via SSH
         if: ${{ !inputs.skip_build }}
@@ -59,10 +59,10 @@ jobs:
           echo "📤 Uploading JAR to remote server..."
           JAR_FILE=$(ls aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar | head -1)
           echo "Found JAR: $JAR_FILE"
-          scp -P 2235 "$JAR_FILE" subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12-new.jar
+          scp -P 22 "$JAR_FILE" subbu@dlt.aurigraph.io:/home/subbu/aurigraph-v12-new.jar
 
           echo "🚀 Deploying on remote server..."
-          ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+          ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
           set -e
           cd /home/subbu
 
@@ -116,7 +116,7 @@ jobs:
 
           for i in 1 2 3 4 5 6 7 8; do
             echo "Health check attempt $i/8..."
-            HEALTH=$(ssh -p 2235 subbu@dlt.aurigraph.io "curl -s http://localhost:9003/api/v11/health" 2>/dev/null || echo '{"status":"error"}')
+            HEALTH=$(ssh -p 22 subbu@dlt.aurigraph.io "curl -s http://localhost:9003/api/v11/health" 2>/dev/null || echo '{"status":"error"}')
             STATUS=$(echo "$HEALTH" | jq -r '.status // "error"' 2>/dev/null || echo "error")
 
             if [ "$STATUS" = "UP" ]; then
