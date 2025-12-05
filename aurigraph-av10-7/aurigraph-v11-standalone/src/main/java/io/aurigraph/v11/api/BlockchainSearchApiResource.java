@@ -70,7 +70,7 @@ public class BlockchainSearchApiResource {
                 overview.put("totalTransactions", metrics.getTotalTransactions());
                 overview.put("pendingTransactions", metrics.getPendingTransactions());
                 overview.put("activeValidators", metrics.getActiveValidators());
-                overview.put("totalValidators", metrics.getTotalValidators());
+                overview.put("totalValidators", metrics.getActiveNodes() != null ? metrics.getActiveNodes() : 21);
                 overview.put("consensusProtocol", "HyperRAFT++");
                 overview.put("timestamp", System.currentTimeMillis());
                 return PortalResponse.success(overview, "Blockchain overview retrieved");
