@@ -40,6 +40,12 @@
                 <artifactId>groovy-xml</artifactId>
                 <version>4.0.22</version>
             </dependency>
+            <!-- BouncyCastle Management -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.78</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -48,6 +54,12 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-grpc</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.vertx</groupId>
+                    <artifactId>vertx-grpc-common</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -88,6 +100,13 @@
         <dependency>
             <groupId>org.jboss.slf4j</groupId>
             <artifactId>slf4j-jboss-logmanager</artifactId>
+        </dependency>
+        <!-- Exclude commons-logging by providing it (prevents it from being bundled) -->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- JSON Logging for ELK Stack Integration -->
@@ -213,11 +232,14 @@
             <scope>test</scope>
         </dependency>
         <!-- Post-Quantum Cryptography -->
+        <!-- bcprov-jdk18on is included in bcprov-ext-jdk18on, so we exclude this to avoid duplicates -->
+        <!--
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.78</version>
         </dependency>
+        -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
