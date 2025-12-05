@@ -1,5 +1,7 @@
 package io.aurigraph.v11.contracts.composite;
 
+import io.aurigraph.v11.contracts.composite.repository.CompositeTokenRepositoryLevelDB;
+import io.aurigraph.v11.contracts.composite.repository.SecondaryTokenRepositoryLevelDB;
 import io.aurigraph.v11.contracts.rwa.*;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -12,32 +14,47 @@ import java.util.concurrent.atomic.AtomicLong;
 import io.quarkus.logging.Log;
 import org.bouncycastle.crypto.digests.SHA3Digest;
 import org.bouncycastle.util.encoders.Hex;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * Composite Token Factory for Real World Asset Tokenization
  * Creates comprehensive asset packages with primary + secondary tokens
  * Implements ERC-721 (primary) + ERC-1155 (secondary) token architecture
+ *
+ * Supports both in-memory (for testing) and LevelDB persistence modes.
+ *
+ * @version 2.0.0 (Dec 5, 2025 - LevelDB Persistence)
  */
 @ApplicationScoped
 public class CompositeTokenFactory {
 
     @Inject
     RWATokenizer rwaTokenizer;
-    
+
     @Inject
     AssetValuationService valuationService;
-    
+
     @Inject
     DigitalTwinService digitalTwinService;
-    
+
     @Inject
     VerifierRegistry verifierRegistry;
 
-    // Composite token registry
-    private final Map<String, CompositeToken> compositeTokens = new ConcurrentHashMap<>();
-    private final Map<String, List<SecondaryToken>> secondaryTokens = new ConcurrentHashMap<>();
+    @Inject
+    CompositeTokenRepositoryLevelDB compositeTokenRepository;
+
+    @Inject
+    SecondaryTokenRepositoryLevelDB secondaryTokenRepository;
+
+    // Configuration for persistence mode
+    @ConfigProperty(name = "aurigraph.composite-token.persistence.enabled", defaultValue = "true")
+    boolean persistenceEnabled;
+
+    // In-memory fallback registry (used when persistence is disabled or for caching)
+    private final Map<String, CompositeToken> compositeTokensCache = new ConcurrentHashMap<>();
+    private final Map<String, List<SecondaryToken>> secondaryTokensCache = new ConcurrentHashMap<>();
     private final AtomicLong compositeTokenCounter = new AtomicLong(0);
-    
+
     // Performance metrics
     private final AtomicLong totalCompositeTokensCreated = new AtomicLong(0);
     private final Map<String, AtomicLong> tokensByAssetType = new ConcurrentHashMap<>();
@@ -72,9 +89,15 @@ public class CompositeTokenFactory {
                 .verificationLevel(VerificationLevel.NONE)
                 .build();
             
-            // Step 4: Store in registries
-            compositeTokens.put(compositeId, compositeToken);
-            secondaryTokens.put(compositeId, secondaryTokenList);
+            // Step 4: Store in registries (both cache and persistent storage)
+            compositeTokensCache.put(compositeId, compositeToken);
+            secondaryTokensCache.put(compositeId, secondaryTokenList);
+
+            // Persist to LevelDB if enabled
+            if (persistenceEnabled) {
+                compositeTokenRepository.persist(compositeToken).await().indefinitely();
+                secondaryTokenRepository.persistAll(compositeId, secondaryTokenList).await().indefinitely();
+            }
             
             // Step 5: Initialize verification process
             initiateVerificationProcess(compositeToken, request);
@@ -101,184 +124,260 @@ public class CompositeTokenFactory {
      * Get composite token by ID
      */
     public Uni<CompositeToken> getCompositeToken(String compositeId) {
-        return Uni.createFrom().item(() -> compositeTokens.get(compositeId))
-            .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        // First check cache
+        CompositeToken cached = compositeTokensCache.get(compositeId);
+        if (cached != null) {
+            return Uni.createFrom().item(cached);
+        }
+
+        // If not in cache and persistence is enabled, load from LevelDB
+        if (persistenceEnabled) {
+            return compositeTokenRepository.findByCompositeId(compositeId)
+                .map(opt -> {
+                    if (opt.isPresent()) {
+                        // Cache the loaded token
+                        compositeTokensCache.put(compositeId, opt.get());
+                        return opt.get();
+                    }
+                    return null;
+                });
+        }
+
+        return Uni.createFrom().nullItem();
     }
 
     /**
      * Update secondary token in composite package
      */
-    public Uni<Boolean> updateSecondaryToken(String compositeId, SecondaryTokenType tokenType, 
+    public Uni<Boolean> updateSecondaryToken(String compositeId, SecondaryTokenType tokenType,
                                            Map<String, Object> updateData) {
-        return Uni.createFrom().item(() -> {
-            CompositeToken composite = compositeTokens.get(compositeId);
-            if (composite == null) {
-                return false;
+        return getSecondaryTokens(compositeId).flatMap(tokens -> {
+            if (tokens == null || tokens.isEmpty()) {
+                return Uni.createFrom().item(false);
             }
-            
-            List<SecondaryToken> tokens = secondaryTokens.get(compositeId);
-            if (tokens == null) {
-                return false;
-            }
-            
+
             // Find and update the specific secondary token
             for (SecondaryToken token : tokens) {
                 if (token.getTokenType() == tokenType) {
                     token.updateData(updateData);
                     token.setLastUpdated(Instant.now());
-                    
-                    Log.infof("Updated secondary token %s for composite %s", 
-                        tokenType, compositeId);
-                    return true;
+
+                    // Persist the update if enabled
+                    if (persistenceEnabled) {
+                        return secondaryTokenRepository.persist(token)
+                            .map(persisted -> {
+                                Log.infof("Updated secondary token %s for composite %s",
+                                    tokenType, compositeId);
+                                return true;
+                            });
+                    } else {
+                        Log.infof("Updated secondary token %s for composite %s",
+                            tokenType, compositeId);
+                        return Uni.createFrom().item(true);
+                    }
                 }
             }
-            
-            return false;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+
+            return Uni.createFrom().item(false);
+        });
     }
 
     /**
      * Add verification result to composite token
      */
     public Uni<Boolean> addVerificationResult(String compositeId, VerificationResult result) {
-        return Uni.createFrom().item(() -> {
-            CompositeToken composite = compositeTokens.get(compositeId);
+        return getCompositeToken(compositeId).flatMap(composite -> {
             if (composite == null) {
-                return false;
+                return Uni.createFrom().item(false);
             }
-            
-            // Add verification to the verification token
-            List<SecondaryToken> tokens = secondaryTokens.get(compositeId);
-            for (SecondaryToken token : tokens) {
-                if (token.getTokenType() == SecondaryTokenType.VERIFICATION) {
-                    VerificationToken verificationToken = (VerificationToken) token;
-                    verificationToken.addVerificationResult(result);
-                    
-                    // Check if we have reached consensus
-                    if (verificationToken.hasConsensus()) {
-                        composite.setStatus(CompositeTokenStatus.VERIFIED);
-                        composite.setVerificationLevel(result.getVerificationLevel());
-                        
-                        Log.infof("Composite token %s verified with consensus", compositeId);
+
+            return getSecondaryTokens(compositeId).flatMap(tokens -> {
+                for (SecondaryToken token : tokens) {
+                    if (token.getTokenType() == SecondaryTokenType.VERIFICATION) {
+                        VerificationToken verificationToken = (VerificationToken) token;
+                        verificationToken.addVerificationResult(result);
+
+                        // Check if we have reached consensus
+                        if (verificationToken.hasConsensus()) {
+                            composite.setStatus(CompositeTokenStatus.VERIFIED);
+                            composite.setVerificationLevel(result.getVerificationLevel());
+
+                            Log.infof("Composite token %s verified with consensus", compositeId);
+
+                            // Persist updates if enabled
+                            if (persistenceEnabled) {
+                                return compositeTokenRepository.persist(composite)
+                                    .flatMap(ct -> secondaryTokenRepository.persist(verificationToken))
+                                    .map(vt -> true);
+                            }
+                        } else if (persistenceEnabled) {
+                            // Just persist the verification token update
+                            return secondaryTokenRepository.persist(verificationToken)
+                                .map(vt -> true);
+                        }
+
+                        return Uni.createFrom().item(true);
                     }
-                    
-                    return true;
                 }
-            }
-            
-            return false;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                return Uni.createFrom().item(false);
+            });
+        });
     }
 
     /**
      * Transfer ownership of entire composite token package
      */
-    public Uni<Boolean> transferCompositeToken(String compositeId, String fromAddress, 
+    public Uni<Boolean> transferCompositeToken(String compositeId, String fromAddress,
                                              String toAddress) {
-        return Uni.createFrom().item(() -> {
-            CompositeToken composite = compositeTokens.get(compositeId);
+        return getCompositeToken(compositeId).flatMap(composite -> {
             if (composite == null) {
-                return false;
+                return Uni.createFrom().item(false);
             }
-            
+
             // Verify current ownership
             if (!fromAddress.equals(composite.getOwnerAddress())) {
-                throw new UnauthorizedTransferException("Unauthorized transfer attempt");
+                return Uni.createFrom().failure(new UnauthorizedTransferException("Unauthorized transfer attempt"));
             }
-            
+
             // Ensure token is verified before transfer
             if (composite.getStatus() != CompositeTokenStatus.VERIFIED) {
-                throw new IllegalStateException("Cannot transfer unverified composite token");
+                return Uni.createFrom().failure(new IllegalStateException("Cannot transfer unverified composite token"));
             }
-            
+
             // Update ownership in all tokens
             composite.setOwnerAddress(toAddress);
             composite.getPrimaryToken().setOwnerAddress(toAddress);
-            
-            // Update owner token specifically
-            List<SecondaryToken> tokens = secondaryTokens.get(compositeId);
-            for (SecondaryToken token : tokens) {
-                if (token.getTokenType() == SecondaryTokenType.OWNER) {
-                    OwnerToken ownerToken = (OwnerToken) token;
-                    ownerToken.recordTransfer(fromAddress, toAddress);
+
+            return getSecondaryTokens(compositeId).flatMap(tokens -> {
+                OwnerToken ownerToken = null;
+
+                // Find and update owner token
+                for (SecondaryToken token : tokens) {
+                    if (token.getTokenType() == SecondaryTokenType.OWNER) {
+                        ownerToken = (OwnerToken) token;
+                        ownerToken.recordTransfer(fromAddress, toAddress);
+                        break;
+                    }
                 }
-            }
-            
-            Log.infof("Transferred composite token %s from %s to %s", 
-                compositeId, fromAddress, toAddress);
-            
-            return true;
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+
+                Log.infof("Transferred composite token %s from %s to %s",
+                    compositeId, fromAddress, toAddress);
+
+                // Persist updates if enabled
+                if (persistenceEnabled && ownerToken != null) {
+                    final OwnerToken finalOwnerToken = ownerToken;
+                    return compositeTokenRepository.persist(composite)
+                        .flatMap(ct -> secondaryTokenRepository.persist(finalOwnerToken))
+                        .map(ot -> true);
+                }
+
+                return Uni.createFrom().item(true);
+            });
+        });
     }
 
     /**
      * Get all secondary tokens for a composite token
      */
     public Uni<List<SecondaryToken>> getSecondaryTokens(String compositeId) {
-        return Uni.createFrom().item(() -> 
-            secondaryTokens.getOrDefault(compositeId, new ArrayList<>())
-        ).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        // First check cache
+        List<SecondaryToken> cached = secondaryTokensCache.get(compositeId);
+        if (cached != null && !cached.isEmpty()) {
+            return Uni.createFrom().item(cached);
+        }
+
+        // If not in cache and persistence is enabled, load from LevelDB
+        if (persistenceEnabled) {
+            return secondaryTokenRepository.findByCompositeId(compositeId)
+                .map(tokens -> {
+                    if (!tokens.isEmpty()) {
+                        // Cache the loaded tokens
+                        secondaryTokensCache.put(compositeId, tokens);
+                    }
+                    return tokens;
+                });
+        }
+
+        return Uni.createFrom().item(new ArrayList<>());
     }
 
     /**
      * Get specific secondary token by type
      */
     public Uni<SecondaryToken> getSecondaryToken(String compositeId, SecondaryTokenType tokenType) {
-        return Uni.createFrom().item(() -> {
-            List<SecondaryToken> tokens = secondaryTokens.get(compositeId);
-            if (tokens == null) {
+        return getSecondaryTokens(compositeId).map(tokens -> {
+            if (tokens == null || tokens.isEmpty()) {
                 return null;
             }
-            
+
             return tokens.stream()
                 .filter(token -> token.getTokenType() == tokenType)
                 .findFirst()
                 .orElse(null);
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        });
     }
 
     /**
      * Get composite tokens by asset type
      */
     public Uni<List<CompositeToken>> getCompositeTokensByType(String assetType) {
-        return Uni.createFrom().item(() -> {
-            return compositeTokens.values().stream()
+        if (persistenceEnabled) {
+            return compositeTokenRepository.findByAssetType(assetType);
+        }
+
+        return Uni.createFrom().item(() ->
+            compositeTokensCache.values().stream()
                 .filter(token -> assetType.equals(token.getAssetType()))
-                .toList();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                .toList()
+        );
     }
 
     /**
      * Get composite tokens by owner
      */
     public Uni<List<CompositeToken>> getCompositeTokensByOwner(String ownerAddress) {
-        return Uni.createFrom().item(() -> {
-            return compositeTokens.values().stream()
+        if (persistenceEnabled) {
+            return compositeTokenRepository.findByOwner(ownerAddress);
+        }
+
+        return Uni.createFrom().item(() ->
+            compositeTokensCache.values().stream()
                 .filter(token -> ownerAddress.equals(token.getOwnerAddress()))
-                .toList();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+                .toList()
+        );
     }
 
     /**
      * Get factory statistics
      */
     public Uni<CompositeTokenStats> getStats() {
+        if (persistenceEnabled) {
+            return compositeTokenRepository.getStatistics()
+                .map(stats -> new CompositeTokenStats(
+                    (int) stats.totalTokens(),
+                    stats.byAssetType(),
+                    stats.byStatus(),
+                    totalCompositeTokensCreated.get(),
+                    BigDecimal.ZERO // Value calculation would need async operation
+                ));
+        }
+
         return Uni.createFrom().item(() -> {
             Map<String, Long> typeDistribution = new HashMap<>();
             Map<CompositeTokenStatus, Long> statusDistribution = new HashMap<>();
-            
-            for (CompositeToken token : compositeTokens.values()) {
+
+            for (CompositeToken token : compositeTokensCache.values()) {
                 // Count by asset type
                 String type = token.getAssetType();
                 typeDistribution.merge(type, 1L, Long::sum);
-                
+
                 // Count by status
                 CompositeTokenStatus status = token.getStatus();
                 statusDistribution.merge(status, 1L, Long::sum);
             }
-            
+
             return new CompositeTokenStats(
-                compositeTokens.size(),
+                compositeTokensCache.size(),
                 typeDistribution,
                 statusDistribution,
                 totalCompositeTokensCreated.get(),
@@ -392,10 +491,10 @@ public class CompositeTokenFactory {
     }
 
     private BigDecimal calculateTotalValue() {
-        return compositeTokens.values().stream()
+        return compositeTokensCache.values().stream()
             .map(token -> {
                 // Get valuation from valuation token
-                List<SecondaryToken> tokens = secondaryTokens.get(token.getCompositeId());
+                List<SecondaryToken> tokens = secondaryTokensCache.get(token.getCompositeId());
                 if (tokens != null) {
                     for (SecondaryToken secondaryToken : tokens) {
                         if (secondaryToken.getTokenType() == SecondaryTokenType.VALUATION) {
