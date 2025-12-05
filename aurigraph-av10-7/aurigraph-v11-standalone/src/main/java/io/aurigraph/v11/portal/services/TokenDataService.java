@@ -6,6 +6,9 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.util.*;
+import jakarta.inject.Inject;
+import java.math.BigDecimal;
+import io.aurigraph.v11.tokens.TokenManagementService;
 
 /**
  * TokenDataService provides token and RWA tokenization data
@@ -19,8 +22,8 @@ import java.util.*;
  */
 @ApplicationScoped
 public class TokenDataService {
-    // TokenManagementService injection removed to avoid LevelDB initialization issues
-    // Re-add when ready for real token integration
+    @Inject
+    TokenManagementService tokenManagementService;
 
     /**
      * Get all tokens on the platform
@@ -299,31 +302,50 @@ public class TokenDataService {
      * @return Created token DTO
      */
     public Uni<TokenDTO> createToken(TokenCreateRequest request) {
-        return Uni.createFrom().item(() -> {
-            Log.infof("Creating token: %s (%s)", request.name(), request.symbol());
-
-            // Generate unique token ID
-            String tokenId = "TOK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-
-            // Create and return the token
-            return TokenDTO.builder()
-                .tokenId(tokenId)
-                .name(request.name())
-                .symbol(request.symbol())
-                .decimals(request.decimals() != null ? request.decimals() : 18)
-                .totalSupply(String.valueOf(request.value()))
-                .circulatingSupply("0")
-                .contractAddress(generateContractAddress())
-                .type(request.assetType() != null ? request.assetType() : "rwa")
-                .price("$" + String.format("%.2f", request.value() / 1000000.0))
-                .priceChange24h(0.0)
-                .marketCap("$" + String.format("%.2f", request.value()))
-                .volume24h("$0.00")
-                .holders(1)
-                .createdAt(Instant.now())
-                .status("active")
-                .build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+        Log.infof("Creating token via TokenManagementService: %s (%s)", 
+                  request.name(), request.symbol());
+        
+        // Convert request to TokenManagementService format
+        var tokenRequest = io.aurigraph.v11.tokens.TokenManagementService.RWATokenRequest.builder()
+            .name(request.name())
+            .symbol(request.symbol())
+            .decimals(request.decimals() != null ? request.decimals() : 18)
+            .initialSupply(request.value() != null ? BigDecimal.valueOf(request.value()) : BigDecimal.valueOf(1000000L))
+            .assetType(request.assetType() != null ? io.aurigraph.v11.contracts.models.AssetType.valueOf(request.assetType().toUpperCase()) : io.aurigraph.v11.contracts.models.AssetType.REAL_ESTATE)
+            .description(request.description())
+            .build();
+        
+        return tokenManagementService.createRWAToken(tokenRequest)
+            .onItem().transform(token -> {
+                return TokenDTO.builder()
+                    .tokenId(token.getId())
+                    .name(token.getName())
+                    .symbol(token.getSymbol())
+                    .decimals(token.getDecimals())
+                    .totalSupply(String.valueOf(token.getTotalSupply()))
+                    .circulatingSupply("0")
+                    .contractAddress(token.getContractAddress())
+                    .type(token.getType().toString().toLowerCase())
+                    .price("$" + String.format("%.2f", request.value() / 1000000.0))
+                    .priceChange24h(0.0)
+                    .marketCap("$" + String.format("%.2f", request.value()))
+                    .volume24h("$0.00")
+                    .holders(1)
+                    .createdAt(Instant.now())
+                    .status("active")
+                    .build();
+            })
+            .onFailure().recoverWithItem(error -> {
+                Log.errorf("Token creation failed: %s", error.getMessage());
+                // Return mock token as fallback for now if service fails (e.g. DB down)
+                String tokenId = "TOK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                return TokenDTO.builder()
+                    .tokenId(tokenId)
+                    .name(request.name())
+                    .symbol(request.symbol())
+                    .status("failed")
+                    .build();
+            });
     }
 
     /**
