@@ -183,6 +183,7 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
 
         // Blockchain/transaction endpoints for portal dashboards
         if (path.startsWith("/api/v11/blockchain/") ||
+            path.equals("/api/v11/blockchain") ||
             path.startsWith("/api/v11/transactions/") ||
             path.equals("/api/v11/transactions")) {
             LOG.debugf("Blockchain/transaction endpoint detected - allowing public access: %s", path);
