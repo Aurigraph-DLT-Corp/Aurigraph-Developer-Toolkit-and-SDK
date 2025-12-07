@@ -19,6 +19,13 @@ export type AssetCategory =
   | 'trademark'             // Trademarks and service marks
   | 'copyright'             // Copyrights and literary works
   | 'nft'                   // Non-fungible tokens
+  // Banking & Trade Finance
+  | 'trade_finance'         // Letters of credit, trade receivables
+  | 'deposits'              // Bank deposits, certificates of deposit
+  | 'loans'                 // Commercial loans, mortgages
+  | 'invoice_factoring'     // Invoice financing, factoring
+  | 'supply_chain_finance'  // Supply chain financing
+  | 'treasury'              // Treasury instruments
   | 'other';
 
 export interface RealWorldAsset {

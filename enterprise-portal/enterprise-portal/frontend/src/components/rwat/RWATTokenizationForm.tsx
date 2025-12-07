@@ -49,6 +49,13 @@ const ASSET_CATEGORIES: AssetCategory[] = [
   'trademark',
   'copyright',
   'nft',
+  // Banking & Trade Finance
+  'trade_finance',
+  'deposits',
+  'loans',
+  'invoice_factoring',
+  'supply_chain_finance',
+  'treasury',
   'other',
 ];
 

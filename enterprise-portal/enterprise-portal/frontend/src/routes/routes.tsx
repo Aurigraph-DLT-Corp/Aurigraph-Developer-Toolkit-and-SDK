@@ -52,6 +52,9 @@ const RWATTokenizationForm = lazy(() => import('../components/rwat/RWATTokenizat
 const VVBApprovalWorkflow = lazy(() => import('../components/rwat/VVBApprovalWorkflow'));
 const AssetBackedStablecoin = lazy(() => import('../components/rwat/AssetBackedStablecoin'));
 
+// Banking & Trade Finance
+const BankingTokenization = lazy(() => import('../components/banking/BankingTokenization'));
+
 /**
  * Route definition interface
  */
@@ -63,7 +66,7 @@ export interface RouteDefinition {
   parent?: string;
   icon?: string;
   description?: string;
-  category?: 'demo' | 'blockchain' | 'contracts' | 'tokenization' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin';
+  category?: 'demo' | 'blockchain' | 'contracts' | 'tokenization' | 'banking' | 'compliance' | 'registries' | 'ai' | 'integration' | 'admin';
   order?: number;
 }
 
@@ -294,6 +297,87 @@ export const routes: RouteDefinition[] = [
     description: 'Asset-backed stablecoin management with Proof of Reserve',
     category: 'tokenization',
     order: 36,
+  },
+
+  // =========================================================================
+  // BANKING & TRADE FINANCE (Category)
+  // =========================================================================
+  {
+    path: '/banking',
+    component: BankingTokenization,
+    label: 'Banking',
+    breadcrumbLabel: 'Banking & Trade Finance',
+    parent: '/',
+    icon: 'BankOutlined',
+    description: 'Banking and trade finance tokenization',
+    category: 'banking',
+    order: 37,
+  },
+  {
+    path: '/banking/tokenization',
+    component: BankingTokenization,
+    label: 'Trade Finance',
+    breadcrumbLabel: 'Banking Tokenization',
+    parent: '/banking',
+    icon: 'DollarOutlined',
+    description: 'Tokenize trade finance instruments',
+    category: 'banking',
+    order: 38,
+  },
+  {
+    path: '/banking/deposits',
+    component: BankingTokenization,
+    label: 'Deposits & CDs',
+    breadcrumbLabel: 'Deposits & Certificates',
+    parent: '/banking',
+    icon: 'SafetyOutlined',
+    description: 'Bank deposits and certificates of deposit',
+    category: 'banking',
+    order: 39,
+  },
+  {
+    path: '/banking/loans',
+    component: BankingTokenization,
+    label: 'Loans',
+    breadcrumbLabel: 'Commercial Loans',
+    parent: '/banking',
+    icon: 'AccountBalanceOutlined',
+    description: 'Commercial loans and mortgages',
+    category: 'banking',
+    order: 40,
+  },
+  {
+    path: '/banking/invoice-factoring',
+    component: BankingTokenization,
+    label: 'Invoice Factoring',
+    breadcrumbLabel: 'Invoice Factoring',
+    parent: '/banking',
+    icon: 'FileTextOutlined',
+    description: 'Invoice financing and factoring',
+    category: 'banking',
+    order: 41,
+  },
+  {
+    path: '/banking/supply-chain',
+    component: BankingTokenization,
+    label: 'Supply Chain Finance',
+    breadcrumbLabel: 'Supply Chain Finance',
+    parent: '/banking',
+    icon: 'SwapOutlined',
+    description: 'Supply chain financing instruments',
+    category: 'banking',
+    order: 42,
+  },
+  {
+    path: '/banking/treasury',
+    component: BankingTokenization,
+    label: 'Treasury',
+    breadcrumbLabel: 'Treasury Instruments',
+    parent: '/banking',
+    icon: 'GoldOutlined',
+    description: 'Treasury instruments and management',
+    category: 'banking',
+    order: 43,
   },
 
   // =========================================================================

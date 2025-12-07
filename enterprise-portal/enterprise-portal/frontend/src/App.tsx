@@ -55,6 +55,7 @@ function App() {
       blockchain: 'Blockchain',
       contracts: 'Smart Contracts',
       tokenization: 'RWA Tokenization',
+      banking: 'Banking & Trade Finance',
       compliance: 'Compliance & Security',
       registries: 'Registries & Traceability',
       ai: 'AI & Optimization',
@@ -130,11 +131,11 @@ function App() {
           }}
         >
           <div>
-            Aurigraph DLT Enterprise Portal v4.6.0 | System Status:{' '}
+            Aurigraph DLT Enterprise Portal v5.0.0 | System Status:{' '}
             <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Healthy</span>
           </div>
           <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '4px' }}>
-            © 2025 Aurigraph DLT. Enterprise Blockchain Platform v11.3.1
+            © 2025 Aurigraph DLT. Enterprise Blockchain Platform v12.0.0
           </div>
         </Footer>
       </Layout>

@@ -40,6 +40,13 @@ const categoryIcons: Record<AssetCategory, React.ReactElement> = {
   trademark: <VerifiedUser />,
   copyright: <Description />,
   nft: <Palette />,
+  // Banking & Trade Finance
+  trade_finance: <AccountBalance />,
+  deposits: <Diamond />,
+  loans: <Assessment />,
+  invoice_factoring: <Description />,
+  supply_chain_finance: <TrendingUp />,
+  treasury: <AttachMoney />,
   other: <Info />
 };
 
@@ -128,9 +135,9 @@ const mockAssets: RealWorldAsset[] = [
 ];
 
 const mockStats: RWATStats = {
-  totalAssets: 147,
-  totalValueLocked: 623000000,
-  totalValueLockedUSD: 623000000,
+  totalAssets: 195,
+  totalValueLocked: 1250000000,
+  totalValueLockedUSD: 1250000000,
   assetsByCategory: {
     real_estate: 45,
     commodities: 23,
@@ -146,12 +153,19 @@ const mockStats: RWATStats = {
     trademark: 2,
     copyright: 1,
     nft: 3,
+    // Banking & Trade Finance
+    trade_finance: 18,
+    deposits: 12,
+    loans: 9,
+    invoice_factoring: 5,
+    supply_chain_finance: 3,
+    treasury: 2,
     other: 1
   },
-  totalHolders: 14253,
-  totalTransfers: 4156,
-  verifiedAssets: 132,
-  avgAssetValue: 4238095
+  totalHolders: 18253,
+  totalTransfers: 5856,
+  verifiedAssets: 172,
+  avgAssetValue: 6410256
 };
 
 export const RWATRegistry: React.FC = () => {
@@ -350,6 +364,12 @@ export const RWATRegistry: React.FC = () => {
               <MenuItem value="precious_metals">Precious Metals</MenuItem>
               <MenuItem value="collectibles">Collectibles</MenuItem>
               <MenuItem value="intellectual_property">Intellectual Property</MenuItem>
+              <MenuItem value="trade_finance">Trade Finance</MenuItem>
+              <MenuItem value="deposits">Deposits & CDs</MenuItem>
+              <MenuItem value="loans">Loans</MenuItem>
+              <MenuItem value="invoice_factoring">Invoice Factoring</MenuItem>
+              <MenuItem value="supply_chain_finance">Supply Chain Finance</MenuItem>
+              <MenuItem value="treasury">Treasury</MenuItem>
               <MenuItem value="other">Other</MenuItem>
             </Select>
           </FormControl>
@@ -500,6 +520,12 @@ export const RWATRegistry: React.FC = () => {
                   <MenuItem value="precious_metals">Precious Metals</MenuItem>
                   <MenuItem value="collectibles">Collectibles</MenuItem>
                   <MenuItem value="intellectual_property">Intellectual Property</MenuItem>
+                  <MenuItem value="trade_finance">Trade Finance</MenuItem>
+                  <MenuItem value="deposits">Deposits & CDs</MenuItem>
+                  <MenuItem value="loans">Loans</MenuItem>
+                  <MenuItem value="invoice_factoring">Invoice Factoring</MenuItem>
+                  <MenuItem value="supply_chain_finance">Supply Chain Finance</MenuItem>
+                  <MenuItem value="treasury">Treasury</MenuItem>
                   <MenuItem value="other">Other</MenuItem>
                 </Select>
               </FormControl>

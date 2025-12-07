@@ -97,6 +97,13 @@ export type VerificationType =
   | 'rwa_trademark'          // Trademark verification
   | 'rwa_copyright'          // Copyright verification
   | 'rwa_nft'                // NFT authenticity verification
+  // Banking & Trade Finance
+  | 'banking_trade_finance'  // Letters of credit, trade receivables
+  | 'banking_deposits'       // Bank deposits, CDs
+  | 'banking_loans'          // Commercial loans, mortgages
+  | 'banking_invoice_factoring' // Invoice financing
+  | 'banking_supply_chain_finance' // Supply chain finance
+  | 'banking_treasury'       // Treasury instruments
   | 'compliance_audit';
 
 export interface VVBSubmission {
@@ -294,6 +301,42 @@ const mockVVBOrganizations: VVBOrganization[] = [
     averageProcessingDays: 35,
     contactEmail: 'patents@patentanalytics.com',
     country: 'USA',
+    active: true,
+  },
+  {
+    id: 'vvb_9',
+    name: 'KPMG Trade Finance Advisory',
+    accreditations: ['ICC', 'Basel III', 'SWIFT', 'LMA'],
+    specializations: ['banking_trade_finance', 'banking_loans', 'banking_supply_chain_finance'],
+    rating: 4.9,
+    completedVerifications: 4200,
+    averageProcessingDays: 18,
+    contactEmail: 'tradefinance@kpmg.com',
+    country: 'UK',
+    active: true,
+  },
+  {
+    id: 'vvb_10',
+    name: 'PwC Banking & Capital Markets',
+    accreditations: ['Basel III', 'ISDA', 'SOC 2', 'ISO 27001'],
+    specializations: ['banking_deposits', 'banking_treasury', 'banking_loans'],
+    rating: 4.8,
+    completedVerifications: 3800,
+    averageProcessingDays: 21,
+    contactEmail: 'banking@pwc.com',
+    country: 'USA',
+    active: true,
+  },
+  {
+    id: 'vvb_11',
+    name: 'Euler Hermes Credit Verification',
+    accreditations: ['ICC', 'Berne Union', 'ICISA'],
+    specializations: ['banking_invoice_factoring', 'banking_trade_finance', 'compliance_audit'],
+    rating: 4.7,
+    completedVerifications: 5100,
+    averageProcessingDays: 14,
+    contactEmail: 'verification@eulerhermes.com',
+    country: 'Germany',
     active: true,
   },
 ];
