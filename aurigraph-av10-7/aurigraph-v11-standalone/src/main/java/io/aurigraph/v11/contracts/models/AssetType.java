@@ -11,7 +11,9 @@ public enum AssetType {
     HEALTHCARE,        // Healthcare data and medical records
     INTELLECTUAL_PROPERTY, // Patents, trademarks, copyrights
     COMMODITIES,       // Physical commodities (gold, oil, etc.)
-    ARTWORK,           // Digital and physical art
+    ARTWORK,           // Physical art and collectibles
+    DIGITAL_ART,       // NFTs, digital art, and digital collectibles
+    PATENT,            // Patents and registered inventions
     ENERGY,            // Energy certificates and renewable energy
     INSURANCE,         // Insurance policies and claims
     IDENTITY,          // Digital identity and credentials
