@@ -29,12 +29,17 @@ const categoryIcons: Record<AssetCategory, React.ReactElement> = {
   real_estate: <AccountBalance />,
   commodities: <TrendingUp />,
   art: <Palette />,
+  digital_art: <Palette />,
   carbon_credits: <EmojiNature />,
   bonds: <Assessment />,
   equities: <Share />,
   precious_metals: <Diamond />,
   collectibles: <Gavel />,
   intellectual_property: <Description />,
+  patent: <Description />,
+  trademark: <VerifiedUser />,
+  copyright: <Description />,
+  nft: <Palette />,
   other: <Info />
 };
 
@@ -123,25 +128,30 @@ const mockAssets: RealWorldAsset[] = [
 ];
 
 const mockStats: RWATStats = {
-  totalAssets: 127,
-  totalValueLocked: 523000000,
-  totalValueLockedUSD: 523000000,
+  totalAssets: 147,
+  totalValueLocked: 623000000,
+  totalValueLockedUSD: 623000000,
   assetsByCategory: {
     real_estate: 45,
     commodities: 23,
     art: 12,
+    digital_art: 8,
     carbon_credits: 8,
     bonds: 15,
     equities: 10,
     precious_metals: 7,
     collectibles: 4,
-    intellectual_property: 2,
+    intellectual_property: 5,
+    patent: 3,
+    trademark: 2,
+    copyright: 1,
+    nft: 3,
     other: 1
   },
-  totalHolders: 12453,
-  totalTransfers: 3456,
-  verifiedAssets: 112,
-  avgAssetValue: 4118110
+  totalHolders: 14253,
+  totalTransfers: 4156,
+  verifiedAssets: 132,
+  avgAssetValue: 4238095
 };
 
 export const RWATRegistry: React.FC = () => {

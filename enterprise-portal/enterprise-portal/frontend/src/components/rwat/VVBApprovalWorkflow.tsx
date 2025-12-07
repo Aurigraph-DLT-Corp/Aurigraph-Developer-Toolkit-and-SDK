@@ -91,6 +91,12 @@ export type VerificationType =
   | 'social_impact'
   | 'rwa_real_estate'
   | 'rwa_commodities'
+  | 'rwa_digital_art'        // Digital art, NFTs, digital collectibles
+  | 'rwa_intellectual_property' // Patents, trademarks, copyrights
+  | 'rwa_patent'             // Patent verification
+  | 'rwa_trademark'          // Trademark verification
+  | 'rwa_copyright'          // Copyright verification
+  | 'rwa_nft'                // NFT authenticity verification
   | 'compliance_audit';
 
 export interface VVBSubmission {
@@ -239,6 +245,54 @@ const mockVVBOrganizations: VVBOrganization[] = [
     completedVerifications: 650,
     averageProcessingDays: 30,
     contactEmail: 'realestate@deloitte.com',
+    country: 'USA',
+    active: true,
+  },
+  {
+    id: 'vvb_5',
+    name: 'Verisart Digital Authentication',
+    accreditations: ['ISO 27001', 'WIPO', 'Blockchain Certification'],
+    specializations: ['rwa_digital_art', 'rwa_nft', 'rwa_copyright'],
+    rating: 4.7,
+    completedVerifications: 3200,
+    averageProcessingDays: 14,
+    contactEmail: 'verify@verisart.com',
+    country: 'UK',
+    active: true,
+  },
+  {
+    id: 'vvb_6',
+    name: 'WIPO IP Verification Services',
+    accreditations: ['WIPO', 'USPTO', 'EPO', 'PCT'],
+    specializations: ['rwa_intellectual_property', 'rwa_patent', 'rwa_trademark'],
+    rating: 4.9,
+    completedVerifications: 5600,
+    averageProcessingDays: 21,
+    contactEmail: 'ipverify@wipo.int',
+    country: 'Switzerland',
+    active: true,
+  },
+  {
+    id: 'vvb_7',
+    name: 'Christie\'s Art Authentication',
+    accreditations: ['RICS', 'AAA', 'IFAR', 'Provenance Standards'],
+    specializations: ['rwa_digital_art', 'rwa_nft', 'compliance_audit'],
+    rating: 4.8,
+    completedVerifications: 890,
+    averageProcessingDays: 28,
+    contactEmail: 'authentication@christies.com',
+    country: 'UK',
+    active: true,
+  },
+  {
+    id: 'vvb_8',
+    name: 'Patent Analytics International',
+    accreditations: ['USPTO', 'EPO', 'JPO', 'CNIPA'],
+    specializations: ['rwa_patent', 'rwa_intellectual_property', 'rwa_trademark'],
+    rating: 4.6,
+    completedVerifications: 2100,
+    averageProcessingDays: 35,
+    contactEmail: 'patents@patentanalytics.com',
     country: 'USA',
     active: true,
   },

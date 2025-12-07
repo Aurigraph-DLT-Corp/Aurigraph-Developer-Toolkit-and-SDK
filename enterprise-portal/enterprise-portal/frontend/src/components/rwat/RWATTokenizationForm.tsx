@@ -38,12 +38,17 @@ const ASSET_CATEGORIES: AssetCategory[] = [
   'real_estate',
   'commodities',
   'art',
+  'digital_art',
   'carbon_credits',
   'bonds',
   'equities',
   'precious_metals',
   'collectibles',
   'intellectual_property',
+  'patent',
+  'trademark',
+  'copyright',
+  'nft',
   'other',
 ];
 

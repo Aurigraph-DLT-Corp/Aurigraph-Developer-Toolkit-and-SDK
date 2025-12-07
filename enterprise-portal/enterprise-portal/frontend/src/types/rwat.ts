@@ -8,12 +8,17 @@ export type AssetCategory =
   | 'real_estate'
   | 'commodities'
   | 'art'
+  | 'digital_art'           // NFTs, digital art, digital collectibles
   | 'carbon_credits'
   | 'bonds'
   | 'equities'
   | 'precious_metals'
   | 'collectibles'
-  | 'intellectual_property'
+  | 'intellectual_property' // Patents, trademarks, copyrights
+  | 'patent'                // Patents and registered inventions
+  | 'trademark'             // Trademarks and service marks
+  | 'copyright'             // Copyrights and literary works
+  | 'nft'                   // Non-fungible tokens
   | 'other';
 
 export interface RealWorldAsset {
