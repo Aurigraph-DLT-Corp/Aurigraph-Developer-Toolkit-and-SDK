@@ -334,9 +334,9 @@ const DemoChannelApp: React.FC = () => {
 
     for (let i = 0; i < count; i++) {
       const isSuccess = Math.random() > 0.002; // 99.8% success rate
-      const txType = txTypes[Math.floor(Math.random() * txTypes.length)];
+      const txType = txTypes[Math.floor(Math.random() * txTypes.length)] ?? 'transfer';
       const nodeId = allNodes.length > 0
-        ? allNodes[Math.floor(Math.random() * allNodes.length)].nodeId
+        ? allNodes[Math.floor(Math.random() * allNodes.length)]?.nodeId ?? 'validator-node-1'
         : 'validator-node-1';
 
       entries.push({
@@ -672,7 +672,7 @@ const DemoChannelApp: React.FC = () => {
     const successCount = demoState.auditTrail.filter(tx => tx.status === 'success').length;
     const failedCount = demoState.auditTrail.filter(tx => tx.status === 'failed').length;
     const pendingCount = demoState.auditTrail.filter(tx => tx.status === 'pending').length;
-    const avgLatency = demoState.auditTrail.length > 0
+    const trailAvgLatency = demoState.auditTrail.length > 0
       ? demoState.auditTrail.reduce((sum, tx) => sum + tx.latency, 0) / demoState.auditTrail.length
       : 0;
 
@@ -717,6 +717,17 @@ const DemoChannelApp: React.FC = () => {
                 value={demoState.currentBlockNumber}
                 prefix={<DatabaseOutlined />}
                 valueStyle={{ color: '#722ed1' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small">
+              <Statistic
+                title="Avg Latency (Trail)"
+                value={trailAvgLatency}
+                precision={1}
+                suffix="ms"
+                valueStyle={{ color: '#fa8c16' }}
               />
             </Card>
           </Col>

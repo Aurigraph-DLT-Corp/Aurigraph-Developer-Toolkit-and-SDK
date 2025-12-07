@@ -49,6 +49,7 @@ const ComplianceDashboard = lazy(() => import('../components/compliance/Complian
 const MerkleTreeRegistry = lazy(() => import('../components/registry/MerkleTreeRegistry'));
 const Whitepaper = lazy(() => import('../components/comprehensive/Whitepaper'));
 const RWATTokenizationForm = lazy(() => import('../components/rwat/RWATTokenizationForm'));
+const VVBApprovalWorkflow = lazy(() => import('../components/rwat/VVBApprovalWorkflow'));
 
 /**
  * Route definition interface
@@ -270,6 +271,17 @@ export const routes: RouteDefinition[] = [
     description: 'Real-world asset registry',
     category: 'tokenization',
     order: 34,
+  },
+  {
+    path: '/tokenization/vvb-approval',
+    component: VVBApprovalWorkflow,
+    label: 'VVB Approval',
+    breadcrumbLabel: 'VVB Approval Workflow',
+    parent: '/tokenization',
+    icon: 'VerifiedUserOutlined',
+    description: 'Validation and Verification Body approval workflow',
+    category: 'tokenization',
+    order: 35,
   },
 
   // =========================================================================
