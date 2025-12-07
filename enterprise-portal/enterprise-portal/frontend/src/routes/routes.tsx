@@ -50,6 +50,7 @@ const MerkleTreeRegistry = lazy(() => import('../components/registry/MerkleTreeR
 const Whitepaper = lazy(() => import('../components/comprehensive/Whitepaper'));
 const RWATTokenizationForm = lazy(() => import('../components/rwat/RWATTokenizationForm'));
 const VVBApprovalWorkflow = lazy(() => import('../components/rwat/VVBApprovalWorkflow'));
+const AssetBackedStablecoin = lazy(() => import('../components/rwat/AssetBackedStablecoin'));
 
 /**
  * Route definition interface
@@ -282,6 +283,17 @@ export const routes: RouteDefinition[] = [
     description: 'Validation and Verification Body approval workflow',
     category: 'tokenization',
     order: 35,
+  },
+  {
+    path: '/tokenization/stablecoin',
+    component: AssetBackedStablecoin,
+    label: 'Stablecoins',
+    breadcrumbLabel: 'Asset-Backed Stablecoins',
+    parent: '/tokenization',
+    icon: 'AccountBalanceOutlined',
+    description: 'Asset-backed stablecoin management with Proof of Reserve',
+    category: 'tokenization',
+    order: 36,
   },
 
   // =========================================================================
