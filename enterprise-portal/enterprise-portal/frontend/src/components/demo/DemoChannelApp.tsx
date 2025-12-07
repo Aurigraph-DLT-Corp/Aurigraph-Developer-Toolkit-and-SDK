@@ -47,6 +47,10 @@ import {
   NodeIndexOutlined,
   SettingOutlined,
   UserAddOutlined,
+  AuditOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined,
 } from '@ant-design/icons';
 import { XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import type { ColumnsType } from 'antd/es/table';
@@ -97,6 +101,21 @@ interface NodeMetric {
   errorsCount: number;
 }
 
+interface AuditTrailEntry {
+  id: string;
+  timestamp: number;
+  txHash: string;
+  fromAddress: string;
+  toAddress: string;
+  amount: string;
+  txType: 'transfer' | 'stake' | 'contract' | 'bridge' | 'swap';
+  status: 'success' | 'pending' | 'failed';
+  nodeId: string;
+  blockNumber: number;
+  gasUsed: number;
+  latency: number;
+}
+
 interface DemoState {
   isRunning: boolean;
   currentChannel: ChannelConfig | null;
@@ -105,6 +124,8 @@ interface DemoState {
   totalTransactions: number;
   peakTPS: number;
   avgLatency: number;
+  auditTrail: AuditTrailEntry[];
+  currentBlockNumber: number;
 }
 
 // ==================== COMPONENT ====================
@@ -128,6 +149,8 @@ const DemoChannelApp: React.FC = () => {
     totalTransactions: 0,
     peakTPS: 0,
     avgLatency: 0,
+    auditTrail: [],
+    currentBlockNumber: 1000000,
   });
 
   const [channels, setChannels] = useState<ChannelConfig[]>([]);
@@ -241,11 +264,13 @@ const DemoChannelApp: React.FC = () => {
 
   const startMetricsCollection = () => {
     let txCount = 0;
+    let blockCounter = 0;
 
     metricsIntervalRef.current = setInterval(() => {
       // Simulate transaction generation with target TPS
       const txsPerSecond = Math.floor(targetTPS / 10); // Update every 100ms
       txCount += txsPerSecond;
+      blockCounter++;
 
       const newMetric: TransactionMetric = {
         timestamp: Date.now(),
@@ -261,6 +286,10 @@ const DemoChannelApp: React.FC = () => {
         const newPeakTPS = Math.max(prev.peakTPS, newMetric.tps);
         const newNodeMetrics = generateNodeMetrics(prev.currentChannel);
 
+        // Generate new audit trail entries (show ~20 new transactions per update for readability)
+        const newAuditEntries = generateAuditTrailEntries(20, prev.currentBlockNumber + blockCounter, prev.currentChannel);
+        const combinedAudit = [...newAuditEntries, ...prev.auditTrail].slice(0, 500); // Keep last 500 entries
+
         return {
           ...prev,
           metricsHistory: newHistory,
@@ -268,6 +297,8 @@ const DemoChannelApp: React.FC = () => {
           totalTransactions: prev.totalTransactions + txsPerSecond,
           peakTPS: newPeakTPS,
           avgLatency: newMetric.avgLatency,
+          auditTrail: combinedAudit,
+          currentBlockNumber: prev.currentBlockNumber + (blockCounter % 10 === 0 ? 1 : 0),
         };
       });
     }, 100);
@@ -289,6 +320,42 @@ const DemoChannelApp: React.FC = () => {
       transactionsProcessed: Math.floor(Math.random() * 1000000),
       errorsCount: Math.floor(Math.random() * 10),
     }));
+  };
+
+  // Generate realistic audit trail entries
+  const generateAuditTrailEntries = (count: number, blockNumber: number, channel: ChannelConfig | null): AuditTrailEntry[] => {
+    const txTypes: AuditTrailEntry['txType'][] = ['transfer', 'stake', 'contract', 'bridge', 'swap'];
+    const allNodes = channel
+      ? [...channel.validatorNodes, ...channel.businessNodes, ...channel.slimNodes]
+      : [];
+
+    const entries: AuditTrailEntry[] = [];
+    const now = Date.now();
+
+    for (let i = 0; i < count; i++) {
+      const isSuccess = Math.random() > 0.002; // 99.8% success rate
+      const txType = txTypes[Math.floor(Math.random() * txTypes.length)];
+      const nodeId = allNodes.length > 0
+        ? allNodes[Math.floor(Math.random() * allNodes.length)].nodeId
+        : 'validator-node-1';
+
+      entries.push({
+        id: `tx-${now}-${i}-${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: now - (count - i) * 10, // Spread timestamps
+        txHash: `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        fromAddress: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        toAddress: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        amount: (Math.random() * 1000).toFixed(4),
+        txType,
+        status: isSuccess ? 'success' : (Math.random() > 0.5 ? 'pending' : 'failed'),
+        nodeId,
+        blockNumber: blockNumber + Math.floor(i / 100),
+        gasUsed: Math.floor(21000 + Math.random() * 100000),
+        latency: 20 + Math.random() * 60,
+      });
+    }
+
+    return entries;
   };
 
   // ==================== CHANNEL MANAGEMENT ====================
@@ -487,6 +554,265 @@ const DemoChannelApp: React.FC = () => {
     );
   };
 
+  const renderAuditTrailTab = () => {
+    const auditColumns: ColumnsType<AuditTrailEntry> = [
+      {
+        title: 'Time',
+        dataIndex: 'timestamp',
+        key: 'timestamp',
+        width: 100,
+        render: (ts: number) => new Date(ts).toLocaleTimeString(),
+      },
+      {
+        title: 'Tx Hash',
+        dataIndex: 'txHash',
+        key: 'txHash',
+        width: 180,
+        render: (hash: string) => (
+          <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
+            {hash.slice(0, 10)}...{hash.slice(-8)}
+          </span>
+        ),
+      },
+      {
+        title: 'Type',
+        dataIndex: 'txType',
+        key: 'txType',
+        width: 90,
+        render: (type: string) => {
+          const colors: Record<string, string> = {
+            transfer: 'blue',
+            stake: 'purple',
+            contract: 'cyan',
+            bridge: 'orange',
+            swap: 'green',
+          };
+          return <Tag color={colors[type] || 'default'}>{type.toUpperCase()}</Tag>;
+        },
+      },
+      {
+        title: 'From',
+        dataIndex: 'fromAddress',
+        key: 'from',
+        width: 140,
+        render: (addr: string) => (
+          <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
+            {addr.slice(0, 6)}...{addr.slice(-4)}
+          </span>
+        ),
+      },
+      {
+        title: 'To',
+        dataIndex: 'toAddress',
+        key: 'to',
+        width: 140,
+        render: (addr: string) => (
+          <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
+            {addr.slice(0, 6)}...{addr.slice(-4)}
+          </span>
+        ),
+      },
+      {
+        title: 'Amount',
+        dataIndex: 'amount',
+        key: 'amount',
+        width: 100,
+        align: 'right',
+        render: (amt: string) => `${parseFloat(amt).toFixed(2)} AUR`,
+      },
+      {
+        title: 'Block',
+        dataIndex: 'blockNumber',
+        key: 'block',
+        width: 90,
+        render: (block: number) => `#${block.toLocaleString()}`,
+      },
+      {
+        title: 'Gas',
+        dataIndex: 'gasUsed',
+        key: 'gas',
+        width: 80,
+        render: (gas: number) => gas.toLocaleString(),
+      },
+      {
+        title: 'Latency',
+        dataIndex: 'latency',
+        key: 'latency',
+        width: 80,
+        render: (lat: number) => `${lat.toFixed(1)}ms`,
+      },
+      {
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        width: 90,
+        fixed: 'right',
+        render: (status: string) => {
+          if (status === 'success') {
+            return <Tag icon={<CheckCircleOutlined />} color="success">Success</Tag>;
+          } else if (status === 'pending') {
+            return <Tag icon={<SyncOutlined spin />} color="processing">Pending</Tag>;
+          } else {
+            return <Tag icon={<CloseCircleOutlined />} color="error">Failed</Tag>;
+          }
+        },
+      },
+      {
+        title: 'Node',
+        dataIndex: 'nodeId',
+        key: 'node',
+        width: 120,
+        render: (nodeId: string) => (
+          <span style={{ fontSize: '11px' }}>{nodeId}</span>
+        ),
+      },
+    ];
+
+    // Calculate stats
+    const successCount = demoState.auditTrail.filter(tx => tx.status === 'success').length;
+    const failedCount = demoState.auditTrail.filter(tx => tx.status === 'failed').length;
+    const pendingCount = demoState.auditTrail.filter(tx => tx.status === 'pending').length;
+    const avgLatency = demoState.auditTrail.length > 0
+      ? demoState.auditTrail.reduce((sum, tx) => sum + tx.latency, 0) / demoState.auditTrail.length
+      : 0;
+
+    return (
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
+        {/* Audit Trail Stats */}
+        <Row gutter={[16, 16]}>
+          <Col xs={12} sm={6}>
+            <Card size="small">
+              <Statistic
+                title="Audit Entries"
+                value={demoState.auditTrail.length}
+                prefix={<AuditOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small">
+              <Statistic
+                title="Successful"
+                value={successCount}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small">
+              <Statistic
+                title="Failed"
+                value={failedCount}
+                prefix={<CloseCircleOutlined />}
+                valueStyle={{ color: '#ff4d4f' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small">
+              <Statistic
+                title="Current Block"
+                value={demoState.currentBlockNumber}
+                prefix={<DatabaseOutlined />}
+                valueStyle={{ color: '#722ed1' }}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Live indicator */}
+        {demoState.isRunning && (
+          <Alert
+            message={
+              <Space>
+                <SyncOutlined spin />
+                <span>Live Transaction Feed - Transactions are being processed in real-time</span>
+                <Tag color="green">LIVE</Tag>
+              </Space>
+            }
+            type="success"
+            showIcon={false}
+          />
+        )}
+
+        {/* Audit Trail Table */}
+        <Card
+          title={
+            <Space>
+              <AuditOutlined />
+              <span>Transaction Audit Trail</span>
+              {demoState.isRunning && <Badge status="processing" text="Live" />}
+            </Space>
+          }
+          extra={
+            <Space>
+              <span style={{ color: '#666', fontSize: '12px' }}>
+                Showing {demoState.auditTrail.length} of {demoState.totalTransactions.toLocaleString()} total transactions
+              </span>
+              <Button size="small" icon={<DownloadOutlined />}>
+                Export CSV
+              </Button>
+            </Space>
+          }
+        >
+          {demoState.auditTrail.length > 0 ? (
+            <Table
+              columns={auditColumns}
+              dataSource={demoState.auditTrail}
+              rowKey="id"
+              pagination={{
+                pageSize: 20,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `${total} transactions`,
+              }}
+              scroll={{ x: 1400 }}
+              size="small"
+              rowClassName={(record) =>
+                record.status === 'failed' ? 'audit-row-failed' : ''
+              }
+            />
+          ) : (
+            <Alert
+              message="No transactions yet"
+              description="Start the demo to see real-time transaction audit trail"
+              type="info"
+              showIcon
+            />
+          )}
+        </Card>
+
+        {/* Success Rate Progress */}
+        <Card title="Transaction Success Rate">
+          <Row gutter={16} align="middle">
+            <Col span={18}>
+              <Progress
+                percent={demoState.auditTrail.length > 0
+                  ? parseFloat(((successCount / demoState.auditTrail.length) * 100).toFixed(2))
+                  : 0
+                }
+                status="active"
+                strokeColor={{
+                  '0%': '#108ee9',
+                  '100%': '#87d068',
+                }}
+              />
+            </Col>
+            <Col span={6} style={{ textAlign: 'right' }}>
+              <Space direction="vertical" size={0}>
+                <span style={{ color: '#52c41a' }}>✓ {successCount} success</span>
+                <span style={{ color: '#faad14' }}>○ {pendingCount} pending</span>
+                <span style={{ color: '#ff4d4f' }}>✗ {failedCount} failed</span>
+              </Space>
+            </Col>
+          </Row>
+        </Card>
+      </Space>
+    );
+  };
+
   // ==================== RENDER ====================
 
   return (
@@ -599,12 +925,23 @@ const DemoChannelApp: React.FC = () => {
             },
             {
               key: '1',
+              label: (
+                <span>
+                  Audit Trail
+                  {demoState.isRunning && <Badge status="processing" style={{ marginLeft: 8 }} />}
+                </span>
+              ),
+              icon: <AuditOutlined />,
+              children: renderAuditTrailTab(),
+            },
+            {
+              key: '2',
               label: 'Configuration',
               icon: <SettingOutlined />,
               children: renderConfigurationPanel(),
             },
             {
-              key: '2',
+              key: '3',
               label: 'AI Optimization',
               icon: <RobotOutlined />,
               children: (
@@ -618,7 +955,7 @@ const DemoChannelApp: React.FC = () => {
               ),
             },
             {
-              key: '3',
+              key: '4',
               label: 'Security',
               icon: <SafetyOutlined />,
               children: (
