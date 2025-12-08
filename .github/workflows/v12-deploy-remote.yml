@@ -43,10 +43,10 @@ env:
 
 jobs:
   # ============================================================
-  # PHASE 1: BUILD
+  # BUILD AND DEPLOY (Combined to avoid GitHub artifact storage)
   # ============================================================
-  build:
-    name: Build V12 Application
+  build-and-deploy:
+    name: Build and Deploy V12
     runs-on: [self-hosted, Linux, aurigraph-prod]
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -97,30 +97,14 @@ jobs:
           ./mvnw test -B --fail-at-end || echo "⚠️ Some tests failed"
         continue-on-error: true
 
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: v12-jar
-          path: aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar
-          retention-days: 7
-
-  # ============================================================
-  # PHASE 2: DEPLOY TO REMOTE SERVER
-  # ============================================================
-  deploy:
-    name: Deploy to Remote Server
-    runs-on: [self-hosted, Linux, aurigraph-prod]
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: v12-jar
-          path: ./artifact
+      - name: Prepare artifact for deployment
+        id: prepare_artifact
+        run: |
+          echo "📦 Preparing artifact for direct deployment..."
+          mkdir -p ./artifact
+          cp aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar ./artifact/
+          ls -lh ./artifact/
+          echo "✅ Artifact ready for deployment (no GitHub storage needed)"
 
       - name: Pre-deployment infrastructure fixes
         id: infra_fixes
@@ -479,12 +463,12 @@ jobs:
           fi
 
   # ============================================================
-  # PHASE 3: POST-DEPLOYMENT
+  # PHASE 2: POST-DEPLOYMENT
   # ============================================================
   post-deploy:
     name: Post-Deployment Tasks
     runs-on: [self-hosted, Linux, aurigraph-prod]
-    needs: [build, deploy]
+    needs: build-and-deploy
     if: success()
 
     steps:
@@ -495,7 +479,7 @@ jobs:
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| **Environment** | ${{ inputs.environment || 'production' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Version** | ${{ needs.build.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ needs.build-and-deploy.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Actor** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
@@ -523,7 +507,7 @@ jobs:
                 {
                   "type": "section",
                   "fields": [
-                    {"type": "mrkdwn", "text": "*Version:*\n${{ needs.build.outputs.version }}"},
+                    {"type": "mrkdwn", "text": "*Version:*\n${{ needs.build-and-deploy.outputs.version }}"},
                     {"type": "mrkdwn", "text": "*Environment:*\n${{ inputs.environment || 'production' }}"},
                     {"type": "mrkdwn", "text": "*Branch:*\n${{ github.ref_name }}"},
                     {"type": "mrkdwn", "text": "*Actor:*\n${{ github.actor }}"}
@@ -553,7 +537,7 @@ jobs:
   notify-failure:
     name: Notify Failure
     runs-on: [self-hosted, Linux, aurigraph-prod]
-    needs: [build, deploy]
+    needs: build-and-deploy
     if: failure()
 
     steps:
