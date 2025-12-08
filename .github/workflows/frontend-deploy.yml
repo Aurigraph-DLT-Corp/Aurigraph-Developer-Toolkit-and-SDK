@@ -58,17 +58,30 @@ jobs:
           echo "Timestamp: $(date)"
           echo "Runner is on the production server - using local file operations"
 
-          # Clear old files
-          echo "Clearing old frontend files..."
-          rm -rf /home/subbu/enterprise-portal/*
+          # NGINX serves from /usr/share/nginx/html
+          DEPLOY_DIR="/usr/share/nginx/html"
+          BACKUP_DIR="/home/subbu/enterprise-portal"
 
-          # Copy new build
-          echo "Copying new build..."
-          cp -r dist/* /home/subbu/enterprise-portal/
+          # Create backup
+          echo "Creating backup in $BACKUP_DIR..."
+          rm -rf $BACKUP_DIR/*
+          cp -r dist/* $BACKUP_DIR/
+
+          # Clear old NGINX files
+          echo "Clearing old NGINX frontend files..."
+          sudo rm -rf $DEPLOY_DIR/*
+
+          # Copy new build to NGINX directory
+          echo "Copying new build to NGINX directory..."
+          sudo cp -r dist/* $DEPLOY_DIR/
+
+          # Set correct ownership for NGINX
+          echo "Setting permissions..."
+          sudo chown -R www-data:www-data $DEPLOY_DIR/
 
           # Verify deployment
-          echo "Verifying files..."
-          ls -la /home/subbu/enterprise-portal/
+          echo "Verifying files in NGINX directory..."
+          ls -la $DEPLOY_DIR/
 
           echo "Frontend deployment complete!"
 
@@ -94,7 +107,8 @@ jobs:
 
           echo ""
           echo "=== Deployment Summary ==="
-          echo "Frontend files deployed to /home/subbu/enterprise-portal/"
+          echo "Frontend files deployed to /usr/share/nginx/html/"
+          echo "Backup available at /home/subbu/enterprise-portal/"
           echo ""
           echo "Access URLs:"
           echo "  Frontend: https://dlt.aurigraph.io"
