@@ -51,6 +51,23 @@ jobs:
           echo "Build complete!"
           ls -lh dist/
 
+      - name: Clear NGINX Cache (Pre-deployment)
+        run: |
+          echo "=== Clearing NGINX Cache Before Deployment ==="
+
+          # Stop NGINX to clear in-memory cache
+          echo "Stopping NGINX..."
+          sudo systemctl stop nginx
+
+          # Clear any OS file cache
+          echo "Clearing system file cache..."
+          sudo sync && sudo sysctl vm.drop_caches=3 2>/dev/null || true
+
+          # Clear NGINX cache directory if exists
+          sudo rm -rf /var/cache/nginx/* 2>/dev/null || true
+
+          echo "Pre-deployment cache clear complete"
+
       - name: Deploy Frontend (Local Runner)
         working-directory: ${{ env.FRONTEND_DIR }}
         run: |
@@ -67,7 +84,7 @@ jobs:
           rm -rf $BACKUP_DIR/*
           cp -r dist/* $BACKUP_DIR/
 
-          # Clear old NGINX files
+          # Clear old NGINX files completely
           echo "Clearing old NGINX frontend files..."
           sudo rm -rf $DEPLOY_DIR/*
 
@@ -84,6 +101,18 @@ jobs:
           ls -la $DEPLOY_DIR/
 
           echo "Frontend deployment complete!"
+
+      - name: Restart NGINX (Post-deployment)
+        run: |
+          echo "=== Starting NGINX with Fresh Cache ==="
+
+          # Start NGINX fresh
+          sudo systemctl start nginx
+
+          # Verify NGINX is running
+          sudo systemctl status nginx --no-pager | head -5
+
+          echo "NGINX started with fresh cache"
 
       - name: Verify Frontend
         run: |
