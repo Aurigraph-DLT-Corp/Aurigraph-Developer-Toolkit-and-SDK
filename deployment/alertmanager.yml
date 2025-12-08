@@ -3,13 +3,10 @@
 
 global:
   resolve_timeout: 5m
-  slack_api_url: '${SLACK_WEBHOOK_URL}'
-  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
-  smtp_smarthost: '${SMTP_HOST}:${SMTP_PORT}'
-  smtp_auth_username: '${SMTP_USERNAME}'
-  smtp_auth_password: '${SMTP_PASSWORD}'
-  smtp_require_tls: true
-  smtp_from: 'alerts@dlt.aurigraph.io'
+  # Slack and email configs disabled until webhooks are configured
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR_WEBHOOK'
+  # smtp_smarthost: 'smtp.example.com:587'
+  # smtp_from: 'alerts@dlt.aurigraph.io'
 
 # Templates for alert notifications
 templates:
@@ -87,85 +84,49 @@ route:
       repeat_interval: 8h
       continue: false
 
-# Notification receivers
+# Notification receivers (Slack/Email disabled - configure webhooks first)
 receivers:
   - name: 'default'
-    slack_configs:
-      - channel: '#alerts-general'
-        title: 'Aurigraph Alert: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
-        actions:
-          - type: button
-            text: 'Runbook'
-            url: 'https://wiki.dlt.aurigraph.io/runbooks/{{ .GroupLabels.alertname }}'
-    email_configs:
-      - to: 'oncall@dlt.aurigraph.io'
-        headers:
-          Subject: '[ALERT] {{ .GroupLabels.alertname }}'
+    # Webhook receiver for logging alerts
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
   - name: 'critical'
-    slack_configs:
-      - channel: '#alerts-critical'
-        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts.Firing }}{{ .Annotations.description }}\nImpact: {{ .Annotations.impact }}\nAction: {{ .Annotations.action }}\n\n{{ end }}'
-        color: 'danger'
-    pagerduty_configs:
-      - service_key: '${PAGERDUTY_SERVICE_KEY}'
-        description: '{{ .GroupLabels.alertname }}: {{ range .Alerts.Firing }}{{ .Annotations.summary }}{{ end }}'
-        details:
-          firing: '{{ template "pagerduty.default.instances" .Alerts.Firing }}'
-    email_configs:
-      - to: 'critical-alerts@dlt.aurigraph.io'
-        headers:
-          Subject: '🚨 CRITICAL ALERT: {{ .GroupLabels.alertname }}'
+    # Critical alerts - add Slack/PagerDuty webhooks when available
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
   - name: 'v11-team'
-    slack_configs:
-      - channel: '#v11-alerts'
-        title: 'V11 Alert: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
-    email_configs:
-      - to: 'v11-team@dlt.aurigraph.io'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
   - name: 'database-team'
-    slack_configs:
-      - channel: '#database-alerts'
-        title: 'Database Alert: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
-    email_configs:
-      - to: 'database-team@dlt.aurigraph.io'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
   - name: 'blockchain-team'
-    slack_configs:
-      - channel: '#blockchain-alerts'
-        title: 'Blockchain Alert: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
-    email_configs:
-      - to: 'blockchain-team@dlt.aurigraph.io'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
   - name: 'ops-team'
-    slack_configs:
-      - channel: '#ops-alerts'
-        title: 'Operations Alert: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
-    email_configs:
-      - to: 'ops-team@dlt.aurigraph.io'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
   - name: 'network-team'
-    slack_configs:
-      - channel: '#network-alerts'
-        title: 'Network Alert: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
-    email_configs:
-      - to: 'network-team@dlt.aurigraph.io'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
   - name: 'monitoring-team'
-    slack_configs:
-      - channel: '#monitoring-alerts'
-        title: 'Monitoring Alert: {{ .GroupLabels.alertname }}'
-        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
-    email_configs:
-      - to: 'monitoring-team@dlt.aurigraph.io'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
 
 # Inhibition rules (suppress alerts under certain conditions)
 inhibit_rules:
