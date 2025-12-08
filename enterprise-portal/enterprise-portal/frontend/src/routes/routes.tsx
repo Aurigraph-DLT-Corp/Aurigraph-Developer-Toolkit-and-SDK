@@ -55,6 +55,9 @@ const AssetBackedStablecoin = lazy(() => import('../components/rwat/AssetBackedS
 // Banking & Trade Finance
 const BankingTokenization = lazy(() => import('../components/banking/BankingTokenization'));
 
+// Admin & Infrastructure
+const InfrastructureMonitoring = lazy(() => import('../components/admin/InfrastructureMonitoring'));
+
 /**
  * Route definition interface
  */
@@ -732,6 +735,17 @@ export const routes: RouteDefinition[] = [
     description: 'RWAT tokenization form',
     category: 'admin',
     order: 81,
+  },
+  {
+    path: '/admin/infrastructure',
+    component: InfrastructureMonitoring,
+    label: 'Infrastructure',
+    breadcrumbLabel: 'Infrastructure Monitoring',
+    parent: '/',
+    icon: 'CloudServerOutlined',
+    description: 'Monitor local and remote server infrastructure',
+    category: 'admin',
+    order: 82,
   },
 
   // =========================================================================
