@@ -1,0 +1,370 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.exchange;
+
+option java_package = "io.aurigraph.v11.exchange.grpc";
+option java_outer_classname = "ExchangeProto";
+option java_multiple_files = true;
+
+// =============================================================================
+// Crypto Exchange gRPC Service
+//
+// Provides real-time cryptocurrency exchange data streaming via gRPC/HTTP2.
+// Replaces WebSocket connections for better performance and type safety.
+//
+// Features:
+// - Server-side streaming for real-time ticker updates
+// - Bidirectional streaming for trade feeds
+// - Unary RPCs for snapshot data
+// - Full Protocol Buffer serialization (60-70% bandwidth reduction)
+//
+// Version: 1.0.0 (Dec 8, 2025)
+// =============================================================================
+
+// Exchange Service - Main gRPC service for crypto exchange data
+service ExchangeService {
+  // Unary RPCs
+  rpc GetTicker(TickerRequest) returns (TickerResponse);
+  rpc GetOrderBook(OrderBookRequest) returns (OrderBookResponse);
+  rpc GetRecentTrades(RecentTradesRequest) returns (RecentTradesResponse);
+  rpc GetExchangeInfo(ExchangeInfoRequest) returns (ExchangeInfoResponse);
+  rpc GetServiceMetrics(MetricsRequest) returns (MetricsResponse);
+
+  // Server-side streaming - Real-time data feeds
+  rpc StreamTickers(TickerStreamRequest) returns (stream TickerData);
+  rpc StreamTrades(TradeStreamRequest) returns (stream TradeData);
+  rpc StreamOrderBook(OrderBookStreamRequest) returns (stream OrderBookUpdate);
+
+  // Bidirectional streaming - Interactive data feeds
+  rpc SubscribeToExchanges(stream SubscriptionRequest) returns (stream ExchangeUpdate);
+}
+
+// Slim Node Exchange Service - For slim node integration
+service SlimNodeExchangeService {
+  // Slim node management
+  rpc GetSlimNodes(SlimNodesRequest) returns (SlimNodesResponse);
+  rpc AssignExchangeToNode(AssignmentRequest) returns (AssignmentResponse);
+  rpc AutoDistribute(AutoDistributeRequest) returns (AutoDistributeResponse);
+
+  // Streaming to slim nodes
+  rpc StreamToSlimNode(SlimNodeStreamRequest) returns (stream TokenizedData);
+  rpc GetIntegrationMetrics(IntegrationMetricsRequest) returns (IntegrationMetricsResponse);
+}
+
+// =============================================================================
+// Common Types
+// =============================================================================
+
+enum Exchange {
+  EXCHANGE_UNSPECIFIED = 0;
+  BINANCE = 1;
+  COINBASE = 2;
+  KRAKEN = 3;
+  OKX = 4;
+  BYBIT = 5;
+  HUOBI = 6;
+}
+
+enum TradeSide {
+  SIDE_UNSPECIFIED = 0;
+  BUY = 1;
+  SELL = 2;
+}
+
+message TradingPair {
+  string base = 1;   // e.g., "BTC"
+  string quote = 2;  // e.g., "USDT"
+}
+
+// =============================================================================
+// Ticker Messages
+// =============================================================================
+
+message TickerRequest {
+  Exchange exchange = 1;
+  TradingPair pair = 2;
+}
+
+message TickerResponse {
+  TickerData ticker = 1;
+  int64 latency_ms = 2;
+}
+
+message TickerData {
+  Exchange exchange = 1;
+  TradingPair pair = 2;
+  double last_price = 3;
+  double bid_price = 4;
+  double ask_price = 5;
+  double volume_24h = 6;
+  double high_24h = 7;
+  double low_24h = 8;
+  double change_24h = 9;
+  double change_percent_24h = 10;
+  int64 timestamp = 11;  // Unix timestamp in milliseconds
+  string exchange_timestamp = 12;  // Original exchange timestamp
+}
+
+message TickerStreamRequest {
+  Exchange exchange = 1;
+  repeated TradingPair pairs = 2;
+  int32 update_interval_ms = 3;  // Minimum interval between updates (default: 100ms)
+}
+
+// =============================================================================
+// Trade Messages
+// =============================================================================
+
+message TradeData {
+  Exchange exchange = 1;
+  TradingPair pair = 2;
+  string trade_id = 3;
+  double price = 4;
+  double amount = 5;
+  TradeSide side = 6;
+  int64 timestamp = 7;
+  double quote_amount = 8;  // price * amount
+}
+
+message TradeStreamRequest {
+  Exchange exchange = 1;
+  repeated TradingPair pairs = 2;
+  bool include_historical = 3;  // Include recent trades on connect
+  int32 historical_count = 4;   // Number of historical trades (max 100)
+}
+
+message RecentTradesRequest {
+  Exchange exchange = 1;
+  TradingPair pair = 2;
+  int32 limit = 3;  // Max 100
+}
+
+message RecentTradesResponse {
+  repeated TradeData trades = 1;
+  int64 latency_ms = 2;
+}
+
+// =============================================================================
+// Order Book Messages
+// =============================================================================
+
+message PriceLevel {
+  double price = 1;
+  double amount = 2;
+  int32 order_count = 3;  // Number of orders at this level (if available)
+}
+
+message OrderBookData {
+  Exchange exchange = 1;
+  TradingPair pair = 2;
+  repeated PriceLevel bids = 3;
+  repeated PriceLevel asks = 4;
+  int64 timestamp = 5;
+  int64 sequence = 6;  // Order book sequence number
+}
+
+message OrderBookRequest {
+  Exchange exchange = 1;
+  TradingPair pair = 2;
+  int32 depth = 3;  // Number of price levels (default: 10, max: 100)
+}
+
+message OrderBookResponse {
+  OrderBookData order_book = 1;
+  int64 latency_ms = 2;
+}
+
+message OrderBookStreamRequest {
+  Exchange exchange = 1;
+  repeated TradingPair pairs = 2;
+  int32 depth = 3;
+  bool full_updates = 4;  // Send full order book (vs incremental)
+}
+
+message OrderBookUpdate {
+  Exchange exchange = 1;
+  TradingPair pair = 2;
+  bool is_snapshot = 3;  // Full snapshot vs delta update
+  repeated PriceLevel bid_updates = 4;
+  repeated PriceLevel ask_updates = 5;
+  int64 timestamp = 6;
+  int64 sequence = 7;
+}
+
+// =============================================================================
+// Exchange Info Messages
+// =============================================================================
+
+message ExchangeInfoRequest {
+  Exchange exchange = 1;
+}
+
+message ExchangeInfoResponse {
+  Exchange exchange = 1;
+  string name = 2;
+  string rest_endpoint = 3;
+  string grpc_endpoint = 4;
+  repeated TradingPair available_pairs = 5;
+  double maker_fee_percent = 6;
+  double taker_fee_percent = 7;
+  bool is_connected = 8;
+  int64 last_update = 9;
+}
+
+// =============================================================================
+// Subscription Messages (Bidirectional Streaming)
+// =============================================================================
+
+enum SubscriptionAction {
+  ACTION_UNSPECIFIED = 0;
+  SUBSCRIBE = 1;
+  UNSUBSCRIBE = 2;
+}
+
+enum DataType {
+  DATA_TYPE_UNSPECIFIED = 0;
+  TICKER = 1;
+  TRADES = 2;
+  ORDER_BOOK = 3;
+}
+
+message SubscriptionRequest {
+  SubscriptionAction action = 1;
+  Exchange exchange = 2;
+  repeated TradingPair pairs = 3;
+  repeated DataType data_types = 4;
+}
+
+message ExchangeUpdate {
+  oneof update {
+    TickerData ticker = 1;
+    TradeData trade = 2;
+    OrderBookUpdate order_book = 3;
+    SubscriptionStatus status = 4;
+  }
+}
+
+message SubscriptionStatus {
+  bool success = 1;
+  string message = 2;
+  Exchange exchange = 3;
+  repeated TradingPair subscribed_pairs = 4;
+}
+
+// =============================================================================
+// Metrics Messages
+// =============================================================================
+
+message MetricsRequest {
+  bool include_per_exchange = 1;
+}
+
+message MetricsResponse {
+  int64 messages_received = 1;
+  int64 tickers_processed = 2;
+  int64 trades_processed = 3;
+  int64 order_books_processed = 4;
+  int32 active_connections = 5;
+  map<string, ExchangeMetrics> per_exchange = 6;
+  int64 uptime_seconds = 7;
+}
+
+message ExchangeMetrics {
+  Exchange exchange = 1;
+  bool connected = 2;
+  int64 messages_received = 3;
+  int64 last_message_time = 4;
+  double avg_latency_ms = 5;
+  int32 subscribed_pairs = 6;
+}
+
+// =============================================================================
+// Slim Node Messages
+// =============================================================================
+
+enum SlimNodeStatus {
+  NODE_STATUS_UNSPECIFIED = 0;
+  IDLE = 1;
+  ACTIVE = 2;
+  PAUSED = 3;
+  ERROR = 4;
+}
+
+message SlimNodeConfig {
+  string node_id = 1;
+  string name = 2;
+  SlimNodeStatus status = 3;
+  repeated string assigned_pairs = 4;  // "exchange/pair" format
+  int64 last_updated = 5;
+}
+
+message SlimNodesRequest {}
+
+message SlimNodesResponse {
+  repeated SlimNodeConfig nodes = 1;
+  int32 total_nodes = 2;
+}
+
+message AssignmentRequest {
+  string slim_node_id = 1;
+  Exchange exchange = 2;
+  repeated TradingPair pairs = 3;
+}
+
+message AssignmentResponse {
+  bool success = 1;
+  string message = 2;
+  SlimNodeConfig updated_node = 3;
+}
+
+message AutoDistributeRequest {
+  repeated Exchange exchanges = 1;
+  repeated TradingPair pairs = 2;
+}
+
+message AutoDistributeResponse {
+  bool success = 1;
+  map<string, StringList> distribution = 2;  // node_id -> assigned pairs
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+message SlimNodeStreamRequest {
+  string slim_node_id = 1;
+  bool include_tickers = 2;
+  bool include_trades = 3;
+}
+
+message TokenizedData {
+  string token_id = 1;
+  string token_type = 2;  // "EXCHANGE_TICKER" or "EXCHANGE_TRADE"
+  string slim_node_id = 3;
+  Exchange exchange = 4;
+  TradingPair pair = 5;
+  bytes data = 6;  // Serialized ticker or trade data
+  int64 timestamp = 7;
+  string merkle_root = 8;  // For data integrity verification
+}
+
+message IntegrationMetricsRequest {}
+
+message IntegrationMetricsResponse {
+  int64 total_tickers_processed = 1;
+  int64 total_trades_processed = 2;
+  int64 total_tokenizations_completed = 3;
+  int64 total_batches_processed = 4;
+  int32 total_slim_nodes = 5;
+  int32 active_subscriptions = 6;
+  map<string, SlimNodeMetrics> node_metrics = 7;
+}
+
+message SlimNodeMetrics {
+  string node_id = 1;
+  string status = 2;
+  int32 assigned_pairs = 3;
+  int32 ticker_buffer_size = 4;
+  int32 trade_buffer_size = 5;
+  int64 processed_count = 6;
+}

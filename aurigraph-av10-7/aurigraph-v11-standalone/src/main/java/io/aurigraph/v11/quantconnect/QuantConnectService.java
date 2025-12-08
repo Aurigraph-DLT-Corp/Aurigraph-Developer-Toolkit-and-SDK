@@ -1,11 +1,14 @@
 package io.aurigraph.v11.quantconnect;
 
+import io.aurigraph.v11.integration.ExternalApiIntegration;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jboss.logging.Logger;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,22 +18,35 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * QuantConnect API Integration Service
  *
- * Connects to QuantConnect API to fetch real-time equity data,
+ * Connects to QuantConnect API via HTTP/2 to fetch real-time equity data,
  * transaction feeds, and market rates for tokenization on Aurigraph DLT.
+ * Implements ExternalApiIntegration for unified admin management.
  *
  * Routes through Slim Node for lightweight data processing.
  *
  * @author Aurigraph DLT Team
- * @version 12.0.0
+ * @version 12.1.0 (Dec 8, 2025) - Added HTTP/2 + ExternalApiIntegration
  */
 @ApplicationScoped
-public class QuantConnectService {
+public class QuantConnectService implements ExternalApiIntegration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuantConnectService.class);
+    private static final Logger LOG = Logger.getLogger(QuantConnectService.class);
+    private static final String INTEGRATION_ID = "quantconnect";
+    private static final String DISPLAY_NAME = "QuantConnect";
+    private static final String CATEGORY = "trading-platform";
 
     private static final String QC_API_BASE = "https://www.quantconnect.com/api/v2";
 
@@ -40,25 +56,264 @@ public class QuantConnectService {
     @ConfigProperty(name = "quantconnect.api-token", defaultValue = "d48219ae66fb083952192f39f2694dbe8320ced9d3ae01a1d8df35a84c74935a")
     String apiToken;
 
+    @ConfigProperty(name = "aurigraph.quantconnect.enabled", defaultValue = "true")
+    boolean enabled;
+
+    @ConfigProperty(name = "aurigraph.quantconnect.poll-interval-ms", defaultValue = "5000")
+    long pollIntervalMs;
+
     @Inject
     EquityTokenizationRegistry tokenizationRegistry;
 
     private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final ScheduledExecutorService scheduler;
+    private final Instant startTime = Instant.now();
+
     private final Map<String, EquityData> equityCache = new ConcurrentHashMap<>();
     private final Map<String, List<TransactionData>> transactionCache = new ConcurrentHashMap<>();
 
+    // Configuration (mutable for admin updates)
+    private volatile IntegrationConfig config;
+
+    // Polling state
+    private final Map<String, ScheduledFuture<?>> activePollers = new ConcurrentHashMap<>();
+    private final AtomicBoolean running = new AtomicBoolean(false);
+
+    // Event listeners
+    private final List<Consumer<EquityData>> equityListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    // Metrics
+    private final AtomicLong messagesReceived = new AtomicLong(0);
+    private final AtomicLong errorsCount = new AtomicLong(0);
+    private final AtomicLong httpRequestsSuccess = new AtomicLong(0);
+    private final AtomicLong httpRequestsFailed = new AtomicLong(0);
+
     public QuantConnectService() {
+        // Use HTTP/2 for better performance
         this.httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_2)
             .connectTimeout(Duration.ofSeconds(30))
             .build();
+        this.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        this.scheduler = Executors.newScheduledThreadPool(4);
     }
+
+    @PostConstruct
+    void init() {
+        this.config = new IntegrationConfig(
+            INTEGRATION_ID,
+            enabled,
+            QC_API_BASE,
+            apiToken,
+            "",
+            pollIntervalMs,
+            3,
+            30,
+            Map.of("userId", userId)
+        );
+
+        if (enabled) {
+            LOG.info("✅ QuantConnect Service initialized (HTTP/2 mode)");
+            LOG.infof("   API URL: %s", QC_API_BASE);
+            LOG.infof("   User ID: %s", userId);
+        } else {
+            LOG.info("⚠️ QuantConnect Service is disabled");
+        }
+    }
+
+    @PreDestroy
+    void shutdown() {
+        LOG.info("Shutting down QuantConnect Service...");
+        running.set(false);
+        activePollers.forEach((key, future) -> future.cancel(true));
+        activePollers.clear();
+        scheduler.shutdown();
+    }
+
+    // ==========================================================================
+    // ExternalApiIntegration Implementation
+    // ==========================================================================
+
+    @Override
+    public String getIntegrationId() {
+        return INTEGRATION_ID;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return DISPLAY_NAME;
+    }
+
+    @Override
+    public String getCategory() {
+        return CATEGORY;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return config != null && config.enabled();
+    }
+
+    @Override
+    public Uni<Boolean> setEnabled(boolean enabled) {
+        return Uni.createFrom().item(() -> {
+            this.config = new IntegrationConfig(
+                config.integrationId(),
+                enabled,
+                config.apiUrl(),
+                config.apiKey(),
+                config.apiSecret(),
+                config.pollIntervalMs(),
+                config.maxRetryAttempts(),
+                config.timeoutSeconds(),
+                config.customSettings()
+            );
+            this.enabled = enabled;
+            return true;
+        });
+    }
+
+    @Override
+    public Uni<HealthStatus> checkHealth() {
+        if (!isEnabled()) {
+            return Uni.createFrom().item(HealthStatus.disabled());
+        }
+
+        return authenticate()
+            .map(auth -> auth.isSuccess() ? HealthStatus.healthy() : HealthStatus.unhealthy(auth.getMessage()));
+    }
+
+    @Override
+    public IntegrationConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public Uni<Boolean> updateConfig(IntegrationConfig newConfig) {
+        return Uni.createFrom().item(() -> {
+            this.config = newConfig;
+            String newUserId = newConfig.customSettings().get("userId");
+            if (newUserId != null) {
+                this.userId = newUserId;
+            }
+            this.pollIntervalMs = newConfig.pollIntervalMs();
+            return true;
+        });
+    }
+
+    @Override
+    public IntegrationMetrics getMetrics() {
+        long uptimeSeconds = Duration.between(startTime, Instant.now()).getSeconds();
+        return new IntegrationMetrics(
+            INTEGRATION_ID,
+            messagesReceived.get(),
+            equityCache.size() + transactionCache.values().stream().mapToInt(List::size).sum(),
+            errorsCount.get(),
+            httpRequestsSuccess.get(),
+            httpRequestsFailed.get(),
+            uptimeSeconds,
+            0.0,
+            Map.of(
+                "cachedEquities", equityCache.size(),
+                "activePollers", activePollers.size()
+            )
+        );
+    }
+
+    @Override
+    public Uni<Boolean> start() {
+        return Uni.createFrom().item(() -> {
+            if (!isEnabled()) {
+                return false;
+            }
+            running.set(true);
+            LOG.info("QuantConnect Service started");
+            return true;
+        });
+    }
+
+    @Override
+    public Uni<Boolean> stop() {
+        return Uni.createFrom().item(() -> {
+            running.set(false);
+            activePollers.forEach((key, future) -> future.cancel(true));
+            activePollers.clear();
+            LOG.info("QuantConnect Service stopped");
+            return true;
+        });
+    }
+
+    // ==========================================================================
+    // Streaming Methods (for gRPC)
+    // ==========================================================================
+
+    /**
+     * Stream equity data updates
+     */
+    public Multi<EquityData> streamEquityData(List<String> symbols) {
+        return Multi.createFrom().emitter(emitter -> {
+            Consumer<EquityData> listener = emitter::emit;
+            equityListeners.add(listener);
+
+            // Start polling for each symbol
+            for (String symbol : symbols) {
+                startEquityPolling(symbol);
+            }
+
+            emitter.onTermination(() -> {
+                equityListeners.remove(listener);
+                symbols.forEach(this::stopEquityPolling);
+            });
+        });
+    }
+
+    private void startEquityPolling(String symbol) {
+        String key = "equity:" + symbol;
+        if (activePollers.containsKey(key)) {
+            return;
+        }
+
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
+            try {
+                EquityData equity = fetchSingleEquity(symbol);
+                if (equity != null) {
+                    messagesReceived.incrementAndGet();
+                    equityCache.put(symbol, equity);
+                    equityListeners.forEach(listener -> {
+                        try {
+                            listener.accept(equity);
+                        } catch (Exception e) {
+                            LOG.debugf("Error in listener: %s", e.getMessage());
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                errorsCount.incrementAndGet();
+            }
+        }, 0, pollIntervalMs, TimeUnit.MILLISECONDS);
+
+        activePollers.put(key, future);
+    }
+
+    private void stopEquityPolling(String symbol) {
+        String key = "equity:" + symbol;
+        ScheduledFuture<?> future = activePollers.remove(key);
+        if (future != null) {
+            future.cancel(true);
+        }
+    }
+
+    // ==========================================================================
+    // Original API Methods
+    // ==========================================================================
 
     /**
      * Authenticate with QuantConnect API
      */
     public Uni<AuthResponse> authenticate() {
         return Uni.createFrom().item(() -> {
-            LOGGER.info("Authenticating with QuantConnect API for user: {}", userId);
+            LOG.infof("Authenticating with QuantConnect API for user: %s", userId);
 
             try {
                 String authHeader = Base64.getEncoder().encodeToString(
@@ -76,14 +331,18 @@ public class QuantConnectService {
                     HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() == 200) {
-                    LOGGER.info("QuantConnect authentication successful");
+                    httpRequestsSuccess.incrementAndGet();
+                    LOG.info("QuantConnect authentication successful");
                     return new AuthResponse(true, "Authentication successful", userId);
                 } else {
-                    LOGGER.warn("QuantConnect authentication failed: {}", response.body());
+                    httpRequestsFailed.incrementAndGet();
+                    LOG.warnf("QuantConnect authentication failed: %s", response.body());
                     return new AuthResponse(false, "Authentication failed: " + response.statusCode(), null);
                 }
             } catch (Exception e) {
-                LOGGER.error("QuantConnect authentication error", e);
+                httpRequestsFailed.incrementAndGet();
+                errorsCount.incrementAndGet();
+                LOG.errorf(e, "QuantConnect authentication error");
                 return new AuthResponse(false, "Authentication error: " + e.getMessage(), null);
             }
         });
@@ -94,7 +353,7 @@ public class QuantConnectService {
      */
     public Uni<List<EquityData>> fetchEquityData(List<String> symbols) {
         return Uni.createFrom().item(() -> {
-            LOGGER.info("Fetching equity data for {} symbols", symbols.size());
+            LOG.infof("Fetching equity data for %d symbols", symbols.size());
 
             List<EquityData> results = new ArrayList<>();
 
@@ -106,7 +365,7 @@ public class QuantConnectService {
                         equityCache.put(symbol, equity);
                     }
                 } catch (Exception e) {
-                    LOGGER.warn("Failed to fetch equity {}: {}", symbol, e.getMessage());
+                    LOG.warnf("Failed to fetch equity %s: %s", symbol, e.getMessage());
                     // Use demo data as fallback
                     results.add(generateDemoEquityData(symbol));
                 }
@@ -121,7 +380,7 @@ public class QuantConnectService {
      */
     public Uni<List<TransactionData>> fetchTransactionFeed(String symbol, int limit) {
         return Uni.createFrom().item(() -> {
-            LOGGER.info("Fetching transaction feed for {} (limit: {})", symbol, limit);
+            LOG.infof("Fetching transaction feed for %s (limit: %d)", symbol, limit);
 
             try {
                 // Attempt to fetch from QuantConnect
@@ -129,7 +388,7 @@ public class QuantConnectService {
                 transactionCache.put(symbol, transactions);
                 return transactions;
             } catch (Exception e) {
-                LOGGER.warn("Using demo transaction data for {}: {}", symbol, e.getMessage());
+                LOG.warnf("Using demo transaction data for %s: %s", symbol, e.getMessage());
                 return generateDemoTransactions(symbol, limit);
             }
         });
@@ -140,7 +399,7 @@ public class QuantConnectService {
      */
     public Uni<TokenizationResult> tokenizeEquity(EquityData equity) {
         return Uni.createFrom().item(() -> {
-            LOGGER.info("Tokenizing equity: {} ({})", equity.getSymbol(), equity.getName());
+            LOG.infof("Tokenizing equity: %s (%s)", equity.getSymbol(), equity.getName());
 
             // Create tokenized equity record
             TokenizedEquity tokenized = new TokenizedEquity();
@@ -167,7 +426,7 @@ public class QuantConnectService {
      */
     public Uni<TokenizationResult> tokenizeTransaction(TransactionData transaction) {
         return Uni.createFrom().item(() -> {
-            LOGGER.info("Tokenizing transaction: {} - {}",
+            LOG.infof("Tokenizing transaction: %s - %s",
                 transaction.getSymbol(), transaction.getTransactionId());
 
             TokenizedTransaction tokenized = new TokenizedTransaction();
