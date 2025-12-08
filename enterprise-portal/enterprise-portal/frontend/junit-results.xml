@@ -1,0 +1,58 @@
+<testsuites id="" name="" tests="26" failures="0" skipped="0" errors="0" time="7.93783">
+<testsuite name="navigation.spec.ts" timestamp="2025-12-08T11:59:13.024Z" hostname="chromium" tests="13" failures="0" skipped="0" time="22.185" errors="0">
+<testcase name="Navigation Tests › should load the homepage successfully" classname="navigation.spec.ts" time="0.805">
+</testcase>
+<testcase name="Navigation Tests › should display main navigation menu" classname="navigation.spec.ts" time="2.728">
+</testcase>
+<testcase name="Navigation Tests › should navigate to dashboard page" classname="navigation.spec.ts" time="0.793">
+</testcase>
+<testcase name="Navigation Tests › should navigate to transactions page" classname="navigation.spec.ts" time="0.805">
+</testcase>
+<testcase name="Navigation Tests › should navigate to contracts page" classname="navigation.spec.ts" time="0.788">
+</testcase>
+<testcase name="Navigation Tests › should display and interact with dropdown navigation menus" classname="navigation.spec.ts" time="2.903">
+</testcase>
+<testcase name="Navigation Tests › should display breadcrumb navigation" classname="navigation.spec.ts" time="2.885">
+</testcase>
+<testcase name="Navigation Tests › should handle navigation search functionality if available" classname="navigation.spec.ts" time="2.666">
+</testcase>
+<testcase name="Navigation Tests › should display user profile section in navigation" classname="navigation.spec.ts" time="2.695">
+</testcase>
+<testcase name="Navigation Tests › should be accessible via keyboard navigation" classname="navigation.spec.ts" time="3.024">
+</testcase>
+<testcase name="Navigation Tests › should handle browser back and forward navigation" classname="navigation.spec.ts" time="1.058">
+</testcase>
+<testcase name="Navigation - Responsive Design › should display mobile-friendly navigation on small screens" classname="navigation.spec.ts" time="0.506">
+</testcase>
+<testcase name="Navigation - Responsive Design › should display full navigation on desktop screens" classname="navigation.spec.ts" time="0.529">
+</testcase>
+</testsuite>
+<testsuite name="navigation.spec.ts" timestamp="2025-12-08T11:59:13.024Z" hostname="Mobile Chrome" tests="13" failures="0" skipped="0" time="21.512" errors="0">
+<testcase name="Navigation Tests › should load the homepage successfully" classname="navigation.spec.ts" time="0.6">
+</testcase>
+<testcase name="Navigation Tests › should display main navigation menu" classname="navigation.spec.ts" time="2.762">
+</testcase>
+<testcase name="Navigation Tests › should navigate to dashboard page" classname="navigation.spec.ts" time="0.686">
+</testcase>
+<testcase name="Navigation Tests › should navigate to transactions page" classname="navigation.spec.ts" time="0.644">
+</testcase>
+<testcase name="Navigation Tests › should navigate to contracts page" classname="navigation.spec.ts" time="0.631">
+</testcase>
+<testcase name="Navigation Tests › should display and interact with dropdown navigation menus" classname="navigation.spec.ts" time="2.719">
+</testcase>
+<testcase name="Navigation Tests › should display breadcrumb navigation" classname="navigation.spec.ts" time="2.746">
+</testcase>
+<testcase name="Navigation Tests › should handle navigation search functionality if available" classname="navigation.spec.ts" time="2.699">
+</testcase>
+<testcase name="Navigation Tests › should display user profile section in navigation" classname="navigation.spec.ts" time="2.654">
+</testcase>
+<testcase name="Navigation Tests › should be accessible via keyboard navigation" classname="navigation.spec.ts" time="3.022">
+</testcase>
+<testcase name="Navigation Tests › should handle browser back and forward navigation" classname="navigation.spec.ts" time="0.97">
+</testcase>
+<testcase name="Navigation - Responsive Design › should display mobile-friendly navigation on small screens" classname="navigation.spec.ts" time="0.54">
+</testcase>
+<testcase name="Navigation - Responsive Design › should display full navigation on desktop screens" classname="navigation.spec.ts" time="0.839">
+</testcase>
+</testsuite>
+</testsuites>
