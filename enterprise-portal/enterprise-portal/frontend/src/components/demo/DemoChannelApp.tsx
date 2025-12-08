@@ -1181,55 +1181,108 @@ const DemoChannelApp: React.FC = () => {
                     {renderConsensusSettingsTable()}
                   </Card>
 
-                  {/* Per-Channel Consensus Info */}
-                  <Card title="Channel Consensus Details">
+                  {/* Per-Channel Consensus Info with Instrumentation */}
+                  <Card title="Channel Consensus Instrumentation">
                     <Row gutter={[16, 16]}>
                       {channels.map((channel) => (
-                        <Col xs={24} md={12} key={channel.channelId}>
+                        <Col xs={24} key={channel.channelId}>
                           <Card
-                            size="small"
                             title={
                               <Space>
                                 <Badge status={channel.enabled ? "success" : "default"} />
-                                {channel.name}
+                                <span style={{ fontWeight: 'bold' }}>{channel.name}</span>
+                                {channel.channelId === selectedChannelId && demoState.isRunning && (
+                                  <Tag color="green" icon={<SyncOutlined spin />}>CONSENSUS ACTIVE</Tag>
+                                )}
                               </Space>
                             }
                             extra={
-                              channel.channelId === selectedChannelId
-                                ? <Tag color="blue">ACTIVE</Tag>
-                                : <Tag>STANDBY</Tag>
+                              <Space>
+                                {channel.channelId === selectedChannelId
+                                  ? <Tag color="blue">ACTIVE CHANNEL</Tag>
+                                  : <Tag>STANDBY</Tag>
+                                }
+                                <Tag color="purple">HyperRAFT++</Tag>
+                              </Space>
                             }
+                            style={{ marginBottom: '16px' }}
                           >
-                            <Space direction="vertical" style={{ width: '100%' }}>
-                              <Row gutter={8}>
-                                <Col span={8}>
-                                  <Statistic
-                                    title="Validators"
-                                    value={channel.validatorNodes.length}
-                                    valueStyle={{ fontSize: '16px', color: '#ff4d4f' }}
-                                  />
-                                </Col>
-                                <Col span={8}>
-                                  <Statistic
-                                    title="Business"
-                                    value={channel.businessNodes.length}
-                                    valueStyle={{ fontSize: '16px', color: '#1890ff' }}
-                                  />
-                                </Col>
-                                <Col span={8}>
-                                  <Statistic
-                                    title="Slim"
-                                    value={channel.slimNodes.length}
-                                    valueStyle={{ fontSize: '16px', color: '#52c41a' }}
-                                  />
-                                </Col>
-                              </Row>
-                              <Progress
-                                percent={channel.channelId === selectedChannelId && demoState.isRunning ? 100 : 0}
-                                status={channel.channelId === selectedChannelId && demoState.isRunning ? "active" : "normal"}
-                                format={() => channel.channelId === selectedChannelId && demoState.isRunning ? "CONSENSUS ACTIVE" : "IDLE"}
+                            {/* Node Summary */}
+                            <Row gutter={16} style={{ marginBottom: '16px' }}>
+                              <Col xs={8} sm={6} md={4}>
+                                <Statistic
+                                  title="Validators"
+                                  value={channel.validatorNodes.length}
+                                  valueStyle={{ fontSize: '20px', color: '#ff4d4f' }}
+                                  prefix={<NodeIndexOutlined />}
+                                />
+                              </Col>
+                              <Col xs={8} sm={6} md={4}>
+                                <Statistic
+                                  title="Business"
+                                  value={channel.businessNodes.length}
+                                  valueStyle={{ fontSize: '20px', color: '#1890ff' }}
+                                  prefix={<CloudOutlined />}
+                                />
+                              </Col>
+                              <Col xs={8} sm={6} md={4}>
+                                <Statistic
+                                  title="Slim"
+                                  value={channel.slimNodes.length}
+                                  valueStyle={{ fontSize: '20px', color: '#52c41a' }}
+                                  prefix={<DatabaseOutlined />}
+                                />
+                              </Col>
+                              <Col xs={24} sm={6} md={12}>
+                                <Progress
+                                  percent={channel.channelId === selectedChannelId && demoState.isRunning ? 100 : 0}
+                                  status={channel.channelId === selectedChannelId && demoState.isRunning ? "active" : "normal"}
+                                  strokeColor={{
+                                    '0%': '#108ee9',
+                                    '100%': '#87d068',
+                                  }}
+                                  format={() => channel.channelId === selectedChannelId && demoState.isRunning
+                                    ? `${(demoState.metricsHistory[demoState.metricsHistory.length - 1]?.tps || 0).toLocaleString()} TPS`
+                                    : "IDLE"
+                                  }
+                                />
+                              </Col>
+                            </Row>
+
+                            {/* Consensus Instrumentation Table */}
+                            <Card
+                              size="small"
+                              title={
+                                <Space>
+                                  <SettingOutlined />
+                                  <span>Consensus Instrumentation</span>
+                                  <Tag color="green">Sprint 15</Tag>
+                                </Space>
+                              }
+                              type="inner"
+                            >
+                              <Table
+                                size="small"
+                                pagination={false}
+                                bordered
+                                columns={[
+                                  { title: 'Setting', dataIndex: 'setting', key: 'setting', width: '45%' },
+                                  { title: 'Value', dataIndex: 'value', key: 'value', width: '30%', render: (v: string) => <Tag color="blue">{v}</Tag> },
+                                  { title: 'Unit', dataIndex: 'unit', key: 'unit', width: '25%' },
+                                ]}
+                                dataSource={[
+                                  { key: '1', setting: 'Thread Pool Size', value: '512', unit: 'threads' },
+                                  { key: '2', setting: 'Queue Size', value: '1M', unit: 'transactions' },
+                                  { key: '3', setting: 'Consensus Batch Size', value: '250K', unit: 'transactions' },
+                                  { key: '4', setting: 'Pipeline Depth', value: '64', unit: 'stages' },
+                                  { key: '5', setting: 'Parallel Threads', value: '1,024', unit: 'threads' },
+                                  { key: '6', setting: 'Election Timeout', value: '500ms', unit: '-' },
+                                  { key: '7', setting: 'Heartbeat Interval', value: '50ms', unit: '-' },
+                                  { key: '8', setting: 'Transaction Batch', value: '25K', unit: 'transactions' },
+                                  { key: '9', setting: 'Validation Threads', value: '32', unit: 'threads' },
+                                ]}
                               />
-                            </Space>
+                            </Card>
                           </Card>
                         </Col>
                       ))}
