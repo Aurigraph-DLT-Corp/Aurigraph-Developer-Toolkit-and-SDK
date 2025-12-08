@@ -78,6 +78,41 @@ function App() {
         token: {
           colorPrimary: '#1890ff',
           borderRadius: 8,
+          // Improved text contrast for better readability
+          colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
+          colorTextSecondary: isDarkMode ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.65)',
+          colorTextTertiary: isDarkMode ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.45)',
+          colorTextDescription: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.55)',
+          colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.88)',
+          colorTextLabel: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.75)',
+          colorTextPlaceholder: isDarkMode ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.35)',
+        },
+        components: {
+          // Table text contrast
+          Table: {
+            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
+            colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.88)',
+          },
+          // Card text contrast
+          Card: {
+            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
+            colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.88)',
+          },
+          // Menu text contrast
+          Menu: {
+            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
+            itemColor: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
+          },
+          // Statistic text contrast
+          Statistic: {
+            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
+            colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
+          },
+          // Descriptions text contrast
+          Descriptions: {
+            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
+            colorTextLabel: isDarkMode ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.65)',
+          },
         },
       }}
     >
