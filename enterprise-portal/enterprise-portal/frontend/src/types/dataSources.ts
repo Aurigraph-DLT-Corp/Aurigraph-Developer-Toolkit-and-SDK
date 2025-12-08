@@ -127,13 +127,34 @@ export type AnyDataSource =
 
 export type AnyDataPayload = WeatherData | AlpacaData | NewsData | TwitterData | CryptoData;
 
+// Demo Session Persistence
+export interface DemoSession {
+  id: string;
+  name: string;
+  createdAt: string;
+  expiresAt: string; // 24 hours from creation
+  isActive: boolean;
+  totalTransactions: number;
+  peakTps: number;
+}
+
+// Slim Node to Data Source Mapping
+export interface SlimNodeMapping {
+  slimNodeId: string;
+  dataSourceIds: string[]; // Multiple data sources per slim node
+  isStreaming: boolean;
+  lastStreamedAt?: string;
+}
+
 // Network Configuration
 export interface NetworkConfig {
   channels: number;
-  validators: number;
+  validators: number; // Must be odd for BFT consensus (3, 5, 7, 9, etc.)
   businessNodes: number;
   slimNodes: number;
   dataSources: AnyDataSource[];
+  slimNodeMappings: SlimNodeMapping[]; // Link slim nodes to data sources
+  demoSession: DemoSession | null; // 24-hour persistence
 }
 
 // Slim Node with Data Source

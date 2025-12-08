@@ -407,10 +407,12 @@ export const DEFAULT_DEMO_APP_STATE: DemoAppState = {
   selectedNodeId: null,
   networkConfig: {
     channels: 1,
-    validators: 4,
+    validators: 3, // Odd number for BFT consensus
     businessNodes: 2,
-    slimNodes: 3,
+    slimNodes: 5, // Multiple slim nodes for external API streaming
     dataSources: [],
+    slimNodeMappings: [],
+    demoSession: null,
   },
   systemMetrics: {
     performance: null,

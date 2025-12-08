@@ -358,6 +358,136 @@ export const demoAppSlice = createSlice({
     },
 
     // ========================================================================
+    // Demo Session Persistence Actions (24-hour)
+    // ========================================================================
+
+    /**
+     * Start a new demo session (24-hour persistence)
+     */
+    startDemoSession: (state, action: PayloadAction<{ name: string }>) => {
+      if (state.networkConfig) {
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+        state.networkConfig.demoSession = {
+          id: `demo-${Date.now()}`,
+          name: action.payload.name,
+          createdAt: now.toISOString(),
+          expiresAt: expiresAt.toISOString(),
+          isActive: true,
+          totalTransactions: 0,
+          peakTps: 0,
+        };
+      }
+    },
+
+    /**
+     * Update demo session metrics
+     */
+    updateDemoSession: (
+      state,
+      action: PayloadAction<{ totalTransactions?: number; peakTps?: number }>
+    ) => {
+      if (state.networkConfig?.demoSession) {
+        if (action.payload.totalTransactions !== undefined) {
+          state.networkConfig.demoSession.totalTransactions = action.payload.totalTransactions;
+        }
+        if (action.payload.peakTps !== undefined) {
+          state.networkConfig.demoSession.peakTps = Math.max(
+            state.networkConfig.demoSession.peakTps,
+            action.payload.peakTps
+          );
+        }
+      }
+    },
+
+    /**
+     * End demo session
+     */
+    endDemoSession: (state) => {
+      if (state.networkConfig?.demoSession) {
+        state.networkConfig.demoSession.isActive = false;
+      }
+    },
+
+    /**
+     * Clear expired demo session
+     */
+    clearExpiredDemoSession: (state) => {
+      if (state.networkConfig?.demoSession) {
+        const expiresAt = new Date(state.networkConfig.demoSession.expiresAt);
+        if (new Date() > expiresAt) {
+          state.networkConfig.demoSession = null;
+        }
+      }
+    },
+
+    // ========================================================================
+    // Slim Node to Data Source Mapping Actions
+    // ========================================================================
+
+    /**
+     * Add or update slim node mapping to data sources
+     */
+    updateSlimNodeMapping: (
+      state,
+      action: PayloadAction<import('../types/dataSources').SlimNodeMapping>
+    ) => {
+      if (state.networkConfig) {
+        const index = state.networkConfig.slimNodeMappings.findIndex(
+          (m) => m.slimNodeId === action.payload.slimNodeId
+        );
+        if (index !== -1) {
+          state.networkConfig.slimNodeMappings[index] = action.payload;
+        } else {
+          state.networkConfig.slimNodeMappings.push(action.payload);
+        }
+      }
+    },
+
+    /**
+     * Remove slim node mapping
+     */
+    removeSlimNodeMapping: (state, action: PayloadAction<string>) => {
+      if (state.networkConfig) {
+        state.networkConfig.slimNodeMappings = state.networkConfig.slimNodeMappings.filter(
+          (m) => m.slimNodeId !== action.payload
+        );
+      }
+    },
+
+    /**
+     * Auto-distribute data sources across slim nodes
+     */
+    autoDistributeDataSources: (state) => {
+      if (state.networkConfig && state.networkConfig.slimNodes > 0) {
+        const dataSources = state.networkConfig.dataSources;
+        const slimNodeCount = state.networkConfig.slimNodes;
+        const mappings: import('../types/dataSources').SlimNodeMapping[] = [];
+
+        // Distribute data sources round-robin across slim nodes
+        for (let i = 0; i < slimNodeCount; i++) {
+          const assignedSources: string[] = [];
+          dataSources.forEach((ds, dsIndex) => {
+            if (dsIndex % slimNodeCount === i) {
+              assignedSources.push(ds.id);
+            }
+          });
+
+          if (assignedSources.length > 0) {
+            mappings.push({
+              slimNodeId: `slim-node-${i + 1}`,
+              dataSourceIds: assignedSources,
+              isStreaming: true,
+              lastStreamedAt: new Date().toISOString(),
+            });
+          }
+        }
+
+        state.networkConfig.slimNodeMappings = mappings;
+      }
+    },
+
+    // ========================================================================
     // Demo Mode Actions
     // ========================================================================
 
@@ -402,6 +532,17 @@ export const {
   addDataSource,
   removeDataSource,
   updateDataSource,
+
+  // Demo session persistence (24-hour)
+  startDemoSession,
+  updateDemoSession,
+  endDemoSession,
+  clearExpiredDemoSession,
+
+  // Slim node to data source mapping
+  updateSlimNodeMapping,
+  removeSlimNodeMapping,
+  autoDistributeDataSources,
 
   // System metrics
   updateSystemMetrics,
