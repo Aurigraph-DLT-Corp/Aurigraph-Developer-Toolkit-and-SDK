@@ -6,8 +6,8 @@ on:
       - V12
       - main
     paths:
-      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/src/**'
-      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package.json'
+      - 'enterprise-portal/enterprise-portal/frontend/src/**'
+      - 'enterprise-portal/enterprise-portal/frontend/package.json'
       - '.github/workflows/frontend-deploy.yml'
   workflow_dispatch:
     inputs:
@@ -18,13 +18,12 @@ on:
 
 env:
   NODE_VERSION: '20'
+  FRONTEND_DIR: 'enterprise-portal/enterprise-portal/frontend'
 
 jobs:
   build-and-deploy:
     name: Build & Deploy Frontend
     runs-on: [self-hosted, Linux, aurigraph-prod]
-    # Fallback to ubuntu-latest if self-hosted unavailable:
-    # runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -36,16 +35,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package-lock.json
+          cache-dependency-path: enterprise-portal/enterprise-portal/frontend/package-lock.json
 
       - name: Install dependencies
         if: ${{ !inputs.deploy_only }}
-        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        working-directory: ${{ env.FRONTEND_DIR }}
         run: npm ci
 
       - name: Build Frontend
         if: ${{ !inputs.deploy_only }}
-        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        working-directory: ${{ env.FRONTEND_DIR }}
         run: |
           echo "Building Enterprise Portal..."
           npm run build
@@ -53,7 +52,7 @@ jobs:
           ls -lh dist/
 
       - name: Deploy Frontend (Local Runner)
-        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
+        working-directory: ${{ env.FRONTEND_DIR }}
         run: |
           echo "=== Frontend Deployment (Local Runner) ==="
           echo "Timestamp: $(date)"
