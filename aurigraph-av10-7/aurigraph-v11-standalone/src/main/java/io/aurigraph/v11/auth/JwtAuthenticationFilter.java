@@ -220,6 +220,14 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // Settings/External APIs endpoints (for Settings page API management)
+        // Templates endpoint is public, but add/edit/delete require authentication
+        if (path.equals("/api/v11/settings/external-apis/templates") ||
+            path.startsWith("/api/v11/settings/external-apis")) {
+            LOG.debugf("Settings endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         // Smart contract endpoints
         if (path.startsWith("/api/v11/contracts/") || path.equals("/api/v11/contracts")) {
             LOG.debugf("Contract endpoint detected - allowing public access: %s", path);
@@ -241,6 +249,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // Staking endpoints
         if (path.startsWith("/api/v11/staking/")) {
             LOG.debugf("Staking endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // ERC-3643 (T-REX) security token endpoints
+        if (path.startsWith("/api/v11/erc3643/")) {
+            LOG.debugf("ERC-3643 endpoint detected - allowing public access: %s", path);
             return true;
         }
 
