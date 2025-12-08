@@ -46,8 +46,16 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // Get request path - normalize to always start with /
         String rawPath = requestContext.getUriInfo().getPath();
         String path = rawPath.startsWith("/") ? rawPath : "/" + rawPath;
+        String method = requestContext.getMethod();
 
-        LOG.debugf("JWT filter processing path: %s (raw: %s)", path, rawPath);
+        LOG.debugf("JWT filter processing path: %s (raw: %s), method: %s", path, rawPath, method);
+
+        // Skip authentication for CORS preflight (OPTIONS) requests
+        // This is critical for browser-based clients making cross-origin requests
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            LOG.debugf("Skipping authentication for CORS preflight (OPTIONS) request: %s", path);
+            return;
+        }
 
         // Skip authentication for public endpoints
         if (isPublicEndpoint(path)) {
@@ -233,6 +241,13 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // Staking endpoints
         if (path.startsWith("/api/v11/staking/")) {
             LOG.debugf("Staking endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // File upload endpoints (for Enterprise Portal file uploads)
+        if (path.startsWith("/api/v11/uploads/") || path.equals("/api/v11/uploads") ||
+            path.contains("/uploads")) {
+            LOG.debugf("Upload endpoint detected - allowing public access: %s", path);
             return true;
         }
 
