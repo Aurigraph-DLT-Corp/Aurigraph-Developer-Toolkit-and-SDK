@@ -171,7 +171,7 @@ const DemoChannelApp: React.FC = () => {
   const [form] = Form.useForm();
   const metricsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('0');
+  const [activeTab, setActiveTab] = useState('3'); // Default to Channels tab to show instrumentation
   const [configDrawerOpen, setConfigDrawerOpen] = useState(false);
 
   // Registration Modal State
