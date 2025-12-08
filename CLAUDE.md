@@ -440,6 +440,71 @@ docker-compose -f docker-compose.production.yml logs -f
 docker-compose -f docker-compose.production.yml up -d --scale api-node-1=3
 ```
 
+## Deployment and Test Agent Roles
+
+### Post-Deployment Testing (MANDATORY)
+
+**IMPORTANT**: Run E2E testing with Playwright and Pytest after EVERY deployment to remote server.
+
+After any deployment to `dlt.aurigraph.io` or other remote servers, execute:
+
+```bash
+# 1. Run Playwright E2E Tests (Frontend)
+cd enterprise-portal/enterprise-portal/frontend
+npx playwright test --reporter=list
+
+# 2. Run Pytest Backend Tests (FastAPI)
+cd aurigraph-fastapi
+python3 -m pytest tests/ -v --tb=short
+
+# 3. Quick Health Verification
+curl -s https://dlt.aurigraph.io/api/v11/health | jq .
+curl -s https://dlt.aurigraph.io/api/v11/info | jq .
+```
+
+### Test Suite Summary (December 2025)
+
+| Test Type | Framework | Tests | Location |
+|-----------|-----------|-------|----------|
+| E2E Frontend | Playwright | 76 tests | `enterprise-portal/.../tests/e2e/` |
+| Backend API | Pytest | 75 tests | `aurigraph-fastapi/tests/` |
+| **Total** | - | **151 tests** | - |
+
+### E2E Test Coverage
+- **Navigation**: Homepage, menu, breadcrumbs, search, accessibility (13 tests)
+- **Dashboard**: Metrics, charts, loading states, refresh (8 tests)
+- **Transactions**: Explorer, search, filters, pagination, details (10 tests)
+- **Contracts**: List, forms, status indicators (7 tests)
+- **Mobile**: Responsive design on Pixel 5 viewport
+
+### Pytest Test Coverage
+- **Health API**: 16 endpoint tests
+- **Configuration**: 18 settings validation tests
+- **Transaction Models**: 27 model tests
+- **Service Mocks**: 14 mock validation tests
+
+### Agent Responsibilities
+
+**Deployment Agent**:
+- Execute deployment scripts
+- Verify service health
+- **Trigger Test Agent after successful deployment**
+
+**Test Agent**:
+- Run full E2E test suite (Playwright + Pytest)
+- Report test results
+- Flag any failures for immediate attention
+- Update JIRA with regression test results
+
+### Automated CI/CD Integration
+
+The GitHub Actions workflow `.github/workflows/frontend-deploy.yml` includes:
+- Automatic deployment on push to main
+- Post-deployment health checks
+- NGINX cache clearing
+
+**Future Enhancement**: Integrate Playwright/Pytest into CI/CD pipeline for automated post-deployment testing.
+
 ## Key Architectural Decisions
 
 **Why Java 21 for V11?**

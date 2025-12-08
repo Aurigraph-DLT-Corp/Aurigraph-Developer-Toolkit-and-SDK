@@ -4,3 +4,50 @@ default_mode: "multi-agent-j4c"
 agents: 15
 worktrees_location: "worktrees"
 auto_initialize: true
+
+# Agent Roles (J4C Framework v3.0)
+agent_roles:
+  - name: "Platform Architect"
+    id: 1
+    responsibilities: ["orchestration", "coordination", "planning"]
+  - name: "Consensus Protocol Agent"
+    id: 2
+    responsibilities: ["hyperraft++", "validators", "consensus"]
+  - name: "Quantum Security Agent"
+    id: 3
+    responsibilities: ["cryptography", "tls", "certificates"]
+  - name: "Network Infrastructure Agent"
+    id: 4
+    responsibilities: ["grpc", "rest-api", "networking"]
+  - name: "AI Optimization Agent"
+    id: 5
+    responsibilities: ["ml-optimization", "performance", "tuning"]
+  - name: "Cross-Chain Bridge Agent"
+    id: 6
+    responsibilities: ["bridges", "interoperability", "tokens"]
+  - name: "Monitoring Agent"
+    id: 7
+    responsibilities: ["prometheus", "grafana", "alerting"]
+  - name: "DevOps Agent"
+    id: 8
+    responsibilities: ["deployment", "ci-cd", "infrastructure"]
+  - name: "Frontend Developer"
+    id: 9
+    responsibilities: ["portal", "react", "ui-ux"]
+  - name: "Testing & QA Agent"
+    id: 10
+    responsibilities: ["e2e-testing", "pytest", "playwright", "post-deployment-tests"]
+
+# Post-Deployment Testing (MANDATORY)
+post_deployment_testing:
+  enabled: true
+  trigger_after: "every_deployment"
+  test_suites:
+    - name: "Playwright E2E"
+      command: "cd enterprise-portal/enterprise-portal/frontend && npx playwright test"
+      tests: 76
+    - name: "Pytest Backend"
+      command: "cd aurigraph-fastapi && python3 -m pytest tests/ -v"
+      tests: 75
+  total_tests: 151
+  failure_action: "alert_and_document_in_jira"

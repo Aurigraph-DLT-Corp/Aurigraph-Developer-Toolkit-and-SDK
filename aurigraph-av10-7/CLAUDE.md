@@ -359,6 +359,37 @@ docs/
 - **Branch Strategy**: feature/AV11-XXX for V11 work
 - **Issue Templates**: Available in `.github/ISSUE_TEMPLATE/`
 
+## Post-Deployment E2E Testing (MANDATORY)
+
+**IMPORTANT**: Run E2E testing with Playwright and Pytest after EVERY deployment to remote server.
+
+### Testing Commands
+```bash
+# 1. Run Playwright E2E Tests (Frontend - 76 tests)
+cd enterprise-portal/enterprise-portal/frontend
+npx playwright test --reporter=list
+
+# 2. Run Pytest Backend Tests (FastAPI - 75 tests)
+cd aurigraph-fastapi
+python3 -m pytest tests/ -v --tb=short
+
+# 3. Quick Health Verification
+curl -s https://dlt.aurigraph.io/api/v11/health | jq .
+curl -s https://dlt.aurigraph.io/api/v11/info | jq .
+```
+
+### Test Suite Summary (December 2025)
+
+| Test Type | Framework | Tests | Location |
+|-----------|-----------|-------|----------|
+| E2E Frontend | Playwright | 76 | `enterprise-portal/.../tests/e2e/` |
+| Backend API | Pytest | 75 | `aurigraph-fastapi/tests/` |
+| **Total** | - | **151** | - |
+
+### Agent Responsibilities
+- **Deployment Agent (Agent 8)**: Trigger Test Agent after deployment
+- **Test Agent (Agent 10)**: Run full E2E suite, report results, update JIRA
+
 ## Related Documentation
 - Parent [CLAUDE.md](../CLAUDE.md) - MCP configuration
 - [Agent_Team.md](docs/development/guides/Agent_Team.md) - Development framework

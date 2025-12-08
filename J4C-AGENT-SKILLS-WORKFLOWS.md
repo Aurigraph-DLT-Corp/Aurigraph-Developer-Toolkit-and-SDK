@@ -980,20 +980,57 @@ NetworkService.streamPeerEvents()
 ### Responsibilities
 - Unit test coverage (≥80% target)
 - Integration test development
-- End-to-end test automation
+- End-to-end test automation (Playwright + Pytest)
 - Load testing (JMeter, target 2M+ TPS)
 - Security testing and vulnerability scanning
 - Performance regression testing
 - Chaos engineering and resilience testing
+- **POST-DEPLOYMENT E2E TESTING (MANDATORY)** - Run after every deployment
 
 ### Skills Required
 - JUnit & Mockito for unit testing
 - Testcontainers for integration tests
-- Selenium/Cypress for E2E tests
+- **Playwright for frontend E2E tests (76 tests)**
+- **Pytest for backend API tests (75 tests)**
+- Selenium/Cypress for E2E tests (legacy)
 - JMeter for load testing
 - OWASP security testing
 - Docker & container testing
 - Chaos engineering tools
+
+### Post-Deployment E2E Testing (MANDATORY)
+
+**CRITICAL**: After EVERY deployment to remote server, execute:
+
+```bash
+# 1. Playwright E2E Tests (Frontend)
+cd enterprise-portal/enterprise-portal/frontend
+npx playwright test --reporter=list
+# Expected: 76 tests passing
+
+# 2. Pytest Backend Tests (FastAPI)
+cd aurigraph-fastapi
+python3 -m pytest tests/ -v --tb=short
+# Expected: 75 tests passing
+
+# 3. Health Verification
+curl -s https://dlt.aurigraph.io/api/v11/health | jq .
+curl -s https://dlt.aurigraph.io/api/v11/info | jq .
+```
+
+### Test Suite Inventory (December 2025)
+
+| Category | Framework | Tests | Location |
+|----------|-----------|-------|----------|
+| Navigation | Playwright | 13 | `tests/e2e/navigation.spec.ts` |
+| Dashboard | Playwright | 8 | `tests/e2e/dashboard.spec.ts` |
+| Transactions | Playwright | 10 | `tests/e2e/transactions.spec.ts` |
+| Contracts | Playwright | 7 | `tests/e2e/contracts.spec.ts` |
+| Health API | Pytest | 16 | `tests/api/test_health.py` |
+| Configuration | Pytest | 18 | `tests/test_config.py` |
+| Transaction Models | Pytest | 27 | `tests/models/test_transaction.py` |
+| Service Mocks | Pytest | 14 | `tests/services/test_mocks.py` |
+| **TOTAL** | - | **151** | - |
 
 ### Workflow: Pre-Release Testing
 

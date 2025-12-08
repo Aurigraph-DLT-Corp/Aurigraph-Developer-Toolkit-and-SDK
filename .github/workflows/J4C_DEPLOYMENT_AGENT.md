@@ -90,6 +90,56 @@ gh run list --repo Aurigraph-DLT-Corp/Aurigraph-DLT --limit 5
 4. **Health endpoint**: `/api/v11/health`
 5. **Log monitoring**: Check `/home/subbu/aurigraph/logs/main-api.log`
 
+## Post-Deployment E2E Testing (MANDATORY)
+
+**IMPORTANT**: Run E2E testing with Playwright and Pytest after EVERY deployment to remote server.
+
+### Automated E2E Testing Steps
+
+After successful deployment and health check, execute:
+
+```bash
+# 1. Run Playwright E2E Tests (Frontend - 76 tests)
+cd enterprise-portal/enterprise-portal/frontend
+npx playwright test --reporter=list
+
+# 2. Run Pytest Backend Tests (FastAPI - 75 tests)
+cd aurigraph-fastapi
+python3 -m pytest tests/ -v --tb=short
+
+# 3. Quick Health Verification
+curl -s https://dlt.aurigraph.io/api/v11/health | jq .
+curl -s https://dlt.aurigraph.io/api/v11/info | jq .
+```
+
+### Test Suite Summary (December 2025)
+
+| Test Type | Framework | Tests | Location |
+|-----------|-----------|-------|----------|
+| E2E Frontend | Playwright | 76 tests | `enterprise-portal/.../tests/e2e/` |
+| Backend API | Pytest | 75 tests | `aurigraph-fastapi/tests/` |
+| **Total** | - | **151 tests** | - |
+
+### CI/CD Integration
+
+Add to GitHub Actions workflow after deployment:
+```yaml
+- name: Run E2E Tests
+  run: |
+    cd enterprise-portal/enterprise-portal/frontend
+    npx playwright test --reporter=list
+
+- name: Run Backend Tests
+  run: |
+    cd aurigraph-fastapi
+    python3 -m pytest tests/ -v
+```
+
+### Test Failure Handling
+- If E2E tests fail: Check frontend deployment and API connectivity
+- If Pytest fails: Check backend API endpoints and database
+- Document failures in JIRA for tracking
+
 ## Troubleshooting
 
 ### If deployment fails:
@@ -104,3 +154,9 @@ gh run list --repo Aurigraph-DLT-Corp/Aurigraph-DLT --limit 5
 2. Check Java process is running
 3. Verify database connectivity
 4. Check application logs for errors
+
+### If E2E tests fail:
+1. Check Playwright report: `npx playwright show-report`
+2. Verify frontend is accessible: `curl https://dlt.aurigraph.io`
+3. Check browser console for errors
+4. Review test screenshots in `test-results/` folder
