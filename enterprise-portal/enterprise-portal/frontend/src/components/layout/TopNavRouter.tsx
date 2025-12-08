@@ -87,11 +87,14 @@ const buildMenuItemsFromRoutes = (): MenuProps['items'] => {
 
   // Convert to menu structure with categories as submenus
   const categoryLabels: Record<string, string> = {
+    demo: 'Live Demo',
     blockchain: 'Blockchain',
     contracts: 'Smart Contracts',
     tokenization: 'Tokenization',
-    compliance: 'Compliance',
-    registries: 'Registries',
+    rwat: 'RWAT Assets',
+    banking: 'Banking & Trade Finance',
+    compliance: 'Compliance & Security',
+    registries: 'Registries & Traceability',
     ai: 'AI & Optimization',
     integration: 'Integration',
     admin: 'Administration',
