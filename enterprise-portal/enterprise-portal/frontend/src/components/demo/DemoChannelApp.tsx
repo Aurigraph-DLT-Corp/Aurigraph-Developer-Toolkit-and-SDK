@@ -51,10 +51,15 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   SyncOutlined,
+  ApiOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import { XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import type { ColumnsType } from 'antd/es/table';
 import DemoUserRegistration from './DemoUserRegistration';
+import { aurigraphAPI } from '../../services/AurigraphAPIService';
+import { v11BackendService } from '../../services/V11BackendService';
+import { SimulationWarning } from './SimulationWarning';
 
 // ==================== TYPES ====================
 
@@ -177,6 +182,11 @@ const DemoChannelApp: React.FC = () => {
   // Registration Modal State
   const [registrationModalVisible, setRegistrationModalVisible] = useState(false);
 
+  // API Connection State
+  const [isLiveMode, setIsLiveMode] = useState(true); // Start in live mode, fallback to simulation if API fails
+  const [apiConnected, setApiConnected] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
   // Demo State
   const [demoState, setDemoState] = useState<DemoState>({
     isRunning: false,
@@ -216,12 +226,44 @@ const DemoChannelApp: React.FC = () => {
 
   useEffect(() => {
     initializeDemoChannels();
+    checkAPIConnection();
     return () => {
       if (metricsIntervalRef.current) {
         clearInterval(metricsIntervalRef.current);
       }
     };
   }, []);
+
+  /**
+   * Check API connection and switch to simulation mode if unavailable
+   */
+  const checkAPIConnection = async () => {
+    try {
+      const health = await v11BackendService.getHealth();
+      if (health.status === 'UP') {
+        setApiConnected(true);
+        setIsLiveMode(true);
+        setApiError(null);
+        console.log('Connected to V11 backend API');
+      } else {
+        throw new Error('Backend health check failed');
+      }
+    } catch (error) {
+      console.warn('Failed to connect to V11 backend, falling back to simulation mode:', error);
+      setApiConnected(false);
+      setIsLiveMode(false);
+      setApiError(error instanceof Error ? error.message : 'Unknown error');
+      message.warning('Could not connect to backend API. Demo running in simulation mode.');
+    }
+  };
+
+  /**
+   * Attempt to switch to live mode
+   */
+  const tryLiveMode = async () => {
+    message.loading('Attempting to connect to V11 backend...', 2);
+    await checkAPIConnection();
+  };
 
   const initializeDemoChannels = () => {
     const defaultChannel: ChannelConfig = {
@@ -315,57 +357,119 @@ const DemoChannelApp: React.FC = () => {
     let blockCounter = 0;
     let termCounter = 1;
 
-    metricsIntervalRef.current = setInterval(() => {
-      // Simulate transaction generation with target TPS
-      const txsPerSecond = Math.floor(targetTPS / 10); // Update every 100ms
-      txCount += txsPerSecond;
-      blockCounter++;
+    metricsIntervalRef.current = setInterval(async () => {
+      if (isLiveMode && apiConnected) {
+        // LIVE MODE: Fetch real data from V11 backend API
+        try {
+          const [stats, consensusStatus] = await Promise.all([
+            v11BackendService.getStats(),
+            aurigraphAPI.getConsensusStatus().catch(() => null), // Fallback if endpoint doesn't exist
+          ]);
 
-      const newMetric: TransactionMetric = {
-        timestamp: Date.now(),
-        tps: targetTPS + (Math.random() - 0.5) * 50000, // Add small variance
-        avgLatency: 45 + Math.random() * 30,
-        successRate: 99.5 + Math.random() * 0.5,
-        cpuUsage: 40 + Math.random() * 30,
-        memoryUsage: 55 + Math.random() * 20,
-      };
+          const performance = stats.performance;
+          const consensus = stats.consensus;
 
-      // Update consensus status
-      if (blockCounter % 50 === 0) {
-        termCounter++;
-      }
-      setConsensusStatus(prev => ({
-        ...prev,
-        channelId: selectedChannelId || '',
-        status: 'active',
-        currentTerm: termCounter,
-        leaderNode: `validator-node-${(Math.floor(blockCounter / 100) % 4) + 1}`,
-        lastApplied: prev.lastApplied + Math.floor(txsPerSecond / 10),
-        commitIndex: prev.commitIndex + Math.floor(txsPerSecond / 10),
-        activeValidators: demoState.currentChannel?.validatorNodes.length || 4,
-      }));
+          const newMetric: TransactionMetric = {
+            timestamp: Date.now(),
+            tps: performance.tps,
+            avgLatency: performance.avgLatencyMs,
+            successRate: performance.totalTransactions > 0
+              ? (performance.confirmedTransactions / performance.totalTransactions) * 100
+              : 99.5,
+            cpuUsage: performance.cpuUsagePercent,
+            memoryUsage: (performance.memoryUsageMb / 1024) * 100, // Convert to percentage
+          };
 
-      setDemoState((prev) => {
-        const newHistory = [...prev.metricsHistory, newMetric].slice(-60); // Keep last 60 data points
-        const newPeakTPS = Math.max(prev.peakTPS, newMetric.tps);
-        const newNodeMetrics = generateNodeMetrics(prev.currentChannel);
+          // Update consensus status with real data
+          if (consensus) {
+            setConsensusStatus({
+              channelId: selectedChannelId || '',
+              status: consensus.consensusState === 'IDLE' ? 'idle' : 'active',
+              currentTerm: consensus.currentTerm,
+              leaderNode: consensus.leaderNodeId || 'unknown',
+              lastApplied: consensus.lastApplied,
+              commitIndex: consensus.commitIndex,
+              activeValidators: consensus.activeValidators,
+            });
+          }
 
-        // Generate new audit trail entries (show ~20 new transactions per update for readability)
-        const newAuditEntries = generateAuditTrailEntries(20, prev.currentBlockNumber + blockCounter, prev.currentChannel);
-        const combinedAudit = [...newAuditEntries, ...prev.auditTrail].slice(0, 500); // Keep last 500 entries
+          setDemoState((prev) => {
+            const newHistory = [...prev.metricsHistory, newMetric].slice(-60);
+            const newPeakTPS = Math.max(prev.peakTPS, newMetric.tps);
 
-        return {
-          ...prev,
-          metricsHistory: newHistory,
-          nodeMetrics: newNodeMetrics,
-          totalTransactions: prev.totalTransactions + txsPerSecond,
-          peakTPS: newPeakTPS,
-          avgLatency: newMetric.avgLatency,
-          auditTrail: combinedAudit,
-          currentBlockNumber: prev.currentBlockNumber + (blockCounter % 10 === 0 ? 1 : 0),
+            // In live mode, we don't have per-node metrics yet, use placeholder
+            const newNodeMetrics = generateNodeMetrics(prev.currentChannel);
+
+            // Generate audit entries from real transaction data (simulated for now until we have transaction stream)
+            const newAuditEntries = generateAuditTrailEntries(20, consensus?.blockHeight || prev.currentBlockNumber, prev.currentChannel);
+            const combinedAudit = [...newAuditEntries, ...prev.auditTrail].slice(0, 500);
+
+            return {
+              ...prev,
+              metricsHistory: newHistory,
+              nodeMetrics: newNodeMetrics,
+              totalTransactions: performance.totalTransactions,
+              peakTPS: newPeakTPS,
+              avgLatency: newMetric.avgLatency,
+              auditTrail: combinedAudit,
+              currentBlockNumber: consensus?.blockHeight || prev.currentBlockNumber,
+            };
+          });
+        } catch (error) {
+          console.error('Failed to fetch live metrics, falling back to simulation:', error);
+          setIsLiveMode(false);
+          setApiConnected(false);
+          message.warning('Lost connection to backend. Switching to simulation mode.');
+        }
+      } else {
+        // SIMULATION MODE: Generate mock data
+        const txsPerSecond = Math.floor(targetTPS / 10);
+        txCount += txsPerSecond;
+        blockCounter++;
+
+        const newMetric: TransactionMetric = {
+          timestamp: Date.now(),
+          tps: targetTPS + (Math.random() - 0.5) * 50000,
+          avgLatency: 45 + Math.random() * 30,
+          successRate: 99.5 + Math.random() * 0.5,
+          cpuUsage: 40 + Math.random() * 30,
+          memoryUsage: 55 + Math.random() * 20,
         };
-      });
-    }, 100);
+
+        if (blockCounter % 50 === 0) {
+          termCounter++;
+        }
+        setConsensusStatus(prev => ({
+          ...prev,
+          channelId: selectedChannelId || '',
+          status: 'active',
+          currentTerm: termCounter,
+          leaderNode: `validator-node-${(Math.floor(blockCounter / 100) % 4) + 1}`,
+          lastApplied: prev.lastApplied + Math.floor(txsPerSecond / 10),
+          commitIndex: prev.commitIndex + Math.floor(txsPerSecond / 10),
+          activeValidators: demoState.currentChannel?.validatorNodes.length || 4,
+        }));
+
+        setDemoState((prev) => {
+          const newHistory = [...prev.metricsHistory, newMetric].slice(-60);
+          const newPeakTPS = Math.max(prev.peakTPS, newMetric.tps);
+          const newNodeMetrics = generateNodeMetrics(prev.currentChannel);
+          const newAuditEntries = generateAuditTrailEntries(20, prev.currentBlockNumber + blockCounter, prev.currentChannel);
+          const combinedAudit = [...newAuditEntries, ...prev.auditTrail].slice(0, 500);
+
+          return {
+            ...prev,
+            metricsHistory: newHistory,
+            nodeMetrics: newNodeMetrics,
+            totalTransactions: prev.totalTransactions + txsPerSecond,
+            peakTPS: newPeakTPS,
+            avgLatency: newMetric.avgLatency,
+            auditTrail: combinedAudit,
+            currentBlockNumber: prev.currentBlockNumber + (blockCounter % 10 === 0 ? 1 : 0),
+          };
+        });
+      }
+    }, 1000); // Update every 1 second for live data (was 100ms for simulation)
   };
 
   const generateNodeMetrics = (channel: ChannelConfig | null): NodeMetric[] => {
@@ -1047,6 +1151,14 @@ const DemoChannelApp: React.FC = () => {
           </Space>
         </Col>
       </Row>
+
+      {/* API Connection Warning */}
+      <SimulationWarning
+        isRunning={demoState.isRunning}
+        isLiveMode={isLiveMode && apiConnected}
+        onTryLiveMode={tryLiveMode}
+        compact={false}
+      />
 
       {/* Control Panel */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
