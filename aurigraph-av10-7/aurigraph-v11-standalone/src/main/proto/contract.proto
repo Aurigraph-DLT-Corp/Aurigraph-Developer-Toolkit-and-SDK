@@ -69,7 +69,7 @@ message ContractExecutionRequest {
 // Contract execution response
 message ContractExecutionResponse {
     string result = 1;
-    bytes result_bytes = 2;
+    bytes raw_result_data = 2;  // Renamed from result_bytes to avoid collision with result field's getResultBytes()
     string transaction_hash = 3;
     bool success = 4;
     string error_message = 5;

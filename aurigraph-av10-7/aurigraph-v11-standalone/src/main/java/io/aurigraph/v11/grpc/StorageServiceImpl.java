@@ -42,7 +42,7 @@ public class StorageServiceImpl {
 
     // Storage namespaces
     private final Map<String, Map<byte[], StorageEntry>> namespaces = new ConcurrentHashMap<>();
-    private final Map<byte[], byte[]> defaultNamespace = new ConcurrentHashMap<>();
+    private final Map<byte[], StorageEntry> defaultNamespace = new ConcurrentHashMap<>();
 
     // State change history for streaming
     private final List<StateChangeEventDTO> changeHistory = Collections.synchronizedList(new ArrayList<>());
