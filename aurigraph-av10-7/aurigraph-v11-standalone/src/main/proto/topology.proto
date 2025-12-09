@@ -1,0 +1,261 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.proto;
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "io.aurigraph.v11.proto";
+option java_outer_classname = "TopologyProto";
+
+/**
+ * TopologyService - Enhanced Node Topology with gRPC Server-Side Streaming
+ *
+ * Provides real-time node topology information including:
+ * - Node metrics (CPU, Memory, TPS, Latency)
+ * - Geographic distribution
+ * - Active smart contracts per node
+ * - Container/registry status
+ *
+ * GitHub Issue: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT/issues/11
+ */
+service TopologyService {
+    // Stream full network topology with periodic updates
+    rpc StreamTopology(TopologyStreamRequest) returns (stream TopologyUpdate);
+
+    // Stream topology for a specific channel
+    rpc StreamChannelTopology(ChannelTopologyRequest) returns (stream ChannelTopologyUpdate);
+
+    // Get topology for a specific node (unary)
+    rpc GetNodeTopology(NodeTopologyRequest) returns (NodeTopologyResponse);
+
+    // Get topology statistics (unary)
+    rpc GetTopologyStats(TopologyStatsRequest) returns (TopologyStatsResponse);
+}
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+// Topology node type in the network
+enum TopologyNodeType {
+    TOPOLOGY_NODE_TYPE_UNSPECIFIED = 0;
+    TOPOLOGY_VALIDATOR = 1;      // V - Consensus validator node
+    TOPOLOGY_BUSINESS = 2;       // B - Business logic node
+    TOPOLOGY_SLIM = 3;           // S - Lightweight node
+    TOPOLOGY_CHANNEL = 4;        // C - Channel coordinator node
+}
+
+// Topology data source type
+enum TopologyDataSource {
+    TOPOLOGY_DATA_SOURCE_UNSPECIFIED = 0;
+    TOPOLOGY_PRIMARY = 1;        // Primary data source
+    TOPOLOGY_REPLICA = 2;        // Replica/backup data source
+}
+
+// Topology smart contract status
+enum TopologyContractStatus {
+    TOPOLOGY_CONTRACT_STATUS_UNSPECIFIED = 0;
+    TOPOLOGY_CONTRACT_ACTIVE = 1;    // Contract is actively running
+    TOPOLOGY_CONTRACT_PAUSED = 2;    // Contract is paused
+    TOPOLOGY_CONTRACT_PENDING = 3;   // Contract is pending deployment
+    TOPOLOGY_CONTRACT_ERROR = 4;     // Contract has errors
+}
+
+// ============================================================================
+// Core Messages
+// ============================================================================
+
+/**
+ * Geographic location of a node
+ */
+message Location {
+    double latitude = 1;
+    double longitude = 2;
+    string city = 3;
+    string country = 4;
+    string region = 5;          // e.g., "US-EAST", "EU-WEST", "APAC"
+    string data_center = 6;     // e.g., "AWS us-east-1", "Azure eastus"
+}
+
+/**
+ * Registry status for a node
+ */
+message RegistryStatus {
+    bool registered = 1;
+    google.protobuf.Timestamp last_heartbeat = 2;
+    string version = 3;
+    string protocol_version = 4;
+    bool is_healthy = 5;
+}
+
+/**
+ * Active smart contract running on a node
+ */
+message ActiveContract {
+    string contract_address = 1;
+    string contract_name = 2;
+    TopologyContractStatus status = 3;
+    int64 execution_count = 4;
+    string total_gas_used = 5;
+    google.protobuf.Timestamp deployed_at = 6;
+    google.protobuf.Timestamp last_execution = 7;
+    string owner_address = 8;
+    string contract_version = 9;
+}
+
+/**
+ * Complete node topology information with 17+ metrics
+ */
+message NodeTopology {
+    // Identity
+    string node_id = 1;
+    string channel_id = 2;
+    TopologyNodeType node_type = 3;
+
+    // Performance metrics
+    int64 time_active_seconds = 4;
+    int64 transactions_handled = 5;
+    double current_tps = 6;
+
+    // Data source
+    TopologyDataSource data_source = 7;
+
+    // Container info
+    string container_id = 8;
+    string container_image = 9;
+
+    // Geographic location
+    Location location = 10;
+
+    // Staking (for validators)
+    string staking_amount = 11;
+
+    // Resource utilization
+    double cpu_percent = 12;
+    double memory_percent = 13;
+    int64 memory_used_mb = 14;
+    int64 memory_total_mb = 15;
+
+    // Device info
+    bool is_mobile = 16;
+    string device_type = 17;    // "server", "desktop", "mobile", "embedded"
+
+    // Network metrics
+    double bandwidth_mbps = 18;
+    double latency_ms = 19;
+    int64 peers_connected = 20;
+
+    // Registry status
+    RegistryStatus registry_status = 21;
+
+    // Smart contracts
+    repeated ActiveContract active_contracts = 22;
+    int32 contract_count = 23;
+
+    // Timestamps
+    google.protobuf.Timestamp last_updated = 24;
+    google.protobuf.Timestamp started_at = 25;
+
+    // Health score (0-100)
+    int32 health_score = 26;
+    string health_status = 27;  // "healthy", "degraded", "unhealthy"
+}
+
+// ============================================================================
+// Request/Response Messages
+// ============================================================================
+
+/**
+ * Request for streaming full network topology
+ */
+message TopologyStreamRequest {
+    string channel_id = 1;              // Optional: filter by channel
+    TopologyNodeType node_type_filter = 2;      // Optional: filter by node type
+    int32 update_interval_ms = 3;       // Update interval (default 1000ms)
+    bool include_contracts = 4;         // Include active contracts
+    bool include_metrics = 5;           // Include detailed metrics
+    int32 max_nodes = 6;                // Limit number of nodes returned
+}
+
+/**
+ * Topology update sent via streaming
+ */
+message TopologyUpdate {
+    repeated NodeTopology nodes = 1;
+    int64 total_nodes = 2;
+    double network_tps = 3;
+    int64 total_transactions = 4;
+    google.protobuf.Timestamp timestamp = 5;
+    int32 update_sequence = 6;          // Sequence number for ordering
+}
+
+/**
+ * Request for channel-specific topology streaming
+ */
+message ChannelTopologyRequest {
+    string channel_id = 1;              // Required: channel ID
+    int32 update_interval_ms = 2;       // Update interval (default 1000ms)
+    bool include_contracts = 3;
+    bool include_metrics = 4;
+}
+
+/**
+ * Channel topology update
+ */
+message ChannelTopologyUpdate {
+    string channel_id = 1;
+    string channel_name = 2;
+    repeated NodeTopology nodes = 3;
+    int32 node_count = 4;
+    double channel_tps = 5;
+    int64 channel_transactions = 6;
+    google.protobuf.Timestamp timestamp = 7;
+}
+
+/**
+ * Request for single node topology
+ */
+message NodeTopologyRequest {
+    string node_id = 1;
+    bool include_contracts = 2;
+    bool include_full_metrics = 3;
+}
+
+/**
+ * Response with single node topology
+ */
+message NodeTopologyResponse {
+    NodeTopology node = 1;
+    bool found = 2;
+    string error_message = 3;
+}
+
+/**
+ * Request for topology statistics
+ */
+message TopologyStatsRequest {
+    string channel_id = 1;              // Optional: filter by channel
+}
+
+/**
+ * Topology statistics response
+ */
+message TopologyStatsResponse {
+    int32 total_nodes = 1;
+    int32 validator_count = 2;
+    int32 business_count = 3;
+    int32 slim_count = 4;
+    int32 channel_count = 5;
+    double total_tps = 6;
+    double avg_latency_ms = 7;
+    int32 total_contracts = 8;
+    map<string, int32> nodes_by_region = 9;
+    map<string, int32> nodes_by_type = 10;
+    double avg_cpu_percent = 11;
+    double avg_memory_percent = 12;
+    int32 healthy_nodes = 13;
+    int32 degraded_nodes = 14;
+    int32 unhealthy_nodes = 15;
+    google.protobuf.Timestamp timestamp = 16;
+}
