@@ -1,5 +1,56 @@
 # J4C Deployment Agent - Memorized Deployment Process
 
+## Core Deployment Principles - #MEMORIZED
+
+### 1. INCREMENTAL DEPLOYMENT ONLY
+**CRITICAL**: Only deploy changed components. Never reinstall infrastructure on every deployment.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    INCREMENTAL DEPLOYMENT FLOW                       │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  [Git Push] → [Change Detection] → [Deploy ONLY Changed Components] │
+│                      │                                               │
+│         ┌───────────┼───────────────┬─────────────────┐             │
+│         ▼           ▼               ▼                 ▼             │
+│    [Backend?]   [Portal?]      [Config?]         [Nodes?]          │
+│    Changed?     Changed?       Changed?          Changed?          │
+│         │           │               │                 │             │
+│      Y/N ↓       Y/N ↓          Y/N ↓             Y/N ↓            │
+│    [Build &    [Build &       [Reload          [Restart           │
+│     Deploy]     Deploy]        Config]          Nodes]            │
+│                                                                     │
+│  Infrastructure (PostgreSQL, Redis, NGINX) = NO CHANGE NEEDED      │
+│  unless explicitly modified                                         │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Rules:**
+- Backend changes → Rebuild & deploy backend JAR only
+- Portal changes → Rebuild & deploy frontend only
+- Config changes → Reload configuration only
+- Infrastructure → NEVER redeploy unless explicitly required
+- Database → NEVER reinitialize unless schema changes
+
+### 2. Component Change Detection
+The CI/CD workflow uses `detect-changes` job to identify what changed:
+- `backend_changed`: V11 standalone Java code
+- `portal_changed`: Enterprise portal React code
+- `nodes_changed`: Validator/node configurations
+- `config_changed`: Application configuration files
+- `docker_changed`: Docker-related files
+
+### 3. Skip Unnecessary Work
+```yaml
+# Example: Skip backend build if no backend changes
+build-backend:
+  if: ${{ needs.detect-changes.outputs.backend_changed == 'true' }}
+```
+
+---
+
 ## Remote Server Configuration
 - **Server**: dlt.aurigraph.io
 - **SSH Port**: 22 (Standard SSH, NOT 2235)

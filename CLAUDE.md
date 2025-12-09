@@ -12,6 +12,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Enterprise Portal: v4.5.0 live at https://dlt.aurigraph.io
 - Both versions coexist during migration period
 
+## CI/CD Deployment Principles - #MEMORIZED
+
+**CRITICAL RULE: Only deploy changed components. Never reinstall infrastructure on every deployment.**
+
+### Incremental Deployment Strategy
+| What Changed | What to Deploy | What to Skip |
+|--------------|----------------|--------------|
+| Backend code | Rebuild & deploy JAR only | Portal, Infrastructure |
+| Portal code | Rebuild & deploy frontend only | Backend, Infrastructure |
+| Config files | Reload configuration only | Backend, Portal |
+| Infrastructure | Full deployment (rare) | N/A |
+
+### Change Detection
+The CI/CD workflow (`remote-deployment.yml`) automatically detects changes:
+- `backend_changed`: V11 standalone Java code changes
+- `portal_changed`: Enterprise portal React code changes
+- `config_changed`: Application configuration changes
+- `docker_changed`: Docker-related file changes
+
+### Self-Hosted Runner
+- All deployments use self-hosted runner: `aurigraph-prod-runner`
+- Labels: `self-hosted`, `Linux`, `X64`, `aurigraph-prod`
+- This avoids GitHub Actions budget limits
+
+### Workflow Files
+- `remote-deployment.yml` - Main CI/CD with change detection
+- `deploy-via-ssh.yml` - Simple SSH-based deployment
+- `self-hosted-deploy.yml` - Explicit self-hosted workflow
+
 ## Repository Structure
 
 ```
