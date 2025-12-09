@@ -30,23 +30,47 @@ function App() {
   const navMenuItems = useMemo(() => {
     const categories: Record<string, any[]> = {};
 
+    // First pass: Add parent routes (top-level menu items)
     routes.forEach(route => {
       // Skip home route
       if (route.path === '/') return;
 
       // Skip routes without categories
-      if (!route.category || route.parent) return;
+      if (!route.category) return;
+
+      // Only add top-level category routes (parent is '/' or undefined)
+      if (route.parent && route.parent !== '/') return;
 
       if (!categories[route.category]) {
         categories[route.category] = [];
       }
 
-      categories[route.category]?.push({
-        key: route.path,
-        label: route.label,
-        icon: route.icon ? `icon-${route.icon}` : undefined,
-        title: route.description,
-      });
+      // Check if this route has children
+      const children = routes.filter(r => r.parent === route.path);
+
+      if (children.length > 0) {
+        // Route with children - create submenu
+        categories[route.category]?.push({
+          key: route.path,
+          label: route.label,
+          icon: route.icon ? `icon-${route.icon}` : undefined,
+          title: route.description,
+          children: children.map(child => ({
+            key: child.path,
+            label: child.label,
+            icon: child.icon ? `icon-${child.icon}` : undefined,
+            title: child.description,
+          })),
+        });
+      } else {
+        // Route without children - direct link
+        categories[route.category]?.push({
+          key: route.path,
+          label: route.label,
+          icon: route.icon ? `icon-${route.icon}` : undefined,
+          title: route.description,
+        });
+      }
     });
 
     // Category display labels
