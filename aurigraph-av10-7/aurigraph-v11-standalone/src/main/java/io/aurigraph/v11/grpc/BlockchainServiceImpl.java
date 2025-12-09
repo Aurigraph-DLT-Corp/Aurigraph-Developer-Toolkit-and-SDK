@@ -484,10 +484,10 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             }
 
             // Execute transaction (simplified - in production, execute against VM)
-            List<StateChange> stateChanges = new ArrayList<>();
+            List<BlockchainStateChange> stateChanges = new ArrayList<>();
 
             // State change 1: Debit from sender
-            stateChanges.add(StateChange.newBuilder()
+            stateChanges.add(BlockchainStateChange.newBuilder()
                 .setKey("balance:" + protoTx.getFromAddress())
                 .setOldValue("1000.0")
                 .setNewValue(String.valueOf(1000.0 - Double.parseDouble(protoTx.getAmount())))
@@ -495,7 +495,7 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
                 .build());
 
             // State change 2: Credit to receiver
-            stateChanges.add(StateChange.newBuilder()
+            stateChanges.add(BlockchainStateChange.newBuilder()
                 .setKey("balance:" + protoTx.getToAddress())
                 .setOldValue("500.0")
                 .setNewValue(String.valueOf(500.0 + Double.parseDouble(protoTx.getAmount())))
@@ -503,7 +503,7 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
                 .build());
 
             // State change 3: Transaction nonce
-            stateChanges.add(StateChange.newBuilder()
+            stateChanges.add(BlockchainStateChange.newBuilder()
                 .setKey("nonce:" + protoTx.getFromAddress())
                 .setOldValue(String.valueOf(protoTx.getNonce() - 1))
                 .setNewValue(String.valueOf(protoTx.getNonce()))
@@ -528,7 +528,7 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
                 .setTransaction(executedTx)
                 .setSuccess(true)
                 .setResultData("Transaction executed successfully")
-                .addAllStateChanges(stateChanges)
+                .addAllBlockchainStateChanges(stateChanges)
                 .setTimestamp(Timestamp.newBuilder()
                     .setSeconds(Instant.now().getEpochSecond())
                     .setNanos(Instant.now().getNano())
