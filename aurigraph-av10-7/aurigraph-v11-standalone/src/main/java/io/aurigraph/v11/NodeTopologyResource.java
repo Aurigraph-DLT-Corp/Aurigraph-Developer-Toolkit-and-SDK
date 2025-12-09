@@ -3,6 +3,7 @@ package io.aurigraph.v11;
 import io.aurigraph.v11.dto.topology.*;
 import io.aurigraph.v11.dto.topology.NodeTopologyDTO.NodeType;
 import io.aurigraph.v11.service.NodeTopologyService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -27,6 +28,7 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Node Topology", description = "Enhanced node topology with real-time metrics and active contracts")
+@PermitAll
 public class NodeTopologyResource {
 
     private static final Logger LOG = Logger.getLogger(NodeTopologyResource.class);
