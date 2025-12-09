@@ -52,6 +52,10 @@ const RWATTokenizationForm = lazy(() => import('../components/rwat/RWATTokenizat
 const VVBApprovalWorkflow = lazy(() => import('../components/rwat/VVBApprovalWorkflow'));
 const AssetBackedStablecoin = lazy(() => import('../components/rwat/AssetBackedStablecoin'));
 
+// New Comprehensive RWAT & Contracts components
+const RWATokenizationDashboard = lazy(() => import('../components/comprehensive/RWATokenizationDashboard'));
+const AssetFractionalOwnershipUI = lazy(() => import('../components/comprehensive/AssetFractionalOwnershipUI'));
+
 // Banking & Trade Finance
 const BankingTokenization = lazy(() => import('../components/banking/BankingTokenization'));
 
@@ -481,6 +485,28 @@ export const routes: RouteDefinition[] = [
     description: 'Asset-backed stablecoin issuance',
     category: 'rwat',
     order: 52,
+  },
+  {
+    path: '/rwat/dashboard',
+    component: RWATokenizationDashboard,
+    label: 'RWA Dashboard',
+    breadcrumbLabel: 'RWA Analytics Dashboard',
+    parent: '/rwat',
+    icon: 'DashboardOutlined',
+    description: 'Real-time RWA tokenization analytics and metrics',
+    category: 'rwat',
+    order: 53,
+  },
+  {
+    path: '/rwat/fractional-ownership',
+    component: AssetFractionalOwnershipUI,
+    label: 'Fractional Ownership',
+    breadcrumbLabel: 'Fractional Ownership',
+    parent: '/rwat',
+    icon: 'PieChartOutlined',
+    description: 'Manage fractional ownership of tokenized assets',
+    category: 'rwat',
+    order: 54,
   },
 
   // =========================================================================
