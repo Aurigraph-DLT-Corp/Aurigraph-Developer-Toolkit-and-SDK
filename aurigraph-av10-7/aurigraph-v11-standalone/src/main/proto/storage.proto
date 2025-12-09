@@ -30,10 +30,10 @@ service StorageService {
     rpc GetStateProof(StateProofRequest) returns (StateProofResponse);
 
     // Stream state changes
-    rpc StreamStateChanges(StateChangeStreamRequest) returns (stream StateChangeEvent);
+    rpc StreamStateChanges(StateChangeStreamRequest) returns (stream StorageStateChange);
 
     // Get storage metrics
-    rpc GetStorageMetrics(StorageMetricsRequest) returns (StorageMetrics);
+    rpc GetStorageMetrics(StorageMetricsRequest) returns (StorageServiceMetrics);
 }
 
 // Put request
@@ -175,8 +175,8 @@ message StateChangeStreamRequest {
     bool follow_head = 4;
 }
 
-// State change event
-message StateChangeEvent {
+// Storage state change event
+message StorageStateChange {
     string event_type = 1;  // PUT, DELETE, UPDATE
     bytes key = 2;
     bytes old_value = 3;
@@ -195,8 +195,8 @@ message StorageMetricsRequest {
     google.protobuf.Timestamp to_time = 3;
 }
 
-// Storage metrics
-message StorageMetrics {
+// Storage service metrics
+message StorageServiceMetrics {
     int64 total_keys = 1;
     int64 total_size_bytes = 2;
     int64 namespace_count = 3;
