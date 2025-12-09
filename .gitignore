@@ -277,3 +277,12 @@ native-image-build/
 # Git worktrees used for parallel agent development
 # These should never be committed to the repository
 worktrees/
+
+# ============================================================================
+# ARCHIVED LEGACY CODE (Local reference only)
+# ============================================================================
+
+# Legacy code and configurations archived during cleanup
+# Preserved locally for reference but not tracked in git
+.archive/
+docs/archive/
