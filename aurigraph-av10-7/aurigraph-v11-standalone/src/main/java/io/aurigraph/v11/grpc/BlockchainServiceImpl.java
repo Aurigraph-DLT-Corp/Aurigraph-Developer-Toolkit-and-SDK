@@ -528,7 +528,7 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
                 .setTransaction(executedTx)
                 .setSuccess(true)
                 .setResultData("Transaction executed successfully")
-                .addAllBlockchainStateChanges(stateChanges)
+                .addAllStateChanges(stateChanges)
                 .setTimestamp(Timestamp.newBuilder()
                     .setSeconds(Instant.now().getEpochSecond())
                     .setNanos(Instant.now().getNano())
