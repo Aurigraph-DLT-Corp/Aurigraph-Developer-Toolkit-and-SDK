@@ -178,14 +178,14 @@ message StateChangeStreamRequest {
 // State change event
 message StateChangeEvent {
     string event_type = 1;  // PUT, DELETE, UPDATE
-    bytes key = 1;
-    bytes old_value = 2;
-    bytes new_value = 3;
-    string namespace = 4;
-    int64 block_height = 5;
-    string transaction_hash = 6;
-    bytes state_root = 7;
-    google.protobuf.Timestamp timestamp = 8;
+    bytes key = 2;
+    bytes old_value = 3;
+    bytes new_value = 4;
+    string namespace = 5;
+    int64 block_height = 6;
+    string transaction_hash = 7;
+    bytes state_root = 8;
+    google.protobuf.Timestamp timestamp = 9;
 }
 
 // Storage metrics request
