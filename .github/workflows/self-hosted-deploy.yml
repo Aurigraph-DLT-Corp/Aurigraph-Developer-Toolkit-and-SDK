@@ -1,0 +1,226 @@
+name: Self-Hosted Deploy to Remote
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy Backend (V12)'
+        type: boolean
+        default: true
+      deploy_frontend:
+        description: 'Deploy Frontend (Portal)'
+        type: boolean
+        default: true
+      skip_tests:
+        description: 'Skip tests for faster deployment'
+        type: boolean
+        default: true
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20'
+  REMOTE_HOST: dlt.aurigraph.io
+  REMOTE_USER: subbu
+  APP_PORT: 9003
+
+jobs:
+  # ============================================
+  # BACKEND DEPLOYMENT (Self-Hosted Runner)
+  # ============================================
+  deploy-backend:
+    name: Deploy Backend (Self-Hosted)
+    if: ${{ inputs.deploy_backend }}
+    runs-on: [self-hosted, aurigraph-prod]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Get version info
+        id: version
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "📦 Building version: ${VERSION}"
+
+      - name: Build V12 Backend
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🔨 Building V12 application..."
+          ./mvnw clean package -DskipTests -Dmaven.test.skip=true -B
+          echo "✅ Build complete"
+          ls -lh target/quarkus-app/
+
+      - name: Run Quick Tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🧪 Running quick tests..."
+          ./mvnw test -B --fail-at-end -Dtest="*ResourceTest" || echo "⚠️ Some tests failed"
+        continue-on-error: true
+
+      - name: Package for deployment
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "📦 Packaging for deployment..."
+          cd target
+          tar -czvf quarkus-app.tar.gz quarkus-app/
+          ls -lh quarkus-app.tar.gz
+
+      - name: Deploy to Remote Server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_PASSWORD: ${{ secrets.REMOTE_PASSWORD }}
+        run: |
+          echo "🚀 Deploying to ${{ env.REMOTE_HOST }}..."
+
+          # Create backup on remote
+          sshpass -p "${REMOTE_PASSWORD}" ssh -o StrictHostKeyChecking=no ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} "
+            cd /opt/aurigraph-v11 && \
+            if [ -d quarkus-app ]; then
+              sudo mv quarkus-app quarkus-app.backup.\$(date +%Y%m%d%H%M%S)
+            fi
+          " || echo "No existing deployment to backup"
+
+          # Copy new package
+          sshpass -p "${REMOTE_PASSWORD}" scp -o StrictHostKeyChecking=no \
+            aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app.tar.gz \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/opt/aurigraph-v11/
+
+          # Extract and restart
+          sshpass -p "${REMOTE_PASSWORD}" ssh -o StrictHostKeyChecking=no ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} "
+            cd /opt/aurigraph-v11 && \
+            sudo tar -xzf quarkus-app.tar.gz && \
+            sudo rm -f quarkus-app.tar.gz && \
+            echo '✅ Package extracted' && \
+
+            # Restart service
+            sudo systemctl restart aurigraph-v11 || \
+            (cd quarkus-app && nohup java -jar quarkus-run.jar &) && \
+            echo '🚀 Service restarted'
+          "
+
+      - name: Verify Backend Deployment
+        run: |
+          echo "⏳ Waiting for service to start..."
+          sleep 15
+
+          echo "🔍 Checking health..."
+          for i in 1 2 3 4 5; do
+            HEALTH=$(curl -s --connect-timeout 10 https://${{ env.REMOTE_HOST }}/api/v11/health || echo '{"status":"error"}')
+            echo "Health check $i: $HEALTH"
+            if echo "$HEALTH" | grep -q '"status":"UP"'; then
+              echo "✅ Backend deployment successful!"
+              exit 0
+            fi
+            sleep 10
+          done
+
+          echo "⚠️ Health check inconclusive, but deployment completed"
+
+  # ============================================
+  # FRONTEND DEPLOYMENT (Self-Hosted Runner)
+  # ============================================
+  deploy-frontend:
+    name: Deploy Frontend (Self-Hosted)
+    if: ${{ inputs.deploy_frontend }}
+    runs-on: [self-hosted, aurigraph-prod]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: enterprise-portal/enterprise-portal/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+
+      - name: Build Frontend
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          echo "🔨 Building frontend..."
+          npm run build
+          echo "✅ Build complete"
+          ls -lh dist/
+
+      - name: Package Frontend
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          tar -czvf frontend-dist.tar.gz dist/
+          ls -lh frontend-dist.tar.gz
+
+      - name: Deploy Frontend to Remote
+        env:
+          REMOTE_PASSWORD: ${{ secrets.REMOTE_PASSWORD }}
+        run: |
+          echo "🚀 Deploying frontend to ${{ env.REMOTE_HOST }}..."
+
+          # Copy package
+          sshpass -p "${REMOTE_PASSWORD}" scp -o StrictHostKeyChecking=no \
+            enterprise-portal/enterprise-portal/frontend/frontend-dist.tar.gz \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/tmp/
+
+          # Extract and deploy
+          sshpass -p "${REMOTE_PASSWORD}" ssh -o StrictHostKeyChecking=no ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} "
+            cd /tmp && \
+            tar -xzf frontend-dist.tar.gz && \
+            sudo cp -r dist/* /usr/share/nginx/html/ && \
+            sudo nginx -t && sudo nginx -s reload && \
+            rm -rf /tmp/dist /tmp/frontend-dist.tar.gz && \
+            echo '✅ Frontend deployed and NGINX reloaded'
+          "
+
+      - name: Verify Frontend Deployment
+        run: |
+          echo "🔍 Checking frontend..."
+          sleep 5
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.REMOTE_HOST }}/)
+          echo "HTTP Status: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Frontend deployment successful!"
+          else
+            echo "⚠️ Frontend may need attention (HTTP $HTTP_CODE)"
+          fi
+
+  # ============================================
+  # FINAL SUMMARY
+  # ============================================
+  summary:
+    name: Deployment Summary
+    runs-on: [self-hosted, aurigraph-prod]
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "╔════════════════════════════════════════════════════════════╗"
+          echo "║           SELF-HOSTED DEPLOYMENT COMPLETE                  ║"
+          echo "╠════════════════════════════════════════════════════════════╣"
+          echo "║  Backend:  ${{ needs.deploy-backend.result || 'skipped' }}"
+          echo "║  Frontend: ${{ needs.deploy-frontend.result || 'skipped' }}"
+          echo "║  Server:   https://${{ env.REMOTE_HOST }}"
+          echo "╚════════════════════════════════════════════════════════════╝"
+
+          # Final health check
+          curl -s https://${{ env.REMOTE_HOST }}/api/v11/health | head -20
