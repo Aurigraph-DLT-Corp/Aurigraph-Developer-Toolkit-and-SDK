@@ -49,6 +49,58 @@ build-backend:
   if: ${{ needs.detect-changes.outputs.backend_changed == 'true' }}
 ```
 
+### 4. POST-DEPLOYMENT E2E/SMOKE TESTS - #MEMORIZED
+**CRITICAL**: Execute E2E and Smoke tests after EVERY deployment. This is MANDATORY.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    POST-DEPLOYMENT QAQC FLOW                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  [Deployment Complete] → [Health Check] → [QAQC Agent Triggered]   │
+│                                                │                    │
+│                         ┌──────────────────────┴─────────────────┐  │
+│                         │                                        │  │
+│                         ▼                                        ▼  │
+│                   [Smoke Tests]                          [E2E Tests] │
+│                   Quick validation                       Full suite │
+│                   ~30 seconds                            ~5 minutes │
+│                         │                                        │  │
+│                         └──────────────────────┬─────────────────┘  │
+│                                                │                    │
+│                                                ▼                    │
+│                                    [Test Report Generated]         │
+│                                    Pass → Done                      │
+│                                    Fail → Alert + Rollback Option  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**QAQC Agent Responsibilities:**
+1. **Smoke Tests** (immediate, ~30s):
+   - Health endpoint check: `curl https://dlt.aurigraph.io/api/v11/health`
+   - Info endpoint check: `curl https://dlt.aurigraph.io/api/v11/info`
+   - Frontend accessibility: `curl https://dlt.aurigraph.io`
+
+2. **E2E Tests** (comprehensive, ~5min):
+   - Playwright Frontend Tests: 76 tests
+   - Pytest Backend Tests: 75 tests
+   - Total: 151 tests
+
+3. **Test Failure Handling**:
+   - If critical tests fail → Consider rollback
+   - Document failures in JIRA
+   - Notify team via alerts
+
+**Quick Smoke Test Command:**
+```bash
+# Run immediately after deployment
+curl -sf https://dlt.aurigraph.io/api/v11/health && \
+curl -sf https://dlt.aurigraph.io/api/v11/info && \
+curl -sf https://dlt.aurigraph.io/ | head -c 100 && \
+echo "✅ Smoke tests passed"
+```
+
 ---
 
 ## Remote Server Configuration

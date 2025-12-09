@@ -41,6 +41,21 @@ The CI/CD workflow (`remote-deployment.yml`) automatically detects changes:
 - `deploy-via-ssh.yml` - Simple SSH-based deployment
 - `self-hosted-deploy.yml` - Explicit self-hosted workflow
 
+### Post-Deployment E2E/Smoke Tests - #MEMORIZED
+**MANDATORY**: Execute tests after EVERY deployment.
+
+| Test Type | Duration | Tests | Command |
+|-----------|----------|-------|---------|
+| **Smoke** | ~30s | 3 | `curl -sf https://dlt.aurigraph.io/api/v11/health` |
+| **E2E Frontend** | ~3min | 76 | `npx playwright test` |
+| **E2E Backend** | ~2min | 75 | `pytest tests/ -v` |
+
+**Quick Smoke Test:**
+```bash
+curl -sf https://dlt.aurigraph.io/api/v11/health && echo "✅ Health OK"
+curl -sf https://dlt.aurigraph.io/api/v11/info && echo "✅ Info OK"
+```
+
 ## Repository Structure
 
 ```
