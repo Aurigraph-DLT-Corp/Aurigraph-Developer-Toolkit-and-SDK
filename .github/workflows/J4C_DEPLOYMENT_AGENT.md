@@ -87,10 +87,37 @@ build-backend:
    - Pytest Backend Tests: 75 tests
    - Total: 151 tests
 
-3. **Test Failure Handling**:
-   - If critical tests fail → Consider rollback
-   - Document failures in JIRA
-   - Notify team via alerts
+3. **Test Failure Handling** - #MEMORIZED:
+   ```
+   ┌─────────────────────────────────────────────────────────────┐
+   │              TEST ESCALATION FLOW                           │
+   ├─────────────────────────────────────────────────────────────┤
+   │                                                             │
+   │  [Smoke Tests] ──PASS──> Done ✅                            │
+   │       │                                                     │
+   │      FAIL                                                   │
+   │       │                                                     │
+   │       ▼                                                     │
+   │  [Run E2E Tests] ← Diagnose specific failures               │
+   │       │                                                     │
+   │       ├──PASS──> Smoke false positive, verify manually      │
+   │       │                                                     │
+   │      FAIL                                                   │
+   │       │                                                     │
+   │       ▼                                                     │
+   │  [Generate Failure Report]                                  │
+   │       │                                                     │
+   │       ├──> Document in JIRA                                 │
+   │       ├──> Alert team                                       │
+   │       └──> Consider rollback                                │
+   │                                                             │
+   └─────────────────────────────────────────────────────────────┘
+   ```
+
+   **RULE: If Smoke Tests FAIL → Run E2E Tests for diagnosis**
+   - Smoke tests are quick but give limited info
+   - E2E tests identify EXACTLY what's broken
+   - Never skip E2E when smoke fails
 
 **Quick Smoke Test Command:**
 ```bash

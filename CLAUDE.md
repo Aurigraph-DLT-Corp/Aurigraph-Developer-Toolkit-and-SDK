@@ -56,6 +56,13 @@ curl -sf https://dlt.aurigraph.io/api/v11/health && echo "✅ Health OK"
 curl -sf https://dlt.aurigraph.io/api/v11/info && echo "✅ Info OK"
 ```
 
+**Test Escalation Rule - #MEMORIZED:**
+```
+Smoke PASS → Done ✅
+Smoke FAIL → Run E2E Tests (diagnose specific failures)
+E2E FAIL   → Generate report, JIRA, alert, consider rollback
+```
+
 ## Repository Structure
 
 ```
