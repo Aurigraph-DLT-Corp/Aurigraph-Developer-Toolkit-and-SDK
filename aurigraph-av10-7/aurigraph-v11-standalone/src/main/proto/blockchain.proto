@@ -200,16 +200,17 @@ message TransactionExecutionResponse {
   Transaction transaction = 1;         // Executed transaction
   bool success = 2;                    // Execution success
   string result_data = 3;              // Execution result
-  repeated StateChange state_changes = 4;  // State modifications
+  repeated BlockchainStateChange state_changes = 4;  // State modifications
   string error_message = 5;            // Error if failed
   google.protobuf.Timestamp timestamp = 6;
 }
 
 /**
- * StateChange represents a single state modification
+ * BlockchainStateChange represents a single state modification
  * Used to track transaction effects on blockchain state
+ * (Renamed from StateChange to avoid collision with contract.proto)
  */
-message StateChange {
+message BlockchainStateChange {
   string key = 1;                      // State key modified
   string old_value = 2;                // Previous value
   string new_value = 3;                // New value
