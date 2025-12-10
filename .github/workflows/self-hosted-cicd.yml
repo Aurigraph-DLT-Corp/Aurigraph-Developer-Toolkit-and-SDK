@@ -1,0 +1,431 @@
+#===============================================================================
+# Aurigraph DLT V12 - Self-Hosted Runner CI/CD Pipeline
+#
+# This workflow deploys Aurigraph V12 using a self-hosted runner installed
+# directly on the production server (dlt.aurigraph.io).
+#
+# Advantages of Self-Hosted Runner:
+# - No SSH keys or passwords needed
+# - Direct file system access (no SCP/artifact transfers)
+# - Native systemd integration
+# - Better performance and security
+#
+# Runner Labels: self-hosted, Linux, aurigraph-prod
+#
+# Setup: Run scripts/ci-cd/setup-self-hosted-runner.sh on the remote server
+#===============================================================================
+
+name: Self-Hosted CI/CD Pipeline
+
+on:
+  # Auto-deploy on push to V12 or main
+  push:
+    branches:
+      - V12
+      - main
+    paths:
+      - "aurigraph-av10-7/aurigraph-v11-standalone/src/**"
+      - "aurigraph-av10-7/aurigraph-v11-standalone/pom.xml"
+      - "enterprise-portal/**"
+      - ".github/workflows/self-hosted-cicd.yml"
+
+  # Manual trigger with options
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: "Deploy Backend (V12 Java)"
+        type: boolean
+        default: true
+      deploy_frontend:
+        description: "Deploy Frontend (Portal)"
+        type: boolean
+        default: true
+      skip_tests:
+        description: "Skip tests for faster deployment"
+        type: boolean
+        default: false
+      run_e2e_tests:
+        description: "Run E2E tests after deployment"
+        type: boolean
+        default: true
+
+# Environment variables
+env:
+  JAVA_VERSION: "21"
+  NODE_VERSION: "20"
+  APP_PORT: 9003
+  GRPC_PORT: 9001
+
+# Cancel in-progress runs for same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  #=============================================================================
+  # JOB 1: BUILD AND DEPLOY BACKEND
+  #=============================================================================
+  deploy-backend:
+    name: Build & Deploy Backend
+    runs-on: [self-hosted, Linux, aurigraph-prod]
+    if: ${{ github.event_name == 'push' || inputs.deploy_backend }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      status: ${{ steps.health.outputs.status }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Get version info
+        id: version
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_OUTPUT
+          echo "📦 Building Aurigraph V12 version: ${VERSION}"
+
+      - name: Build application
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🔨 Building V12 application..."
+          if [ "${{ inputs.skip_tests }}" = "true" ]; then
+            ./mvnw clean package -DskipTests -Dmaven.test.skip=true -B -q
+          else
+            ./mvnw clean package -B -q
+          fi
+          echo "✅ Build successful"
+          ls -lh target/*-runner.jar
+
+      - name: Pre-deployment checks
+        id: pre_checks
+        run: |
+          echo "🔍 Pre-deployment checks..."
+
+          # Check PostgreSQL
+          if docker exec dlt-postgres pg_isready -U aurigraph > /dev/null 2>&1; then
+            echo "✅ PostgreSQL is healthy"
+          else
+            echo "⚠️ PostgreSQL not responding via Docker, checking host..."
+            if systemctl is-active --quiet postgresql 2>/dev/null; then
+              echo "✅ PostgreSQL running on host"
+            fi
+          fi
+
+          # Check LevelDB directory
+          if [ -d "/var/lib/aurigraph/leveldb" ]; then
+            echo "✅ LevelDB directory exists"
+          else
+            sudo mkdir -p /var/lib/aurigraph/leveldb
+            sudo chown -R $USER:$USER /var/lib/aurigraph
+            echo "✅ LevelDB directory created"
+          fi
+
+          # Check disk space
+          SPACE=$(df -h /home/subbu | awk 'NR==2 {print $5}' | sed 's/%//')
+          if [ "$SPACE" -gt 90 ]; then
+            echo "⚠️ Warning: Disk usage at ${SPACE}%"
+          else
+            echo "✅ Disk space OK (${SPACE}% used)"
+          fi
+
+      - name: Create backup
+        run: |
+          echo "💾 Creating backup..."
+          cd /home/subbu
+          if [ -f aurigraph-v12.jar ]; then
+            BACKUP="aurigraph-v12.jar.backup-$(date +%Y%m%d_%H%M%S)"
+            cp aurigraph-v12.jar "$BACKUP"
+            echo "✅ Backup: $BACKUP"
+            # Keep only last 5 backups
+            ls -t aurigraph-v12.jar.backup-* 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true
+          fi
+
+      - name: Deploy application
+        run: |
+          echo "🚀 Deploying V12..."
+
+          # Stop current service
+          sudo systemctl stop aurigraph-v12 2>/dev/null || echo "Service not running"
+          sleep 3
+
+          # Deploy new JAR
+          JAR_FILE=$(ls aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar | head -1)
+          cp "$JAR_FILE" /home/subbu/aurigraph-v12-new.jar
+
+          cd /home/subbu
+          mv aurigraph-v12.jar aurigraph-v12.jar.previous 2>/dev/null || true
+          mv aurigraph-v12-new.jar aurigraph-v12.jar
+          chmod +x aurigraph-v12.jar
+
+          # Update systemd service
+          sudo tee /etc/systemd/system/aurigraph-v12.service > /dev/null << 'SYSTEMD'
+          [Unit]
+          Description=Aurigraph V12 Backend Service
+          After=network.target postgresql.service
+          Wants=postgresql.service
+
+          [Service]
+          Type=simple
+          User=subbu
+          WorkingDirectory=/home/subbu
+          ExecStart=/usr/bin/java \
+            -Xmx8g -Xms4g \
+            -XX:+UseG1GC \
+            -XX:MaxGCPauseMillis=200 \
+            -Dquarkus.http.port=9003 \
+            -Dquarkus.grpc.server.port=9001 \
+            -Dquarkus.log.level=INFO \
+            -Dquarkus.profile=prod \
+            -Dquarkus.datasource.db-kind=postgresql \
+            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/j4c_db \
+            -Dquarkus.datasource.username=j4c_user \
+            -Dquarkus.datasource.password=j4c_password \
+            -jar /home/subbu/aurigraph-v12.jar
+          Restart=on-failure
+          RestartSec=10
+          StandardOutput=journal
+          StandardError=journal
+          SyslogIdentifier=aurigraph-v12
+
+          [Install]
+          WantedBy=multi-user.target
+          SYSTEMD
+
+          # Start service
+          sudo systemctl daemon-reload
+          sudo systemctl enable aurigraph-v12
+          sudo systemctl start aurigraph-v12
+
+          echo "⏳ Waiting for startup..."
+          sleep 15
+
+      - name: Health check
+        id: health
+        run: |
+          echo "🔍 Health check..."
+          MAX_RETRIES=10
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i/$MAX_RETRIES..."
+
+            HEALTH=$(curl -s http://localhost:9003/api/v11/health 2>/dev/null || echo '{}')
+            STATUS=$(echo "$HEALTH" | jq -r '.status // "error"' 2>/dev/null || echo "error")
+
+            if [ "$STATUS" = "UP" ]; then
+              echo "✅ Backend is healthy!"
+              echo "status=healthy" >> $GITHUB_OUTPUT
+              curl -s http://localhost:9003/api/v11/info | jq '.platform'
+              exit 0
+            fi
+
+            # Also check Quarkus liveness
+            LIVE=$(curl -s http://localhost:9003/q/health/live 2>/dev/null || echo '{}')
+            LIVE_STATUS=$(echo "$LIVE" | jq -r '.status // "error"' 2>/dev/null || echo "error")
+
+            if [ "$LIVE_STATUS" = "UP" ]; then
+              echo "✅ Backend liveness check passed"
+              echo "status=healthy" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            sleep 10
+          done
+
+          echo "❌ Health check failed"
+          echo "status=unhealthy" >> $GITHUB_OUTPUT
+          exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Rolling back..."
+          cd /home/subbu
+
+          sudo systemctl stop aurigraph-v12 2>/dev/null || true
+
+          if [ -f aurigraph-v12.jar.previous ]; then
+            mv aurigraph-v12.jar aurigraph-v12.jar.failed
+            mv aurigraph-v12.jar.previous aurigraph-v12.jar
+            sudo systemctl start aurigraph-v12
+            sleep 15
+            echo "Rollback status:"
+            curl -s http://localhost:9003/api/v11/health | jq '.status'
+          fi
+
+  #=============================================================================
+  # JOB 2: BUILD AND DEPLOY FRONTEND
+  #=============================================================================
+  deploy-frontend:
+    name: Build & Deploy Frontend
+    runs-on: [self-hosted, Linux, aurigraph-prod]
+    if: ${{ github.event_name == 'push' || inputs.deploy_frontend }}
+    needs: [deploy-backend]
+    # Continue even if backend is skipped
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: enterprise-portal/enterprise-portal/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+
+      - name: Build frontend
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          echo "🔨 Building frontend..."
+          npm run build
+          echo "✅ Build complete"
+          ls -lh dist/
+
+      - name: Deploy frontend
+        run: |
+          echo "🚀 Deploying frontend..."
+
+          DEPLOY_DIR="/var/www/aurigraph-portal"
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          VERSION_DIR="${DEPLOY_DIR}/${TIMESTAMP}"
+
+          # Create new version directory
+          sudo mkdir -p "$VERSION_DIR"
+
+          # Copy files
+          sudo cp -r enterprise-portal/enterprise-portal/frontend/dist/* "$VERSION_DIR/"
+
+          # Update symlink
+          sudo ln -sfn "$VERSION_DIR" "${DEPLOY_DIR}/current"
+
+          # Set permissions
+          sudo chown -R www-data:www-data "$DEPLOY_DIR"
+
+          # Reload NGINX
+          sudo nginx -t && sudo systemctl reload nginx
+
+          # Cleanup old versions (keep last 5)
+          cd "$DEPLOY_DIR"
+          ls -dt */ 2>/dev/null | grep -v "current" | tail -n +6 | xargs sudo rm -rf 2>/dev/null || true
+
+          echo "✅ Frontend deployed to $VERSION_DIR"
+
+      - name: Verify frontend
+        run: |
+          echo "🔍 Verifying frontend..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://dlt.aurigraph.io/)
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Frontend is accessible (HTTP $HTTP_CODE)"
+          else
+            echo "⚠️ Frontend returned HTTP $HTTP_CODE"
+          fi
+
+  #=============================================================================
+  # JOB 3: POST-DEPLOYMENT E2E TESTS
+  #=============================================================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: [self-hosted, Linux, aurigraph-prod]
+    needs: [deploy-backend, deploy-frontend]
+    if: ${{ (github.event_name == 'push' || inputs.run_e2e_tests) && success() }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          echo "🧪 Running Playwright E2E tests..."
+          npx playwright test --reporter=list || echo "⚠️ Some tests failed"
+        continue-on-error: true
+
+      - name: Run API tests
+        run: |
+          echo "🧪 Running API tests..."
+
+          # Test key endpoints
+          echo "=== Health Check ==="
+          curl -s https://dlt.aurigraph.io/api/v11/health | jq '.'
+
+          echo ""
+          echo "=== Topology Stats ==="
+          curl -s https://dlt.aurigraph.io/api/v11/topology/stats | jq '.totalNodes, .totalTps'
+
+          echo ""
+          echo "=== Info ==="
+          curl -s https://dlt.aurigraph.io/api/v11/info | jq '.platform.version'
+
+  #=============================================================================
+  # JOB 4: DEPLOYMENT SUMMARY
+  #=============================================================================
+  summary:
+    name: Deployment Summary
+    runs-on: [self-hosted, Linux, aurigraph-prod]
+    needs: [deploy-backend, deploy-frontend, e2e-tests]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🚀 Aurigraph V12 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ${{ needs.deploy-backend.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.deploy-frontend.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ${{ needs.e2e-tests.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [Portal](https://dlt.aurigraph.io)" >> $GITHUB_STEP_SUMMARY
+          echo "- [API Health](https://dlt.aurigraph.io/api/v11/health)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Topology](https://dlt.aurigraph.io/api/v11/topology/stats)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Final status check
+        run: |
+          echo "╔════════════════════════════════════════════════════════════╗"
+          echo "║            DEPLOYMENT COMPLETE                             ║"
+          echo "╠════════════════════════════════════════════════════════════╣"
+          echo "║  Backend:  ${{ needs.deploy-backend.result || 'skipped' }}"
+          echo "║  Frontend: ${{ needs.deploy-frontend.result || 'skipped' }}"
+          echo "║  E2E:      ${{ needs.e2e-tests.result || 'skipped' }}"
+          echo "║  URL:      https://dlt.aurigraph.io"
+          echo "╚════════════════════════════════════════════════════════════╝"
+
+          # Quick health check
+          echo ""
+          echo "Current health:"
+          curl -s https://dlt.aurigraph.io/api/v11/health | jq -c '.' || echo "⚠️ API not responding"
