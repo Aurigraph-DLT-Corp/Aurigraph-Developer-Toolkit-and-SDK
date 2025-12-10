@@ -16,7 +16,6 @@ import org.jboss.resteasy.reactive.RestForm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
@@ -57,7 +56,7 @@ public class FileAttachmentResource {
     @Inject
     FileHashService hashService;
 
-    private Path attachmentsRoot;
+    private java.nio.file.Path attachmentsRoot;
 
     // Allowed file extensions
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
@@ -162,11 +161,11 @@ public class FileAttachmentResource {
             String storedName = sha256Hash.substring(0, 8) + "_" + sanitizeFilename(originalName);
 
             // Create transaction directory
-            Path txDir = attachmentsRoot.resolve(transactionId);
+            java.nio.file.Path txDir = attachmentsRoot.resolve(transactionId);
             Files.createDirectories(txDir);
 
             // Copy file to storage
-            Path targetPath = txDir.resolve(storedName);
+            java.nio.file.Path targetPath = txDir.resolve(storedName);
             Files.copy(file.filePath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
             LOG.infof("File stored at: %s", targetPath);
 
@@ -250,9 +249,9 @@ public class FileAttachmentResource {
             String storedName = sha256Hash.substring(0, 8) + "_" + sanitizeFilename(originalName);
 
             // Store in "pending" directory for files without transaction
-            Path pendingDir = attachmentsRoot.resolve("pending");
+            java.nio.file.Path pendingDir = attachmentsRoot.resolve("pending");
             Files.createDirectories(pendingDir);
-            Path targetPath = pendingDir.resolve(storedName);
+            java.nio.file.Path targetPath = pendingDir.resolve(storedName);
             Files.copy(file.filePath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
             FileAttachment attachment = new FileAttachment();
@@ -357,7 +356,7 @@ public class FileAttachmentResource {
         }
 
         try {
-            Path filePath = Paths.get(attachment.storagePath);
+            java.nio.file.Path filePath = Paths.get(attachment.storagePath);
             if (!Files.exists(filePath)) {
                 return Response.status(Response.Status.NOT_FOUND)
                     .entity("File not found on disk")
@@ -398,9 +397,9 @@ public class FileAttachmentResource {
         // Move file to transaction directory if currently in pending
         if (attachment.storagePath.contains("/pending/")) {
             try {
-                Path txDir = attachmentsRoot.resolve(transactionId);
+                java.nio.file.Path txDir = attachmentsRoot.resolve(transactionId);
                 Files.createDirectories(txDir);
-                Path newPath = txDir.resolve(attachment.storedName);
+                java.nio.file.Path newPath = txDir.resolve(attachment.storedName);
                 Files.move(Paths.get(attachment.storagePath), newPath, StandardCopyOption.REPLACE_EXISTING);
                 attachment.storagePath = newPath.toString();
             } catch (IOException e) {
