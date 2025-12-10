@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Card, CardContent, Typography, Grid, Button, Chip,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Avatar, LinearProgress, Tooltip, IconButton, Divider,
+  Paper, Avatar, Tooltip, IconButton,
   Select, MenuItem, FormControl, InputLabel, Tab, Tabs,
   Alert, CircularProgress, useTheme
 } from '@mui/material';
@@ -17,12 +17,12 @@ import {
   TrendingUp, TrendingDown, AccountBalance, AttachMoney,
   PieChart as PieChartIcon, ShowChart, Refresh, Assessment,
   Business, Apartment, LocalGasStation, Diamond, EmojiNature,
-  MoreVert, Download, FilterList, Timeline, Speed
+  MoreVert, Download, Timeline, Speed
 } from '@mui/icons-material';
 import {
-  LineChart, Line, AreaChart, Area, PieChart, Pie, Cell,
+  AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  ResponsiveContainer, Legend, BarChart, Bar
+  ResponsiveContainer, Legend
 } from 'recharts';
 import { API_BASE_URL } from '../../config/api';
 
@@ -131,17 +131,17 @@ export const RWATokenizationDashboard: React.FC = () => {
     { id: '5', name: 'Trade Finance Pool', symbol: 'TFP-001', category: 'trade_finance', value: 20000000, change24h: 0.5, volume24h: 1100000, holders: 789, yield: 9.8, verified: true }
   ]);
 
-  const [categoryDistribution, setCategoryDistribution] = useState<CategoryDistribution[]>([
-    { name: 'Real Estate', value: 450000000, count: 45, color: CATEGORY_COLORS.real_estate },
-    { name: 'Commodities', value: 230000000, count: 23, color: CATEGORY_COLORS.commodities },
-    { name: 'Precious Metals', value: 180000000, count: 18, color: CATEGORY_COLORS.precious_metals },
-    { name: 'Carbon Credits', value: 120000000, count: 15, color: CATEGORY_COLORS.carbon_credits },
-    { name: 'Trade Finance', value: 150000000, count: 12, color: CATEGORY_COLORS.trade_finance },
-    { name: 'Art', value: 80000000, count: 10, color: CATEGORY_COLORS.art },
-    { name: 'Other', value: 40000000, count: 72, color: CATEGORY_COLORS.other }
+  const [categoryDistribution] = useState<CategoryDistribution[]>([
+    { name: 'Real Estate', value: 450000000, count: 45, color: CATEGORY_COLORS.real_estate || '#2196F3' },
+    { name: 'Commodities', value: 230000000, count: 23, color: CATEGORY_COLORS.commodities || '#FF9800' },
+    { name: 'Precious Metals', value: 180000000, count: 18, color: CATEGORY_COLORS.precious_metals || '#FFD700' },
+    { name: 'Carbon Credits', value: 120000000, count: 15, color: CATEGORY_COLORS.carbon_credits || '#4CAF50' },
+    { name: 'Trade Finance', value: 150000000, count: 12, color: CATEGORY_COLORS.trade_finance || '#00BCD4' },
+    { name: 'Art', value: 80000000, count: 10, color: CATEGORY_COLORS.art || '#9C27B0' },
+    { name: 'Other', value: 40000000, count: 72, color: CATEGORY_COLORS.other || '#9E9E9E' }
   ]);
 
-  const [tvlHistory, setTVLHistory] = useState<TVLHistory[]>([
+  const [tvlHistory] = useState<TVLHistory[]>([
     { date: 'Dec 1', tvl: 980000000, assets: 165 },
     { date: 'Dec 2', tvl: 1020000000, assets: 172 },
     { date: 'Dec 3', tvl: 1050000000, assets: 178 },
@@ -151,7 +151,7 @@ export const RWATokenizationDashboard: React.FC = () => {
     { date: 'Dec 7', tvl: 1250000000, assets: 195 }
   ]);
 
-  const [recentTokenizations, setRecentTokenizations] = useState<RecentTokenization[]>([
+  const [recentTokenizations] = useState<RecentTokenization[]>([
     { id: '1', name: 'Miami Beachfront Property', category: 'real_estate', value: 5500000, tokenizedAt: '2025-12-08T14:30:00Z', status: 'active' },
     { id: '2', name: 'Silver Bullion Trust', category: 'precious_metals', value: 2200000, tokenizedAt: '2025-12-08T10:15:00Z', status: 'verified' },
     { id: '3', name: 'Rainforest Carbon Credits', category: 'carbon_credits', value: 850000, tokenizedAt: '2025-12-07T16:45:00Z', status: 'active' },

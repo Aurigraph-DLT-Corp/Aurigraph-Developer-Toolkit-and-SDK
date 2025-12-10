@@ -16,10 +16,10 @@ import {
   FormControlLabel, Checkbox
 } from '@mui/material';
 import {
-  PieChart as PieChartIcon, ShoppingCart, TrendingUp, TrendingDown,
-  AccountBalance, AttachMoney, Share, Visibility, SwapHoriz,
-  History, VerifiedUser, Warning, Check, LocalOffer, Gavel,
-  AccessTime, Person, Business, Receipt, Info
+  ShoppingCart, TrendingUp, TrendingDown,
+  AttachMoney, Share, Visibility,
+  History, VerifiedUser, Check, LocalOffer, Gavel,
+  AccessTime, Person, Receipt
 } from '@mui/icons-material';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip
@@ -164,7 +164,7 @@ export const AssetFractionalOwnershipUI: React.FC = () => {
     name: asset.symbol,
     value: asset.yourValue,
     shares: asset.yourShares,
-    color: OWNERSHIP_COLORS[idx % OWNERSHIP_COLORS.length]
+    color: OWNERSHIP_COLORS[idx % OWNERSHIP_COLORS.length] || '#808080'
   }));
 
   const totalPortfolioValue = assets.reduce((sum, a) => sum + a.yourValue, 0);

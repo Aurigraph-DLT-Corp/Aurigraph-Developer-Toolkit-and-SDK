@@ -8,7 +8,7 @@
  * @author Aurigraph DLT Team
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Card,
   Row,
@@ -221,10 +221,11 @@ export const LiveDemoControls: React.FC<LiveDemoControlsProps> = ({
   onStop,
   onReset,
   onToggleLiveMode,
-  targetTPS = 1000000,
-  onTargetTPSChange,
+  targetTPS: _targetTPS = 1000000,
+  onTargetTPSChange: _onTargetTPSChange,
   loading = false,
 }) => {
+  void _targetTPS; void _onTargetTPSChange; // Suppress unused warnings
   return (
     <Card
       title={

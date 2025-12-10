@@ -51,8 +51,6 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   SyncOutlined,
-  ApiOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 import { XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import type { ColumnsType } from 'antd/es/table';
@@ -185,7 +183,7 @@ const DemoChannelApp: React.FC = () => {
   // API Connection State
   const [isLiveMode, setIsLiveMode] = useState(true); // Start in live mode, fallback to simulation if API fails
   const [apiConnected, setApiConnected] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [, setApiError] = useState<string | null>(null);
 
   // Demo State
   const [demoState, setDemoState] = useState<DemoState>({
@@ -361,10 +359,11 @@ const DemoChannelApp: React.FC = () => {
       if (isLiveMode && apiConnected) {
         // LIVE MODE: Fetch real data from V11 backend API
         try {
-          const [stats, consensusStatus] = await Promise.all([
+          const [stats, _consensusData] = await Promise.all([
             v11BackendService.getStats(),
             aurigraphAPI.getConsensusStatus().catch(() => null), // Fallback if endpoint doesn't exist
           ]);
+          void _consensusData; // Suppress unused warning
 
           const performance = stats.performance;
           const consensus = stats.consensus;
