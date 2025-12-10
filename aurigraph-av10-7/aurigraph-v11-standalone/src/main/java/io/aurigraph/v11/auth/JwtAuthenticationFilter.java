@@ -258,6 +258,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // Topology endpoints (for Enterprise Portal High Throughput Demo)
+        if (path.startsWith("/api/v11/topology/") || path.equals("/api/v11/topology")) {
+            LOG.debugf("Topology endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         // File upload endpoints (for Enterprise Portal file uploads)
         if (path.startsWith("/api/v11/uploads/") || path.equals("/api/v11/uploads") ||
             path.contains("/uploads")) {
