@@ -26,7 +26,7 @@ on:
     paths:
       - "aurigraph-av10-7/aurigraph-v11-standalone/src/**"
       - "aurigraph-av10-7/aurigraph-v11-standalone/pom.xml"
-      - "enterprise-portal/**"
+      - "aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/**"
       - ".github/workflows/self-hosted-cicd.yml"
 
   # Manual trigger with options
@@ -283,16 +283,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
-          cache-dependency-path: enterprise-portal/enterprise-portal/frontend/package-lock.json
+          cache-dependency-path: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package-lock.json
 
       - name: Install dependencies
-        working-directory: enterprise-portal/enterprise-portal/frontend
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
         run: |
           echo "📦 Installing dependencies..."
           npm ci
 
       - name: Build frontend
-        working-directory: enterprise-portal/enterprise-portal/frontend
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
         run: |
           echo "🔨 Building frontend..."
           npm run build
@@ -311,7 +311,7 @@ jobs:
           sudo mkdir -p "$VERSION_DIR"
 
           # Copy files
-          sudo cp -r enterprise-portal/enterprise-portal/frontend/dist/* "$VERSION_DIR/"
+          sudo cp -r aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/dist/* "$VERSION_DIR/"
 
           # Update symlink
           sudo ln -sfn "$VERSION_DIR" "${DEPLOY_DIR}/current"
@@ -357,13 +357,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install Playwright
-        working-directory: enterprise-portal/enterprise-portal/frontend
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
         run: |
           npm ci
           npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        working-directory: enterprise-portal/enterprise-portal/frontend
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal
         run: |
           echo "🧪 Running Playwright E2E tests..."
           npx playwright test --reporter=list || echo "⚠️ Some tests failed"
