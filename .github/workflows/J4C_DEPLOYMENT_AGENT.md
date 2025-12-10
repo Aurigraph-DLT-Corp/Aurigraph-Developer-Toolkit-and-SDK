@@ -19,6 +19,52 @@
 | **QAQC Verification** | Smoke tests → E2E tests (on failure) |
 | **JIRA Integration** | Auto-update tickets on deployment events |
 | **Node Management** | Deploy validator, business, slim nodes with GraalVM |
+| **Progress Visualization** | Display real-time deployment progress bars |
+
+### Progress Bar Templates - #MEMORIZED
+
+**ALWAYS show progress bars during deployment. Use these templates:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  V12 Self-Hosted Deployment                                  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [████████████████████████████████████████]  100% ✅        │
+│                                                              │
+│  ✓ Set up job                                                │
+│  ✓ Checkout code                                             │
+│  ✓ Set up JDK 21 / Node.js                                   │
+│  ✓ Get version info                                          │
+│  ✓ Build application                                         │
+│  ✓ Pre-deployment checks                                     │
+│  ✓ Create backup                                             │
+│  ✓ Deploy application                                        │
+│  ✓ Health check                                              │
+│                                                              │
+│  Server: https://dlt.aurigraph.io                            │
+│  Version: 12.0.0                                             │
+│  Status: UP                                                  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Progress States:**
+```
+[░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%  Starting
+[████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  10%  Checkout
+[████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  20%  Setup
+[████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  30%  Building
+[████████████████████░░░░░░░░░░░░░░░░░░░░]  50%  Compiling
+[████████████████████████████░░░░░░░░░░░░]  70%  Deploying
+[████████████████████████████████████░░░░]  90%  Health Check
+[████████████████████████████████████████] 100%  ✅ Complete
+```
+
+**Step Indicators:**
+- `✓` = Completed
+- `▶` or `*` = In Progress
+- `○` or `-` = Pending
+- `X` = Failed
 
 ### Activation Triggers
 - **Automatic**: Push to V12/main branch (code changes)
