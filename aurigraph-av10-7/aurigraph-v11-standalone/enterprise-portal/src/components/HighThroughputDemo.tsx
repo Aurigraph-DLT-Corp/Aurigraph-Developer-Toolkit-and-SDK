@@ -99,6 +99,43 @@ interface ActiveContract {
   executionCount: number;
 }
 
+interface TopologyStats {
+  totalNodes: number;
+  validatorCount: number;
+  businessCount: number;
+  slimCount: number;
+  channelCount: number;
+  totalTps: number;
+  avgLatencyMs: number;
+  totalContracts: number;
+  avgCpuPercent: number;
+  avgMemoryPercent: number;
+  healthyNodes: number;
+  degradedNodes: number;
+  unhealthyNodes: number;
+  nodesByRegion: { [key: string]: number };
+  nodesByType: { [key: string]: number };
+  timestamp: string;
+}
+
+interface TopologyNode {
+  nodeId: string;
+  channelId: string;
+  nodeType: string;
+  currentTps: number;
+  latencyMs: number;
+  cpuPercent: number;
+  memoryPercent: number;
+  healthScore: number;
+  healthStatus: string;
+  peersConnected: number;
+  location?: {
+    region: string;
+    city: string;
+    country: string;
+  };
+}
+
 // Sapphire Blue theme colors - All blue spectrum
 const SAPPHIRE = {
   primary: '#2563EB',      // Sapphire blue
@@ -247,6 +284,12 @@ export const HighThroughputDemo: React.FC = () => {
   const [latestQuantConnect, setLatestQuantConnect] = useState<any>(null);
   const [latestWeather, setLatestWeather] = useState<any>(null);
   const [latestNews, setLatestNews] = useState<any>(null);
+
+  // Node Topology state
+  const [topologyStats, setTopologyStats] = useState<TopologyStats | null>(null);
+  const [topologyNodes, setTopologyNodes] = useState<TopologyNode[]>([]);
+  const [topologyLoading, setTopologyLoading] = useState(false);
+  const topologyIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [config, setConfig] = useState<DemoConfig>({
     targetTPS: 1000000,
@@ -453,6 +496,47 @@ export const HighThroughputDemo: React.FC = () => {
       if (apiIntervalRef.current) clearInterval(apiIntervalRef.current);
     };
   }, [isRunning, generateMetrics, fetchAndTokenizeAPIs]);
+
+  // Fetch node topology data when tab is active
+  const fetchTopologyData = useCallback(async () => {
+    try {
+      setTopologyLoading(true);
+      const [statsRes, nodesRes] = await Promise.all([
+        fetch(`${API_BASE}/api/v11/topology/stats`),
+        fetch(`${API_BASE}/api/v11/topology/nodes`)
+      ]);
+
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        setTopologyStats(stats);
+      }
+
+      if (nodesRes.ok) {
+        const nodesData = await nodesRes.json();
+        setTopologyNodes(nodesData.nodes || []);
+      }
+    } catch (error) {
+      console.error('Error fetching topology data:', error);
+    } finally {
+      setTopologyLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 6) {
+      fetchTopologyData();
+      topologyIntervalRef.current = setInterval(fetchTopologyData, 5000);
+    } else {
+      if (topologyIntervalRef.current) {
+        clearInterval(topologyIntervalRef.current);
+      }
+    }
+    return () => {
+      if (topologyIntervalRef.current) {
+        clearInterval(topologyIntervalRef.current);
+      }
+    };
+  }, [activeTab, fetchTopologyData]);
 
   const handleStart = () => {
     setTpsData([]);
@@ -812,6 +896,7 @@ export const HighThroughputDemo: React.FC = () => {
           <Tab label="Merkle Registry" icon={<AccountTree />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.primary } }} />
           <Tab label="Smart Contracts" icon={<Code />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.indigo } }} />
           <Tab label="Active Contracts" icon={<Gavel />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.secondary } }} />
+          <Tab label="Node Topology" icon={<Hub />} iconPosition="start" sx={{ color: '#8BA4B4', '&.Mui-selected': { color: SAPPHIRE.cyan } }} />
         </Tabs>
 
         <CardContent>
@@ -1425,6 +1510,161 @@ export const HighThroughputDemo: React.FC = () => {
               )}
             </Box>
           )}
+
+          {/* Node Topology Tab */}
+          {activeTab === 6 && (
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Network Topology {topologyStats && `(${topologyStats.totalNodes} nodes)`}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  {topologyLoading && <CircularProgress size={20} sx={{ color: SAPPHIRE.cyan }} />}
+                  <Chip icon={<Hub />} label={`${topologyStats?.healthyNodes || 0} Healthy`} sx={{ bgcolor: alpha(SAPPHIRE.success, 0.2), color: SAPPHIRE.success }} />
+                  <Chip icon={<ErrorOutline />} label={`${topologyStats?.degradedNodes || 0} Degraded`} sx={{ bgcolor: alpha(SAPPHIRE.warning, 0.2), color: SAPPHIRE.warning }} />
+                </Box>
+              </Box>
+
+              {/* Network Stats Overview */}
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {[
+                  { icon: <CheckCircle />, label: 'Validators', count: topologyStats?.validatorCount || 0, color: SAPPHIRE.primary },
+                  { icon: <Storage />, label: 'Business', count: topologyStats?.businessCount || 0, color: SAPPHIRE.secondary },
+                  { icon: <CloudQueue />, label: 'Slim', count: topologyStats?.slimCount || 0, color: SAPPHIRE.accent },
+                  { icon: <Hub />, label: 'Channels', count: topologyStats?.channelCount || 0, color: SAPPHIRE.cyan },
+                  { icon: <Speed />, label: 'Network TPS', count: Math.round(topologyStats?.totalTps || 0), color: SAPPHIRE.indigo },
+                  { icon: <Timer />, label: 'Avg Latency', count: `${(topologyStats?.avgLatencyMs || 0).toFixed(1)}ms`, color: SAPPHIRE.info },
+                ].map((stat) => (
+                  <Grid item xs={6} sm={2} key={stat.label}>
+                    <Card sx={{ ...METRIC_CARD }}>
+                      <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                        <Avatar sx={{ bgcolor: alpha(stat.color, 0.15), color: stat.color, width: 36, height: 36, mx: 'auto', mb: 1 }}>
+                          {stat.icon}
+                        </Avatar>
+                        <Typography variant="h6" sx={{ color: stat.color, fontWeight: 700 }}>{stat.count}</Typography>
+                        <Typography variant="caption" sx={{ color: SAPPHIRE.textSecondary }}>{stat.label}</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* Resource Utilization */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Resource Utilization</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ p: 2, bgcolor: alpha(SAPPHIRE.primary, 0.05), borderRadius: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Avg CPU</Typography>
+                        <Typography variant="body2" sx={{ color: SAPPHIRE.primary, fontWeight: 600 }}>
+                          {(topologyStats?.avgCpuPercent || 0).toFixed(1)}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={topologyStats?.avgCpuPercent || 0}
+                        sx={{ height: 8, borderRadius: 4, bgcolor: alpha(SAPPHIRE.primary, 0.1), '& .MuiLinearProgress-bar': { bgcolor: SAPPHIRE.primary } }}
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ p: 2, bgcolor: alpha(SAPPHIRE.secondary, 0.05), borderRadius: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ color: '#8BA4B4' }}>Avg Memory</Typography>
+                        <Typography variant="body2" sx={{ color: SAPPHIRE.secondary, fontWeight: 600 }}>
+                          {(topologyStats?.avgMemoryPercent || 0).toFixed(1)}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={topologyStats?.avgMemoryPercent || 0}
+                        sx={{ height: 8, borderRadius: 4, bgcolor: alpha(SAPPHIRE.secondary, 0.1), '& .MuiLinearProgress-bar': { bgcolor: SAPPHIRE.secondary } }}
+                      />
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* Nodes by Region */}
+              {topologyStats?.nodesByRegion && Object.keys(topologyStats.nodesByRegion).length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Geographic Distribution</Typography>
+                  <Grid container spacing={1}>
+                    {Object.entries(topologyStats.nodesByRegion).map(([region, count]) => (
+                      <Grid item xs={6} sm={3} key={region}>
+                        <Chip
+                          label={`${region}: ${count}`}
+                          sx={{ width: '100%', bgcolor: alpha(SAPPHIRE.cyan, 0.1), color: SAPPHIRE.cyan }}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+
+              {/* Node List Table */}
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Active Nodes ({topologyNodes.length})</Typography>
+              <TableContainer component={Paper} sx={{ bgcolor: 'transparent', maxHeight: 400 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Node ID</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Type</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Channel</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>TPS</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Latency</TableCell>
+                      <TableCell sx={{ bgcolor: SAPPHIRE.bgLight, color: '#8BA4B4' }}>Health</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {topologyNodes.slice(0, 20).map((node) => (
+                      <TableRow key={node.nodeId} sx={{ '&:hover': { bgcolor: alpha(SAPPHIRE.cyan, 0.05) } }}>
+                        <TableCell sx={{ color: '#E8F4F8', fontFamily: 'monospace', fontSize: '0.75rem' }}>{node.nodeId}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={node.nodeType}
+                            size="small"
+                            sx={{
+                              bgcolor: node.nodeType === 'VALIDATOR' ? alpha(SAPPHIRE.primary, 0.2) :
+                                       node.nodeType === 'BUSINESS' ? alpha(SAPPHIRE.secondary, 0.2) :
+                                       node.nodeType === 'SLIM' ? alpha(SAPPHIRE.accent, 0.2) : alpha(SAPPHIRE.cyan, 0.2),
+                              color: node.nodeType === 'VALIDATOR' ? SAPPHIRE.primary :
+                                     node.nodeType === 'BUSINESS' ? SAPPHIRE.secondary :
+                                     node.nodeType === 'SLIM' ? SAPPHIRE.accent : SAPPHIRE.cyan,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell sx={{ color: '#8BA4B4' }}>{node.channelId}</TableCell>
+                        <TableCell sx={{ color: SAPPHIRE.indigo, fontWeight: 600 }}>{formatNumber(Math.round(node.currentTps))}</TableCell>
+                        <TableCell sx={{ color: '#8BA4B4' }}>{node.latencyMs.toFixed(1)}ms</TableCell>
+                        <TableCell>
+                          <Chip
+                            icon={node.healthStatus === 'healthy' ? <CheckCircle sx={{ fontSize: 14 }} /> : <ErrorOutline sx={{ fontSize: 14 }} />}
+                            label={`${node.healthScore}%`}
+                            size="small"
+                            sx={{
+                              bgcolor: node.healthStatus === 'healthy' ? alpha(SAPPHIRE.success, 0.2) : alpha(SAPPHIRE.warning, 0.2),
+                              color: node.healthStatus === 'healthy' ? SAPPHIRE.success : SAPPHIRE.warning
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {topologyNodes.length === 0 && !topologyLoading && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Hub sx={{ fontSize: 48, color: '#5A7A8A', mb: 2 }} />
+                  <Typography variant="body1" sx={{ color: '#8BA4B4' }}>
+                    Loading network topology...
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
         </CardContent>
       </Card>
 
@@ -1432,7 +1672,7 @@ export const HighThroughputDemo: React.FC = () => {
       <Grid container spacing={3}>
         {[
           { icon: <BoltOutlined />, title: '2M+ TPS', desc: 'Ultra-high throughput with multi-node architecture', color: SAPPHIRE.primary },
-          { icon: <Hub />, title: 'Multi-Node', desc: 'Validators, Business & Slim node configuration', color: SAPPHIRE.secondary },
+          { icon: <Hub />, title: 'Node Topology', desc: 'Real-time network metrics & geographic distribution', color: SAPPHIRE.cyan },
           { icon: <Code />, title: 'Smart Contracts', desc: 'Ricardian, DeFi, NFT & Token contracts', color: SAPPHIRE.indigo },
           { icon: <Gavel />, title: 'Active Contracts', desc: 'Escrow, Payment, Swap & Bridge execution', color: SAPPHIRE.violet },
           { icon: <CloudQueue />, title: 'API Integration', desc: 'QuantConnect, Weather & News data streams', color: SAPPHIRE.accent },
