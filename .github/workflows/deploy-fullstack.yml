@@ -1,16 +1,17 @@
 name: Full Stack Deployment (Backend + Frontend)
 
 on:
-  push:
-    branches:
-      - V12
-      - main
-    paths:
-      - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
-      - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
-      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/src/**'
-      - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package.json'
-      - '.github/workflows/deploy-fullstack.yml'
+  # DISABLED for V12 - Using self-hosted-cicd.yml instead to avoid GitHub Actions budget
+  # push:
+  #   branches:
+  #     - V12
+  #     - main
+  #   paths:
+  #     - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
+  #     - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
+  #     - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/src/**'
+  #     - 'aurigraph-av10-7/aurigraph-v11-standalone/enterprise-portal/package.json'
+  #     - '.github/workflows/deploy-fullstack.yml'
   workflow_dispatch:
     inputs:
       deploy_backend:

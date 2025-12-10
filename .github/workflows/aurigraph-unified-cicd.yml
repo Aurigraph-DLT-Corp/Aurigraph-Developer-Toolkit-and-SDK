@@ -11,15 +11,16 @@
 name: Aurigraph Unified CI/CD
 
 on:
-  push:
-    branches:
-      - main
-      - V12
-      - develop
-  pull_request:
-    branches:
-      - main
-      - V12
+  # DISABLED for V12 - Using self-hosted-cicd.yml instead to avoid GitHub Actions budget
+  # push:
+  #   branches:
+  #     - main
+  #     - V12
+  #     - develop
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - V12
   workflow_dispatch:
     inputs:
       deploy_backend:
