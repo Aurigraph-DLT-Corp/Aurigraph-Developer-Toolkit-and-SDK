@@ -73,7 +73,7 @@
 
 ### Target Environment
 - **Server**: dlt.aurigraph.io
-- **SSH Port**: 2235
+- **SSH Port**: 22 (Standard SSH - UPDATED from 2235)
 - **App Port**: 9003
 - **Health**: https://dlt.aurigraph.io/api/v11/health
 
