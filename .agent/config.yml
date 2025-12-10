@@ -1,11 +1,13 @@
 # Aurigraph DLT - Default Multi-Agent Configuration (MEMORIZED)
+# Last Updated: December 10, 2025 - V12 Enhancements
 project: "Aurigraph-DLT"
 default_mode: "multi-agent-j4c"
 agents: 15
 worktrees_location: "worktrees"
 auto_initialize: true
+version: "3.1.0"
 
-# Agent Roles (J4C Framework v3.0)
+# Agent Roles (J4C Framework v3.1)
 agent_roles:
   - name: "Platform Architect"
     id: 1
@@ -18,25 +20,83 @@ agent_roles:
     responsibilities: ["cryptography", "tls", "certificates"]
   - name: "Network Infrastructure Agent"
     id: 4
-    responsibilities: ["grpc", "rest-api", "networking"]
+    responsibilities: ["grpc", "rest-api", "networking", "node-topology"]
   - name: "AI Optimization Agent"
     id: 5
-    responsibilities: ["ml-optimization", "performance", "tuning"]
+    responsibilities: ["ml-optimization", "performance", "tuning", "gnn-rating"]
   - name: "Cross-Chain Bridge Agent"
     id: 6
     responsibilities: ["bridges", "interoperability", "tokens"]
   - name: "Monitoring Agent"
     id: 7
-    responsibilities: ["prometheus", "grafana", "alerting"]
+    responsibilities: ["prometheus", "grafana", "alerting", "topology-dashboard"]
   - name: "DevOps Agent"
     id: 8
     responsibilities: ["deployment", "ci-cd", "infrastructure"]
   - name: "Frontend Developer"
     id: 9
-    responsibilities: ["portal", "react", "ui-ux"]
+    responsibilities: ["portal", "react", "ui-ux", "vvb-workflow"]
   - name: "Testing & QA Agent"
     id: 10
     responsibilities: ["e2e-testing", "pytest", "playwright", "post-deployment-tests"]
+  - name: "RWA Tokenization Agent"
+    id: 11
+    responsibilities: ["asset-tokenization", "vvb-verification", "composite-tokens"]
+  - name: "Banking & Trade Finance Agent"
+    id: 12
+    responsibilities: ["trade-finance", "deposits", "loans", "invoice-factoring"]
+
+# V12 Feature Enhancements (December 2025)
+v12_features:
+  node_topology_dashboard:
+    enabled: true
+    endpoints:
+      - "/api/v11/topology"
+      - "/api/v11/topology/nodes"
+      - "/api/v11/topology/stats"
+      - "/api/v11/topology/channels"
+      - "/api/v11/topology/contracts"
+    metrics:
+      total_nodes: 48
+      total_tps: "2.4M+"
+      avg_latency: "~23ms"
+
+  rwa_tokenization:
+    asset_categories:
+      - "Banking & Trade Finance"
+      - "Environmental & Energy"
+      - "Real Estate & Property"
+      - "Financial Instruments"
+      - "Intellectual Property"
+      - "Physical Assets"
+      - "Digital Assets"
+    vvb_providers:
+      - "Bureau Veritas"
+      - "DNV GL"
+      - "SGS SA"
+      - "Deloitte Real Estate Services"
+      - "WIPO IP Verification Services"
+      - "KPMG Trade Finance Advisory"
+      - "PwC Banking & Capital Markets"
+      - "Euler Hermes Credit Verification"
+      - "Christie's Art Authentication"
+      - "Verisart Digital Authentication"
+
+  gnn_tokenization_rating:
+    enabled: true
+    description: "GNN-based data completeness scoring for tokenization readiness"
+    threshold: 60
+    weights:
+      asset_type: 20
+      asset_name: 15
+      value: 20
+      location: 10
+      description: 15
+      documents: 20
+
+  composite_tokens:
+    enabled: true
+    description: "Bundle multiple assets into a single composite token"
 
 # Post-Deployment Testing (MANDATORY)
 post_deployment_testing:
@@ -49,5 +109,20 @@ post_deployment_testing:
     - name: "Pytest Backend"
       command: "cd aurigraph-fastapi && python3 -m pytest tests/ -v"
       tests: 75
-  total_tests: 151
+    - name: "Node Topology API"
+      command: "curl -sf https://dlt.aurigraph.io/api/v11/topology/stats"
+      tests: 1
+  total_tests: 152
   failure_action: "alert_and_document_in_jira"
+
+# API Endpoints (V12)
+api_endpoints:
+  health: "/api/v11/health"
+  info: "/api/v11/info"
+  topology: "/api/v11/topology"
+  topology_nodes: "/api/v11/topology/nodes"
+  topology_stats: "/api/v11/topology/stats"
+  topology_channels: "/api/v11/topology/channels"
+  topology_contracts: "/api/v11/topology/contracts"
+  tokenize: "/api/v11/rwa/tokenize"
+  vvb_workflow: "/api/v11/vvb/workflow"
