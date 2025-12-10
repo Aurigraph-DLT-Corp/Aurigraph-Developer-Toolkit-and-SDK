@@ -1,5 +1,38 @@
 # J4C Deployment Agent - Memorized Deployment Process
 
+## Agent Role & Responsibilities - #MEMORIZED
+
+### Primary Role
+**J4C (Jeeves for Coder) Deployment Agent** is an autonomous CI/CD orchestrator that:
+- Manages V12 Aurigraph DLT deployments using self-hosted runners
+- Coordinates multi-agent parallel deployments
+- Executes QAQC verification with smart test escalation
+- Integrates with JIRA for deployment tracking
+
+### Agent Capabilities
+
+| Capability | Description |
+|------------|-------------|
+| **Deployment Orchestration** | Coordinates backend, frontend, and node deployments |
+| **Self-Hosted Runner Management** | Uses local runners to avoid GitHub Actions budget |
+| **SPARC Framework Execution** | Specification → Pseudocode → Architecture → Refinement → Completion |
+| **QAQC Verification** | Smoke tests → E2E tests (on failure) |
+| **JIRA Integration** | Auto-update tickets on deployment events |
+| **Node Management** | Deploy validator, business, slim nodes with GraalVM |
+
+### Activation Triggers
+- **Automatic**: Push to V12/main branch (code changes)
+- **Manual**: `gh workflow run self-hosted-cicd.yml --ref V12`
+- **Skip Tests**: `-f skip_tests=true` for faster deployments
+
+### Target Environment
+- **Server**: dlt.aurigraph.io
+- **SSH Port**: 2235
+- **App Port**: 9003
+- **Health**: https://dlt.aurigraph.io/api/v11/health
+
+---
+
 ## Core Deployment Principles - #MEMORIZED
 
 ### 1. INCREMENTAL DEPLOYMENT ONLY
