@@ -293,49 +293,75 @@ public class NodeTopologyService {
      * Refresh node metrics with simulated changes (for demo)
      */
     private void refreshNodeMetrics() {
+        if (nodeCache.isEmpty()) {
+            LOG.warn("Node cache is empty, re-initializing mock nodes");
+            initializeMockNodes();
+            return;
+        }
+
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
         for (Map.Entry<String, NodeTopologyDTO> entry : nodeCache.entrySet()) {
-            NodeTopologyDTO old = entry.getValue();
+            try {
+                NodeTopologyDTO old = entry.getValue();
+                if (old == null) {
+                    LOG.warnf("Null node found in cache for key: %s", entry.getKey());
+                    continue;
+                }
 
-            // Simulate metric changes
-            NodeTopologyDTO updated = NodeTopologyDTO.builder()
-                .nodeId(old.nodeId())
-                .channelId(old.channelId())
-                .nodeType(old.nodeType())
-                .timeActiveSeconds(Instant.now().getEpochSecond() - old.startedAt().getEpochSecond())
-                .transactionsHandled(old.transactionsHandled() + random.nextLong(100, 1000))
-                .currentTps(old.currentTps() * (0.95 + random.nextDouble() * 0.1))
-                .dataSource(old.dataSource())
-                .containerId(old.containerId())
-                .containerImage(old.containerImage())
-                .location(old.location())
-                .stakingAmount(old.stakingAmount())
-                .cpuPercent(Math.max(5, Math.min(95, old.cpuPercent() + random.nextDouble(-5, 5))))
-                .memoryPercent(Math.max(20, Math.min(90, old.memoryPercent() + random.nextDouble(-3, 3))))
-                .memoryUsedMb(old.memoryUsedMb())
-                .memoryTotalMb(old.memoryTotalMb())
-                .isMobile(old.isMobile())
-                .deviceType(old.deviceType())
-                .bandwidthMbps(old.bandwidthMbps())
-                .latencyMs(Math.max(1, old.latencyMs() + random.nextDouble(-2, 2)))
-                .peersConnected(old.peersConnected())
-                .registryStatus(RegistryStatusDTO.builder()
-                    .registered(true)
-                    .lastHeartbeat(Instant.now())
-                    .version(old.registryStatus().version())
-                    .protocolVersion(old.registryStatus().protocolVersion())
-                    .isHealthy(random.nextDouble() > 0.02)
-                    .build())
-                .activeContracts(old.activeContracts())
-                .contractCount(old.contractCount())
-                .lastUpdated(Instant.now())
-                .startedAt(old.startedAt())
-                .healthScore(Math.max(0, Math.min(100, old.healthScore() + random.nextInt(-2, 3))))
-                .healthStatus(old.healthScore() > 70 ? "healthy" : old.healthScore() > 40 ? "degraded" : "unhealthy")
-                .build();
+                // Safely get startedAt with fallback
+                Instant startedAt = old.startedAt() != null ? old.startedAt() : Instant.now().minusSeconds(3600);
+                long timeActive = Instant.now().getEpochSecond() - startedAt.getEpochSecond();
 
-            entry.setValue(updated);
+                // Safely get registryStatus
+                String version = "12.0.0";
+                String protocolVersion = "1.0";
+                if (old.registryStatus() != null) {
+                    version = old.registryStatus().version() != null ? old.registryStatus().version() : "12.0.0";
+                    protocolVersion = old.registryStatus().protocolVersion() != null ? old.registryStatus().protocolVersion() : "1.0";
+                }
+
+                // Simulate metric changes
+                NodeTopologyDTO updated = NodeTopologyDTO.builder()
+                    .nodeId(old.nodeId())
+                    .channelId(old.channelId())
+                    .nodeType(old.nodeType())
+                    .timeActiveSeconds(timeActive)
+                    .transactionsHandled(old.transactionsHandled() + random.nextLong(100, 1000))
+                    .currentTps(old.currentTps() * (0.95 + random.nextDouble() * 0.1))
+                    .dataSource(old.dataSource())
+                    .containerId(old.containerId())
+                    .containerImage(old.containerImage())
+                    .location(old.location())
+                    .stakingAmount(old.stakingAmount())
+                    .cpuPercent(Math.max(5, Math.min(95, old.cpuPercent() + random.nextDouble(-5, 5))))
+                    .memoryPercent(Math.max(20, Math.min(90, old.memoryPercent() + random.nextDouble(-3, 3))))
+                    .memoryUsedMb(old.memoryUsedMb())
+                    .memoryTotalMb(old.memoryTotalMb())
+                    .isMobile(old.isMobile())
+                    .deviceType(old.deviceType())
+                    .bandwidthMbps(old.bandwidthMbps())
+                    .latencyMs(Math.max(1, old.latencyMs() + random.nextDouble(-2, 2)))
+                    .peersConnected(old.peersConnected())
+                    .registryStatus(RegistryStatusDTO.builder()
+                        .registered(true)
+                        .lastHeartbeat(Instant.now())
+                        .version(version)
+                        .protocolVersion(protocolVersion)
+                        .isHealthy(random.nextDouble() > 0.02)
+                        .build())
+                    .activeContracts(old.activeContracts() != null ? old.activeContracts() : List.of())
+                    .contractCount(old.contractCount())
+                    .lastUpdated(Instant.now())
+                    .startedAt(startedAt)
+                    .healthScore(Math.max(0, Math.min(100, old.healthScore() + random.nextInt(-2, 3))))
+                    .healthStatus(old.healthScore() > 70 ? "healthy" : old.healthScore() > 40 ? "degraded" : "unhealthy")
+                    .build();
+
+                entry.setValue(updated);
+            } catch (Exception e) {
+                LOG.warnf(e, "Error refreshing metrics for node %s", entry.getKey());
+            }
         }
     }
 

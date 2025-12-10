@@ -48,14 +48,19 @@ public class NodeTopologyResource {
             @QueryParam("channel") String channelId,
             @QueryParam("type") String nodeType) {
         try {
+            LOG.infof("Getting topology - channelId: %s, nodeType: %s", channelId, nodeType);
             NodeType type = nodeType != null ? parseNodeType(nodeType) : null;
             TopologyUpdateDTO topology = nodeTopologyService.buildTopologyUpdate(channelId, type);
-
+            LOG.infof("Topology retrieved successfully - %d nodes", topology.totalNodes());
             return Response.ok(topology).build();
         } catch (Exception e) {
-            LOG.error("Error getting topology", e);
-            return Response.serverError()
-                .entity(Map.of("error", e.getMessage()))
+            LOG.errorf(e, "Error getting topology - %s: %s", e.getClass().getSimpleName(), e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(Map.of(
+                    "error", e.getClass().getSimpleName(),
+                    "message", e.getMessage() != null ? e.getMessage() : "Unknown error",
+                    "timestamp", java.time.Instant.now().toString()
+                ))
                 .build();
         }
     }
