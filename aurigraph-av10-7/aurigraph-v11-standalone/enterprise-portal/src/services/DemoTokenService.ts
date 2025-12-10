@@ -119,6 +119,120 @@ export interface TokenMetadata {
 const DEMO_STORAGE_KEY = 'aurigraph_demo_tokens'
 const DEMO_EXPIRY_HOURS = 48
 
+// Featured Asset Types - Linked to Tokenization Use Cases
+export interface FeaturedAsset {
+  id: string
+  name: string
+  assetType: string
+  useCase: string
+  description: string
+  icon: string
+  value: number
+  currency: string
+  imageUrl: string
+  highlights: string[]
+}
+
+// Featured Assets Configuration - Links each use case to a demo token
+export const FEATURED_ASSETS: FeaturedAsset[] = [
+  {
+    id: 'digital_art',
+    name: 'Cosmic Dreams #42',
+    assetType: 'DIGITAL_ART',
+    useCase: 'Digital Art & NFTs',
+    description: 'Generative art piece with full commercial rights and provenance tracking',
+    icon: '🎨',
+    value: 25000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/cosmic42/800/800',
+    highlights: ['ERC-721 Token', 'IPFS Storage', 'Royalty Enforcement', 'Artist Verified']
+  },
+  {
+    id: 'real_estate',
+    name: 'Manhattan Tower Unit 42-A',
+    assetType: 'REAL_ESTATE',
+    useCase: 'Real Estate Tokenization',
+    description: 'Premium commercial real estate with fractional ownership capability',
+    icon: '🏢',
+    value: 2500000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/manhattan42/800/800',
+    highlights: ['Fractional Shares', 'Rental Income', 'SEC Reg D', 'Title Insurance']
+  },
+  {
+    id: 'carbon_credits',
+    name: 'Amazon Rainforest Credits',
+    assetType: 'CARBON_CREDIT',
+    useCase: 'Carbon Credits',
+    description: 'Verified carbon offset credits from rainforest conservation project',
+    icon: '🌿',
+    value: 150000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/amazon42/800/800',
+    highlights: ['Verra Certified', 'Annual Yield', 'ESG Compliant', 'Impact Tracking']
+  },
+  {
+    id: 'trade_finance',
+    name: 'Global Trade Invoice Pool',
+    assetType: 'FINANCIAL',
+    useCase: 'Trade Finance',
+    description: 'Diversified pool of verified trade receivables from Fortune 500 companies',
+    icon: '📦',
+    value: 5000000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/trade42/800/800',
+    highlights: ['Invoice Factoring', '30-90 Day Terms', 'Credit Insured', 'Auto-Settlement']
+  },
+  {
+    id: 'securities',
+    name: 'Corporate Bond Series A',
+    assetType: 'FINANCIAL',
+    useCase: 'Securities & Bonds',
+    description: 'Investment-grade corporate bonds with programmable coupon payments',
+    icon: '📈',
+    value: 1000000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/bonds42/800/800',
+    highlights: ['6.5% Annual Yield', 'Quarterly Dividends', 'AA Rated', 'Smart Coupon']
+  },
+  {
+    id: 'supply_chain',
+    name: 'Logistics Invoice Bundle',
+    assetType: 'SUPPLY_CHAIN',
+    useCase: 'Supply Chain Finance',
+    description: 'Supply chain financing backed by verified shipping and logistics invoices',
+    icon: '🚚',
+    value: 750000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/logistics42/800/800',
+    highlights: ['IoT Verified', 'Real-time Tracking', 'Insurance Backed', 'Multi-party']
+  },
+  {
+    id: 'intellectual_property',
+    name: 'PatentTech AI Framework',
+    assetType: 'INTELLECTUAL_PROPERTY',
+    useCase: 'Intellectual Property',
+    description: 'Portfolio of AI/ML patents with licensing revenue streams',
+    icon: '💡',
+    value: 3500000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/patent42/800/800',
+    highlights: ['12 Patents', 'Active Licenses', 'Royalty Stream', 'USPTO Verified']
+  },
+  {
+    id: 'defi_commodity',
+    name: 'Gold Bullion Reserve',
+    assetType: 'COMMODITY',
+    useCase: 'DeFi Integration',
+    description: 'Physical gold bullion in secure vault with DeFi liquidity pool integration',
+    icon: '🥇',
+    value: 500000,
+    currency: 'USD',
+    imageUrl: 'https://picsum.photos/seed/gold42/800/800',
+    highlights: ['100oz Gold Bar', 'LBMA Certified', 'DeFi Enabled', 'Vault Insured']
+  }
+]
+
 // Pre-configured Demo Stakeholders
 const DEMO_STAKEHOLDERS: Record<string, DemoStakeholder> = {
   artist: {
@@ -421,6 +535,240 @@ const createDemoDigitalArtToken = (): DemoToken => {
   }
 }
 
+// Create Demo Token for Any Featured Asset
+const createDemoTokenForAsset = (featuredAsset: FeaturedAsset): DemoToken => {
+  const now = new Date()
+  const expiresAt = new Date(now.getTime() + DEMO_EXPIRY_HOURS * 60 * 60 * 1000)
+
+  // Customize stakeholders based on asset type
+  const getStakeholdersForAssetType = (assetType: string): DemoStakeholder[] => {
+    const baseStakeholders = [
+      DEMO_STAKEHOLDERS.owner,
+      DEMO_STAKEHOLDERS.custodian,
+      DEMO_STAKEHOLDERS.verifier,
+      DEMO_STAKEHOLDERS.appraiser,
+      DEMO_STAKEHOLDERS.legal,
+      DEMO_STAKEHOLDERS.compliance,
+      DEMO_STAKEHOLDERS.investor,
+    ]
+
+    // Add creator based on asset type
+    if (assetType === 'DIGITAL_ART' || assetType === 'ARTWORK') {
+      return [DEMO_STAKEHOLDERS.artist, ...baseStakeholders]
+    }
+    return [{ ...DEMO_STAKEHOLDERS.artist, role: 'creator' as StakeholderRole, name: 'Asset Originator', organization: 'Aurigraph Asset Services' }, ...baseStakeholders]
+  }
+
+  // Get VVB provider based on asset type
+  const getVVBProvider = (assetType: string): string => {
+    const providers: Record<string, string> = {
+      'DIGITAL_ART': 'Verisart Digital Authentication',
+      'REAL_ESTATE': 'CBRE Property Verification',
+      'CARBON_CREDIT': 'Verra Carbon Standards',
+      'FINANCIAL': 'Moody\'s Analytics',
+      'SUPPLY_CHAIN': 'SGS Supply Chain Audit',
+      'INTELLECTUAL_PROPERTY': 'USPTO Patent Services',
+      'COMMODITY': 'LBMA Gold Verification',
+    }
+    return providers[assetType] || 'Aurigraph Verification Services'
+  }
+
+  return {
+    id: `demo_token_${Date.now()}_${featuredAsset.id}`,
+    name: featuredAsset.name,
+    symbol: featuredAsset.id.toUpperCase().replace(/_/g, '').slice(0, 8),
+    assetType: featuredAsset.assetType,
+    description: featuredAsset.description,
+    value: featuredAsset.value,
+    currency: featuredAsset.currency,
+    imageUrl: featuredAsset.imageUrl,
+    creator: getStakeholdersForAssetType(featuredAsset.assetType)[0],
+    stakeholders: getStakeholdersForAssetType(featuredAsset.assetType),
+    compositeTokens: [
+      {
+        type: 'OWNER',
+        tokenId: `owner_token_${featuredAsset.id}`,
+        standard: 'ERC-721',
+        status: 'verified',
+        data: {
+          ownerName: 'Marcus Chen',
+          legalEntity: 'Chen Asset Holdings LLC',
+          ownershipPercentage: featuredAsset.assetType === 'REAL_ESTATE' ? '25%' : '100%',
+          transferRights: 'Full transfer rights with regulatory compliance',
+          acquisitionDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        linkedAt: new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'COLLATERAL',
+        tokenId: `collateral_token_${featuredAsset.id}`,
+        standard: 'ERC-1155',
+        status: 'active',
+        data: {
+          collateralValue: `$${featuredAsset.value.toLocaleString()} ${featuredAsset.currency}`,
+          lienPosition: 'First Lien',
+          securityAgreement: `SA-2025-${featuredAsset.id.toUpperCase()}`,
+          releaseConditions: 'Full repayment or asset transfer',
+          collateralRatio: '150%',
+        },
+        linkedAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'MEDIA',
+        tokenId: `media_token_${featuredAsset.id}`,
+        standard: 'ERC-1155',
+        status: 'verified',
+        data: {
+          originalFile: `${featuredAsset.id}_documentation.pdf`,
+          fileSize: '45.2 MB',
+          resolution: 'High Definition',
+          ipfsHash: `Qm${featuredAsset.id.slice(0, 8)}...xyz789`,
+          arweaveId: `ar://${featuredAsset.id.slice(0, 8)}...def456`,
+          thumbnails: '3 sizes available',
+        },
+        linkedAt: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'VERIFICATION',
+        tokenId: `verification_token_${featuredAsset.id}`,
+        standard: 'ERC-721',
+        status: 'verified',
+        data: {
+          vvbProvider: getVVBProvider(featuredAsset.assetType),
+          verificationDate: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+          auditReport: `VER-2025-${featuredAsset.assetType.slice(0, 3)}-001`,
+          complianceStatus: 'Fully Compliant',
+          authenticityScore: '97.8%',
+        },
+        linkedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'VALUATION',
+        tokenId: `valuation_token_${featuredAsset.id}`,
+        standard: 'ERC-20',
+        status: 'verified',
+        data: {
+          marketValue: `$${featuredAsset.value.toLocaleString()} ${featuredAsset.currency}`,
+          appraisalDate: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          appraiser: 'Aurigraph Valuation Services',
+          methodology: 'Market Comparable + Discounted Cash Flow',
+          confidenceLevel: 'High (94%)',
+        },
+        linkedAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'COMPLIANCE',
+        tokenId: `compliance_token_${featuredAsset.id}`,
+        standard: 'ERC-721',
+        status: 'verified',
+        data: {
+          jurisdiction: 'United States, European Union, Singapore',
+          regulations: featuredAsset.assetType === 'FINANCIAL' ? 'SEC Reg D, MiFID II' : 'MiCA, SEC Guidelines',
+          certifications: 'ISO 27001, SOC 2 Type II',
+          kycStatus: 'Verified',
+          amlStatus: 'Cleared',
+          expiryDate: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        linkedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      },
+    ],
+    vvbVerification: {
+      provider: getVVBProvider(featuredAsset.assetType),
+      providerId: `vvb_${featuredAsset.id}`,
+      status: 'approved',
+      submittedAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000),
+      completedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      reportUrl: `/reports/VER-2025-${featuredAsset.id.toUpperCase()}.pdf`,
+      score: 97.8,
+      comments: [
+        `Asset authenticity verified through ${getVVBProvider(featuredAsset.assetType)}`,
+        'All documentation reviewed and validated',
+        'Ownership chain fully documented on blockchain',
+        'Regulatory compliance confirmed',
+      ],
+    },
+    timeline: [
+      {
+        step: 1,
+        title: 'Asset Registered',
+        description: `${featuredAsset.name} registered on Aurigraph platform`,
+        completedAt: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000),
+        actor: 'Asset Originator',
+        action: 'Initiated tokenization',
+      },
+      {
+        step: 2,
+        title: 'Documentation Uploaded',
+        description: 'All supporting documents uploaded to decentralized storage',
+        completedAt: new Date(now.getTime() - 32 * 24 * 60 * 60 * 1000),
+        actor: 'Asset Originator',
+        action: 'Uploaded to IPFS and Arweave',
+      },
+      {
+        step: 3,
+        title: 'VVB Submitted',
+        description: `Submitted for verification to ${getVVBProvider(featuredAsset.assetType)}`,
+        completedAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+        actor: 'System',
+        action: 'VVB assignment',
+      },
+      {
+        step: 4,
+        title: 'Verification Complete',
+        description: 'Asset authenticity and documentation verified',
+        completedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+        actor: getVVBProvider(featuredAsset.assetType),
+        action: 'Verification approved',
+      },
+      {
+        step: 5,
+        title: 'Valuation Completed',
+        description: 'Professional appraisal completed',
+        completedAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+        actor: 'Aurigraph Valuation Services',
+        action: `Appraised at $${featuredAsset.value.toLocaleString()}`,
+      },
+      {
+        step: 6,
+        title: 'Legal Review',
+        description: 'Legal documentation and transfer rights reviewed',
+        completedAt: new Date(now.getTime() - 12 * 24 * 60 * 60 * 1000),
+        actor: 'Baker McKenzie LLP',
+        action: 'Legal clearance granted',
+      },
+      {
+        step: 7,
+        title: 'Compliance Check',
+        description: 'KYC/AML compliance verification completed',
+        completedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+        actor: 'Aurigraph Compliance',
+        action: 'Compliance approved',
+      },
+      {
+        step: 8,
+        title: 'Token Minted',
+        description: 'Primary token and composite tokens minted',
+        completedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+        actor: 'System',
+        action: 'Tokens minted on Aurigraph DLT',
+      },
+    ],
+    status: 'listed',
+    createdAt: now,
+    expiresAt: expiresAt,
+    metadata: {
+      blockchain: 'Aurigraph DLT V12',
+      contractAddress: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 10)}`,
+      tokenStandard: 'ERC-721 (Primary) + ERC-1155/ERC-20 (Composite)',
+      totalSupply: featuredAsset.assetType === 'REAL_ESTATE' ? 1000 : 1,
+      decimals: featuredAsset.assetType === 'REAL_ESTATE' ? 18 : 0,
+      mintable: false,
+      burnable: false,
+      transferable: true,
+    },
+  }
+}
+
 // Demo Token Service Class
 class DemoTokenServiceClass {
   private tokens: Map<string, DemoToken> = new Map()
@@ -601,6 +949,84 @@ class DemoTokenServiceClass {
   getAllStakeholders(): DemoStakeholder[] {
     return Object.values(DEMO_STAKEHOLDERS)
   }
+
+  /**
+   * Get all featured assets
+   */
+  getFeaturedAssets(): FeaturedAsset[] {
+    return FEATURED_ASSETS
+  }
+
+  /**
+   * Get featured asset by ID
+   */
+  getFeaturedAsset(assetId: string): FeaturedAsset | undefined {
+    return FEATURED_ASSETS.find(a => a.id === assetId)
+  }
+
+  /**
+   * Get featured asset by use case
+   */
+  getFeaturedAssetByUseCase(useCase: string): FeaturedAsset | undefined {
+    return FEATURED_ASSETS.find(a => a.useCase === useCase)
+  }
+
+  /**
+   * Get or create demo token for a specific featured asset
+   */
+  getOrCreateDemoTokenForAsset(assetId: string): DemoToken | null {
+    const featuredAsset = FEATURED_ASSETS.find(a => a.id === assetId)
+    if (!featuredAsset) {
+      console.error('Featured asset not found:', assetId)
+      return null
+    }
+
+    // Check for existing token for this asset type
+    const existingToken = Array.from(this.tokens.values()).find(
+      t => t.assetType === featuredAsset.assetType && t.name === featuredAsset.name
+    )
+
+    if (existingToken && new Date(existingToken.expiresAt) > new Date()) {
+      console.log('✅ Using existing demo token for asset:', featuredAsset.name)
+      return existingToken
+    }
+
+    // Create new token for this featured asset
+    const newToken = createDemoTokenForAsset(featuredAsset)
+    this.tokens.set(newToken.id, newToken)
+    this.saveToStorage()
+    console.log('✨ Created new demo token for asset:', featuredAsset.name)
+    return newToken
+  }
+
+  /**
+   * Get active token for a featured asset
+   */
+  getActiveTokenForAsset(assetId: string): DemoToken | undefined {
+    const featuredAsset = FEATURED_ASSETS.find(a => a.id === assetId)
+    if (!featuredAsset) return undefined
+
+    return Array.from(this.tokens.values()).find(
+      t => t.assetType === featuredAsset.assetType &&
+           t.name === featuredAsset.name &&
+           new Date(t.expiresAt) > new Date()
+    )
+  }
+
+  /**
+   * Get the currently selected/active demo token
+   * Returns the most recently created token or the Digital Art token as default
+   */
+  getCurrentDemoToken(): DemoToken | null {
+    const allTokens = this.getAllTokens()
+    if (allTokens.length === 0) {
+      return this.getOrCreateDemoToken()
+    }
+    // Return the most recently created token
+    return allTokens.sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0]
+  }
 }
 
 // Demo Workflow Steps for Click-Through Experience
@@ -764,5 +1190,10 @@ const DEMO_WORKFLOW_STEPS: DemoWorkflowStep[] = [
 // Singleton instance
 export const DemoTokenService = new DemoTokenServiceClass()
 
-// Export for testing
-export { createDemoDigitalArtToken, DEMO_STAKEHOLDERS, DEMO_WORKFLOW_STEPS }
+// Export for testing and external use
+export {
+  createDemoDigitalArtToken,
+  createDemoTokenForAsset,
+  DEMO_STAKEHOLDERS,
+  DEMO_WORKFLOW_STEPS
+}

@@ -71,6 +71,8 @@ import {
   DemoWorkflowStep,
   DemoStakeholder,
   CompositeToken,
+  FeaturedAsset,
+  FEATURED_ASSETS,
 } from '../../services/DemoTokenService'
 
 const CARD_STYLE = {
@@ -130,26 +132,43 @@ export default function DemoTokenExperience() {
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false)
   const [tabValue, setTabValue] = useState(0)
   const [remainingTime, setRemainingTime] = useState<{ hours: number; minutes: number } | null>(null)
+  const [selectedAssetId, setSelectedAssetId] = useState<string>('digital_art')
+  const [showAssetSelector, setShowAssetSelector] = useState(true)
+
+  // Load demo token for selected asset
+  const loadDemoToken = (assetId: string) => {
+    const token = DemoTokenService.getOrCreateDemoTokenForAsset(assetId)
+    if (token) {
+      setDemoToken(token)
+      setActiveStep(0)
+      setIsPlaying(false)
+      const time = DemoTokenService.getRemainingTime(token.id)
+      setRemainingTime(time)
+    }
+  }
 
   useEffect(() => {
     // Initialize demo token
-    const token = DemoTokenService.getOrCreateDemoToken()
-    setDemoToken(token)
+    loadDemoToken(selectedAssetId)
     setWorkflowSteps(DemoTokenService.getDemoWorkflowSteps())
 
     // Update remaining time every minute
-    const updateRemainingTime = () => {
-      if (token) {
-        const time = DemoTokenService.getRemainingTime(token.id)
+    const interval = setInterval(() => {
+      if (demoToken) {
+        const time = DemoTokenService.getRemainingTime(demoToken.id)
         setRemainingTime(time)
       }
-    }
-
-    updateRemainingTime()
-    const interval = setInterval(updateRemainingTime, 60000)
+    }, 60000)
 
     return () => clearInterval(interval)
   }, [])
+
+  // Handle asset selection
+  const handleAssetSelect = (assetId: string) => {
+    setSelectedAssetId(assetId)
+    loadDemoToken(assetId)
+    setShowAssetSelector(false)
+  }
 
   useEffect(() => {
     // Auto-play functionality
@@ -204,6 +223,128 @@ export default function DemoTokenExperience() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
+      {/* Featured Assets Selector */}
+      <Card sx={{ ...CARD_STYLE, mb: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box>
+              <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600 }}>
+                Select Tokenization Use Case
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                Choose an asset type to explore the complete tokenization workflow
+              </Typography>
+            </Box>
+            <Button
+              variant="text"
+              onClick={() => setShowAssetSelector(!showAssetSelector)}
+              sx={{ color: THEME_COLORS.primary }}
+            >
+              {showAssetSelector ? 'Hide' : 'Change Asset'}
+            </Button>
+          </Box>
+
+          {showAssetSelector && (
+            <Grid container spacing={2}>
+              {FEATURED_ASSETS.map((asset) => (
+                <Grid item xs={12} sm={6} md={3} key={asset.id}>
+                  <Paper
+                    onClick={() => handleAssetSelect(asset.id)}
+                    sx={{
+                      p: 2,
+                      cursor: 'pointer',
+                      bgcolor: selectedAssetId === asset.id
+                        ? 'rgba(0, 191, 165, 0.15)'
+                        : 'rgba(255,255,255,0.03)',
+                      border: selectedAssetId === asset.id
+                        ? `2px solid ${THEME_COLORS.primary}`
+                        : '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 2,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.08)',
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                      <Typography sx={{ fontSize: '1.8rem' }}>{asset.icon}</Typography>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            color: selectedAssetId === asset.id ? THEME_COLORS.primary : '#fff',
+                            fontWeight: 600,
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {asset.useCase}
+                        </Typography>
+                      </Box>
+                      {selectedAssetId === asset.id && (
+                        <CheckCircle sx={{ color: THEME_COLORS.primary, fontSize: 20 }} />
+                      )}
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'rgba(255,255,255,0.7)',
+                        display: 'block',
+                        mb: 1,
+                      }}
+                    >
+                      {asset.name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {asset.highlights.slice(0, 2).map((h, i) => (
+                        <Chip
+                          key={i}
+                          label={h}
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: '0.65rem',
+                            bgcolor: 'rgba(255,255,255,0.08)',
+                            color: 'rgba(255,255,255,0.7)',
+                          }}
+                        />
+                      ))}
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: THEME_COLORS.secondary,
+                        fontWeight: 600,
+                        display: 'block',
+                        mt: 1,
+                      }}
+                    >
+                      ${asset.value.toLocaleString()} {asset.currency}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {!showAssetSelector && (
+            <Alert
+              severity="info"
+              sx={{
+                bgcolor: 'rgba(0, 191, 165, 0.1)',
+                color: '#fff',
+                '& .MuiAlert-icon': { color: THEME_COLORS.primary },
+              }}
+            >
+              <Typography variant="body2">
+                Currently viewing: <strong>{FEATURED_ASSETS.find(a => a.id === selectedAssetId)?.useCase}</strong>
+                {' '} - {FEATURED_ASSETS.find(a => a.id === selectedAssetId)?.name}
+              </Typography>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <Card sx={{ ...CARD_STYLE, mb: 3 }}>
         <CardContent>
