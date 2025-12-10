@@ -146,15 +146,22 @@ public class NodeTopologyService {
         String contractName = CONTRACT_NAMES[seed % CONTRACT_NAMES.length];
         Instant deployedAt = Instant.now().minusSeconds(random.nextLong(86400, 86400 * 180));
 
+        // Generate mock Ethereum-style addresses (40 hex chars)
+        // UUID without dashes is 32 chars, so we use two UUIDs concatenated
+        String contractAddr = (UUID.randomUUID().toString() + UUID.randomUUID().toString())
+            .replace("-", "").substring(0, 40);
+        String ownerAddr = (UUID.randomUUID().toString() + UUID.randomUUID().toString())
+            .replace("-", "").substring(0, 40);
+
         return ActiveContractDTO.builder()
-            .contractAddress("0x" + UUID.randomUUID().toString().replace("-", "").substring(0, 40))
+            .contractAddress("0x" + contractAddr)
             .contractName(contractName)
             .status(random.nextDouble() > 0.9 ? ContractStatus.PAUSED : ContractStatus.ACTIVE)
             .executionCount(random.nextLong(1000, 1000000))
             .totalGasUsed(String.valueOf(random.nextLong(1000000, 100000000)))
             .deployedAt(deployedAt)
             .lastExecution(Instant.now().minusSeconds(random.nextLong(1, 3600)))
-            .ownerAddress("0x" + UUID.randomUUID().toString().replace("-", "").substring(0, 40))
+            .ownerAddress("0x" + ownerAddr)
             .contractVersion("1." + random.nextInt(0, 5) + ".0")
             .build();
     }
