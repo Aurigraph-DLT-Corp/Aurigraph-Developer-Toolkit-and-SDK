@@ -9,6 +9,11 @@ import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
 import DemoApp from './DemoApp'
+import DemoTokenExperience from './pages/demo/DemoTokenExperience'
+import DemoRegistration from './pages/demo/DemoRegistration'
+import PrivacyPolicy from './pages/legal/PrivacyPolicy'
+import TermsAndConditions from './pages/legal/TermsAndConditions'
+import CookiePolicy from './pages/legal/CookiePolicy'
 import HighThroughputDemo from './components/HighThroughputDemo'
 import MultiChannelDashboard from './components/MultiChannelDashboard'
 import ChannelDemo from './components/ChannelDemo'
@@ -58,6 +63,13 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="demo" element={<DemoApp />} />
             <Route path="demo/high-throughput" element={<HighThroughputDemo />} />
+            <Route path="demo/token-experience" element={<DemoTokenExperience />} />
+            <Route path="demo/register" element={<DemoRegistration />} />
+
+            {/* Legal Pages */}
+            <Route path="legal/privacy" element={<PrivacyPolicy />} />
+            <Route path="legal/terms" element={<TermsAndConditions />} />
+            <Route path="legal/cookies" element={<CookiePolicy />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="performance" element={<Performance />} />
             <Route path="nodes" element={<NodeManagement />} />
