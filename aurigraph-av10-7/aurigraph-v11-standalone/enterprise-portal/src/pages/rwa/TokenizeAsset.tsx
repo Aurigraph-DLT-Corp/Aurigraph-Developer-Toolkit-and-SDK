@@ -70,6 +70,11 @@ import {
   ExpandMore,
   ExpandLess,
   Link as LinkIcon,
+  Fingerprint,
+  Delete,
+  CloudDone,
+  Error as ErrorIcon,
+  Pending,
 } from '@mui/icons-material'
 import { useState } from 'react'
 import { apiService, safeApiCall } from '../../services/api'
@@ -85,13 +90,31 @@ const THEME_COLORS = {
   warning: '#FFD93D',
 }
 
+// File with hash info
+interface FileWithHash {
+  file: File
+  sha256Hash: string
+  status: 'pending' | 'uploading' | 'uploaded' | 'error'
+  fileId?: string
+  uploadProgress?: number
+  error?: string
+}
+
 interface AssetForm {
   assetType: string
   assetName: string
   description: string
   value: string
   location: string
-  documents: File[]
+  documents: FileWithHash[]
+}
+
+// Calculate SHA256 hash using Web Crypto API
+async function calculateSHA256(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer()
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 // Asset types matching AssetType.java enum
@@ -661,10 +684,60 @@ export default function TokenizeAsset() {
     setFormData({ ...formData, [field]: event.target.value })
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      setFormData({ ...formData, documents: Array.from(event.target.files) })
+      const files = Array.from(event.target.files)
+
+      // Add files with pending status
+      const newFiles: FileWithHash[] = files.map(file => ({
+        file,
+        sha256Hash: '',
+        status: 'pending' as const,
+      }))
+
+      setFormData(prev => ({ ...prev, documents: [...prev.documents, ...newFiles] }))
+
+      // Calculate hashes for each file
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        try {
+          const hash = await calculateSHA256(file)
+          setFormData(prev => ({
+            ...prev,
+            documents: prev.documents.map(doc =>
+              doc.file.name === file.name && doc.file.size === file.size
+                ? { ...doc, sha256Hash: hash }
+                : doc
+            )
+          }))
+        } catch (err) {
+          console.error('Failed to calculate hash for', file.name, err)
+          setFormData(prev => ({
+            ...prev,
+            documents: prev.documents.map(doc =>
+              doc.file.name === file.name && doc.file.size === file.size
+                ? { ...doc, status: 'error', error: 'Failed to calculate hash' }
+                : doc
+            )
+          }))
+        }
+      }
     }
+  }
+
+  const handleRemoveFile = (fileName: string, fileSize: number) => {
+    setFormData(prev => ({
+      ...prev,
+      documents: prev.documents.filter(doc =>
+        !(doc.file.name === fileName && doc.file.size === fileSize)
+      )
+    }))
+  }
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   const handleSubmit = async () => {
@@ -672,41 +745,118 @@ export default function TokenizeAsset() {
     setError(null)
     setSuccess(false)
 
-    // Prepare tokenization request
-    const tokenizeRequest = {
-      assetType: formData.assetType,
-      name: formData.assetName,
-      description: formData.description,
-      value: parseFloat(formData.value),
-      location: formData.location,
-      // In a real implementation, documents would be uploaded separately
-      // and their URLs/hashes would be included here
-      documents: formData.documents.map(f => f.name),
-    }
+    try {
+      // Step 1: Create token first to get transaction ID
+      const tokenizeRequest = {
+        assetType: formData.assetType,
+        name: formData.assetName,
+        description: formData.description,
+        value: parseFloat(formData.value),
+        location: formData.location,
+        documentCount: formData.documents.length,
+      }
 
-    const result = await safeApiCall(
-      () => apiService.createToken(tokenizeRequest),
-      { success: false }
-    )
+      const tokenResult = await safeApiCall(
+        () => apiService.createToken(tokenizeRequest),
+        { success: false, transactionId: null }
+      )
 
-    if (result.success && result.data.success) {
+      if (!tokenResult.success || !tokenResult.data.success) {
+        throw new Error(tokenResult.error?.message || 'Failed to create token')
+      }
+
+      const transactionId = tokenResult.data.transactionId || `tx_${Date.now()}`
+
+      // Step 2: Upload all files linked to the transaction ID
+      if (formData.documents.length > 0) {
+        const uploadPromises = formData.documents.map(async (doc, index) => {
+          // Update status to uploading
+          setFormData(prev => ({
+            ...prev,
+            documents: prev.documents.map((d, i) =>
+              i === index ? { ...d, status: 'uploading' as const } : d
+            )
+          }))
+
+          try {
+            const uploadResult = await apiService.uploadAttachment(
+              doc.file,
+              transactionId,
+              getCategoryFromAssetType(formData.assetType),
+              `${formData.assetName} - ${doc.file.name}`
+            )
+
+            // Update status to uploaded
+            setFormData(prev => ({
+              ...prev,
+              documents: prev.documents.map((d, i) =>
+                i === index
+                  ? {
+                      ...d,
+                      status: 'uploaded' as const,
+                      fileId: uploadResult.fileId,
+                    }
+                  : d
+              )
+            }))
+
+            return { success: true, fileId: uploadResult.fileId }
+          } catch (err) {
+            // Update status to error
+            setFormData(prev => ({
+              ...prev,
+              documents: prev.documents.map((d, i) =>
+                i === index
+                  ? { ...d, status: 'error' as const, error: 'Upload failed' }
+                  : d
+              )
+            }))
+            return { success: false, error: err }
+          }
+        })
+
+        await Promise.all(uploadPromises)
+      }
+
       setSuccess(true)
-      // Reset form on success
-      setFormData({
-        assetType: '',
-        assetName: '',
-        description: '',
-        value: '',
-        location: '',
-        documents: [],
-      })
-      setTimeout(() => setSuccess(false), 5000)
-    } else {
-      setError(result.error?.message || 'Failed to tokenize asset. Please try again.')
+      // Reset form on success after delay
+      setTimeout(() => {
+        setSuccess(false)
+        setFormData({
+          assetType: '',
+          assetName: '',
+          description: '',
+          value: '',
+          location: '',
+          documents: [],
+        })
+      }, 5000)
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to tokenize asset'
+      setError(errorMessage)
       setTimeout(() => setError(null), 5000)
     }
 
     setLoading(false)
+  }
+
+  // Map asset type to file category
+  const getCategoryFromAssetType = (assetType: string): string => {
+    const categoryMap: Record<string, string> = {
+      'DIGITAL_ART': 'images',
+      'NFT': 'images',
+      'ARTWORK': 'images',
+      'PATENT': 'documents',
+      'TRADEMARK': 'documents',
+      'COPYRIGHT': 'documents',
+      'INTELLECTUAL_PROPERTY': 'documents',
+      'CARBON_CREDIT': 'data',
+      'FINANCIAL_ASSET': 'assets',
+      'TRADE_FINANCE': 'contracts',
+      'LOANS': 'contracts',
+    }
+    return categoryMap[assetType] || 'documents'
   }
 
   const isFormValid = formData.assetType && formData.assetName && formData.value
@@ -968,13 +1118,101 @@ export default function TokenizeAsset() {
                     />
                   </Button>
                   {formData.documents.length > 0 && (
-                    <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {formData.documents.map((file, index) => (
-                        <Chip
+                    <Box sx={{ mt: 2 }}>
+                      {formData.documents.map((doc, index) => (
+                        <Box
                           key={index}
-                          label={file.name}
-                          sx={{ bgcolor: 'rgba(0, 191, 165, 0.2)', color: THEME_COLORS.primary }}
-                        />
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            p: 1.5,
+                            mb: 1,
+                            bgcolor: 'rgba(0, 0, 0, 0.2)',
+                            borderRadius: 2,
+                            border: `1px solid ${
+                              doc.status === 'uploaded' ? THEME_COLORS.primary :
+                              doc.status === 'error' ? '#FF6B6B' :
+                              'rgba(255,255,255,0.1)'
+                            }`,
+                          }}
+                        >
+                          {/* Status Icon */}
+                          <Box sx={{ mr: 1.5 }}>
+                            {doc.status === 'uploaded' ? (
+                              <CloudDone sx={{ color: THEME_COLORS.primary }} />
+                            ) : doc.status === 'uploading' ? (
+                              <Pending sx={{ color: THEME_COLORS.warning, animation: 'spin 1s linear infinite' }} />
+                            ) : doc.status === 'error' ? (
+                              <ErrorIcon sx={{ color: '#FF6B6B' }} />
+                            ) : (
+                              <Description sx={{ color: 'rgba(255,255,255,0.5)' }} />
+                            )}
+                          </Box>
+
+                          {/* File Info */}
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="body2" sx={{ color: '#fff', fontWeight: 500 }}>
+                              {doc.file.name}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                              {formatFileSize(doc.file.size)}
+                            </Typography>
+
+                            {/* SHA256 Hash */}
+                            {doc.sha256Hash && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                <Fingerprint sx={{ fontSize: 14, color: THEME_COLORS.secondary, mr: 0.5 }} />
+                                <Tooltip title={`SHA256: ${doc.sha256Hash}`} placement="top">
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      color: THEME_COLORS.secondary,
+                                      fontFamily: 'monospace',
+                                      fontSize: '0.65rem',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(doc.sha256Hash)
+                                    }}
+                                  >
+                                    {doc.sha256Hash.substring(0, 8)}...{doc.sha256Hash.substring(56)}
+                                  </Typography>
+                                </Tooltip>
+                              </Box>
+                            )}
+
+                            {/* Error message */}
+                            {doc.error && (
+                              <Typography variant="caption" sx={{ color: '#FF6B6B' }}>
+                                {doc.error}
+                              </Typography>
+                            )}
+                          </Box>
+
+                          {/* File ID (if uploaded) */}
+                          {doc.fileId && (
+                            <Chip
+                              size="small"
+                              label="Stored"
+                              icon={<CheckCircle sx={{ fontSize: 14 }} />}
+                              sx={{
+                                bgcolor: 'rgba(0, 191, 165, 0.2)',
+                                color: THEME_COLORS.primary,
+                                fontSize: '0.65rem',
+                                mr: 1,
+                              }}
+                            />
+                          )}
+
+                          {/* Remove button */}
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemoveFile(doc.file.name, doc.file.size)}
+                            sx={{ color: 'rgba(255,255,255,0.5)', '&:hover': { color: '#FF6B6B' } }}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Box>
                       ))}
                     </Box>
                   )}

@@ -751,6 +751,72 @@ export const apiService = {
     return safeCall(() => apiClient.get('/mobile/metrics'), FALLBACKS.mobileMetrics, 'getMobileMetrics')
   },
 
+  // ==================== FILE ATTACHMENTS ====================
+  async uploadAttachment(file: File, transactionId?: string, category?: string, description?: string) {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (category) formData.append('category', category)
+    if (description) formData.append('description', description)
+
+    const url = transactionId ? `/attachments/${transactionId}` : '/attachments'
+    return safeCall(
+      () => apiClient.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // 60s timeout for uploads
+      }),
+      { success: false },
+      'uploadAttachment'
+    )
+  },
+
+  async getAttachmentsByTransaction(transactionId: string) {
+    return safeCall(
+      () => apiClient.get(`/attachments/transaction/${transactionId}`),
+      { transactionId, count: 0, attachments: [] },
+      'getAttachmentsByTransaction'
+    )
+  },
+
+  async getAttachment(fileId: string) {
+    return safeCall(
+      () => apiClient.get(`/attachments/${fileId}`),
+      { fileId, error: 'Not found' },
+      'getAttachment'
+    )
+  },
+
+  async verifyAttachmentHash(fileId: string) {
+    return safeCall(
+      () => apiClient.post(`/attachments/${fileId}/verify`),
+      { fileId, verified: false },
+      'verifyAttachmentHash'
+    )
+  },
+
+  async downloadAttachment(fileId: string) {
+    return safeCall(
+      () => apiClient.get(`/attachments/${fileId}/download`, { responseType: 'blob' }),
+      null,
+      'downloadAttachment'
+    )
+  },
+
+  async linkAttachmentToTransaction(fileId: string, transactionId: string) {
+    return safeCall(
+      () => apiClient.post(`/attachments/${fileId}/link/${transactionId}`),
+      { success: false },
+      'linkAttachmentToTransaction'
+    )
+  },
+
+  async deleteAttachment(fileId: string) {
+    return safeCall(
+      () => apiClient.delete(`/attachments/${fileId}`),
+      { success: false },
+      'deleteAttachment'
+    )
+  },
+
   // ==================== QUANTCONNECT ====================
   async getQuantConnectRegistryStats() {
     return safeCall(() => apiClient.get('/quantconnect/registry/stats'), FALLBACKS.quantConnectStats, 'getQuantConnectRegistryStats')
