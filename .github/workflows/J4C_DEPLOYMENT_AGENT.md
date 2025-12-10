@@ -534,3 +534,182 @@ curl -X POST "$JIRA_URL/rest/api/3/issue/AV11-XXX/transitions" \
 - Commits with `AV11-XXX` auto-link to JIRA
 - PR merges update linked tickets
 - Deployment status posted as comments
+
+---
+
+## J4C Node Deployment Agent - #MEMORIZED
+
+### Node Types and Container Configuration
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    J4C NODE DEPLOYMENT AGENT                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [Check Node Status]                                                        │
+│         │                                                                   │
+│         ▼                                                                   │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │              NODE TYPES (Quarkus/GraalVM Optimized)                  │   │
+│  ├──────────────────┬──────────────────┬───────────────────────────────┤   │
+│  │                  │                  │                               │   │
+│  │  [Validator]     │  [Business]      │  [Slim Node]                 │   │
+│  │  Full consensus  │  Smart contracts │  Light client                │   │
+│  │  Heavy compute   │  Business logic  │  Minimal footprint           │   │
+│  │                  │                  │                               │   │
+│  │  Container:      │  Container:      │  Container:                  │   │
+│  │  aurigraph-      │  aurigraph-      │  aurigraph-                  │   │
+│  │  validator:v12   │  business:v12    │  slim:v12                    │   │
+│  │                  │                  │                               │   │
+│  │  Resources:      │  Resources:      │  Resources:                  │   │
+│  │  4GB RAM, 2 CPU  │  2GB RAM, 1 CPU  │  512MB RAM, 0.5 CPU         │   │
+│  │                  │                  │                               │   │
+│  └──────────────────┴──────────────────┴───────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Node Deployment Decision Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    NODE DEPLOYMENT DECISION TREE                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [J4C Node Agent Start]                                                     │
+│         │                                                                   │
+│         ▼                                                                   │
+│  [Check if nodes are running]                                               │
+│         │                                                                   │
+│    ┌────┴────┐                                                              │
+│    │ Running │───▶ [Check if optimally deployed]                           │
+│    └────┬────┘              │                                               │
+│         │                   ├──Yes──▶ ✅ Skip deployment                    │
+│    Not Running              │                                               │
+│         │                   └──No───▶ [Redeploy with optimization]         │
+│         ▼                                                                   │
+│  [Deploy fresh containers]                                                  │
+│         │                                                                   │
+│         ▼                                                                   │
+│  [Verify Quarkus/GraalVM native]                                            │
+│         │                                                                   │
+│         ▼                                                                   │
+│  ✅ Node deployment complete                                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Optimal Deployment Checks
+
+| Check | Validator | Business | Slim |
+|-------|-----------|----------|------|
+| GraalVM Native Image | Required | Required | Required |
+| Quarkus Runtime | Native | Native | Native |
+| Memory Limit | 4GB | 2GB | 512MB |
+| CPU Limit | 2 cores | 1 core | 0.5 core |
+| Health Endpoint | /health | /health | /health |
+| gRPC Port | 9001 | 9002 | 9004 |
+| HTTP Port | 9003 | 9013 | 9023 |
+
+### Docker Compose Configuration
+
+```yaml
+# docker-compose.nodes.yml
+version: '3.8'
+services:
+  validator-node:
+    image: ghcr.io/aurigraph-dlt-corp/aurigraph-validator:v12
+    container_name: aurigraph-validator
+    build:
+      context: .
+      dockerfile: Dockerfile.native  # GraalVM native build
+    environment:
+      - QUARKUS_PROFILE=validator
+      - JAVA_OPTS=-Xmx4g
+    ports:
+      - "9001:9001"  # gRPC
+      - "9003:9003"  # HTTP
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  business-node:
+    image: ghcr.io/aurigraph-dlt-corp/aurigraph-business:v12
+    container_name: aurigraph-business
+    environment:
+      - QUARKUS_PROFILE=business
+      - JAVA_OPTS=-Xmx2g
+    ports:
+      - "9002:9002"  # gRPC
+      - "9013:9013"  # HTTP
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1'
+
+  slim-node:
+    image: ghcr.io/aurigraph-dlt-corp/aurigraph-slim:v12
+    container_name: aurigraph-slim
+    environment:
+      - QUARKUS_PROFILE=slim
+      - JAVA_OPTS=-Xmx512m
+    ports:
+      - "9004:9004"  # gRPC
+      - "9023:9023"  # HTTP
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+```
+
+### Node Deployment Commands
+
+```bash
+# Check current node status
+docker ps --filter "name=aurigraph" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# Check if using GraalVM native
+docker exec aurigraph-validator java -version 2>&1 | grep -i graal
+
+# Deploy all nodes
+docker-compose -f docker-compose.nodes.yml up -d
+
+# Deploy specific node
+docker-compose -f docker-compose.nodes.yml up -d validator-node
+
+# Verify optimal deployment
+curl -s http://localhost:9003/health | jq '.checks'
+curl -s http://localhost:9013/health | jq '.checks'
+curl -s http://localhost:9023/health | jq '.checks'
+
+# Build native images (requires GraalVM)
+./mvnw package -Pnative -DskipTests
+```
+
+### GraalVM Native Build Configuration
+
+```xml
+<!-- pom.xml native profile -->
+<profile>
+  <id>native</id>
+  <properties>
+    <quarkus.package.type>native</quarkus.package.type>
+    <quarkus.native.container-build>true</quarkus.native.container-build>
+  </properties>
+</profile>
+```
+
+### Node Optimization Benefits
+- **Validator**: Full consensus with native performance
+- **Business**: Smart contract execution optimized
+- **Slim**: Minimal footprint for light operations
+- **All**: 10x faster startup, 5x less memory with GraalVM native
