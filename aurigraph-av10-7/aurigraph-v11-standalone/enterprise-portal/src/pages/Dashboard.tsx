@@ -5,6 +5,7 @@ import {
 } from '@mui/icons-material'
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FEATURED_ASSETS } from '../services/DemoTokenService'
 
 // ============================================================================
 // RWAT-FOCUSED DASHBOARD - Real World Asset Tokenization
@@ -311,32 +312,108 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* Asset Categories */}
+      {/* Tokenization Use Cases */}
       <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>Asset Categories</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>Tokenization Use Cases</Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+              Explore different asset types with interactive demos
+            </Typography>
+          </Box>
+          <Button
+            endIcon={<ArrowForward />}
+            onClick={() => navigate('/demo/token-experience')}
+            sx={{ color: '#00BFA5' }}
+          >
+            View All Demos
+          </Button>
+        </Box>
         <Grid container spacing={2}>
-          {[
-            { name: 'Real Estate', icon: '🏢', color: '#00BFA5' },
-            { name: 'Commodities', icon: '🥇', color: '#FFD93D' },
-            { name: 'Art & Collectibles', icon: '🎨', color: '#FF6B6B' },
-            { name: 'Carbon Credits', icon: '🌱', color: '#4ECDC4' },
-            { name: 'IP & Patents', icon: '💡', color: '#9B59B6' },
-            { name: 'Financial Assets', icon: '📊', color: '#3498DB' },
-          ].map((cat) => (
-            <Grid item xs={6} sm={4} md={2} key={cat.name}>
-              <Paper
+          {FEATURED_ASSETS.map((asset) => (
+            <Grid item xs={12} sm={6} md={3} key={asset.id}>
+              <Card
                 sx={{
-                  p: 2,
-                  textAlign: 'center',
-                  bgcolor: 'rgba(255,255,255,0.05)',
+                  ...CARD_STYLE,
                   cursor: 'pointer',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    borderColor: '#00BFA5',
+                    boxShadow: '0 8px 24px rgba(0,191,165,0.2)'
+                  }
                 }}
-                onClick={() => navigate('/marketplace')}
+                onClick={() => navigate(`/demo/token-experience?asset=${asset.id}`)}
               >
-                <Typography variant="h4" sx={{ mb: 1 }}>{cat.icon}</Typography>
-                <Typography variant="body2" sx={{ color: cat.color, fontWeight: 600 }}>{cat.name}</Typography>
-              </Paper>
+                <Box
+                  sx={{
+                    height: 120,
+                    backgroundImage: `linear-gradient(135deg, rgba(0,191,165,0.1) 0%, rgba(78,205,196,0.1) 100%), url(${asset.imageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    borderRadius: '12px 12px 0 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}
+                >
+                  <Typography sx={{ fontSize: '3rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
+                    {asset.icon}
+                  </Typography>
+                  <Chip
+                    label="Demo"
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      bgcolor: '#00BFA5',
+                      color: '#fff',
+                      fontSize: '0.65rem',
+                      height: 20
+                    }}
+                  />
+                </Box>
+                <CardContent sx={{ p: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#fff', mb: 0.5 }}>
+                    {asset.useCase}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', display: 'block', mb: 1 }}>
+                    {asset.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                    {asset.highlights.slice(0, 2).map((h, i) => (
+                      <Chip
+                        key={i}
+                        label={h}
+                        size="small"
+                        sx={{
+                          height: 18,
+                          fontSize: '0.6rem',
+                          bgcolor: 'rgba(255,255,255,0.08)',
+                          color: 'rgba(255,255,255,0.7)'
+                        }}
+                      />
+                    ))}
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" sx={{ color: '#4ECDC4', fontWeight: 700 }}>
+                      ${asset.value.toLocaleString()}
+                    </Typography>
+                    <Chip
+                      label={asset.assetType.replace('_', ' ')}
+                      size="small"
+                      sx={{
+                        height: 18,
+                        fontSize: '0.6rem',
+                        bgcolor: 'rgba(0,191,165,0.15)',
+                        color: '#00BFA5'
+                      }}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
             </Grid>
           ))}
         </Grid>

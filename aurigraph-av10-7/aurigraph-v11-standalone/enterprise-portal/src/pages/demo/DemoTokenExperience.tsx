@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Box,
   Card,
@@ -124,6 +125,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function DemoTokenExperience() {
+  const [searchParams] = useSearchParams()
   const [demoToken, setDemoToken] = useState<DemoToken | null>(null)
   const [activeStep, setActiveStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -132,8 +134,15 @@ export default function DemoTokenExperience() {
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false)
   const [tabValue, setTabValue] = useState(0)
   const [remainingTime, setRemainingTime] = useState<{ hours: number; minutes: number } | null>(null)
-  const [selectedAssetId, setSelectedAssetId] = useState<string>('digital_art')
-  const [showAssetSelector, setShowAssetSelector] = useState(true)
+
+  // Get asset from URL or default to digital_art
+  const assetFromUrl = searchParams.get('asset')
+  const initialAssetId = assetFromUrl && FEATURED_ASSETS.some(a => a.id === assetFromUrl)
+    ? assetFromUrl
+    : 'digital_art'
+
+  const [selectedAssetId, setSelectedAssetId] = useState<string>(initialAssetId)
+  const [showAssetSelector, setShowAssetSelector] = useState(!assetFromUrl)
 
   // Load demo token for selected asset
   const loadDemoToken = (assetId: string) => {
@@ -148,8 +157,8 @@ export default function DemoTokenExperience() {
   }
 
   useEffect(() => {
-    // Initialize demo token
-    loadDemoToken(selectedAssetId)
+    // Initialize demo token with asset from URL or default
+    loadDemoToken(initialAssetId)
     setWorkflowSteps(DemoTokenService.getDemoWorkflowSteps())
 
     // Update remaining time every minute
@@ -161,7 +170,7 @@ export default function DemoTokenExperience() {
     }, 60000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [initialAssetId])
 
   // Handle asset selection
   const handleAssetSelect = (assetId: string) => {
