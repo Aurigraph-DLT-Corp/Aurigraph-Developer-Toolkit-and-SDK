@@ -290,3 +290,70 @@ Add to GitHub Actions workflow after deployment:
 2. Verify frontend is accessible: `curl https://dlt.aurigraph.io`
 3. Check browser console for errors
 4. Review test screenshots in `test-results/` folder
+
+---
+
+## GitHub Actions Runner Strategy - #MEMORIZED
+
+### Primary Strategy: Try GitHub Actions First, Fallback to Self-Hosted
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│              RUNNER FALLBACK STRATEGY - #MEMORIZED                   │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  [Deployment Triggered]                                             │
+│         │                                                           │
+│         ▼                                                           │
+│  [Try GitHub-Hosted Runners]                                        │
+│         │                                                           │
+│    ┌────┴────┐                                                      │
+│    │ Success │─────────────────────────▶ ✅ Done                    │
+│    └────┬────┘                                                      │
+│         │ Fail (Budget/Quota)                                       │
+│         ▼                                                           │
+│  [Switch to Self-Hosted Runner]                                     │
+│         │                                                           │
+│         ▼                                                           │
+│  [self-hosted-cicd.yml] ◀─── Primary V12 deployment workflow        │
+│         │                                                           │
+│         ▼                                                           │
+│  ✅ Deployment Complete                                             │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### When GitHub Actions Budget Exhausted:
+1. **Automatic Fallback**: `self-hosted-cicd.yml` uses self-hosted runners
+2. **No SSH Keys Needed**: Runner has direct filesystem access
+3. **Better Performance**: Native deployment on production server
+
+### Active Workflow Configuration (December 2025):
+
+| Workflow | Runner Type | Status | Trigger |
+|----------|-------------|--------|---------|
+| `self-hosted-cicd.yml` | Self-hosted | ✅ Active | Push to V12/main |
+| `aurigraph-unified-cicd.yml` | GitHub-hosted | ⏸️ Manual only | workflow_dispatch |
+| `deploy-fullstack.yml` | GitHub-hosted | ⏸️ Manual only | workflow_dispatch |
+
+### Self-Hosted Runner Labels:
+```yaml
+runs-on: [self-hosted, Linux, aurigraph-prod]
+```
+
+### Quick Deployment Commands:
+```bash
+# Check runner status
+gh run list --limit 5
+
+# Manual trigger self-hosted workflow
+gh workflow run self-hosted-cicd.yml --ref V12
+
+# View running workflow
+gh run watch
+```
+
+### Cost-Saving Benefits:
+- Self-hosted runners = $0 GitHub Actions minutes
+- Direct server access = faster deployments
+- No artifact transfers = reduced complexity
