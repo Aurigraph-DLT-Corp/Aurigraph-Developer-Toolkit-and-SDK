@@ -164,7 +164,10 @@ public class NodeTopologyService {
      */
     public List<NodeTopologyDTO> getAllNodes() {
         refreshNodeMetrics();
-        return new ArrayList<>(nodeCache.values());
+        // Filter out null values to prevent serialization errors
+        return nodeCache.values().stream()
+            .filter(java.util.Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -172,6 +175,7 @@ public class NodeTopologyService {
      */
     public List<NodeTopologyDTO> getNodesByType(NodeType type) {
         return nodeCache.values().stream()
+            .filter(java.util.Objects::nonNull)
             .filter(node -> node.nodeType() == type)
             .collect(Collectors.toList());
     }
@@ -181,6 +185,7 @@ public class NodeTopologyService {
      */
     public List<NodeTopologyDTO> getNodesInChannel(String channelId) {
         return nodeCache.values().stream()
+            .filter(java.util.Objects::nonNull)
             .filter(node -> channelId.equals(node.channelId()))
             .collect(Collectors.toList());
     }
@@ -251,7 +256,10 @@ public class NodeTopologyService {
      */
     public List<ActiveContractDTO> getAllActiveContracts() {
         return nodeCache.values().stream()
-            .flatMap(node -> node.activeContracts().stream())
+            .filter(java.util.Objects::nonNull)
+            .map(NodeTopologyDTO::activeContracts)
+            .filter(java.util.Objects::nonNull)
+            .flatMap(List::stream)
             .distinct()
             .collect(Collectors.toList());
     }
@@ -260,9 +268,11 @@ public class NodeTopologyService {
      * Get contracts for specific node
      */
     public List<ActiveContractDTO> getNodeContracts(String nodeId) {
-        return nodeCache.get(nodeId) != null ?
-            nodeCache.get(nodeId).activeContracts() :
-            List.of();
+        NodeTopologyDTO node = nodeCache.get(nodeId);
+        if (node == null || node.activeContracts() == null) {
+            return List.of();
+        }
+        return node.activeContracts();
     }
 
     /**
@@ -272,6 +282,7 @@ public class NodeTopologyService {
         refreshNodeMetrics();
 
         List<NodeTopologyDTO> nodes = nodeCache.values().stream()
+            .filter(java.util.Objects::nonNull)
             .filter(node -> channelId == null || channelId.equals(node.channelId()))
             .filter(node -> typeFilter == null || node.nodeType() == typeFilter)
             .collect(Collectors.toList());
