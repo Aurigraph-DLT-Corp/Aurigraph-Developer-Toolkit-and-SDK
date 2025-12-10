@@ -357,3 +357,180 @@ gh run watch
 - Self-hosted runners = $0 GitHub Actions minutes
 - Direct server access = faster deployments
 - No artifact transfers = reduced complexity
+
+---
+
+## SPARC Multi-Agent Deployment Plan - #MEMORIZED
+
+### SPARC Framework Overview
+**S**pecification → **P**seudocode → **A**rchitecture → **R**efinement → **C**ompletion
+
+### Multi-Agent Deployment Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SPARC MULTI-AGENT DEPLOYMENT FLOW                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [Git Push to V12]                                                          │
+│         │                                                                   │
+│         ▼                                                                   │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    J4C DEPLOYMENT AGENTS (Parallel)                  │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                     │   │
+│  │   [J4C Agent 1]          [J4C Agent 2]          [J4C Agent 3]      │   │
+│  │   Backend Deploy         Frontend Deploy        Config Update       │   │
+│  │        │                      │                      │              │   │
+│  │        └──────────────────────┴──────────────────────┘              │   │
+│  │                               │                                     │   │
+│  │                               ▼                                     │   │
+│  │                    [All Deployments Complete]                       │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                               │                                             │
+│                               ▼                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    QAQC AGENTS (Sequential)                          │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                     │   │
+│  │   [QAQC Agent: Smoke Test]                                         │   │
+│  │        │                                                            │   │
+│  │   ┌────┴────┐                                                       │   │
+│  │   │  PASS   │───────────────────────────▶ ✅ Deployment Success    │   │
+│  │   └────┬────┘                                                       │   │
+│  │        │ FAIL                                                       │   │
+│  │        ▼                                                            │   │
+│  │   [QAQC Agent: E2E Tests]  ◀── Automatic fallback                  │   │
+│  │        │                                                            │   │
+│  │   ┌────┴────┐                                                       │   │
+│  │   │  PASS   │───────────────────────────▶ ✅ Deployment Success    │   │
+│  │   └────┬────┘                             (Smoke false positive)    │   │
+│  │        │ FAIL                                                       │   │
+│  │        ▼                                                            │   │
+│  │   [Alert + Rollback Option]                                        │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### J4C Deployment Agents Configuration
+
+| Agent | Role | Runs On | Parallel |
+|-------|------|---------|----------|
+| J4C-Backend | Build & deploy Java/Quarkus | Self-hosted | Yes |
+| J4C-Frontend | Build & deploy React portal | Self-hosted | Yes |
+| J4C-Config | Update configs & nginx | Self-hosted | Yes |
+
+### QAQC Agents Configuration
+
+| Agent | Type | Duration | Trigger |
+|-------|------|----------|---------|
+| QAQC-Smoke | Health/endpoint checks | ~30 sec | After all J4C agents |
+| QAQC-E2E | Playwright + Pytest | ~5 min | Only if smoke fails |
+
+### Agent Execution Commands
+
+```bash
+# Deploy with all J4C agents (parallel)
+gh workflow run self-hosted-cicd.yml --ref V12 \
+  -f deploy_backend=true \
+  -f deploy_frontend=true
+
+# Manual QAQC smoke test
+curl -sf https://dlt.aurigraph.io/api/v11/health && \
+curl -sf https://dlt.aurigraph.io/api/v11/info && \
+curl -sf https://dlt.aurigraph.io/ | head -c 100 && \
+echo "✅ Smoke tests passed"
+
+# If smoke fails → Run E2E tests
+cd enterprise-portal/enterprise-portal/frontend && npx playwright test
+cd aurigraph-fastapi && python3 -m pytest tests/ -v
+```
+
+### SPARC Phases for Each Deployment
+
+1. **Specification**: Detect changed components (backend/frontend/config)
+2. **Pseudocode**: Generate deployment steps based on changes
+3. **Architecture**: Select appropriate J4C agents
+4. **Refinement**: Execute parallel deployments
+5. **Completion**: Run QAQC agents for verification
+
+### Multi-Agent Benefits
+- **Parallel Deployment**: Backend + Frontend deploy simultaneously
+- **Automatic Verification**: QAQC agents run post-deployment
+- **Smart Fallback**: Smoke → E2E escalation on failure
+- **Cost Efficient**: Self-hosted runners = $0
+
+---
+
+## Post-Deployment JIRA Updates - #MEMORIZED
+
+### Automatic JIRA Update Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    JIRA UPDATE AFTER DEPLOYMENT                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  [Deployment Complete] → [QAQC Pass] → [Update JIRA]               │
+│                                              │                      │
+│                         ┌────────────────────┼────────────────────┐ │
+│                         │                    │                    │ │
+│                         ▼                    ▼                    ▼ │
+│               [Add Deploy Comment]  [Update Status]  [Link Commit] │
+│                         │                    │                    │ │
+│                         └────────────────────┴────────────────────┘ │
+│                                              │                      │
+│                                              ▼                      │
+│                                    [Notify Stakeholders]            │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### JIRA Update Commands
+
+```bash
+# Get JIRA credentials (from Credentials.md)
+JIRA_URL="https://aurigraphdlt.atlassian.net"
+JIRA_USER="sjoish12@gmail.com"
+JIRA_PROJECT="AV11"
+
+# Add deployment comment to ticket
+curl -X POST "$JIRA_URL/rest/api/3/issue/AV11-XXX/comment" \
+  -H "Content-Type: application/json" \
+  -u "$JIRA_USER:$JIRA_API_TOKEN" \
+  -d '{
+    "body": {
+      "type": "doc",
+      "version": 1,
+      "content": [{
+        "type": "paragraph",
+        "content": [{
+          "type": "text",
+          "text": "✅ Deployed to production via self-hosted runner"
+        }]
+      }]
+    }
+  }'
+
+# Transition ticket to "Done" (transition ID may vary)
+curl -X POST "$JIRA_URL/rest/api/3/issue/AV11-XXX/transitions" \
+  -H "Content-Type: application/json" \
+  -u "$JIRA_USER:$JIRA_API_TOKEN" \
+  -d '{"transition": {"id": "31"}}'
+```
+
+### JIRA Update Triggers
+| Event | JIRA Action |
+|-------|-------------|
+| Deployment Success | Add comment + transition to "Done" |
+| Smoke Test Pass | Add verification comment |
+| E2E Test Pass | Add full test report |
+| Deployment Fail | Add error comment + keep "In Progress" |
+
+### GitHub-JIRA Integration
+- Commits with `AV11-XXX` auto-link to JIRA
+- PR merges update linked tickets
+- Deployment status posted as comments
