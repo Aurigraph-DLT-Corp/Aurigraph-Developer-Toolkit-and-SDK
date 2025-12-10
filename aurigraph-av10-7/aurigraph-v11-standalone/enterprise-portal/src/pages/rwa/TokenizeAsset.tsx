@@ -29,6 +29,11 @@ import {
   Avatar,
   Rating,
   ListSubheader,
+  Switch,
+  FormControlLabel,
+  Tooltip,
+  IconButton,
+  Collapse,
 } from '@mui/material'
 import {
   CloudUpload,
@@ -55,6 +60,16 @@ import {
   CreditCard,
   Inventory,
   BusinessCenter,
+  AccountTree,
+  Person,
+  Security,
+  PhotoLibrary,
+  TaskAlt,
+  PriceCheck,
+  GppGood,
+  ExpandMore,
+  ExpandLess,
+  Link as LinkIcon,
 } from '@mui/icons-material'
 import { useState } from 'react'
 import { apiService, safeApiCall } from '../../services/api'
@@ -267,6 +282,361 @@ const VVB_STAGES = [
   { status: 'approved', label: 'Approved', description: 'Verification complete, tokens issued' },
 ]
 
+// Composite Token Secondary Token Types (from SecondaryTokenType.java)
+const SECONDARY_TOKEN_TYPES = [
+  {
+    type: 'OWNER',
+    label: 'Owner Token',
+    standard: 'ERC-721',
+    icon: <Person />,
+    description: 'Ownership record and title documentation',
+    color: '#4ECDC4',
+    data: ['Owner Name', 'Legal Entity', 'Ownership History', 'Transfer Rights'],
+  },
+  {
+    type: 'COLLATERAL',
+    label: 'Collateral Token',
+    standard: 'ERC-1155',
+    icon: <Security />,
+    description: 'Collateral and security backing the asset',
+    color: '#FFD93D',
+    data: ['Collateral Value', 'Lien Position', 'Security Agreement', 'Release Conditions'],
+  },
+  {
+    type: 'MEDIA',
+    label: 'Media Token',
+    standard: 'ERC-1155',
+    icon: <PhotoLibrary />,
+    description: 'Images, documents, and media assets',
+    color: '#9B59B6',
+    data: ['Images', 'Videos', 'Documents', 'IPFS Hashes'],
+  },
+  {
+    type: 'VERIFICATION',
+    label: 'Verification Token',
+    standard: 'ERC-721',
+    icon: <TaskAlt />,
+    description: 'VVB verification and validation records',
+    color: '#3498DB',
+    data: ['VVB Provider', 'Verification Date', 'Audit Report', 'Compliance Status'],
+  },
+  {
+    type: 'VALUATION',
+    label: 'Valuation Token',
+    standard: 'ERC-20',
+    icon: <PriceCheck />,
+    description: 'Asset valuation and appraisal data',
+    color: '#E74C3C',
+    data: ['Market Value', 'Appraisal Date', 'Appraiser', 'Methodology'],
+  },
+  {
+    type: 'COMPLIANCE',
+    label: 'Compliance Token',
+    standard: 'ERC-721',
+    icon: <GppGood />,
+    description: 'Regulatory compliance and certifications',
+    color: '#27AE60',
+    data: ['Jurisdiction', 'Regulations', 'Certifications', 'Expiry Date'],
+  },
+]
+
+// Token Topology Component
+interface TokenTopologyProps {
+  assetName: string
+  assetType: string
+  expanded: boolean
+  onToggle: () => void
+}
+
+const TokenTopology: React.FC<TokenTopologyProps> = ({ assetName, assetType, expanded, onToggle }) => {
+  const [selectedToken, setSelectedToken] = useState<string | null>(null)
+
+  return (
+    <Card sx={{ ...CARD_STYLE, mb: 2 }}>
+      <CardContent sx={{ p: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+          }}
+          onClick={onToggle}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <AccountTree sx={{ color: THEME_COLORS.primary, mr: 1 }} />
+            <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600 }}>
+              Token Topology
+            </Typography>
+          </Box>
+          <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+            {expanded ? <ExpandLess /> : <ExpandMore />}
+          </IconButton>
+        </Box>
+
+        <Collapse in={expanded}>
+          <Box sx={{ mt: 2 }}>
+            {/* Primary Token at Center */}
+            <Box
+              sx={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                py: 3,
+              }}
+            >
+              {/* Primary Token */}
+              <Box
+                sx={{
+                  bgcolor: THEME_COLORS.primary,
+                  borderRadius: '50%',
+                  width: 100,
+                  height: 100,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: `0 0 30px ${THEME_COLORS.primary}40`,
+                  border: `3px solid ${THEME_COLORS.primary}`,
+                  position: 'relative',
+                  zIndex: 10,
+                  transition: 'all 0.3s',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                    boxShadow: `0 0 40px ${THEME_COLORS.primary}60`,
+                  },
+                }}
+                onClick={() => setSelectedToken('PRIMARY')}
+              >
+                <Token sx={{ color: '#fff', fontSize: 32 }} />
+                <Typography variant="caption" sx={{ color: '#fff', fontWeight: 600, mt: 0.5 }}>
+                  PRIMARY
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.6rem' }}>
+                  ERC-721
+                </Typography>
+              </Box>
+
+              {/* Asset Label */}
+              <Typography
+                variant="body2"
+                sx={{ color: '#fff', fontWeight: 500, mt: 1, textAlign: 'center' }}
+              >
+                {assetName || 'Asset Token'}
+              </Typography>
+              <Chip
+                label={assetType || 'Select Asset Type'}
+                size="small"
+                sx={{ mt: 0.5, bgcolor: 'rgba(0, 191, 165, 0.2)', color: THEME_COLORS.primary }}
+              />
+
+              {/* Connection Lines & Secondary Tokens */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: 2,
+                  mt: 3,
+                  position: 'relative',
+                }}
+              >
+                {SECONDARY_TOKEN_TYPES.map((token, index) => (
+                  <Tooltip
+                    key={token.type}
+                    title={
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {token.label}
+                        </Typography>
+                        <Typography variant="caption">{token.description}</Typography>
+                        <Divider sx={{ my: 0.5, borderColor: 'rgba(255,255,255,0.2)' }} />
+                        <Typography variant="caption" sx={{ color: token.color }}>
+                          Standard: {token.standard}
+                        </Typography>
+                      </Box>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': { transform: 'translateY(-3px)' },
+                      }}
+                      onClick={() => setSelectedToken(token.type)}
+                    >
+                      {/* Connection Line */}
+                      <Box
+                        sx={{
+                          width: 2,
+                          height: 20,
+                          bgcolor: selectedToken === token.type ? token.color : 'rgba(255,255,255,0.2)',
+                          transition: 'all 0.2s',
+                        }}
+                      />
+                      {/* Secondary Token Circle */}
+                      <Box
+                        sx={{
+                          bgcolor: selectedToken === token.type ? token.color : 'rgba(255,255,255,0.1)',
+                          borderRadius: '50%',
+                          width: 56,
+                          height: 56,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: `2px solid ${token.color}`,
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            bgcolor: `${token.color}30`,
+                            boxShadow: `0 0 15px ${token.color}40`,
+                          },
+                        }}
+                      >
+                        <Box sx={{ color: selectedToken === token.type ? '#fff' : token.color }}>
+                          {token.icon}
+                        </Box>
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'rgba(255,255,255,0.7)',
+                          mt: 0.5,
+                          fontSize: '0.6rem',
+                          textAlign: 'center',
+                          maxWidth: 70,
+                        }}
+                      >
+                        {token.label}
+                      </Typography>
+                    </Box>
+                  </Tooltip>
+                ))}
+              </Box>
+            </Box>
+
+            {/* Selected Token Details */}
+            {selectedToken && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  bgcolor: 'rgba(0,0,0,0.2)',
+                  borderRadius: 2,
+                  border: `1px solid ${
+                    selectedToken === 'PRIMARY'
+                      ? THEME_COLORS.primary
+                      : SECONDARY_TOKEN_TYPES.find((t) => t.type === selectedToken)?.color ||
+                        'rgba(255,255,255,0.1)'
+                  }`,
+                }}
+              >
+                {selectedToken === 'PRIMARY' ? (
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Token sx={{ color: THEME_COLORS.primary, mr: 1 }} />
+                      <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 600 }}>
+                        Primary Token (ERC-721)
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', mb: 1 }}>
+                      The main asset token representing ownership of the real-world asset.
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {['Asset ID', 'Legal Title', 'Jurisdiction', 'Coordinates', 'Fractionalizable'].map(
+                        (field) => (
+                          <Chip
+                            key={field}
+                            label={field}
+                            size="small"
+                            sx={{
+                              bgcolor: 'rgba(0, 191, 165, 0.2)',
+                              color: THEME_COLORS.primary,
+                              fontSize: '0.65rem',
+                            }}
+                          />
+                        )
+                      )}
+                    </Box>
+                  </Box>
+                ) : (
+                  (() => {
+                    const token = SECONDARY_TOKEN_TYPES.find((t) => t.type === selectedToken)
+                    return token ? (
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Box sx={{ color: token.color, mr: 1 }}>{token.icon}</Box>
+                          <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 600 }}>
+                            {token.label} ({token.standard})
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', mb: 1 }}>
+                          {token.description}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {token.data.map((field) => (
+                            <Chip
+                              key={field}
+                              label={field}
+                              size="small"
+                              sx={{
+                                bgcolor: `${token.color}20`,
+                                color: token.color,
+                                fontSize: '0.65rem',
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    ) : null
+                  })()
+                )}
+              </Box>
+            )}
+
+            {/* Legend */}
+            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                Composite Token Structure: Primary asset token linked to secondary data tokens
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                <Chip
+                  icon={<LinkIcon sx={{ fontSize: 14 }} />}
+                  label="Linked"
+                  size="small"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontSize: '0.6rem' }}
+                />
+                <Chip
+                  label="ERC-721: Non-Fungible"
+                  size="small"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontSize: '0.6rem' }}
+                />
+                <Chip
+                  label="ERC-1155: Multi"
+                  size="small"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontSize: '0.6rem' }}
+                />
+                <Chip
+                  label="ERC-20: Fungible"
+                  size="small"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontSize: '0.6rem' }}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </Collapse>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function TokenizeAsset() {
   const [formData, setFormData] = useState<AssetForm>({
     assetType: '',
@@ -282,7 +652,8 @@ export default function TokenizeAsset() {
   const [activeStep, setActiveStep] = useState(0)
   const [selectedVVB, setSelectedVVB] = useState<string | null>(null)
   const [showVVBDialog, setShowVVBDialog] = useState(false)
-  const [useCompositeToken, setUseCompositeToken] = useState(false)
+  const [useCompositeToken, setUseCompositeToken] = useState(true)
+  const [showTokenTopology, setShowTokenTopology] = useState(true)
 
   const handleInputChange = (field: keyof AssetForm) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -636,6 +1007,50 @@ export default function TokenizeAsset() {
 
         {/* VVB Workflow & Rating Panel */}
         <Grid item xs={12} md={4}>
+          {/* Composite Token Toggle */}
+          <Card sx={{ ...CARD_STYLE, mb: 2 }}>
+            <CardContent sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <AccountTree sx={{ color: THEME_COLORS.secondary, mr: 1 }} />
+                  <Typography variant="subtitle2" sx={{ color: '#fff' }}>
+                    Composite Token
+                  </Typography>
+                </Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={useCompositeToken}
+                      onChange={(e) => setUseCompositeToken(e.target.checked)}
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-checked': {
+                          color: THEME_COLORS.primary,
+                        },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                          bgcolor: THEME_COLORS.primary,
+                        },
+                      }}
+                    />
+                  }
+                  label=""
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', display: 'block', mt: 0.5 }}>
+                Primary asset token + linked secondary data tokens
+              </Typography>
+            </CardContent>
+          </Card>
+
+          {/* Token Topology Visualization */}
+          {useCompositeToken && (
+            <TokenTopology
+              assetName={formData.assetName}
+              assetType={formData.assetType}
+              expanded={showTokenTopology}
+              onToggle={() => setShowTokenTopology(!showTokenTopology)}
+            />
+          )}
+
           {/* GNN Data Completeness Score */}
           <Card sx={{ ...CARD_STYLE, mb: 2 }}>
             <CardContent sx={{ p: 2 }}>
