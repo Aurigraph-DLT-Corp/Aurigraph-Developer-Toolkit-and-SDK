@@ -277,6 +277,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // Referral program endpoints (for Enterprise Portal user referral features)
+        if (path.startsWith("/api/v11/referral/") || path.equals("/api/v11/referral")) {
+            LOG.debugf("Referral endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         return false;
     }
 

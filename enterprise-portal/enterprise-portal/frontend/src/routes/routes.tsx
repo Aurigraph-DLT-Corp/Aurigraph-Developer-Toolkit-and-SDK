@@ -62,6 +62,9 @@ const BankingTokenization = lazy(() => import('../components/banking/BankingToke
 // Admin & Infrastructure
 const InfrastructureMonitoring = lazy(() => import('../components/admin/InfrastructureMonitoring'));
 
+// User & Referral
+const UserReferralProgram = lazy(() => import('../components/UserReferralProgram'));
+
 /**
  * Route definition interface
  */
@@ -772,6 +775,43 @@ export const routes: RouteDefinition[] = [
     description: 'Monitor local and remote server infrastructure',
     category: 'admin',
     order: 82,
+  },
+
+  // =========================================================================
+  // USER & REFERRAL PROGRAM
+  // =========================================================================
+  {
+    path: '/user/profile',
+    component: UserReferralProgram,
+    label: 'My Profile',
+    breadcrumbLabel: 'User Profile',
+    parent: '/',
+    icon: 'UserOutlined',
+    description: 'View and manage your profile',
+    category: 'admin',
+    order: 83,
+  },
+  {
+    path: '/user/referral',
+    component: UserReferralProgram,
+    label: 'Referral Program',
+    breadcrumbLabel: 'Referral Program',
+    parent: '/user/profile',
+    icon: 'GiftOutlined',
+    description: 'Earn rewards by referring friends',
+    category: 'admin',
+    order: 84,
+  },
+  {
+    path: '/referral',
+    component: UserReferralProgram,
+    label: 'Referrals',
+    breadcrumbLabel: 'Referral Program',
+    parent: '/',
+    icon: 'TeamOutlined',
+    description: 'Manage your referrals and earn rewards',
+    category: 'admin',
+    order: 85,
   },
 
   // =========================================================================
