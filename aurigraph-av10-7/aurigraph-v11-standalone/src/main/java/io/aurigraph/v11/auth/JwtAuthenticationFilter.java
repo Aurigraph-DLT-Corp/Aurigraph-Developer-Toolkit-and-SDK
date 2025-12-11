@@ -271,6 +271,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // File attachment endpoints (for blockchain document linking with SHA256)
+        if (path.startsWith("/api/v11/attachments/") || path.equals("/api/v11/attachments")) {
+            LOG.debugf("Attachment endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         return false;
     }
 
