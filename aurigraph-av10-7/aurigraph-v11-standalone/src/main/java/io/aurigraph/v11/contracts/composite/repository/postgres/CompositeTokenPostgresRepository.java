@@ -199,7 +199,7 @@ public class CompositeTokenPostgresRepository implements PanacheRepository<Compo
             stats.put("totalTokens", (long) tokens.size());
 
             Map<String, Long> byAssetType = tokens.stream()
-                .collect(Collectors.groupingBy(CompositeToken::getAssetType, Collectors.counting()));
+                .collect(Collectors.groupingBy(CompositeToken::getAssetTypeString, Collectors.counting()));
             stats.put("byAssetType", byAssetType);
 
             Map<String, Long> byStatus = tokens.stream()
@@ -234,7 +234,7 @@ public class CompositeTokenPostgresRepository implements PanacheRepository<Compo
     private void updateEntity(CompositeTokenEntity entity, CompositeToken token) {
         entity.compositeId = token.getCompositeId();
         entity.assetId = token.getAssetId();
-        entity.assetType = token.getAssetType();
+        entity.assetType = token.getAssetTypeString();
         entity.ownerAddress = token.getOwnerAddress();
         entity.status = token.getStatus().name();
         entity.verificationLevel = token.getVerificationLevel() != null

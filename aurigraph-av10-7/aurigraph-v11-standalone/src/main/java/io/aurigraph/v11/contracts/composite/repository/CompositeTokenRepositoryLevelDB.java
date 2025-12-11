@@ -173,7 +173,7 @@ public class CompositeTokenRepositoryLevelDB extends LevelDBRepository<Composite
 
             Map<String, Long> byAssetType = tokens.stream()
                     .collect(Collectors.groupingBy(
-                            CompositeToken::getAssetType,
+                            CompositeToken::getAssetTypeString,
                             Collectors.counting()
                     ));
 

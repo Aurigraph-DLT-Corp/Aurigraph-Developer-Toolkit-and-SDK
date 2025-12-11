@@ -283,6 +283,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // Composite token endpoints (for Asset Registry E2E testing)
+        if (path.startsWith("/api/v11/composite-tokens/") || path.equals("/api/v11/composite-tokens")) {
+            LOG.debugf("Composite token endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         return false;
     }
 

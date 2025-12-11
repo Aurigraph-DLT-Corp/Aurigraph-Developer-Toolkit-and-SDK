@@ -284,8 +284,12 @@ public class SecondaryTokenRepositoryLevelDB {
                 case VERIFICATION -> unwrapVerificationToken();
                 case VALUATION -> unwrapValuationToken();
                 case COLLATERAL -> unwrapCollateralToken();
-                case MEDIA -> unwrapMediaToken();
+                case MEDIA, PHOTO_GALLERY, VIDEO_TOUR -> unwrapMediaToken();
                 case COMPLIANCE -> unwrapComplianceToken();
+                // Document-based secondary tokens
+                case TITLE_DEED, OWNER_KYC, TAX_RECEIPT, APPRAISAL, INSURANCE, SURVEY,
+                     CERTIFICATE, LICENSE, AGREEMENT, INSPECTION, PERMIT, WARRANTY,
+                     ENVIRONMENTAL, AUDIT, FINANCIAL_STATEMENT, PROOF_OF_FUNDS -> unwrapDocumentToken();
             };
         }
 
@@ -313,7 +317,7 @@ public class SecondaryTokenRepositoryLevelDB {
                     CollateralToken ct = (CollateralToken) token;
                     typeData.put("collateralAssets", ct.getCollateralAssets());
                 }
-                case MEDIA -> {
+                case MEDIA, PHOTO_GALLERY, VIDEO_TOUR -> {
                     MediaToken mt = (MediaToken) token;
                     typeData.put("mediaAssets", mt.getMediaAssets());
                 }
@@ -321,6 +325,26 @@ public class SecondaryTokenRepositoryLevelDB {
                     ComplianceToken ct = (ComplianceToken) token;
                     typeData.put("complianceStatus", ct.getComplianceStatus().name());
                     typeData.put("complianceData", ct.getComplianceData());
+                }
+                // Document-based secondary tokens
+                case TITLE_DEED, OWNER_KYC, TAX_RECEIPT, APPRAISAL, INSURANCE, SURVEY,
+                     CERTIFICATE, LICENSE, AGREEMENT, INSPECTION, PERMIT, WARRANTY,
+                     ENVIRONMENTAL, AUDIT, FINANCIAL_STATEMENT, PROOF_OF_FUNDS -> {
+                    DocumentToken dt = (DocumentToken) token;
+                    typeData.put("documentId", dt.getDocumentId());
+                    typeData.put("documentName", dt.getDocumentName());
+                    typeData.put("documentType", dt.getDocumentType());
+                    typeData.put("sha256Hash", dt.getSha256Hash());
+                    typeData.put("fileAttachmentId", dt.getFileAttachmentId());
+                    typeData.put("storageUrl", dt.getStorageUrl());
+                    typeData.put("fileSize", dt.getFileSize());
+                    typeData.put("issuer", dt.getIssuer());
+                    typeData.put("issuedDate", dt.getIssuedDate());
+                    typeData.put("expiryDate", dt.getExpiryDate());
+                    typeData.put("verified", dt.isVerified());
+                    typeData.put("verifierId", dt.getVerifierId());
+                    typeData.put("jurisdiction", dt.getJurisdiction());
+                    typeData.put("extractedData", dt.getExtractedData());
                 }
             }
 
@@ -386,6 +410,37 @@ public class SecondaryTokenRepositoryLevelDB {
                 status,
                 (Map<String, Object>) typeData.getOrDefault("complianceData", new HashMap<>())
             );
+        }
+
+        @SuppressWarnings("unchecked")
+        private DocumentToken unwrapDocumentToken() {
+            DocumentToken token = new DocumentToken(
+                tokenId,
+                compositeId,
+                type,
+                (String) typeData.get("documentId"),
+                (String) typeData.get("documentName"),
+                (String) typeData.get("sha256Hash")
+            );
+            token.setDocumentType((String) typeData.get("documentType"));
+            token.setFileAttachmentId((String) typeData.get("fileAttachmentId"));
+            token.setStorageUrl((String) typeData.get("storageUrl"));
+            if (typeData.get("fileSize") != null) {
+                token.setFileSize(((Number) typeData.get("fileSize")).longValue());
+            }
+            token.setIssuer((String) typeData.get("issuer"));
+            if (typeData.get("issuedDate") != null) {
+                token.setIssuedDate((Instant) typeData.get("issuedDate"));
+            }
+            if (typeData.get("expiryDate") != null) {
+                token.setExpiryDate((Instant) typeData.get("expiryDate"));
+            }
+            if (typeData.get("verified") != null) {
+                token.setVerified((Boolean) typeData.get("verified"));
+            }
+            token.setVerifierId((String) typeData.get("verifierId"));
+            token.setJurisdiction((String) typeData.get("jurisdiction"));
+            return token;
         }
 
         // Getters and setters for Jackson

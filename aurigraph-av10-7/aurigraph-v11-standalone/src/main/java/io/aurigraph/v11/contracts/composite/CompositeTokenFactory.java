@@ -431,7 +431,7 @@ public class CompositeTokenFactory {
 
             for (CompositeToken token : compositeTokensCache.values()) {
                 // Count by asset type
-                String type = token.getAssetType();
+                String type = token.getAssetTypeString();
                 typeDistribution.merge(type, 1L, Long::sum);
 
                 // Count by status
@@ -544,7 +544,7 @@ public class CompositeTokenFactory {
         
         verifierRegistry.requestVerification(
             compositeToken.getCompositeId(),
-            compositeToken.getAssetType(),
+            compositeToken.getAssetTypeString(),
             requiredLevel,
             3 // Number of verifiers required for consensus
         );

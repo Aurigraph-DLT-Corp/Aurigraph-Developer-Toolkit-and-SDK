@@ -257,8 +257,12 @@ public class SecondaryTokenPostgresRepository implements PanacheRepository<Secon
                 case VERIFICATION -> unwrapVerificationToken(entity, typeData);
                 case VALUATION -> unwrapValuationToken(entity, typeData);
                 case COLLATERAL -> unwrapCollateralToken(entity, typeData);
-                case MEDIA -> unwrapMediaToken(entity, typeData);
+                case MEDIA, PHOTO_GALLERY, VIDEO_TOUR -> unwrapMediaToken(entity, typeData);
                 case COMPLIANCE -> unwrapComplianceToken(entity, typeData);
+                // Document-based secondary tokens
+                case TITLE_DEED, OWNER_KYC, TAX_RECEIPT, APPRAISAL, INSURANCE, SURVEY,
+                     CERTIFICATE, LICENSE, AGREEMENT, INSPECTION, PERMIT, WARRANTY,
+                     ENVIRONMENTAL, AUDIT, FINANCIAL_STATEMENT, PROOF_OF_FUNDS -> unwrapDocumentToken(entity, type, typeData);
             };
         } catch (Exception e) {
             throw new RuntimeException("Failed to deserialize secondary token", e);
@@ -324,5 +328,36 @@ public class SecondaryTokenPostgresRepository implements PanacheRepository<Secon
             status,
             (Map<String, Object>) typeData.getOrDefault("complianceData", new HashMap<>())
         );
+    }
+
+    @SuppressWarnings("unchecked")
+    private DocumentToken unwrapDocumentToken(SecondaryTokenEntity entity, SecondaryTokenType type, Map<String, Object> typeData) {
+        DocumentToken token = new DocumentToken(
+            entity.tokenId,
+            entity.compositeId,
+            type,
+            (String) typeData.get("documentId"),
+            (String) typeData.get("documentName"),
+            (String) typeData.get("sha256Hash")
+        );
+        token.setDocumentType((String) typeData.get("documentType"));
+        token.setFileAttachmentId((String) typeData.get("fileAttachmentId"));
+        token.setStorageUrl((String) typeData.get("storageUrl"));
+        if (typeData.get("fileSize") != null) {
+            token.setFileSize(((Number) typeData.get("fileSize")).longValue());
+        }
+        token.setIssuer((String) typeData.get("issuer"));
+        if (typeData.get("issuedDate") != null) {
+            token.setIssuedDate(java.time.Instant.parse((String) typeData.get("issuedDate")));
+        }
+        if (typeData.get("expiryDate") != null) {
+            token.setExpiryDate(java.time.Instant.parse((String) typeData.get("expiryDate")));
+        }
+        if (typeData.get("verified") != null) {
+            token.setVerified((Boolean) typeData.get("verified"));
+        }
+        token.setVerifierId((String) typeData.get("verifierId"));
+        token.setJurisdiction((String) typeData.get("jurisdiction"));
+        return token;
     }
 }
