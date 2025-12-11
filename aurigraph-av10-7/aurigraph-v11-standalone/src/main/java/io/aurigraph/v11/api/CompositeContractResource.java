@@ -27,7 +27,7 @@ import java.util.*;
  * @version 12.1.0
  * @since AV11-603-02
  */
-@Path("/api/v11/contracts")
+@Path("/api/v11/composite-contracts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CompositeContractResource {
