@@ -1,8 +1,8 @@
 # Aurigraph DLT Platform Architecture - Main Overview
 
-**Version**: 11.1.0 (V11 Migration Progress)
-**Status**: 🚧 Hybrid V10/V11 Architecture (42% migrated)
-**Last Updated**: 2025-11-17
+**Version**: 12.0.0 (V12 Production Release)
+**Status**: 🟢 Production Ready
+**Last Updated**: 2025-12-12
 **Document Type**: Architecture Index & Overview
 
 ---
@@ -62,12 +62,28 @@ Aurigraph DLT is a high-performance decentralized blockchain platform built on J
 - **Decentralization**: Multi-cloud deployment (AWS, Azure, GCP)
 - **Real-World Integration**: Cross-chain bridges and asset tokenization
 
-### Current State (November 17, 2025)
-- **Platform Status**: Fully decentralized, 776K TPS baseline verified
+### Current State (December 12, 2025)
+- **Platform Status**: Fully decentralized, 2.56M+ TPS production verified
 - **ML Optimization**: 3.0M TPS achieved in Sprint 5 benchmarks
-- **Enterprise Portal**: v4.5.0 live at https://dlt.aurigraph.io
-- **Production Ready**: ✅ 7/7 Docker containers healthy on dlt.aurigraph.io
+- **Enterprise Portal**: v12.0.0 live at https://dlt.aurigraph.io
+- **Production Ready**: Multi-container deployment on dlt.aurigraph.io
 - **Multi-Cloud**: Ready for AWS/Azure/GCP deployment
+
+### V12 New Features (December 2025)
+
+| Component | Description |
+|-----------|-------------|
+| **Asset Registry** | 12 asset categories with full lifecycle management (DRAFT → PENDING_VERIFICATION → VERIFIED → TOKENIZED → TRANSFERRED → ARCHIVED) |
+| **File Attachments** | MinIO CDN integration with SHA256 integrity verification |
+| **External Verification** | Pluggable adapters: Land Registry, KYC, VVB, Manual |
+| **Smart Contract Library** | 7 pre-built contract templates for RWA use cases |
+| **Referral System** | User referral tracking with rewards analytics |
+
+#### V12 Technology Updates
+- **Runtime**: Java 21 + Quarkus 3.29.0
+- **Framework Version**: aurigraph-v12-standalone-12.0.0
+- **Database Migrations**: V15-V17 (File attachments, Asset registry, CDN URL)
+- **CDN**: MinIO object storage with nginx proxy
 
 ---
 
@@ -197,13 +213,14 @@ Both versions run in parallel during migration for:
 | Aspect | Specification |
 |--------|---------------|
 | **Runtime** | Java 21 + Virtual Threads |
-| **Framework** | Quarkus 3.26.2 |
+| **Framework** | Quarkus 3.29.0 |
 | **Compilation** | GraalVM Native Image |
 | **Database** | PostgreSQL 16 + RocksDB |
 | **Cache** | Redis 7 + Hazelcast |
+| **Object Storage** | MinIO CDN |
 | **Startup** | <1s (native) |
 | **Memory** | <256MB (native) |
-| **TPS** | 776K baseline, 3M peak, 2M+ target |
+| **TPS** | 2.56M+ production verified |
 | **Build Time** | 2-30 min (native profiles) |
 | **Deployment** | Kubernetes + Docker |
 | **Consensus** | HyperRAFT++ (AI-optimized) |
@@ -332,6 +349,7 @@ docs/architecture/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 12.0.0 | 2025-12-12 | V12 features: Asset Registry, File Attachments (MinIO CDN), External Verification adapters, Smart Contract Library, Referral System. Updated TPS to 2.56M+. |
 | 1.1.0 | 2025-11-17 | Split into 6 focused documents (Phase 2 chunking) |
 | 1.0.0 | 2025-11-03 | Original monolithic ARCHITECTURE.md |
 
