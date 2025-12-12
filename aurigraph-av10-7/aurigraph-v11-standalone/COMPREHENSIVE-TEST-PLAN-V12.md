@@ -16,13 +16,14 @@ This comprehensive test plan covers all testing requirements for the Aurigraph V
 
 | Test Type | Framework | Test Count | Priority |
 |-----------|-----------|------------|----------|
-| Smoke Tests | Playwright/Pytest | 25 | P0 - Critical |
-| Regression Tests | Playwright/Pytest | 100+ | P1 - High |
+| Smoke Tests | Playwright/Pytest | 37 | P0 - Critical |
+| Regression Tests | Playwright/Pytest | 115+ | P1 - High |
 | Unit Tests | JUnit 5 | 200+ | P1 - High |
 | Integration Tests | TestContainers | 50+ | P2 - Medium |
 | E2E Tests | Playwright | 76 | P1 - High |
 | Performance Tests | JMeter/Gatling | 30 | P2 - Medium |
-| Security Tests | OWASP ZAP | 20 | P1 - High |
+| Security Tests | OWASP ZAP | 25 | P1 - High |
+| CDN/Storage Tests | MinIO/Nginx | 12 | P1 - High |
 
 ---
 
@@ -62,6 +63,28 @@ Execute after every deployment. **Must pass 100%** before proceeding.
 | SMK-I03 | Database | PostgreSQL | Connection success |
 | SMK-I04 | Redis Cache | Redis | PONG response |
 | SMK-I05 | Certificate | SSL/TLS | Valid, not expired |
+
+### 2.4 MinIO CDN Smoke Tests
+
+| ID | Test Case | Component | Expected Result |
+|----|-----------|-----------|-----------------|
+| SMK-CDN01 | MinIO Health | MinIO container | Status: healthy, API accessible |
+| SMK-CDN02 | Bucket Access | attachments bucket | Bucket exists, readable |
+| SMK-CDN03 | Bucket Access | documents bucket | Bucket exists, readable |
+| SMK-CDN04 | Bucket Access | assets bucket | Bucket exists, readable |
+| SMK-CDN05 | CDN Proxy | Nginx /cdn/* | 200 OK from https://dlt.aurigraph.io/cdn/ |
+| SMK-CDN06 | File Upload | POST to MinIO | File uploaded, SHA256 hash returned |
+| SMK-CDN07 | CDN URL Access | GET cdn_url | File accessible via CDN URL |
+
+### 2.5 File Attachment Smoke Tests
+
+| ID | Test Case | Endpoint | Expected Result | Timeout |
+|----|-----------|----------|-----------------|---------|
+| SMK-FA01 | Upload File | POST /api/v11/attachments/upload | 201 Created, fileId + cdnUrl returned | 30s |
+| SMK-FA02 | Get Attachment | GET /api/v11/attachments/{fileId} | 200 OK, file metadata | 5s |
+| SMK-FA03 | List by Token | GET /api/v11/attachments/token/{tokenId} | 200 OK, array of attachments | 10s |
+| SMK-FA04 | Verify Hash | POST /api/v11/attachments/{fileId}/verify | 200 OK, verified: true | 10s |
+| SMK-FA05 | Download File | GET /api/v11/attachments/{fileId}/download | 200 OK, file content | 30s |
 
 ---
 
@@ -138,6 +161,26 @@ Execute after every deployment. **Must pass 100%** before proceeding.
 | REG-A48 | Asset Documents | GET /api/v11/assets/{id}/documents | Document list |
 | REG-A49 | Tokenize Asset | POST /api/v11/assets/{id}/tokenize | Tokenization started |
 | REG-A50 | Delete Asset | DELETE /api/v11/assets/{id} | 204 No Content |
+
+#### A.5 File Attachments & CDN (15 tests)
+
+| ID | Test Case | Steps | Expected Result |
+|----|-----------|-------|-----------------|
+| REG-A51 | Upload Document | POST /api/v11/attachments/upload (PDF) | 201, fileId + cdnUrl returned |
+| REG-A52 | Upload Image | POST /api/v11/attachments/upload (PNG) | 201, mime type detected |
+| REG-A53 | Get Attachment | GET /api/v11/attachments/{fileId} | 200, full metadata |
+| REG-A54 | List by Token | GET /api/v11/attachments/token/{id} | 200, array of files |
+| REG-A55 | List by Transaction | GET /api/v11/attachments/tx/{txId} | 200, array of files |
+| REG-A56 | List by Category | GET /api/v11/attachments?category=documents | 200, filtered results |
+| REG-A57 | Verify Hash | POST /api/v11/attachments/{fileId}/verify | 200, verified: true |
+| REG-A58 | Invalid Hash | POST with wrong sha256 | 400, hash mismatch error |
+| REG-A59 | Link to Token | PUT /api/v11/attachments/{fileId}/link/token/{id} | 200, linked |
+| REG-A60 | Link to Transaction | PUT /api/v11/attachments/{fileId}/link/tx/{id} | 200, linked |
+| REG-A61 | Download File | GET /api/v11/attachments/{fileId}/download | 200, file content |
+| REG-A62 | CDN URL Access | GET {cdnUrl} directly | 200, file accessible |
+| REG-A63 | Soft Delete | DELETE /api/v11/attachments/{fileId} | 204, soft deleted |
+| REG-A64 | Duplicate Upload | POST same file twice | 200, returns existing fileId |
+| REG-A65 | Large File | POST 50MB file | 201, chunked upload |
 
 ### 3.2 Bucket B: External Verification Regression (25 tests)
 
@@ -278,6 +321,68 @@ Execute after every deployment. **Must pass 100%** before proceeding.
 | GOLD_STANDARD | GS-XXXX | SDG contributions, buffer pool |
 | CAR | CAR-XXXX | Project type, additionality |
 | ACR | ACR-XXXX | Leakage assessment, permanence |
+
+### 4.4 TC-004: File Upload with MinIO CDN Flow
+
+**Priority**: P0 - Critical
+**Type**: End-to-End
+**Estimated Duration**: 3 minutes
+
+#### Preconditions
+1. MinIO CDN container healthy
+2. Nginx CDN proxy configured
+3. V17 migration applied (cdn_url column exists)
+
+#### Test Steps
+
+| Step | Action | Expected Result | Pass/Fail |
+|------|--------|-----------------|-----------|
+| 1 | Navigate to /assets/register or /tokenize | File upload component visible | |
+| 2 | Select file (PDF, max 50MB) | File selected, client-side SHA256 computed | |
+| 3 | Verify SHA256 display | Hash displayed in UI before upload | |
+| 4 | Click "Upload" | POST /api/v11/attachments/upload | |
+| 5 | Verify response | 201 Created, fileId + cdnUrl returned | |
+| 6 | Verify cdnUrl format | URL matches https://dlt.aurigraph.io/cdn/attachments/{hash}_{filename} | |
+| 7 | Access cdnUrl directly | File downloadable via CDN | |
+| 8 | Verify database record | FileAttachment entity has cdn_url populated | |
+| 9 | Verify hash integrity | POST /api/v11/attachments/{fileId}/verify returns verified: true | |
+| 10 | Link to token/asset | File linked successfully | |
+
+#### Test Data
+```json
+{
+  "testFiles": [
+    { "name": "property_deed.pdf", "size": "2MB", "mimeType": "application/pdf" },
+    { "name": "asset_photo.png", "size": "5MB", "mimeType": "image/png" },
+    { "name": "valuation_report.xlsx", "size": "1MB", "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+  ]
+}
+```
+
+#### Postconditions
+- File stored in MinIO attachments bucket
+- CDN URL accessible via Nginx proxy
+- FileAttachment record created with cdnUrl
+- SHA256 hash verified
+
+### 4.5 TC-005: MinIO CDN Infrastructure Verification
+
+**Priority**: P1 - High
+**Type**: Infrastructure
+**Estimated Duration**: 2 minutes
+
+#### Test Steps
+
+| Step | Action | Expected Result | Pass/Fail |
+|------|--------|-----------------|-----------|
+| 1 | Check MinIO container health | docker ps shows healthy | |
+| 2 | Verify MinIO API | mc admin info minio returns stats | |
+| 3 | List buckets | attachments, documents, assets exist | |
+| 4 | Test Nginx CDN proxy | GET /cdn/ returns 200 | |
+| 5 | Upload test file via mc | mc cp test.pdf minio/attachments/ succeeds | |
+| 6 | Access via CDN | https://dlt.aurigraph.io/cdn/attachments/test.pdf returns file | |
+| 7 | Verify filesystem storage | /home/subbu/minio/data contains files | |
+| 8 | Delete test file | mc rm minio/attachments/test.pdf | |
 
 ---
 
@@ -489,6 +594,8 @@ jmeter -n -t tests/performance/load-test.jmx -l results.jtl
 - AV11-586: Backend API endpoints not responding - 502 errors
 - AV11-587: Docker containers in restart loop - health check failing
 - AV11-588: E2E tests needed for External Verification Integration
+- AV11-589: MinIO CDN Integration Complete - File storage with SHA256 hashing
+- AV11-590: File Attachment API - Upload, download, verify endpoints
 
 ### 13.2 References
 
@@ -504,3 +611,4 @@ jmeter -n -t tests/performance/load-test.jmx -l results.jtl
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | Dec 11, 2025 | J4C Agent | Initial creation |
+| 1.1 | Dec 12, 2025 | J4C Agent | Added MinIO CDN, File Attachments, V17 migration tests |
