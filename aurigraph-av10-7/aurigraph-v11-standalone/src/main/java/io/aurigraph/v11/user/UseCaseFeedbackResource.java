@@ -384,7 +384,11 @@ public class UseCaseFeedbackResource {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new ValidationException("Missing or invalid authorization header");
         }
-        return jwtService.extractUserId(authHeader.substring(7));
+        String userId = jwtService.getUserIdFromToken(authHeader.substring(7));
+        if (userId == null) {
+            throw new ValidationException("Invalid token - could not extract user ID");
+        }
+        return UUID.fromString(userId);
     }
 
     private CommentResponse toCommentResponse(UseCaseFeedback comment) {

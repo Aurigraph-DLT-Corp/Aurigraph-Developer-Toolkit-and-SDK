@@ -356,7 +356,11 @@ public class UserInterestResource {
         }
 
         String token = authHeader.substring(7);
-        return jwtService.extractUserId(token);
+        String userId = jwtService.getUserIdFromToken(token);
+        if (userId == null) {
+            throw new ValidationException("Invalid token - could not extract user ID");
+        }
+        return UUID.fromString(userId);
     }
 
     /**
