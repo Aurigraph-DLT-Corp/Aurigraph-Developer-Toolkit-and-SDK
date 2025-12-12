@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Box, Card, TextField, Button, Typography, Alert } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { Box, Card, TextField, Button, Typography, Alert, Link, Divider } from '@mui/material'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useAppDispatch } from '../hooks'
 import { loginSuccess } from '../store/authSlice'
 
@@ -43,7 +43,14 @@ export default function Login() {
           </Button>
         </form>
         <Typography variant="body2" sx={{ mt: 2, textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
-          Use admin/admin
+          Demo: admin/admin
+        </Typography>
+        <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.1)' }} />
+        <Typography variant="body2" sx={{ textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
+          Don't have an account?{' '}
+          <Link component={RouterLink} to="/register" sx={{ color: '#00BFA5' }}>
+            Create Account
+          </Link>
         </Typography>
       </Card>
     </Box>

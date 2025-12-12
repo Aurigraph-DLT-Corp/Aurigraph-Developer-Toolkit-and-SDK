@@ -282,6 +282,52 @@ public class UserResource {
     }
 
     /**
+     * Public user registration
+     * POST /api/v12/users/register
+     * Creates a new user account with USER role (no authentication required)
+     */
+    @POST
+    @Path("/register")
+    public Uni<Response> register(@Valid RegisterUserRequest request) {
+        return Uni.createFrom().item(() -> {
+            try {
+                LOG.infof("Registering new user: %s", request.username());
+
+                // Create user with default USER role
+                User user = userService.createUser(
+                    request.username(),
+                    request.email(),
+                    request.password(),
+                    "USER"  // Default role for public registration
+                );
+
+                // Set status to PENDING_VERIFICATION for email verification flow
+                // For now, we'll set it to ACTIVE for demo purposes
+                // user.status = User.UserStatus.PENDING_VERIFICATION;
+                // user.persist();
+
+                return Response.status(Response.Status.CREATED)
+                    .entity(new RegistrationResponse(
+                        toUserResponse(user),
+                        "Registration successful! You can now log in."
+                    ))
+                    .build();
+            } catch (ValidationException e) {
+                String message = e.getMessage();
+                // Provide user-friendly error messages
+                if (message.contains("username") && message.contains("exists")) {
+                    message = "Username is already taken. Please choose a different username.";
+                } else if (message.contains("email") && message.contains("exists")) {
+                    message = "Email is already registered. Please use a different email or try to log in.";
+                }
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(message))
+                    .build();
+            }
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
      * Authenticate user
      * POST /api/v12/users/authenticate
      * Returns JWT token on successful authentication
@@ -361,6 +407,17 @@ public class UserResource {
     public record AuthenticateRequest(
         String username,
         String password
+    ) {}
+
+    public record RegisterUserRequest(
+        String username,
+        String email,
+        String password
+    ) {}
+
+    public record RegistrationResponse(
+        UserResponse user,
+        String message
     ) {}
 
     public record UserResponse(

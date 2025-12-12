@@ -8,6 +8,8 @@ import NodeManagement from './pages/NodeManagement'
 import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
+import Registration from './pages/auth/Registration'
+import Profile from './pages/auth/Profile'
 import DemoApp from './DemoApp'
 import DemoTokenExperience from './pages/demo/DemoTokenExperience'
 import DemoRegistration from './pages/demo/DemoRegistration'
@@ -59,6 +61,7 @@ function App() {
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         <Routes>
           <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+          <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <Registration />} />
           <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}>
             <Route index element={<Dashboard />} />
             <Route path="demo" element={<DemoApp />} />
@@ -75,6 +78,7 @@ function App() {
             <Route path="nodes" element={<NodeManagement />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="channels" element={<MultiChannelDashboard />} />
             <Route path="channels/:channelId/demo" element={<ChannelDemo channelId="main" />} />
             <Route path="contracts" element={<SmartContractRegistry />} />
