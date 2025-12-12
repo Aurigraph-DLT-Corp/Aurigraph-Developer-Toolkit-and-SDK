@@ -313,8 +313,8 @@ public class UserInterestService {
 
     /**
      * Check user's overall engagement and update priority if needed
+     * Note: No @Transactional needed - called within transactional context
      */
-    @Transactional
     private void updateUserPriorityIfNeeded(UUID userId) {
         List<UserInterest> recentInterests = UserInterest.find(
             "user.id = ?1 AND createdAt > ?2 ORDER BY createdAt DESC",
