@@ -792,3 +792,158 @@ curl -s http://localhost:9023/health | jq '.checks'
 - **Business**: Smart contract execution optimized
 - **Slim**: Minimal footprint for light operations
 - **All**: 10x faster startup, 5x less memory with GraalVM native
+
+---
+
+## Infrastructure Improvements - #MEMORIZED (December 2025)
+
+### 1. Nginx Upstream Load Balancing
+
+**Configuration File**: `/etc/nginx/conf.d/upstream-backend.conf`
+
+```nginx
+# Primary pool - healthy containers with high weight
+upstream aurigraph_v12_primary {
+    server 127.0.0.1:19029 weight=3 max_fails=2 fail_timeout=10s;  # business-19
+    server 127.0.0.1:19027 weight=3 max_fails=2 fail_timeout=10s;  # business-17
+    keepalive 32;
+}
+
+# Secondary pool - failover containers
+upstream aurigraph_v12_secondary {
+    server 127.0.0.1:19011 weight=1 max_fails=3 fail_timeout=15s backup;
+    server 127.0.0.1:19012 weight=1 max_fails=3 fail_timeout=15s backup;
+    keepalive 16;
+}
+```
+
+**Nginx Main Config Update** (`/etc/nginx/nginx.conf`):
+```nginx
+location /api/ {
+    proxy_pass http://aurigraph_v12_primary;
+    proxy_next_upstream error timeout http_502 http_503;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 30s;
+}
+```
+
+### 2. Blue-Green Deployment Script
+
+**Script Location**: `/home/subbu/scripts/blue-green-deploy.sh`
+
+```bash
+#!/bin/bash
+# Zero-downtime deployment with blue-green strategy
+# Usage: ./blue-green-deploy.sh [new-jar-path]
+
+# Deployment Steps:
+# 1. Copy new JAR to shared location
+# 2. Identify current BLUE pool (active containers)
+# 3. Start GREEN pool (new containers) with new JAR
+# 4. Health check GREEN pool
+# 5. Switch nginx upstream to GREEN pool
+# 6. Drain BLUE pool connections
+# 7. Stop BLUE pool containers
+```
+
+### 3. Container Manager Script
+
+**Script Location**: `/home/subbu/scripts/container-manager.sh`
+
+**Commands**:
+```bash
+# Check container status
+./container-manager.sh status
+
+# Restart all containers
+./container-manager.sh restart-all
+
+# Restart specific number of containers
+./container-manager.sh restart 5
+
+# Fix unhealthy containers (OOM recovery)
+./container-manager.sh fix-unhealthy
+
+# Deploy with optimized settings
+./container-manager.sh deploy-opt
+```
+
+### 4. Optimized Container Configuration
+
+**Container Port Mapping**: Ports 19011-19030 (business containers)
+
+**JVM Memory Optimization** (`docker-compose-business-optimized.yml`):
+```yaml
+environment:
+  JAVA_OPTS: >-
+    -Xmx1200m -Xms512m
+    -XX:+UseG1GC
+    -XX:MaxGCPauseMillis=100
+    -XX:+UseContainerSupport
+    -XX:MaxRAMPercentage=60.0
+    -XX:+HeapDumpOnOutOfMemoryError
+  QUARKUS_DATASOURCE_JDBC_MAX_SIZE: "5"
+  QUARKUS_DATASOURCE_JDBC_MIN_SIZE: "1"
+deploy:
+  resources:
+    limits:
+      memory: 2G
+    reservations:
+      memory: 512M
+```
+
+**Key Settings**:
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| Memory Limit | 2GB | Prevent OOM (up from 1.5GB) |
+| JVM Heap Max | 1200MB | Explicit heap to prevent runaway |
+| JVM Heap Min | 512MB | Fast startup |
+| DB Pool Max | 5 | Reduce connection exhaustion |
+| GC | G1GC | Low pause times |
+
+### 5. Common Container Issues & Fixes
+
+**Issue**: OutOfMemoryError from database connection pool
+**Root Cause**: Default JVM heap consumes all container memory
+**Fix**: Set explicit `-Xmx1200m` and reduce DB pool to 5
+
+**Issue**: 502 Bad Gateway on public endpoint
+**Root Cause**: All upstream containers unhealthy
+**Fix**: Run `./container-manager.sh fix-unhealthy`
+
+**Issue**: Container restart loop
+**Root Cause**: JVM OOM killer
+**Fix**: Increase container memory limit to 2GB
+
+### 6. Quick Commands Reference
+
+```bash
+# SSH to server
+ssh -p 22 subbu@dlt.aurigraph.io
+
+# Check healthy containers
+docker ps --format '{{.Names}}\t{{.Status}}' | grep healthy
+
+# Restart OOM containers
+/home/subbu/scripts/container-manager.sh fix-unhealthy
+
+# Check nginx upstream
+curl -sf http://localhost:19029/api/v11/health
+
+# Docker cleanup
+docker system prune -f
+docker image prune -a -f --filter "until=24h"
+
+# Check public endpoint
+curl -sf https://dlt.aurigraph.io/api/v11/health | jq .
+```
+
+### 7. Infrastructure Health Checklist
+
+- [ ] At least 2 healthy containers in primary nginx pool
+- [ ] Public endpoint returns `{"status":"UP"}`
+- [ ] No OOM errors in container logs (`docker logs <container>`)
+- [ ] Nginx upstream shows healthy backends
+- [ ] Memory usage below 80% per container
+
+---

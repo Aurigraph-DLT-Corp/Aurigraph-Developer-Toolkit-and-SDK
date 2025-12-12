@@ -205,6 +205,110 @@ To provide a unified blockchain platform that seamlessly integrates traditional 
 - RWA tokenization transactions
 - HMS integration stability
 
+## Native Build Strategy (December 2025)
+
+### GraalVM/Mandrel JDK 21 Compatibility Issue
+
+**Issue Identified**: December 12, 2025
+**Status**: Blocked on upstream fix
+**Workaround**: JDK 17 Native Build
+
+#### Problem Description
+Native image compilation with Mandrel/GraalVM JDK 21 fails due to a known ForkJoinPool.common accessor bug:
+
+```
+Fatal error: com.oracle.svm.core.util.VMError$HostedError:
+Error in @InjectAccessors handling of field java.util.concurrent.ForkJoinPool.common
+accessors class com.oracle.svm.core.jdk.ForkJoinPoolCommonAccessor:
+found no method named set or setCommon
+```
+
+**Affected Configurations**:
+- `quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21`
+- `quay.io/quarkus/ubi9-quarkus-mandrel-builder-image:jdk-21`
+- Quarkus 3.30.1 with GraalVM CE 24.x
+
+#### Decision: JDK 17 Native Build
+
+**Rationale**: JDK 17 native builds are proven stable and provide all required performance benefits without the ForkJoinPool incompatibility.
+
+| Metric | JDK 17 Native | JDK 21 JVM |
+|--------|--------------|------------|
+| Startup Time | <500ms | ~3s |
+| Memory Usage | ~256MB | ~512MB |
+| Stability | High (LTS) | High |
+| JDK Features | Core features | Virtual threads, pattern matching |
+
+**JDK 21 Features Lost** (acceptable tradeoffs):
+- Virtual Threads (Project Loom) - Not required for current workload
+- Record Patterns - Not used in codebase
+- Sequenced Collections - Not used in codebase
+- Pattern Matching for switch - Limited usage
+
+#### Implementation
+
+**Build Command (JDK 17)**:
+```bash
+./mvnw clean package -Pnative-fast -DskipTests=true \
+    -Dquarkus.native.container-build=true \
+    -Dquarkus.native.container-runtime=docker \
+    -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-17
+```
+
+**Profile Configuration** (pom.xml):
+```xml
+<profile>
+    <id>native-jdk17</id>
+    <properties>
+        <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-17</quarkus.native.builder-image>
+    </properties>
+</profile>
+```
+
+#### Additional Blocker: --strict-image-heap Incompatibility
+
+**Discovered**: December 12, 2025
+**Status**: JDK 17 Native Build Also Blocked
+
+Quarkus 3.30.1 hardcodes `--strict-image-heap` option in NativeImageBuildStep, but this option:
+- Requires GraalVM 22+ / Mandrel 24+
+- Is NOT supported by the JDK 17 Mandrel images (Mandrel 23.0.x)
+
+| Mandrel Version | JDK | --strict-image-heap | @InjectAccessors Bug |
+|-----------------|-----|---------------------|----------------------|
+| 23.0.6 (jdk-17) | 17  | NOT supported       | N/A                  |
+| 24.2 (jdk-21)   | 21  | Supported           | ForkJoinPool.common  |
+| 25.0.1 (jdk-25) | 25  | Supported           | VirtualThread.DEFAULT_SCHEDULER |
+
+The property `quarkus.native.enable-strict-image-heap=false` is NOT recognized in Quarkus 3.30.1.
+
+#### Blocker 3: Mandrel 25 VirtualThread Bug
+
+**Discovered**: December 12, 2025
+**Status**: JDK 25 Native Build Also Blocked
+
+Mandrel 25 (jdk-25) has the same `@InjectAccessors` pattern bug for VirtualThread:
+```
+Error in @InjectAccessors handling of field java.lang.VirtualThread.DEFAULT_SCHEDULER
+...found no method named set or setDEFAULT_SCHEDULER
+```
+
+This confirms the SVM (Substrate VM) accessor injection is fundamentally broken across all recent Mandrel versions.
+
+#### Long-term Strategy
+
+1. **Immediate**: Deploy JVM containers for production (ALL native builds blocked)
+2. **Root Cause**: GraalVM SVM `@InjectAccessors` implementation has bugs for:
+   - `ForkJoinPool.common` (JDK 21)
+   - `VirtualThread.DEFAULT_SCHEDULER` (JDK 25)
+3. **Monitor Issues**:
+   - GraalVM GitHub: Track SVM accessor injection fixes
+   - Mandrel GitHub: Track upstream GraalVM integration
+4. **Timeline**: No working Mandrel version available as of December 2025
+5. **Alternative**: Consider downgrading Quarkus to pre-3.30 for JDK 17 builds (removes --strict-image-heap requirement)
+
+---
+
 ## Future Roadmap
 
 ### Phase 2 Enhancements (Q4 2025)
@@ -212,12 +316,14 @@ To provide a unified blockchain platform that seamlessly integrates traditional 
 - Advanced DeFi protocol support
 - Institutional trading interfaces
 - Enhanced analytics and reporting
+- **Native JDK 17 container deployment**
 
 ### Phase 3 Expansion (Q1 2026)
 - AI-powered contract optimization
 - Quantum-resistant cryptography
 - Global regulatory compliance
 - Enterprise partnership integrations
+- **JDK 21 native migration (pending GraalVM fix)**
 
 ## Conclusion
 
