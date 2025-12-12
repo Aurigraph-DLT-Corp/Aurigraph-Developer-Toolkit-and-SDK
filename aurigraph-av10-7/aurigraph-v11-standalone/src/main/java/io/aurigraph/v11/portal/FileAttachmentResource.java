@@ -56,6 +56,9 @@ public class FileAttachmentResource {
     @Inject
     FileHashService hashService;
 
+    @Inject
+    MinioStorageService minioStorage;
+
     private java.nio.file.Path attachmentsRoot;
 
     // Allowed file extensions
@@ -164,10 +167,21 @@ public class FileAttachmentResource {
             java.nio.file.Path txDir = attachmentsRoot.resolve(transactionId);
             Files.createDirectories(txDir);
 
-            // Copy file to storage
+            // Copy file to local storage as fallback
             java.nio.file.Path targetPath = txDir.resolve(storedName);
             Files.copy(file.filePath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-            LOG.infof("File stored at: %s", targetPath);
+            LOG.infof("File stored locally at: %s", targetPath);
+
+            // Upload to MinIO CDN
+            String cdnUrl = null;
+            String mimeType = Files.probeContentType(targetPath);
+            if (minioStorage.isAvailable()) {
+                var cdnResult = minioStorage.uploadFile(targetPath, storedName, category, mimeType);
+                if (cdnResult.isPresent()) {
+                    cdnUrl = cdnResult.get();
+                    LOG.infof("File uploaded to CDN: %s", cdnUrl);
+                }
+            }
 
             // Create entity
             FileAttachment attachment = new FileAttachment();
@@ -178,13 +192,14 @@ public class FileAttachmentResource {
             attachment.category = category;
             attachment.fileSize = fileSize;
             attachment.sha256Hash = sha256Hash;
-            attachment.mimeType = Files.probeContentType(targetPath);
+            attachment.mimeType = mimeType;
             attachment.storagePath = targetPath.toString();
+            attachment.cdnUrl = cdnUrl;
             attachment.description = description;
             attachment.verified = true; // Hash verified during upload
             attachment.persist();
 
-            LOG.infof("Attachment saved: fileId=%s, hash=%s, txId=%s", fileId, sha256Hash, transactionId);
+            LOG.infof("Attachment saved: fileId=%s, hash=%s, txId=%s, cdn=%s", fileId, sha256Hash, transactionId, cdnUrl != null ? "yes" : "no");
 
             return Response.status(Response.Status.CREATED)
                 .entity(buildResponse(attachment, "File uploaded successfully"))
@@ -254,6 +269,17 @@ public class FileAttachmentResource {
             java.nio.file.Path targetPath = pendingDir.resolve(storedName);
             Files.copy(file.filePath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
+            // Upload to MinIO CDN
+            String cdnUrl = null;
+            String mimeType = Files.probeContentType(targetPath);
+            if (minioStorage.isAvailable()) {
+                var cdnResult = minioStorage.uploadFile(targetPath, storedName, category, mimeType);
+                if (cdnResult.isPresent()) {
+                    cdnUrl = cdnResult.get();
+                    LOG.infof("File uploaded to CDN: %s", cdnUrl);
+                }
+            }
+
             FileAttachment attachment = new FileAttachment();
             attachment.fileId = fileId;
             attachment.originalName = originalName;
@@ -261,8 +287,9 @@ public class FileAttachmentResource {
             attachment.category = category;
             attachment.fileSize = fileSize;
             attachment.sha256Hash = sha256Hash;
-            attachment.mimeType = Files.probeContentType(targetPath);
+            attachment.mimeType = mimeType;
             attachment.storagePath = targetPath.toString();
+            attachment.cdnUrl = cdnUrl;
             attachment.description = description;
             attachment.verified = true;
             attachment.persist();
@@ -454,6 +481,14 @@ public class FileAttachmentResource {
         response.put("mimeType", attachment.mimeType);
         response.put("uploadedAt", attachment.uploadedAt != null ? attachment.uploadedAt.toString() : null);
         response.put("verified", attachment.verified);
+        // Include CDN URL if available (primary download source)
+        if (attachment.cdnUrl != null) {
+            response.put("cdnUrl", attachment.cdnUrl);
+            response.put("downloadUrl", attachment.cdnUrl); // Convenience field
+        } else {
+            // Fallback to local download endpoint
+            response.put("downloadUrl", "/api/v11/attachments/" + attachment.fileId + "/download");
+        }
         if (message != null) {
             response.put("message", message);
         }

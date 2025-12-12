@@ -97,11 +97,17 @@ public class FileAttachment extends PanacheEntity {
     public String mimeType;
 
     /**
-     * Full storage path on filesystem
+     * Full storage path on filesystem (local fallback)
      */
-    @NotBlank
-    @Column(name = "storage_path", nullable = false, length = 500)
+    @Column(name = "storage_path", length = 500)
     public String storagePath;
+
+    /**
+     * CDN URL for MinIO-hosted files
+     * Example: https://dlt.aurigraph.io/cdn/attachments/abc123_file.pdf
+     */
+    @Column(name = "cdn_url", length = 500)
+    public String cdnUrl;
 
     /**
      * Upload timestamp

@@ -96,6 +96,7 @@ interface FileWithHash {
   sha256Hash: string
   status: 'pending' | 'uploading' | 'uploaded' | 'error'
   fileId?: string
+  cdnUrl?: string  // MinIO CDN URL for direct download
   uploadProgress?: number
   error?: string
 }
@@ -786,7 +787,7 @@ export default function TokenizeAsset() {
               `${formData.assetName} - ${doc.file.name}`
             )
 
-            // Update status to uploaded
+            // Update status to uploaded with CDN URL
             setFormData(prev => ({
               ...prev,
               documents: prev.documents.map((d, i) =>
@@ -795,12 +796,13 @@ export default function TokenizeAsset() {
                       ...d,
                       status: 'uploaded' as const,
                       fileId: uploadResult.fileId,
+                      cdnUrl: uploadResult.cdnUrl || uploadResult.downloadUrl,
                     }
                   : d
               )
             }))
 
-            return { success: true, fileId: uploadResult.fileId }
+            return { success: true, fileId: uploadResult.fileId, cdnUrl: uploadResult.cdnUrl }
           } catch (err) {
             // Update status to error
             setFormData(prev => ({
@@ -1189,8 +1191,32 @@ export default function TokenizeAsset() {
                             )}
                           </Box>
 
-                          {/* File ID (if uploaded) */}
-                          {doc.fileId && (
+                          {/* CDN Download Link (if available) */}
+                          {doc.cdnUrl && (
+                            <Tooltip title="Download from CDN">
+                              <Chip
+                                size="small"
+                                label="CDN"
+                                icon={<CloudDone sx={{ fontSize: 14 }} />}
+                                component="a"
+                                href={doc.cdnUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                clickable
+                                sx={{
+                                  bgcolor: 'rgba(0, 191, 165, 0.3)',
+                                  color: THEME_COLORS.primary,
+                                  fontSize: '0.65rem',
+                                  mr: 1,
+                                  '&:hover': {
+                                    bgcolor: 'rgba(0, 191, 165, 0.5)',
+                                  },
+                                }}
+                              />
+                            </Tooltip>
+                          )}
+                          {/* File ID (if uploaded without CDN) */}
+                          {doc.fileId && !doc.cdnUrl && (
                             <Chip
                               size="small"
                               label="Stored"

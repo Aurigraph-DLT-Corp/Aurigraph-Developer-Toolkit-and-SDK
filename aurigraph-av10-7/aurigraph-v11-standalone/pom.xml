@@ -631,6 +631,13 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-redis-client</artifactId>
         </dependency>
+
+        <!-- MinIO S3-compatible Object Storage -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.13</version>
+        </dependency>
         
         <!-- OpenAPI / Swagger Documentation -->
         <dependency>
@@ -998,7 +1005,7 @@
                 <!-- Optimized Native Image Settings - Updated Nov 2025 for Mandrel 24 + GraalVM 25 -->
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <!-- Mandrel 24 based on GraalVM 25 for JDK 21 -->
-                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:24.2-java21</quarkus.native.builder-image>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21</quarkus.native.builder-image>
                 <quarkus.native.container-runtime>docker</quarkus.native.container-runtime>
 
                 <!-- Performance Optimization Flags - GraalVM 25 / Mandrel 24 Compatible -->
@@ -1041,7 +1048,7 @@
                 <quarkus.native.enabled>true</quarkus.native.enabled>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <!-- Mandrel 24 based on GraalVM 25 for JDK 21 -->
-                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:24.2-java21</quarkus.native.builder-image>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21</quarkus.native.builder-image>
                 <quarkus.native.additional-build-args>
                     -O1,
                     --initialize-at-run-time=io.netty,
@@ -1063,7 +1070,7 @@
                 <quarkus.native.enabled>true</quarkus.native.enabled>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <!-- Mandrel 24 based on GraalVM 25 for JDK 21 -->
-                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:24.2-java21</quarkus.native.builder-image>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21</quarkus.native.builder-image>
                 <quarkus.native.additional-build-args>
                     <!-- GraalVM 25 / Mandrel 24 Ultra-Optimized Configuration -->
                     <!-- Updated Nov 30, 2025 - For Quarkus 3.30.1 + Mandrel 24.2 -->
