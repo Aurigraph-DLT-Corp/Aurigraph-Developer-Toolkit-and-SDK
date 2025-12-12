@@ -22,18 +22,18 @@ import java.util.Map;
  * Provides comprehensive metrics, performance data, and historical analytics
  *
  * Endpoints:
- * - GET /api/v11/dashboard - Dashboard summary
- * - GET /api/v11/dashboard/performance - Performance metrics
- * - GET /api/v11/dashboard/transactions - Transaction stats
- * - GET /api/v11/dashboard/nodes - Node health
- * - GET /api/v11/dashboard/history/{period} - Historical data
- * - GET /api/v11/dashboard/websocket-status - WebSocket connection status
+ * - GET /api/v12/dashboard - Dashboard summary
+ * - GET /api/v12/dashboard/performance - Performance metrics
+ * - GET /api/v12/dashboard/transactions - Transaction stats
+ * - GET /api/v12/dashboard/nodes - Node health
+ * - GET /api/v12/dashboard/history/{period} - Historical data
+ * - GET /api/v12/dashboard/websocket-status - WebSocket connection status
  *
  * @author Analytics Dashboard Team
  * @version 11.0.0
  * @since Sprint 13
  */
-@Path("/api/v11/dashboard")
+@Path("/api/v12/dashboard")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Analytics Dashboard", description = "Real-time analytics and monitoring endpoints")
@@ -59,7 +59,7 @@ public class AnalyticsDashboardResource {
         content = @Content(schema = @Schema(implementation = DashboardMetrics.class))
     )
     public Response getDashboard() {
-        LOG.debug("GET /api/v11/dashboard - Fetching dashboard metrics");
+        LOG.debug("GET /api/v12/dashboard - Fetching dashboard metrics");
 
         try {
             DashboardMetrics metrics = dashboardService.getDashboardMetrics();
@@ -88,7 +88,7 @@ public class AnalyticsDashboardResource {
         content = @Content(schema = @Schema(implementation = PerformanceMetrics.class))
     )
     public Response getPerformance() {
-        LOG.debug("GET /api/v11/dashboard/performance - Fetching performance metrics");
+        LOG.debug("GET /api/v12/dashboard/performance - Fetching performance metrics");
 
         try {
             PerformanceMetrics metrics = dashboardService.getPerformanceMetrics();
@@ -117,7 +117,7 @@ public class AnalyticsDashboardResource {
         content = @Content(schema = @Schema(implementation = AnalyticsDashboardService.TransactionStats.class))
     )
     public Response getTransactions() {
-        LOG.debug("GET /api/v11/dashboard/transactions - Fetching transaction statistics");
+        LOG.debug("GET /api/v12/dashboard/transactions - Fetching transaction statistics");
 
         try {
             AnalyticsDashboardService.TransactionStats stats = dashboardService.getTransactionStats();
@@ -146,7 +146,7 @@ public class AnalyticsDashboardResource {
         content = @Content(schema = @Schema(implementation = NodeHealthMetrics.class))
     )
     public Response getNodes() {
-        LOG.debug("GET /api/v11/dashboard/nodes - Fetching node health status");
+        LOG.debug("GET /api/v12/dashboard/nodes - Fetching node health status");
 
         try {
             List<NodeHealthMetrics> nodeHealth = dashboardService.getNodeHealthStatus();
@@ -182,7 +182,7 @@ public class AnalyticsDashboardResource {
         @Parameter(description = "Time period (1h, 6h, 24h)", required = true)
         @PathParam("period") String period
     ) {
-        LOG.debugf("GET /api/v11/dashboard/history/%s - Fetching historical data", period);
+        LOG.debugf("GET /api/v12/dashboard/history/%s - Fetching historical data", period);
 
         // Validate period
         if (!period.matches("(1h|6h|24h)")) {
@@ -221,7 +221,7 @@ public class AnalyticsDashboardResource {
         description = "WebSocket status retrieved successfully"
     )
     public Response getWebSocketStatus() {
-        LOG.debug("GET /api/v11/dashboard/websocket-status - Fetching WebSocket status");
+        LOG.debug("GET /api/v12/dashboard/websocket-status - Fetching WebSocket status");
 
         try {
             int connections = AnalyticsDashboardWebSocket.getConnectionCount();
@@ -293,7 +293,7 @@ public class AnalyticsDashboardResource {
         description = "Dashboard configuration retrieved successfully"
     )
     public Response getConfig() {
-        LOG.debug("GET /api/v11/dashboard/config - Fetching dashboard configuration");
+        LOG.debug("GET /api/v12/dashboard/config - Fetching dashboard configuration");
 
         return Response.ok(Map.of(
             "version", "12.0.0",

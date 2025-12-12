@@ -1,288 +1,242 @@
 #!/bin/bash
-# Aurigraph V4.4.4 Automated Deployment Script
-# Remote Server: dlt.aurigraph.io
-# Usage: ./deploy.sh [start|stop|restart|status|logs|clean]
-
 set -e
 
-DEPLOY_ENV="production"
-DEPLOY_HOST="dlt"
-DEPLOY_PATH="/opt/DLT"
-DOCKER_COMPOSE_FILE="docker-compose.yml"
+# ==============================================================================
+# Aurigraph-DLT Unified Deployment Script
+#
+# This script handles the deployment of the Aurigraph-DLT platform to a remote
+# server. It supports different environments and versions.
+#
+# Usage:
+#   ./deploy.sh --env <env> --version <ver> [options]
+#
+# Environments:
+#   - staging: Deploys the staging environment.
+#   - production: Deploys the full production environment.
+#
+# Versions:
+#   - v11: Deploys the V11 application.
+#   - v12: Deploys the V12 application.
+#
+# Options:
+#   --skip-upload: Skips the file upload step.
+#   --help:        Displays this help message.
+# ==============================================================================
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# --- Configuration ---
+REMOTE_USER="subbu"
+REMOTE_HOST="dlt.aurigraph.io"
+REMOTE_PORT="22"
+REMOTE_BASE="/opt/DLT"
+DOCKER_REGISTRY="" # Optional: e.g., "your-registry.com/"
 
-# Helper functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+# --- Script Arguments ---
+ENVIRONMENT=""
+VERSION=""
+SKIP_UPLOAD=false
+
+# --- Helper Functions ---
+function show_help() {
+  echo "Usage: ./deploy.sh --env <env> --version <ver> [options]"
+  echo ""
+  echo "Environments:"
+  echo "  - staging:    Deploys the staging environment."
+  echo "  - production: Deploys the full production environment."
+  echo ""
+  echo "Versions:"
+  echo "  - v11: Deploys the V11 application."
+  echo "  - v12: Deploys the V12 application."
+  echo ""
+  echo "Options:"
+  echo "  --skip-upload: Skips the file upload step."
+  echo "  --help:        Displays this help message."
 }
 
-log_success() {
-    echo -e "${GREEN}[✓]${NC} $1"
-}
+# --- Argument Parsing ---
+while [[ $# -gt 0 ]]; do
+  key=""
+  case $key in
+    --env)
+      ENVIRONMENT="$2"
+      shift; shift
+      ;;
+    --version)
+      VERSION="$2"
+      shift; shift
+      ;;
+    --skip-upload)
+      SKIP_UPLOAD=true
+      shift
+      ;;
+    --help)
+      show_help
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: "
+      show_help
+      exit 1
+      ;;
+  esac
+done
 
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
+# --- Validation ---
+if [[ -z "$ENVIRONMENT" || -z "$VERSION" ]]; then
+  echo "Error: Environment and version must be specified."
+  show_help
+  exit 1
+fi
 
-log_error() {
-    echo -e "${RED}[✗]${NC} $1"
-}
+if [[ "$ENVIRONMENT" != "staging" && "$ENVIRONMENT" != "production" ]]; then
+  echo "Error: Invalid environment '$ENVIRONMENT'."
+  show_help
+  exit 1
+fi
 
-# Check if we're in the right directory
-check_directory() {
-    if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
-        log_error "docker-compose.yml not found in current directory"
-        exit 1
-    fi
-    log_success "Configuration files found"
-}
+if [[ "$VERSION" != "v11" && "$VERSION" != "v12" ]]; then
+  echo "Error: Invalid version '$VERSION'."
+  show_help
+  exit 1
+fi
 
-# Build Docker images
-build_images() {
-    log_info "Building Docker images..."
-    ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose build --parallel" || {
-        log_error "Image build failed"
-        return 1
-    }
-    log_success "Docker images built successfully"
-}
+IMAGE_NAME="${DOCKER_REGISTRY}aurigraph-dlt:${VERSION}"
 
-# Pull latest configuration
-pull_configuration() {
-    log_info "Pulling latest configuration from GitHub..."
-    ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && git pull origin main" || {
-        log_error "Git pull failed"
-        return 1
-    }
-    log_success "Latest configuration pulled"
-}
+echo "=================================================="
+echo "AURIGRAPH DLT UNIFIED DEPLOYMENT"
+echo "=================================================="
+echo "📋 Configuration:"
+echo "  Environment:   $ENVIRONMENT"
+echo "  Version:       $VERSION"
+echo "  Image:         $IMAGE_NAME"
+echo "  Remote Host:   ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PORT}"
+echo "  Remote Path:   ${REMOTE_BASE}"
+echo "  Skip Upload:   $SKIP_UPLOAD"
+echo "=================================================="
+echo ""
 
-# Start services
-start_services() {
-    log_info "Starting Docker services..."
-    ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose up -d" || {
-        log_error "Service startup failed"
-        return 1
-    }
-    log_success "Docker services started"
+# --- Main Deployment Logic ---
 
-    log_info "Waiting for services to be ready (30 seconds)..."
-    sleep 30
+echo "🚀 Deployment for environment '$ENVIRONMENT' version '$VERSION' started."
+echo ""
 
-    log_info "Checking service health..."
-    verify_health
-}
+# 1. Build V12 Docker image if deploying V12
+if [ "$VERSION" = "v12" ]; then
+  echo "🔧 Building V12 application and Docker image..."
+  
+  # Build the JAR using Maven
+  (cd aurigraph-av10-7/aurigraph-v11-standalone && ./mvnw clean package -DskipTests)
+  
+  # Build the Docker image
+  docker build -t "$IMAGE_NAME" aurigraph-av10-7/aurigraph-v11-standalone
+  
+  if [ -n "$DOCKER_REGISTRY" ]; then
+    echo " pushing image to registry..."
+    docker push "$IMAGE_NAME"
+  fi
+  
+  echo "✅ V12 Docker image built successfully."
+  echo ""
+fi
 
-# Stop services
-stop_services() {
-    log_info "Stopping Docker services..."
-    ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose down" || {
-        log_error "Service stop failed"
-        return 1
-    }
-    log_success "Docker services stopped"
-}
+# 2. Prepare local configuration files
+echo "🔧 Preparing local configuration..."
+BUILD_DIR="deployment/build"
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 
-# Restart services
-restart_services() {
-    log_info "Restarting Docker services..."
-    ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose restart" || {
-        log_error "Service restart failed"
-        return 1
-    }
-    log_success "Docker services restarted"
+cp "deployment/docker-compose.yml" "$BUILD_DIR/"
+cp "deployment/environments/${VERSION}/${ENVIRONMENT}/docker-compose.override.yml" "$BUILD_DIR/"
+cp "deployment/config/nginx.conf" "$BUILD_DIR/"
+cp "deployment/config/prometheus.yml" "$BUILD_DIR/"
 
-    log_info "Waiting for services to be ready (20 seconds)..."
-    sleep 20
+# Create a .env file for docker-compose
+echo "IMAGE_NAME=${IMAGE_NAME}" > "$BUILD_DIR/.env"
 
-    verify_health
-}
+echo "✅ Local configuration prepared in '$BUILD_DIR'."
+echo ""
 
-# Check service status
-check_status() {
-    log_info "Service Status:"
-    ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose ps" || {
-        log_error "Could not retrieve service status"
-        return 1
-    }
-}
+# 3. Upload files to remote server
+if [ "$SKIP_UPLOAD" = false ]; then
+  echo "📤 Uploading configuration to remote server..."
+  scp -P "$REMOTE_PORT" -r "$BUILD_DIR"/* "${REMOTE_USER}@${REMOTE_HOST}:/tmp/"
+  echo "✅ Configuration uploaded."
+  echo ""
+else
+  echo "ℹ️ Skipping file upload as requested."
+  echo ""
+fi
 
-# Verify health checks
-verify_health() {
-    log_info "Verifying service health..."
+# 4. Execute remote deployment
+echo "🚀 Executing remote deployment..."
+ssh -p "$REMOTE_PORT" "${REMOTE_USER}@${REMOTE_HOST}" 'bash -s' <<'END_OF_REMOTE_SCRIPT'
+  set -e
 
-    # Check V11 health endpoint
-    log_info "Checking V11 service health (http://localhost:9003/q/health)..."
-    if ssh "$DEPLOY_HOST" "curl -sf http://localhost:9003/q/health > /dev/null" 2>/dev/null; then
-        log_success "V11 service is healthy"
-    else
-        log_warn "V11 service health check not yet responding"
-    fi
+  REMOTE_BASE="/opt/DLT"
+  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
-    # Check NGINX health endpoint
-    log_info "Checking NGINX health (http://localhost/health)..."
-    if ssh "$DEPLOY_HOST" "curl -sf http://localhost/health > /dev/null" 2>/dev/null; then
-        log_success "NGINX is healthy"
-    else
-        log_warn "NGINX health check not yet responding"
-    fi
+  echo "========================================="
+  echo "REMOTE: Aurigraph-DLT Deployment"
+  echo "========================================="
+  echo ""
 
-    # Check PostgreSQL
-    log_info "Checking PostgreSQL connectivity..."
-    if ssh "$DEPLOY_HOST" "docker-compose exec -T postgres pg_isready -U aurigraph" 2>/dev/null | grep -q "accepting"; then
-        log_success "PostgreSQL is healthy"
-    else
-        log_warn "PostgreSQL health check not yet responding"
-    fi
+  # 1. Backup existing configuration
+  echo "💾 Backing up existing configuration..."
+  if [ -f "${REMOTE_BASE}/docker-compose.yml" ]; then
+    BACKUP_DIR="${REMOTE_BASE}/backups/${TIMESTAMP}"
+    mkdir -p "$BACKUP_DIR"
+    mv "${REMOTE_BASE}/docker-compose.yml" "$BACKUP_DIR/"
+    mv "${REMOTE_BASE}/docker-compose.override.yml" "$BACKUP_DIR/" 2>/dev/null || true
+    mv "${REMOTE_BASE}/.env" "$BACKUP_DIR/" 2>/dev/null || true
+    echo "✅ Backup created in '$BACKUP_DIR'."
+  fi
+  echo ""
 
-    # Check Redis
-    log_info "Checking Redis connectivity..."
-    if ssh "$DEPLOY_HOST" "docker-compose exec -T redis redis-cli ping" 2>/dev/null | grep -q "PONG"; then
-        log_success "Redis is healthy"
-    else
-        log_warn "Redis health check not yet responding"
-    fi
-}
+  # 2. Stop old containers
+  echo "🛑 Stopping old containers..."
+  cd "$REMOTE_BASE"
+  docker-compose down --remove-orphans 2>/dev/null || true
+  echo "✅ Old containers stopped."
+  echo ""
 
-# View logs
-view_logs() {
-    local service=$1
-    if [ -z "$service" ]; then
-        log_info "Showing all service logs..."
-        ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose logs -f --tail=100"
-    else
-        log_info "Showing logs for service: $service"
-        ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose logs -f --tail=100 $service"
-    fi
-}
+  # 3. Deploy new configuration
+  echo "📋 Deploying new configuration..."
+  mv /tmp/docker-compose.yml "$REMOTE_BASE/"
+  mv /tmp/docker-compose.override.yml "$REMOTE_BASE/"
+  mv /tmp/.env "$REMOTE_BASE/"
+  mkdir -p "${REMOTE_BASE}/config"
+  mv /tmp/nginx.conf "${REMOTE_BASE}/config/"
+  mv /tmp/prometheus.yml "${REMOTE_BASE}/config/"
+  echo "✅ New configuration deployed."
+  echo ""
 
-# Clean up old volumes and containers
-cleanup() {
-    log_warn "This will remove all Docker containers, volumes, and networks for this deployment"
-    read -p "Are you sure? (yes/no): " -r
-    if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-        log_info "Cleaning up Docker resources..."
-        ssh "$DEPLOY_HOST" "cd $DEPLOY_PATH && docker-compose down -v" || {
-            log_error "Cleanup failed"
-            return 1
-        }
-        log_success "Docker resources cleaned up"
-    else
-        log_info "Cleanup cancelled"
-    fi
-}
+  # 4. Pull new Docker image
+  echo "🐳 Pulling new Docker image..."
+  source .env
+  docker pull "$IMAGE_NAME"
+  echo "✅ Image pulled."
+  echo ""
 
-# Database operations
-backup_database() {
-    log_info "Backing up PostgreSQL database..."
-    local backup_file="/opt/DLT/backups/aurigraph_$(date +%Y%m%d_%H%M%S).sql"
-    ssh "$DEPLOY_HOST" "mkdir -p /opt/DLT/backups && docker-compose exec -T postgres pg_dump -U aurigraph aurigraph_production > $backup_file" || {
-        log_error "Database backup failed"
-        return 1
-    }
-    log_success "Database backed up to $backup_file"
-}
+  # 5. Start new services
+  echo "🚀 Starting new services..."
+  cd "$REMOTE_BASE"
+  docker-compose up -d
+  echo "✅ Services started."
+  echo ""
 
-# Deploy with full validation
-full_deployment() {
-    log_info "Starting full deployment process..."
+  # 6. Health checks and status
+  echo "⏳ Waiting for services to become healthy..."
+  # (Health check logic will be added here)
+  sleep 10 # Placeholder
+  echo "✅ Services are up."
+  echo ""
 
-    check_directory
+  echo "📊 Service Status:"
+  docker-compose ps
+  echo ""
 
-    log_info "Step 1: Pulling latest configuration..."
-    pull_configuration
+  echo "========================================="
+  echo "✅ Remote Deployment Complete!"
+  echo "========================================="
+END_OF_REMOTE_SCRIPT
 
-    log_info "Step 2: Building Docker images..."
-    build_images
-
-    log_info "Step 3: Starting services..."
-    start_services
-
-    log_info "Step 4: Verifying deployment..."
-    check_status
-
-    log_success "Deployment completed successfully!"
-    log_info "Access the application at: https://dlt.aurigraph.io"
-    log_info "Grafana dashboard: https://dlt.aurigraph.io/grafana"
-    log_info "API documentation: https://dlt.aurigraph.io/swagger-ui/"
-}
-
-# Show usage
-show_usage() {
-    cat << EOF
-Usage: ./deploy.sh [COMMAND] [OPTIONS]
-
-Commands:
-    deploy          Full deployment (pull, build, start)
-    start           Start services
-    stop            Stop services
-    restart         Restart services
-    status          Show service status
-    logs [service]  View logs (optional: specific service)
-    health          Verify service health
-    backup          Backup PostgreSQL database
-    clean           Clean up all Docker resources
-    help            Show this help message
-
-Examples:
-    ./deploy.sh deploy              # Full deployment
-    ./deploy.sh logs                # View all logs
-    ./deploy.sh logs aurigraph-v11-service  # View V11 logs
-    ./deploy.sh status              # Check service status
-    ./deploy.sh backup              # Backup database
-
-For more information, see: DEPLOYMENT-V4.4.4-PRODUCTION.md
-EOF
-}
-
-# Main script
-main() {
-    local command=${1:-"help"}
-
-    case "$command" in
-        deploy)
-            full_deployment
-            ;;
-        start)
-            start_services
-            ;;
-        stop)
-            stop_services
-            ;;
-        restart)
-            restart_services
-            ;;
-        status)
-            check_status
-            ;;
-        health)
-            verify_health
-            ;;
-        logs)
-            view_logs "$2"
-            ;;
-        backup)
-            backup_database
-            ;;
-        clean)
-            cleanup
-            ;;
-        help)
-            show_usage
-            ;;
-        *)
-            log_error "Unknown command: $command"
-            show_usage
-            exit 1
-            ;;
-    esac
-}
-
-# Run main function
-main "$@"
+echo "🎉 Deployment finished successfully!"

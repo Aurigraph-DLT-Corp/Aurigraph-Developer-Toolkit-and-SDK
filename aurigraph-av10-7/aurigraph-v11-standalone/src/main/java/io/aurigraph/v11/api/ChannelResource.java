@@ -26,7 +26,7 @@ import java.util.*;
  * @version 11.0.0 (Priority #3 - Backend Development Agent)
  * @author Aurigraph V11 Development Team
  */
-@Path("/api/v11/channels")
+@Path("/api/v12/channels")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Channel Management", description = "Real-time communication channel operations")
@@ -44,7 +44,7 @@ public class ChannelResource {
 
     /**
      * List all channels with pagination
-     * GET /api/v11/channels
+     * GET /api/v12/channels
      */
     @GET
     @Operation(summary = "List channels", description = "Retrieve list of channels with pagination")
@@ -91,7 +91,7 @@ public class ChannelResource {
 
     /**
      * Get channel details
-     * GET /api/v11/channels/{id}
+     * GET /api/v12/channels/{id}
      */
     @GET
     @Path("/{id}")
@@ -118,7 +118,7 @@ public class ChannelResource {
 
     /**
      * Create new channel
-     * POST /api/v11/channels
+     * POST /api/v12/channels
      */
     @POST
     @Operation(summary = "Create channel", description = "Create a new communication channel")
@@ -165,7 +165,7 @@ public class ChannelResource {
 
     /**
      * Close a channel
-     * DELETE /api/v11/channels/{id}
+     * DELETE /api/v12/channels/{id}
      */
     @DELETE
     @Path("/{id}")
@@ -203,7 +203,7 @@ public class ChannelResource {
 
     /**
      * Send message to channel
-     * POST /api/v11/channels/{id}/messages
+     * POST /api/v12/channels/{id}/messages
      */
     @POST
     @Path("/{id}/messages")
@@ -246,7 +246,7 @@ public class ChannelResource {
 
     /**
      * Get messages from channel
-     * GET /api/v11/channels/{id}/messages
+     * GET /api/v12/channels/{id}/messages
      */
     @GET
     @Path("/{id}/messages")
@@ -284,7 +284,7 @@ public class ChannelResource {
 
     /**
      * Get channel members
-     * GET /api/v11/channels/{id}/members
+     * GET /api/v12/channels/{id}/members
      */
     @GET
     @Path("/{id}/members")
@@ -315,7 +315,7 @@ public class ChannelResource {
 
     /**
      * Join channel
-     * POST /api/v11/channels/{id}/join
+     * POST /api/v12/channels/{id}/join
      */
     @POST
     @Path("/{id}/join")
@@ -363,7 +363,7 @@ public class ChannelResource {
 
     /**
      * Get channel metrics
-     * GET /api/v11/channels/{id}/metrics
+     * GET /api/v12/channels/{id}/metrics
      */
     @GET
     @Path("/{id}/metrics")

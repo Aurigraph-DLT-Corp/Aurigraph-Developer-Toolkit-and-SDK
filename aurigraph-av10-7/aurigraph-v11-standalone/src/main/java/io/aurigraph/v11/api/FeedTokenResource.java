@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since October 2025
  */
-@Path("/api/v11/feed-tokens")
+@Path("/api/v12/feed-tokens")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Feed Token API", description = "Data feed tokenization and throughput management")
@@ -46,7 +46,7 @@ public class FeedTokenResource {
 
     /**
      * Get all feed tokens
-     * GET /api/v11/feed-tokens
+     * GET /api/v12/feed-tokens
      */
     @GET
     @Operation(summary = "List all feed tokens", description = "Retrieve list of all data feed tokens with throughput metrics")
@@ -86,7 +86,7 @@ public class FeedTokenResource {
 
     /**
      * Get specific feed token
-     * GET /api/v11/feed-tokens/{feedId}
+     * GET /api/v12/feed-tokens/{feedId}
      */
     @GET
     @Path("/{feedId}")
@@ -113,7 +113,7 @@ public class FeedTokenResource {
 
     /**
      * Mint new tokens for feed
-     * POST /api/v11/feed-tokens/{feedId}/mint
+     * POST /api/v12/feed-tokens/{feedId}/mint
      */
     @POST
     @Path("/{feedId}/mint")
@@ -158,7 +158,7 @@ public class FeedTokenResource {
 
     /**
      * Burn tokens
-     * POST /api/v11/feed-tokens/{feedId}/burn
+     * POST /api/v12/feed-tokens/{feedId}/burn
      */
     @POST
     @Path("/{feedId}/burn")
@@ -207,7 +207,7 @@ public class FeedTokenResource {
 
     /**
      * Update throughput metrics
-     * POST /api/v11/feed-tokens/{feedId}/throughput
+     * POST /api/v12/feed-tokens/{feedId}/throughput
      */
     @POST
     @Path("/{feedId}/throughput")
@@ -249,7 +249,7 @@ public class FeedTokenResource {
 
     /**
      * Get throughput history
-     * GET /api/v11/feed-tokens/{feedId}/throughput/history
+     * GET /api/v12/feed-tokens/{feedId}/throughput/history
      */
     @GET
     @Path("/{feedId}/throughput/history")
@@ -284,7 +284,7 @@ public class FeedTokenResource {
 
     /**
      * Get token transactions
-     * GET /api/v11/feed-tokens/{feedId}/transactions
+     * GET /api/v12/feed-tokens/{feedId}/transactions
      */
     @GET
     @Path("/{feedId}/transactions")
@@ -314,7 +314,7 @@ public class FeedTokenResource {
 
     /**
      * Get overall token statistics
-     * GET /api/v11/feed-tokens/stats
+     * GET /api/v12/feed-tokens/stats
      */
     @GET
     @Path("/stats")

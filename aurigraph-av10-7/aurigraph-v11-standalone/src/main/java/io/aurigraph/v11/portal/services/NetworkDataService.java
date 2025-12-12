@@ -227,7 +227,7 @@ public class NetworkDataService {
                 .eventCategory("security")
                 .actor("api-client-123")
                 .action("accessed-endpoint")
-                .resource("/api/v11/blockchain/metrics")
+                .resource("/api/v12/blockchain/metrics")
                 .resourceType("api")
                 .status("success")
                 .details("API request succeeded - response time 45ms")

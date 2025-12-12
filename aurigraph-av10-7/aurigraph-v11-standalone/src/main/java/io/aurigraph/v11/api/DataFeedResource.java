@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since October 2025
  */
-@Path("/api/v11/datafeeds")
+@Path("/api/v12/datafeeds")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Data Feed API", description = "External data feed management for slim agents")
@@ -49,7 +49,7 @@ public class DataFeedResource {
 
     /**
      * Get all data feeds
-     * GET /api/v11/datafeeds
+     * GET /api/v12/datafeeds
      */
     @GET
     @Operation(summary = "List all data feeds", description = "Retrieve list of all external data feeds")
@@ -79,7 +79,7 @@ public class DataFeedResource {
 
     /**
      * Get specific data feed
-     * GET /api/v11/datafeeds/{id}
+     * GET /api/v12/datafeeds/{id}
      */
     @GET
     @Path("/{id}")
@@ -100,7 +100,7 @@ public class DataFeedResource {
 
     /**
      * Create new data feed
-     * POST /api/v11/datafeeds
+     * POST /api/v12/datafeeds
      */
     @POST
     @Operation(summary = "Create data feed", description = "Create a new external data feed")
@@ -140,7 +140,7 @@ public class DataFeedResource {
 
     /**
      * Update data feed
-     * PUT /api/v11/datafeeds/{id}
+     * PUT /api/v12/datafeeds/{id}
      */
     @PUT
     @Path("/{id}")
@@ -168,7 +168,7 @@ public class DataFeedResource {
 
     /**
      * Delete data feed
-     * DELETE /api/v11/datafeeds/{id}
+     * DELETE /api/v12/datafeeds/{id}
      */
     @DELETE
     @Path("/{id}")
@@ -198,7 +198,7 @@ public class DataFeedResource {
 
     /**
      * Subscribe agent to feed
-     * POST /api/v11/datafeeds/{id}/subscribe
+     * POST /api/v12/datafeeds/{id}/subscribe
      */
     @POST
     @Path("/{id}/subscribe")
@@ -237,7 +237,7 @@ public class DataFeedResource {
 
     /**
      * Unsubscribe agent from feed
-     * POST /api/v11/datafeeds/{id}/unsubscribe
+     * POST /api/v12/datafeeds/{id}/unsubscribe
      */
     @POST
     @Path("/{id}/unsubscribe")
@@ -272,7 +272,7 @@ public class DataFeedResource {
 
     /**
      * Get feed subscriptions
-     * GET /api/v11/datafeeds/{id}/subscriptions
+     * GET /api/v12/datafeeds/{id}/subscriptions
      */
     @GET
     @Path("/{id}/subscriptions")
@@ -295,7 +295,7 @@ public class DataFeedResource {
 
     /**
      * Push data to feed
-     * POST /api/v11/datafeeds/{id}/data
+     * POST /api/v12/datafeeds/{id}/data
      */
     @POST
     @Path("/{id}/data")
@@ -332,7 +332,7 @@ public class DataFeedResource {
 
     /**
      * Get feed data (for agents)
-     * GET /api/v11/datafeeds/{id}/data
+     * GET /api/v12/datafeeds/{id}/data
      */
     @GET
     @Path("/{id}/data")
@@ -368,7 +368,7 @@ public class DataFeedResource {
 
     /**
      * Get feed statistics
-     * GET /api/v11/datafeeds/stats
+     * GET /api/v12/datafeeds/stats
      */
     @GET
     @Path("/stats")

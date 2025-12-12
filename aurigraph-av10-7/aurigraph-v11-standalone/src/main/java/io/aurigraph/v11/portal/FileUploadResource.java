@@ -49,7 +49,7 @@ import java.util.stream.Stream;
  * @version 1.0.0 (Dec 8, 2025)
  * @author Backend Development Agent (BDA)
  */
-@jakarta.ws.rs.Path("/api/v11/uploads")
+@jakarta.ws.rs.Path("/api/v12/uploads")
 @ApplicationScoped
 @PermitAll
 public class FileUploadResource {
@@ -99,7 +99,7 @@ public class FileUploadResource {
     /**
      * Upload a file to the filesystem
      *
-     * POST /api/v11/uploads
+     * POST /api/v12/uploads
      * Content-Type: multipart/form-data
      */
     @POST
@@ -178,7 +178,7 @@ public class FileUploadResource {
     /**
      * Upload asset files for token/RWAT operations
      *
-     * POST /api/v11/uploads/assets
+     * POST /api/v12/uploads/assets
      */
     @POST
     @jakarta.ws.rs.Path("/assets")
@@ -255,7 +255,7 @@ public class FileUploadResource {
     /**
      * List uploaded files
      *
-     * GET /api/v11/uploads
+     * GET /api/v12/uploads
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -291,7 +291,7 @@ public class FileUploadResource {
     /**
      * Get file info
      *
-     * GET /api/v11/uploads/{category}/{filename}
+     * GET /api/v12/uploads/{category}/{filename}
      */
     @GET
     @jakarta.ws.rs.Path("/{category}/{filename}")
@@ -323,7 +323,7 @@ public class FileUploadResource {
     /**
      * Download a file
      *
-     * GET /api/v11/uploads/{category}/{filename}/download
+     * GET /api/v12/uploads/{category}/{filename}/download
      */
     @GET
     @jakarta.ws.rs.Path("/{category}/{filename}/download")
@@ -359,7 +359,7 @@ public class FileUploadResource {
     /**
      * Delete a file
      *
-     * DELETE /api/v11/uploads/{category}/{filename}
+     * DELETE /api/v12/uploads/{category}/{filename}
      */
     @DELETE
     @jakarta.ws.rs.Path("/{category}/{filename}")

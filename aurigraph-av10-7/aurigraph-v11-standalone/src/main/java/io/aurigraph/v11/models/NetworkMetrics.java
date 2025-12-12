@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Real-time network metrics for live monitoring
- * Used by /api/v11/live/network endpoint
+ * Used by /api/v12/live/network endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

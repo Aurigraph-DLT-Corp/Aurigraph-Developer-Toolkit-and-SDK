@@ -18,7 +18,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 16
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AIOptimizationResource {
@@ -27,7 +27,7 @@ public class AIOptimizationResource {
 
     /**
      * Get ML model performance
-     * GET /api/v11/blockchain/ai/models
+     * GET /api/v12/blockchain/ai/models
      */
     @GET
     @Path("/ai/models")
@@ -63,7 +63,7 @@ public class AIOptimizationResource {
 
     /**
      * Get consensus optimization metrics
-     * GET /api/v11/blockchain/ai/consensus-optimization
+     * GET /api/v12/blockchain/ai/consensus-optimization
      */
     @GET
     @Path("/ai/consensus-optimization")
@@ -87,7 +87,7 @@ public class AIOptimizationResource {
 
     /**
      * Get predictive analytics
-     * GET /api/v11/blockchain/ai/predictions
+     * GET /api/v12/blockchain/ai/predictions
      */
     @GET
     @Path("/ai/predictions")

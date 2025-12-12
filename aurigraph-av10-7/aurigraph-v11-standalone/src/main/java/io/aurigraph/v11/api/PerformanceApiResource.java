@@ -26,7 +26,7 @@ import org.jboss.logging.Logger;
  * @author Aurigraph V11 Team
  * @version 4.8.0
  */
-@Path("/api/v11/performance")
+@Path("/api/v12/performance")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -39,7 +39,7 @@ public class PerformanceApiResource {
     AIApiResource aiApiResource;
 
     /**
-     * GET /api/v11/performance/optimization-metrics
+     * GET /api/v12/performance/optimization-metrics
      *
      * Returns AI optimization performance metrics for blockchain operations.
      *
@@ -74,7 +74,7 @@ public class PerformanceApiResource {
         )
     })
     public Uni<Response> getOptimizationMetrics() {
-        LOG.info("GET /api/v11/performance/optimization-metrics - delegating to AI API");
+        LOG.info("GET /api/v12/performance/optimization-metrics - delegating to AI API");
 
         // Delegate to AIApiResource for the actual implementation
         return aiApiResource.getOptimizationMetrics();

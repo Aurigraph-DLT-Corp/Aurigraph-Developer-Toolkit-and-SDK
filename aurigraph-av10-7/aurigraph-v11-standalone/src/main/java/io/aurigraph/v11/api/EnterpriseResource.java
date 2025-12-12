@@ -24,15 +24,15 @@ import java.util.Map;
  * AV11-283: Implement Enterprise Dashboard API
  *
  * Endpoints:
- * - GET /api/v11/enterprise/status - Get enterprise dashboard status
- * - GET /api/v11/enterprise/tenants/summary - Get tenant summary
- * - GET /api/v11/enterprise/features - Get feature status
- * - GET /api/v11/enterprise/usage - Get usage metrics
+ * - GET /api/v12/enterprise/status - Get enterprise dashboard status
+ * - GET /api/v12/enterprise/tenants/summary - Get tenant summary
+ * - GET /api/v12/enterprise/features - Get feature status
+ * - GET /api/v12/enterprise/usage - Get usage metrics
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v11/enterprise")
+@Path("/api/v12/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Enterprise Dashboard", description = "Enterprise features overview and multi-tenancy management")
@@ -66,7 +66,7 @@ public class EnterpriseResource {
                          description = "Internal server error")
     })
     public Uni<Response> getEnterpriseStatus() {
-        LOG.info("GET /api/v11/enterprise/status - Fetching enterprise dashboard status");
+        LOG.info("GET /api/v12/enterprise/status - Fetching enterprise dashboard status");
 
         return enterpriseService.getEnterpriseStatus()
                 .map(status -> {
@@ -103,7 +103,7 @@ public class EnterpriseResource {
                          description = "Internal server error")
     })
     public Uni<Response> getTenantSummary() {
-        LOG.debug("GET /api/v11/enterprise/tenants/summary - Fetching tenant summary");
+        LOG.debug("GET /api/v12/enterprise/tenants/summary - Fetching tenant summary");
 
         return enterpriseService.getEnterpriseStatus()
                 .map(status -> {
@@ -144,7 +144,7 @@ public class EnterpriseResource {
                          description = "Internal server error")
     })
     public Uni<Response> getEnterpriseFeatures() {
-        LOG.debug("GET /api/v11/enterprise/features - Fetching enterprise features");
+        LOG.debug("GET /api/v12/enterprise/features - Fetching enterprise features");
 
         return enterpriseService.getEnterpriseStatus()
                 .map(status -> Response.ok(status.getFeatures()).build())
@@ -175,7 +175,7 @@ public class EnterpriseResource {
                          description = "Internal server error")
     })
     public Uni<Response> getUsageMetrics() {
-        LOG.debug("GET /api/v11/enterprise/usage - Fetching usage metrics");
+        LOG.debug("GET /api/v12/enterprise/usage - Fetching usage metrics");
 
         return enterpriseService.getEnterpriseStatus()
                 .map(status -> {
@@ -217,7 +217,7 @@ public class EnterpriseResource {
                          description = "Internal server error")
     })
     public Uni<Response> getComplianceInfo() {
-        LOG.debug("GET /api/v11/enterprise/compliance - Fetching compliance info");
+        LOG.debug("GET /api/v12/enterprise/compliance - Fetching compliance info");
 
         return enterpriseService.getEnterpriseStatus()
                 .map(status -> Response.ok(status.getCompliance()).build())

@@ -23,7 +23,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 10
  */
-@Path("/api/v11/config")
+@Path("/api/v12/config")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Sprint10ConfigurationResource {
@@ -32,7 +32,7 @@ public class Sprint10ConfigurationResource {
 
     /**
      * Get network configuration
-     * GET /api/v11/config/network
+     * GET /api/v12/config/network
      */
     @GET
     @Path("/network")
@@ -103,7 +103,7 @@ public class Sprint10ConfigurationResource {
 
     /**
      * Update network configuration
-     * PUT /api/v11/config/network
+     * PUT /api/v12/config/network
      */
     @PUT
     @Path("/network")
@@ -125,7 +125,7 @@ public class Sprint10ConfigurationResource {
 
     /**
      * Get system settings
-     * GET /api/v11/config/settings
+     * GET /api/v12/config/settings
      */
     @GET
     @Path("/settings")
@@ -209,7 +209,7 @@ public class Sprint10ConfigurationResource {
 
     /**
      * Update system settings
-     * PUT /api/v11/config/settings
+     * PUT /api/v12/config/settings
      */
     @PUT
     @Path("/settings")
@@ -232,7 +232,7 @@ public class Sprint10ConfigurationResource {
 
     /**
      * Rotate API keys
-     * POST /api/v11/config/settings/rotate-keys
+     * POST /api/v12/config/settings/rotate-keys
      */
     @POST
     @Path("/settings/rotate-keys")
@@ -261,7 +261,7 @@ public class Sprint10ConfigurationResource {
 
     /**
      * Get configuration history
-     * GET /api/v11/config/history
+     * GET /api/v12/config/history
      */
     @GET
     @Path("/history")

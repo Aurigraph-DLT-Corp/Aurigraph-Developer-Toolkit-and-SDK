@@ -23,7 +23,7 @@ import java.util.*;
  * @author J4C Development Agent
  * @since 12.0.0
  */
-@Path("/api/v11/registry")
+@Path("/api/v12/registry")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Asset Registry", description = "Asset registration and lifecycle management")

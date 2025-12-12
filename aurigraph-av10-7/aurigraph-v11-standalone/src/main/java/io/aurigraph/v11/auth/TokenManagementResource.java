@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
  * - Revoke all tokens (logout all devices)
  * - View token audit trail
  *
- * Base Path: /api/v11/auth/tokens
+ * Base Path: /api/v12/auth/tokens
  */
-@Path("/api/v11/auth/tokens")
+@Path("/api/v12/auth/tokens")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TokenManagementResource {
@@ -36,7 +36,7 @@ public class TokenManagementResource {
     /**
      * List all active tokens for the authenticated user
      *
-     * GET /api/v11/tokens
+     * GET /api/v12/tokens
      * Returns paginated list of active tokens
      */
     @GET
@@ -81,7 +81,7 @@ public class TokenManagementResource {
     /**
      * Get token statistics and metrics
      *
-     * GET /api/v11/tokens/stats
+     * GET /api/v12/tokens/stats
      * Returns aggregated token statistics for user
      */
     @GET
@@ -155,7 +155,7 @@ public class TokenManagementResource {
     /**
      * Revoke a specific token by token ID
      *
-     * DELETE /api/v11/tokens/{tokenId}
+     * DELETE /api/v12/tokens/{tokenId}
      * Revokes a specific token with optional reason
      */
     @DELETE
@@ -196,7 +196,7 @@ public class TokenManagementResource {
     /**
      * Revoke all tokens for user (logout all devices)
      *
-     * DELETE /api/v11/tokens
+     * DELETE /api/v12/tokens
      * Revokes all active tokens for the specified user
      */
     @DELETE
@@ -229,7 +229,7 @@ public class TokenManagementResource {
     /**
      * Get detailed information about a specific token
      *
-     * GET /api/v11/tokens/{tokenId}/details
+     * GET /api/v12/tokens/{tokenId}/details
      */
     @GET
     @Path("/{tokenId}/details")
@@ -284,7 +284,7 @@ public class TokenManagementResource {
     /**
      * Get audit trail for token operations
      *
-     * GET /api/v11/tokens/audit/{userId}
+     * GET /api/v12/tokens/audit/{userId}
      */
     @GET
     @Path("/audit/{userId}")
@@ -333,7 +333,7 @@ public class TokenManagementResource {
     /**
      * Get tokens by device (IP address)
      *
-     * GET /api/v11/tokens/device/{clientIp}
+     * GET /api/v12/tokens/device/{clientIp}
      */
     @GET
     @Path("/device/{clientIp}")

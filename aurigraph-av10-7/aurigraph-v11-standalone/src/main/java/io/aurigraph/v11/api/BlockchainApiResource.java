@@ -41,7 +41,7 @@ import java.util.Map;
  * @version 3.7.3
  * @author Aurigraph V11 Team
  */
-@Path("/api/v11/deprecated/blockchain")
+@Path("/api/v12/deprecated/blockchain")
 @ApplicationScoped
 @Tag(name = "Blockchain Core API", description = "Core blockchain operations - transactions, blocks, validators, network")
 public class BlockchainApiResource {

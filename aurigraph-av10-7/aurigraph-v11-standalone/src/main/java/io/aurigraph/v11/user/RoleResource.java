@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @author Backend Development Agent (BDA)
  * @since V11.3.1
  */
-@Path("/api/v11/roles")
+@Path("/api/v12/roles")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RoleResource {
@@ -35,7 +35,7 @@ public class RoleResource {
 
     /**
      * List all roles
-     * GET /api/v11/roles
+     * GET /api/v12/roles
      * Requires: ADMIN or DEVOPS role
      */
     @GET
@@ -62,7 +62,7 @@ public class RoleResource {
 
     /**
      * Get role by ID
-     * GET /api/v11/roles/{id}
+     * GET /api/v12/roles/{id}
      * Requires: ADMIN or DEVOPS role
      */
     @GET
@@ -89,7 +89,7 @@ public class RoleResource {
 
     /**
      * Create new role
-     * POST /api/v11/roles
+     * POST /api/v12/roles
      * Requires: ADMIN role
      */
     @POST
@@ -118,7 +118,7 @@ public class RoleResource {
 
     /**
      * Update role
-     * PUT /api/v11/roles/{id}
+     * PUT /api/v12/roles/{id}
      * Requires: ADMIN role
      */
     @PUT
@@ -154,7 +154,7 @@ public class RoleResource {
 
     /**
      * Delete role
-     * DELETE /api/v11/roles/{id}
+     * DELETE /api/v12/roles/{id}
      * Requires: ADMIN role
      */
     @DELETE
@@ -181,7 +181,7 @@ public class RoleResource {
 
     /**
      * Get role permissions
-     * GET /api/v11/roles/{id}/permissions
+     * GET /api/v12/roles/{id}/permissions
      * Requires: ADMIN or DEVOPS role
      */
     @GET
@@ -208,7 +208,7 @@ public class RoleResource {
 
     /**
      * Check role permission
-     * GET /api/v11/roles/{id}/permissions/check?resource=transactions&action=write
+     * GET /api/v12/roles/{id}/permissions/check?resource=transactions&action=write
      * Requires: ADMIN or DEVOPS role
      */
     @GET
@@ -253,7 +253,7 @@ public class RoleResource {
 
     /**
      * Get role statistics
-     * GET /api/v11/roles/{id}/statistics
+     * GET /api/v12/roles/{id}/statistics
      * Requires: ADMIN or DEVOPS role
      */
     @GET

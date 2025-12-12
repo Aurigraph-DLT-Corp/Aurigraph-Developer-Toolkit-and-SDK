@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 40
  */
-@Path("/api/v11/enterprise")
+@Path("/api/v12/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class LaunchResource {
@@ -28,7 +28,7 @@ public class LaunchResource {
 
     /**
      * Get system readiness
-     * GET /api/v11/enterprise/launch/readiness
+     * GET /api/v12/enterprise/launch/readiness
      */
     @GET
     @Path("/launch/readiness")
@@ -55,7 +55,7 @@ public class LaunchResource {
 
     /**
      * Run pre-launch checklist
-     * POST /api/v11/enterprise/launch/checklist
+     * POST /api/v12/enterprise/launch/checklist
      */
     @POST
     @Path("/launch/checklist")
@@ -99,7 +99,7 @@ public class LaunchResource {
 
     /**
      * Get launch metrics
-     * GET /api/v11/enterprise/launch/metrics
+     * GET /api/v12/enterprise/launch/metrics
      */
     @GET
     @Path("/launch/metrics")

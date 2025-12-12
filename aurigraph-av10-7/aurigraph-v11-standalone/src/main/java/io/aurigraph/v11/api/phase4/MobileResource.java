@@ -20,7 +20,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 38
  */
-@Path("/api/v11/enterprise")
+@Path("/api/v12/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class MobileResource {
@@ -29,7 +29,7 @@ public class MobileResource {
 
     /**
      * Register mobile device
-     * POST /api/v11/enterprise/mobile/register
+     * POST /api/v12/enterprise/mobile/register
      */
     @POST
     @Path("/mobile/register")
@@ -51,7 +51,7 @@ public class MobileResource {
 
     /**
      * Get mobile devices
-     * GET /api/v11/enterprise/mobile/devices
+     * GET /api/v12/enterprise/mobile/devices
      */
     @GET
     @Path("/mobile/devices")
@@ -87,7 +87,7 @@ public class MobileResource {
 
     /**
      * Send push notification
-     * POST /api/v11/enterprise/mobile/push
+     * POST /api/v12/enterprise/mobile/push
      */
     @POST
     @Path("/mobile/push")
@@ -108,7 +108,7 @@ public class MobileResource {
 
     /**
      * Get mobile analytics
-     * GET /api/v11/enterprise/mobile/analytics
+     * GET /api/v12/enterprise/mobile/analytics
      */
     @GET
     @Path("/mobile/analytics")

@@ -16,12 +16,12 @@ import java.util.*;
  *
  * Provides RESTful endpoints for managing smart contract registrations.
  * All endpoints return Uni<Response> for reactive operations and proper HTTP status codes.
- * Base path: /api/v11/registries/smart-contract
+ * Base path: /api/v12/registries/smart-contract
  *
  * @version 11.5.0
  * @since 2025-11-14
  */
-@Path("/api/v11/registries/smart-contract")
+@Path("/api/v12/registries/smart-contract")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Smart Contract Registry", description = "Smart Contract Registry API - Contract management and lifecycle")
@@ -35,7 +35,7 @@ public class SmartContractRegistryResource {
     /**
      * Register a new smart contract
      *
-     * POST /api/v11/registries/smart-contract/register
+     * POST /api/v12/registries/smart-contract/register
      * Response: 201 Created
      */
     @POST
@@ -97,7 +97,7 @@ public class SmartContractRegistryResource {
     /**
      * Get contract details by ID
      *
-     * GET /api/v11/registries/smart-contract/{contractId}
+     * GET /api/v12/registries/smart-contract/{contractId}
      * Response: 200 OK or 404 Not Found
      */
     @GET
@@ -125,7 +125,7 @@ public class SmartContractRegistryResource {
     /**
      * Search contracts by name and/or status
      *
-     * GET /api/v11/registries/smart-contract/search?name=&status=&limit=10&offset=0
+     * GET /api/v12/registries/smart-contract/search?name=&status=&limit=10&offset=0
      * Response: 200 OK
      */
     @GET
@@ -160,7 +160,7 @@ public class SmartContractRegistryResource {
     /**
      * Get linked assets for a contract
      *
-     * GET /api/v11/registries/smart-contract/{contractId}/assets
+     * GET /api/v12/registries/smart-contract/{contractId}/assets
      * Response: 200 OK or 404 Not Found
      */
     @GET
@@ -190,7 +190,7 @@ public class SmartContractRegistryResource {
     /**
      * Update contract status
      *
-     * PUT /api/v11/registries/smart-contract/{contractId}/status
+     * PUT /api/v12/registries/smart-contract/{contractId}/status
      * Response: 200 OK or 404 Not Found
      */
     @PUT
@@ -229,7 +229,7 @@ public class SmartContractRegistryResource {
     /**
      * Remove contract from registry
      *
-     * DELETE /api/v11/registries/smart-contract/{contractId}
+     * DELETE /api/v12/registries/smart-contract/{contractId}
      * Response: 200 OK or 404 Not Found
      */
     @DELETE
@@ -260,7 +260,7 @@ public class SmartContractRegistryResource {
     /**
      * Link an asset to a contract
      *
-     * POST /api/v11/registries/smart-contract/{contractId}/assets/{assetId}
+     * POST /api/v12/registries/smart-contract/{contractId}/assets/{assetId}
      * Response: 200 OK
      */
     @POST
@@ -291,7 +291,7 @@ public class SmartContractRegistryResource {
     /**
      * Unlink an asset from a contract
      *
-     * DELETE /api/v11/registries/smart-contract/{contractId}/assets/{assetId}
+     * DELETE /api/v12/registries/smart-contract/{contractId}/assets/{assetId}
      * Response: 200 OK
      */
     @DELETE
@@ -322,7 +322,7 @@ public class SmartContractRegistryResource {
     /**
      * Get contracts for a specific asset
      *
-     * GET /api/v11/registries/smart-contract/asset/{assetId}/contracts
+     * GET /api/v12/registries/smart-contract/asset/{assetId}/contracts
      * Response: 200 OK
      */
     @GET
@@ -354,7 +354,7 @@ public class SmartContractRegistryResource {
     /**
      * Get contract registry statistics
      *
-     * GET /api/v11/registries/smart-contract/statistics
+     * GET /api/v12/registries/smart-contract/statistics
      * Response: 200 OK
      */
     @GET
@@ -383,7 +383,7 @@ public class SmartContractRegistryResource {
     /**
      * Get audit trail for a contract
      *
-     * GET /api/v11/registries/smart-contract/{contractId}/audit
+     * GET /api/v12/registries/smart-contract/{contractId}/audit
      * Response: 200 OK or 404 Not Found
      */
     @GET
@@ -415,7 +415,7 @@ public class SmartContractRegistryResource {
     /**
      * Get registry health status
      *
-     * GET /api/v11/registries/smart-contract/health
+     * GET /api/v12/registries/smart-contract/health
      * Response: 200 OK
      */
     @GET
@@ -436,7 +436,7 @@ public class SmartContractRegistryResource {
     /**
      * Get registry API information
      *
-     * GET /api/v11/registries/smart-contract/info
+     * GET /api/v12/registries/smart-contract/info
      * Response: 200 OK
      */
     @GET
@@ -464,7 +464,7 @@ public class SmartContractRegistryResource {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("service", "Smart Contract Registry");
         response.put("version", "12.0.0");
-        response.put("basePath", "/api/v11/registries/smart-contract");
+        response.put("basePath", "/api/v12/registries/smart-contract");
         response.put("endpoints", endpoints);
         response.put("features", List.of(
                 "Contract Registration",

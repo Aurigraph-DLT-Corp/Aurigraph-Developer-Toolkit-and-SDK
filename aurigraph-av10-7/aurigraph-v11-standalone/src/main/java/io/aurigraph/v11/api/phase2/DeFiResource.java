@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 20
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DeFiResource {
@@ -28,7 +28,7 @@ public class DeFiResource {
 
     /**
      * Get liquidity pools
-     * GET /api/v11/blockchain/defi/pools
+     * GET /api/v12/blockchain/defi/pools
      */
     @GET
     @Path("/defi/pools")
@@ -59,7 +59,7 @@ public class DeFiResource {
 
     /**
      * Add liquidity
-     * POST /api/v11/blockchain/defi/pools/{poolId}/add-liquidity
+     * POST /api/v12/blockchain/defi/pools/{poolId}/add-liquidity
      */
     @POST
     @Path("/defi/pools/{poolId}/add-liquidity")
@@ -78,7 +78,7 @@ public class DeFiResource {
 
     /**
      * Get yield farming opportunities
-     * GET /api/v11/blockchain/defi/yield-farming
+     * GET /api/v12/blockchain/defi/yield-farming
      */
     @GET
     @Path("/defi/yield-farming")
@@ -108,7 +108,7 @@ public class DeFiResource {
 
     /**
      * Get DeFi protocol integrations
-     * GET /api/v11/blockchain/defi/protocols
+     * GET /api/v12/blockchain/defi/protocols
      */
     @GET
     @Path("/defi/protocols")

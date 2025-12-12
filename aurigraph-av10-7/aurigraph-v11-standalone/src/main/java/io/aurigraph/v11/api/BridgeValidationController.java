@@ -21,7 +21,7 @@ import org.jboss.logging.Logger;
  * Bridge Validation Controller
  * REST API endpoint for validating cross-chain bridge transactions
  *
- * Endpoint: POST /api/v11/bridge/validate/initiate
+ * Endpoint: POST /api/v12/bridge/validate/initiate
  *
  * Features:
  * - Cross-chain signature verification
@@ -35,7 +35,7 @@ import org.jboss.logging.Logger;
  * @version 1.0
  * @since AV11-634
  */
-@Path("/api/v11/bridge/validate")
+@Path("/api/v12/bridge/validate")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Bridge Validation", description = "Bridge transaction validation and pre-flight checks")

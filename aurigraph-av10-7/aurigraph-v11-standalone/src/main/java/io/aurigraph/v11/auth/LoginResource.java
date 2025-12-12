@@ -14,7 +14,7 @@ import io.quarkus.elytron.security.common.BcryptUtil;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Path("/api/v11/login")
+@Path("/api/v12/login")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class LoginResource {

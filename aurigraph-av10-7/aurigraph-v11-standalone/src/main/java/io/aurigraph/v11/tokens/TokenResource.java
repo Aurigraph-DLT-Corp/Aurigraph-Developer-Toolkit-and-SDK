@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
  * Provides HTTP endpoints for Enterprise Portal token operations.
  * Implements 8 core endpoints matching frontend TokenService expectations.
  *
- * API Base Path: /api/v11/token-management
+ * API Base Path: /api/v12/token-management
  *
  * NOTE: This uses /token-management instead of /tokens to avoid route conflict
- * with PortalAPIGateway which provides the public /api/v11/tokens endpoint.
+ * with PortalAPIGateway which provides the public /api/v12/tokens endpoint.
  *
  * Endpoints:
  * - POST   /create                          - Create new token
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * @version 1.0.1 (Nov 30, 2025)
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/token-management")
+@Path("/api/v12/token-management")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -59,7 +59,7 @@ public class TokenResource {
 
     /**
      * Create a new token
-     * POST /api/v11/tokens/create
+     * POST /api/v12/tokens/create
      */
     @POST
     @Path("/create")
@@ -106,7 +106,7 @@ public class TokenResource {
 
     /**
      * List all tokens
-     * GET /api/v11/tokens/list
+     * GET /api/v12/tokens/list
      */
     @GET
     @Path("/list")
@@ -131,7 +131,7 @@ public class TokenResource {
 
     /**
      * Get token by ID
-     * GET /api/v11/tokens/{tokenId}
+     * GET /api/v12/tokens/{tokenId}
      */
     @GET
     @Path("/{tokenId}")
@@ -154,7 +154,7 @@ public class TokenResource {
 
     /**
      * Transfer tokens between addresses
-     * POST /api/v11/tokens/transfer
+     * POST /api/v12/tokens/transfer
      */
     @POST
     @Path("/transfer")
@@ -195,7 +195,7 @@ public class TokenResource {
 
     /**
      * Mint new tokens
-     * POST /api/v11/tokens/mint
+     * POST /api/v12/tokens/mint
      */
     @POST
     @Path("/mint")
@@ -234,7 +234,7 @@ public class TokenResource {
 
     /**
      * Burn tokens
-     * POST /api/v11/tokens/burn
+     * POST /api/v12/tokens/burn
      */
     @POST
     @Path("/burn")
@@ -273,7 +273,7 @@ public class TokenResource {
 
     /**
      * Get token balance for an address
-     * GET /api/v11/tokens/{tokenId}/balance/{address}
+     * GET /api/v12/tokens/{tokenId}/balance/{address}
      */
     @GET
     @Path("/{tokenId}/balance/{address}")
@@ -311,7 +311,7 @@ public class TokenResource {
 
     /**
      * Get token statistics
-     * GET /api/v11/tokens/stats
+     * GET /api/v12/tokens/stats
      */
     @GET
     @Path("/stats")

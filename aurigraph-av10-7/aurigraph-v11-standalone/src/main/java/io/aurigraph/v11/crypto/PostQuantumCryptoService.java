@@ -81,7 +81,7 @@ import java.util.Arrays;
  * - Overall Target: 2M+ TPS for integrated operations
  */
 @ApplicationScoped
-@Path("/api/v11/crypto/pqc")
+@Path("/api/v12/crypto/pqc")
 public class PostQuantumCryptoService {
 
     private static final Logger LOG = Logger.getLogger(PostQuantumCryptoService.class);

@@ -24,13 +24,13 @@ import java.util.Map;
  * AV11-286: Implement Quantum Cryptography Status API
  *
  * Endpoints:
- * - GET /api/v11/security/quantum - Get quantum cryptography status
- * - GET /api/v11/security/quantum/algorithms - Get supported algorithms
+ * - GET /api/v12/security/quantum - Get quantum cryptography status
+ * - GET /api/v12/security/quantum/algorithms - Get supported algorithms
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v11/security/quantum")
+@Path("/api/v12/security/quantum")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Quantum Cryptography", description = "Post-quantum cryptography status and metrics")
@@ -65,7 +65,7 @@ public class QuantumCryptoResource {
                          description = "Internal server error")
     })
     public Uni<Response> getQuantumCryptoStatus() {
-        LOG.info("GET /api/v11/security/quantum - Fetching quantum cryptography status");
+        LOG.info("GET /api/v12/security/quantum - Fetching quantum cryptography status");
 
         return quantumCryptoService.getQuantumCryptoStatus()
                 .map(status -> {
@@ -104,7 +104,7 @@ public class QuantumCryptoResource {
                          description = "Internal server error")
     })
     public Uni<Response> getSupportedAlgorithms() {
-        LOG.debug("GET /api/v11/security/quantum/algorithms - Fetching supported algorithms");
+        LOG.debug("GET /api/v12/security/quantum/algorithms - Fetching supported algorithms");
 
         return quantumCryptoService.getQuantumCryptoStatus()
                 .map(status -> {
@@ -155,7 +155,7 @@ public class QuantumCryptoResource {
                          description = "Internal server error")
     })
     public Uni<Response> getSecurityLevel() {
-        LOG.debug("GET /api/v11/security/quantum/security-level - Fetching security level");
+        LOG.debug("GET /api/v12/security/quantum/security-level - Fetching security level");
 
         return quantumCryptoService.getQuantumCryptoStatus()
                 .map(status -> {
@@ -198,7 +198,7 @@ public class QuantumCryptoResource {
                          description = "Internal server error")
     })
     public Uni<Response> getPerformanceMetrics() {
-        LOG.debug("GET /api/v11/security/quantum/performance - Fetching performance metrics");
+        LOG.debug("GET /api/v12/security/quantum/performance - Fetching performance metrics");
 
         return quantumCryptoService.getQuantumCryptoStatus()
                 .map(status -> {

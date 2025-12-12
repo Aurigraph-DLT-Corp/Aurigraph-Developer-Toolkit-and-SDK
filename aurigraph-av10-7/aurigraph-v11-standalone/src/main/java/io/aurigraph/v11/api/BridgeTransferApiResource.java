@@ -22,13 +22,13 @@ import java.util.*;
  * Bridge Transfer API Resource
  *
  * Provides cross-chain bridge operations:
- * - POST /api/v11/bridge/transfers - Initiate cross-chain transfer
- * - GET /api/v11/bridge/status - Bridge operational status
+ * - POST /api/v12/bridge/transfers - Initiate cross-chain transfer
+ * - GET /api/v12/bridge/status - Bridge operational status
  *
  * @version 11.0.0
  * @author Integration & Bridge Agent (IBA)
  */
-@Path("/api/v11/bridge")
+@Path("/api/v12/bridge")
 @ApplicationScoped
 @Tag(name = "Bridge Transfer API", description = "Cross-chain bridge transfer operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class BridgeTransferApiResource {
     // ==================== ENDPOINT 9: Initiate Bridge Transfer ====================
 
     /**
-     * POST /api/v11/bridge/transfers/initiate
+     * POST /api/v12/bridge/transfers/initiate
      * Initiate a cross-chain transfer
      */
     @POST
@@ -131,7 +131,7 @@ public class BridgeTransferApiResource {
     // ==================== ENDPOINT 10: Bridge Status ====================
 
     /**
-     * GET /api/v11/bridge/operational/status
+     * GET /api/v12/bridge/operational/status
      * Get bridge operational status
      */
     @GET

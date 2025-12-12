@@ -20,7 +20,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 19
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class MarketplaceResource {
@@ -29,7 +29,7 @@ public class MarketplaceResource {
 
     /**
      * List all NFTs
-     * GET /api/v11/blockchain/marketplace/nfts
+     * GET /api/v12/blockchain/marketplace/nfts
      */
     @GET
     @Path("/marketplace/nfts")
@@ -67,7 +67,7 @@ public class MarketplaceResource {
 
     /**
      * Create trading order
-     * POST /api/v11/blockchain/marketplace/orders
+     * POST /api/v12/blockchain/marketplace/orders
      */
     @POST
     @Path("/marketplace/orders")
@@ -88,7 +88,7 @@ public class MarketplaceResource {
 
     /**
      * Get order book
-     * GET /api/v11/blockchain/marketplace/orderbook/{tokenAddress}
+     * GET /api/v12/blockchain/marketplace/orderbook/{tokenAddress}
      */
     @GET
     @Path("/marketplace/orderbook/{tokenAddress}")
@@ -119,7 +119,7 @@ public class MarketplaceResource {
 
     /**
      * Get market analytics
-     * GET /api/v11/blockchain/marketplace/analytics
+     * GET /api/v12/blockchain/marketplace/analytics
      */
     @GET
     @Path("/marketplace/analytics")

@@ -18,7 +18,7 @@ import java.util.Map;
  * and regulatory status tracking. Supports multiple compliance standards and
  * certification types.
  *
- * Base Path: /api/v11/registries/compliance
+ * Base Path: /api/v12/registries/compliance
  *
  * Endpoints:
  * - POST /{entityId}/certify - Add compliance certification
@@ -36,7 +36,7 @@ import java.util.Map;
  * @version 11.5.0
  * @since 2025-11-14
  */
-@Path("/api/v11/registries/compliance")
+@Path("/api/v12/registries/compliance")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ComplianceRegistryResource {
@@ -49,7 +49,7 @@ public class ComplianceRegistryResource {
     /**
      * Add compliance certification for an entity
      *
-     * POST /api/v11/registries/compliance/{entityId}/certify
+     * POST /api/v12/registries/compliance/{entityId}/certify
      */
     @POST
     @Path("/{entityId}/certify")
@@ -97,7 +97,7 @@ public class ComplianceRegistryResource {
     /**
      * Get all certifications for an entity
      *
-     * GET /api/v11/registries/compliance/{entityId}/certifications
+     * GET /api/v12/registries/compliance/{entityId}/certifications
      */
     @GET
     @Path("/{entityId}/certifications")
@@ -120,7 +120,7 @@ public class ComplianceRegistryResource {
     /**
      * Verify entity compliance status
      *
-     * GET /api/v11/registries/compliance/verify/{entityId}
+     * GET /api/v12/registries/compliance/verify/{entityId}
      * Query params: complianceLevel=1-5 (optional)
      */
     @GET
@@ -149,7 +149,7 @@ public class ComplianceRegistryResource {
     /**
      * List expired certifications
      *
-     * GET /api/v11/registries/compliance/expired
+     * GET /api/v12/registries/compliance/expired
      */
     @GET
     @Path("/expired")
@@ -171,7 +171,7 @@ public class ComplianceRegistryResource {
     /**
      * List certifications in renewal window
      *
-     * GET /api/v11/registries/compliance/renewal-window
+     * GET /api/v12/registries/compliance/renewal-window
      */
     @GET
     @Path("/renewal-window")
@@ -193,7 +193,7 @@ public class ComplianceRegistryResource {
     /**
      * List certifications in critical renewal window (last 30 days)
      *
-     * GET /api/v11/registries/compliance/critical-window
+     * GET /api/v12/registries/compliance/critical-window
      */
     @GET
     @Path("/critical-window")
@@ -215,7 +215,7 @@ public class ComplianceRegistryResource {
     /**
      * Get specific certification by ID
      *
-     * GET /api/v11/registries/compliance/{certId}
+     * GET /api/v12/registries/compliance/{certId}
      */
     @GET
     @Path("/{certId}")
@@ -235,7 +235,7 @@ public class ComplianceRegistryResource {
     /**
      * Get certifications by type
      *
-     * GET /api/v11/registries/compliance/type/{certificationType}
+     * GET /api/v12/registries/compliance/type/{certificationType}
      */
     @GET
     @Path("/type/{certificationType}")
@@ -258,7 +258,7 @@ public class ComplianceRegistryResource {
     /**
      * Get compliance metrics
      *
-     * GET /api/v11/registries/compliance/metrics
+     * GET /api/v12/registries/compliance/metrics
      */
     @GET
     @Path("/metrics")
@@ -279,7 +279,7 @@ public class ComplianceRegistryResource {
     /**
      * Renew certification
      *
-     * PUT /api/v11/registries/compliance/{certId}/renew
+     * PUT /api/v12/registries/compliance/{certId}/renew
      */
     @PUT
     @Path("/{certId}/renew")
@@ -313,7 +313,7 @@ public class ComplianceRegistryResource {
     /**
      * Revoke certification
      *
-     * DELETE /api/v11/registries/compliance/{certId}
+     * DELETE /api/v12/registries/compliance/{certId}
      */
     @DELETE
     @Path("/{certId}")
@@ -338,7 +338,7 @@ public class ComplianceRegistryResource {
     /**
      * Health check endpoint
      *
-     * GET /api/v11/registries/compliance/health
+     * GET /api/v12/registries/compliance/health
      */
     @GET
     @Path("/health")

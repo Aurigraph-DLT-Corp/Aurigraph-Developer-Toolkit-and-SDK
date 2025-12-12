@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @author Backend Development Agent (BDA)
  * @since V11.3.1
  */
-@Path("/api/v11/users")
+@Path("/api/v12/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class UserResource {
@@ -38,7 +38,7 @@ public class UserResource {
 
     /**
      * List all users with pagination
-     * GET /api/v11/users?page=0&size=20
+     * GET /api/v12/users?page=0&size=20
      * Requires: ADMIN or DEVOPS role
      */
     @GET
@@ -71,7 +71,7 @@ public class UserResource {
 
     /**
      * Get user by ID
-     * GET /api/v11/users/{id}
+     * GET /api/v12/users/{id}
      * Requires: ADMIN, DEVOPS, or USER role
      */
     @GET
@@ -98,7 +98,7 @@ public class UserResource {
 
     /**
      * Create new user
-     * POST /api/v11/users
+     * POST /api/v12/users
      * Requires: ADMIN role
      */
     @POST
@@ -128,7 +128,7 @@ public class UserResource {
 
     /**
      * Update user
-     * PUT /api/v11/users/{id}
+     * PUT /api/v12/users/{id}
      * Requires: ADMIN role
      */
     @PUT
@@ -164,7 +164,7 @@ public class UserResource {
 
     /**
      * Delete user
-     * DELETE /api/v11/users/{id}
+     * DELETE /api/v12/users/{id}
      * Requires: ADMIN role
      */
     @DELETE
@@ -191,7 +191,7 @@ public class UserResource {
 
     /**
      * Update user role
-     * PUT /api/v11/users/{id}/role
+     * PUT /api/v12/users/{id}/role
      * Requires: ADMIN role
      */
     @PUT
@@ -222,7 +222,7 @@ public class UserResource {
 
     /**
      * Update user status
-     * PUT /api/v11/users/{id}/status
+     * PUT /api/v12/users/{id}/status
      * Requires: ADMIN role
      */
     @PUT
@@ -253,7 +253,7 @@ public class UserResource {
 
     /**
      * Update user password
-     * PUT /api/v11/users/{id}/password
+     * PUT /api/v12/users/{id}/password
      * Requires: ADMIN or USER role (users can only change their own password)
      */
     @PUT
@@ -283,7 +283,7 @@ public class UserResource {
 
     /**
      * Authenticate user
-     * POST /api/v11/users/authenticate
+     * POST /api/v12/users/authenticate
      * Returns JWT token on successful authentication
      */
     @POST

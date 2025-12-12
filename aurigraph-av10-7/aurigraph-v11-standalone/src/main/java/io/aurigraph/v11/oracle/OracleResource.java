@@ -24,7 +24,7 @@ import java.util.List;
  * @version 11.0.0
  * @sprint Sprint 16 - Oracle Verification REST API (AV11-496)
  */
-@Path("/api/v11/oracle")
+@Path("/api/v12/oracle")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Oracle Verification", description = "Multi-oracle consensus verification for asset values")
@@ -38,7 +38,7 @@ public class OracleResource {
     /**
      * Verify asset value using multi-oracle consensus
      *
-     * POST /api/v11/oracle/verify
+     * POST /api/v12/oracle/verify
      */
     @POST
     @Path("/verify")
@@ -101,7 +101,7 @@ public class OracleResource {
     /**
      * Get verification result by ID
      *
-     * GET /api/v11/oracle/verify/{verificationId}
+     * GET /api/v12/oracle/verify/{verificationId}
      */
     @GET
     @Path("/verify/{verificationId}")
@@ -150,7 +150,7 @@ public class OracleResource {
     /**
      * Get verification history for an asset
      *
-     * GET /api/v11/oracle/history/{assetId}
+     * GET /api/v12/oracle/history/{assetId}
      */
     @GET
     @Path("/history/{assetId}")
@@ -202,7 +202,7 @@ public class OracleResource {
     /**
      * Health check endpoint for oracle service
      *
-     * GET /api/v11/oracle/health
+     * GET /api/v12/oracle/health
      */
     @GET
     @Path("/health")
@@ -226,7 +226,7 @@ public class OracleResource {
     /**
      * Get oracle data feeds
      *
-     * GET /api/v11/oracle/feeds
+     * GET /api/v12/oracle/feeds
      */
     @GET
     @Path("/feeds")
@@ -241,7 +241,7 @@ public class OracleResource {
         )
     })
     public Response getOracleFeeds() {
-        LOG.info("GET /api/v11/oracle/feeds - Retrieving oracle data feeds");
+        LOG.info("GET /api/v12/oracle/feeds - Retrieving oracle data feeds");
 
         java.util.Map<String, Object> feeds = new java.util.LinkedHashMap<>();
         feeds.put("totalFeeds", 156);

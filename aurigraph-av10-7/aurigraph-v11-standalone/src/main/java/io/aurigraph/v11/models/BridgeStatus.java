@@ -9,7 +9,7 @@ import java.util.Map;
  * Bridge Status Model
  * Represents cross-chain bridge health and operational status
  *
- * Used by /api/v11/bridge/status endpoint
+ * Used by /api/v12/bridge/status endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

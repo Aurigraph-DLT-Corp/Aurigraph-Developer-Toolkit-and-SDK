@@ -21,9 +21,9 @@ import org.jboss.logging.Logger;
  * All endpoints follow reactive programming patterns using Smallrye Mutiny
  * for high-performance, non-blocking I/O operations.
  *
- * @path /api/v11/live
+ * @path /api/v12/live
  */
-@Path("/api/v11/live")
+@Path("/api/v12/live")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -46,7 +46,7 @@ public class LiveDataResource {
      *
      * @return Uni<ConsensusState> Live consensus state
      *
-     * Example: GET /api/v11/live/consensus
+     * Example: GET /api/v12/live/consensus
      */
     @GET
     @Path("/consensus")
@@ -68,7 +68,7 @@ public class LiveDataResource {
      *
      * @return Uni<String> Human-readable consensus summary
      *
-     * Example: GET /api/v11/live/consensus/summary
+     * Example: GET /api/v12/live/consensus/summary
      */
     @GET
     @Path("/consensus/summary")
@@ -83,7 +83,7 @@ public class LiveDataResource {
      *
      * @return Uni<OptimalPerformanceResponse> Performance check result
      *
-     * Example: GET /api/v11/live/consensus/optimal
+     * Example: GET /api/v12/live/consensus/optimal
      */
     @GET
     @Path("/consensus/optimal")
@@ -111,7 +111,7 @@ public class LiveDataResource {
      *
      * @return Uni<EpochInfo> Current epoch and round data
      *
-     * Example: GET /api/v11/live/consensus/epoch
+     * Example: GET /api/v12/live/consensus/epoch
      */
     @GET
     @Path("/consensus/epoch")
@@ -134,7 +134,7 @@ public class LiveDataResource {
      *
      * @return Uni<ClusterParticipation> Cluster participation data
      *
-     * Example: GET /api/v11/live/consensus/cluster
+     * Example: GET /api/v12/live/consensus/cluster
      */
     @GET
     @Path("/consensus/cluster")
@@ -159,7 +159,7 @@ public class LiveDataResource {
      *
      * @return Uni<PerformanceMetrics> Consensus performance data
      *
-     * Example: GET /api/v11/live/consensus/performance
+     * Example: GET /api/v12/live/consensus/performance
      */
     @GET
     @Path("/consensus/performance")
@@ -183,7 +183,7 @@ public class LiveDataResource {
      *
      * @return Response Health status
      *
-     * Example: GET /api/v11/live/health
+     * Example: GET /api/v12/live/health
      */
     @GET
     @Path("/health")

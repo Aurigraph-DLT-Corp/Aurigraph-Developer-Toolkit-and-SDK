@@ -14,23 +14,23 @@ import java.util.Map;
  * Links tokens to underlying merkle tree registry assets.
  *
  * Endpoints:
- * - POST /api/v11/traceability/tokens/{tokenId}/trace - Create token trace
- * - POST /api/v11/traceability/tokens/{tokenId}/link-asset - Link token to asset
- * - POST /api/v11/traceability/tokens/{tokenId}/verify-proof - Verify asset proof
- * - POST /api/v11/traceability/tokens/{tokenId}/transfer - Record ownership transfer
- * - GET /api/v11/traceability/tokens/{tokenId} - Get token trace
- * - GET /api/v11/traceability/tokens - List all token traces
- * - GET /api/v11/traceability/tokens/type/{assetType} - Query by asset type
- * - GET /api/v11/traceability/tokens/owner/{ownerAddress} - Query by owner
- * - GET /api/v11/traceability/tokens/status/{verificationStatus} - Query by status
- * - GET /api/v11/traceability/tokens/{tokenId}/compliance - Get compliance summary
- * - POST /api/v11/traceability/tokens/{tokenId}/certify - Add certification
- * - GET /api/v11/traceability/statistics - Get trace statistics
+ * - POST /api/v12/traceability/tokens/{tokenId}/trace - Create token trace
+ * - POST /api/v12/traceability/tokens/{tokenId}/link-asset - Link token to asset
+ * - POST /api/v12/traceability/tokens/{tokenId}/verify-proof - Verify asset proof
+ * - POST /api/v12/traceability/tokens/{tokenId}/transfer - Record ownership transfer
+ * - GET /api/v12/traceability/tokens/{tokenId} - Get token trace
+ * - GET /api/v12/traceability/tokens - List all token traces
+ * - GET /api/v12/traceability/tokens/type/{assetType} - Query by asset type
+ * - GET /api/v12/traceability/tokens/owner/{ownerAddress} - Query by owner
+ * - GET /api/v12/traceability/tokens/status/{verificationStatus} - Query by status
+ * - GET /api/v12/traceability/tokens/{tokenId}/compliance - Get compliance summary
+ * - POST /api/v12/traceability/tokens/{tokenId}/certify - Add certification
+ * - GET /api/v12/traceability/statistics - Get trace statistics
  *
  * @author Aurigraph V12 Token Traceability Team
  * @version 1.0.0
  */
-@Path("/api/v11/traceability")
+@Path("/api/v12/traceability")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TokenTraceabilityResource {
@@ -40,7 +40,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Create a new token trace
-     * POST /api/v11/traceability/tokens/{tokenId}/trace
+     * POST /api/v12/traceability/tokens/{tokenId}/trace
      *
      * @param tokenId - Token identifier
      * @param request - Create request with assetId, assetType, owner
@@ -69,7 +69,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Link token to an underlying asset
-     * POST /api/v11/traceability/tokens/{tokenId}/link-asset
+     * POST /api/v12/traceability/tokens/{tokenId}/link-asset
      *
      * @param tokenId - Token to link
      * @param request - Link request with rwatId
@@ -94,7 +94,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Verify a token's underlying asset through merkle proof
-     * POST /api/v11/traceability/tokens/{tokenId}/verify-proof
+     * POST /api/v12/traceability/tokens/{tokenId}/verify-proof
      *
      * @param tokenId - Token to verify
      * @return Verification result
@@ -123,7 +123,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Record an ownership transfer in token trace
-     * POST /api/v11/traceability/tokens/{tokenId}/transfer
+     * POST /api/v12/traceability/tokens/{tokenId}/transfer
      *
      * @param tokenId - Token being transferred
      * @param request - Transfer request with addresses and percentage
@@ -157,7 +157,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Get complete token trace
-     * GET /api/v11/traceability/tokens/{tokenId}
+     * GET /api/v12/traceability/tokens/{tokenId}
      *
      * @param tokenId - Token to retrieve
      * @return Complete token trace
@@ -180,7 +180,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Get all token traces
-     * GET /api/v11/traceability/tokens
+     * GET /api/v12/traceability/tokens
      *
      * @return List of all token traces
      */
@@ -198,7 +198,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Get token traces by asset type
-     * GET /api/v11/traceability/tokens/type/{assetType}
+     * GET /api/v12/traceability/tokens/type/{assetType}
      *
      * @param assetType - Asset type to query
      * @return List of traces for asset type
@@ -220,7 +220,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Get token traces by owner address
-     * GET /api/v11/traceability/tokens/owner/{ownerAddress}
+     * GET /api/v12/traceability/tokens/owner/{ownerAddress}
      *
      * @param ownerAddress - Owner address to query
      * @return List of traces owned by address
@@ -242,7 +242,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Get token traces by verification status
-     * GET /api/v11/traceability/tokens/status/{verificationStatus}
+     * GET /api/v12/traceability/tokens/status/{verificationStatus}
      *
      * @param status - Verification status to query (PENDING, IN_REVIEW, VERIFIED, REJECTED)
      * @return List of traces with status
@@ -264,7 +264,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Get compliance summary for a token
-     * GET /api/v11/traceability/tokens/{tokenId}/compliance
+     * GET /api/v12/traceability/tokens/{tokenId}/compliance
      *
      * @param tokenId - Token to check
      * @return Compliance summary
@@ -287,7 +287,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Add compliance certification to token
-     * POST /api/v11/traceability/tokens/{tokenId}/certify
+     * POST /api/v12/traceability/tokens/{tokenId}/certify
      *
      * @param tokenId - Token to certify
      * @param request - Certification request
@@ -316,7 +316,7 @@ public class TokenTraceabilityResource {
 
     /**
      * Get token traceability statistics
-     * GET /api/v11/traceability/statistics
+     * GET /api/v12/traceability/statistics
      *
      * @return Statistics summary
      */

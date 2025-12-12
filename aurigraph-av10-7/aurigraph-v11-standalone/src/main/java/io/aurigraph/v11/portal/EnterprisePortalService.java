@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * - Alert management
  */
 @ApplicationScoped
-@ServerEndpoint("/api/v11/portal/websocket")
+@ServerEndpoint("/api/v12/portal/websocket")
 public class EnterprisePortalService {
 
     private static final Logger LOG = Logger.getLogger(EnterprisePortalService.class);

@@ -55,9 +55,9 @@ public class RateLimitingFilter implements ContainerRequestFilter {
         String path = requestContext.getUriInfo().getPath();
 
         // Only apply rate limiting to auth endpoints
-        if (path.equals("/api/v11/login/authenticate")) {
+        if (path.equals("/api/v12/login/authenticate")) {
             enforceIPRateLimit(requestContext);
-        } else if (path.startsWith("/api/v11/auth/tokens") || path.startsWith("/api/v11/")) {
+        } else if (path.startsWith("/api/v12/auth/tokens") || path.startsWith("/api/v12/")) {
             // Apply per-user rate limiting to API endpoints
             // This requires JWT to be already validated by auth filter
             // For now, use IP-based rate limiting

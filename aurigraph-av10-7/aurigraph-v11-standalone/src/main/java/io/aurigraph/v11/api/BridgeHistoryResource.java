@@ -26,14 +26,14 @@ import java.util.Map;
  * AV11-282: Implement Bridge Transaction History API
  *
  * Endpoints:
- * - GET /api/v11/bridge/history - Get paginated transaction history
- * - GET /api/v11/bridge/history/{transactionId} - Get specific transaction
- * - GET /api/v11/bridge/history/user/{address} - Get user's transaction history
+ * - GET /api/v12/bridge/history - Get paginated transaction history
+ * - GET /api/v12/bridge/history/{transactionId} - Get specific transaction
+ * - GET /api/v12/bridge/history/user/{address} - Get user's transaction history
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v11/bridge/history")
+@Path("/api/v12/bridge/history")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Bridge History", description = "Cross-chain bridge transaction history with pagination and filtering")
@@ -78,7 +78,7 @@ public class BridgeHistoryResource {
             @Parameter(description = "Minimum amount (USD)") @QueryParam("minAmount") Double minAmount,
             @Parameter(description = "Maximum amount (USD)") @QueryParam("maxAmount") Double maxAmount
     ) {
-        LOG.infof("GET /api/v11/bridge/history - page=%d, pageSize=%d, filters: source=%s, target=%s, asset=%s, status=%s",
+        LOG.infof("GET /api/v12/bridge/history - page=%d, pageSize=%d, filters: source=%s, target=%s, asset=%s, status=%s",
                 page, pageSize, sourceChain, targetChain, asset, status);
 
         // Validate parameters
@@ -143,7 +143,7 @@ public class BridgeHistoryResource {
                          description = "Internal server error")
     })
     public Uni<Response> getTransactionById(@PathParam("transactionId") String transactionId) {
-        LOG.debugf("GET /api/v11/bridge/history/%s - Fetching transaction", transactionId);
+        LOG.debugf("GET /api/v12/bridge/history/%s - Fetching transaction", transactionId);
 
         return bridgeHistoryService.getTransactionById(transactionId)
                 .map(transaction -> {
@@ -193,7 +193,7 @@ public class BridgeHistoryResource {
             @Parameter(description = "Page number (1-indexed)") @QueryParam("page") @DefaultValue("1") int page,
             @Parameter(description = "Page size (max 100)") @QueryParam("pageSize") @DefaultValue("20") int pageSize
     ) {
-        LOG.debugf("GET /api/v11/bridge/history/user/%s - page=%d, pageSize=%d",
+        LOG.debugf("GET /api/v12/bridge/history/user/%s - page=%d, pageSize=%d",
                 address, page, pageSize);
 
         // Basic address validation
@@ -242,7 +242,7 @@ public class BridgeHistoryResource {
                          description = "Internal server error")
     })
     public Uni<Response> getTransactionSummary() {
-        LOG.debug("GET /api/v11/bridge/history/summary - Fetching summary");
+        LOG.debug("GET /api/v12/bridge/history/summary - Fetching summary");
 
         return bridgeHistoryService.getTransactionHistory(1, 1, null, null, null, null, null, null, null)
                 .map(history -> {

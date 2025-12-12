@@ -13,8 +13,8 @@ import org.jboss.logging.Logger;
  * Provides RESTful endpoints for analytics dashboard and performance metrics.
  *
  * Endpoints:
- * - GET /api/v11/analytics/dashboard - Analytics Dashboard (AV11-270)
- * - GET /api/v11/analytics/performance - Performance Metrics (AV11-271)
+ * - GET /api/v12/analytics/dashboard - Analytics Dashboard (AV11-270)
+ * - GET /api/v12/analytics/performance - Performance Metrics (AV11-271)
  *
  * Story Points: 10 (5 + 5)
  * JIRA: AV11-270 (Analytics Dashboard API) + AV11-271 (Performance Metrics API)
@@ -23,7 +23,7 @@ import org.jboss.logging.Logger;
  * @version 11.0.0
  * @since Sprint 9
  */
-@Path("/api/v11/analytics")
+@Path("/api/v12/analytics")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -37,7 +37,7 @@ public class AnalyticsResource {
     // ==================== ROOT ENDPOINT: Analytics Overview ====================
 
     /**
-     * GET /api/v11/analytics
+     * GET /api/v12/analytics
      * Returns analytics overview/summary
      */
     @GET

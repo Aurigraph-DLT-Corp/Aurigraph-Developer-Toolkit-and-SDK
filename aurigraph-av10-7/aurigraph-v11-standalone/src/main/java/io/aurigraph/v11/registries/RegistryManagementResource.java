@@ -29,12 +29,12 @@ import java.util.stream.Collectors;
  * - Merkle Trees
  * - Compliance Records
  *
- * Base Path: /api/v11/registries
+ * Base Path: /api/v12/registries
  *
  * @version 11.5.0
  * @since 2025-11-14
  */
-@Path("/api/v11/registries")
+@Path("/api/v12/registries")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Registry Management", description = "Unified multi-registry search and management API")
@@ -50,7 +50,7 @@ public class RegistryManagementResource {
     /**
      * Search across all registries with optional type filtering
      *
-     * GET /api/v11/registries/search?keyword=xxx&types=smart-contract,token&limit=50&offset=0
+     * GET /api/v12/registries/search?keyword=xxx&types=smart-contract,token&limit=50&offset=0
      *
      * @param keyword search keyword (optional)
      * @param types comma-separated list of registry types to search (optional, default: all)
@@ -117,7 +117,7 @@ public class RegistryManagementResource {
     /**
      * Get aggregated statistics across all registries
      *
-     * GET /api/v11/registries/stats
+     * GET /api/v12/registries/stats
      *
      * @return aggregated statistics
      */
@@ -149,7 +149,7 @@ public class RegistryManagementResource {
     /**
      * Get statistics for a specific registry type
      *
-     * GET /api/v11/registries/stats/{type}
+     * GET /api/v12/registries/stats/{type}
      *
      * @param type the registry type (smart-contract, token, rwa, merkle-tree, compliance)
      * @return statistics for that registry type
@@ -195,7 +195,7 @@ public class RegistryManagementResource {
     /**
      * List all entries of a specific registry type
      *
-     * GET /api/v11/registries/list/{type}?limit=50&offset=0
+     * GET /api/v12/registries/list/{type}?limit=50&offset=0
      *
      * @param type the registry type (smart-contract, token, rwa, merkle-tree, compliance)
      * @param limit maximum number of results (default: 50, max: 500)
@@ -247,7 +247,7 @@ public class RegistryManagementResource {
     /**
      * Verify an entry across all registries
      *
-     * GET /api/v11/registries/verify/{entryId}
+     * GET /api/v12/registries/verify/{entryId}
      *
      * Searches for the entry ID across all registry types and reports where it was found.
      *
@@ -292,7 +292,7 @@ public class RegistryManagementResource {
     /**
      * Get overall registry summary
      *
-     * GET /api/v11/registries/summary
+     * GET /api/v12/registries/summary
      *
      * @return summary information across all registries
      */
@@ -326,7 +326,7 @@ public class RegistryManagementResource {
     /**
      * Get supported registry types
      *
-     * GET /api/v11/registries/info/types
+     * GET /api/v12/registries/info/types
      *
      * @return list of supported registry types
      */
@@ -358,7 +358,7 @@ public class RegistryManagementResource {
     /**
      * Health check endpoint
      *
-     * GET /api/v11/registries/health
+     * GET /api/v12/registries/health
      *
      * @return health status of the registry management API
      */

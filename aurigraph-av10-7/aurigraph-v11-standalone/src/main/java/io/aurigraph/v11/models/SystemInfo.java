@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * System information model for platform version and configuration
- * Used by /api/v11/info endpoint
+ * Used by /api/v12/info endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

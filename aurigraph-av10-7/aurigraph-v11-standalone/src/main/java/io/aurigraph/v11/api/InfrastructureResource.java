@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @author Aurigraph DLT - Infrastructure Team
  * @version 2.0.0
  */
-@Path("/api/v11/infrastructure")
+@Path("/api/v12/infrastructure")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Infrastructure", description = "Infrastructure monitoring and management")
@@ -45,7 +45,7 @@ public class InfrastructureResource {
     @Path("/docker/containers")
     @Operation(summary = "Get Docker containers", description = "Returns list of Docker containers with status")
     public Uni<Response> getDockerContainers() {
-        LOG.info("GET /api/v11/infrastructure/docker/containers");
+        LOG.info("GET /api/v12/infrastructure/docker/containers");
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> containers = new ArrayList<>();
@@ -110,7 +110,7 @@ public class InfrastructureResource {
     @Path("/metrics")
     @Operation(summary = "Get system metrics", description = "Returns CPU, memory, and disk metrics")
     public Uni<Response> getSystemMetrics() {
-        LOG.info("GET /api/v11/infrastructure/metrics");
+        LOG.info("GET /api/v12/infrastructure/metrics");
 
         return Uni.createFrom().item(() -> {
             OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
@@ -190,7 +190,7 @@ public class InfrastructureResource {
             @QueryParam("level") @DefaultValue("all") String level,
             @QueryParam("service") @DefaultValue("all") String service
     ) {
-        LOG.info("GET /api/v11/infrastructure/logs - lines=" + lines + ", level=" + level);
+        LOG.info("GET /api/v12/infrastructure/logs - lines=" + lines + ", level=" + level);
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> logs = new ArrayList<>();
@@ -253,7 +253,7 @@ public class InfrastructureResource {
     @Path("/deploy")
     @Operation(summary = "Trigger deployment", description = "Triggers GitHub Actions deployment workflow")
     public Uni<Response> triggerDeployment(Map<String, Object> request) {
-        LOG.info("POST /api/v11/infrastructure/deploy - profile=" + request.get("profile"));
+        LOG.info("POST /api/v12/infrastructure/deploy - profile=" + request.get("profile"));
 
         return Uni.createFrom().item(() -> {
             String profile = (String) request.getOrDefault("profile", "platform");
@@ -335,7 +335,7 @@ public class InfrastructureResource {
     @Path("/deploy/status")
     @Operation(summary = "Get deployment status", description = "Returns current deployment workflow status")
     public Uni<Response> getDeploymentStatus() {
-        LOG.info("GET /api/v11/infrastructure/deploy/status");
+        LOG.info("GET /api/v12/infrastructure/deploy/status");
 
         return Uni.createFrom().item(() -> {
             try {

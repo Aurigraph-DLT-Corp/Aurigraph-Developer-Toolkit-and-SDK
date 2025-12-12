@@ -57,7 +57,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/health
+     * GET /api/v12/health
      * Returns service health status
      * Real-time data from HyperRAFT consensus and network health service
      */
@@ -77,7 +77,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/info
+     * GET /api/v12/info
      * Returns system information
      */
     @GET
@@ -96,7 +96,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/blockchain/metrics
+     * GET /api/v12/blockchain/metrics
      * Returns real-time blockchain metrics
      * Live data from consensus service and network stats
      */
@@ -123,7 +123,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/blocks
+     * GET /api/v12/blocks
      * Returns list of recent blocks
      * Real data from blockchain state
      */
@@ -144,7 +144,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/validators
+     * GET /api/v12/validators
      * Returns list of active validators
      * Real data from LiveValidatorService
      */
@@ -164,7 +164,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/validators/{id}
+     * GET /api/v12/validators/{id}
      * Returns details for specific validator
      */
     @GET
@@ -183,7 +183,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/transactions
+     * GET /api/v12/transactions
      * Returns list of recent transactions
      */
     @GET
@@ -211,8 +211,8 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/blockchain/transactions
-     * Alias for /api/v11/transactions - For frontend compatibility
+     * GET /api/v12/blockchain/transactions
+     * Alias for /api/v12/transactions - For frontend compatibility
      */
     @GET
     @Path("/blockchain/transactions")
@@ -224,8 +224,8 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/blockchain/transactions/{id}
-     * Alias for /api/v11/transactions/{id} - For frontend compatibility
+     * GET /api/v12/blockchain/transactions/{id}
+     * Alias for /api/v12/transactions/{id} - For frontend compatibility
      */
     @GET
     @Path("/blockchain/transactions/{id}")
@@ -236,8 +236,8 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/blockchain/validators
-     * Alias for /api/v11/validators - For frontend compatibility
+     * GET /api/v12/blockchain/validators
+     * Alias for /api/v12/validators - For frontend compatibility
      */
     @GET
     @Path("/blockchain/validators")
@@ -248,8 +248,8 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/blockchain/validators/{id}
-     * Alias for /api/v11/validators/{id} - For frontend compatibility
+     * GET /api/v12/blockchain/validators/{id}
+     * Alias for /api/v12/validators/{id} - For frontend compatibility
      */
     @GET
     @Path("/blockchain/validators/{id}")
@@ -260,8 +260,8 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/blockchain/blocks
-     * Alias for /api/v11/blocks - For frontend compatibility
+     * GET /api/v12/blockchain/blocks
+     * Alias for /api/v12/blocks - For frontend compatibility
      */
     @GET
     @Path("/blockchain/blocks")
@@ -273,7 +273,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/transactions/{id}
+     * GET /api/v12/transactions/{id}
      * Returns details for specific transaction
      */
     @GET
@@ -296,7 +296,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/tokens
+     * GET /api/v12/tokens
      * Returns list of all tokens
      * Real data from token registry
      */
@@ -316,7 +316,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/tokens/statistics
+     * GET /api/v12/tokens/statistics
      * Returns token statistics
      */
     @GET
@@ -335,7 +335,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/tokens/stats
+     * GET /api/v12/tokens/stats
      * Alias for /tokens/statistics for frontend compatibility
      */
     @GET
@@ -354,7 +354,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * POST /api/v11/tokens/create
+     * POST /api/v12/tokens/create
      * Create a new token (RWAT tokenization)
      * Accepts asset details and returns created token
      */
@@ -379,7 +379,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/analytics
+     * GET /api/v12/analytics
      * Returns analytics data
      * Real data from analytics aggregation service
      */
@@ -399,7 +399,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/analytics/performance
+     * GET /api/v12/analytics/performance
      * Returns performance analytics
      */
     @GET
@@ -418,7 +418,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/ml/metrics
+     * GET /api/v12/ml/metrics
      * Returns ML model metrics
      * Real data from AI optimization service
      */
@@ -438,7 +438,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/ml/performance
+     * GET /api/v12/ml/performance
      * Returns ML performance data
      */
     @GET
@@ -457,7 +457,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/ml/predictions
+     * GET /api/v12/ml/predictions
      * Returns ML predictions
      */
     @GET
@@ -476,7 +476,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/ml/confidence
+     * GET /api/v12/ml/confidence
      * Returns ML confidence scores
      */
     @GET
@@ -499,7 +499,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/network/health
+     * GET /api/v12/network/health
      * Returns network health status
      */
     @GET
@@ -518,7 +518,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/system/config
+     * GET /api/v12/system/config
      * Returns system configuration
      */
     @GET
@@ -537,7 +537,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/system/status
+     * GET /api/v12/system/status
      * Returns system status
      */
     @GET
@@ -556,7 +556,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/audit-trail
+     * GET /api/v12/audit-trail
      * Returns audit logs
      */
     @GET
@@ -580,7 +580,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/rwa/tokens
+     * GET /api/v12/rwa/tokens
      * Returns real-world asset tokens
      */
     @GET
@@ -599,7 +599,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/rwa/pools
+     * GET /api/v12/rwa/pools
      * Returns RWA pools
      */
     @GET
@@ -618,7 +618,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/rwa/fractional
+     * GET /api/v12/rwa/fractional
      * Returns fractional tokens
      */
     @GET
@@ -637,7 +637,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/rwa/stats
+     * GET /api/v12/rwa/stats
      * Returns RWA statistics and tokenization info
      */
     @GET
@@ -660,7 +660,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/contracts/ricardian
+     * GET /api/v12/contracts/ricardian
      * Returns Ricardian contracts
      */
     @GET
@@ -679,7 +679,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/contracts/templates
+     * GET /api/v12/contracts/templates
      * Returns contract templates
      */
     @GET
@@ -698,7 +698,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/channels
+     * GET /api/v12/channels
      * Returns channels/subscriptions
      */
     @GET
@@ -721,7 +721,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/staking/info
+     * GET /api/v12/staking/info
      * Returns staking information
      */
     @GET
@@ -740,7 +740,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/staking/validators
+     * GET /api/v12/staking/validators
      * Returns list of validators for staking
      */
     @GET
@@ -759,7 +759,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/staking/stats
+     * GET /api/v12/staking/stats
      * Returns staking statistics (alias for staking/info for frontend compatibility)
      */
     @GET
@@ -778,8 +778,8 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/staking/pools
-     * Returns staking pools - alias for /api/v11/blockchain/staking/pools
+     * GET /api/v12/staking/pools
+     * Returns staking pools - alias for /api/v12/blockchain/staking/pools
      */
     @GET
     @Path("/staking/pools")
@@ -817,7 +817,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/distribution/pools
+     * GET /api/v12/distribution/pools
      * Returns distribution pools
      */
     @GET
@@ -840,7 +840,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/rwa/portfolio
+     * GET /api/v12/rwa/portfolio
      * Returns RWA portfolio for user
      */
     @GET
@@ -872,7 +872,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/rwa/valuation
+     * GET /api/v12/rwa/valuation
      * Returns RWA valuation data
      */
     @GET
@@ -897,7 +897,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/rwa/dividends
+     * GET /api/v12/rwa/dividends
      * Returns RWA dividend information
      */
     @GET
@@ -926,7 +926,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/rwa/compliance
+     * GET /api/v12/rwa/compliance
      * Returns RWA compliance status
      */
     @GET
@@ -956,7 +956,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/rwa/registry
+     * GET /api/v12/rwa/registry
      * Returns complete RWA registry hierarchy with Merkle tree verification
      * Hierarchy: Underlying Assets → Primary Assets → Secondary Assets → Tokens → Contracts → Executions
      */
@@ -1233,7 +1233,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * POST /api/v11/rwa/tokenize
+     * POST /api/v12/rwa/tokenize
      * Tokenize a real-world asset
      *
      * NOTE: This endpoint is commented out because it duplicates RWAApiResource#tokenizeAsset
@@ -1265,7 +1265,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/consensus/state
+     * GET /api/v12/consensus/state
      * Returns current consensus state
      */
     @GET
@@ -1297,7 +1297,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/security/audit-log
+     * GET /api/v12/security/audit-log
      * Returns security audit log
      */
     @GET
@@ -1323,7 +1323,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/security/metrics
+     * GET /api/v12/security/metrics
      * Returns security metrics
      */
     @GET
@@ -1353,7 +1353,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/registry/rwat/merkle/root
+     * GET /api/v12/registry/rwat/merkle/root
      * Returns Merkle tree root hash
      */
     @GET
@@ -1373,7 +1373,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/registry/rwat/merkle/stats
+     * GET /api/v12/registry/rwat/merkle/stats
      * Returns Merkle tree statistics
      */
     @GET
@@ -1396,7 +1396,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/registry/rwat/{rwatId}/merkle/proof
+     * GET /api/v12/registry/rwat/{rwatId}/merkle/proof
      * Generate Merkle proof for an asset
      */
     @GET
@@ -1422,7 +1422,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * POST /api/v11/registry/rwat/merkle/verify
+     * POST /api/v12/registry/rwat/merkle/verify
      * Verify a Merkle proof
      *
      * NOTE: This endpoint is commented out because it duplicates RegistryResource#verifyMerkleProof
@@ -1450,7 +1450,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/quantconnect/registry/stats
+     * GET /api/v12/quantconnect/registry/stats
      * Returns QuantConnect registry statistics
      */
     @GET
@@ -1473,7 +1473,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/equities
+     * GET /api/v12/quantconnect/registry/equities
      * Returns QuantConnect equities list
      */
     @GET
@@ -1498,7 +1498,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/transactions
+     * GET /api/v12/quantconnect/registry/transactions
      * Returns QuantConnect transactions
      */
     @GET
@@ -1522,7 +1522,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/quantconnect/slimnode/status
+     * GET /api/v12/quantconnect/slimnode/status
      * Returns QuantConnect SlimNode status
      */
     @GET
@@ -1549,7 +1549,7 @@ public class PortalAPIGateway {
     // ============================================================
 
     /**
-     * GET /api/v11/performance
+     * GET /api/v12/performance
      * Returns platform performance metrics
      */
     @GET
@@ -1591,7 +1591,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/merkle/roots
+     * GET /api/v12/merkle/roots
      * Returns Merkle tree root hashes
      */
     @GET
@@ -1616,7 +1616,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/staking/statistics
+     * GET /api/v12/staking/statistics
      * Returns staking statistics
      */
     @GET
@@ -1652,7 +1652,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/crosschain/status
+     * GET /api/v12/crosschain/status
      * Returns cross-chain bridge status
      */
     @GET
@@ -1689,7 +1689,7 @@ public class PortalAPIGateway {
     // to avoid route duplication
 
     /**
-     * GET /api/v11/network/topology
+     * GET /api/v12/network/topology
      * Returns network topology information
      */
     @GET
@@ -1729,7 +1729,7 @@ public class PortalAPIGateway {
     }
 
     /**
-     * GET /api/v11/search
+     * GET /api/v12/search
      * Search across blockchain data
      */
     @GET

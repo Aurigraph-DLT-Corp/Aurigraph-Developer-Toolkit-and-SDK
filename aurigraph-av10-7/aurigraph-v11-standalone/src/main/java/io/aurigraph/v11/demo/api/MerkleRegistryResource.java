@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * @version 1.0.0
  */
-@Path("/api/v11/demo/registry")
+@Path("/api/v12/demo/registry")
 @ApplicationScoped
 @Tag(name = "Merkle Registry", description = "Real-time Merkle tree registry and data feed tokenization")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class MerkleRegistryResource {
 
     /**
      * Start a new demo channel simulation with Merkle tree registry
-     * POST /api/v11/demo/registry/start
+     * POST /api/v12/demo/registry/start
      */
     @POST
     @Path("/start")
@@ -76,7 +76,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get simulation status with real-time Merkle registry data
-     * GET /api/v11/demo/registry/simulation/{channelId}
+     * GET /api/v12/demo/registry/simulation/{channelId}
      */
     @GET
     @Path("/simulation/{channelId}")
@@ -136,7 +136,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get Merkle tree registry statistics
-     * GET /api/v11/demo/registry/stats
+     * GET /api/v12/demo/registry/stats
      */
     @GET
     @Path("/stats")
@@ -168,7 +168,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get all external API data feeds
-     * GET /api/v11/demo/registry/feeds
+     * GET /api/v12/demo/registry/feeds
      */
     @GET
     @Path("/feeds")
@@ -193,7 +193,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get data feed tokens for specific API
-     * GET /api/v11/demo/registry/feeds/{apiId}/tokens
+     * GET /api/v12/demo/registry/feeds/{apiId}/tokens
      */
     @GET
     @Path("/feeds/{apiId}/tokens")
@@ -218,7 +218,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get specific feed status
-     * GET /api/v11/demo/registry/feeds/{apiId}/status
+     * GET /api/v12/demo/registry/feeds/{apiId}/status
      */
     @GET
     @Path("/feeds/{apiId}/status")
@@ -248,7 +248,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get all active simulations
-     * GET /api/v11/demo/registry/simulations
+     * GET /api/v12/demo/registry/simulations
      */
     @GET
     @Path("/simulations")
@@ -270,7 +270,7 @@ public class MerkleRegistryResource {
 
     /**
      * Stop a simulation
-     * POST /api/v11/demo/registry/simulation/{channelId}/stop
+     * POST /api/v12/demo/registry/simulation/{channelId}/stop
      */
     @POST
     @Path("/simulation/{channelId}/stop")

@@ -9,7 +9,7 @@ import java.util.Map;
  * Price Feed Model
  * Provides real-time price aggregation from multiple oracle sources
  *
- * Used by /api/v11/datafeeds/prices endpoint
+ * Used by /api/v12/datafeeds/prices endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

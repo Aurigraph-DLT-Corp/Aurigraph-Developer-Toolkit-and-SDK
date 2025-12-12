@@ -25,7 +25,7 @@ import java.util.*;
  * @author Aurigraph DLT Team
  * @version 12.0.0
  */
-@Path("/api/v11/quantconnect")
+@Path("/api/v12/quantconnect")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class QuantConnectResource {
@@ -49,13 +49,13 @@ public class QuantConnectResource {
     );
 
     /**
-     * GET /api/v11/quantconnect/status
+     * GET /api/v12/quantconnect/status
      * Get QuantConnect service status
      */
     @GET
     @Path("/status")
     public Response getStatus() {
-        LOGGER.info("GET /api/v11/quantconnect/status");
+        LOGGER.info("GET /api/v12/quantconnect/status");
 
         QuantConnectService.ServiceStatus status = quantConnectService.getStatus();
         EquityTokenizationRegistry.RegistryStatistics stats = registry.getStatistics();
@@ -81,13 +81,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/authenticate
+     * POST /api/v12/quantconnect/authenticate
      * Authenticate with QuantConnect API
      */
     @POST
     @Path("/authenticate")
     public Uni<Response> authenticate() {
-        LOGGER.info("POST /api/v11/quantconnect/authenticate");
+        LOGGER.info("POST /api/v12/quantconnect/authenticate");
 
         return quantConnectService.authenticate()
             .map(authResponse -> {
@@ -106,13 +106,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/equities
+     * GET /api/v12/quantconnect/equities
      * Fetch and return equity data (cached)
      */
     @GET
     @Path("/equities")
     public Response getEquities(@QueryParam("symbols") String symbolsParam) {
-        LOGGER.info("GET /api/v11/quantconnect/equities");
+        LOGGER.info("GET /api/v12/quantconnect/equities");
 
         List<String> symbols = symbolsParam != null && !symbolsParam.isEmpty()
             ? Arrays.asList(symbolsParam.split(","))
@@ -139,13 +139,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/fetch
+     * POST /api/v12/quantconnect/fetch
      * Fetch fresh equity data from QuantConnect
      */
     @POST
     @Path("/fetch")
     public Uni<Response> fetchEquities(FetchRequest request) {
-        LOGGER.info("POST /api/v11/quantconnect/fetch");
+        LOGGER.info("POST /api/v12/quantconnect/fetch");
 
         List<String> symbols = request != null && request.getSymbols() != null && !request.getSymbols().isEmpty()
             ? request.getSymbols()
@@ -170,13 +170,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/tokenize
+     * POST /api/v12/quantconnect/tokenize
      * Tokenize equity data and register in Merkle tree
      */
     @POST
     @Path("/tokenize")
     public Uni<Response> tokenizeEquities(TokenizeRequest request) {
-        LOGGER.info("POST /api/v11/quantconnect/tokenize");
+        LOGGER.info("POST /api/v12/quantconnect/tokenize");
 
         List<String> symbols = request != null && request.getSymbols() != null && !request.getSymbols().isEmpty()
             ? request.getSymbols()
@@ -202,7 +202,7 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/transactions/{symbol}
+     * GET /api/v12/quantconnect/transactions/{symbol}
      * Fetch transaction feed for a symbol
      */
     @GET
@@ -211,7 +211,7 @@ public class QuantConnectResource {
             @PathParam("symbol") String symbol,
             @QueryParam("limit") @DefaultValue("50") int limit) {
 
-        LOGGER.info("GET /api/v11/quantconnect/transactions/{}", symbol);
+        LOGGER.info("GET /api/v12/quantconnect/transactions/{}", symbol);
 
         return quantConnectService.fetchTransactionFeed(symbol, limit)
             .map(transactions -> {
@@ -232,13 +232,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/tokenize/transactions
+     * POST /api/v12/quantconnect/tokenize/transactions
      * Tokenize transaction feed for a symbol
      */
     @POST
     @Path("/tokenize/transactions")
     public Uni<Response> tokenizeTransactions(TokenizeTransactionsRequest request) {
-        LOGGER.info("POST /api/v11/quantconnect/tokenize/transactions");
+        LOGGER.info("POST /api/v12/quantconnect/tokenize/transactions");
 
         String symbol = request != null && request.getSymbol() != null ? request.getSymbol() : "AAPL";
         int limit = request != null && request.getLimit() > 0 ? request.getLimit() : 50;
@@ -269,13 +269,13 @@ public class QuantConnectResource {
     // ========== Registry Navigation Endpoints ==========
 
     /**
-     * GET /api/v11/quantconnect/registry
+     * GET /api/v12/quantconnect/registry
      * Get registry overview
      */
     @GET
     @Path("/registry")
     public Response getRegistry() {
-        LOGGER.info("GET /api/v11/quantconnect/registry");
+        LOGGER.info("GET /api/v12/quantconnect/registry");
 
         EquityTokenizationRegistry.RegistryStatistics stats = registry.getStatistics();
         EquityTokenizationRegistry.RegistryNavigation nav = registry.getNavigation();
@@ -296,13 +296,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/stats
+     * GET /api/v12/quantconnect/registry/stats
      * Get registry statistics
      */
     @GET
     @Path("/registry/stats")
     public Response getRegistryStats() {
-        LOGGER.info("GET /api/v11/quantconnect/registry/stats");
+        LOGGER.info("GET /api/v12/quantconnect/registry/stats");
 
         EquityTokenizationRegistry.RegistryStatistics stats = registry.getStatistics();
 
@@ -319,13 +319,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/navigation
+     * GET /api/v12/quantconnect/registry/navigation
      * Get registry navigation structure
      */
     @GET
     @Path("/registry/navigation")
     public Response getRegistryNavigation() {
-        LOGGER.info("GET /api/v11/quantconnect/registry/navigation");
+        LOGGER.info("GET /api/v12/quantconnect/registry/navigation");
 
         EquityTokenizationRegistry.RegistryNavigation nav = registry.getNavigation();
 
@@ -340,7 +340,7 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/equities
+     * GET /api/v12/quantconnect/registry/equities
      * Get all tokenized equities (paginated)
      */
     @GET
@@ -349,7 +349,7 @@ public class QuantConnectResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
 
-        LOGGER.info("GET /api/v11/quantconnect/registry/equities?page={}&size={}", page, size);
+        LOGGER.info("GET /api/v12/quantconnect/registry/equities?page={}&size={}", page, size);
 
         List<TokenizedEquity> equities = registry.getAllEquities(page, size);
         EquityTokenizationRegistry.RegistryStatistics stats = registry.getStatistics();
@@ -371,7 +371,7 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/transactions
+     * GET /api/v12/quantconnect/registry/transactions
      * Get all tokenized transactions (paginated)
      */
     @GET
@@ -380,7 +380,7 @@ public class QuantConnectResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
 
-        LOGGER.info("GET /api/v11/quantconnect/registry/transactions?page={}&size={}", page, size);
+        LOGGER.info("GET /api/v12/quantconnect/registry/transactions?page={}&size={}", page, size);
 
         List<TokenizedTransaction> transactions = registry.getAllTransactions(page, size);
         EquityTokenizationRegistry.RegistryStatistics stats = registry.getStatistics();
@@ -402,13 +402,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/symbol/{symbol}
+     * GET /api/v12/quantconnect/registry/symbol/{symbol}
      * Get all tokenized assets for a symbol
      */
     @GET
     @Path("/registry/symbol/{symbol}")
     public Response getBySymbol(@PathParam("symbol") String symbol) {
-        LOGGER.info("GET /api/v11/quantconnect/registry/symbol/{}", symbol);
+        LOGGER.info("GET /api/v12/quantconnect/registry/symbol/{}", symbol);
 
         List<TokenizedEquity> equities = registry.getEquitiesBySymbol(symbol);
         List<TokenizedTransaction> transactions = registry.getTransactionsBySymbol(symbol);
@@ -425,7 +425,7 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/search
+     * GET /api/v12/quantconnect/registry/search
      * Search registry
      */
     @GET
@@ -436,7 +436,7 @@ public class QuantConnectResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
 
-        LOGGER.info("GET /api/v11/quantconnect/registry/search?q={}&type={}", query, type);
+        LOGGER.info("GET /api/v12/quantconnect/registry/search?q={}&type={}", query, type);
 
         if (query == null || query.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -460,13 +460,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/verify/{tokenId}
+     * GET /api/v12/quantconnect/registry/verify/{tokenId}
      * Verify a token in the registry
      */
     @GET
     @Path("/registry/verify/{tokenId}")
     public Response verifyToken(@PathParam("tokenId") String tokenId) {
-        LOGGER.info("GET /api/v11/quantconnect/registry/verify/{}", tokenId);
+        LOGGER.info("GET /api/v12/quantconnect/registry/verify/{}", tokenId);
 
         boolean verified = registry.verifyToken(tokenId);
         Optional<String> proof = registry.getMerkleProof(tokenId);
@@ -486,13 +486,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * GET /api/v11/quantconnect/registry/token/{tokenId}
+     * GET /api/v12/quantconnect/registry/token/{tokenId}
      * Get token details
      */
     @GET
     @Path("/registry/token/{tokenId}")
     public Response getToken(@PathParam("tokenId") String tokenId) {
-        LOGGER.info("GET /api/v11/quantconnect/registry/token/{}", tokenId);
+        LOGGER.info("GET /api/v12/quantconnect/registry/token/{}", tokenId);
 
         // Try equity first
         Optional<TokenizedEquity> equity = registry.getEquity(tokenId);
@@ -613,13 +613,13 @@ public class QuantConnectResource {
     // ========== Slim Node Endpoints ==========
 
     /**
-     * GET /api/v11/quantconnect/slimnode/status
+     * GET /api/v12/quantconnect/slimnode/status
      * Get Slim Node data feed status
      */
     @GET
     @Path("/slimnode/status")
     public Response getSlimNodeStatus() {
-        LOGGER.info("GET /api/v11/quantconnect/slimnode/status");
+        LOGGER.info("GET /api/v12/quantconnect/slimnode/status");
 
         SlimNodeDataFeed.DataFeedStatus status = slimNodeDataFeed.getStatus();
 
@@ -640,13 +640,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/slimnode/start
+     * POST /api/v12/quantconnect/slimnode/start
      * Start Slim Node data feed
      */
     @POST
     @Path("/slimnode/start")
     public Uni<Response> startSlimNode() {
-        LOGGER.info("POST /api/v11/quantconnect/slimnode/start");
+        LOGGER.info("POST /api/v12/quantconnect/slimnode/start");
 
         return slimNodeDataFeed.start()
             .map(status -> {
@@ -662,13 +662,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/slimnode/stop
+     * POST /api/v12/quantconnect/slimnode/stop
      * Stop Slim Node data feed
      */
     @POST
     @Path("/slimnode/stop")
     public Uni<Response> stopSlimNode() {
-        LOGGER.info("POST /api/v11/quantconnect/slimnode/stop");
+        LOGGER.info("POST /api/v12/quantconnect/slimnode/stop");
 
         return slimNodeDataFeed.stop()
             .map(status -> {
@@ -685,13 +685,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/slimnode/process/equities
+     * POST /api/v12/quantconnect/slimnode/process/equities
      * Manually trigger equity processing through Slim Node
      */
     @POST
     @Path("/slimnode/process/equities")
     public Uni<Response> processEquities(SlimNodeProcessRequest request) {
-        LOGGER.info("POST /api/v11/quantconnect/slimnode/process/equities");
+        LOGGER.info("POST /api/v12/quantconnect/slimnode/process/equities");
 
         List<String> symbols = request != null && request.getSymbols() != null ? request.getSymbols() : null;
 
@@ -718,13 +718,13 @@ public class QuantConnectResource {
     }
 
     /**
-     * POST /api/v11/quantconnect/slimnode/process/transactions
+     * POST /api/v12/quantconnect/slimnode/process/transactions
      * Manually trigger transaction processing through Slim Node
      */
     @POST
     @Path("/slimnode/process/transactions")
     public Uni<Response> processTransactions(SlimNodeTransactionRequest request) {
-        LOGGER.info("POST /api/v11/quantconnect/slimnode/process/transactions");
+        LOGGER.info("POST /api/v12/quantconnect/slimnode/process/transactions");
 
         String symbol = request != null && request.getSymbol() != null ? request.getSymbol() : "AAPL";
         int limit = request != null && request.getLimit() > 0 ? request.getLimit() : 50;

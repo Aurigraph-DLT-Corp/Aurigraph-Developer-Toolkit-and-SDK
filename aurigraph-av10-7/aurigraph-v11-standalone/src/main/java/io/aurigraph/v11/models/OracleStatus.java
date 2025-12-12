@@ -9,7 +9,7 @@ import java.util.Map;
  * Oracle Status Model
  * Provides oracle service health monitoring and performance metrics
  *
- * Used by /api/v11/oracles/status endpoint
+ * Used by /api/v12/oracles/status endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

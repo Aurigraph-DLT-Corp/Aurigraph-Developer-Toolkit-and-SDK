@@ -20,7 +20,7 @@ import java.util.List;
  * @version 11.0.0
  * @since Sprint 8 - Governance & Quantum Signing
  */
-@Path("/api/v11/governance")
+@Path("/api/v12/governance")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class GovernanceResource {
@@ -31,7 +31,7 @@ public class GovernanceResource {
     GovernanceService governanceService;
 
     /**
-     * POST /api/v11/governance/proposals
+     * POST /api/v12/governance/proposals
      *
      * Create a new governance proposal
      */
@@ -63,7 +63,7 @@ public class GovernanceResource {
     }
 
     /**
-     * GET /api/v11/governance/proposals
+     * GET /api/v12/governance/proposals
      *
      * List all proposals with optional filtering
      */
@@ -92,7 +92,7 @@ public class GovernanceResource {
     }
 
     /**
-     * GET /api/v11/governance/proposals/{id}
+     * GET /api/v12/governance/proposals/{id}
      *
      * Get proposal by ID
      */
@@ -114,7 +114,7 @@ public class GovernanceResource {
     }
 
     /**
-     * POST /api/v11/governance/proposals/{id}/vote
+     * POST /api/v12/governance/proposals/{id}/vote
      *
      * Cast a vote on a proposal
      */
@@ -145,7 +145,7 @@ public class GovernanceResource {
     }
 
     /**
-     * GET /api/v11/governance/proposals/{id}/results
+     * GET /api/v12/governance/proposals/{id}/results
      *
      * Get voting results for a proposal
      */
@@ -167,7 +167,7 @@ public class GovernanceResource {
     }
 
     /**
-     * POST /api/v11/governance/proposals/{id}/execute
+     * POST /api/v12/governance/proposals/{id}/execute
      *
      * Execute a passed proposal
      */
@@ -193,7 +193,7 @@ public class GovernanceResource {
     }
 
     /**
-     * GET /api/v11/governance/metrics
+     * GET /api/v12/governance/metrics
      *
      * Get governance system metrics
      */
@@ -207,7 +207,7 @@ public class GovernanceResource {
     }
 
     /**
-     * GET /api/v11/governance/config
+     * GET /api/v12/governance/config
      *
      * Get governance configuration
      */

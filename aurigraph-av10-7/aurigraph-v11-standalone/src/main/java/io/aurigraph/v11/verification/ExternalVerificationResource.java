@@ -20,7 +20,7 @@ import java.util.UUID;
  * @author J4C Development Agent
  * @since 12.0.0
  */
-@Path("/api/v11/verification")
+@Path("/api/v12/verification")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ExternalVerificationResource {

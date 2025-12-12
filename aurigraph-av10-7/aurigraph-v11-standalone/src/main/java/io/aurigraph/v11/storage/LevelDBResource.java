@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @version 1.0.0 (Dec 8, 2025)
  */
-@Path("/api/v11/storage")
+@Path("/api/v12/storage")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class LevelDBResource {

@@ -24,13 +24,13 @@ import java.util.Map;
  * Part of Enterprise Portal V4.8.0 implementation.
  *
  * Endpoints:
- * - GET /api/v11/enterprise/advanced-settings - Get advanced portal settings
- * - PUT /api/v11/enterprise/advanced-settings - Update advanced settings
+ * - GET /api/v12/enterprise/advanced-settings - Get advanced portal settings
+ * - PUT /api/v12/enterprise/advanced-settings - Update advanced settings
  *
  * @author Aurigraph V11 Team
  * @version 4.8.0
  */
-@Path("/api/v11/enterprise")
+@Path("/api/v12/enterprise")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class EnterpriseSettingsResource {
     private static final Map<String, Object> settings = initializeDefaultSettings();
 
     /**
-     * GET /api/v11/enterprise/advanced-settings
+     * GET /api/v12/enterprise/advanced-settings
      *
      * Returns advanced configuration settings for the enterprise portal.
      *
@@ -79,7 +79,7 @@ public class EnterpriseSettingsResource {
     public Uni<Response> getAdvancedSettings() {
         return Uni.createFrom().item(() -> {
             try {
-                LOG.info("GET /api/v11/enterprise/advanced-settings");
+                LOG.info("GET /api/v12/enterprise/advanced-settings");
 
                 AdvancedSettings response = new AdvancedSettings(
                     (Map<String, Object>) settings.get("systemConfiguration"),
@@ -105,7 +105,7 @@ public class EnterpriseSettingsResource {
     }
 
     /**
-     * PUT /api/v11/enterprise/advanced-settings
+     * PUT /api/v12/enterprise/advanced-settings
      *
      * Updates advanced configuration settings.
      */
@@ -123,7 +123,7 @@ public class EnterpriseSettingsResource {
     public Uni<Response> updateAdvancedSettings(Map<String, Object> updatedSettings) {
         return Uni.createFrom().item(() -> {
             try {
-                LOG.infof("PUT /api/v11/enterprise/advanced-settings - updating %d categories",
+                LOG.infof("PUT /api/v12/enterprise/advanced-settings - updating %d categories",
                     updatedSettings.size());
 
                 // Validate and update settings
@@ -152,7 +152,7 @@ public class EnterpriseSettingsResource {
     }
 
     /**
-     * GET /api/v11/enterprise/settings/category/{category}
+     * GET /api/v12/enterprise/settings/category/{category}
      *
      * Returns settings for a specific category.
      */
@@ -167,7 +167,7 @@ public class EnterpriseSettingsResource {
     public Uni<Response> getSettingsByCategory(@PathParam("category") String category) {
         return Uni.createFrom().item(() -> {
             try {
-                LOG.infof("GET /api/v11/enterprise/settings/category/%s", category);
+                LOG.infof("GET /api/v12/enterprise/settings/category/%s", category);
 
                 if (!settings.containsKey(category)) {
                     return Response.status(Response.Status.NOT_FOUND)

@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Quantum cryptography status model
- * Used by /api/v11/security/quantum endpoint
+ * Used by /api/v12/security/quantum endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

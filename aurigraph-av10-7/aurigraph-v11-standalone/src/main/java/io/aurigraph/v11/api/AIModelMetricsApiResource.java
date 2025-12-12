@@ -20,13 +20,13 @@ import java.util.*;
  * AI Model Metrics API Resource
  *
  * Provides AI/ML model operations:
- * - GET /api/v11/ai/models/{id}/metrics - ML model performance metrics
- * - GET /api/v11/ai/predictions - AI consensus predictions
+ * - GET /api/v12/ai/models/{id}/metrics - ML model performance metrics
+ * - GET /api/v12/ai/predictions - AI consensus predictions
  *
  * @version 11.0.0
  * @author AI/ML Development Agent (ADA)
  */
-@Path("/api/v11/ai")
+@Path("/api/v12/ai")
 @ApplicationScoped
 @Tag(name = "AI Model Metrics API", description = "AI/ML model metrics and predictions")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +38,7 @@ public class AIModelMetricsApiResource {
     // ==================== ENDPOINT 6: AI Model Metrics ====================
 
     /**
-     * GET /api/v11/ai/models/{id}/metrics
+     * GET /api/v12/ai/models/{id}/metrics
      * Get ML model performance metrics
      */
     @GET
@@ -138,7 +138,7 @@ public class AIModelMetricsApiResource {
     // ==================== ENDPOINT 7: AI Predictions ====================
 
     /**
-     * GET /api/v11/ai/consensus/predictions
+     * GET /api/v12/ai/consensus/predictions
      * Get AI consensus predictions
      */
     @GET

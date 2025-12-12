@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Hardware Security Module (HSM) status model
- * Used by /api/v11/security/hsm/status endpoint
+ * Used by /api/v12/security/hsm/status endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

@@ -24,15 +24,15 @@ import java.util.Map;
  * AV11-281: Implement Bridge Status Monitor API
  *
  * Endpoints:
- * - GET /api/v11/bridge/status - Get overall bridge status
- * - GET /api/v11/bridge/status/{bridgeId} - Get specific bridge status
- * - GET /api/v11/bridge/statistics - Get bridge statistics
- * - GET /api/v11/bridge/performance - Get performance metrics
+ * - GET /api/v12/bridge/status - Get overall bridge status
+ * - GET /api/v12/bridge/status/{bridgeId} - Get specific bridge status
+ * - GET /api/v12/bridge/statistics - Get bridge statistics
+ * - GET /api/v12/bridge/performance - Get performance metrics
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v11/bridge")
+@Path("/api/v12/bridge")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Bridge Status", description = "Cross-chain bridge health monitoring and operational status")
@@ -65,7 +65,7 @@ public class BridgeStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getBridgeStatus() {
-        LOG.info("GET /api/v11/bridge/status - Fetching bridge network status");
+        LOG.info("GET /api/v12/bridge/status - Fetching bridge network status");
 
         return bridgeStatusService.getBridgeStatus()
                 .map(status -> {
@@ -106,7 +106,7 @@ public class BridgeStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getBridgeById(@PathParam("bridgeId") String bridgeId) {
-        LOG.debugf("GET /api/v11/bridge/status/%s - Fetching specific bridge status", bridgeId);
+        LOG.debugf("GET /api/v12/bridge/status/%s - Fetching specific bridge status", bridgeId);
 
         return bridgeStatusService.getBridgeById(bridgeId)
                 .map(bridge -> {
@@ -145,7 +145,7 @@ public class BridgeStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getBridgeStatistics() {
-        LOG.debug("GET /api/v11/bridge/statistics - Fetching bridge statistics");
+        LOG.debug("GET /api/v12/bridge/statistics - Fetching bridge statistics");
 
         return bridgeStatusService.getBridgeStatus()
                 .map(status -> {
@@ -189,7 +189,7 @@ public class BridgeStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getBridgePerformance() {
-        LOG.debug("GET /api/v11/bridge/performance - Fetching bridge performance");
+        LOG.debug("GET /api/v12/bridge/performance - Fetching bridge performance");
 
         return bridgeStatusService.getBridgeStatus()
                 .map(status -> {
@@ -235,7 +235,7 @@ public class BridgeStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getBridgeAlerts() {
-        LOG.debug("GET /api/v11/bridge/alerts - Fetching bridge alerts");
+        LOG.debug("GET /api/v12/bridge/alerts - Fetching bridge alerts");
 
         return bridgeStatusService.getBridgeStatus()
                 .map(status -> {

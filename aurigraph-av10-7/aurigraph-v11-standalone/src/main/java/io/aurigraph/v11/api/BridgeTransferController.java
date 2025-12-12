@@ -21,7 +21,7 @@ import org.jboss.logging.Logger;
  * Bridge Transfer Controller
  * REST API endpoints for submitting and managing multi-signature bridge transfers
  *
- * Endpoint: POST /api/v11/bridge/transfer/submit
+ * Endpoint: POST /api/v12/bridge/transfer/submit
  *
  * Features:
  * - Multi-signature support (M-of-N schemes)
@@ -34,7 +34,7 @@ import org.jboss.logging.Logger;
  * @version 1.0
  * @since AV11-635
  */
-@Path("/api/v11/bridge/transfer")
+@Path("/api/v12/bridge/transfer")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Bridge Transfer", description = "Multi-signature bridge transfer submission and management")

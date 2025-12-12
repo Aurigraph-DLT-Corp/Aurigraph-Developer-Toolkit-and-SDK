@@ -25,7 +25,7 @@ import java.util.*;
  * @author Aurigraph Development Team
  * @version 12.0.0
  */
-@Path("/api/v11/referral")
+@Path("/api/v12/referral")
 @ApplicationScoped
 @PermitAll
 @Produces(MediaType.APPLICATION_JSON)

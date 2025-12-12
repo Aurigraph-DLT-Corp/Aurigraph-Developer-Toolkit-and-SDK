@@ -29,7 +29,7 @@ import java.util.UUID;
  * @version 1.0.0 (Dec 4, 2025)
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/demos")
+@Path("/api/v12/demos")
 @Tag(name = "Demo Management", description = "Manage live demos with filesystem persistence")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

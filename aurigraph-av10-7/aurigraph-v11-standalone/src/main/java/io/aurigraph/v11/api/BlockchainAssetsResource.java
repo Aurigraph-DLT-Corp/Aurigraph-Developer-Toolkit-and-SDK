@@ -18,15 +18,15 @@ import java.util.*;
  * Blockchain Assets API Resource (AV11-460)
  *
  * Provides blockchain asset listing endpoints for the RWAT Registry:
- * - GET /api/v11/blockchain/assets - List all tokenized assets
- * - GET /api/v11/blockchain/assets/{assetId} - Get asset details
- * - GET /api/v11/blockchain/assets/stats - Get asset statistics
- * - GET /api/v11/blockchain/assets/categories - List asset categories
+ * - GET /api/v12/blockchain/assets - List all tokenized assets
+ * - GET /api/v12/blockchain/assets/{assetId} - Get asset details
+ * - GET /api/v12/blockchain/assets/stats - Get asset statistics
+ * - GET /api/v12/blockchain/assets/categories - List asset categories
  *
  * @version 12.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @ApplicationScoped
 @Tag(name = "Blockchain Assets", description = "Real-world asset listing and management")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +38,7 @@ public class BlockchainAssetsResource {
     // ==================== ASSET LISTING ====================
 
     /**
-     * GET /api/v11/blockchain/assets
+     * GET /api/v12/blockchain/assets
      * List all tokenized blockchain assets
      */
     @GET
@@ -56,7 +56,7 @@ public class BlockchainAssetsResource {
             @QueryParam("sortBy") @DefaultValue("createdAt") String sortBy,
             @QueryParam("sortOrder") @DefaultValue("desc") String sortOrder) {
 
-        LOG.infof("GET /api/v11/blockchain/assets - category=%s, status=%s, page=%d, size=%d",
+        LOG.infof("GET /api/v12/blockchain/assets - category=%s, status=%s, page=%d, size=%d",
                   category, status, page, size);
 
         return Uni.createFrom().item(() -> {
@@ -83,7 +83,7 @@ public class BlockchainAssetsResource {
     }
 
     /**
-     * GET /api/v11/blockchain/assets/{assetId}
+     * GET /api/v12/blockchain/assets/{assetId}
      * Get detailed information about a specific asset
      */
     @GET
@@ -95,7 +95,7 @@ public class BlockchainAssetsResource {
     @APIResponse(responseCode = "200", description = "Asset details retrieved")
     @APIResponse(responseCode = "404", description = "Asset not found")
     public Uni<Response> getAssetDetails(@PathParam("assetId") String assetId) {
-        LOG.infof("GET /api/v11/blockchain/assets/%s - Asset details requested", assetId);
+        LOG.infof("GET /api/v12/blockchain/assets/%s - Asset details requested", assetId);
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> asset = new LinkedHashMap<>();
@@ -218,7 +218,7 @@ public class BlockchainAssetsResource {
     }
 
     /**
-     * GET /api/v11/blockchain/assets/stats
+     * GET /api/v12/blockchain/assets/stats
      * Get asset statistics
      */
     @GET
@@ -229,7 +229,7 @@ public class BlockchainAssetsResource {
     )
     @APIResponse(responseCode = "200", description = "Statistics retrieved")
     public Uni<Response> getAssetStats() {
-        LOG.info("GET /api/v11/blockchain/assets/stats - Statistics requested");
+        LOG.info("GET /api/v12/blockchain/assets/stats - Statistics requested");
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> stats = new LinkedHashMap<>();
@@ -293,7 +293,7 @@ public class BlockchainAssetsResource {
     }
 
     /**
-     * GET /api/v11/blockchain/assets/categories
+     * GET /api/v12/blockchain/assets/categories
      * Get asset categories
      */
     @GET
@@ -304,7 +304,7 @@ public class BlockchainAssetsResource {
     )
     @APIResponse(responseCode = "200", description = "Categories retrieved")
     public Uni<Response> getAssetCategories() {
-        LOG.info("GET /api/v11/blockchain/assets/categories - Categories requested");
+        LOG.info("GET /api/v12/blockchain/assets/categories - Categories requested");
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> categories = List.of(

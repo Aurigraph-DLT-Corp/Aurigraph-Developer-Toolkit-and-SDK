@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version 1.0.0
  * @author Aurigraph DLT - Demo Team
  */
-@Path("/api/v11/demo")
+@Path("/api/v12/demo")
 @ApplicationScoped
 @Tag(name = "High-Throughput Demo", description = "Multi-channel demo configuration and performance testing")
 @Produces(MediaType.APPLICATION_JSON)
@@ -41,14 +41,14 @@ public class HighThroughputDemoResource {
     // ==================== ROOT ENDPOINT ====================
 
     /**
-     * GET /api/v11/demo
+     * GET /api/v12/demo
      * Returns demo service overview and status
      */
     @GET
     @Operation(summary = "Get demo overview", description = "Returns demo service overview and channel summary")
     @APIResponse(responseCode = "200", description = "Demo overview retrieved successfully")
     public Uni<Response> getDemoOverview() {
-        LOG.info("GET /api/v11/demo - Demo overview requested");
+        LOG.info("GET /api/v12/demo - Demo overview requested");
 
         return Uni.createFrom().item(() -> {
             int activeChannels = (int) channelStates.values().stream().filter(s -> s.isRunning).count();
@@ -73,7 +73,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Create a new demo channel with specified node configuration
-     * POST /api/v11/demo/channels/create
+     * POST /api/v12/demo/channels/create
      */
     @POST
     @Path("/channels/create")
@@ -123,7 +123,7 @@ public class HighThroughputDemoResource {
 
     /**
      * List all demo channels
-     * GET /api/v11/demo/channels
+     * GET /api/v12/demo/channels
      */
     @GET
     @Path("/channels")
@@ -143,7 +143,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Get specific demo channel
-     * GET /api/v11/demo/channels/{channelId}
+     * GET /api/v12/demo/channels/{channelId}
      */
     @GET
     @Path("/channels/{channelId}")
@@ -173,7 +173,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Start demo simulation
-     * POST /api/v11/demo/channels/{channelId}/start
+     * POST /api/v12/demo/channels/{channelId}/start
      */
     @POST
     @Path("/channels/{channelId}/start")
@@ -207,7 +207,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Stop demo simulation
-     * POST /api/v11/demo/channels/{channelId}/stop
+     * POST /api/v12/demo/channels/{channelId}/stop
      */
     @POST
     @Path("/channels/{channelId}/stop")
@@ -236,7 +236,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Get demo channel state
-     * GET /api/v11/demo/channels/{channelId}/state
+     * GET /api/v12/demo/channels/{channelId}/state
      */
     @GET
     @Path("/channels/{channelId}/state")
@@ -265,7 +265,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Get demo metrics
-     * GET /api/v11/demo/channels/{channelId}/metrics
+     * GET /api/v12/demo/channels/{channelId}/metrics
      */
     @GET
     @Path("/channels/{channelId}/metrics")
@@ -304,7 +304,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Get node metrics
-     * GET /api/v11/demo/channels/{channelId}/nodes/metrics
+     * GET /api/v12/demo/channels/{channelId}/nodes/metrics
      */
     @GET
     @Path("/channels/{channelId}/nodes/metrics")
@@ -338,7 +338,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Get performance report
-     * GET /api/v11/demo/channels/{channelId}/report
+     * GET /api/v12/demo/channels/{channelId}/report
      */
     @GET
     @Path("/channels/{channelId}/report")
@@ -375,7 +375,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Check demo infrastructure health
-     * GET /api/v11/demo/health
+     * GET /api/v12/demo/health
      */
     @GET
     @Path("/health")
@@ -501,7 +501,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Register demo user with company and contact details
-     * POST /api/v11/demo/users/register
+     * POST /api/v12/demo/users/register
      * Stores user data for CRM integration and follow-up
      */
     @POST
@@ -541,7 +541,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Get user registration details
-     * GET /api/v11/demo/users/{registrationId}
+     * GET /api/v12/demo/users/{registrationId}
      */
     @GET
     @Path("/users/{registrationId}")
@@ -569,7 +569,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Track social media share event for analytics
-     * POST /api/v11/demo/users/track-share
+     * POST /api/v12/demo/users/track-share
      */
     @POST
     @Path("/users/track-share")
@@ -590,7 +590,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Get user by email for CRM lookup
-     * GET /api/v11/demo/users/by-email
+     * GET /api/v12/demo/users/by-email
      */
     @GET
     @Path("/users/by-email")
@@ -611,7 +611,7 @@ public class HighThroughputDemoResource {
 
     /**
      * Export demo results for CRM
-     * GET /api/v11/demo/users/{registrationId}/export
+     * GET /api/v12/demo/users/{registrationId}/export
      */
     @GET
     @Path("/users/{registrationId}/export")

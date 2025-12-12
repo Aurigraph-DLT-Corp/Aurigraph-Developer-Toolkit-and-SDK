@@ -21,9 +21,9 @@ import org.jboss.logging.Logger;
  * This resource exposes live data about validators, their status, and performance metrics.
  *
  * Endpoints:
- * - GET /api/v11/live/validators - Get live validator monitoring data
- * - GET /api/v11/live/validators/{id} - Get specific validator details
- * - GET /api/v11/live/validators/health - Health check for validator monitoring
+ * - GET /api/v12/live/validators - Get live validator monitoring data
+ * - GET /api/v12/live/validators/{id} - Get specific validator details
+ * - GET /api/v12/live/validators/health - Health check for validator monitoring
  *
  * All endpoints return reactive Uni types for non-blocking operation
  * and leverage Java 21 virtual threads for high concurrency.
@@ -32,7 +32,7 @@ import org.jboss.logging.Logger;
  * @ticket AV11-268
  * @version 1.0.1
  */
-@Path("/api/v11/live")
+@Path("/api/v12/live")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -81,7 +81,7 @@ public class LiveValidatorResource {
         )
     })
     public Uni<LiveValidatorsService.ValidatorStatusResponse> getLiveValidators() {
-        LOG.info("API Request: GET /api/v11/live/validators - Fetching live validator data");
+        LOG.info("API Request: GET /api/v12/live/validators - Fetching live validator data");
 
         return Uni.createFrom().item(() -> {
             try {
@@ -129,7 +129,7 @@ public class LiveValidatorResource {
         )
     })
     public Uni<Response> getValidatorById(@PathParam("validatorId") String validatorId) {
-        LOG.infof("API Request: GET /api/v11/live/validators/%s - Fetching validator details", validatorId);
+        LOG.infof("API Request: GET /api/v12/live/validators/%s - Fetching validator details", validatorId);
 
         return Uni.createFrom().item(() -> {
             try {

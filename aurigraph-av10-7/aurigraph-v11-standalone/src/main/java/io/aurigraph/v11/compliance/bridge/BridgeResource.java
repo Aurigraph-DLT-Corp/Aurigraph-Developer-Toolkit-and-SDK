@@ -13,7 +13,7 @@ import java.util.Map;
  * REST API endpoints for ERC-3643 Smart Contract Bridge
  * Allows Solidity contracts to interact with Java compliance engine
  */
-@Path("/api/v11/compliance/bridge")
+@Path("/api/v12/compliance/bridge")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BridgeResource {
@@ -23,7 +23,7 @@ public class BridgeResource {
 
     /**
      * Register a Solidity contract
-     * POST /api/v11/compliance/bridge/contracts/register
+     * POST /api/v12/compliance/bridge/contracts/register
      */
     @POST
     @Path("/contracts/register")
@@ -49,7 +49,7 @@ public class BridgeResource {
 
     /**
      * Process transfer approval request
-     * POST /api/v11/compliance/bridge/transfers/approve
+     * POST /api/v12/compliance/bridge/transfers/approve
      */
     @POST
     @Path("/transfers/approve")
@@ -78,7 +78,7 @@ public class BridgeResource {
 
     /**
      * Sync identity verification from contract
-     * POST /api/v11/compliance/bridge/identities/sync
+     * POST /api/v12/compliance/bridge/identities/sync
      */
     @POST
     @Path("/identities/sync")
@@ -107,7 +107,7 @@ public class BridgeResource {
 
     /**
      * Sync identity revocation from contract
-     * POST /api/v11/compliance/bridge/identities/revoke
+     * POST /api/v12/compliance/bridge/identities/revoke
      */
     @POST
     @Path("/identities/revoke")
@@ -135,7 +135,7 @@ public class BridgeResource {
 
     /**
      * Sync country restriction from contract
-     * POST /api/v11/compliance/bridge/countries/sync
+     * POST /api/v12/compliance/bridge/countries/sync
      */
     @POST
     @Path("/countries/sync")
@@ -163,7 +163,7 @@ public class BridgeResource {
 
     /**
      * Get contract state
-     * GET /api/v11/compliance/bridge/contracts/{contractAddress}/state
+     * GET /api/v12/compliance/bridge/contracts/{contractAddress}/state
      */
     @GET
     @Path("/contracts/{contractAddress}/state")
@@ -184,7 +184,7 @@ public class BridgeResource {
 
     /**
      * Create pending operation
-     * POST /api/v11/compliance/bridge/operations/create
+     * POST /api/v12/compliance/bridge/operations/create
      */
     @POST
     @Path("/operations/create")
@@ -210,7 +210,7 @@ public class BridgeResource {
 
     /**
      * Get operation status
-     * GET /api/v11/compliance/bridge/operations/{operationId}
+     * GET /api/v12/compliance/bridge/operations/{operationId}
      */
     @GET
     @Path("/operations/{operationId}")
@@ -245,7 +245,7 @@ public class BridgeResource {
 
     /**
      * Get bridge statistics
-     * GET /api/v11/compliance/bridge/stats
+     * GET /api/v12/compliance/bridge/stats
      */
     @GET
     @Path("/stats")

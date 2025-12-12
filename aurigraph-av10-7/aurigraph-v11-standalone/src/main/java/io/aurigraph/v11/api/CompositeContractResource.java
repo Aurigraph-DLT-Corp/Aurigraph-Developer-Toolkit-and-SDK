@@ -27,7 +27,7 @@ import java.util.*;
  * @version 12.1.0
  * @since AV11-603-02
  */
-@Path("/api/v11/composite-contracts")
+@Path("/api/v12/composite-contracts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CompositeContractResource {
@@ -41,7 +41,7 @@ public class CompositeContractResource {
     /**
      * Create a new Active Contract
      *
-     * POST /api/v11/contracts
+     * POST /api/v12/contracts
      */
     @POST
     public Uni<Response> createContract(ContractCreateRequest request) {
@@ -76,7 +76,7 @@ public class CompositeContractResource {
     /**
      * Get contract by ID
      *
-     * GET /api/v11/contracts/{contractId}
+     * GET /api/v12/contracts/{contractId}
      */
     @GET
     @Path("/{contractId}")
@@ -95,7 +95,7 @@ public class CompositeContractResource {
     /**
      * List contracts by owner
      *
-     * GET /api/v11/contracts?owner={ownerAddress}
+     * GET /api/v12/contracts?owner={ownerAddress}
      */
     @GET
     public Response listContracts(
@@ -129,7 +129,7 @@ public class CompositeContractResource {
     /**
      * Bind contract to composite token
      *
-     * POST /api/v11/contracts/{contractId}/bind
+     * POST /api/v12/contracts/{contractId}/bind
      */
     @POST
     @Path("/{contractId}/bind")
@@ -175,7 +175,7 @@ public class CompositeContractResource {
     /**
      * Transition workflow state
      *
-     * POST /api/v11/contracts/{contractId}/transition
+     * POST /api/v12/contracts/{contractId}/transition
      */
     @POST
     @Path("/{contractId}/transition")
@@ -236,7 +236,7 @@ public class CompositeContractResource {
     /**
      * Submit contract for approval
      *
-     * POST /api/v11/contracts/{contractId}/submit-for-approval
+     * POST /api/v12/contracts/{contractId}/submit-for-approval
      */
     @POST
     @Path("/{contractId}/submit-for-approval")
@@ -276,7 +276,7 @@ public class CompositeContractResource {
     /**
      * Activate contract (after VVB verification)
      *
-     * POST /api/v11/contracts/{contractId}/activate
+     * POST /api/v12/contracts/{contractId}/activate
      */
     @POST
     @Path("/{contractId}/activate")
@@ -316,7 +316,7 @@ public class CompositeContractResource {
     /**
      * Suspend contract
      *
-     * POST /api/v11/contracts/{contractId}/suspend
+     * POST /api/v12/contracts/{contractId}/suspend
      */
     @POST
     @Path("/{contractId}/suspend")
@@ -357,7 +357,7 @@ public class CompositeContractResource {
     /**
      * Resume suspended contract
      *
-     * POST /api/v11/contracts/{contractId}/resume
+     * POST /api/v12/contracts/{contractId}/resume
      */
     @POST
     @Path("/{contractId}/resume")
@@ -397,7 +397,7 @@ public class CompositeContractResource {
     /**
      * Terminate contract
      *
-     * POST /api/v11/contracts/{contractId}/terminate
+     * POST /api/v12/contracts/{contractId}/terminate
      */
     @POST
     @Path("/{contractId}/terminate")
@@ -438,7 +438,7 @@ public class CompositeContractResource {
     /**
      * Record VVB verification
      *
-     * POST /api/v11/contracts/{contractId}/vvb-verify
+     * POST /api/v12/contracts/{contractId}/vvb-verify
      */
     @POST
     @Path("/{contractId}/vvb-verify")
@@ -477,7 +477,7 @@ public class CompositeContractResource {
     /**
      * Assign role to address
      *
-     * POST /api/v11/contracts/{contractId}/roles/assign
+     * POST /api/v12/contracts/{contractId}/roles/assign
      */
     @POST
     @Path("/{contractId}/roles/assign")
@@ -520,7 +520,7 @@ public class CompositeContractResource {
     /**
      * Get roles for contract
      *
-     * GET /api/v11/contracts/{contractId}/roles
+     * GET /api/v12/contracts/{contractId}/roles
      */
     @GET
     @Path("/{contractId}/roles")
@@ -555,7 +555,7 @@ public class CompositeContractResource {
     /**
      * Check permission
      *
-     * GET /api/v11/contracts/{contractId}/roles/{address}/can/{permission}
+     * GET /api/v12/contracts/{contractId}/roles/{address}/can/{permission}
      */
     @GET
     @Path("/{contractId}/roles/{address}/can/{permission}")
@@ -593,7 +593,7 @@ public class CompositeContractResource {
     /**
      * Add business rule
      *
-     * POST /api/v11/contracts/{contractId}/rules
+     * POST /api/v12/contracts/{contractId}/rules
      */
     @POST
     @Path("/{contractId}/rules")
@@ -639,7 +639,7 @@ public class CompositeContractResource {
     /**
      * Get business rules
      *
-     * GET /api/v11/contracts/{contractId}/rules
+     * GET /api/v12/contracts/{contractId}/rules
      */
     @GET
     @Path("/{contractId}/rules")
@@ -689,7 +689,7 @@ public class CompositeContractResource {
     /**
      * Get workflow history
      *
-     * GET /api/v11/contracts/{contractId}/workflow-history
+     * GET /api/v12/contracts/{contractId}/workflow-history
      */
     @GET
     @Path("/{contractId}/workflow-history")
@@ -717,7 +717,7 @@ public class CompositeContractResource {
     /**
      * Get access audit log
      *
-     * GET /api/v11/contracts/{contractId}/audit-log
+     * GET /api/v12/contracts/{contractId}/audit-log
      */
     @GET
     @Path("/{contractId}/audit-log")
@@ -745,7 +745,7 @@ public class CompositeContractResource {
     /**
      * Get traceability links
      *
-     * GET /api/v11/contracts/{contractId}/traceability
+     * GET /api/v12/contracts/{contractId}/traceability
      */
     @GET
     @Path("/{contractId}/traceability")
@@ -772,7 +772,7 @@ public class CompositeContractResource {
     /**
      * Get service statistics
      *
-     * GET /api/v11/contracts/stats
+     * GET /api/v12/contracts/stats
      */
     @GET
     @Path("/stats")

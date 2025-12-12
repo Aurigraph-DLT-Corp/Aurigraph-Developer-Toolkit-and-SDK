@@ -26,7 +26,7 @@ import java.util.*;
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/rwa")
+@Path("/api/v12/rwa")
 @ApplicationScoped
 @Tag(name = "RWA API", description = "Real-World Asset tokenization operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -220,7 +220,7 @@ public class RWAApiResource {
 
     /**
      * Get RWA statistics (alias for status endpoint)
-     * GET /api/v11/rwa/stats
+     * GET /api/v12/rwa/stats
      * This is an alias endpoint for frontend compatibility
      */
     @GET
@@ -239,7 +239,7 @@ public class RWAApiResource {
 
     /**
      * Tokenize real-world asset
-     * POST /api/v11/rwa/tokenize
+     * POST /api/v12/rwa/tokenize
      */
     @POST
     @Path("/tokenize")
@@ -271,7 +271,7 @@ public class RWAApiResource {
 
     /**
      * List all tokenized assets
-     * GET /api/v11/rwa/tokens
+     * GET /api/v12/rwa/tokens
      */
     @GET
     @Path("/tokens")
@@ -313,7 +313,7 @@ public class RWAApiResource {
 
     /**
      * Get token details
-     * GET /api/v11/rwa/tokens/{tokenId}
+     * GET /api/v12/rwa/tokens/{tokenId}
      */
     @GET
     @Path("/tokens/{tokenId}")
@@ -376,14 +376,14 @@ public class RWAApiResource {
 
     /**
      * Get portfolio overview
-     * GET /api/v11/rwa/portfolio
+     * GET /api/v12/rwa/portfolio
      */
     @GET
     @Path("/portfolio")
     @Operation(summary = "Get portfolio overview", description = "Get RWA token portfolio overview for the platform")
     @APIResponse(responseCode = "200", description = "Portfolio overview retrieved successfully")
     public Uni<Response> getPortfolioOverview() {
-        LOG.info("GET /api/v11/rwa/portfolio - Fetching portfolio overview");
+        LOG.info("GET /api/v12/rwa/portfolio - Fetching portfolio overview");
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> overview = new LinkedHashMap<>();
@@ -428,7 +428,7 @@ public class RWAApiResource {
 
     /**
      * Get user portfolio
-     * GET /api/v11/rwa/portfolio/{address}
+     * GET /api/v12/rwa/portfolio/{address}
      */
     @GET
     @Path("/portfolio/{address}")
@@ -486,7 +486,7 @@ public class RWAApiResource {
 
     /**
      * List oracle sources
-     * GET /api/v11/rwa/oracle/sources
+     * GET /api/v12/rwa/oracle/sources
      */
     @GET
     @Path("/oracle/sources")
@@ -528,7 +528,7 @@ public class RWAApiResource {
 
     /**
      * Get oracle price for asset
-     * GET /api/v11/rwa/oracle/price/{assetId}
+     * GET /api/v12/rwa/oracle/price/{assetId}
      */
     @GET
     @Path("/oracle/price/{assetId}")
@@ -568,14 +568,14 @@ public class RWAApiResource {
 
     /**
      * Get dividends overview
-     * GET /api/v11/rwa/dividends
+     * GET /api/v12/rwa/dividends
      */
     @GET
     @Path("/dividends")
     @Operation(summary = "Get dividends overview", description = "Get RWA dividends distribution overview")
     @APIResponse(responseCode = "200", description = "Dividends overview retrieved successfully")
     public Uni<Response> getDividendsOverview() {
-        LOG.info("GET /api/v11/rwa/dividends - Fetching dividends overview");
+        LOG.info("GET /api/v12/rwa/dividends - Fetching dividends overview");
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> dividends = new LinkedHashMap<>();
@@ -649,14 +649,14 @@ public class RWAApiResource {
 
     /**
      * Get compliance overview
-     * GET /api/v11/rwa/compliance
+     * GET /api/v12/rwa/compliance
      */
     @GET
     @Path("/compliance")
     @Operation(summary = "Get compliance overview", description = "Get RWA compliance and regulatory status overview")
     @APIResponse(responseCode = "200", description = "Compliance overview retrieved successfully")
     public Uni<Response> getComplianceOverview() {
-        LOG.info("GET /api/v11/rwa/compliance - Fetching compliance overview");
+        LOG.info("GET /api/v12/rwa/compliance - Fetching compliance overview");
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> compliance = new LinkedHashMap<>();
@@ -923,7 +923,7 @@ public class RWAApiResource {
     // ==================== REGISTRY ====================
 
     /**
-     * GET /api/v11/rwa/registry
+     * GET /api/v12/rwa/registry
      * Returns complete RWA registry hierarchy with Merkle tree verification
      * Hierarchy: Underlying Assets → Primary Assets → Secondary Assets → Tokens → Contracts → Executions
      */
@@ -935,7 +935,7 @@ public class RWAApiResource {
     )
     @APIResponse(responseCode = "200", description = "RWA registry retrieved successfully")
     public Uni<Response> getRWARegistry() {
-        LOG.info("GET /api/v11/rwa/registry - Fetching RWA registry navigation");
+        LOG.info("GET /api/v12/rwa/registry - Fetching RWA registry navigation");
 
         return Uni.createFrom().item(() -> {
             // Build comprehensive registry hierarchy with Merkle verification
@@ -1206,7 +1206,7 @@ public class RWAApiResource {
     }
 
     /**
-     * POST /api/v11/rwa/transfer
+     * POST /api/v12/rwa/transfer
      * Transfer RWA tokens between addresses
      */
     @POST
@@ -1236,7 +1236,7 @@ public class RWAApiResource {
     // ==================== POOLS & FRACTIONAL ====================
 
     /**
-     * GET /api/v11/rwa/pools
+     * GET /api/v12/rwa/pools
      * Returns RWA liquidity pools
      */
     @GET
@@ -1244,7 +1244,7 @@ public class RWAApiResource {
     @Operation(summary = "Get RWA pools", description = "Returns RWA liquidity and investment pools")
     @APIResponse(responseCode = "200", description = "RWA pools retrieved successfully")
     public Uni<Response> getRWAPools() {
-        LOG.info("GET /api/v11/rwa/pools - Fetching RWA pools");
+        LOG.info("GET /api/v12/rwa/pools - Fetching RWA pools");
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> pools = new ArrayList<>();
@@ -1305,7 +1305,7 @@ public class RWAApiResource {
     }
 
     /**
-     * GET /api/v11/rwa/fractional
+     * GET /api/v12/rwa/fractional
      * Returns fractional RWA tokens
      */
     @GET
@@ -1313,7 +1313,7 @@ public class RWAApiResource {
     @Operation(summary = "Get fractional tokens", description = "Returns fractional RWA token information")
     @APIResponse(responseCode = "200", description = "Fractional tokens retrieved successfully")
     public Uni<Response> getFractionalTokens() {
-        LOG.info("GET /api/v11/rwa/fractional - Fetching fractional tokens");
+        LOG.info("GET /api/v12/rwa/fractional - Fetching fractional tokens");
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> fractionalTokens = new ArrayList<>();

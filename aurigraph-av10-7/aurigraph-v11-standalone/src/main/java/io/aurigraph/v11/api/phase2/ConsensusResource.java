@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 12
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ConsensusResource {
@@ -28,7 +28,7 @@ public class ConsensusResource {
 
     /**
      * Get HyperRAFT++ consensus status
-     * GET /api/v11/blockchain/consensus/status
+     * GET /api/v12/blockchain/consensus/status
      */
     @GET
     @Path("/consensus/status")
@@ -54,7 +54,7 @@ public class ConsensusResource {
 
     /**
      * Get leader election history
-     * GET /api/v11/blockchain/consensus/leader-history
+     * GET /api/v12/blockchain/consensus/leader-history
      */
     @GET
     @Path("/consensus/leader-history")
@@ -83,7 +83,7 @@ public class ConsensusResource {
 
     /**
      * Get consensus performance metrics
-     * GET /api/v11/blockchain/consensus/metrics
+     * GET /api/v12/blockchain/consensus/metrics
      */
     @GET
     @Path("/consensus/metrics")

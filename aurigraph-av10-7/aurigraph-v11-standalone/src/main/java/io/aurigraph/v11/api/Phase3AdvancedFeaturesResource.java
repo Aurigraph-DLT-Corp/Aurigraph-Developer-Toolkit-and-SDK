@@ -31,7 +31,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Phase 3
  */
-@Path("/api/v11/advanced")
+@Path("/api/v12/advanced")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Phase3AdvancedFeaturesResource {
@@ -42,7 +42,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get real-time metrics stream
-     * GET /api/v11/advanced/monitoring/realtime
+     * GET /api/v12/advanced/monitoring/realtime
      */
     @GET
     @Path("/monitoring/realtime")
@@ -68,7 +68,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get monitoring alerts
-     * GET /api/v11/advanced/monitoring/alerts
+     * GET /api/v12/advanced/monitoring/alerts
      */
     @GET
     @Path("/monitoring/alerts")
@@ -106,7 +106,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get predictive analytics
-     * GET /api/v11/advanced/analytics/predictive
+     * GET /api/v12/advanced/analytics/predictive
      */
     @GET
     @Path("/analytics/predictive")
@@ -129,7 +129,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get historical trends
-     * GET /api/v11/advanced/analytics/trends
+     * GET /api/v12/advanced/analytics/trends
      */
     @GET
     @Path("/analytics/trends")
@@ -153,7 +153,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get supported chains
-     * GET /api/v11/advanced/bridge/chains
+     * GET /api/v12/advanced/bridge/chains
      */
     @GET
     @Path("/bridge/chains")
@@ -185,7 +185,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Initiate cross-chain transfer
-     * POST /api/v11/advanced/bridge/transfer
+     * POST /api/v12/advanced/bridge/transfer
      */
     @POST
     @Path("/bridge/transfer")
@@ -208,7 +208,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Create multi-sig wallet
-     * POST /api/v11/advanced/multisig/create
+     * POST /api/v12/advanced/multisig/create
      */
     @POST
     @Path("/multisig/create")
@@ -228,7 +228,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get multi-sig wallets
-     * GET /api/v11/advanced/multisig/wallets
+     * GET /api/v12/advanced/multisig/wallets
      */
     @GET
     @Path("/multisig/wallets")
@@ -261,7 +261,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Create atomic swap
-     * POST /api/v11/advanced/swaps/create
+     * POST /api/v12/advanced/swaps/create
      */
     @POST
     @Path("/swaps/create")
@@ -283,7 +283,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get active atomic swaps
-     * GET /api/v11/advanced/swaps/active
+     * GET /api/v12/advanced/swaps/active
      */
     @GET
     @Path("/swaps/active")
@@ -318,7 +318,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get price feeds
-     * GET /api/v11/advanced/oracle/prices
+     * GET /api/v12/advanced/oracle/prices
      */
     @GET
     @Path("/oracle/prices")
@@ -350,7 +350,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get oracle providers
-     * GET /api/v11/advanced/oracle/providers
+     * GET /api/v12/advanced/oracle/providers
      */
     @GET
     @Path("/oracle/providers")
@@ -384,7 +384,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Create private transaction
-     * POST /api/v11/advanced/privacy/transaction
+     * POST /api/v12/advanced/privacy/transaction
      */
     @POST
     @Path("/privacy/transaction")
@@ -404,7 +404,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get privacy statistics
-     * GET /api/v11/advanced/privacy/stats
+     * GET /api/v12/advanced/privacy/stats
      */
     @GET
     @Path("/privacy/stats")
@@ -427,7 +427,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Generate compliance report
-     * POST /api/v11/advanced/compliance/report
+     * POST /api/v12/advanced/compliance/report
      */
     @POST
     @Path("/compliance/report")
@@ -448,7 +448,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get audit trails
-     * GET /api/v11/advanced/compliance/audit-trails
+     * GET /api/v12/advanced/compliance/audit-trails
      */
     @GET
     @Path("/compliance/audit-trails")
@@ -484,7 +484,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get API usage statistics
-     * GET /api/v11/advanced/gateway/usage
+     * GET /api/v12/advanced/gateway/usage
      */
     @GET
     @Path("/gateway/usage")
@@ -502,11 +502,11 @@ public class Phase3AdvancedFeaturesResource {
             stats.averageRPS = 8_750;
             stats.bandwidth = "250 GB";
             stats.topEndpoints = Arrays.asList(
-                "/api/v11/blockchain/validators",
-                "/api/v11/blockchain/consensus/status",
-                "/api/v11/analytics/transactions",
-                "/api/v11/blockchain/defi/pools",
-                "/api/v11/advanced/oracle/prices"
+                "/api/v12/blockchain/validators",
+                "/api/v12/blockchain/consensus/status",
+                "/api/v12/analytics/transactions",
+                "/api/v12/blockchain/defi/pools",
+                "/api/v12/advanced/oracle/prices"
             );
             return stats;
         });
@@ -514,7 +514,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get rate limit status
-     * GET /api/v11/advanced/gateway/rate-limit
+     * GET /api/v12/advanced/gateway/rate-limit
      */
     @GET
     @Path("/gateway/rate-limit")
@@ -539,7 +539,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get SDK documentation
-     * GET /api/v11/advanced/developer/sdks
+     * GET /api/v12/advanced/developer/sdks
      */
     @GET
     @Path("/developer/sdks")
@@ -571,7 +571,7 @@ public class Phase3AdvancedFeaturesResource {
 
     /**
      * Get code examples
-     * GET /api/v11/advanced/developer/examples
+     * GET /api/v12/advanced/developer/examples
      */
     @GET
     @Path("/developer/examples")

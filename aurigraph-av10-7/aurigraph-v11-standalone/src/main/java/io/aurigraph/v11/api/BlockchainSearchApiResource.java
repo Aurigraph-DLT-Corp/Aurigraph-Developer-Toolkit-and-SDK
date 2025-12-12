@@ -26,13 +26,13 @@ import java.util.List;
  * Blockchain Search and Transaction Submission API Resource
  *
  * Provides search and transaction operations:
- * - GET /api/v11/blockchain/blocks/search - Block search with filters
- * - POST /api/v11/blockchain/transactions/submit - Submit new transaction
+ * - GET /api/v12/blockchain/blocks/search - Block search with filters
+ * - POST /api/v12/blockchain/transactions/submit - Submit new transaction
  *
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @ApplicationScoped
 @Tag(name = "Blockchain Search API", description = "Block search and transaction submission")
 @Produces(MediaType.APPLICATION_JSON)
@@ -50,14 +50,14 @@ public class BlockchainSearchApiResource {
     // ==================== ROOT ENDPOINT: Get Blockchain Overview ====================
 
     /**
-     * GET /api/v11/blockchain
+     * GET /api/v12/blockchain
      * Returns blockchain overview/summary
      */
     @GET
     @Operation(summary = "Get blockchain overview", description = "Returns blockchain overview and summary")
     @APIResponse(responseCode = "200", description = "Blockchain overview retrieved successfully")
     public Uni<PortalResponse<Map<String, Object>>> getBlockchainOverview() {
-        LOG.info("GET /api/v11/blockchain - Blockchain overview requested");
+        LOG.info("GET /api/v12/blockchain - Blockchain overview requested");
 
         return blockchainDataService.getBlockchainMetrics()
             .map(metrics -> {
@@ -98,7 +98,7 @@ public class BlockchainSearchApiResource {
     // ==================== ENDPOINT 0: Get Blockchain Stats ====================
 
     /**
-     * GET /api/v11/blockchain/stats
+     * GET /api/v12/blockchain/stats
      * Returns detailed blockchain statistics
      */
     @GET
@@ -106,7 +106,7 @@ public class BlockchainSearchApiResource {
     @Operation(summary = "Get blockchain stats", description = "Returns detailed blockchain statistics")
     @APIResponse(responseCode = "200", description = "Blockchain statistics retrieved successfully")
     public Uni<PortalResponse<Map<String, Object>>> getBlockchainStats() {
-        LOG.info("GET /api/v11/blockchain/stats - Blockchain stats requested");
+        LOG.info("GET /api/v12/blockchain/stats - Blockchain stats requested");
 
         return blockchainDataService.getBlockchainStats()
             .map(stats -> {
@@ -140,7 +140,7 @@ public class BlockchainSearchApiResource {
     // ==================== ENDPOINT 1: Get Transactions ====================
 
     /**
-     * GET /api/v11/blockchain/transactions
+     * GET /api/v12/blockchain/transactions
      * Returns list of recent transactions for the blockchain explorer
      * Routes to BlockchainDataService for mock/real data
      */
@@ -167,7 +167,7 @@ public class BlockchainSearchApiResource {
     // ==================== ENDPOINT 2: Block Search ====================
 
     /**
-     * GET /api/v11/blockchain/search
+     * GET /api/v12/blockchain/search
      * Alias for block search (frontend compatibility)
      */
     @GET
@@ -186,7 +186,7 @@ public class BlockchainSearchApiResource {
     }
 
     /**
-     * GET /api/v11/blockchain/blocks/search
+     * GET /api/v12/blockchain/blocks/search
      * Search blocks with filters
      */
     @GET
@@ -255,7 +255,7 @@ public class BlockchainSearchApiResource {
     // ==================== ENDPOINT 3: Submit Transaction ====================
 
     /**
-     * POST /api/v11/blockchain/transactions/submit
+     * POST /api/v12/blockchain/transactions/submit
      * Submit a new transaction to the network
      */
     @POST

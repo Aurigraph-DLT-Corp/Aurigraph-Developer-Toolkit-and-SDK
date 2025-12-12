@@ -21,7 +21,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 35
  */
-@Path("/api/v11/enterprise")
+@Path("/api/v12/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupResource {
@@ -30,7 +30,7 @@ public class BackupResource {
 
     /**
      * Create backup
-     * POST /api/v11/enterprise/backup/create
+     * POST /api/v12/enterprise/backup/create
      */
     @POST
     @Path("/backup/create")
@@ -53,7 +53,7 @@ public class BackupResource {
 
     /**
      * Get backups
-     * GET /api/v11/enterprise/backup/list
+     * GET /api/v12/enterprise/backup/list
      */
     @GET
     @Path("/backup/list")
@@ -90,7 +90,7 @@ public class BackupResource {
 
     /**
      * Restore from backup
-     * POST /api/v11/enterprise/backup/restore
+     * POST /api/v12/enterprise/backup/restore
      */
     @POST
     @Path("/backup/restore")
@@ -114,7 +114,7 @@ public class BackupResource {
 
     /**
      * Get disaster recovery plan
-     * GET /api/v11/enterprise/backup/dr-plan
+     * GET /api/v12/enterprise/backup/dr-plan
      */
     @GET
     @Path("/backup/dr-plan")

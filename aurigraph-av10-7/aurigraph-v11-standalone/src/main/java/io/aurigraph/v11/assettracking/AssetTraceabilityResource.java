@@ -20,7 +20,7 @@ import java.util.Map;
  * Provides comprehensive REST endpoints for tracking the complete lifecycle
  * of tokenized assets with full audit trails and ownership history.
  *
- * Base Path: /api/v11/assets/traceability
+ * Base Path: /api/v12/assets/traceability
  *
  * Features:
  * - Create and manage asset traces
@@ -32,7 +32,7 @@ import java.util.Map;
  * @version 1.0.0
  * @author Aurigraph V11 Development Team
  */
-@Path("/api/v11/assets/traceability")
+@Path("/api/v12/assets/traceability")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @ApplicationScoped
@@ -45,7 +45,7 @@ public class AssetTraceabilityResource {
     /**
      * Create a new asset trace
      *
-     * POST /api/v11/assets/traceability/create
+     * POST /api/v12/assets/traceability/create
      *
      * @param assetId Unique asset identifier
      * @param assetName Human-readable asset name
@@ -93,7 +93,7 @@ public class AssetTraceabilityResource {
     /**
      * Get asset trace details
      *
-     * GET /api/v11/assets/traceability/{traceId}
+     * GET /api/v12/assets/traceability/{traceId}
      *
      * @param traceId Trace identifier
      * @return AssetTrace details or HTTP 404
@@ -127,7 +127,7 @@ public class AssetTraceabilityResource {
     /**
      * Search assets with filters
      *
-     * GET /api/v11/assets/traceability/search
+     * GET /api/v12/assets/traceability/search
      *
      * @param assetType Filter by asset type (optional)
      * @param owner Filter by owner (optional)
@@ -173,7 +173,7 @@ public class AssetTraceabilityResource {
     /**
      * Record ownership transfer
      *
-     * POST /api/v11/assets/traceability/{traceId}/transfer
+     * POST /api/v12/assets/traceability/{traceId}/transfer
      *
      * @param traceId Trace identifier
      * @param fromOwner Current owner
@@ -226,7 +226,7 @@ public class AssetTraceabilityResource {
     /**
      * Get ownership history chain
      *
-     * GET /api/v11/assets/traceability/{traceId}/history
+     * GET /api/v12/assets/traceability/{traceId}/history
      *
      * @param traceId Trace identifier
      * @return List of OwnershipRecord objects in chronological order
@@ -260,7 +260,7 @@ public class AssetTraceabilityResource {
     /**
      * Get audit trail
      *
-     * GET /api/v11/assets/traceability/{traceId}/audit
+     * GET /api/v12/assets/traceability/{traceId}/audit
      *
      * @param traceId Trace identifier
      * @return List of AuditTrailEntry objects in chronological order

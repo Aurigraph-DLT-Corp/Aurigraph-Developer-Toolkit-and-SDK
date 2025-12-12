@@ -17,7 +17,7 @@ import java.util.Set;
  *
  * REST endpoints for ERC-3643 (T-REX) compliant security token operations.
  *
- * Base URL: /api/v11/erc3643
+ * Base URL: /api/v12/erc3643
  *
  * Features:
  * - Security token registration and management
@@ -29,7 +29,7 @@ import java.util.Set;
  * @version 1.0.0
  * @since 2025-12-08
  */
-@Path("/api/v11/erc3643")
+@Path("/api/v12/erc3643")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ERC3643Resource {
@@ -51,7 +51,7 @@ public class ERC3643Resource {
 
     /**
      * Register a new ERC-3643 security token
-     * POST /api/v11/erc3643/tokens
+     * POST /api/v12/erc3643/tokens
      */
     @POST
     @Path("/tokens")
@@ -99,7 +99,7 @@ public class ERC3643Resource {
 
     /**
      * Get all registered tokens
-     * GET /api/v11/erc3643/tokens
+     * GET /api/v12/erc3643/tokens
      */
     @GET
     @Path("/tokens")
@@ -113,7 +113,7 @@ public class ERC3643Resource {
 
     /**
      * Get token by ID
-     * GET /api/v11/erc3643/tokens/{tokenId}
+     * GET /api/v12/erc3643/tokens/{tokenId}
      */
     @GET
     @Path("/tokens/{tokenId}")
@@ -131,7 +131,7 @@ public class ERC3643Resource {
 
     /**
      * Mint tokens
-     * POST /api/v11/erc3643/tokens/{tokenId}/mint
+     * POST /api/v12/erc3643/tokens/{tokenId}/mint
      */
     @POST
     @Path("/tokens/{tokenId}/mint")
@@ -156,7 +156,7 @@ public class ERC3643Resource {
 
     /**
      * Transfer tokens with compliance check
-     * POST /api/v11/erc3643/tokens/{tokenId}/transfer
+     * POST /api/v12/erc3643/tokens/{tokenId}/transfer
      */
     @POST
     @Path("/tokens/{tokenId}/transfer")
@@ -181,7 +181,7 @@ public class ERC3643Resource {
 
     /**
      * Check if transfer is allowed (canTransfer hook)
-     * POST /api/v11/erc3643/tokens/{tokenId}/can-transfer
+     * POST /api/v12/erc3643/tokens/{tokenId}/can-transfer
      */
     @POST
     @Path("/tokens/{tokenId}/can-transfer")
@@ -206,7 +206,7 @@ public class ERC3643Resource {
 
     /**
      * Get token holders
-     * GET /api/v11/erc3643/tokens/{tokenId}/holders
+     * GET /api/v12/erc3643/tokens/{tokenId}/holders
      */
     @GET
     @Path("/tokens/{tokenId}/holders")
@@ -221,7 +221,7 @@ public class ERC3643Resource {
 
     /**
      * Get balance for wallet
-     * GET /api/v11/erc3643/tokens/{tokenId}/balance/{wallet}
+     * GET /api/v12/erc3643/tokens/{tokenId}/balance/{wallet}
      */
     @GET
     @Path("/tokens/{tokenId}/balance/{wallet}")
@@ -236,7 +236,7 @@ public class ERC3643Resource {
 
     /**
      * Pause token
-     * POST /api/v11/erc3643/tokens/{tokenId}/pause
+     * POST /api/v12/erc3643/tokens/{tokenId}/pause
      */
     @POST
     @Path("/tokens/{tokenId}/pause")
@@ -261,7 +261,7 @@ public class ERC3643Resource {
 
     /**
      * Unpause token
-     * POST /api/v11/erc3643/tokens/{tokenId}/unpause
+     * POST /api/v12/erc3643/tokens/{tokenId}/unpause
      */
     @POST
     @Path("/tokens/{tokenId}/unpause")
@@ -290,7 +290,7 @@ public class ERC3643Resource {
 
     /**
      * Register an identity
-     * POST /api/v11/erc3643/identities
+     * POST /api/v12/erc3643/identities
      */
     @POST
     @Path("/identities")
@@ -326,7 +326,7 @@ public class ERC3643Resource {
 
     /**
      * Get identity for wallet
-     * GET /api/v11/erc3643/identities/{wallet}
+     * GET /api/v12/erc3643/identities/{wallet}
      */
     @GET
     @Path("/identities/{wallet}")
@@ -344,7 +344,7 @@ public class ERC3643Resource {
 
     /**
      * Verify an identity (update status to VERIFIED)
-     * POST /api/v11/erc3643/identities/{wallet}/verify
+     * POST /api/v12/erc3643/identities/{wallet}/verify
      */
     @POST
     @Path("/identities/{wallet}/verify")
@@ -369,7 +369,7 @@ public class ERC3643Resource {
 
     /**
      * Add claim to identity
-     * POST /api/v11/erc3643/identities/{wallet}/claims
+     * POST /api/v12/erc3643/identities/{wallet}/claims
      */
     @POST
     @Path("/identities/{wallet}/claims")
@@ -406,7 +406,7 @@ public class ERC3643Resource {
 
     /**
      * Get claims for wallet
-     * GET /api/v11/erc3643/identities/{wallet}/claims
+     * GET /api/v12/erc3643/identities/{wallet}/claims
      */
     @GET
     @Path("/identities/{wallet}/claims")
@@ -433,7 +433,7 @@ public class ERC3643Resource {
 
     /**
      * Get compliance statistics
-     * GET /api/v11/erc3643/compliance/stats
+     * GET /api/v12/erc3643/compliance/stats
      */
     @GET
     @Path("/compliance/stats")
@@ -449,7 +449,7 @@ public class ERC3643Resource {
 
     /**
      * Get registry statistics
-     * GET /api/v11/erc3643/stats
+     * GET /api/v12/erc3643/stats
      */
     @GET
     @Path("/stats")

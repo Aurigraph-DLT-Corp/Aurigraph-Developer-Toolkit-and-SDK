@@ -41,7 +41,7 @@ jobs:
           echo "=== Checking API Health ==="
 
           # Check main health endpoint
-          HEALTH_RESPONSE=$(curl -sf "${{ env.PROD_URL }}/api/v11/health" 2>/dev/null || echo "FAILED")
+          HEALTH_RESPONSE=$(curl -sf "${{ env.PROD_URL }}/api/v12/health" 2>/dev/null || echo "FAILED")
 
           if [[ "$HEALTH_RESPONSE" != "FAILED" ]]; then
             echo "API Health: OK"
@@ -52,7 +52,7 @@ jobs:
           fi
 
           # Check info endpoint
-          INFO_RESPONSE=$(curl -sf "${{ env.PROD_URL }}/api/v11/info" 2>/dev/null || echo "FAILED")
+          INFO_RESPONSE=$(curl -sf "${{ env.PROD_URL }}/api/v12/info" 2>/dev/null || echo "FAILED")
           if [[ "$INFO_RESPONSE" != "FAILED" ]]; then
             echo "API Info endpoint: OK"
             echo "$INFO_RESPONSE" | head -c 500
@@ -78,8 +78,8 @@ jobs:
           echo "=== Checking Additional Endpoints ==="
 
           endpoints=(
-            "/api/v11/stats"
-            "/api/v11/analytics/dashboard"
+            "/api/v12/stats"
+            "/api/v12/analytics/dashboard"
             "/demo"
             "/rwa/tokenize"
           )
@@ -118,7 +118,7 @@ jobs:
           echo "=== Response Time Check ==="
 
           # Measure API response time
-          API_TIME=$(curl -sf -o /dev/null -w "%{time_total}" "${{ env.PROD_URL }}/api/v11/health" 2>/dev/null || echo "0")
+          API_TIME=$(curl -sf -o /dev/null -w "%{time_total}" "${{ env.PROD_URL }}/api/v12/health" 2>/dev/null || echo "0")
           echo "API Response Time: ${API_TIME}s"
 
           # Measure Frontend response time
@@ -165,12 +165,12 @@ jobs:
           echo "=== Performance Metrics ==="
 
           # Get stats from API
-          STATS=$(curl -sf "${{ env.PROD_URL }}/api/v11/stats" 2>/dev/null || echo '{}')
+          STATS=$(curl -sf "${{ env.PROD_URL }}/api/v12/stats" 2>/dev/null || echo '{}')
           echo "API Stats:"
           echo "$STATS" | head -c 1000
 
           # Get infrastructure metrics
-          METRICS=$(curl -sf "${{ env.PROD_URL }}/api/v11/infrastructure/metrics" 2>/dev/null || echo '{}')
+          METRICS=$(curl -sf "${{ env.PROD_URL }}/api/v12/infrastructure/metrics" 2>/dev/null || echo '{}')
           echo ""
           echo "Infrastructure Metrics:"
           echo "$METRICS" | head -c 1000
@@ -213,7 +213,7 @@ jobs:
 
 ### URLs
 - Production: https://dlt.aurigraph.io
-- API Health: https://dlt.aurigraph.io/api/v11/health
+- API Health: https://dlt.aurigraph.io/api/v12/health
 
 ### Investigation Steps
 1. Check GitHub Actions logs
@@ -259,5 +259,5 @@ _This issue was automatically created by the monitoring workflow._`,
           echo "## Quick Links" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- [Production Portal](https://dlt.aurigraph.io)" >> $GITHUB_STEP_SUMMARY
-          echo "- [API Health](https://dlt.aurigraph.io/api/v11/health)" >> $GITHUB_STEP_SUMMARY
+          echo "- [API Health](https://dlt.aurigraph.io/api/v12/health)" >> $GITHUB_STEP_SUMMARY
           echo "- [Infrastructure Dashboard](https://dlt.aurigraph.io/admin/infrastructure)" >> $GITHUB_STEP_SUMMARY

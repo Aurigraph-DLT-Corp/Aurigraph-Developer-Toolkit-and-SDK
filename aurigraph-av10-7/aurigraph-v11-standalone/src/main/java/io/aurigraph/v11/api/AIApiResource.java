@@ -28,7 +28,7 @@ import java.util.Random;
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/ai")
+@Path("/api/v12/ai")
 @ApplicationScoped
 @Tag(name = "AI/ML API", description = "AI and Machine Learning optimization operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -41,7 +41,7 @@ public class AIApiResource {
 
     /**
      * List all AI models
-     * GET /api/v11/ai/models
+     * GET /api/v12/ai/models
      */
     @GET
     @Path("/models")
@@ -128,7 +128,7 @@ public class AIApiResource {
 
     /**
      * Get AI model details
-     * GET /api/v11/ai/models/{id}
+     * GET /api/v12/ai/models/{id}
      */
     @GET
     @Path("/models/{id}")
@@ -178,7 +178,7 @@ public class AIApiResource {
 
     /**
      * Retrain AI model
-     * POST /api/v11/ai/models/{id}/retrain
+     * POST /api/v12/ai/models/{id}/retrain
      */
     @POST
     @Path("/models/{id}/retrain")
@@ -206,7 +206,7 @@ public class AIApiResource {
 
     /**
      * Get AI system status
-     * GET /api/v11/ai/status
+     * GET /api/v12/ai/status
      *
      * Returns comprehensive AI/ML system status including active models,
      * system health, and operational metrics
@@ -273,7 +273,7 @@ public class AIApiResource {
 
     /**
      * Get AI metrics
-     * GET /api/v11/ai/metrics
+     * GET /api/v12/ai/metrics
      */
     @GET
     @Path("/metrics")
@@ -322,7 +322,7 @@ public class AIApiResource {
 
     /**
      * Get AI predictions
-     * GET /api/v11/ai/predictions
+     * GET /api/v12/ai/predictions
      */
     @GET
     @Path("/predictions")
@@ -502,7 +502,7 @@ public class AIApiResource {
     }
 
     /**
-     * POST /api/v11/ai/optimize
+     * POST /api/v12/ai/optimize
      * Submit optimization job for consensus mechanism
      */
     @POST
@@ -559,7 +559,7 @@ public class AIApiResource {
 
     /**
      * Get AI/ML model performance metrics
-     * GET /api/v11/ai/performance
+     * GET /api/v12/ai/performance
      *
      * Returns detailed performance metrics for all ML models including:
      * - Model accuracy, precision, recall, F1 score
@@ -678,7 +678,7 @@ public class AIApiResource {
 
     /**
      * Get AI prediction confidence scores and anomaly detection results
-     * GET /api/v11/ai/confidence
+     * GET /api/v12/ai/confidence
      *
      * Returns:
      * - Recent prediction confidence scores
@@ -826,7 +826,7 @@ public class AIApiResource {
     // ==================== PERFORMANCE OPTIMIZATION METRICS ====================
 
     /**
-     * GET /api/v11/performance/optimization-metrics
+     * GET /api/v12/performance/optimization-metrics
      *
      * Returns AI optimization performance metrics for blockchain operations.
      *
@@ -848,7 +848,7 @@ public class AIApiResource {
     @APIResponse(responseCode = "200", description = "Optimization metrics retrieved successfully")
     public Uni<Response> getOptimizationMetrics() {
         long startTime = System.nanoTime();
-        LOG.info("GET /api/v11/performance/optimization-metrics");
+        LOG.info("GET /api/v12/performance/optimization-metrics");
 
         return Uni.createFrom().item(() -> {
             try {

@@ -34,7 +34,7 @@ import java.util.Map;
  * @ticket AV11-520
  * @version 11.0.0
  */
-@Path("/api/v11/marketplace")
+@Path("/api/v12/marketplace")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -50,7 +50,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Get marketplace assets overview
-     * GET /api/v11/marketplace/assets
+     * GET /api/v12/marketplace/assets
      * Returns paginated list of marketplace assets with default sorting
      */
     @GET
@@ -67,7 +67,7 @@ public class AssetMarketplaceResource {
             @QueryParam("offset") @DefaultValue("0") Integer offset,
             @QueryParam("limit") @DefaultValue("20") Integer limit) {
 
-        LOG.infof("GET /api/v11/marketplace/assets - offset=%d, limit=%d", offset, limit);
+        LOG.infof("GET /api/v12/marketplace/assets - offset=%d, limit=%d", offset, limit);
 
         // Create default search request with no filters
         MarketplaceService.MarketplaceSearchRequest request = new MarketplaceService.MarketplaceSearchRequest();
@@ -83,7 +83,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Search marketplace assets with filters
-     * GET /api/v11/marketplace/assets/search
+     * GET /api/v12/marketplace/assets/search
      */
     @GET
     @Path("/assets/search")
@@ -112,7 +112,7 @@ public class AssetMarketplaceResource {
             @QueryParam("limit") @DefaultValue("20") @Parameter(description = "Results limit (max 100)") Integer limit,
             @QueryParam("userId") @Parameter(description = "User ID for favorites status") String userId) {
 
-        LOG.infof("GET /api/v11/marketplace/assets/search - keyword=%s, category=%s, minPrice=%s, maxPrice=%s",
+        LOG.infof("GET /api/v12/marketplace/assets/search - keyword=%s, category=%s, minPrice=%s, maxPrice=%s",
                 keyword, category, minPrice, maxPrice);
 
         MarketplaceService.MarketplaceSearchRequest request = new MarketplaceService.MarketplaceSearchRequest();
@@ -133,7 +133,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Get asset details by ID
-     * GET /api/v11/marketplace/assets/{assetId}
+     * GET /api/v12/marketplace/assets/{assetId}
      */
     @GET
     @Path("/assets/{assetId}")
@@ -153,7 +153,7 @@ public class AssetMarketplaceResource {
             @PathParam("assetId") @Parameter(description = "Asset ID", required = true) String assetId,
             @QueryParam("userId") @Parameter(description = "User ID for favorites status") String userId) {
 
-        LOG.infof("GET /api/v11/marketplace/assets/%s", assetId);
+        LOG.infof("GET /api/v12/marketplace/assets/%s", assetId);
 
         return marketplaceService.getAssetById(assetId, userId)
                 .map(asset -> {
@@ -168,7 +168,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Get assets by category
-     * GET /api/v11/marketplace/assets/category/{category}
+     * GET /api/v12/marketplace/assets/category/{category}
      */
     @GET
     @Path("/assets/category/{category}")
@@ -184,14 +184,14 @@ public class AssetMarketplaceResource {
             @PathParam("category") @Parameter(description = "Category name", required = true) String category,
             @QueryParam("limit") @DefaultValue("20") int limit) {
 
-        LOG.infof("GET /api/v11/marketplace/assets/category/%s (limit=%d)", category, limit);
+        LOG.infof("GET /api/v12/marketplace/assets/category/%s (limit=%d)", category, limit);
 
         return marketplaceService.getAssetsByCategory(category, Math.min(limit, 100));
     }
 
     /**
      * Get featured/trending assets
-     * GET /api/v11/marketplace/assets/featured
+     * GET /api/v12/marketplace/assets/featured
      */
     @GET
     @Path("/assets/featured")
@@ -206,7 +206,7 @@ public class AssetMarketplaceResource {
     public Uni<List<MarketplaceService.AssetListing>> getFeaturedAssets(
             @QueryParam("limit") @DefaultValue("10") int limit) {
 
-        LOG.infof("GET /api/v11/marketplace/assets/featured (limit=%d)", limit);
+        LOG.infof("GET /api/v12/marketplace/assets/featured (limit=%d)", limit);
 
         return marketplaceService.getFeaturedAssets(Math.min(limit, 50));
     }
@@ -215,7 +215,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Get all available categories
-     * GET /api/v11/marketplace/categories
+     * GET /api/v12/marketplace/categories
      */
     @GET
     @Path("/categories")
@@ -228,7 +228,7 @@ public class AssetMarketplaceResource {
         description = "Categories returned successfully"
     )
     public Uni<List<MarketplaceService.CategoryInfo>> getCategories() {
-        LOG.info("GET /api/v11/marketplace/categories");
+        LOG.info("GET /api/v12/marketplace/categories");
         return marketplaceService.getCategories();
     }
 
@@ -236,7 +236,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Get user's favorite assets
-     * GET /api/v11/marketplace/favorites
+     * GET /api/v12/marketplace/favorites
      */
     @GET
     @Path("/favorites")
@@ -251,7 +251,7 @@ public class AssetMarketplaceResource {
     public Uni<Response> getUserFavorites(
             @QueryParam("userId") @Parameter(description = "User ID", required = true) String userId) {
 
-        LOG.infof("GET /api/v11/marketplace/favorites - userId=%s", userId);
+        LOG.infof("GET /api/v12/marketplace/favorites - userId=%s", userId);
 
         if (userId == null || userId.isBlank()) {
             return Uni.createFrom().item(
@@ -267,7 +267,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Add asset to favorites
-     * POST /api/v11/marketplace/favorites/{assetId}
+     * POST /api/v12/marketplace/favorites/{assetId}
      */
     @POST
     @Path("/favorites/{assetId}")
@@ -284,7 +284,7 @@ public class AssetMarketplaceResource {
             @PathParam("assetId") @Parameter(description = "Asset ID", required = true) String assetId,
             @QueryParam("userId") @Parameter(description = "User ID", required = true) String userId) {
 
-        LOG.infof("POST /api/v11/marketplace/favorites/%s - userId=%s", assetId, userId);
+        LOG.infof("POST /api/v12/marketplace/favorites/%s - userId=%s", assetId, userId);
 
         if (userId == null || userId.isBlank()) {
             return Uni.createFrom().item(
@@ -312,7 +312,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Remove asset from favorites
-     * DELETE /api/v11/marketplace/favorites/{assetId}
+     * DELETE /api/v12/marketplace/favorites/{assetId}
      */
     @DELETE
     @Path("/favorites/{assetId}")
@@ -329,7 +329,7 @@ public class AssetMarketplaceResource {
             @PathParam("assetId") @Parameter(description = "Asset ID", required = true) String assetId,
             @QueryParam("userId") @Parameter(description = "User ID", required = true) String userId) {
 
-        LOG.infof("DELETE /api/v11/marketplace/favorites/%s - userId=%s", assetId, userId);
+        LOG.infof("DELETE /api/v12/marketplace/favorites/%s - userId=%s", assetId, userId);
 
         if (userId == null || userId.isBlank()) {
             return Uni.createFrom().item(
@@ -359,7 +359,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Get marketplace statistics
-     * GET /api/v11/marketplace/stats
+     * GET /api/v12/marketplace/stats
      */
     @GET
     @Path("/stats")
@@ -373,7 +373,7 @@ public class AssetMarketplaceResource {
         content = @Content(schema = @Schema(implementation = MarketplaceService.MarketplaceStats.class))
     )
     public Uni<MarketplaceService.MarketplaceStats> getMarketplaceStats() {
-        LOG.info("GET /api/v11/marketplace/stats");
+        LOG.info("GET /api/v12/marketplace/stats");
         return marketplaceService.getMarketplaceStats();
     }
 
@@ -381,7 +381,7 @@ public class AssetMarketplaceResource {
 
     /**
      * Marketplace API health check
-     * GET /api/v11/marketplace/health
+     * GET /api/v12/marketplace/health
      */
     @GET
     @Path("/health")

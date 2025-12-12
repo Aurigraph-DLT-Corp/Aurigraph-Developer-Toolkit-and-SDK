@@ -30,7 +30,7 @@ import java.util.Map;
  * @version 3.7.3
  * @author Aurigraph V11 Team
  */
-@Path("/api/v11/bridge")
+@Path("/api/v12/bridge")
 @ApplicationScoped
 @Tag(name = "Cross-Chain Bridge API", description = "Cross-chain bridge and interoperability operations")
 public class BridgeApiResource {
@@ -189,7 +189,7 @@ public class BridgeApiResource {
     // ==================== DATA MODELS ====================
 
     /**
-     * POST /api/v11/bridge/validate
+     * POST /api/v12/bridge/validate
      * Validate cross-chain bridge transaction
      */
     @POST

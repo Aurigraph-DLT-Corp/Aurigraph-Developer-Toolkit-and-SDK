@@ -15,7 +15,7 @@ import io.quarkus.logging.Log;
  * REST API endpoints for Composite Token management
  * Provides comprehensive API for creating, managing, and verifying composite tokens
  */
-@Path("/api/v11/composite-tokens")
+@Path("/api/v12/composite-tokens")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CompositeTokenResource {

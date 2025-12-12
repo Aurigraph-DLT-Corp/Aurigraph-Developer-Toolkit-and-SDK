@@ -12,7 +12,7 @@ import org.jboss.logging.Logger;
  * Verification Certificate REST Resource - AV11-401
  * API endpoints for verification certificate management
  */
-@Path("/api/v11/verification/certificates")
+@Path("/api/v12/verification/certificates")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -25,7 +25,7 @@ public class VerificationCertificateResource {
 
     /**
      * Generate a new verification certificate
-     * POST /api/v11/verification/certificates
+     * POST /api/v12/verification/certificates
      */
     @POST
     public Uni<Response> generateCertificate(VerificationCertificateService.CertificateRequest request) {
@@ -45,7 +45,7 @@ public class VerificationCertificateResource {
 
     /**
      * Get a certificate by ID
-     * GET /api/v11/verification/certificates/{id}
+     * GET /api/v12/verification/certificates/{id}
      */
     @GET
     @Path("/{id}")
@@ -67,7 +67,7 @@ public class VerificationCertificateResource {
 
     /**
      * Verify a certificate's authenticity
-     * GET /api/v11/verification/certificates/{id}/verify
+     * GET /api/v12/verification/certificates/{id}/verify
      */
     @GET
     @Path("/{id}/verify")
@@ -91,7 +91,7 @@ public class VerificationCertificateResource {
 
     /**
      * Revoke a certificate
-     * POST /api/v11/verification/certificates/{id}/revoke
+     * POST /api/v12/verification/certificates/{id}/revoke
      */
     @POST
     @Path("/{id}/revoke")
@@ -118,7 +118,7 @@ public class VerificationCertificateResource {
 
     /**
      * Get all certificates for an entity
-     * GET /api/v11/verification/certificates/entity/{entityId}
+     * GET /api/v12/verification/certificates/entity/{entityId}
      */
     @GET
     @Path("/entity/{entityId}")
@@ -133,7 +133,7 @@ public class VerificationCertificateResource {
 
     /**
      * Get certificate statistics
-     * GET /api/v11/verification/certificates/stats
+     * GET /api/v12/verification/certificates/stats
      */
     @GET
     @Path("/stats")

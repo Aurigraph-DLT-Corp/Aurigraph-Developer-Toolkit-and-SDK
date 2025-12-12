@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * @version 11.2.1
  * @since 2025-10-12
  */
-@Path("/api/v11/contracts")
+@Path("/api/v12/contracts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Smart Contracts", description = "Smart Contract SDK API")
@@ -35,7 +35,7 @@ public class SmartContractResource {
     /**
      * Deploy a new smart contract
      *
-     * POST /api/v11/contracts/deploy
+     * POST /api/v12/contracts/deploy
      */
     @POST
     @Path("/deploy")
@@ -66,7 +66,7 @@ public class SmartContractResource {
     /**
      * Execute a smart contract method
      *
-     * POST /api/v11/contracts/{contractId}/execute
+     * POST /api/v12/contracts/{contractId}/execute
      */
     @POST
     @Path("/{contractId}/execute")
@@ -105,7 +105,7 @@ public class SmartContractResource {
     /**
      * Get contract by ID
      *
-     * GET /api/v11/contracts/{contractId}
+     * GET /api/v12/contracts/{contractId}
      */
     @GET
     @Path("/{contractId}")
@@ -135,7 +135,7 @@ public class SmartContractResource {
     /**
      * List all contracts
      *
-     * GET /api/v11/contracts
+     * GET /api/v12/contracts
      */
     @GET
     @Operation(
@@ -169,7 +169,7 @@ public class SmartContractResource {
     /**
      * Get contract execution history
      *
-     * GET /api/v11/contracts/{contractId}/executions
+     * GET /api/v12/contracts/{contractId}/executions
      */
     @GET
     @Path("/{contractId}/executions")
@@ -201,7 +201,7 @@ public class SmartContractResource {
     /**
      * Get execution by ID
      *
-     * GET /api/v11/contracts/executions/{executionId}
+     * GET /api/v12/contracts/executions/{executionId}
      */
     @GET
     @Path("/executions/{executionId}")
@@ -231,7 +231,7 @@ public class SmartContractResource {
     /**
      * Update contract state
      *
-     * PUT /api/v11/contracts/{contractId}/state
+     * PUT /api/v12/contracts/{contractId}/state
      */
     @PUT
     @Path("/{contractId}/state")
@@ -265,7 +265,7 @@ public class SmartContractResource {
     /**
      * Pause contract
      *
-     * POST /api/v11/contracts/{contractId}/pause
+     * POST /api/v12/contracts/{contractId}/pause
      */
     @POST
     @Path("/{contractId}/pause")
@@ -296,7 +296,7 @@ public class SmartContractResource {
     /**
      * Resume contract
      *
-     * POST /api/v11/contracts/{contractId}/resume
+     * POST /api/v12/contracts/{contractId}/resume
      */
     @POST
     @Path("/{contractId}/resume")
@@ -327,7 +327,7 @@ public class SmartContractResource {
     /**
      * Get SDK info
      *
-     * GET /api/v11/contracts/sdk/info
+     * GET /api/v12/contracts/sdk/info
      */
     @GET
     @Path("/sdk/info")
@@ -352,12 +352,12 @@ public class SmartContractResource {
                     "Contract Pause/Resume"
                 ),
                 "endpoints", Map.of(
-                    "deploy", "POST /api/v11/contracts/deploy",
-                    "execute", "POST /api/v11/contracts/{contractId}/execute",
-                    "getContract", "GET /api/v11/contracts/{contractId}",
-                    "listContracts", "GET /api/v11/contracts",
-                    "getExecutions", "GET /api/v11/contracts/{contractId}/executions",
-                    "statistics", "GET /api/v11/contracts/statistics"
+                    "deploy", "POST /api/v12/contracts/deploy",
+                    "execute", "POST /api/v12/contracts/{contractId}/execute",
+                    "getContract", "GET /api/v12/contracts/{contractId}",
+                    "listContracts", "GET /api/v12/contracts",
+                    "getExecutions", "GET /api/v12/contracts/{contractId}/executions",
+                    "statistics", "GET /api/v12/contracts/statistics"
                 )
             )
         )).build();
@@ -366,7 +366,7 @@ public class SmartContractResource {
     /**
      * Get contract statistics
      *
-     * GET /api/v11/contracts/statistics
+     * GET /api/v12/contracts/statistics
      */
     @GET
     @Path("/statistics")
@@ -393,7 +393,7 @@ public class SmartContractResource {
     /**
      * Get contract templates
      *
-     * GET /api/v11/contracts/templates
+     * GET /api/v12/contracts/templates
      */
     @GET
     @Path("/templates")

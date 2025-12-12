@@ -18,20 +18,20 @@ import java.util.*;
  * VVB (Validation and Verification Body) API Resource
  *
  * Provides endpoints for asset verification workflow:
- * - GET /api/v11/vvb/status - VVB system status
- * - GET /api/v11/vvb/verifiers - List registered verifiers
- * - GET /api/v11/vvb/requests - List verification requests
- * - POST /api/v11/vvb/requests - Submit verification request
- * - GET /api/v11/vvb/requests/{requestId} - Get request details
- * - POST /api/v11/vvb/requests/{requestId}/approve - Approve request
- * - POST /api/v11/vvb/requests/{requestId}/reject - Reject request
- * - GET /api/v11/vvb/certificates - List verification certificates
- * - GET /api/v11/vvb/certificates/{certId} - Get certificate details
+ * - GET /api/v12/vvb/status - VVB system status
+ * - GET /api/v12/vvb/verifiers - List registered verifiers
+ * - GET /api/v12/vvb/requests - List verification requests
+ * - POST /api/v12/vvb/requests - Submit verification request
+ * - GET /api/v12/vvb/requests/{requestId} - Get request details
+ * - POST /api/v12/vvb/requests/{requestId}/approve - Approve request
+ * - POST /api/v12/vvb/requests/{requestId}/reject - Reject request
+ * - GET /api/v12/vvb/certificates - List verification certificates
+ * - GET /api/v12/vvb/certificates/{certId} - Get certificate details
  *
  * @version 12.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/vvb")
+@Path("/api/v12/vvb")
 @ApplicationScoped
 @Tag(name = "VVB API", description = "Validation and Verification Body operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class VVBApiResource {
     // ==================== STATUS & INFO ====================
 
     /**
-     * GET /api/v11/vvb/status
+     * GET /api/v12/vvb/status
      * Get VVB system status
      */
     @GET
@@ -54,7 +54,7 @@ public class VVBApiResource {
     )
     @APIResponse(responseCode = "200", description = "VVB status retrieved successfully")
     public Uni<Response> getVVBStatus() {
-        LOG.info("GET /api/v11/vvb/status - VVB system status requested");
+        LOG.info("GET /api/v12/vvb/status - VVB system status requested");
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> status = new LinkedHashMap<>();
@@ -123,7 +123,7 @@ public class VVBApiResource {
     // ==================== VERIFIERS ====================
 
     /**
-     * GET /api/v11/vvb/verifiers
+     * GET /api/v12/vvb/verifiers
      * List registered verifiers
      */
     @GET
@@ -139,7 +139,7 @@ public class VVBApiResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
 
-        LOG.infof("GET /api/v11/vvb/verifiers - category=%s, status=%s", category, status);
+        LOG.infof("GET /api/v12/vvb/verifiers - category=%s, status=%s", category, status);
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> verifiers = new ArrayList<>();
@@ -173,7 +173,7 @@ public class VVBApiResource {
     }
 
     /**
-     * GET /api/v11/vvb/verifiers/{verifierId}
+     * GET /api/v12/vvb/verifiers/{verifierId}
      * Get verifier details
      */
     @GET
@@ -185,7 +185,7 @@ public class VVBApiResource {
     @APIResponse(responseCode = "200", description = "Verifier details retrieved")
     @APIResponse(responseCode = "404", description = "Verifier not found")
     public Uni<Response> getVerifierDetails(@PathParam("verifierId") String verifierId) {
-        LOG.infof("GET /api/v11/vvb/verifiers/%s - Verifier details requested", verifierId);
+        LOG.infof("GET /api/v12/vvb/verifiers/%s - Verifier details requested", verifierId);
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> verifier = new LinkedHashMap<>();
@@ -247,7 +247,7 @@ public class VVBApiResource {
     // ==================== VERIFICATION REQUESTS ====================
 
     /**
-     * GET /api/v11/vvb/requests
+     * GET /api/v12/vvb/requests
      * List verification requests
      */
     @GET
@@ -263,7 +263,7 @@ public class VVBApiResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
 
-        LOG.infof("GET /api/v11/vvb/requests - status=%s, assetType=%s", status, assetType);
+        LOG.infof("GET /api/v12/vvb/requests - status=%s, assetType=%s", status, assetType);
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> requests = new ArrayList<>();
@@ -314,7 +314,7 @@ public class VVBApiResource {
     }
 
     /**
-     * POST /api/v11/vvb/requests
+     * POST /api/v12/vvb/requests
      * Submit verification request
      */
     @POST
@@ -326,7 +326,7 @@ public class VVBApiResource {
     @APIResponse(responseCode = "201", description = "Request submitted successfully")
     @APIResponse(responseCode = "400", description = "Invalid request")
     public Uni<Response> submitRequest(VerificationRequest request) {
-        LOG.infof("POST /api/v11/vvb/requests - Submitting verification for asset: %s", request.assetId);
+        LOG.infof("POST /api/v12/vvb/requests - Submitting verification for asset: %s", request.assetId);
 
         return Uni.createFrom().item(() -> {
             String requestId = "VVB-REQ-" + String.format("%06d", System.currentTimeMillis() % 1000000);
@@ -356,7 +356,7 @@ public class VVBApiResource {
     }
 
     /**
-     * GET /api/v11/vvb/requests/{requestId}
+     * GET /api/v12/vvb/requests/{requestId}
      * Get request details
      */
     @GET
@@ -368,7 +368,7 @@ public class VVBApiResource {
     @APIResponse(responseCode = "200", description = "Request details retrieved")
     @APIResponse(responseCode = "404", description = "Request not found")
     public Uni<Response> getRequestDetails(@PathParam("requestId") String requestId) {
-        LOG.infof("GET /api/v11/vvb/requests/%s - Request details requested", requestId);
+        LOG.infof("GET /api/v12/vvb/requests/%s - Request details requested", requestId);
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> request = new LinkedHashMap<>();
@@ -445,7 +445,7 @@ public class VVBApiResource {
     }
 
     /**
-     * POST /api/v11/vvb/requests/{requestId}/approve
+     * POST /api/v12/vvb/requests/{requestId}/approve
      * Approve verification request
      */
     @POST
@@ -457,7 +457,7 @@ public class VVBApiResource {
     @APIResponse(responseCode = "200", description = "Request approved")
     @APIResponse(responseCode = "400", description = "Cannot approve request")
     public Uni<Response> approveRequest(@PathParam("requestId") String requestId, ApprovalRequest approval) {
-        LOG.infof("POST /api/v11/vvb/requests/%s/approve - Approving request", requestId);
+        LOG.infof("POST /api/v12/vvb/requests/%s/approve - Approving request", requestId);
 
         return Uni.createFrom().item(() -> {
             String certId = "CERT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -471,7 +471,7 @@ public class VVBApiResource {
                 "certificateId", certId,
                 "issuedAt", Instant.now().toString(),
                 "validUntil", Instant.now().plusSeconds(365 * 24 * 60 * 60).toString(),
-                "downloadUrl", "/api/v11/vvb/certificates/" + certId + "/download"
+                "downloadUrl", "/api/v12/vvb/certificates/" + certId + "/download"
             ));
             response.put("notes", approval.notes);
             response.put("message", "Verification approved. Certificate issued successfully.");
@@ -482,7 +482,7 @@ public class VVBApiResource {
     }
 
     /**
-     * POST /api/v11/vvb/requests/{requestId}/reject
+     * POST /api/v12/vvb/requests/{requestId}/reject
      * Reject verification request
      */
     @POST
@@ -494,7 +494,7 @@ public class VVBApiResource {
     @APIResponse(responseCode = "200", description = "Request rejected")
     @APIResponse(responseCode = "400", description = "Cannot reject request")
     public Uni<Response> rejectRequest(@PathParam("requestId") String requestId, RejectionRequest rejection) {
-        LOG.infof("POST /api/v11/vvb/requests/%s/reject - Rejecting request", requestId);
+        LOG.infof("POST /api/v12/vvb/requests/%s/reject - Rejecting request", requestId);
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> response = new LinkedHashMap<>();
@@ -516,7 +516,7 @@ public class VVBApiResource {
     // ==================== CERTIFICATES ====================
 
     /**
-     * GET /api/v11/vvb/certificates
+     * GET /api/v12/vvb/certificates
      * List verification certificates
      */
     @GET
@@ -531,7 +531,7 @@ public class VVBApiResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
 
-        LOG.infof("GET /api/v11/vvb/certificates - status=%s", status);
+        LOG.infof("GET /api/v12/vvb/certificates - status=%s", status);
 
         return Uni.createFrom().item(() -> {
             List<Map<String, Object>> certificates = new ArrayList<>();
@@ -571,7 +571,7 @@ public class VVBApiResource {
     }
 
     /**
-     * GET /api/v11/vvb/certificates/{certId}
+     * GET /api/v12/vvb/certificates/{certId}
      * Get certificate details
      */
     @GET
@@ -583,7 +583,7 @@ public class VVBApiResource {
     @APIResponse(responseCode = "200", description = "Certificate details retrieved")
     @APIResponse(responseCode = "404", description = "Certificate not found")
     public Uni<Response> getCertificateDetails(@PathParam("certId") String certId) {
-        LOG.infof("GET /api/v11/vvb/certificates/%s - Certificate details requested", certId);
+        LOG.infof("GET /api/v12/vvb/certificates/%s - Certificate details requested", certId);
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> certificate = new LinkedHashMap<>();
@@ -634,9 +634,9 @@ public class VVBApiResource {
 
             // Download links
             certificate.put("downloads", Map.of(
-                "pdfCertificate", "/api/v11/vvb/certificates/" + certId + "/download?format=pdf",
-                "jsonMetadata", "/api/v11/vvb/certificates/" + certId + "/download?format=json",
-                "qrCode", "/api/v11/vvb/certificates/" + certId + "/qr"
+                "pdfCertificate", "/api/v12/vvb/certificates/" + certId + "/download?format=pdf",
+                "jsonMetadata", "/api/v12/vvb/certificates/" + certId + "/download?format=json",
+                "qrCode", "/api/v12/vvb/certificates/" + certId + "/qr"
             ));
 
             certificate.put("timestamp", Instant.now().toString());

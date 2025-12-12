@@ -23,17 +23,17 @@ import java.util.Set;
  * and managing exchange connections for Slim Node integration.
  *
  * Endpoints:
- * - GET /api/v11/exchanges - List supported exchanges
- * - GET /api/v11/exchanges/{exchange}/ticker/{pair} - Get ticker data
- * - GET /api/v11/exchanges/status - Get connection status
- * - GET /api/v11/exchanges/metrics - Get service metrics
- * - POST /api/v11/exchanges/{exchange}/connect - Connect to exchange
- * - POST /api/v11/exchanges/{exchange}/disconnect - Disconnect from exchange
+ * - GET /api/v12/exchanges - List supported exchanges
+ * - GET /api/v12/exchanges/{exchange}/ticker/{pair} - Get ticker data
+ * - GET /api/v12/exchanges/status - Get connection status
+ * - GET /api/v12/exchanges/metrics - Get service metrics
+ * - POST /api/v12/exchanges/{exchange}/connect - Connect to exchange
+ * - POST /api/v12/exchanges/{exchange}/disconnect - Disconnect from exchange
  *
  * @version 1.0.0 (Dec 8, 2025)
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/exchanges")
+@Path("/api/v12/exchanges")
 @ApplicationScoped
 @PermitAll
 @Produces(MediaType.APPLICATION_JSON)
@@ -57,7 +57,7 @@ public class CryptoExchangeResource {
     /**
      * List supported exchanges
      *
-     * GET /api/v11/exchanges
+     * GET /api/v12/exchanges
      */
     @GET
     public Response listExchanges() {
@@ -71,8 +71,8 @@ public class CryptoExchangeResource {
     /**
      * Get ticker data for a trading pair from an exchange
      *
-     * GET /api/v11/exchanges/{exchange}/ticker/{pair}
-     * Example: GET /api/v11/exchanges/binance/ticker/BTC-USDT
+     * GET /api/v12/exchanges/{exchange}/ticker/{pair}
+     * Example: GET /api/v12/exchanges/binance/ticker/BTC-USDT
      */
     @GET
     @Path("/{exchange}/ticker/{pair}")
@@ -106,7 +106,7 @@ public class CryptoExchangeResource {
     /**
      * Get ticker data for multiple pairs from an exchange
      *
-     * GET /api/v11/exchanges/{exchange}/tickers?pairs=BTC-USDT,ETH-USDT
+     * GET /api/v12/exchanges/{exchange}/tickers?pairs=BTC-USDT,ETH-USDT
      */
     @GET
     @Path("/{exchange}/tickers")
@@ -146,7 +146,7 @@ public class CryptoExchangeResource {
     /**
      * Get connection status for all exchanges
      *
-     * GET /api/v11/exchanges/status
+     * GET /api/v12/exchanges/status
      */
     @GET
     @Path("/status")
@@ -158,7 +158,7 @@ public class CryptoExchangeResource {
     /**
      * Get service metrics
      *
-     * GET /api/v11/exchanges/metrics
+     * GET /api/v12/exchanges/metrics
      */
     @GET
     @Path("/metrics")
@@ -170,7 +170,7 @@ public class CryptoExchangeResource {
     /**
      * Connect to an exchange for streaming
      *
-     * POST /api/v11/exchanges/{exchange}/connect
+     * POST /api/v12/exchanges/{exchange}/connect
      * Body: { "pairs": ["BTC/USDT", "ETH/USDT"] }
      */
     @POST
@@ -214,7 +214,7 @@ public class CryptoExchangeResource {
     /**
      * Disconnect from an exchange
      *
-     * POST /api/v11/exchanges/{exchange}/disconnect
+     * POST /api/v12/exchanges/{exchange}/disconnect
      */
     @POST
     @Path("/{exchange}/disconnect")
@@ -239,7 +239,7 @@ public class CryptoExchangeResource {
     /**
      * Get exchange info (available pairs, fees, etc.)
      *
-     * GET /api/v11/exchanges/{exchange}/info
+     * GET /api/v12/exchanges/{exchange}/info
      */
     @GET
     @Path("/{exchange}/info")

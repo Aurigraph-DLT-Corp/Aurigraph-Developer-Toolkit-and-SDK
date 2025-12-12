@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  *
  * @version 1.0.0 (Dec 8, 2025)
  */
-@Path("/api/v11/admin/integrations")
+@Path("/api/v12/admin/integrations")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ExternalApiAdminResource {

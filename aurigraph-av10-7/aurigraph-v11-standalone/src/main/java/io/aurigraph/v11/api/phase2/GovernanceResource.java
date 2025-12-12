@@ -22,7 +22,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 15
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class GovernanceResource {
@@ -34,7 +34,7 @@ public class GovernanceResource {
 
     /**
      * List all governance proposals
-     * GET /api/v11/blockchain/governance/proposals
+     * GET /api/v12/blockchain/governance/proposals
      */
     @GET
     @Path("/governance/proposals")
@@ -73,7 +73,7 @@ public class GovernanceResource {
 
     /**
      * Create governance proposal
-     * POST /api/v11/blockchain/governance/proposals
+     * POST /api/v12/blockchain/governance/proposals
      */
     @POST
     @Path("/governance/proposals")
@@ -94,7 +94,7 @@ public class GovernanceResource {
 
     /**
      * Vote on proposal
-     * POST /api/v11/blockchain/governance/proposals/{proposalId}/vote
+     * POST /api/v12/blockchain/governance/proposals/{proposalId}/vote
      */
     @POST
     @Path("/governance/proposals/{proposalId}/vote")
@@ -114,7 +114,7 @@ public class GovernanceResource {
 
     /**
      * Get governance parameters
-     * GET /api/v11/blockchain/governance/parameters
+     * GET /api/v12/blockchain/governance/parameters
      */
     @GET
     @Path("/governance/parameters")
@@ -141,7 +141,7 @@ public class GovernanceResource {
 
     /**
      * Get proposal details with vote tracking
-     * GET /api/v11/blockchain/governance/proposals/{proposalId}
+     * GET /api/v12/blockchain/governance/proposals/{proposalId}
      */
     @GET
     @Path("/governance/proposals/{proposalId}")
@@ -171,7 +171,7 @@ public class GovernanceResource {
 
     /**
      * Get comprehensive governance and voting statistics
-     * GET /api/v11/blockchain/governance/stats
+     * GET /api/v12/blockchain/governance/stats
      */
     @GET
     @Path("/governance/stats")
@@ -182,7 +182,7 @@ public class GovernanceResource {
 
     /**
      * Get governance statistics for a specific time period
-     * GET /api/v11/blockchain/governance/stats/period?days={days}
+     * GET /api/v12/blockchain/governance/stats/period?days={days}
      */
     @GET
     @Path("/governance/stats/period")

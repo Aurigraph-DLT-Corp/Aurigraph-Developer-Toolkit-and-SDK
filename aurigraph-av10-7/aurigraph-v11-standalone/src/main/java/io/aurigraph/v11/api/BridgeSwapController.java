@@ -21,7 +21,7 @@ import org.jboss.logging.Logger;
  * Bridge Swap Controller (HTLC)
  * REST API endpoints for atomic swaps using Hash-Time-Locked Contracts
  *
- * Endpoint: /api/v11/bridge/swap/*
+ * Endpoint: /api/v12/bridge/swap/*
  *
  * Features:
  * - Hash-Time-Locked Contract (HTLC) management
@@ -36,7 +36,7 @@ import org.jboss.logging.Logger;
  * @version 1.0
  * @since AV11-636
  */
-@Path("/api/v11/bridge/swap")
+@Path("/api/v12/bridge/swap")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Bridge Atomic Swap", description = "Hash-Time-Locked Contract (HTLC) atomic swap operations")

@@ -23,7 +23,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 9
  */
-@Path("/api/v11/analytics")
+@Path("/api/v12/analytics")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Sprint9AnalyticsResource {
@@ -32,7 +32,7 @@ public class Sprint9AnalyticsResource {
 
     /**
      * Get transaction analytics for specified time range
-     * GET /api/v11/analytics/transactions?timeRange=24h|7d|30d|90d
+     * GET /api/v12/analytics/transactions?timeRange=24h|7d|30d|90d
      */
     @GET
     @Path("/transactions")
@@ -82,7 +82,7 @@ public class Sprint9AnalyticsResource {
 
     /**
      * Get validator analytics
-     * GET /api/v11/analytics/validators
+     * GET /api/v12/analytics/validators
      */
     @GET
     @Path("/validators")
@@ -152,7 +152,7 @@ public class Sprint9AnalyticsResource {
 
     /**
      * Get network usage analytics
-     * GET /api/v11/analytics/network-usage
+     * GET /api/v12/analytics/network-usage
      */
     @GET
     @Path("/network-usage")
@@ -193,7 +193,7 @@ public class Sprint9AnalyticsResource {
 
     /**
      * Get network analytics (alias for network-usage)
-     * GET /api/v11/analytics/network
+     * GET /api/v12/analytics/network
      */
     @GET
     @Path("/network")

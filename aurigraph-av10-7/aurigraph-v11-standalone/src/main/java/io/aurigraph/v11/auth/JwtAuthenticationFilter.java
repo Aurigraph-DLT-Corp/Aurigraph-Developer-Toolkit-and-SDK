@@ -24,9 +24,9 @@ import java.io.IOException;
  * - Token not expired
  *
  * Endpoints exempt from authentication:
- * - POST /api/v11/login/authenticate
- * - GET /api/v11/login/verify (checks session)
- * - POST /api/v11/login/logout
+ * - POST /api/v12/login/authenticate
+ * - GET /api/v12/login/verify (checks session)
+ * - POST /api/v12/login/logout
  * - All /ws/* endpoints (WebSocket handled separately)
  *
  * @author Backend Development Agent (BDA)
@@ -124,11 +124,11 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
      */
     private boolean isPublicEndpoint(String path) {
         // Authentication endpoints
-        if (path.equals("/api/v11/login/authenticate") ||
-            path.equals("/api/v11/login/verify") ||
-            path.equals("/api/v11/login/logout") ||
-            path.equals("/api/v11/health") ||
-            path.equals("/api/v11/info")) {
+        if (path.equals("/api/v12/login/authenticate") ||
+            path.equals("/api/v12/login/verify") ||
+            path.equals("/api/v12/login/logout") ||
+            path.equals("/api/v12/health") ||
+            path.equals("/api/v12/info")) {
             return true;
         }
 
@@ -146,8 +146,8 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
 
         // Demo endpoints for Enterprise Portal (all demo/* endpoints are public)
         // This allows the portal to access demo features without authentication
-        if (path.startsWith("/api/v11/demo/") || path.startsWith("/api/v11/demos/") ||
-            path.equals("/api/v11/demo") || path.equals("/api/v11/demos")) {
+        if (path.startsWith("/api/v12/demo/") || path.startsWith("/api/v12/demos/") ||
+            path.equals("/api/v12/demo") || path.equals("/api/v12/demos")) {
             LOG.debugf("Demo endpoint detected - allowing public access: %s", path);
             return true;
         }
@@ -158,133 +158,133 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // ============================================================
 
         // RWA (Real-World Asset) tokenization endpoints
-        if (path.startsWith("/api/v11/rwa/")) {
+        if (path.startsWith("/api/v12/rwa/")) {
             LOG.debugf("RWA endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Token management endpoints (including /tokens/create for portal tokenization)
         // Path is normalized to start with / so we only check with leading slash
-        if (path.startsWith("/api/v11/tokens/") || path.equals("/api/v11/tokens") ||
+        if (path.startsWith("/api/v12/tokens/") || path.equals("/api/v12/tokens") ||
             path.contains("/tokens/create") || path.contains("/tokens/")) {
             LOG.debugf("Token endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Token-management service endpoints
-        if (path.startsWith("/api/v11/token-management/")) {
+        if (path.startsWith("/api/v12/token-management/")) {
             LOG.debugf("Token management endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Channel management endpoints
-        if (path.startsWith("/api/v11/channels/") || path.equals("/api/v11/channels")) {
+        if (path.startsWith("/api/v12/channels/") || path.equals("/api/v12/channels")) {
             LOG.debugf("Channel endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Marketplace endpoints
-        if (path.startsWith("/api/v11/marketplace/")) {
+        if (path.startsWith("/api/v12/marketplace/")) {
             LOG.debugf("Marketplace endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Blockchain/transaction endpoints for portal dashboards
-        if (path.startsWith("/api/v11/blockchain/") ||
-            path.equals("/api/v11/blockchain") ||
-            path.startsWith("/api/v11/transactions/") ||
-            path.equals("/api/v11/transactions")) {
+        if (path.startsWith("/api/v12/blockchain/") ||
+            path.equals("/api/v12/blockchain") ||
+            path.startsWith("/api/v12/transactions/") ||
+            path.equals("/api/v12/transactions")) {
             LOG.debugf("Blockchain/transaction endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Analytics and stats endpoints
-        if (path.startsWith("/api/v11/analytics/") ||
-            path.equals("/api/v11/analytics") ||
-            path.startsWith("/api/v11/stats/") ||
-            path.equals("/api/v11/stats")) {
+        if (path.startsWith("/api/v12/analytics/") ||
+            path.equals("/api/v12/analytics") ||
+            path.startsWith("/api/v12/stats/") ||
+            path.equals("/api/v12/stats")) {
             LOG.debugf("Analytics endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Node and network endpoints
-        if (path.startsWith("/api/v11/nodes/") || path.equals("/api/v11/nodes") ||
-            path.startsWith("/api/v11/network/")) {
+        if (path.startsWith("/api/v12/nodes/") || path.equals("/api/v12/nodes") ||
+            path.startsWith("/api/v12/network/")) {
             LOG.debugf("Network endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Consensus monitoring endpoints
-        if (path.startsWith("/api/v11/consensus/")) {
+        if (path.startsWith("/api/v12/consensus/")) {
             LOG.debugf("Consensus endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Settings/External APIs endpoints (for Settings page API management)
         // Templates endpoint is public, but add/edit/delete require authentication
-        if (path.equals("/api/v11/settings/external-apis/templates") ||
-            path.startsWith("/api/v11/settings/external-apis")) {
+        if (path.equals("/api/v12/settings/external-apis/templates") ||
+            path.startsWith("/api/v12/settings/external-apis")) {
             LOG.debugf("Settings endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Smart contract endpoints
-        if (path.startsWith("/api/v11/contracts/") || path.equals("/api/v11/contracts")) {
+        if (path.startsWith("/api/v12/contracts/") || path.equals("/api/v12/contracts")) {
             LOG.debugf("Contract endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Validator endpoints
-        if (path.startsWith("/api/v11/validators/") || path.equals("/api/v11/validators")) {
+        if (path.startsWith("/api/v12/validators/") || path.equals("/api/v12/validators")) {
             LOG.debugf("Validator endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Block endpoints
-        if (path.startsWith("/api/v11/blocks/") || path.equals("/api/v11/blocks")) {
+        if (path.startsWith("/api/v12/blocks/") || path.equals("/api/v12/blocks")) {
             LOG.debugf("Block endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Staking endpoints
-        if (path.startsWith("/api/v11/staking/")) {
+        if (path.startsWith("/api/v12/staking/")) {
             LOG.debugf("Staking endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // ERC-3643 (T-REX) security token endpoints
-        if (path.startsWith("/api/v11/erc3643/")) {
+        if (path.startsWith("/api/v12/erc3643/")) {
             LOG.debugf("ERC-3643 endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Topology endpoints (for Enterprise Portal High Throughput Demo)
-        if (path.startsWith("/api/v11/topology/") || path.equals("/api/v11/topology")) {
+        if (path.startsWith("/api/v12/topology/") || path.equals("/api/v12/topology")) {
             LOG.debugf("Topology endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // File upload endpoints (for Enterprise Portal file uploads)
-        if (path.startsWith("/api/v11/uploads/") || path.equals("/api/v11/uploads") ||
+        if (path.startsWith("/api/v12/uploads/") || path.equals("/api/v12/uploads") ||
             path.contains("/uploads")) {
             LOG.debugf("Upload endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // File attachment endpoints (for blockchain document linking with SHA256)
-        if (path.startsWith("/api/v11/attachments/") || path.equals("/api/v11/attachments")) {
+        if (path.startsWith("/api/v12/attachments/") || path.equals("/api/v12/attachments")) {
             LOG.debugf("Attachment endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Referral program endpoints (for Enterprise Portal user referral features)
-        if (path.startsWith("/api/v11/referral/") || path.equals("/api/v11/referral")) {
+        if (path.startsWith("/api/v12/referral/") || path.equals("/api/v12/referral")) {
             LOG.debugf("Referral endpoint detected - allowing public access: %s", path);
             return true;
         }
 
         // Composite token endpoints (for Asset Registry E2E testing)
-        if (path.startsWith("/api/v11/composite-tokens/") || path.equals("/api/v11/composite-tokens")) {
+        if (path.startsWith("/api/v12/composite-tokens/") || path.equals("/api/v12/composite-tokens")) {
             LOG.debugf("Composite token endpoint detected - allowing public access: %s", path);
             return true;
         }

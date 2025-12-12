@@ -9,7 +9,7 @@ import java.util.Map;
  * Enterprise Status Model
  * Provides enterprise features overview and multi-tenancy status
  *
- * Used by /api/v11/enterprise/status endpoint
+ * Used by /api/v12/enterprise/status endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

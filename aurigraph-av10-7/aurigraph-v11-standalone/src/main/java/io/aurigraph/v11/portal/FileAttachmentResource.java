@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * @version 12.0.0
  * @since AV11-583
  */
-@Path("/api/v11/attachments")
+@Path("/api/v12/attachments")
 @ApplicationScoped
 @PermitAll
 public class FileAttachmentResource {
@@ -487,7 +487,7 @@ public class FileAttachmentResource {
             response.put("downloadUrl", attachment.cdnUrl); // Convenience field
         } else {
             // Fallback to local download endpoint
-            response.put("downloadUrl", "/api/v11/attachments/" + attachment.fileId + "/download");
+            response.put("downloadUrl", "/api/v12/attachments/" + attachment.fileId + "/download");
         }
         if (message != null) {
             response.put("message", message);

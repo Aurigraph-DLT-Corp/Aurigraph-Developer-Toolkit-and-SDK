@@ -17,16 +17,16 @@ import java.util.*;
  * Designed for use with D3.js, vis-network, or similar visualization libraries.
  *
  * Endpoints:
- * - GET /api/v11/topology/{compositeId} - Get topology for composite token
- * - GET /api/v11/topology/contract/{contractId} - Get topology for active contract
- * - GET /api/v11/topology/{id}/node/{nodeId} - Get specific node details
- * - GET /api/v11/topology/{id}/stats - Get topology statistics
+ * - GET /api/v12/topology/{compositeId} - Get topology for composite token
+ * - GET /api/v12/topology/contract/{contractId} - Get topology for active contract
+ * - GET /api/v12/topology/{id}/node/{nodeId} - Get specific node details
+ * - GET /api/v12/topology/{id}/stats - Get topology statistics
  *
  * @author J4C Development Agent
  * @version 12.1.0
  * @since AV11-605-01
  */
-@Path("/api/v11/topology")
+@Path("/api/v12/topology")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TokenTopologyResource {
@@ -40,7 +40,7 @@ public class TokenTopologyResource {
     /**
      * Get topology for a composite token
      *
-     * GET /api/v11/topology/{compositeId}
+     * GET /api/v12/topology/{compositeId}
      */
     @GET
     @Path("/{compositeId}")
@@ -72,7 +72,7 @@ public class TokenTopologyResource {
     /**
      * Get topology for an active contract
      *
-     * GET /api/v11/topology/contract/{contractId}
+     * GET /api/v12/topology/contract/{contractId}
      */
     @GET
     @Path("/contract/{contractId}")
@@ -103,7 +103,7 @@ public class TokenTopologyResource {
     /**
      * Get specific node details from topology
      *
-     * GET /api/v11/topology/{compositeId}/node/{nodeId}
+     * GET /api/v12/topology/{compositeId}/node/{nodeId}
      */
     @GET
     @Path("/{compositeId}/node/{nodeId}")
@@ -128,7 +128,7 @@ public class TokenTopologyResource {
     /**
      * Get topology statistics
      *
-     * GET /api/v11/topology/{compositeId}/stats
+     * GET /api/v12/topology/{compositeId}/stats
      */
     @GET
     @Path("/{compositeId}/stats")
@@ -153,7 +153,7 @@ public class TokenTopologyResource {
     /**
      * Get edges for a specific node
      *
-     * GET /api/v11/topology/{compositeId}/node/{nodeId}/edges
+     * GET /api/v12/topology/{compositeId}/node/{nodeId}/edges
      */
     @GET
     @Path("/{compositeId}/node/{nodeId}/edges")
@@ -181,7 +181,7 @@ public class TokenTopologyResource {
     /**
      * Get child nodes of a specific node
      *
-     * GET /api/v11/topology/{compositeId}/node/{nodeId}/children
+     * GET /api/v12/topology/{compositeId}/node/{nodeId}/children
      */
     @GET
     @Path("/{compositeId}/node/{nodeId}/children")
@@ -209,7 +209,7 @@ public class TokenTopologyResource {
     /**
      * Generate D3.js compatible format
      *
-     * GET /api/v11/topology/{compositeId}/d3
+     * GET /api/v12/topology/{compositeId}/d3
      */
     @GET
     @Path("/{compositeId}/d3")
@@ -231,7 +231,7 @@ public class TokenTopologyResource {
     /**
      * Generate vis-network compatible format
      *
-     * GET /api/v11/topology/{compositeId}/vis-network
+     * GET /api/v12/topology/{compositeId}/vis-network
      */
     @GET
     @Path("/{compositeId}/vis-network")
@@ -253,7 +253,7 @@ public class TokenTopologyResource {
     /**
      * Get navigation path from one node to another
      *
-     * GET /api/v11/topology/{compositeId}/path
+     * GET /api/v12/topology/{compositeId}/path
      */
     @GET
     @Path("/{compositeId}/path")
@@ -287,7 +287,7 @@ public class TokenTopologyResource {
     /**
      * Get all topologies for an owner
      *
-     * GET /api/v11/topology/by-owner/{ownerAddress}
+     * GET /api/v12/topology/by-owner/{ownerAddress}
      */
     @GET
     @Path("/by-owner/{ownerAddress}")

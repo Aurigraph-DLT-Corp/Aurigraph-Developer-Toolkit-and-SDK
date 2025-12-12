@@ -25,7 +25,7 @@ import java.util.UUID;
  * @version 4.1.0
  * @since BUG-003 Fix
  */
-@Path("/api/v11/bridge")
+@Path("/api/v12/bridge")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Cross-Chain Bridge API", description = "Cross-chain bridge operations and transfer management")
@@ -35,7 +35,7 @@ public class CrossChainBridgeResource {
 
     /**
      * Get all bridge connections
-     * GET /api/v11/bridge/bridges
+     * GET /api/v12/bridge/bridges
      */
     @GET
     @Path("/bridges")
@@ -112,7 +112,7 @@ public class CrossChainBridgeResource {
 
     /**
      * Get specific bridge details
-     * GET /api/v11/bridge/bridges/{id}
+     * GET /api/v12/bridge/bridges/{id}
      */
     @GET
     @Path("/bridges/{id}")
@@ -146,7 +146,7 @@ public class CrossChainBridgeResource {
 
     /**
      * Get transfer history
-     * GET /api/v11/bridge/transfers
+     * GET /api/v12/bridge/transfers
      */
     @GET
     @Path("/transfers")
@@ -195,7 +195,7 @@ public class CrossChainBridgeResource {
 
     /**
      * Initiate cross-chain transfer
-     * POST /api/v11/bridge/transfers
+     * POST /api/v12/bridge/transfers
      */
     @POST
     @Path("/transfers")
@@ -223,7 +223,7 @@ public class CrossChainBridgeResource {
 
     /**
      * Get supported chains
-     * GET /api/v11/bridge/chains
+     * GET /api/v12/bridge/chains
      */
     @GET
     @Path("/chains")

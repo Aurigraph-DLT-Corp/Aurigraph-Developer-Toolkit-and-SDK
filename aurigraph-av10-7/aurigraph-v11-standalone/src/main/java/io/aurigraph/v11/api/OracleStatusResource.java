@@ -24,14 +24,14 @@ import java.util.Map;
  * AV11-285: Implement Oracle Status API
  *
  * Endpoints:
- * - GET /api/v11/oracles/status - Get overall oracle status
- * - GET /api/v11/oracles/{oracleId} - Get specific oracle status
- * - GET /api/v11/oracles/summary - Get oracle summary
+ * - GET /api/v12/oracles/status - Get overall oracle status
+ * - GET /api/v12/oracles/{oracleId} - Get specific oracle status
+ * - GET /api/v12/oracles/summary - Get oracle summary
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v11/oracles")
+@Path("/api/v12/oracles")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Oracle Status", description = "Oracle service health monitoring and performance metrics")
@@ -60,7 +60,7 @@ public class OracleStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getOracleStatus() {
-        LOG.info("GET /api/v11/oracles/status - Fetching oracle status");
+        LOG.info("GET /api/v12/oracles/status - Fetching oracle status");
 
         return oracleStatusService.getOracleStatus()
                 .map(status -> {
@@ -99,7 +99,7 @@ public class OracleStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getOracleById(@PathParam("oracleId") String oracleId) {
-        LOG.debugf("GET /api/v11/oracles/%s - Fetching oracle details", oracleId);
+        LOG.debugf("GET /api/v12/oracles/%s - Fetching oracle details", oracleId);
 
         return oracleStatusService.getOracleById(oracleId)
                 .map(oracle -> {
@@ -146,7 +146,7 @@ public class OracleStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getOracleSummary() {
-        LOG.debug("GET /api/v11/oracles/summary - Fetching oracle summary");
+        LOG.debug("GET /api/v12/oracles/summary - Fetching oracle summary");
 
         return oracleStatusService.getOracleStatus()
                 .map(status -> {

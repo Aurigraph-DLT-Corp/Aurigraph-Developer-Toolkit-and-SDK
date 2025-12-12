@@ -24,7 +24,7 @@ import java.util.Map;
  *
  * GitHub Issue: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT/issues/11
  */
-@Path("/api/v11/topology")
+@Path("/api/v12/topology")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Node Topology", description = "Enhanced node topology with real-time metrics and active contracts")

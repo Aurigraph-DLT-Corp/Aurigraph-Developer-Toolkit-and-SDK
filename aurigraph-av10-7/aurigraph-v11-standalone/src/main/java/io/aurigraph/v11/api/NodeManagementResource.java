@@ -25,12 +25,12 @@ import java.util.Map;
  * Part of Enterprise Portal V4.8.0 implementation.
  *
  * Endpoints:
- * - GET /api/v11/nodes - List all network nodes with status and metrics
+ * - GET /api/v12/nodes - List all network nodes with status and metrics
  *
  * @author Aurigraph V11 Team
  * @version 4.8.0
  */
-@Path("/api/v11/nodes")
+@Path("/api/v12/nodes")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -40,7 +40,7 @@ public class NodeManagementResource {
     private static final Logger LOG = Logger.getLogger(NodeManagementResource.class);
 
     /**
-     * GET /api/v11/nodes
+     * GET /api/v12/nodes
      *
      * Returns list of network nodes with status and resource usage.
      *
@@ -92,7 +92,7 @@ public class NodeManagementResource {
 
         return Uni.createFrom().item(() -> {
             try {
-                LOG.infof("GET /api/v11/nodes - page=%d, size=%d, status=%s, type=%s",
+                LOG.infof("GET /api/v12/nodes - page=%d, size=%d, status=%s, type=%s",
                     page, size, statusFilter, typeFilter);
 
                 // Validate pagination parameters
@@ -149,7 +149,7 @@ public class NodeManagementResource {
     }
 
     /**
-     * GET /api/v11/nodes/{nodeId}
+     * GET /api/v12/nodes/{nodeId}
      *
      * Returns detailed information about a specific node.
      */
@@ -167,7 +167,7 @@ public class NodeManagementResource {
     public Uni<Response> getNode(@PathParam("nodeId") String nodeId) {
         return Uni.createFrom().item(() -> {
             try {
-                LOG.infof("GET /api/v11/nodes/%s", nodeId);
+                LOG.infof("GET /api/v12/nodes/%s", nodeId);
 
                 // Find node in mock data
                 List<NodeInfo> nodes = generateMockNodes();
@@ -194,7 +194,7 @@ public class NodeManagementResource {
     }
 
     /**
-     * GET /api/v11/nodes/summary
+     * GET /api/v12/nodes/summary
      *
      * Returns summary statistics for all nodes.
      */
@@ -208,7 +208,7 @@ public class NodeManagementResource {
     public Uni<Response> getNodesSummary() {
         return Uni.createFrom().item(() -> {
             try {
-                LOG.info("GET /api/v11/nodes/summary");
+                LOG.info("GET /api/v12/nodes/summary");
 
                 List<NodeInfo> nodes = generateMockNodes();
 

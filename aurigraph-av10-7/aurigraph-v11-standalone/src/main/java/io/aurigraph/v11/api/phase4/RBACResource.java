@@ -20,7 +20,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 32
  */
-@Path("/api/v11/enterprise")
+@Path("/api/v12/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RBACResource {
@@ -29,7 +29,7 @@ public class RBACResource {
 
     /**
      * Create role
-     * POST /api/v11/enterprise/rbac/roles
+     * POST /api/v12/enterprise/rbac/roles
      */
     @POST
     @Path("/rbac/roles")
@@ -51,7 +51,7 @@ public class RBACResource {
 
     /**
      * Get all roles
-     * GET /api/v11/enterprise/rbac/roles
+     * GET /api/v12/enterprise/rbac/roles
      */
     @GET
     @Path("/rbac/roles")
@@ -91,7 +91,7 @@ public class RBACResource {
 
     /**
      * Assign role to user
-     * POST /api/v11/enterprise/rbac/assign
+     * POST /api/v12/enterprise/rbac/assign
      */
     @POST
     @Path("/rbac/assign")
@@ -114,7 +114,7 @@ public class RBACResource {
 
     /**
      * Get user permissions
-     * GET /api/v11/enterprise/rbac/permissions/{userId}
+     * GET /api/v12/enterprise/rbac/permissions/{userId}
      */
     @GET
     @Path("/rbac/permissions/{userId}")

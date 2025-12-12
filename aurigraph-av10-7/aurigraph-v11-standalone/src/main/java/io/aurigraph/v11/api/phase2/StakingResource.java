@@ -20,7 +20,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 14
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StakingResource {
@@ -29,7 +29,7 @@ public class StakingResource {
 
     /**
      * Get staking information overview
-     * GET /api/v11/blockchain/staking/info
+     * GET /api/v12/blockchain/staking/info
      */
     @GET
     @Path("/staking/info")
@@ -54,7 +54,7 @@ public class StakingResource {
 
     /**
      * Get staking pools overview
-     * GET /api/v11/blockchain/staking/pools
+     * GET /api/v12/blockchain/staking/pools
      */
     @GET
     @Path("/staking/pools")
@@ -86,7 +86,7 @@ public class StakingResource {
 
     /**
      * Calculate staking rewards
-     * POST /api/v11/blockchain/staking/calculate-rewards
+     * POST /api/v12/blockchain/staking/calculate-rewards
      */
     @POST
     @Path("/staking/calculate-rewards")
@@ -117,7 +117,7 @@ public class StakingResource {
 
     /**
      * Get delegation overview
-     * GET /api/v11/blockchain/staking/delegations/{delegatorAddress}
+     * GET /api/v12/blockchain/staking/delegations/{delegatorAddress}
      */
     @GET
     @Path("/staking/delegations/{delegatorAddress}")

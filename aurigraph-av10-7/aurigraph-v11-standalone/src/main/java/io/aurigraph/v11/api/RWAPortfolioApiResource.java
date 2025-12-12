@@ -20,13 +20,13 @@ import java.util.*;
  * RWA Portfolio API Resource
  *
  * Provides RWA asset and portfolio operations:
- * - GET /api/v11/rwa/assets - List all RWA tokens
- * - POST /api/v11/rwa/portfolio/rebalance - Portfolio rebalancing
+ * - GET /api/v12/rwa/assets - List all RWA tokens
+ * - POST /api/v12/rwa/portfolio/rebalance - Portfolio rebalancing
  *
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v11/rwa")
+@Path("/api/v12/rwa")
 @ApplicationScoped
 @Tag(name = "RWA Portfolio API", description = "Real-World Asset tokenization and portfolio management")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +38,7 @@ public class RWAPortfolioApiResource {
     // ==================== ENDPOINT 11: List RWA Assets ====================
 
     /**
-     * GET /api/v11/rwa/assets
+     * GET /api/v12/rwa/assets
      * List all Real-World Asset tokens
      */
     @GET
@@ -182,7 +182,7 @@ public class RWAPortfolioApiResource {
     // ==================== ENDPOINT 12: Portfolio Rebalancing ====================
 
     /**
-     * POST /api/v11/rwa/portfolio/rebalance
+     * POST /api/v12/rwa/portfolio/rebalance
      * Rebalance RWA portfolio
      */
     @POST

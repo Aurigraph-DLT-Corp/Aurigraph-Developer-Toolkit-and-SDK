@@ -14,12 +14,12 @@ import java.util.Map;
  * Provides REST endpoints for querying and managing contract-asset traceability links.
  * Enables complete visibility into the lineage from contracts through assets to tokens.
  *
- * Base Path: /api/v11/traceability
+ * Base Path: /api/v12/traceability
  *
  * @version 1.0.0
  * @author Aurigraph V11 Development Team
  */
-@Path("/api/v11/traceability")
+@Path("/api/v12/traceability")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ContractAssetTraceabilityResource {

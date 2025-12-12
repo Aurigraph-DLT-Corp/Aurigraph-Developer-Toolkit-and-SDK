@@ -21,7 +21,7 @@ import java.util.Map;
  *
  * @version 1.0.1 (Dec 8, 2025)
  */
-@Path("/api/v11/settings/external-apis")
+@Path("/api/v12/settings/external-apis")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Blocking  // Required for JTA transactions - runs on worker thread instead of IO thread
@@ -38,7 +38,7 @@ public class DynamicApiResource {
 
     /**
      * List all configured external APIs
-     * GET /api/v11/settings/external-apis
+     * GET /api/v12/settings/external-apis
      */
     @GET
     public Response listApis() {
@@ -66,7 +66,7 @@ public class DynamicApiResource {
 
     /**
      * Get a specific API configuration
-     * GET /api/v11/settings/external-apis/{apiId}
+     * GET /api/v12/settings/external-apis/{apiId}
      */
     @GET
     @Path("/{apiId}")
@@ -88,7 +88,7 @@ public class DynamicApiResource {
 
     /**
      * Add a new external API
-     * POST /api/v11/settings/external-apis
+     * POST /api/v12/settings/external-apis
      *
      * Request body:
      * {
@@ -155,7 +155,7 @@ public class DynamicApiResource {
 
     /**
      * Update an existing API configuration
-     * PUT /api/v11/settings/external-apis/{apiId}
+     * PUT /api/v12/settings/external-apis/{apiId}
      */
     @PUT
     @Path("/{apiId}")
@@ -193,7 +193,7 @@ public class DynamicApiResource {
 
     /**
      * Enable an API
-     * POST /api/v11/settings/external-apis/{apiId}/enable
+     * POST /api/v12/settings/external-apis/{apiId}/enable
      */
     @POST
     @Path("/{apiId}/enable")
@@ -217,7 +217,7 @@ public class DynamicApiResource {
 
     /**
      * Disable an API
-     * POST /api/v11/settings/external-apis/{apiId}/disable
+     * POST /api/v12/settings/external-apis/{apiId}/disable
      */
     @POST
     @Path("/{apiId}/disable")
@@ -244,7 +244,7 @@ public class DynamicApiResource {
 
     /**
      * Delete an external API
-     * DELETE /api/v11/settings/external-apis/{apiId}
+     * DELETE /api/v12/settings/external-apis/{apiId}
      */
     @DELETE
     @Path("/{apiId}")
@@ -273,7 +273,7 @@ public class DynamicApiResource {
 
     /**
      * Test an API connection before saving
-     * POST /api/v11/settings/external-apis/test
+     * POST /api/v12/settings/external-apis/test
      */
     @POST
     @Path("/test")
@@ -309,7 +309,7 @@ public class DynamicApiResource {
 
     /**
      * Get available API templates for quick setup
-     * GET /api/v11/settings/external-apis/templates
+     * GET /api/v12/settings/external-apis/templates
      */
     @GET
     @Path("/templates")

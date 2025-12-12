@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since AV11-700
  */
-@Path("/api/v11/library")
+@Path("/api/v12/library")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Contract Library", description = "Contract template library management")
@@ -820,8 +820,8 @@ public class ContractLibraryResource {
         }
 
         sb.append("═══════════════════════════════════════════════════════════════\n");
-        sb.append("  Use /api/v11/library/text/active/{id} for Active Contract details\n");
-        sb.append("  Use /api/v11/library/text/smart/{id} for Smart Contract details\n");
+        sb.append("  Use /api/v12/library/text/active/{id} for Active Contract details\n");
+        sb.append("  Use /api/v12/library/text/smart/{id} for Smart Contract details\n");
         sb.append("═══════════════════════════════════════════════════════════════\n");
 
         return Response.ok(sb.toString()).build();

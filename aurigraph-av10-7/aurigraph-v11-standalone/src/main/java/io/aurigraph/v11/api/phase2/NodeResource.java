@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 13
  */
-@Path("/api/v11/blockchain")
+@Path("/api/v12/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class NodeResource {
@@ -28,7 +28,7 @@ public class NodeResource {
 
     /**
      * Register new node
-     * POST /api/v11/blockchain/nodes/register
+     * POST /api/v12/blockchain/nodes/register
      */
     @POST
     @Path("/nodes/register")
@@ -48,7 +48,7 @@ public class NodeResource {
 
     /**
      * List all nodes
-     * GET /api/v11/blockchain/nodes
+     * GET /api/v12/blockchain/nodes
      */
     @GET
     @Path("/nodes")
@@ -84,7 +84,7 @@ public class NodeResource {
 
     /**
      * Get node health status
-     * GET /api/v11/blockchain/nodes/{nodeId}/health
+     * GET /api/v12/blockchain/nodes/{nodeId}/health
      */
     @GET
     @Path("/nodes/{nodeId}/health")
@@ -109,7 +109,7 @@ public class NodeResource {
 
     /**
      * Get node performance analytics
-     * GET /api/v11/blockchain/nodes/{nodeId}/performance
+     * GET /api/v12/blockchain/nodes/{nodeId}/performance
      */
     @GET
     @Path("/nodes/{nodeId}/performance")
