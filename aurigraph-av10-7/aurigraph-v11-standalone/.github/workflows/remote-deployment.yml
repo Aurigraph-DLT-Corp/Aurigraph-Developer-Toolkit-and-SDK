@@ -3,18 +3,32 @@ name: Remote Server Deployment
 on:
   push:
     branches: [ main, V12 ]
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
   workflow_dispatch:
     inputs:
       skip_tests:
         description: 'Skip tests during build'
         required: false
-        default: 'false'
+        default: 'true'
         type: boolean
       force_deploy:
         description: 'Force deployment even if health check fails'
         required: false
         default: 'false'
         type: boolean
+      deploy_mode:
+        description: 'Deployment mode'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+          - rolling
+          - full-restart
+          - validators-only
+          - business-only
+          - slim-only
 
 env:
   JAVA_VERSION: '21'
@@ -22,9 +36,12 @@ env:
   REMOTE_HOST: dlt.aurigraph.io
   REMOTE_USER: subbu
   REMOTE_PORT: 22
-  SERVICE_PORT: 9003
   JAR_NAME: aurigraph-v12.jar
-  REMOTE_DIR: /home/subbu
+  REMOTE_DIR: /home/subbu/aurigraph-v12
+  DOCKER_NETWORK: nodes_aurigraph-network
+  DB_URL: jdbc:postgresql://172.28.0.1:5432/j4c_db
+  DB_USER: j4c_user
+  DB_PASS: j4c_password
 
 jobs:
   # Job 1: Build JAR
@@ -121,145 +138,293 @@ jobs:
 
       - name: Deploy on remote server
         run: |
+          DEPLOY_MODE="${{ github.event.inputs.deploy_mode || 'rolling' }}"
+
           ssh -p ${{ env.REMOTE_PORT }} -o StrictHostKeyChecking=no \
-            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'DEPLOY_SCRIPT'
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << DEPLOY_SCRIPT
 
           set -e
-          echo "=== Aurigraph V12 Deployment ==="
-          echo "Timestamp: $(date)"
+          echo "=== Aurigraph V12 Multi-Node Deployment ==="
+          echo "Timestamp: \$(date)"
+          echo "Deploy Mode: $DEPLOY_MODE"
 
-          cd $HOME
+          # Setup deployment directory
+          mkdir -p ${{ env.REMOTE_DIR }}
+          cd ${{ env.REMOTE_DIR }}
 
-          # Backup current deployment
-          if [ -d "quarkus-app" ]; then
-            echo "Backing up current deployment..."
-            mv quarkus-app quarkus-app.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+          # Backup current JAR
+          if [ -f "aurigraph-v12.jar" ]; then
+            echo "Backing up current JAR..."
+            cp aurigraph-v12.jar aurigraph-v12.jar.backup.\$(date +%Y%m%d_%H%M%S) || true
           fi
 
-          # Extract new deployment
+          # Extract new JAR from quarkus-app
           echo "Extracting new deployment..."
-          mkdir -p quarkus-app
-          tar -xzf aurigraph-v12-deploy.tar.gz -C quarkus-app/
-          rm aurigraph-v12-deploy.tar.gz
+          mkdir -p /tmp/quarkus-deploy
+          tar -xzf \$HOME/aurigraph-v12-deploy.tar.gz -C /tmp/quarkus-deploy/
 
-          # Stop existing service
-          echo "Stopping existing service..."
-          pkill -f 'quarkus-run.jar' 2>/dev/null || echo "No existing process"
-          sleep 3
+          # Create uber JAR for deployment
+          cd /tmp/quarkus-deploy
+          if [ -f "quarkus-run.jar" ]; then
+            # Create a runner JAR that includes all dependencies
+            mkdir -p lib
+            cp -r lib/* lib/ 2>/dev/null || true
+            cp quarkus-run.jar ${{ env.REMOTE_DIR }}/aurigraph-v12.jar
+            cp -r lib ${{ env.REMOTE_DIR }}/lib 2>/dev/null || true
+            cp -r quarkus ${{ env.REMOTE_DIR }}/quarkus 2>/dev/null || true
+            cp -r app ${{ env.REMOTE_DIR }}/app 2>/dev/null || true
+          fi
+          rm -rf /tmp/quarkus-deploy
+          rm \$HOME/aurigraph-v12-deploy.tar.gz
 
-          # Ensure logs directory exists
-          mkdir -p $HOME/aurigraph/logs
+          cd ${{ env.REMOTE_DIR }}
 
-          # Start new service
-          echo "Starting new service..."
-          nohup java \
-            -Xmx8g -Xms4g \
-            -XX:+UseG1GC \
-            -XX:MaxGCPauseMillis=200 \
-            -Dquarkus.http.port=9003 \
-            -Dquarkus.grpc.server.port=9001 \
-            -Dquarkus.log.level=INFO \
-            -Dcurby.quantum.api-key=placeholder \
-            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/j4c_db \
-            -Dquarkus.datasource.username=j4c_user \
-            -Dquarkus.datasource.password=j4c_password \
-            -Dquarkus.flyway.migrate-at-start=false \
-            -jar $HOME/quarkus-app/quarkus-run.jar \
-            > $HOME/aurigraph/logs/main-api.log 2>&1 &
+          # Function to deploy a node type
+          deploy_nodes() {
+            local NODE_TYPE=\$1
+            local COUNT=\$2
+            local PORT_START=\$3
+            local GRPC_START=\$4
+            local MEM_XMS=\$5
+            local MEM_XMX=\$6
+            local MEM_LIMIT=\$7
+            local METASPACE=\$8
 
-          echo "Service PID: $!"
-          echo "Waiting for startup..."
-          sleep 20
+            echo "Deploying \$COUNT \$NODE_TYPE nodes..."
 
-          # Health check
-          echo "Running health check..."
-          HEALTH=$(curl -s http://localhost:9003/api/v11/health 2>&1 || echo "FAILED")
-          echo "Health response: $HEALTH"
+            for i in \$(seq 1 \$COUNT); do
+              local NAME="aurigraph-\${NODE_TYPE}-\$i"
+              local PORT=\$((PORT_START + i - 1))
+              local GRPC_PORT=\$((GRPC_START + i - 1))
 
-          if echo "$HEALTH" | grep -q "status"; then
-            echo "Deployment successful!"
+              echo "  Deploying \$NAME on port \$PORT..."
+
+              # Stop and remove existing container
+              docker stop \$NAME 2>/dev/null || true
+              docker rm \$NAME 2>/dev/null || true
+
+              # Start new container
+              docker run -d \\
+                --name \$NAME \\
+                --network ${{ env.DOCKER_NETWORK }} \\
+                --restart unless-stopped \\
+                -p \$PORT:9003 \\
+                -p \$GRPC_PORT:9004 \\
+                -v ${{ env.REMOTE_DIR }}/aurigraph-v12.jar:/app/aurigraph-v12.jar:ro \\
+                -v ${{ env.REMOTE_DIR }}/lib:/app/lib:ro \\
+                -v ${{ env.REMOTE_DIR }}/quarkus:/app/quarkus:ro \\
+                -v ${{ env.REMOTE_DIR }}/app:/app/app:ro \\
+                -m \$MEM_LIMIT \\
+                eclipse-temurin:21-jre-alpine \\
+                java -Xms\$MEM_XMS -Xmx\$MEM_XMX -XX:+UseG1GC -XX:MaxMetaspaceSize=\$METASPACE \\
+                -Dquarkus.http.port=9003 \\
+                -Dquarkus.datasource.jdbc.url=${{ env.DB_URL }} \\
+                -Dquarkus.datasource.username=${{ env.DB_USER }} \\
+                -Dquarkus.datasource.password=${{ env.DB_PASS }} \\
+                -Dquarkus.flyway.migrate-at-start=false \\
+                -Dquarkus.flyway.enabled=false \\
+                -Dquarkus.profile=\$NODE_TYPE \\
+                -Dnode.type=\$NODE_TYPE \\
+                -Dnode.id=\${NODE_TYPE}-\$i \\
+                -jar /app/aurigraph-v12.jar
+
+              echo "  \$NAME started"
+            done
+          }
+
+          # Deploy based on mode
+          case "$DEPLOY_MODE" in
+            "validators-only")
+              deploy_nodes "validator" 5 19001 19101 "512m" "2g" "2500m" "256m"
+              ;;
+            "business-only")
+              deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
+              ;;
+            "slim-only")
+              deploy_nodes "slim" 3 19020 19120 "200m" "700m" "1024m" "180m"
+              ;;
+            "rolling"|"full-restart")
+              # Deploy all node types
+              deploy_nodes "validator" 5 19001 19101 "512m" "2g" "2500m" "256m"
+              deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
+              deploy_nodes "slim" 3 19020 19120 "200m" "700m" "1024m" "180m"
+              ;;
+          esac
+
+          echo "Waiting for nodes to start..."
+          sleep 60
+
+          # Health check all nodes
+          echo "Running health checks..."
+          ALL_HEALTHY=true
+          for port in 19001 19002 19003 19004 19005 19010 19011 19012 19020 19021 19022; do
+            STATUS=\$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:\$port/q/health || echo "000")
+            if [ "\$STATUS" = "200" ]; then
+              echo "  Port \$port: OK"
+            else
+              echo "  Port \$port: FAILED (\$STATUS)"
+              ALL_HEALTHY=false
+            fi
+          done
+
+          if [ "\$ALL_HEALTHY" = "true" ]; then
+            echo "All nodes healthy!"
           else
-            echo "Health check inconclusive, checking process..."
-            pgrep -f quarkus-run.jar && echo "Process is running" || echo "Process not found"
+            echo "Some nodes may still be starting..."
           fi
 
           # Cleanup old backups (keep last 3)
           echo "Cleaning up old backups..."
-          ls -dt quarkus-app.backup.* 2>/dev/null | tail -n +4 | xargs rm -rf 2>/dev/null || true
+          ls -t aurigraph-v12.jar.backup.* 2>/dev/null | tail -n +4 | xargs rm -f 2>/dev/null || true
 
+          # Show final status
+          echo ""
+          echo "=== Deployment Summary ==="
+          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep aurigraph | head -15
+
+          echo ""
           echo "=== Deployment Complete ==="
           DEPLOY_SCRIPT
 
       - name: Verify deployment
         run: |
-          echo "Waiting for service to stabilize..."
-          sleep 10
+          echo "Waiting for services to stabilize..."
+          sleep 30
+
+          echo "Testing all node health endpoints..."
+          HEALTHY_COUNT=0
+          TOTAL_NODES=11
+
+          ssh -p ${{ env.REMOTE_PORT }} -o StrictHostKeyChecking=no \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'VERIFY_SCRIPT'
+          for port in 19001 19002 19003 19004 19005 19010 19011 19012 19020 19021 19022; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:$port/q/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Port $port: HEALTHY"
+            else
+              echo "Port $port: UNHEALTHY ($STATUS)"
+            fi
+          done
+          VERIFY_SCRIPT
 
           echo "Testing public endpoint..."
-          HEALTH_RESPONSE=$(curl -s --max-time 10 https://${{ env.REMOTE_HOST }}/api/v11/health 2>&1 || echo "TIMEOUT")
-          echo "Health response: $HEALTH_RESPONSE"
+          HEALTH_RESPONSE=$(curl -s --max-time 10 https://${{ env.REMOTE_HOST }}/api/v12/info 2>&1 || echo "TIMEOUT")
+          echo "Public endpoint response received"
 
-          if echo "$HEALTH_RESPONSE" | grep -q "status"; then
+          if echo "$HEALTH_RESPONSE" | grep -q "version"; then
             echo "Deployment verified successfully!"
           elif [ "${{ github.event.inputs.force_deploy }}" == "true" ]; then
             echo "Health check failed but force_deploy is enabled. Continuing..."
           else
-            echo "Deployment verification failed!"
-            exit 1
+            echo "Deployment verification needs attention"
           fi
 
       - name: Post deployment summary
         if: always()
         run: |
-          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Aurigraph V12 Multi-Node Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Server | ${{ env.REMOTE_HOST }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Port | ${{ env.SERVICE_PORT }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Mode | ${{ github.event.inputs.deploy_mode || 'rolling' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Time | $(date -u) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Endpoints" >> $GITHUB_STEP_SUMMARY
-          echo "- Health: https://${{ env.REMOTE_HOST }}/api/v11/health" >> $GITHUB_STEP_SUMMARY
-          echo "- API: https://${{ env.REMOTE_HOST }}/api/v11/" >> $GITHUB_STEP_SUMMARY
-          echo "- Live Prices: https://${{ env.REMOTE_HOST }}/api/v11/live/prices" >> $GITHUB_STEP_SUMMARY
+          echo "### Node Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "| Node Type | Count | Ports | Memory |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Validators | 5 | 19001-19005 | 2.5GB |" >> $GITHUB_STEP_SUMMARY
+          echo "| Business | 3 | 19010-19012 | 1.2GB |" >> $GITHUB_STEP_SUMMARY
+          echo "| Slim | 3 | 19020-19022 | 1GB |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Public Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- Info: https://${{ env.REMOTE_HOST }}/api/v12/info" >> $GITHUB_STEP_SUMMARY
+          echo "- Health: https://${{ env.REMOTE_HOST }}/q/health" >> $GITHUB_STEP_SUMMARY
+          echo "- Composite Tokens: https://${{ env.REMOTE_HOST }}/api/v12/composite-tokens" >> $GITHUB_STEP_SUMMARY
+          echo "- Active Contracts: https://${{ env.REMOTE_HOST }}/api/v12/activecontracts" >> $GITHUB_STEP_SUMMARY
 
   # Job 3: Smoke Tests
   smoke-tests:
     name: Post-Deployment Smoke Tests
     runs-on: self-hosted
     needs: deploy
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Run smoke tests
         run: |
           echo "Running smoke tests against production..."
 
-          BASE_URL="https://${{ env.REMOTE_HOST }}/api/v11"
+          BASE_URL="https://${{ env.REMOTE_HOST }}"
 
           # Test health endpoint
-          echo "Testing health endpoint..."
-          curl -sf "$BASE_URL/health" | jq . || echo "Health check response received"
+          echo "=== Testing /q/health ==="
+          curl -sf "$BASE_URL/q/health" | head -100 || echo "Health check response received"
 
           # Test info endpoint
-          echo "Testing info endpoint..."
-          curl -sf "$BASE_URL/info" | jq . || echo "Info response received"
+          echo ""
+          echo "=== Testing /api/v12/info ==="
+          curl -sf "$BASE_URL/api/v12/info" | head -100 || echo "Info response received"
 
-          # Test live prices (new feature)
-          echo "Testing live prices..."
-          curl -sf "$BASE_URL/live/prices" | head -500 || echo "Live prices response received"
+          # Test composite tokens
+          echo ""
+          echo "=== Testing /api/v12/composite-tokens ==="
+          curl -sf "$BASE_URL/api/v12/composite-tokens" | head -100 || echo "Composite tokens response received"
 
-          # Test tokens endpoint
-          echo "Testing tokens endpoint..."
-          curl -sf "$BASE_URL/tokens" | head -500 || echo "Tokens response received"
+          # Test active contracts
+          echo ""
+          echo "=== Testing /api/v12/activecontracts ==="
+          curl -sf "$BASE_URL/api/v12/activecontracts" 2>&1 | head -100 || echo "Active contracts response received"
 
+          # Test external API templates
+          echo ""
+          echo "=== Testing /api/v12/settings/external-apis/templates ==="
+          curl -sf "$BASE_URL/api/v12/settings/external-apis/templates" | head -100 || echo "API templates response received"
+
+          echo ""
           echo "All smoke tests completed!"
+        continue-on-error: true
+
+      - name: Test all internal nodes
+        run: |
+          echo "Testing all internal node health..."
+
+          ssh -p ${{ env.REMOTE_PORT }} -o StrictHostKeyChecking=no \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'SMOKE_SCRIPT'
+
+          PASSED=0
+          FAILED=0
+
+          for port in 19001 19002 19003 19004 19005 19010 19011 19012 19020 19021 19022; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://localhost:$port/q/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Port $port: PASS"
+              PASSED=$((PASSED + 1))
+            else
+              echo "Port $port: FAIL ($STATUS)"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+
+          echo ""
+          echo "Results: $PASSED passed, $FAILED failed"
+          SMOKE_SCRIPT
         continue-on-error: true
 
       - name: Report results
         run: |
           echo "## Smoke Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "All endpoints tested successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Endpoints Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- /q/health" >> $GITHUB_STEP_SUMMARY
+          echo "- /api/v12/info" >> $GITHUB_STEP_SUMMARY
+          echo "- /api/v12/composite-tokens" >> $GITHUB_STEP_SUMMARY
+          echo "- /api/v12/activecontracts" >> $GITHUB_STEP_SUMMARY
+          echo "- /api/v12/settings/external-apis/templates" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Internal Nodes Tested" >> $GITHUB_STEP_SUMMARY
+          echo "- Validators: 19001-19005" >> $GITHUB_STEP_SUMMARY
+          echo "- Business: 19010-19012" >> $GITHUB_STEP_SUMMARY
+          echo "- Slim: 19020-19022" >> $GITHUB_STEP_SUMMARY

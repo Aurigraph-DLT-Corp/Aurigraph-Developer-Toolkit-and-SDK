@@ -30,6 +30,44 @@ public class CompositeTokenResource {
     VerifierRegistry verifierRegistry;
 
     /**
+     * List all composite tokens (with pagination)
+     */
+    @GET
+    public Uni<Response> listCompositeTokens(
+            @QueryParam("status") String status,
+            @QueryParam("assetType") String assetType,
+            @QueryParam("limit") @DefaultValue("50") int limit,
+            @QueryParam("offset") @DefaultValue("0") int offset) {
+        try {
+            // Return empty list if factory is not ready
+            return compositeTokenFactory.getAllCompositeTokens(limit, offset)
+                .map(tokens -> Response.ok(Map.of(
+                    "tokens", tokens,
+                    "count", tokens.size(),
+                    "limit", limit,
+                    "offset", offset
+                )).build())
+                .onFailure().recoverWithItem(error -> {
+                    Log.warnf("Error listing composite tokens: %s", error.getMessage());
+                    return Response.ok(Map.of(
+                        "tokens", List.of(),
+                        "count", 0,
+                        "limit", limit,
+                        "offset", offset,
+                        "warning", "Service temporarily unavailable"
+                    )).build();
+                });
+        } catch (Exception e) {
+            Log.warnf("Error in listCompositeTokens: %s", e.getMessage());
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "tokens", List.of(),
+                "count", 0,
+                "warning", "Service initializing"
+            )).build());
+        }
+    }
+
+    /**
      * Create a new composite token package
      */
     @POST

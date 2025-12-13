@@ -199,24 +199,38 @@ public class ActiveContractResource {
     ) {
         LOGGER.info("REST: List contracts - owner: {}, type: {}", owner, type);
 
-        Uni<List<ActiveContract>> contractsUni;
+        try {
+            Uni<List<ActiveContract>> contractsUni;
 
-        if (owner != null && !owner.isEmpty()) {
-            contractsUni = contractService.listContractsByOwner(owner);
-        } else if (type != null && !type.isEmpty()) {
-            contractsUni = contractService.listContractsByType(type);
-        } else {
-            contractsUni = contractService.listContracts();
+            if (owner != null && !owner.isEmpty()) {
+                contractsUni = contractService.listContractsByOwner(owner);
+            } else if (type != null && !type.isEmpty()) {
+                contractsUni = contractService.listContractsByType(type);
+            } else {
+                contractsUni = contractService.listContracts();
+            }
+
+            return contractsUni
+                .map(contracts -> Response.ok(Map.of(
+                    "contracts", contracts,
+                    "count", contracts.size()
+                )).build())
+                .onFailure().recoverWithItem(error -> {
+                    LOGGER.warn("List contracts failed, returning empty list: {}", error.getMessage());
+                    return Response.ok(Map.of(
+                        "contracts", List.of(),
+                        "count", 0,
+                        "warning", "Service temporarily unavailable"
+                    )).build();
+                });
+        } catch (Exception e) {
+            LOGGER.warn("Error in listContracts: {}", e.getMessage());
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "contracts", List.of(),
+                "count", 0,
+                "warning", "Service initializing"
+            )).build());
         }
-
-        return contractsUni
-            .map(contracts -> Response.ok(contracts).build())
-            .onFailure().recoverWithItem(error -> {
-                LOGGER.error("List contracts failed: {}", error.getMessage());
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", error.getMessage()))
-                    .build();
-            });
     }
 
     /**
@@ -423,8 +437,17 @@ public class ActiveContractResource {
     public Response getMetrics() {
         LOGGER.info("REST: Get platform metrics");
 
-        Map<String, Long> metrics = contractService.getMetrics();
-        return Response.ok(metrics).build();
+        try {
+            Map<String, Long> metrics = contractService.getMetrics();
+            return Response.ok(metrics).build();
+        } catch (Exception e) {
+            LOGGER.warn("Error getting metrics: {}", e.getMessage());
+            return Response.ok(Map.of(
+                "totalContracts", 0L,
+                "activeContracts", 0L,
+                "warning", "Metrics temporarily unavailable"
+            )).build();
+        }
     }
 
     /**

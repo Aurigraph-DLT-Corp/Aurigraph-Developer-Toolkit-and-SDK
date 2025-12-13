@@ -396,6 +396,39 @@ public class CompositeTokenFactory {
     }
 
     /**
+     * Get all composite tokens with pagination
+     */
+    public Uni<List<CompositeToken>> getAllCompositeTokens(int limit, int offset) {
+        try {
+            if (persistenceEnabled) {
+                // Use findRecent with a large limit to get all, then apply pagination
+                return compositeTokenRepository.findRecent(limit + offset)
+                    .map(tokens -> tokens.stream()
+                        .skip(offset)
+                        .limit(limit)
+                        .toList())
+                    .onFailure().recoverWithItem(error -> {
+                        Log.warnf("Error loading from LevelDB, using cache: %s", error.getMessage());
+                        return new ArrayList<>(compositeTokensCache.values()).stream()
+                            .skip(offset)
+                            .limit(limit)
+                            .toList();
+                    });
+            }
+
+            return Uni.createFrom().item(() ->
+                new ArrayList<>(compositeTokensCache.values()).stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .toList()
+            );
+        } catch (Exception e) {
+            Log.warnf("Error in getAllCompositeTokens: %s", e.getMessage());
+            return Uni.createFrom().item(List.of());
+        }
+    }
+
+    /**
      * Get composite tokens by owner
      */
     public Uni<List<CompositeToken>> getCompositeTokensByOwner(String ownerAddress) {

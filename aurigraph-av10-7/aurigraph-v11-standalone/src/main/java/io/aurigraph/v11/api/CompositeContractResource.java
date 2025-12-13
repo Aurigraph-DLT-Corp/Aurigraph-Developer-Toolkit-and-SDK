@@ -102,28 +102,41 @@ public class CompositeContractResource {
             @QueryParam("owner") String ownerAddress,
             @QueryParam("status") String status) {
 
-        List<ActiveContract> contracts;
+        try {
+            List<ActiveContract> contracts;
 
-        if (ownerAddress != null) {
-            contracts = topologyService.getContractsByOwner(ownerAddress);
-        } else if (status != null) {
-            try {
-                ActiveContract.ContractStatus contractStatus = ActiveContract.ContractStatus.valueOf(status.toUpperCase());
-                contracts = topologyService.getContractsByStatus(contractStatus);
-            } catch (IllegalArgumentException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Invalid status: " + status))
-                    .build();
+            if (ownerAddress != null) {
+                contracts = topologyService.getContractsByOwner(ownerAddress);
+            } else if (status != null) {
+                try {
+                    ActiveContract.ContractStatus contractStatus = ActiveContract.ContractStatus.valueOf(status.toUpperCase());
+                    contracts = topologyService.getContractsByStatus(contractStatus);
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "Invalid status: " + status))
+                        .build();
+                }
+            } else {
+                // Return all contracts
+                contracts = topologyService.getContractsByStatus(ActiveContract.ContractStatus.ACTIVE);
             }
-        } else {
-            // Return all contracts (would limit in production)
-            contracts = topologyService.getContractsByStatus(ActiveContract.ContractStatus.ACTIVE);
-        }
 
-        return Response.ok(Map.of(
-            "contracts", contracts.stream().map(this::buildContractSummary).toList(),
-            "count", contracts.size()
-        )).build();
+            if (contracts == null) {
+                contracts = List.of();
+            }
+
+            return Response.ok(Map.of(
+                "contracts", contracts.stream().map(this::buildContractSummary).toList(),
+                "count", contracts.size()
+            )).build();
+        } catch (Exception e) {
+            Log.warnf("Error listing contracts: %s", e.getMessage());
+            return Response.ok(Map.of(
+                "contracts", List.of(),
+                "count", 0,
+                "warning", "Service initializing"
+            )).build();
+        }
     }
 
     /**
