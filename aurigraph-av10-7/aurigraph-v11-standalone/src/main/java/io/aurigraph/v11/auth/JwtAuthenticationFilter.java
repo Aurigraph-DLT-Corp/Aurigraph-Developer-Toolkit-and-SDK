@@ -146,8 +146,11 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
 
         // Demo endpoints for Enterprise Portal (all demo/* endpoints are public)
         // This allows the portal to access demo features without authentication
+        // Support both v11 and v12 API versions
         if (path.startsWith("/api/v12/demo/") || path.startsWith("/api/v12/demos/") ||
-            path.equals("/api/v12/demo") || path.equals("/api/v12/demos")) {
+            path.equals("/api/v12/demo") || path.equals("/api/v12/demos") ||
+            path.startsWith("/api/v11/demo/") || path.startsWith("/api/v11/demos/") ||
+            path.equals("/api/v11/demo") || path.equals("/api/v11/demos")) {
             LOG.debugf("Demo endpoint detected - allowing public access: %s", path);
             return true;
         }
@@ -177,8 +180,9 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
-        // Channel management endpoints
-        if (path.startsWith("/api/v12/channels/") || path.equals("/api/v12/channels")) {
+        // Channel management endpoints (support both v11 and v12)
+        if (path.startsWith("/api/v12/channels/") || path.equals("/api/v12/channels") ||
+            path.startsWith("/api/v11/channels/") || path.equals("/api/v11/channels")) {
             LOG.debugf("Channel endpoint detected - allowing public access: %s", path);
             return true;
         }
