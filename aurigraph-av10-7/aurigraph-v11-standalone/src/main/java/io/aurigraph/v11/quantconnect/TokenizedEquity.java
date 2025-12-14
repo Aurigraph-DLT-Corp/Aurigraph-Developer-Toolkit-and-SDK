@@ -22,7 +22,7 @@ public class TokenizedEquity {
     private double change24h;
     private Instant tokenizedAt;
     private String source;
-    private String slimNodeId;
+    private String eiNodeId;
     private String merkleRoot;
     private String merkleProof;
     private String blockHash;
@@ -105,12 +105,12 @@ public class TokenizedEquity {
         this.source = source;
     }
 
-    public String getSlimNodeId() {
-        return slimNodeId;
+    public String getEINodeId() {
+        return eiNodeId;
     }
 
-    public void setSlimNodeId(String slimNodeId) {
-        this.slimNodeId = slimNodeId;
+    public void setEINodeId(String eiNodeId) {
+        this.eiNodeId = eiNodeId;
     }
 
     public String getMerkleRoot() {

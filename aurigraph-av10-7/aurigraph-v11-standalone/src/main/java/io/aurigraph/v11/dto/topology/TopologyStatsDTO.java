@@ -11,7 +11,7 @@ public record TopologyStatsDTO(
     @JsonProperty("totalNodes") int totalNodes,
     @JsonProperty("validatorCount") int validatorCount,
     @JsonProperty("businessCount") int businessCount,
-    @JsonProperty("slimCount") int slimCount,
+    @JsonProperty("eiCount") int eiCount,  // External Integration node count (renamed from slimCount)
     @JsonProperty("channelCount") int channelCount,
     @JsonProperty("totalTps") double totalTps,
     @JsonProperty("avgLatencyMs") double avgLatencyMs,
@@ -33,7 +33,7 @@ public record TopologyStatsDTO(
         private int totalNodes;
         private int validatorCount;
         private int businessCount;
-        private int slimCount;
+        private int eiCount;
         private int channelCount;
         private double totalTps;
         private double avgLatencyMs;
@@ -50,7 +50,7 @@ public record TopologyStatsDTO(
         public Builder totalNodes(int totalNodes) { this.totalNodes = totalNodes; return this; }
         public Builder validatorCount(int validatorCount) { this.validatorCount = validatorCount; return this; }
         public Builder businessCount(int businessCount) { this.businessCount = businessCount; return this; }
-        public Builder slimCount(int slimCount) { this.slimCount = slimCount; return this; }
+        public Builder eiCount(int eiCount) { this.eiCount = eiCount; return this; }
         public Builder channelCount(int channelCount) { this.channelCount = channelCount; return this; }
         public Builder totalTps(double totalTps) { this.totalTps = totalTps; return this; }
         public Builder avgLatencyMs(double avgLatencyMs) { this.avgLatencyMs = avgLatencyMs; return this; }
@@ -66,7 +66,7 @@ public record TopologyStatsDTO(
 
         public TopologyStatsDTO build() {
             return new TopologyStatsDTO(
-                totalNodes, validatorCount, businessCount, slimCount, channelCount,
+                totalNodes, validatorCount, businessCount, eiCount, channelCount,
                 totalTps, avgLatencyMs, totalContracts, nodesByRegion, nodesByType,
                 avgCpuPercent, avgMemoryPercent, healthyNodes, degradedNodes,
                 unhealthyNodes, timestamp

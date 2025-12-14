@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  *
  * Merkle tree-based registry for tokenized equity data and transactions.
  * Provides cryptographic verification and audit trail for all tokenized assets.
- * Routes through Slim Node for lightweight processing.
+ * Routes through External Integration (EI) Node for lightweight processing.
  *
  * Features:
  * - SHA-256 based Merkle tree construction
@@ -105,7 +105,7 @@ public class EquityTokenizationRegistry {
                 );
                 result.setBlockNumber(equity.getBlockNumber());
                 result.setMerkleProof(equity.getMerkleProof());
-                result.setSlimNodeId(equity.getSlimNodeId());
+                result.setEINodeId(equity.getEINodeId());
                 result.setProcessingTimeMs(processingTime);
 
                 return result;
@@ -174,7 +174,7 @@ public class EquityTokenizationRegistry {
                 );
                 result.setBlockNumber(transaction.getBlockNumber());
                 result.setMerkleProof(transaction.getMerkleProof());
-                result.setSlimNodeId(transaction.getSlimNodeId());
+                result.setEINodeId(transaction.getEINodeId());
                 result.setProcessingTimeMs(processingTime);
 
                 return result;
@@ -358,7 +358,7 @@ public class EquityTokenizationRegistry {
             equity.getMarketCap(),
             equity.getChange24h(),
             equity.getTokenizedAt().toString(),
-            equity.getSlimNodeId()
+            equity.getEINodeId()
         );
     }
 
@@ -373,7 +373,7 @@ public class EquityTokenizationRegistry {
             transaction.getTotalValue(),
             transaction.getTimestamp().toString(),
             transaction.getTokenizedAt().toString(),
-            transaction.getSlimNodeId()
+            transaction.getEINodeId()
         );
     }
 

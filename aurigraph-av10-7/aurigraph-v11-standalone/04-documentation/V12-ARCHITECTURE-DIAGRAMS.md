@@ -707,7 +707,7 @@ graph TB
         BUS2[Business Node 6-10]
         BUS3[Business Node 11-20]
         VAL[Validator Nodes 1-3]
-        SLIM[Slim Nodes 1-5]
+        SLIM[External Integration (EI) Nodes 1-5]
     end
 
     subgraph "Data Tier"
@@ -758,7 +758,7 @@ dlt.aurigraph.io Container Status:
 │   └── Port mapping: 19011-19030
 ├── aurigraph-validator-[1-3]     # Consensus validators
 │   └── Port mapping: 19001-19003
-├── aurigraph-slim-[1-5]          # Lightweight nodes
+├── aurigraph-ei-[1-5]          # Lightweight nodes
 │   └── Port mapping: 19041-19045
 ├── minio                         # Object storage
 │   └── Ports: 9000 (API), 9090 (Console)

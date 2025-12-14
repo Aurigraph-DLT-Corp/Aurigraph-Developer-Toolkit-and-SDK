@@ -40,14 +40,14 @@ service ExchangeService {
 }
 
 // Slim Node Exchange Service - For slim node integration
-service SlimNodeExchangeService {
+service EINodeExchangeService {
   // Slim node management
-  rpc GetSlimNodes(SlimNodesRequest) returns (SlimNodesResponse);
+  rpc GetEINodes(EINodesRequest) returns (EINodesResponse);
   rpc AssignExchangeToNode(AssignmentRequest) returns (AssignmentResponse);
   rpc AutoDistribute(AutoDistributeRequest) returns (AutoDistributeResponse);
 
   // Streaming to slim nodes
-  rpc StreamToSlimNode(SlimNodeStreamRequest) returns (stream TokenizedData);
+  rpc StreamToEINode(EINodeStreamRequest) returns (stream TokenizedData);
   rpc GetIntegrationMetrics(IntegrationMetricsRequest) returns (IntegrationMetricsResponse);
 }
 
@@ -282,7 +282,7 @@ message ExchangeMetrics {
 // Slim Node Messages
 // =============================================================================
 
-enum SlimNodeStatus {
+enum EINodeStatus {
   NODE_STATUS_UNSPECIFIED = 0;
   IDLE = 1;
   ACTIVE = 2;
@@ -290,23 +290,23 @@ enum SlimNodeStatus {
   ERROR = 4;
 }
 
-message SlimNodeConfig {
+message EINodeConfig {
   string node_id = 1;
   string name = 2;
-  SlimNodeStatus status = 3;
+  EINodeStatus status = 3;
   repeated string assigned_pairs = 4;  // "exchange/pair" format
   int64 last_updated = 5;
 }
 
-message SlimNodesRequest {}
+message EINodesRequest {}
 
-message SlimNodesResponse {
-  repeated SlimNodeConfig nodes = 1;
+message EINodesResponse {
+  repeated EINodeConfig nodes = 1;
   int32 total_nodes = 2;
 }
 
 message AssignmentRequest {
-  string slim_node_id = 1;
+  string ei_node_id = 1;
   Exchange exchange = 2;
   repeated TradingPair pairs = 3;
 }
@@ -314,7 +314,7 @@ message AssignmentRequest {
 message AssignmentResponse {
   bool success = 1;
   string message = 2;
-  SlimNodeConfig updated_node = 3;
+  EINodeConfig updated_node = 3;
 }
 
 message AutoDistributeRequest {
@@ -331,8 +331,8 @@ message StringList {
   repeated string values = 1;
 }
 
-message SlimNodeStreamRequest {
-  string slim_node_id = 1;
+message EINodeStreamRequest {
+  string ei_node_id = 1;
   bool include_tickers = 2;
   bool include_trades = 3;
 }
@@ -340,7 +340,7 @@ message SlimNodeStreamRequest {
 message TokenizedData {
   string token_id = 1;
   string token_type = 2;  // "EXCHANGE_TICKER" or "EXCHANGE_TRADE"
-  string slim_node_id = 3;
+  string ei_node_id = 3;
   Exchange exchange = 4;
   TradingPair pair = 5;
   bytes data = 6;  // Serialized ticker or trade data
@@ -355,12 +355,12 @@ message IntegrationMetricsResponse {
   int64 total_trades_processed = 2;
   int64 total_tokenizations_completed = 3;
   int64 total_batches_processed = 4;
-  int32 total_slim_nodes = 5;
+  int32 total_ei_nodes = 5;
   int32 active_subscriptions = 6;
-  map<string, SlimNodeMetrics> node_metrics = 7;
+  map<string, EINodeMetrics> node_metrics = 7;
 }
 
-message SlimNodeMetrics {
+message EINodeMetrics {
   string node_id = 1;
   string status = 2;
   int32 assigned_pairs = 3;

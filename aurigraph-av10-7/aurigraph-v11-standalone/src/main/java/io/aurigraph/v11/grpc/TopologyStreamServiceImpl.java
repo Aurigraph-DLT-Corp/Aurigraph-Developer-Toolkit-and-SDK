@@ -190,7 +190,7 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
                 .setTotalNodes(stats.totalNodes())
                 .setValidatorCount(stats.validatorCount())
                 .setBusinessCount(stats.businessCount())
-                .setSlimCount(stats.slimCount())
+                .setEiCount(stats.eiCount())
                 .setChannelCount(stats.channelCount())
                 .setTotalTps(stats.totalTps())
                 .setAvgLatencyMs(stats.avgLatencyMs())
@@ -233,7 +233,7 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
         return switch (protoType) {
             case TOPOLOGY_VALIDATOR -> NodeType.VALIDATOR;
             case TOPOLOGY_BUSINESS -> NodeType.BUSINESS;
-            case TOPOLOGY_SLIM -> NodeType.SLIM;
+            case TOPOLOGY_EXTERNAL_INTEGRATION -> NodeType.EXTERNAL_INTEGRATION;
             case TOPOLOGY_CHANNEL -> NodeType.CHANNEL;
             default -> null;
         };
@@ -243,7 +243,7 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
         return switch (nodeType) {
             case VALIDATOR -> TopologyNodeType.TOPOLOGY_VALIDATOR;
             case BUSINESS -> TopologyNodeType.TOPOLOGY_BUSINESS;
-            case SLIM -> TopologyNodeType.TOPOLOGY_SLIM;
+            case EXTERNAL_INTEGRATION -> TopologyNodeType.TOPOLOGY_EXTERNAL_INTEGRATION;
             case CHANNEL -> TopologyNodeType.TOPOLOGY_CHANNEL;
         };
     }

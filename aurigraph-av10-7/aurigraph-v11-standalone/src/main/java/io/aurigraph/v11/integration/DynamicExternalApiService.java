@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * - Add/remove APIs via REST (from settings page)
  * - Persistent storage in database
  * - HTTP/2 polling for all custom APIs
- * - Unified streaming to slim nodes
+ * - Unified streaming to EI nodes
  *
  * @version 1.0.0 (Dec 8, 2025)
  */

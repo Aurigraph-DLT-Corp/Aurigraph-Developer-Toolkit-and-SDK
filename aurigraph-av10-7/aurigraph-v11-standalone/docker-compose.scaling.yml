@@ -95,22 +95,22 @@ services:
       - "com.aurigraph.scalable=true"
 
   # ================================
-  # Slim Node (Highly Scalable)
+  # EI Node (Highly Scalable)
   # ================================
-  slim-node:
-    image: aurigraph/v11-slim:latest
+  ei-node:
+    image: aurigraph/v11-ei:latest
     restart: unless-stopped
     profiles: ["scaling"]
 
     environment:
-      - NODE_TYPE=SLIM
+      - NODE_TYPE=EI
       - CONSENSUS_ROLE=NONE
       - READ_ONLY=true
       - PUBLIC_API=ENABLED
-      - NODE_ID=slim-node-${REPLICA_ID:-1}
+      - NODE_ID=ei-node-${REPLICA_ID:-1}
 
     deploy:
-      replicas: ${SLIM_NODE_REPLICAS:-5}
+      replicas: ${EI_NODE_REPLICAS:-5}
       resources:
         limits:
           cpus: '4.0'
@@ -127,7 +127,7 @@ services:
       - "9023-9053:9023"  # Dynamic port mapping
 
     volumes:
-      - ./data/slim:/data:ro
+      - ./data/ei:/data:ro
 
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9023/q/health || exit 1"]
@@ -142,7 +142,7 @@ services:
 
     labels:
       - "com.aurigraph.service=scaling"
-      - "com.aurigraph.component=slim-node"
+      - "com.aurigraph.component=ei-node"
       - "com.aurigraph.scalable=true"
 
   # ================================

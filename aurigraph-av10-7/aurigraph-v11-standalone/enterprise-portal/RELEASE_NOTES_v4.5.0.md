@@ -110,7 +110,7 @@ Displays all demos with the following information:
 - **Color-coded Node Types**:
   - 🔵 Validators (Blue) - Consensus nodes
   - 🟢 Business Nodes (Green) - Transaction processing
-  - 🟠 Slim Nodes (Orange) - Lightweight clients
+  - 🟠 External Integration (EI) Nodes (Orange) - Lightweight clients
 
 - **Channel Grouping**: Nodes organized by their assigned channels
 - **Interactive Tooltips**: Hover over nodes for detailed information
@@ -331,7 +331,7 @@ The system automatically creates 2 sample demos for testing:
 - **Channels**: 1 Public channel
 - **Validators**: 3
 - **Business Nodes**: 2
-- **Slim Nodes**: 1
+- **External Integration (EI) Nodes**: 1
 - **Status**: RUNNING
 - **Transactions**: 1,234 (simulated)
 
@@ -340,7 +340,7 @@ The system automatically creates 2 sample demos for testing:
 - **Channels**: 2 (Enterprise: CONSORTIUM, Finance: PRIVATE)
 - **Validators**: 2
 - **Business Nodes**: 3
-- **Slim Nodes**: 2
+- **External Integration (EI) Nodes**: 2
 - **Status**: STOPPED
 
 ---

@@ -14,7 +14,7 @@ import {
   Security as SecurityIcon, Storage as StorageIcon
 } from '@mui/icons-material';
 
-// Available Data Feeds for Slim Nodes
+// Available Data Feeds for External Integration (EI) Nodes
 export const DATA_FEEDS = [
   { id: 'quantconnect', name: 'QuantConnect', icon: 'chart', description: 'Algorithmic trading data & equities', category: 'financial' },
   { id: 'chainlink', name: 'Chainlink', icon: 'security', description: 'Decentralized oracle price feeds', category: 'oracle' },
@@ -47,7 +47,7 @@ interface DataFeedConfig {
   refreshInterval: number; // seconds
 }
 
-interface SlimNodeExtended {
+interface EINodeExtended {
   id: string;
   name: string;
   type: 'SLIM';
@@ -73,7 +73,7 @@ interface DemoRegistration {
   channels: Channel[];
   validators: Node[];
   businessNodes: Node[];
-  slimNodes: Node[];
+  eiNodes: Node[];
   // New fields for data feeds and tokenization
   tokenizationMode: 'live-feed' | 'trades' | 'hybrid';
   selectedDataFeeds: string[];
@@ -114,7 +114,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
     channels: [],
     validators: [],
     businessNodes: [],
-    slimNodes: [],
+    eiNodes: [],
     // New fields
     tokenizationMode: 'live-feed',
     selectedDataFeeds: ['quantconnect', 'chainlink'], // Default selections
@@ -243,7 +243,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
       channels: formData.channels.filter((c) => c.id !== id),
       validators: formData.validators.filter((n) => n.channelId !== id),
       businessNodes: formData.businessNodes.filter((n) => n.channelId !== id),
-      slimNodes: formData.slimNodes.filter((n) => n.channelId !== id),
+      eiNodes: formData.eiNodes.filter((n) => n.channelId !== id),
     });
   };
 
@@ -263,7 +263,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
       } else if (nodeForm.type === 'BUSINESS') {
         updatedFormData.businessNodes = [...formData.businessNodes, newNode];
       } else {
-        updatedFormData.slimNodes = [...formData.slimNodes, newNode];
+        updatedFormData.eiNodes = [...formData.eiNodes, newNode];
       }
       setFormData(updatedFormData);
       setNodeForm({ name: '', type: 'VALIDATOR', endpoint: '', channelId: '' });
@@ -293,7 +293,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
       } else if (bulkConfig.type === 'BUSINESS') {
         updatedFormData.businessNodes = [...updatedFormData.businessNodes, newNode];
       } else {
-        updatedFormData.slimNodes = [...updatedFormData.slimNodes, newNode];
+        updatedFormData.eiNodes = [...updatedFormData.eiNodes, newNode];
       }
     }
 
@@ -323,7 +323,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
     } else if (type === 'BUSINESS') {
       updatedFormData.businessNodes = formData.businessNodes.filter((n) => n.id !== id);
     } else {
-      updatedFormData.slimNodes = formData.slimNodes.filter((n) => n.id !== id);
+      updatedFormData.eiNodes = formData.eiNodes.filter((n) => n.id !== id);
     }
     setFormData(updatedFormData);
   };
@@ -339,7 +339,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
       channels: [],
       validators: [],
       businessNodes: [],
-      slimNodes: [],
+      eiNodes: [],
       tokenizationMode: 'live-feed',
       selectedDataFeeds: ['quantconnect', 'chainlink'],
       tokenizationConfig: {
@@ -620,8 +620,8 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
                 ))}
               </Grid>
               <Grid item xs={12} md={4}>
-                <Typography variant="subtitle1" gutterBottom>Slim Nodes ({formData.slimNodes.length})</Typography>
-                {formData.slimNodes.map((node) => (
+                <Typography variant="subtitle1" gutterBottom>External Integration (EI) Nodes ({formData.eiNodes.length})</Typography>
+                {formData.eiNodes.map((node) => (
                   <Paper key={node.id} sx={{ p: 1, mb: 1, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2">{node.name}</Typography>
                     <IconButton size="small" onClick={() => removeNode(node.id, 'SLIM')} color="error">
@@ -638,7 +638,7 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
         // Data Feeds Selection Step
         return (
           <Box>
-            <Typography variant="h6" gutterBottom>Configure Data Feeds for Slim Nodes</Typography>
+            <Typography variant="h6" gutterBottom>Configure Data Feeds for External Integration (EI) Nodes</Typography>
             <Alert severity="info" sx={{ mb: 2 }}>
               Select the data feeds that your Slim nodes will connect to. Each Slim node will receive data from the selected feeds for tokenization.
             </Alert>
@@ -879,11 +879,11 @@ export const DemoRegistrationForm: React.FC<Props> = ({ open, onClose, onSubmit 
                   <Typography variant="body2">Business: <strong>{formData.businessNodes.length}</strong></Typography>
                 </Grid>
                 <Grid item xs={4}>
-                  <Typography variant="body2">Slim: <strong>{formData.slimNodes.length}</strong></Typography>
+                  <Typography variant="body2">Slim: <strong>{formData.eiNodes.length}</strong></Typography>
                 </Grid>
               </Grid>
               <Divider sx={{ my: 1 }} />
-              <Typography><strong>Total Nodes: {formData.validators.length + formData.businessNodes.length + formData.slimNodes.length}</strong></Typography>
+              <Typography><strong>Total Nodes: {formData.validators.length + formData.businessNodes.length + formData.eiNodes.length}</strong></Typography>
             </Paper>
 
             {/* Data Feeds */}

@@ -6,7 +6,7 @@ import java.time.Instant;
  * Equity Data Model
  *
  * Represents real-time equity data from QuantConnect API.
- * Used for tokenization on Aurigraph DLT via Slim Node.
+ * Used for tokenization on Aurigraph DLT via External Integration (EI) Node.
  *
  * @author Aurigraph DLT Team
  * @version 12.0.0

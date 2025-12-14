@@ -15,25 +15,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Slim Node Data Feed Service
+ * External Integration (EI) Node Data Feed Service
  *
- * Routes QuantConnect market data through Aurigraph Slim Nodes for lightweight
- * processing and tokenization. Slim Nodes provide:
+ * Routes QuantConnect market data through Aurigraph External Integration (EI) Nodes for lightweight
+ * processing and tokenization. External Integration (EI) Nodes provide:
  * - Lightweight data processing
  * - Real-time market data streaming
  * - Efficient tokenization pipeline
  * - Merkle tree registration
  *
  * Architecture:
- * QuantConnect API --> Slim Node --> Tokenization Registry --> Merkle Tree
+ * QuantConnect API --> External Integration (EI) Node --> Tokenization Registry --> Merkle Tree
  *
  * @author Aurigraph DLT Team
  * @version 12.0.0
  */
 @ApplicationScoped
-public class SlimNodeDataFeed {
+public class EINodeDataFeed {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SlimNodeDataFeed.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EINodeDataFeed.class);
 
     @Inject
     QuantConnectService quantConnectService;
@@ -41,10 +41,10 @@ public class SlimNodeDataFeed {
     @Inject
     EquityTokenizationRegistry registry;
 
-    @ConfigProperty(name = "aurigraph.slim-node.id", defaultValue = "slim-node-1")
-    String slimNodeId;
+    @ConfigProperty(name = "aurigraph.ei-node.id", defaultValue = "ei-node-1")
+    String eiNodeId;
 
-    @ConfigProperty(name = "aurigraph.slim-node.poll-interval-seconds", defaultValue = "60")
+    @ConfigProperty(name = "aurigraph.ei-node.poll-interval-seconds", defaultValue = "60")
     int pollIntervalSeconds;
 
     // Slim node state
@@ -63,16 +63,16 @@ public class SlimNodeDataFeed {
     );
 
     /**
-     * Start the Slim Node data feed
+     * Start the External Integration (EI) Node data feed
      */
     public Uni<DataFeedStatus> start() {
         return Uni.createFrom().item(() -> {
             if (isRunning.get()) {
-                LOGGER.warn("Slim Node data feed already running");
+                LOGGER.warn("External Integration (EI) Node data feed already running");
                 return getStatus();
             }
 
-            LOGGER.info("Starting Slim Node data feed: {}", slimNodeId);
+            LOGGER.info("Starting External Integration (EI) Node data feed: {}", eiNodeId);
 
             isRunning.set(true);
             startTime = Instant.now();
@@ -96,23 +96,23 @@ public class SlimNodeDataFeed {
                 TimeUnit.SECONDS
             );
 
-            LOGGER.info("Slim Node data feed started successfully. Poll interval: {}s", pollIntervalSeconds);
+            LOGGER.info("External Integration (EI) Node data feed started successfully. Poll interval: {}s", pollIntervalSeconds);
 
             return getStatus();
         });
     }
 
     /**
-     * Stop the Slim Node data feed
+     * Stop the External Integration (EI) Node data feed
      */
     public Uni<DataFeedStatus> stop() {
         return Uni.createFrom().item(() -> {
             if (!isRunning.get()) {
-                LOGGER.warn("Slim Node data feed not running");
+                LOGGER.warn("External Integration (EI) Node data feed not running");
                 return getStatus();
             }
 
-            LOGGER.info("Stopping Slim Node data feed: {}", slimNodeId);
+            LOGGER.info("Stopping External Integration (EI) Node data feed: {}", eiNodeId);
 
             isRunning.set(false);
 
@@ -128,20 +128,20 @@ public class SlimNodeDataFeed {
                 }
             }
 
-            LOGGER.info("Slim Node data feed stopped");
+            LOGGER.info("External Integration (EI) Node data feed stopped");
 
             return getStatus();
         });
     }
 
     /**
-     * Get current status of the Slim Node data feed
+     * Get current status of the External Integration (EI) Node data feed
      */
     public DataFeedStatus getStatus() {
         Duration uptime = startTime != null ? Duration.between(startTime, Instant.now()) : Duration.ZERO;
 
         return new DataFeedStatus(
-            slimNodeId,
+            eiNodeId,
             isRunning.get(),
             messagesProcessed.get(),
             tokenizationsCompleted.get(),
@@ -163,7 +163,7 @@ public class SlimNodeDataFeed {
             long startTime = System.currentTimeMillis();
             List<String> targetSymbols = symbols != null && !symbols.isEmpty() ? symbols : DEFAULT_SYMBOLS;
 
-            LOGGER.info("Processing {} equities through Slim Node {}", targetSymbols.size(), slimNodeId);
+            LOGGER.info("Processing {} equities through External Integration (EI) Node {}", targetSymbols.size(), eiNodeId);
 
             int processed = 0;
             int tokenized = 0;
@@ -213,7 +213,7 @@ public class SlimNodeDataFeed {
             LOGGER.info("Processed {} equities, tokenized {} in {}ms", processed, tokenized, processingTime);
 
             return new BatchProcessingResult(
-                slimNodeId,
+                eiNodeId,
                 "equity",
                 processed,
                 tokenized,
@@ -233,7 +233,7 @@ public class SlimNodeDataFeed {
             String targetSymbol = symbol != null ? symbol : "AAPL";
             int targetLimit = limit > 0 ? limit : 50;
 
-            LOGGER.info("Processing transactions for {} through Slim Node {}", targetSymbol, slimNodeId);
+            LOGGER.info("Processing transactions for {} through External Integration (EI) Node {}", targetSymbol, eiNodeId);
 
             int processed = 0;
             int tokenized = 0;
@@ -282,7 +282,7 @@ public class SlimNodeDataFeed {
             LOGGER.info("Processed {} transactions, tokenized {} in {}ms", processed, tokenized, processingTime);
 
             return new BatchProcessingResult(
-                slimNodeId,
+                eiNodeId,
                 "transaction",
                 processed,
                 tokenized,
@@ -299,7 +299,7 @@ public class SlimNodeDataFeed {
         if (!isRunning.get()) return;
 
         try {
-            LOGGER.debug("Slim Node {} fetching equity data...", slimNodeId);
+            LOGGER.debug("External Integration (EI) Node {} fetching equity data...", eiNodeId);
 
             processEquities(DEFAULT_SYMBOLS).await().atMost(Duration.ofSeconds(60));
 
@@ -312,7 +312,7 @@ public class SlimNodeDataFeed {
         if (!isRunning.get()) return;
 
         try {
-            LOGGER.debug("Slim Node {} fetching transaction data...", slimNodeId);
+            LOGGER.debug("External Integration (EI) Node {} fetching transaction data...", eiNodeId);
 
             // Process transactions for a random symbol
             Random random = new Random();
@@ -328,7 +328,7 @@ public class SlimNodeDataFeed {
     // Inner classes
 
     public static class DataFeedStatus {
-        private final String slimNodeId;
+        private final String eiNodeId;
         private final boolean running;
         private final long messagesProcessed;
         private final long tokenizationsCompleted;
@@ -340,11 +340,11 @@ public class SlimNodeDataFeed {
         private final int trackedSymbols;
         private final Instant timestamp;
 
-        public DataFeedStatus(String slimNodeId, boolean running, long messagesProcessed,
+        public DataFeedStatus(String eiNodeId, boolean running, long messagesProcessed,
                              long tokenizationsCompleted, long totalEquities, long totalTransactions,
                              String merkleRoot, long uptimeSeconds, int pollIntervalSeconds,
                              int trackedSymbols, Instant timestamp) {
-            this.slimNodeId = slimNodeId;
+            this.eiNodeId = eiNodeId;
             this.running = running;
             this.messagesProcessed = messagesProcessed;
             this.tokenizationsCompleted = tokenizationsCompleted;
@@ -357,7 +357,7 @@ public class SlimNodeDataFeed {
             this.timestamp = timestamp;
         }
 
-        public String getSlimNodeId() { return slimNodeId; }
+        public String getEINodeId() { return eiNodeId; }
         public boolean isRunning() { return running; }
         public long getMessagesProcessed() { return messagesProcessed; }
         public long getTokenizationsCompleted() { return tokenizationsCompleted; }
@@ -371,7 +371,7 @@ public class SlimNodeDataFeed {
     }
 
     public static class BatchProcessingResult {
-        private final String slimNodeId;
+        private final String eiNodeId;
         private final String type;
         private final int processed;
         private final int tokenized;
@@ -379,9 +379,9 @@ public class SlimNodeDataFeed {
         private final List<ProcessingResult> results;
         private final String merkleRoot;
 
-        public BatchProcessingResult(String slimNodeId, String type, int processed, int tokenized,
+        public BatchProcessingResult(String eiNodeId, String type, int processed, int tokenized,
                                     long processingTimeMs, List<ProcessingResult> results, String merkleRoot) {
-            this.slimNodeId = slimNodeId;
+            this.eiNodeId = eiNodeId;
             this.type = type;
             this.processed = processed;
             this.tokenized = tokenized;
@@ -390,7 +390,7 @@ public class SlimNodeDataFeed {
             this.merkleRoot = merkleRoot;
         }
 
-        public String getSlimNodeId() { return slimNodeId; }
+        public String getEINodeId() { return eiNodeId; }
         public String getType() { return type; }
         public int getProcessed() { return processed; }
         public int getTokenized() { return tokenized; }

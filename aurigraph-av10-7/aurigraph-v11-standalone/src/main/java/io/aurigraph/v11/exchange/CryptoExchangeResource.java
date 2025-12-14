@@ -20,7 +20,7 @@ import java.util.Set;
  * Crypto Exchange REST API Resource
  *
  * Provides REST endpoints for accessing cryptocurrency exchange data
- * and managing exchange connections for Slim Node integration.
+ * and managing exchange connections for External Integration (EI) Node integration.
  *
  * Endpoints:
  * - GET /api/v12/exchanges - List supported exchanges

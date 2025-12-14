@@ -1523,13 +1523,13 @@ public class PortalAPIGateway {
 
     /**
      * GET /api/v12/quantconnect/slimnode/status
-     * Returns QuantConnect SlimNode status
+     * Returns QuantConnect EINode status
      */
     @GET
     @Path("/quantconnect/slimnode/status")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<PortalResponse<Map<String, Object>>> getQuantConnectSlimNodeStatus() {
-        LOG.info("QuantConnect SlimNode status requested");
+    public Uni<PortalResponse<Map<String, Object>>> getQuantConnectEINodeStatus() {
+        LOG.info("QuantConnect EINode status requested");
 
         Map<String, Object> status = new java.util.HashMap<>();
         status.put("nodeId", "slimnode-qc-001");
@@ -1541,7 +1541,7 @@ public class PortalAPIGateway {
         status.put("processedTransactions", 125678);
         status.put("pendingTransactions", 45);
 
-        return Uni.createFrom().item(PortalResponse.success(status, "SlimNode status retrieved"));
+        return Uni.createFrom().item(PortalResponse.success(status, "EINode status retrieved"));
     }
 
     // ============================================================

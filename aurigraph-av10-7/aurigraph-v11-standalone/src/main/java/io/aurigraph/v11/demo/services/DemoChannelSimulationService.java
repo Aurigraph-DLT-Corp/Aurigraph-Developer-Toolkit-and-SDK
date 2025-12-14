@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Standard configuration:
  * - Validator Nodes: 5
  * - Business Nodes: 10
- * - Slim Nodes: 5 (one for each external API data feed)
+ * - External Integration (EI) Nodes: 5 (one for each external API data feed)
  *
  * Features:
  * - Real-time Merkle tree registry updates
@@ -33,7 +33,7 @@ public class DemoChannelSimulationService {
     // Standard configuration
     private static final int STANDARD_VALIDATORS = 5;
     private static final int STANDARD_BUSINESS_NODES = 10;
-    private static final int STANDARD_SLIM_NODES = 5; // One per external API
+    private static final int STANDARD_EI_NODES = 5; // One per external API
 
     /**
      * Demo channel simulation with real-time metrics and Merkle tree
@@ -43,7 +43,7 @@ public class DemoChannelSimulationService {
         public String channelName;
         public int validatorNodes;
         public int businessNodes;
-        public int slimNodes;
+        public int eiNodes;
         public Instant startTime;
         public Instant endTime;
         public boolean running;
@@ -67,7 +67,7 @@ public class DemoChannelSimulationService {
             this.channelName = channelName;
             this.validatorNodes = STANDARD_VALIDATORS;
             this.businessNodes = STANDARD_BUSINESS_NODES;
-            this.slimNodes = STANDARD_SLIM_NODES;
+            this.eiNodes = STANDARD_EI_NODES;
             this.startTime = Instant.now();
             this.running = true;
             this.totalTransactions = 0;
@@ -100,7 +100,7 @@ public class DemoChannelSimulationService {
             DemoChannelSimulation simulation = new DemoChannelSimulation(channelId, channelName);
 
             LOG.infof("Starting demo channel: %s with config (Validators: %d, Business: %d, Slim: %d)",
-                channelName, STANDARD_VALIDATORS, STANDARD_BUSINESS_NODES, STANDARD_SLIM_NODES);
+                channelName, STANDARD_VALIDATORS, STANDARD_BUSINESS_NODES, STANDARD_EI_NODES);
 
             activeSimulations.put(channelId, simulation);
 

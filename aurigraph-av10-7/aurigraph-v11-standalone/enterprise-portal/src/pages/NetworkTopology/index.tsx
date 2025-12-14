@@ -85,7 +85,7 @@ export const NetworkTopology: React.FC = () => {
         return '#1976d2';
       case 'business':
         return '#388e3c';
-      case 'slim':
+      case 'ei':
         return '#f57c00';
       default:
         return '#757575';

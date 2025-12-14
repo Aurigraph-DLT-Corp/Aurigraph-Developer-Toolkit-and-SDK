@@ -22,7 +22,7 @@ public class TokenizationResult {
     private Instant timestamp;
     private String message;
     private String errorCode;
-    private String slimNodeId;
+    private String eiNodeId;
     private long processingTimeMs;
 
     public TokenizationResult() {
@@ -130,12 +130,12 @@ public class TokenizationResult {
         this.errorCode = errorCode;
     }
 
-    public String getSlimNodeId() {
-        return slimNodeId;
+    public String getEINodeId() {
+        return eiNodeId;
     }
 
-    public void setSlimNodeId(String slimNodeId) {
-        this.slimNodeId = slimNodeId;
+    public void setEINodeId(String eiNodeId) {
+        this.eiNodeId = eiNodeId;
     }
 
     public long getProcessingTimeMs() {

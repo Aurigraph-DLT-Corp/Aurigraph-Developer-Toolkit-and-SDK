@@ -319,7 +319,7 @@ To provide the world's most advanced blockchain management portal with real-time
   - Color-coded by type:
     - Validators: Blue
     - Business Nodes: Green
-    - Slim Nodes: Orange
+    - External Integration (EI) Nodes: Orange
   - Grouped by channels
   - Interactive tooltips with node details
   - Connection lines showing relationships

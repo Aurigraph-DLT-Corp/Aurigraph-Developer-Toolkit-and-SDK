@@ -185,7 +185,7 @@ public class StatsApiResource {
         nodesByType.put("channel", 8);
         nodesByType.put("validator", 10);
         nodesByType.put("business", 5);
-        nodesByType.put("slim", 2);
+        nodesByType.put("ei", 2);
         networkStats.put("nodesByType", nodesByType);
 
         networkStats.put("totalConnections", 100);

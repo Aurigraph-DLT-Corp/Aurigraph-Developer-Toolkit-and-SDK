@@ -245,7 +245,7 @@ public class BusinessNode {
 
 ---
 
-### 2.4 API Integration Nodes (Slim Nodes)
+### 2.4 API Integration Nodes (External Integration (EI) Nodes)
 
 **Purpose**: Integrate with external APIs and data sources for real-world asset tokenization
 
@@ -327,7 +327,7 @@ public class SlimNode implements APIIntegrationNode {
 **Data Tokenization Pipeline**:
 
 ```
-External API → Slim Node → Validation → Transformation → Tokenization Channel
+External API → External Integration (EI) Node → Validation → Transformation → Tokenization Channel
                     ↓
               Data Cache
               (TTL: 5min)

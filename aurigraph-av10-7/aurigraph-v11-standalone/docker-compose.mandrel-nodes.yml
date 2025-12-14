@@ -202,18 +202,18 @@ services:
       - "aurigraph.node.id=mandrel-validator-3"
 
   #############################################
-  # MANDREL SLIM NODES (Light Clients)
+  # MANDREL EI NODES (Light Clients)
   #############################################
-  mandrel-slim-1:
+  mandrel-ei-1:
     <<: *mandrel-common
-    container_name: mandrel-slim-1
-    hostname: mandrel-slim-1
+    container_name: mandrel-ei-1
+    hostname: mandrel-ei-1
     ports:
       - "19521:9003"
       - "19621:9004"
     environment:
-      - NODE_TYPE=SLIM
-      - NODE_ID=mandrel-slim-1
+      - NODE_TYPE=EI
+      - NODE_ID=mandrel-ei-1
       - NODE_ROLE=light-client
       - QUARKUS_HTTP_HOST=0.0.0.0
       - QUARKUS_HTTP_PORT=9003
@@ -234,19 +234,19 @@ services:
           cpus: '0.05'
           memory: 64M
     labels:
-      - "aurigraph.node.type=slim"
-      - "aurigraph.node.id=mandrel-slim-1"
+      - "aurigraph.node.type=ei"
+      - "aurigraph.node.id=mandrel-ei-1"
 
-  mandrel-slim-2:
+  mandrel-ei-2:
     <<: *mandrel-common
-    container_name: mandrel-slim-2
-    hostname: mandrel-slim-2
+    container_name: mandrel-ei-2
+    hostname: mandrel-ei-2
     ports:
       - "19522:9003"
       - "19622:9004"
     environment:
-      - NODE_TYPE=SLIM
-      - NODE_ID=mandrel-slim-2
+      - NODE_TYPE=EI
+      - NODE_ID=mandrel-ei-2
       - NODE_ROLE=light-client
       - QUARKUS_HTTP_HOST=0.0.0.0
       - QUARKUS_HTTP_PORT=9003
@@ -267,8 +267,8 @@ services:
           cpus: '0.05'
           memory: 64M
     labels:
-      - "aurigraph.node.type=slim"
-      - "aurigraph.node.id=mandrel-slim-2"
+      - "aurigraph.node.type=ei"
+      - "aurigraph.node.id=mandrel-ei-2"
 
 networks:
   mandrel-test-network:

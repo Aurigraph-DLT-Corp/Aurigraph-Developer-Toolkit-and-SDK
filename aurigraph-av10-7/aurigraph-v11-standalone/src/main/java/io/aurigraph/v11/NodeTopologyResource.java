@@ -256,7 +256,7 @@ public class NodeTopologyResource {
         return switch (typeStr.toUpperCase()) {
             case "V", "VALIDATOR" -> NodeType.VALIDATOR;
             case "B", "BUSINESS" -> NodeType.BUSINESS;
-            case "S", "SLIM" -> NodeType.SLIM;
+            case "EI", "EXTERNAL_INTEGRATION", "S", "SLIM" -> NodeType.EXTERNAL_INTEGRATION;  // EI is preferred, S/SLIM for backward compatibility
             case "C", "CHANNEL" -> NodeType.CHANNEL;
             default -> throw new IllegalArgumentException("Unknown node type: " + typeStr);
         };

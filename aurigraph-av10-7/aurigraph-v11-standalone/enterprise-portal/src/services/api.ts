@@ -279,7 +279,7 @@ const FALLBACKS = {
   // QuantConnect
   quantConnectStats: { totalEquities: 0, totalTransactions: 0, merkleRoot: '', treeHeight: 0, lastUpdate: new Date().toISOString(), registeredSymbols: 0 },
   quantConnectNavigation: { totalEntries: 0, merkleRoot: '', treeHeight: 0, categories: {}, recentTokenizations: [] },
-  quantConnectSlimNode: { slimNodeId: 'slim-node-1', running: false, messagesProcessed: 0, tokenizationsCompleted: 0, totalEquities: 0, totalTransactions: 0, merkleRoot: '', uptimeSeconds: 0, pollIntervalSeconds: 60, trackedSymbols: 0, timestamp: new Date().toISOString() },
+  quantConnectEINode: { eiNodeId: 'ei-node-1', running: false, messagesProcessed: 0, tokenizationsCompleted: 0, totalEquities: 0, totalTransactions: 0, merkleRoot: '', uptimeSeconds: 0, pollIntervalSeconds: 60, trackedSymbols: 0, timestamp: new Date().toISOString() },
   quantConnectEquities: { equities: [] },
   quantConnectTransactions: { transactions: [] },
 }
@@ -826,8 +826,8 @@ export const apiService = {
     return safeCall(() => apiClient.get('/quantconnect/registry/navigation'), FALLBACKS.quantConnectNavigation, 'getQuantConnectNavigation')
   },
 
-  async getQuantConnectSlimNodeStatus() {
-    return safeCall(() => apiClient.get('/quantconnect/slimnode/status'), FALLBACKS.quantConnectSlimNode, 'getQuantConnectSlimNodeStatus')
+  async getQuantConnectEINodeStatus() {
+    return safeCall(() => apiClient.get('/quantconnect/slimnode/status'), FALLBACKS.quantConnectEINode, 'getQuantConnectEINodeStatus')
   },
 
   async getQuantConnectEquities() {
@@ -850,12 +850,12 @@ export const apiService = {
     return safeCall(() => apiClient.get(`/quantconnect/registry/token/${tokenId}`), { tokenId, data: null }, 'getQuantConnectToken')
   },
 
-  async startQuantConnectSlimNode() {
-    return safeCall(() => apiClient.post('/quantconnect/slimnode/start'), { success: false }, 'startQuantConnectSlimNode')
+  async startQuantConnectEINode() {
+    return safeCall(() => apiClient.post('/quantconnect/slimnode/start'), { success: false }, 'startQuantConnectEINode')
   },
 
-  async stopQuantConnectSlimNode() {
-    return safeCall(() => apiClient.post('/quantconnect/slimnode/stop'), { success: false }, 'stopQuantConnectSlimNode')
+  async stopQuantConnectEINode() {
+    return safeCall(() => apiClient.post('/quantconnect/slimnode/stop'), { success: false }, 'stopQuantConnectEINode')
   },
 
   async processQuantConnectEquities(symbols?: string[]) {

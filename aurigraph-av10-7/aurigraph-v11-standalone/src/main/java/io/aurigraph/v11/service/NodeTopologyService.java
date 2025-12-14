@@ -69,10 +69,10 @@ public class NodeTopologyService {
             nodeCache.put(node.nodeId(), node);
         }
 
-        // Create slim nodes (10)
+        // Create External Integration (EI) nodes (10)
         for (int i = 1; i <= 10; i++) {
             String channelId = "channel-" + ((i % 8) + 1);
-            NodeTopologyDTO node = createMockNode("slim-" + i, channelId, NodeType.SLIM, i);
+            NodeTopologyDTO node = createMockNode("ei-" + i, channelId, NodeType.EXTERNAL_INTEGRATION, i);
             nodeCache.put(node.nodeId(), node);
         }
 
@@ -212,7 +212,7 @@ public class NodeTopologyService {
 
         int validatorCount = (int) nodes.stream().filter(n -> n.nodeType() == NodeType.VALIDATOR).count();
         int businessCount = (int) nodes.stream().filter(n -> n.nodeType() == NodeType.BUSINESS).count();
-        int slimCount = (int) nodes.stream().filter(n -> n.nodeType() == NodeType.SLIM).count();
+        int eiCount = (int) nodes.stream().filter(n -> n.nodeType() == NodeType.EXTERNAL_INTEGRATION).count();
         int channelCount = (int) nodes.stream().filter(n -> n.nodeType() == NodeType.CHANNEL).count();
 
         double totalTps = nodes.stream().mapToDouble(NodeTopologyDTO::currentTps).sum();
@@ -242,7 +242,7 @@ public class NodeTopologyService {
             .totalNodes(nodes.size())
             .validatorCount(validatorCount)
             .businessCount(businessCount)
-            .slimCount(slimCount)
+            .eiCount(eiCount)
             .channelCount(channelCount)
             .totalTps(totalTps)
             .avgLatencyMs(avgLatency)

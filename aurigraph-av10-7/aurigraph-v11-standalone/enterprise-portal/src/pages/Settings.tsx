@@ -68,7 +68,7 @@ interface APIIntegrationConfig {
     rateLimit: number;
   };
   streaming: {
-    enableSlimNodes: boolean;
+    enableEINodes: boolean;
     maxConcurrentConnections: number;
     dataBufferSize: string;
     streamingInterval: number;
@@ -131,7 +131,7 @@ const Settings: React.FC = () => {
       rateLimit: 100
     },
     streaming: {
-      enableSlimNodes: true,
+      enableEINodes: true,
       maxConcurrentConnections: 1000,
       dataBufferSize: '10MB',
       streamingInterval: 1000,
@@ -648,13 +648,13 @@ const Settings: React.FC = () => {
 
               {/* Streaming Data Configuration */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" gutterBottom>Streaming Data via Slim Nodes</Typography>
+                <Typography variant="h6" gutterBottom>Streaming Data via External Integration (EI) Nodes</Typography>
                 <Alert severity="info" sx={{ mb: 2 }}>
                   Slim nodes enable high-throughput real-time data streaming from external APIs to the blockchain network.
                 </Alert>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <FormControlLabel control={<Switch checked={apiSettings.streaming.enableSlimNodes} onChange={(e) => setApiSettings({...apiSettings, streaming: {...apiSettings.streaming, enableSlimNodes: e.target.checked}})} />} label="Enable Slim Node Streaming" />
+                    <FormControlLabel control={<Switch checked={apiSettings.streaming.enableEINodes} onChange={(e) => setApiSettings({...apiSettings, streaming: {...apiSettings.streaming, enableEINodes: e.target.checked}})} />} label="Enable External Integration (EI) Node Streaming" />
                     <TextField fullWidth label="Max Concurrent Connections" type="number" value={apiSettings.streaming.maxConcurrentConnections} onChange={(e) => setApiSettings({...apiSettings, streaming: {...apiSettings.streaming, maxConcurrentConnections: parseInt(e.target.value)}})} margin="normal" />
                     <TextField fullWidth label="Data Buffer Size" value={apiSettings.streaming.dataBufferSize} onChange={(e) => setApiSettings({...apiSettings, streaming: {...apiSettings.streaming, dataBufferSize: e.target.value}})} margin="normal" helperText="Format: 10MB, 1GB, etc." />
                   </Grid>

@@ -9,7 +9,7 @@ import apiClient from './api'
 
 export interface Node {
   id: string
-  type: 'validator' | 'business' | 'slim'
+  type: 'validator' | 'business' | 'ei'
   name: string
   ip: string
   port: number
@@ -143,7 +143,7 @@ export async function getNetworkStats(): Promise<{
   activeNodes: number
   activeValidators: number
   activeBusinessNodes: number
-  activeSlimNodes: number
+  activeEINodes: number
   avgLatency: number
   maxLatency: number
   minLatency: number

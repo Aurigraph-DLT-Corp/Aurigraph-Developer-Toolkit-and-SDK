@@ -44,11 +44,11 @@ service QuantConnectService {
 }
 
 // Slim Node QuantConnect Service - For slim node integration
-service SlimNodeQuantConnectService {
+service EINodeQuantConnectService {
   // Slim node management
   rpc GetAssignedAlgorithms(AssignedAlgorithmsRequest) returns (AssignedAlgorithmsResponse);
   rpc AssignAlgorithmToNode(AlgorithmAssignmentRequest) returns (AlgorithmAssignmentResponse);
-  rpc StreamToSlimNode(QCSlimNodeStreamRequest) returns (stream TokenizedTradeData);
+  rpc StreamToEINode(QCEINodeStreamRequest) returns (stream TokenizedTradeData);
   rpc GetIntegrationMetrics(QCIntegrationMetricsRequest) returns (QCIntegrationMetricsResponse);
 }
 
@@ -462,7 +462,7 @@ message AlgorithmMetrics {
 // =============================================================================
 
 message AssignedAlgorithmsRequest {
-  string slim_node_id = 1;
+  string ei_node_id = 1;
 }
 
 message AssignedAlgorithmsResponse {
@@ -471,7 +471,7 @@ message AssignedAlgorithmsResponse {
 }
 
 message AlgorithmAssignmentRequest {
-  string slim_node_id = 1;
+  string ei_node_id = 1;
   string algorithm_id = 2;
   bool include_market_data = 3;
   bool include_orders = 4;
@@ -481,12 +481,12 @@ message AlgorithmAssignmentRequest {
 message AlgorithmAssignmentResponse {
   bool success = 1;
   string message = 2;
-  string slim_node_id = 3;
+  string ei_node_id = 3;
   string algorithm_id = 4;
 }
 
-message QCSlimNodeStreamRequest {
-  string slim_node_id = 1;
+message QCEINodeStreamRequest {
+  string ei_node_id = 1;
   bool include_trades = 2;
   bool include_portfolio_updates = 3;
   bool include_market_data = 4;
@@ -495,7 +495,7 @@ message QCSlimNodeStreamRequest {
 message TokenizedTradeData {
   string token_id = 1;
   string token_type = 2;  // "QC_TRADE", "QC_PORTFOLIO", "QC_MARKET_DATA"
-  string slim_node_id = 3;
+  string ei_node_id = 3;
   string algorithm_id = 4;
   bytes data = 5;  // Serialized trade/portfolio/market data
   int64 timestamp = 6;
@@ -510,11 +510,11 @@ message QCIntegrationMetricsResponse {
   int64 total_settlements_completed = 2;
   int64 total_portfolio_updates = 3;
   int32 active_algorithm_streams = 4;
-  int32 total_slim_nodes = 5;
-  map<string, SlimNodeQCMetrics> node_metrics = 6;
+  int32 total_ei_nodes = 5;
+  map<string, EINodeQCMetrics> node_metrics = 6;
 }
 
-message SlimNodeQCMetrics {
+message EINodeQCMetrics {
   string node_id = 1;
   string status = 2;
   int32 assigned_algorithms = 3;

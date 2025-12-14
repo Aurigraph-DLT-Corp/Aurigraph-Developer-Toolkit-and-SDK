@@ -25,7 +25,7 @@ import java.util.Map;
  * Standard Demo Configuration:
  * - Validator Nodes: 5
  * - Business Nodes: 10
- * - Slim Nodes: 5 (one per external API data feed)
+ * - External Integration (EI) Nodes: 5 (one per external API data feed)
  *
  * @version 1.0.0
  */
@@ -63,7 +63,7 @@ public class MerkleRegistryResource {
                             "config", Map.of(
                                 "validators", simulation.validatorNodes,
                                 "businessNodes", simulation.businessNodes,
-                                "slimNodes", simulation.slimNodes,
+                                "eiNodes", simulation.eiNodes,
                                 "apiFeeds", 5
                             ),
                             "status", "running"
@@ -95,7 +95,7 @@ public class MerkleRegistryResource {
                 Map<String, Object> config = new HashMap<>();
                 config.put("validatorNodes", simulation.validatorNodes);
                 config.put("businessNodes", simulation.businessNodes);
-                config.put("slimNodes", simulation.slimNodes);
+                config.put("eiNodes", simulation.eiNodes);
                 response.put("config", config);
 
                 // Real-time metrics

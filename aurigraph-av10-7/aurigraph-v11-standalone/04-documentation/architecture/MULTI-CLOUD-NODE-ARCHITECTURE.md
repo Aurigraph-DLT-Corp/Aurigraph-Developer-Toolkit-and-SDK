@@ -74,7 +74,7 @@ RWA_TOKENIZATION=ENABLED
 
 ---
 
-### 3. Slim Nodes
+### 3. External Integration (EI) Nodes
 **Purpose**: Lightweight read operations, data queries, analytics
 
 **Resource Requirements**:
@@ -96,8 +96,8 @@ RWA_TOKENIZATION=DISABLED
 ```
 
 **Deployment**:
-- **Minimum**: 2 slim nodes (data availability)
-- **Recommended**: 5-20 slim nodes (edge deployment)
+- **Minimum**: 2 EI nodes (data availability)
+- **Recommended**: 5-20 EI nodes (edge deployment)
 - **Multi-cloud**: Deploy at edge locations worldwide
 
 ---
@@ -262,7 +262,7 @@ services:
       - http: "http://localhost:9013/q/health"
         interval: "10s"
 
-  - name: "aurigraph-slim"
+  - name: "aurigraph-ei"
     tags: ["slim", "query"]
     port: 9023
     checks:
@@ -452,12 +452,12 @@ AllowedIPs = 10.0.3.0/24
 - **Total TPS**: 2M+ (distributed across clouds)
 - **Validator Throughput**: 500K-750K TPS each (4 validators = 2M+ total)
 - **Business Node TPS**: 200K-300K TPS each
-- **Slim Node TPS**: 50K-100K TPS each (read-only)
+- **External Integration (EI) Node TPS**: 50K-100K TPS each (read-only)
 
 ### Latency Targets
 - **Intra-cloud latency**: <10ms (same region)
 - **Inter-cloud latency**: <50ms (cross-region validators)
-- **Global API latency**: <200ms (edge-deployed slim nodes)
+- **Global API latency**: <200ms (edge-deployed EI nodes)
 
 ### Availability Targets
 - **Validator uptime**: 99.99% (geo-distributed resilience)
@@ -547,7 +547,7 @@ kubectl apply -f k8s/business-deployment.yaml
 6. ⏳ Configure VPN mesh (WireGuard) between clouds
 7. ⏳ Deploy validators to AWS, Azure, GCP
 8. ⏳ Deploy business nodes with load balancing
-9. ⏳ Deploy slim nodes at edge locations
+9. ⏳ Deploy EI nodes at edge locations
 10. ⏳ Performance benchmarking and JIRA update
 
 ---

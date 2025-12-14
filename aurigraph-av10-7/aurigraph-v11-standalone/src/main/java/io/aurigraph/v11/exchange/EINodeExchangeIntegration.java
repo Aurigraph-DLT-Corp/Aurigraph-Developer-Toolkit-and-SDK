@@ -19,15 +19,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Slim Node Exchange Integration
+ * External Integration (EI) Node Exchange Integration
  *
- * Connects cryptocurrency exchange data streams to Slim Nodes for tokenization.
- * Each Slim Node can be assigned to one or more exchange/pair combinations,
+ * Connects cryptocurrency exchange data streams to External Integration (EI) Nodes for tokenization.
+ * Each External Integration (EI) Node can be assigned to one or more exchange/pair combinations,
  * processing real-time market data and converting it into tokenized assets.
  *
  * Features:
- * - Dynamic exchange-to-slim-node mapping
- * - Automatic load balancing across slim nodes
+ * - Dynamic exchange-to-ei-node mapping
+ * - Automatic load balancing across EI nodes
  * - Tokenization of market data
  * - Real-time metrics and monitoring
  * - Batch processing for high throughput
@@ -36,9 +36,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Backend Development Agent (BDA)
  */
 @ApplicationScoped
-public class SlimNodeExchangeIntegration {
+public class EINodeExchangeIntegration {
 
-    private static final Logger LOG = Logger.getLogger(SlimNodeExchangeIntegration.class);
+    private static final Logger LOG = Logger.getLogger(EINodeExchangeIntegration.class);
 
     @Inject
     CryptoExchangeService exchangeService;
@@ -52,10 +52,10 @@ public class SlimNodeExchangeIntegration {
     @ConfigProperty(name = "aurigraph.slimnode.exchange.enabled", defaultValue = "true")
     boolean integrationEnabled;
 
-    // Slim Node configurations
-    private final Map<String, SlimNodeConfig> slimNodes = new ConcurrentHashMap<>();
+    // External Integration (EI) Node configurations
+    private final Map<String, EINodeConfig> eiNodes = new ConcurrentHashMap<>();
 
-    // Exchange-to-SlimNode mappings
+    // Exchange-to-EINode mappings
     private final Map<String, List<String>> exchangeMappings = new ConcurrentHashMap<>();
 
     // Active subscriptions
@@ -67,7 +67,7 @@ public class SlimNodeExchangeIntegration {
     private final AtomicLong totalTokenizationsCompleted = new AtomicLong(0);
     private final AtomicLong totalBatchesProcessed = new AtomicLong(0);
 
-    // Batching buffers (per slim node)
+    // Batching buffers (per EI node)
     private final Map<String, List<ExchangeTickerData>> tickerBuffers = new ConcurrentHashMap<>();
     private final Map<String, List<ExchangeTradeData>> tradeBuffers = new ConcurrentHashMap<>();
 
@@ -77,23 +77,23 @@ public class SlimNodeExchangeIntegration {
     void init() {
         if (integrationEnabled) {
             running.set(true);
-            LOG.info("✅ Slim Node Exchange Integration initialized");
+            LOG.info("✅ External Integration (EI) Node Exchange Integration initialized");
             LOG.infof("   Batch size: %d, Batch interval: %dms", batchSize, batchIntervalMs);
 
-            // Initialize default slim nodes
-            initializeDefaultSlimNodes();
+            // Initialize default EI nodes
+            initializeDefaultEINodes();
 
             // Start batch processing
             startBatchProcessing();
         } else {
-            LOG.info("⚠️ Slim Node Exchange Integration is disabled");
+            LOG.info("⚠️ External Integration (EI) Node Exchange Integration is disabled");
         }
     }
 
     @PreDestroy
     void shutdown() {
         running.set(false);
-        LOG.info("Shutting down Slim Node Exchange Integration...");
+        LOG.info("Shutting down External Integration (EI) Node Exchange Integration...");
 
         // Cancel all active subscriptions
         activeSubscriptions.forEach((key, subscription) -> {
@@ -109,40 +109,40 @@ public class SlimNodeExchangeIntegration {
         flushAllBuffers();
     }
 
-    private void initializeDefaultSlimNodes() {
-        // Initialize 5 default slim nodes for exchange data processing
+    private void initializeDefaultEINodes() {
+        // Initialize 5 default EI nodes for exchange data processing
         for (int i = 1; i <= 5; i++) {
-            String nodeId = "slim-node-exchange-" + i;
-            slimNodes.put(nodeId, new SlimNodeConfig(
+            String nodeId = "ei-node-exchange-" + i;
+            eiNodes.put(nodeId, new EINodeConfig(
                 nodeId,
-                "Exchange Slim Node " + i,
-                SlimNodeStatus.IDLE,
+                "Exchange External Integration (EI) Node " + i,
+                EINodeStatus.IDLE,
                 new ArrayList<>(),
                 Instant.now().toString()
             ));
             tickerBuffers.put(nodeId, Collections.synchronizedList(new ArrayList<>()));
             tradeBuffers.put(nodeId, Collections.synchronizedList(new ArrayList<>()));
         }
-        LOG.infof("Initialized %d slim nodes for exchange data processing", slimNodes.size());
+        LOG.infof("Initialized %d EI nodes for exchange data processing", eiNodes.size());
     }
 
     // ==========================================================================
-    // Exchange-to-SlimNode Mapping
+    // Exchange-to-EINode Mapping
     // ==========================================================================
 
     /**
-     * Assign an exchange/pair combination to a slim node
+     * Assign an exchange/pair combination to a EI node
      */
-    public Uni<Boolean> assignExchangeToSlimNode(String slimNodeId, String exchange, List<String> pairs) {
+    public Uni<Boolean> assignExchangeToEINode(String eiNodeId, String exchange, List<String> pairs) {
         return Uni.createFrom().item(() -> {
-            SlimNodeConfig node = slimNodes.get(slimNodeId);
+            EINodeConfig node = eiNodes.get(eiNodeId);
             if (node == null) {
-                LOG.warnf("Slim node not found: %s", slimNodeId);
+                LOG.warnf("Slim node not found: %s", eiNodeId);
                 return false;
             }
 
             // Create mapping key
-            String mappingKey = exchange + ":" + slimNodeId;
+            String mappingKey = exchange + ":" + eiNodeId;
 
             // Update node configuration
             List<String> assignedPairs = new ArrayList<>(node.assignedPairs());
@@ -153,26 +153,26 @@ public class SlimNodeExchangeIntegration {
                 }
             }
 
-            // Update slim node
-            slimNodes.put(slimNodeId, new SlimNodeConfig(
+            // Update EI node
+            eiNodes.put(eiNodeId, new EINodeConfig(
                 node.nodeId(),
                 node.name(),
-                SlimNodeStatus.ACTIVE,
+                EINodeStatus.ACTIVE,
                 assignedPairs,
                 Instant.now().toString()
             ));
 
             // Update exchange mappings
             exchangeMappings.computeIfAbsent(exchange, k -> new ArrayList<>())
-                .add(slimNodeId);
+                .add(eiNodeId);
 
-            LOG.infof("Assigned %s pairs from %s to %s", pairs.size(), exchange, slimNodeId);
+            LOG.infof("Assigned %s pairs from %s to %s", pairs.size(), exchange, eiNodeId);
             return true;
         });
     }
 
     /**
-     * Start streaming exchange data to slim nodes
+     * Start streaming exchange data to EI nodes
      */
     public Uni<Boolean> startStreaming(String exchange, List<String> pairs) {
         if (!integrationEnabled) {
@@ -188,16 +188,16 @@ public class SlimNodeExchangeIntegration {
                 existing.cancel();
             }
 
-            // Get assigned slim nodes for this exchange
+            // Get assigned EI nodes for this exchange
             List<String> assignedNodes = exchangeMappings.getOrDefault(exchange, new ArrayList<>());
             if (assignedNodes.isEmpty()) {
-                // Auto-assign to available slim node
-                String availableNode = findAvailableSlimNode();
+                // Auto-assign to available EI node
+                String availableNode = findAvailableEINode();
                 if (availableNode != null) {
-                    assignExchangeToSlimNode(availableNode, exchange, pairs).await().indefinitely();
+                    assignExchangeToEINode(availableNode, exchange, pairs).await().indefinitely();
                     assignedNodes = List.of(availableNode);
                 } else {
-                    LOG.warn("No available slim nodes for exchange streaming");
+                    LOG.warn("No available EI nodes for exchange streaming");
                     return false;
                 }
             }
@@ -233,15 +233,15 @@ public class SlimNodeExchangeIntegration {
     }
 
     /**
-     * Auto-distribute exchanges across slim nodes
+     * Auto-distribute exchanges across EI nodes
      */
     public Uni<Map<String, List<String>>> autoDistributeExchanges(List<String> exchanges, List<String> pairs) {
         return Uni.createFrom().item(() -> {
             Map<String, List<String>> distribution = new HashMap<>();
-            List<String> nodeIds = new ArrayList<>(slimNodes.keySet());
+            List<String> nodeIds = new ArrayList<>(eiNodes.keySet());
 
             if (nodeIds.isEmpty()) {
-                LOG.warn("No slim nodes available for distribution");
+                LOG.warn("No EI nodes available for distribution");
                 return distribution;
             }
 
@@ -272,12 +272,12 @@ public class SlimNodeExchangeIntegration {
 
                 // Assign each exchange's pairs
                 for (Map.Entry<String, List<String>> exchangeEntry : byExchange.entrySet()) {
-                    assignExchangeToSlimNode(nodeId, exchangeEntry.getKey(), exchangeEntry.getValue())
+                    assignExchangeToEINode(nodeId, exchangeEntry.getKey(), exchangeEntry.getValue())
                         .await().indefinitely();
                 }
             }
 
-            LOG.infof("Auto-distributed %d exchanges across %d slim nodes", exchanges.size(), nodeIds.size());
+            LOG.infof("Auto-distributed %d exchanges across %d EI nodes", exchanges.size(), nodeIds.size());
             return distribution;
         });
     }
@@ -289,7 +289,7 @@ public class SlimNodeExchangeIntegration {
     private void processTicker(String exchange, ExchangeTickerData ticker, List<String> nodes) {
         totalTickersProcessed.incrementAndGet();
 
-        // Distribute to assigned slim nodes (round-robin)
+        // Distribute to assigned EI nodes (round-robin)
         int nodeIndex = (int) (totalTickersProcessed.get() % nodes.size());
         String nodeId = nodes.get(nodeIndex);
 
@@ -308,7 +308,7 @@ public class SlimNodeExchangeIntegration {
     private void processTrade(String exchange, ExchangeTradeData trade, List<String> nodes) {
         totalTradesProcessed.incrementAndGet();
 
-        // Distribute to assigned slim nodes (round-robin)
+        // Distribute to assigned EI nodes (round-robin)
         int nodeIndex = (int) (totalTradesProcessed.get() % nodes.size());
         String nodeId = nodes.get(nodeIndex);
 
@@ -400,7 +400,7 @@ public class SlimNodeExchangeIntegration {
             .subscribe().with(
                 tick -> {
                     if (running.get()) {
-                        slimNodes.keySet().forEach(this::processBatch);
+                        eiNodes.keySet().forEach(this::processBatch);
                     }
                 },
                 error -> LOG.errorf(error, "Error in batch processing")
@@ -408,12 +408,12 @@ public class SlimNodeExchangeIntegration {
     }
 
     private void flushAllBuffers() {
-        slimNodes.keySet().forEach(this::processBatch);
+        eiNodes.keySet().forEach(this::processBatch);
     }
 
-    private String findAvailableSlimNode() {
-        // Find slim node with least assignments
-        return slimNodes.entrySet().stream()
+    private String findAvailableEINode() {
+        // Find EI node with least assignments
+        return eiNodes.entrySet().stream()
             .min(Comparator.comparingInt(e -> e.getValue().assignedPairs().size()))
             .map(Map.Entry::getKey)
             .orElse(null);
@@ -423,21 +423,21 @@ public class SlimNodeExchangeIntegration {
     // Status & Metrics
     // ==========================================================================
 
-    public Map<String, SlimNodeConfig> getSlimNodes() {
-        return new HashMap<>(slimNodes);
+    public Map<String, EINodeConfig> getEINodes() {
+        return new HashMap<>(eiNodes);
     }
 
-    public SlimNodeIntegrationMetrics getMetrics() {
-        Map<String, SlimNodeMetrics> nodeMetrics = new HashMap<>();
+    public EINodeIntegrationMetrics getMetrics() {
+        Map<String, EINodeMetrics> nodeMetrics = new HashMap<>();
 
-        for (Map.Entry<String, SlimNodeConfig> entry : slimNodes.entrySet()) {
+        for (Map.Entry<String, EINodeConfig> entry : eiNodes.entrySet()) {
             String nodeId = entry.getKey();
-            SlimNodeConfig config = entry.getValue();
+            EINodeConfig config = entry.getValue();
 
             int tickerBufferSize = tickerBuffers.getOrDefault(nodeId, Collections.emptyList()).size();
             int tradeBufferSize = tradeBuffers.getOrDefault(nodeId, Collections.emptyList()).size();
 
-            nodeMetrics.put(nodeId, new SlimNodeMetrics(
+            nodeMetrics.put(nodeId, new EINodeMetrics(
                 nodeId,
                 config.status().name(),
                 config.assignedPairs().size(),
@@ -446,12 +446,12 @@ public class SlimNodeExchangeIntegration {
             ));
         }
 
-        return new SlimNodeIntegrationMetrics(
+        return new EINodeIntegrationMetrics(
             totalTickersProcessed.get(),
             totalTradesProcessed.get(),
             totalTokenizationsCompleted.get(),
             totalBatchesProcessed.get(),
-            slimNodes.size(),
+            eiNodes.size(),
             activeSubscriptions.size(),
             nodeMetrics
         );
@@ -461,22 +461,22 @@ public class SlimNodeExchangeIntegration {
     // Data Records
     // ==========================================================================
 
-    public enum SlimNodeStatus {
+    public enum EINodeStatus {
         IDLE,
         ACTIVE,
         PAUSED,
         ERROR
     }
 
-    public record SlimNodeConfig(
+    public record EINodeConfig(
         String nodeId,
         String name,
-        SlimNodeStatus status,
+        EINodeStatus status,
         List<String> assignedPairs,
         String lastUpdated
     ) {}
 
-    public record SlimNodeMetrics(
+    public record EINodeMetrics(
         String nodeId,
         String status,
         int assignedPairs,
@@ -484,13 +484,13 @@ public class SlimNodeExchangeIntegration {
         int tradeBufferSize
     ) {}
 
-    public record SlimNodeIntegrationMetrics(
+    public record EINodeIntegrationMetrics(
         long totalTickersProcessed,
         long totalTradesProcessed,
         long totalTokenizationsCompleted,
         long totalBatchesProcessed,
-        int totalSlimNodes,
+        int totalEINodes,
         int activeSubscriptions,
-        Map<String, SlimNodeMetrics> nodeMetrics
+        Map<String, EINodeMetrics> nodeMetrics
     ) {}
 }

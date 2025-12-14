@@ -22,7 +22,7 @@ interface DemoInstance {
   status: string;
   validators: number;
   businessNodes: number;
-  slimNodes: number;
+  eiNodes: number;
   transactionCount: number;
   merkleTreeDepth: number;
   createdAt: string;
@@ -77,7 +77,7 @@ export const DemoApp: React.FC = () => {
         ...d,
         validators: Array.isArray(d.validators) ? d.validators.length : d.validators || 0,
         businessNodes: Array.isArray(d.businessNodes) ? d.businessNodes.length : d.businessNodes || 0,
-        slimNodes: Array.isArray(d.slimNodes) ? d.slimNodes.length : d.slimNodes || 0,
+        eiNodes: Array.isArray(d.eiNodes) ? d.eiNodes.length : d.eiNodes || 0,
       }));
       setDemos(converted);
 
@@ -135,7 +135,7 @@ export const DemoApp: React.FC = () => {
         channelName: `rwat-channel-${Date.now().toString(36)}`,
         validators: 3,
         businessNodes: 2,
-        slimNodes: 5
+        eiNodes: 5
       };
 
       const newDemo = await DemoService.registerDemo(registration);
@@ -176,7 +176,7 @@ export const DemoApp: React.FC = () => {
         channelName: `channel-${newDemoName.toLowerCase().replace(/\s+/g, '-')}`,
         validators: 3,
         businessNodes: 2,
-        slimNodes: 5
+        eiNodes: 5
       };
       await DemoService.registerDemo(registration);
       setCreateDialogOpen(false);
@@ -456,7 +456,7 @@ export const DemoApp: React.FC = () => {
                       </Box>
                       <Box>
                         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>Slim</Typography>
-                        <Typography variant="body2" sx={{ color: '#9B59B6' }}>{demo.slimNodes}</Typography>
+                        <Typography variant="body2" sx={{ color: '#9B59B6' }}>{demo.eiNodes}</Typography>
                       </Box>
                       <Box>
                         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>Tokens</Typography>
@@ -583,7 +583,7 @@ export const DemoApp: React.FC = () => {
             margin="normal"
           />
           <Typography variant="caption" color="text.secondary">
-            Default: 3 validators, 2 business nodes, 5 slim nodes
+            Default: 3 validators, 2 business nodes, 5 EI nodes
           </Typography>
         </DialogContent>
         <DialogActions>

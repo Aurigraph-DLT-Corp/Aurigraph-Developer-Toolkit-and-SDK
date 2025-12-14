@@ -70,7 +70,7 @@ public record NodeTopologyDTO(
     public enum NodeType {
         VALIDATOR("V"),
         BUSINESS("B"),
-        SLIM("S"),
+        EXTERNAL_INTEGRATION("EI"),  // Renamed from SLIM - External Integration nodes for API/data feeds
         CHANNEL("C");
 
         private final String shortCode;

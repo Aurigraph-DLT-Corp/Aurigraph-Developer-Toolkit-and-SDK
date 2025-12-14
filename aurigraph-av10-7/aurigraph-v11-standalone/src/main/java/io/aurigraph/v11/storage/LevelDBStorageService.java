@@ -180,7 +180,7 @@ public class LevelDBStorageService {
                 return new StorageInfo(
                     basePath,
                     totalSize,
-                    0,  // slimNodeCount (legacy field, not applicable for ALL nodes)
+                    0,  // eiNodeCount (legacy field, not applicable for ALL nodes)
                     channelCount,
                     compressionEnabled,
                     encryptionEnabled

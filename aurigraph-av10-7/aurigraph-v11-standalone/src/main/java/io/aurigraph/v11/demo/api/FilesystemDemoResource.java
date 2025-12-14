@@ -115,7 +115,7 @@ public class FilesystemDemoResource {
         demo.channelsJson = request.channelsJson;
         demo.validatorsJson = request.validatorsJson;
         demo.businessNodesJson = request.businessNodesJson;
-        demo.slimNodesJson = request.slimNodesJson;
+        demo.eiNodesJson = request.eiNodesJson;
         demo.merkleRoot = request.merkleRoot != null ? request.merkleRoot : "";
         demo.transactionCount = 0;
         demo.tokenizationMode = request.tokenizationMode != null ? request.tokenizationMode : "live-feed";
@@ -308,7 +308,7 @@ public class FilesystemDemoResource {
         public String channelsJson;
         public String validatorsJson;
         public String businessNodesJson;
-        public String slimNodesJson;
+        public String eiNodesJson;
         public String merkleRoot;
         public String tokenizationMode;
         public String selectedDataFeedsJson;

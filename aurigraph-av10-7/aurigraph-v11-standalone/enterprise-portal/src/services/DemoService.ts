@@ -39,7 +39,7 @@ export interface DemoRegistration {
   channels: Channel[];
   validators: Node[];
   businessNodes: Node[];
-  slimNodes: Node[];
+  eiNodes: Node[];
   // New fields for data feeds and tokenization
   tokenizationMode: 'live-feed' | 'trades' | 'hybrid';
   selectedDataFeeds: string[];
@@ -94,7 +94,7 @@ class DemoServiceClass {
       channels: JSON.parse(backendDemo.channelsJson || '[]'),
       validators: JSON.parse(backendDemo.validatorsJson || '[]'),
       businessNodes: JSON.parse(backendDemo.businessNodesJson || '[]'),
-      slimNodes: JSON.parse(backendDemo.slimNodesJson || '[]'),
+      eiNodes: JSON.parse(backendDemo.eiNodesJson || '[]'),
       // New fields for data feeds and tokenization
       tokenizationMode: backendDemo.tokenizationMode || 'live-feed',
       selectedDataFeeds: JSON.parse(backendDemo.selectedDataFeedsJson || '[]'),
@@ -120,7 +120,7 @@ class DemoServiceClass {
         channelsJson: JSON.stringify(registration.channels),
         validatorsJson: JSON.stringify(registration.validators),
         businessNodesJson: JSON.stringify(registration.businessNodes),
-        slimNodesJson: JSON.stringify(registration.slimNodes),
+        eiNodesJson: JSON.stringify(registration.eiNodes),
         merkleRoot: '', // Will be updated after tree generation
         // New fields for data feeds and tokenization
         tokenizationMode: registration.tokenizationMode || 'live-feed',
@@ -488,7 +488,7 @@ class DemoServiceClass {
             { id: 'b1', name: 'Manufacturer Node', type: 'BUSINESS', endpoint: 'https://manufacturer.demo', channelId: 'ch1' },
             { id: 'b2', name: 'Distributor Node', type: 'BUSINESS', endpoint: 'https://distributor.demo', channelId: 'ch2' },
           ],
-          slimNodes: [
+          eiNodes: [
             { id: 's1', name: 'Retailer Node', type: 'SLIM', endpoint: 'https://retailer.demo', channelId: 'ch2' },
           ],
           tokenizationMode: 'live-feed',
@@ -510,7 +510,7 @@ class DemoServiceClass {
             { id: 'hb1', name: 'Primary Care', type: 'BUSINESS', endpoint: 'https://primary-care.demo', channelId: 'hc1' },
             { id: 'hb2', name: 'Specialist Clinic', type: 'BUSINESS', endpoint: 'https://specialist.demo', channelId: 'hc1' },
           ],
-          slimNodes: [],
+          eiNodes: [],
           tokenizationMode: 'trades',
           selectedDataFeeds: [],
           tokenizationConfig: { autoStart: false, batchSize: 50, merkleTreeEnabled: true },
@@ -531,7 +531,7 @@ class DemoServiceClass {
             { id: 'fb1', name: 'Bank A Node', type: 'BUSINESS', endpoint: 'https://banka.demo', channelId: 'fc1' },
             { id: 'fb2', name: 'Bank B Node', type: 'BUSINESS', endpoint: 'https://bankb.demo', channelId: 'fc1' },
           ],
-          slimNodes: [
+          eiNodes: [
             { id: 'fs1', name: 'Payment Provider', type: 'SLIM', endpoint: 'https://payment.demo', channelId: 'fc1' },
           ],
           tokenizationMode: 'hybrid',

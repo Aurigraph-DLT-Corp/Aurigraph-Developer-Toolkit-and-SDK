@@ -42,7 +42,7 @@ enum TopologyNodeType {
     TOPOLOGY_NODE_TYPE_UNSPECIFIED = 0;
     TOPOLOGY_VALIDATOR = 1;      // V - Consensus validator node
     TOPOLOGY_BUSINESS = 2;       // B - Business logic node
-    TOPOLOGY_SLIM = 3;           // S - Lightweight node
+    TOPOLOGY_EXTERNAL_INTEGRATION = 3;           // S - Lightweight node
     TOPOLOGY_CHANNEL = 4;        // C - Channel coordinator node
 }
 
@@ -245,7 +245,7 @@ message TopologyStatsResponse {
     int32 total_nodes = 1;
     int32 validator_count = 2;
     int32 business_count = 3;
-    int32 slim_count = 4;
+    int32 ei_count = 4;  // External Integration node count (renamed from slim_count)
     int32 channel_count = 5;
     double total_tps = 6;
     double avg_latency_ms = 7;

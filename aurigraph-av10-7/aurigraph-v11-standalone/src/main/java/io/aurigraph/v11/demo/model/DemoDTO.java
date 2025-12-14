@@ -33,7 +33,7 @@ public class DemoDTO {
     public String channelsJson;
     public String validatorsJson;
     public String businessNodesJson;
-    public String slimNodesJson;
+    public String eiNodesJson;
 
     // Data feeds and tokenization
     public String tokenizationMode = "live-feed";
@@ -63,7 +63,7 @@ public class DemoDTO {
         dto.channelsJson = demo.channelsJson;
         dto.validatorsJson = demo.validatorsJson;
         dto.businessNodesJson = demo.businessNodesJson;
-        dto.slimNodesJson = demo.slimNodesJson;
+        dto.eiNodesJson = demo.eiNodesJson;
         dto.tokenizationMode = demo.tokenizationMode;
         dto.selectedDataFeedsJson = demo.selectedDataFeedsJson;
         dto.tokenizationConfigJson = demo.tokenizationConfigJson;

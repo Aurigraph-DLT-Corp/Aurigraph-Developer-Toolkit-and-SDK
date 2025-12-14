@@ -2748,9 +2748,9 @@ Aurigraph DLT implements a multi-cloud deployment strategy that enables global r
 - **Purpose**: Transaction processing, smart contract execution, public API serving
 - **Global API Latency Target**: <200ms
 
-**Slim Nodes** (Read-Only Queries):
+**External Integration (EI) Nodes** (Read-Only Queries):
 - **Resource Allocation**: 4-8 CPU cores, 1-2GB RAM, 20GB SSD
-- **Container Capacity**: 6-12 slim nodes per container
+- **Container Capacity**: 6-12 EI nodes per container
 - **Deployment**: Edge locations worldwide
 - **Purpose**: Read-only queries, analytics, lightweight operations
 - **Query Latency Target**: <100ms
@@ -2824,7 +2824,7 @@ Aurigraph DLT implements a multi-cloud deployment strategy that enables global r
 **Aggregate Multi-Cloud Network**:
 - **Total TPS**: 2M+ across all clouds
 - **Cross-Cloud Latency**: <50ms validator-to-validator
-- **Global API Latency**: <200ms (via edge-deployed slim nodes)
+- **Global API Latency**: <200ms (via edge-deployed EI nodes)
 - **Availability**: Survives single-cloud outage (99.99% uptime)
 
 **Node Capacity Limits** (per container):

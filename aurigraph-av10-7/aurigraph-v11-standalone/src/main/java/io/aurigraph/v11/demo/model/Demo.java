@@ -71,9 +71,9 @@ public class Demo extends PanacheEntityBase {
     @Column(name = "business_nodes_json", columnDefinition = "TEXT")
     public String businessNodesJson;
 
-    // Store slim nodes as JSON
+    // Store EI nodes as JSON
     @Column(name = "slim_nodes_json", columnDefinition = "TEXT")
-    public String slimNodesJson;
+    public String eiNodesJson;
 
     // New fields for data feeds and tokenization
     @Column(name = "tokenization_mode", length = 20)

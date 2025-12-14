@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # Aurigraph V12 Remote Server Deployment Script
-# Deploys multi-node architecture (5 validators, 3 business, 3 slim nodes)
+# Deploys multi-node architecture (5 validators, 3 business, 3 EI nodes)
 #
 # Usage: ./deploy-to-remote.sh [deploy_mode]
-#   deploy_mode: rolling | full-restart | validators-only | business-only | slim-only
+#   deploy_mode: rolling | full-restart | validators-only | business-only | ei-only
 #
 
 set -e
@@ -170,13 +170,13 @@ case "$DEPLOY_MODE" in
     "business-only")
         deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
         ;;
-    "slim-only")
-        deploy_nodes "slim" 3 19020 19120 "200m" "700m" "1024m" "180m"
+    "ei-only")
+        deploy_nodes "ei" 3 19020 19120 "200m" "700m" "1024m" "180m"
         ;;
     "rolling"|"full-restart")
         deploy_nodes "validator" 5 19001 19101 "512m" "2g" "2500m" "256m"
         deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
-        deploy_nodes "slim" 3 19020 19120 "200m" "700m" "1024m" "180m"
+        deploy_nodes "ei" 3 19020 19120 "200m" "700m" "1024m" "180m"
         ;;
 esac
 
@@ -241,6 +241,6 @@ echo ""
 echo "Node Ports:"
 echo "  - Validators: 19001-19005"
 echo "  - Business: 19010-19012"
-echo "  - Slim: 19020-19022"
+echo "  - EI (External Integration): 19020-19022"
 echo "============================================="
 log_success "Deployment complete!"

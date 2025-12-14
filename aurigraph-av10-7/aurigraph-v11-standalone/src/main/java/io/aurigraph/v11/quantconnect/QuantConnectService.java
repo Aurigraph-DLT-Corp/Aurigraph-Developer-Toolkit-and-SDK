@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * transaction feeds, and market rates for tokenization on Aurigraph DLT.
  * Implements ExternalApiIntegration for unified admin management.
  *
- * Routes through Slim Node for lightweight data processing.
+ * Routes through External Integration (EI) Node for lightweight data processing.
  *
  * @author Aurigraph DLT Team
  * @version 12.1.0 (Dec 8, 2025) - Added HTTP/2 + ExternalApiIntegration
@@ -412,7 +412,7 @@ public class QuantConnectService implements ExternalApiIntegration {
             tokenized.setChange24h(equity.getChange24h());
             tokenized.setTokenizedAt(Instant.now());
             tokenized.setSource("QuantConnect");
-            tokenized.setSlimNodeId("slim-node-1");
+            tokenized.setEINodeId("ei-node-1");
 
             // Register in Merkle tree
             return tokenizationRegistry.registerTokenizedEquity(tokenized)
@@ -440,7 +440,7 @@ public class QuantConnectService implements ExternalApiIntegration {
             tokenized.setTimestamp(transaction.getTimestamp());
             tokenized.setTokenizedAt(Instant.now());
             tokenized.setSource("QuantConnect");
-            tokenized.setSlimNodeId("slim-node-1");
+            tokenized.setEINodeId("ei-node-1");
 
             // Register in Merkle tree
             return tokenizationRegistry.registerTokenizedTransaction(tokenized)

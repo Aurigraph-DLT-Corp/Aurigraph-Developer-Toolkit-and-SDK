@@ -52,8 +52,8 @@ interface TokenizedTransaction {
   blockNumber: number;
 }
 
-interface SlimNodeStatus {
-  slimNodeId: string;
+interface EINodeStatus {
+  eiNodeId: string;
   running: boolean;
   messagesProcessed: number;
   tokenizationsCompleted: number;
@@ -90,7 +90,7 @@ const QuantConnectRegistry: React.FC = () => {
   const [registryStats, setRegistryStats] = useState<RegistryStats | null>(null);
   const [equities, setEquities] = useState<TokenizedEquity[]>([]);
   const [transactions, setTransactions] = useState<TokenizedTransaction[]>([]);
-  const [slimNodeStatus, setSlimNodeStatus] = useState<SlimNodeStatus | null>(null);
+  const [eiNodeStatus, setEINodeStatus] = useState<EINodeStatus | null>(null);
   const [navigationData, setNavigationData] = useState<NavigationData | null>(null);
 
   // Search & filter state
@@ -107,7 +107,7 @@ const QuantConnectRegistry: React.FC = () => {
     const [statsResult, navResult, nodeResult, equityResult, txResult] = await Promise.all([
       safeApiCall(() => apiService.getQuantConnectRegistryStats(), { totalEquities: 0, totalTransactions: 0, merkleRoot: '', treeHeight: 0, lastUpdate: new Date().toISOString(), registeredSymbols: 0 }),
       safeApiCall(() => apiService.getQuantConnectNavigation(), { totalEntries: 0, merkleRoot: '', treeHeight: 0, categories: {}, recentTokenizations: [] }),
-      safeApiCall(() => apiService.getQuantConnectSlimNodeStatus(), { slimNodeId: 'slim-node-1', running: false, messagesProcessed: 0, tokenizationsCompleted: 0, totalEquities: 0, totalTransactions: 0, merkleRoot: '', uptimeSeconds: 0, pollIntervalSeconds: 60, trackedSymbols: 0, timestamp: new Date().toISOString() }),
+      safeApiCall(() => apiService.getQuantConnectEINodeStatus(), { eiNodeId: 'ei-node-1', running: false, messagesProcessed: 0, tokenizationsCompleted: 0, totalEquities: 0, totalTransactions: 0, merkleRoot: '', uptimeSeconds: 0, pollIntervalSeconds: 60, trackedSymbols: 0, timestamp: new Date().toISOString() }),
       safeApiCall(() => apiService.getQuantConnectEquities(), { equities: [] }),
       safeApiCall(() => apiService.getQuantConnectTransactions(), { transactions: [] })
     ]);
@@ -115,7 +115,7 @@ const QuantConnectRegistry: React.FC = () => {
     // Update state with successful results
     if (statsResult.success) setRegistryStats(statsResult.data);
     if (navResult.success) setNavigationData(navResult.data);
-    if (nodeResult.success) setSlimNodeStatus(nodeResult.data);
+    if (nodeResult.success) setEINodeStatus(nodeResult.data);
     if (equityResult.success) setEquities(equityResult.data.equities || []);
     if (txResult.success) setTransactions(txResult.data.transactions || []);
 
@@ -186,10 +186,10 @@ const QuantConnectRegistry: React.FC = () => {
     setLoading(false);
   };
 
-  // Handle Slim Node control
-  const handleStartSlimNode = async () => {
+  // Handle External Integration (EI) Node control
+  const handleStartEINode = async () => {
     const result = await safeApiCall(
-      () => apiService.startQuantConnectSlimNode(),
+      () => apiService.startQuantConnectEINode(),
       { success: false }
     );
 
@@ -197,13 +197,13 @@ const QuantConnectRegistry: React.FC = () => {
       fetchRegistryData();
       setError(null);
     } else {
-      setError(result.error?.message || 'Failed to start Slim Node');
+      setError(result.error?.message || 'Failed to start External Integration (EI) Node');
     }
   };
 
-  const handleStopSlimNode = async () => {
+  const handleStopEINode = async () => {
     const result = await safeApiCall(
-      () => apiService.stopQuantConnectSlimNode(),
+      () => apiService.stopQuantConnectEINode(),
       { success: false }
     );
 
@@ -211,7 +211,7 @@ const QuantConnectRegistry: React.FC = () => {
       fetchRegistryData();
       setError(null);
     } else {
-      setError(result.error?.message || 'Failed to stop Slim Node');
+      setError(result.error?.message || 'Failed to stop External Integration (EI) Node');
     }
   };
 
@@ -336,14 +336,14 @@ const QuantConnectRegistry: React.FC = () => {
         <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">Slim Node</Typography>
+              <Typography variant="subtitle2" color="text.secondary">External Integration (EI) Node</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Badge
-                  color={slimNodeStatus?.running ? 'success' : 'error'}
+                  color={eiNodeStatus?.running ? 'success' : 'error'}
                   variant="dot"
                 />
                 <Typography variant="h6">
-                  {slimNodeStatus?.running ? 'Running' : 'Stopped'}
+                  {eiNodeStatus?.running ? 'Running' : 'Stopped'}
                 </Typography>
               </Box>
               <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
@@ -352,8 +352,8 @@ const QuantConnectRegistry: React.FC = () => {
                   variant="contained"
                   color="success"
                   startIcon={<PlayArrow />}
-                  onClick={handleStartSlimNode}
-                  disabled={slimNodeStatus?.running}
+                  onClick={handleStartEINode}
+                  disabled={eiNodeStatus?.running}
                 >
                   Start
                 </Button>
@@ -362,8 +362,8 @@ const QuantConnectRegistry: React.FC = () => {
                   variant="contained"
                   color="error"
                   startIcon={<Stop />}
-                  onClick={handleStopSlimNode}
-                  disabled={!slimNodeStatus?.running}
+                  onClick={handleStopEINode}
+                  disabled={!eiNodeStatus?.running}
                 >
                   Stop
                 </Button>
@@ -407,7 +407,7 @@ const QuantConnectRegistry: React.FC = () => {
             <Tab label="Tokenized Equities" icon={<ShowChart />} iconPosition="start" />
             <Tab label="Transaction Registry" icon={<Receipt />} iconPosition="start" />
             <Tab label="Search & Verify" icon={<Search />} iconPosition="start" />
-            <Tab label="Slim Node Control" icon={<AccountTree />} iconPosition="start" />
+            <Tab label="External Integration (EI) Node Control" icon={<AccountTree />} iconPosition="start" />
           </Tabs>
 
           {/* Tab 0: Tokenized Equities */}
@@ -682,15 +682,15 @@ const QuantConnectRegistry: React.FC = () => {
             </Box>
           )}
 
-          {/* Tab 3: Slim Node Control */}
+          {/* Tab 3: External Integration (EI) Node Control */}
           {activeTab === 3 && (
             <Box>
               <Typography variant="h6" gutterBottom>
                 <AccountTree sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Slim Node Data Feed Status
+                External Integration (EI) Node Data Feed Status
               </Typography>
 
-              {slimNodeStatus && (
+              {eiNodeStatus && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <Paper sx={{ p: 3 }}>
@@ -699,7 +699,7 @@ const QuantConnectRegistry: React.FC = () => {
                         <ListItem>
                           <ListItemText
                             primary="Node ID"
-                            secondary={slimNodeStatus.slimNodeId}
+                            secondary={eiNodeStatus.eiNodeId}
                           />
                         </ListItem>
                         <Divider />
@@ -708,8 +708,8 @@ const QuantConnectRegistry: React.FC = () => {
                             primary="Status"
                             secondary={
                               <Chip
-                                label={slimNodeStatus.running ? 'Running' : 'Stopped'}
-                                color={slimNodeStatus.running ? 'success' : 'error'}
+                                label={eiNodeStatus.running ? 'Running' : 'Stopped'}
+                                color={eiNodeStatus.running ? 'success' : 'error'}
                                 size="small"
                               />
                             }
@@ -719,14 +719,14 @@ const QuantConnectRegistry: React.FC = () => {
                         <ListItem>
                           <ListItemText
                             primary="Uptime"
-                            secondary={`${Math.floor(slimNodeStatus.uptimeSeconds / 3600)}h ${Math.floor((slimNodeStatus.uptimeSeconds % 3600) / 60)}m`}
+                            secondary={`${Math.floor(eiNodeStatus.uptimeSeconds / 3600)}h ${Math.floor((eiNodeStatus.uptimeSeconds % 3600) / 60)}m`}
                           />
                         </ListItem>
                         <Divider />
                         <ListItem>
                           <ListItemText
                             primary="Poll Interval"
-                            secondary={`${slimNodeStatus.pollIntervalSeconds} seconds`}
+                            secondary={`${eiNodeStatus.pollIntervalSeconds} seconds`}
                           />
                         </ListItem>
                       </List>
@@ -740,35 +740,35 @@ const QuantConnectRegistry: React.FC = () => {
                         <ListItem>
                           <ListItemText
                             primary="Messages Processed"
-                            secondary={slimNodeStatus.messagesProcessed.toLocaleString()}
+                            secondary={eiNodeStatus.messagesProcessed.toLocaleString()}
                           />
                         </ListItem>
                         <Divider />
                         <ListItem>
                           <ListItemText
                             primary="Tokenizations Completed"
-                            secondary={slimNodeStatus.tokenizationsCompleted.toLocaleString()}
+                            secondary={eiNodeStatus.tokenizationsCompleted.toLocaleString()}
                           />
                         </ListItem>
                         <Divider />
                         <ListItem>
                           <ListItemText
                             primary="Total Equities"
-                            secondary={slimNodeStatus.totalEquities}
+                            secondary={eiNodeStatus.totalEquities}
                           />
                         </ListItem>
                         <Divider />
                         <ListItem>
                           <ListItemText
                             primary="Total Transactions"
-                            secondary={slimNodeStatus.totalTransactions}
+                            secondary={eiNodeStatus.totalTransactions}
                           />
                         </ListItem>
                         <Divider />
                         <ListItem>
                           <ListItemText
                             primary="Tracked Symbols"
-                            secondary={slimNodeStatus.trackedSymbols}
+                            secondary={eiNodeStatus.trackedSymbols}
                           />
                         </ListItem>
                       </List>
@@ -780,11 +780,11 @@ const QuantConnectRegistry: React.FC = () => {
                       <Typography variant="subtitle1" gutterBottom>Current Merkle Root</Typography>
                       <Paper sx={{ p: 2, bgcolor: 'grey.900', fontFamily: 'monospace' }}>
                         <Typography variant="body2" sx={{ wordBreak: 'break-all', color: 'success.light' }}>
-                          {slimNodeStatus.merkleRoot || 'No root computed yet'}
+                          {eiNodeStatus.merkleRoot || 'No root computed yet'}
                         </Typography>
                       </Paper>
                       <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                        Last update: {new Date(slimNodeStatus.timestamp).toLocaleString()}
+                        Last update: {new Date(eiNodeStatus.timestamp).toLocaleString()}
                       </Typography>
                     </Paper>
                   </Grid>
@@ -796,8 +796,8 @@ const QuantConnectRegistry: React.FC = () => {
                   variant="contained"
                   color="success"
                   startIcon={<PlayArrow />}
-                  onClick={handleStartSlimNode}
-                  disabled={slimNodeStatus?.running}
+                  onClick={handleStartEINode}
+                  disabled={eiNodeStatus?.running}
                 >
                   Start Data Feed
                 </Button>
@@ -805,8 +805,8 @@ const QuantConnectRegistry: React.FC = () => {
                   variant="contained"
                   color="error"
                   startIcon={<Stop />}
-                  onClick={handleStopSlimNode}
-                  disabled={!slimNodeStatus?.running}
+                  onClick={handleStopEINode}
+                  disabled={!eiNodeStatus?.running}
                 >
                   Stop Data Feed
                 </Button>

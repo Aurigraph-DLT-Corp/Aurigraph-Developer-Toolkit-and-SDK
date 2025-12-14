@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Crypto Exchange Service
  *
  * Connects to cryptocurrency exchanges (Binance, Coinbase, Kraken, etc.) via HTTP/2
- * REST APIs to stream real-time market data to Slim Nodes for tokenization.
+ * REST APIs to stream real-time market data to External Integration (EI) Nodes for tokenization.
  *
  * Architecture: Uses HTTP/2 polling with gRPC/Protobuf for internal streaming
  * instead of WebSockets for better performance and compatibility.
@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * - gRPC streaming for internal data distribution
  * - Automatic retry with exponential backoff
  * - Data normalization across different exchange formats
- * - Integration with Slim Node data pipeline via gRPC
+ * - Integration with External Integration (EI) Node data pipeline via gRPC
  * - 60-70% bandwidth reduction with Protocol Buffers
  *
  * @version 2.0.0 (Dec 8, 2025) - Migrated from WebSocket to HTTP/2 + gRPC

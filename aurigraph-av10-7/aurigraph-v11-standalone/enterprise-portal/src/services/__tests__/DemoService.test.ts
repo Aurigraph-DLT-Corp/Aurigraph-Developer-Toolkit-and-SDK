@@ -64,7 +64,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          slimNodesJson: '[]',
+          eiNodesJson: '[]',
         }
       });
 
@@ -78,7 +78,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        slimNodes: []
+        eiNodes: []
       };
 
       await DemoService.registerDemo(demoRequest);
@@ -110,7 +110,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channelsJson: '[]',
         validatorsJson: '[]',
         businessNodesJson: '[]',
-        slimNodesJson: '[]',
+        eiNodesJson: '[]',
       };
 
       (axios.post as any) = vi.fn().mockResolvedValue({
@@ -126,7 +126,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        slimNodes: []
+        eiNodes: []
       });
 
       expect(result.demoName).toBe('Supply Chain Demo');
@@ -147,7 +147,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        slimNodes: []
+        eiNodes: []
       };
 
       try {
@@ -179,7 +179,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          slimNodesJson: '[]',
+          eiNodesJson: '[]',
         }
       });
 
@@ -193,7 +193,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        slimNodes: []
+        eiNodes: []
       };
 
       await DemoService.registerDemo(demoRequest, 20, false);
@@ -226,7 +226,7 @@ describe('DemoService - API Endpoint Fix', () => {
             channelsJson: '[]',
             validatorsJson: '[]',
             businessNodesJson: '[]',
-            slimNodesJson: '[]',
+            eiNodesJson: '[]',
           },
           {
             id: 'demo-2',
@@ -245,7 +245,7 @@ describe('DemoService - API Endpoint Fix', () => {
             channelsJson: '[]',
             validatorsJson: '[]',
             businessNodesJson: '[]',
-            slimNodesJson: '[]',
+            eiNodesJson: '[]',
           }
         ]
       });
@@ -297,7 +297,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          slimNodesJson: '[]',
+          eiNodesJson: '[]',
         }
       });
 
@@ -331,7 +331,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          slimNodesJson: '[]',
+          eiNodesJson: '[]',
         }
       });
 
@@ -372,7 +372,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        slimNodes: []
+        eiNodes: []
       };
 
       try {
@@ -400,7 +400,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        slimNodes: []
+        eiNodes: []
       };
 
       try {

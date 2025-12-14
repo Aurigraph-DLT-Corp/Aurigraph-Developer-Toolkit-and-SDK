@@ -301,7 +301,7 @@ public class ExternalAPITokenizationResource {
             .map(info -> new StorageInfoResponse(
                 info.basePath,
                 info.totalSize,
-                info.slimNodeCount,
+                info.eiNodeCount,
                 info.channelCount,
                 info.compressionEnabled,
                 info.encryptionEnabled,
@@ -351,7 +351,7 @@ public class ExternalAPITokenizationResource {
     public record StorageInfoResponse(
         String basePath,
         long totalSize,
-        int slimNodeCount,
+        int eiNodeCount,
         int channelCount,
         boolean compressionEnabled,
         boolean encryptionEnabled,

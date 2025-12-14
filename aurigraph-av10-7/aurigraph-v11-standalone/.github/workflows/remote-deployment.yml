@@ -28,7 +28,7 @@ on:
           - full-restart
           - validators-only
           - business-only
-          - slim-only
+          - ei-only
 
 env:
   JAVA_VERSION: '21'
@@ -240,14 +240,14 @@ jobs:
             "business-only")
               deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
               ;;
-            "slim-only")
-              deploy_nodes "slim" 3 19020 19120 "200m" "700m" "1024m" "180m"
+            "ei-only")
+              deploy_nodes "ei" 3 19020 19120 "200m" "700m" "1024m" "180m"
               ;;
             "rolling"|"full-restart")
               # Deploy all node types
               deploy_nodes "validator" 5 19001 19101 "512m" "2g" "2500m" "256m"
               deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
-              deploy_nodes "slim" 3 19020 19120 "200m" "700m" "1024m" "180m"
+              deploy_nodes "ei" 3 19020 19120 "200m" "700m" "1024m" "180m"
               ;;
           esac
 
@@ -337,7 +337,7 @@ jobs:
           echo "|-----------|-------|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Validators | 5 | 19001-19005 | 2.5GB |" >> $GITHUB_STEP_SUMMARY
           echo "| Business | 3 | 19010-19012 | 1.2GB |" >> $GITHUB_STEP_SUMMARY
-          echo "| Slim | 3 | 19020-19022 | 1GB |" >> $GITHUB_STEP_SUMMARY
+          echo "| EI | 3 | 19020-19022 | 1GB |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Public Endpoints" >> $GITHUB_STEP_SUMMARY
           echo "- Info: https://${{ env.REMOTE_HOST }}/api/v12/info" >> $GITHUB_STEP_SUMMARY
@@ -427,4 +427,4 @@ jobs:
           echo "### Internal Nodes Tested" >> $GITHUB_STEP_SUMMARY
           echo "- Validators: 19001-19005" >> $GITHUB_STEP_SUMMARY
           echo "- Business: 19010-19012" >> $GITHUB_STEP_SUMMARY
-          echo "- Slim: 19020-19022" >> $GITHUB_STEP_SUMMARY
+          echo "- EI: 19020-19022" >> $GITHUB_STEP_SUMMARY

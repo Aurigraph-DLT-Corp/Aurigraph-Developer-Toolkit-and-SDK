@@ -35,7 +35,7 @@ interface Node {
 interface Props {
   validators?: Node[];
   businessNodes?: Node[];
-  slimNodes?: Node[];
+  eiNodes?: Node[];
   metrics?: {
     consensusHealth: string;
     uptime: number;
@@ -49,13 +49,13 @@ interface Props {
   };
 }
 
-export const NetworkHealthViz: React.FC<Props> = ({ validators = [], businessNodes = [], slimNodes = [], metrics: providedMetrics }) => {
+export const NetworkHealthViz: React.FC<Props> = ({ validators = [], businessNodes = [], eiNodes = [], metrics: providedMetrics }) => {
   // Calculate metrics from node arrays if not provided
   const metrics = providedMetrics || {
     consensusHealth: 'OPTIMAL',
     uptime: 99.9,
-    activePeers: validators.length + businessNodes.length + slimNodes.length,
-    totalPeers: validators.length + businessNodes.length + slimNodes.length,
+    activePeers: validators.length + businessNodes.length + eiNodes.length,
+    totalPeers: validators.length + businessNodes.length + eiNodes.length,
     activeValidators: validators.length,
     totalValidators: validators.length,
     chainSize: '2.4 TB',

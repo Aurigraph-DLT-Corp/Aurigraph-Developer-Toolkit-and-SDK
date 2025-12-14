@@ -20,7 +20,7 @@ import java.util.*;
  * - Merkle tree registry navigation
  * - Verification and proof generation
  *
- * Routes through Slim Node for lightweight data processing.
+ * Routes through External Integration (EI) Node for lightweight data processing.
  *
  * @author Aurigraph DLT Team
  * @version 12.0.0
@@ -39,7 +39,7 @@ public class QuantConnectResource {
     EquityTokenizationRegistry registry;
 
     @Inject
-    SlimNodeDataFeed slimNodeDataFeed;
+    EINodeDataFeed eiNodeDataFeed;
 
     // Default symbols to tokenize
     private static final List<String> DEFAULT_SYMBOLS = Arrays.asList(
@@ -74,7 +74,7 @@ public class QuantConnectResource {
             "blockNumber", stats.getBlockNumber(),
             "uniqueSymbols", stats.getUniqueSymbols()
         ));
-        response.put("slimNodeId", "slim-node-1");
+        response.put("eiNodeId", "ei-node-1");
         response.put("timestamp", Instant.now().toString());
 
         return Response.ok(response).build();
@@ -194,7 +194,7 @@ public class QuantConnectResource {
                 response.put("successful", batchResult.getSuccessful());
                 response.put("results", results);
                 response.put("merkleRoot", registry.getMerkleRoot());
-                response.put("slimNodeId", "slim-node-1");
+                response.put("eiNodeId", "ei-node-1");
                 response.put("timestamp", Instant.now().toString());
 
                 return Response.ok(response).build();
@@ -259,7 +259,7 @@ public class QuantConnectResource {
                 response.put("successful", results.stream().filter(TokenizationResult::isSuccess).count());
                 response.put("results", results.stream().map(this::tokenizationResultToMap).toList());
                 response.put("merkleRoot", registry.getMerkleRoot());
-                response.put("slimNodeId", "slim-node-1");
+                response.put("eiNodeId", "ei-node-1");
                 response.put("timestamp", Instant.now().toString());
 
                 return Uni.createFrom().item(Response.ok(response).build());
@@ -289,7 +289,7 @@ public class QuantConnectResource {
         response.put("uniqueSymbols", stats.getUniqueSymbols());
         response.put("symbolCounts", nav.getSymbolCounts());
         response.put("lastUpdate", stats.getLastUpdate().toString());
-        response.put("slimNodeId", "slim-node-1");
+        response.put("eiNodeId", "ei-node-1");
         response.put("timestamp", Instant.now().toString());
 
         return Response.ok(response).build();
@@ -566,7 +566,7 @@ public class QuantConnectResource {
         map.put("change24h", equity.getChange24h());
         map.put("tokenizedAt", equity.getTokenizedAt() != null ? equity.getTokenizedAt().toString() : null);
         map.put("source", equity.getSource());
-        map.put("slimNodeId", equity.getSlimNodeId());
+        map.put("eiNodeId", equity.getEINodeId());
         map.put("merkleRoot", equity.getMerkleRoot());
         map.put("blockHash", equity.getBlockHash());
         map.put("blockNumber", equity.getBlockNumber());
@@ -586,7 +586,7 @@ public class QuantConnectResource {
         map.put("timestamp", tx.getTimestamp() != null ? tx.getTimestamp().toString() : null);
         map.put("tokenizedAt", tx.getTokenizedAt() != null ? tx.getTokenizedAt().toString() : null);
         map.put("source", tx.getSource());
-        map.put("slimNodeId", tx.getSlimNodeId());
+        map.put("eiNodeId", tx.getEINodeId());
         map.put("merkleRoot", tx.getMerkleRoot());
         map.put("blockHash", tx.getBlockHash());
         map.put("blockNumber", tx.getBlockNumber());
@@ -601,7 +601,7 @@ public class QuantConnectResource {
         map.put("merkleRoot", result.getMerkleRoot());
         map.put("blockHash", result.getBlockHash());
         map.put("blockNumber", result.getBlockNumber());
-        map.put("slimNodeId", result.getSlimNodeId());
+        map.put("eiNodeId", result.getEINodeId());
         map.put("processingTimeMs", result.getProcessingTimeMs());
         map.put("message", result.getMessage());
         if (result.getErrorCode() != null) {
@@ -610,21 +610,21 @@ public class QuantConnectResource {
         return map;
     }
 
-    // ========== Slim Node Endpoints ==========
+    // ========== External Integration (EI) Node Endpoints ==========
 
     /**
      * GET /api/v12/quantconnect/slimnode/status
-     * Get Slim Node data feed status
+     * Get External Integration (EI) Node data feed status
      */
     @GET
     @Path("/slimnode/status")
-    public Response getSlimNodeStatus() {
+    public Response getEINodeStatus() {
         LOGGER.info("GET /api/v12/quantconnect/slimnode/status");
 
-        SlimNodeDataFeed.DataFeedStatus status = slimNodeDataFeed.getStatus();
+        EINodeDataFeed.DataFeedStatus status = eiNodeDataFeed.getStatus();
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("slimNodeId", status.getSlimNodeId());
+        response.put("eiNodeId", status.getEINodeId());
         response.put("running", status.isRunning());
         response.put("messagesProcessed", status.getMessagesProcessed());
         response.put("tokenizationsCompleted", status.getTokenizationsCompleted());
@@ -641,18 +641,18 @@ public class QuantConnectResource {
 
     /**
      * POST /api/v12/quantconnect/slimnode/start
-     * Start Slim Node data feed
+     * Start External Integration (EI) Node data feed
      */
     @POST
     @Path("/slimnode/start")
-    public Uni<Response> startSlimNode() {
+    public Uni<Response> startEINode() {
         LOGGER.info("POST /api/v12/quantconnect/slimnode/start");
 
-        return slimNodeDataFeed.start()
+        return eiNodeDataFeed.start()
             .map(status -> {
                 Map<String, Object> response = new LinkedHashMap<>();
-                response.put("message", "Slim Node data feed started");
-                response.put("slimNodeId", status.getSlimNodeId());
+                response.put("message", "External Integration (EI) Node data feed started");
+                response.put("eiNodeId", status.getEINodeId());
                 response.put("running", status.isRunning());
                 response.put("pollIntervalSeconds", status.getPollIntervalSeconds());
                 response.put("timestamp", Instant.now().toString());
@@ -663,18 +663,18 @@ public class QuantConnectResource {
 
     /**
      * POST /api/v12/quantconnect/slimnode/stop
-     * Stop Slim Node data feed
+     * Stop External Integration (EI) Node data feed
      */
     @POST
     @Path("/slimnode/stop")
-    public Uni<Response> stopSlimNode() {
+    public Uni<Response> stopEINode() {
         LOGGER.info("POST /api/v12/quantconnect/slimnode/stop");
 
-        return slimNodeDataFeed.stop()
+        return eiNodeDataFeed.stop()
             .map(status -> {
                 Map<String, Object> response = new LinkedHashMap<>();
-                response.put("message", "Slim Node data feed stopped");
-                response.put("slimNodeId", status.getSlimNodeId());
+                response.put("message", "External Integration (EI) Node data feed stopped");
+                response.put("eiNodeId", status.getEINodeId());
                 response.put("running", status.isRunning());
                 response.put("messagesProcessed", status.getMessagesProcessed());
                 response.put("tokenizationsCompleted", status.getTokenizationsCompleted());
@@ -686,19 +686,19 @@ public class QuantConnectResource {
 
     /**
      * POST /api/v12/quantconnect/slimnode/process/equities
-     * Manually trigger equity processing through Slim Node
+     * Manually trigger equity processing through External Integration (EI) Node
      */
     @POST
     @Path("/slimnode/process/equities")
-    public Uni<Response> processEquities(SlimNodeProcessRequest request) {
+    public Uni<Response> processEquities(EINodeProcessRequest request) {
         LOGGER.info("POST /api/v12/quantconnect/slimnode/process/equities");
 
         List<String> symbols = request != null && request.getSymbols() != null ? request.getSymbols() : null;
 
-        return slimNodeDataFeed.processEquities(symbols)
+        return eiNodeDataFeed.processEquities(symbols)
             .map(result -> {
                 Map<String, Object> response = new LinkedHashMap<>();
-                response.put("slimNodeId", result.getSlimNodeId());
+                response.put("eiNodeId", result.getEINodeId());
                 response.put("type", result.getType());
                 response.put("processed", result.getProcessed());
                 response.put("tokenized", result.getTokenized());
@@ -719,20 +719,20 @@ public class QuantConnectResource {
 
     /**
      * POST /api/v12/quantconnect/slimnode/process/transactions
-     * Manually trigger transaction processing through Slim Node
+     * Manually trigger transaction processing through External Integration (EI) Node
      */
     @POST
     @Path("/slimnode/process/transactions")
-    public Uni<Response> processTransactions(SlimNodeTransactionRequest request) {
+    public Uni<Response> processTransactions(EINodeTransactionRequest request) {
         LOGGER.info("POST /api/v12/quantconnect/slimnode/process/transactions");
 
         String symbol = request != null && request.getSymbol() != null ? request.getSymbol() : "AAPL";
         int limit = request != null && request.getLimit() > 0 ? request.getLimit() : 50;
 
-        return slimNodeDataFeed.processTransactions(symbol, limit)
+        return eiNodeDataFeed.processTransactions(symbol, limit)
             .map(result -> {
                 Map<String, Object> response = new LinkedHashMap<>();
-                response.put("slimNodeId", result.getSlimNodeId());
+                response.put("eiNodeId", result.getEINodeId());
                 response.put("type", result.getType());
                 response.put("processed", result.getProcessed());
                 response.put("tokenized", result.getTokenized());
@@ -770,14 +770,14 @@ public class QuantConnectResource {
         public void setLimit(int limit) { this.limit = limit; }
     }
 
-    public static class SlimNodeProcessRequest {
+    public static class EINodeProcessRequest {
         private List<String> symbols;
 
         public List<String> getSymbols() { return symbols; }
         public void setSymbols(List<String> symbols) { this.symbols = symbols; }
     }
 
-    public static class SlimNodeTransactionRequest {
+    public static class EINodeTransactionRequest {
         private String symbol;
         private int limit;
 

@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * Provides multi-channel configuration, transaction simulation, and performance monitoring
  * for production-scale testing of the Aurigraph V11 platform with validator, business,
- * and slim node configurations.
+ * and EI node configurations.
  *
  * @version 1.0.0
  * @author Aurigraph DLT - Demo Team
@@ -77,11 +77,11 @@ public class HighThroughputDemoResource {
      */
     @POST
     @Path("/channels/create")
-    @Operation(summary = "Create demo channel", description = "Create new demo channel with validator, business, and slim nodes")
+    @Operation(summary = "Create demo channel", description = "Create new demo channel with validator, business, and EI nodes")
     @APIResponse(responseCode = "201", description = "Channel created successfully")
     public Uni<Response> createDemoChannel(ChannelCreationRequest request) {
-        LOG.infof("Creating demo channel: %s with %d validators, %d business, %d slim nodes",
-                request.channelName, request.validatorNodeCount, request.businessNodeCount, request.slimNodeCount);
+        LOG.infof("Creating demo channel: %s with %d validators, %d business, %d EI nodes",
+                request.channelName, request.validatorNodeCount, request.businessNodeCount, request.eiNodeCount);
 
         return Uni.createFrom().item(() -> {
             DemoChannel channel = new DemoChannel();
@@ -96,8 +96,8 @@ public class HighThroughputDemoResource {
             // Create business nodes (full nodes)
             channel.businessNodes = createNodes("business", request.businessNodeCount, 9020);
 
-            // Create slim nodes (light clients)
-            channel.slimNodes = createNodes("slim", request.slimNodeCount, 9050);
+            // Create EI nodes (light clients)
+            channel.eiNodes = createNodes("ei", request.eiNodeCount, 9050);
 
             channels.put(channel.channelId, channel);
 
@@ -326,7 +326,7 @@ public class HighThroughputDemoResource {
             // Add metrics for all node types
             generateNodeMetricsForType(nodeMetrics, channel.validatorNodes, "validator");
             generateNodeMetricsForType(nodeMetrics, channel.businessNodes, "business");
-            generateNodeMetricsForType(nodeMetrics, channel.slimNodes, "slim");
+            generateNodeMetricsForType(nodeMetrics, channel.eiNodes, "ei");
 
             return Response.ok(Map.of(
                 "success", true,
@@ -390,7 +390,7 @@ public class HighThroughputDemoResource {
                     .count();
 
             int totalNodes = (int) channels.values().stream()
-                    .mapToLong(ch -> ch.validatorNodes.size() + ch.businessNodes.size() + ch.slimNodes.size())
+                    .mapToLong(ch -> ch.validatorNodes.size() + ch.businessNodes.size() + ch.eiNodes.size())
                     .sum();
 
             return Response.ok(Map.of(
@@ -454,7 +454,7 @@ public class HighThroughputDemoResource {
         public long createdAt;
         public List<Node> validatorNodes;
         public List<Node> businessNodes;
-        public List<Node> slimNodes;
+        public List<Node> eiNodes;
         public boolean enabled;
     }
 
@@ -486,7 +486,7 @@ public class HighThroughputDemoResource {
         public String channelName;
         public int validatorNodeCount;
         public int businessNodeCount;
-        public int slimNodeCount;
+        public int eiNodeCount;
         public long timestamp;
     }
 

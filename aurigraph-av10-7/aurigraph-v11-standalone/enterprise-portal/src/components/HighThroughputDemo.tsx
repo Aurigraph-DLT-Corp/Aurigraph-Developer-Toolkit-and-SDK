@@ -1,5 +1,5 @@
 // High Throughput Demo - Real-time TPS Performance with Multi-Node Architecture
-// Integrates QuantConnect, Weather, and News APIs through Slim Nodes
+// Integrates QuantConnect, Weather, and News APIs through External Integration (EI) Nodes
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Card, CardContent, Typography, Grid, Button, Paper, Chip,
@@ -40,7 +40,7 @@ interface TPSDataPoint {
 interface NodeConfig {
   validators: number;
   businessNodes: number;
-  slimNodes: number;
+  eiNodes: number;
 }
 
 interface DemoConfig {
@@ -299,7 +299,7 @@ export const HighThroughputDemo: React.FC = () => {
     nodes: {
       validators: 3,
       businessNodes: 5,
-      slimNodes: 12,
+      eiNodes: 12,
     },
     enableQuantConnect: true,
     enableWeather: true,
@@ -333,10 +333,10 @@ export const HighThroughputDemo: React.FC = () => {
 
   // Calculate throughput multiplier based on node configuration
   const calculateNodeMultiplier = useCallback(() => {
-    const { validators, businessNodes, slimNodes } = config.nodes;
+    const { validators, businessNodes, eiNodes } = config.nodes;
     const validatorBoost = Math.min(validators / 3, 2); // Up to 2x from validators
     const businessBoost = Math.min(businessNodes / 5, 1.5); // Up to 1.5x from business
-    const slimBoost = Math.min(slimNodes / 10, 1.8); // Up to 1.8x from slim nodes
+    const slimBoost = Math.min(eiNodes / 10, 1.8); // Up to 1.8x from EI nodes
     return validatorBoost * businessBoost * slimBoost;
   }, [config.nodes]);
 
@@ -392,11 +392,11 @@ export const HighThroughputDemo: React.FC = () => {
     const newTPS = Math.round(targetBase * (1 + variance));
 
     const newLatency = config.aiOptimization
-      ? 15 + Math.random() * 25 - (config.nodes.slimNodes * 0.5)
+      ? 15 + Math.random() * 25 - (config.nodes.eiNodes * 0.5)
       : 35 + Math.random() * 50;
 
     const newSuccessRate = 99.9 + Math.random() * 0.09 + (config.nodes.validators * 0.01);
-    const newMemory = 30 + Math.random() * 25 + (config.nodes.slimNodes * 1.5);
+    const newMemory = 30 + Math.random() * 25 + (config.nodes.eiNodes * 1.5);
 
     // Calculate per-API TPS
     const quantconnectTPS = config.enableQuantConnect ? Math.round(newTPS * 0.35) : 0;
@@ -436,7 +436,7 @@ export const HighThroughputDemo: React.FC = () => {
       quantconnect: [...prev.quantconnect.slice(-99), quantconnectTPS],
       weather: [...prev.weather.slice(-99), weatherTPS],
       news: [...prev.news.slice(-99), newsTPS],
-      nodes: [...prev.nodes.slice(-99), config.nodes.validators + config.nodes.businessNodes + config.nodes.slimNodes],
+      nodes: [...prev.nodes.slice(-99), config.nodes.validators + config.nodes.businessNodes + config.nodes.eiNodes],
       merkle: prev.merkle,
       tokens: prev.tokens,
     }));
@@ -610,13 +610,13 @@ export const HighThroughputDemo: React.FC = () => {
     return `${secs}s`;
   };
 
-  const totalNodes = config.nodes.validators + config.nodes.businessNodes + config.nodes.slimNodes;
+  const totalNodes = config.nodes.validators + config.nodes.businessNodes + config.nodes.eiNodes;
 
   // Pie chart data for node distribution
   const nodeDistribution = [
     { name: 'Validators', value: config.nodes.validators, color: SAPPHIRE.primary },
     { name: 'Business', value: config.nodes.businessNodes, color: SAPPHIRE.secondary },
-    { name: 'Slim', value: config.nodes.slimNodes, color: SAPPHIRE.accent },
+    { name: 'Slim', value: config.nodes.eiNodes, color: SAPPHIRE.accent },
   ];
 
   // API source distribution for pie chart - All blue spectrum
@@ -988,14 +988,14 @@ export const HighThroughputDemo: React.FC = () => {
 
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Chip icon={<CloudQueue />} label="Slim Nodes" sx={{ bgcolor: alpha(SAPPHIRE.accent, 0.2), color: SAPPHIRE.accent }} />
+                    <Chip icon={<CloudQueue />} label="External Integration (EI) Nodes" sx={{ bgcolor: alpha(SAPPHIRE.accent, 0.2), color: SAPPHIRE.accent }} />
                     <Typography variant="body2" sx={{ color: '#8BA4B4' }}>API Integration & Data Ingestion</Typography>
                   </Box>
-                  <Slider value={config.nodes.slimNodes} min={1} max={30} marks
-                    onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, slimNodes: v as number } }))}
+                  <Slider value={config.nodes.eiNodes} min={1} max={30} marks
+                    onChange={(_, v) => setConfig(prev => ({ ...prev, nodes: { ...prev.nodes, eiNodes: v as number } }))}
                     disabled={isRunning}
                     sx={{ color: SAPPHIRE.accent }} />
-                  <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.slimNodes} slim nodes (API throughput: {Math.round(config.nodes.slimNodes / 10 * 100)}%)</Typography>
+                  <Typography variant="caption" sx={{ color: '#5A7A8A' }}>Current: {config.nodes.eiNodes} EI nodes (API throughput: {Math.round(config.nodes.eiNodes / 10 * 100)}%)</Typography>
                 </Box>
 
                 <Divider sx={{ my: 3, borderColor: alpha(SAPPHIRE.primary, 0.2) }} />
@@ -1046,7 +1046,7 @@ export const HighThroughputDemo: React.FC = () => {
           {activeTab === 2 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>API Data Streams (via Slim Nodes)</Typography>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>API Data Streams (via External Integration (EI) Nodes)</Typography>
               </Grid>
 
               {/* API Toggle Controls */}
@@ -1236,20 +1236,20 @@ export const HighThroughputDemo: React.FC = () => {
                 </Card>
               </Grid>
 
-              {/* Slim Nodes Card - External APIs */}
+              {/* External Integration (EI) Nodes Card - External APIs */}
               <Grid item xs={12} md={4}>
                 <Card sx={{ ...METRIC_CARD, border: `1px solid ${alpha(SAPPHIRE.accent, 0.3)}`, position: 'relative' }} onClick={() => handleDrillDown('tokens')}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <CloudQueue sx={{ color: SAPPHIRE.accent }} />
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Slim Nodes</Typography>
-                      <Chip label={`${config.nodes.slimNodes} Active`} size="small" sx={{ bgcolor: alpha(SAPPHIRE.accent, 0.2), color: SAPPHIRE.accent, ml: 'auto' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>External Integration (EI) Nodes</Typography>
+                      <Chip label={`${config.nodes.eiNodes} Active`} size="small" sx={{ bgcolor: alpha(SAPPHIRE.accent, 0.2), color: SAPPHIRE.accent, ml: 'auto' }} />
                     </Box>
                     <Box>
                       <Typography variant="h4" sx={{ color: SAPPHIRE.accent, fontWeight: 700 }}>
-                        {formatNumber(Math.round(currentTPS * 0.65 / Math.max(1, config.nodes.slimNodes)))}
+                        {formatNumber(Math.round(currentTPS * 0.65 / Math.max(1, config.nodes.eiNodes)))}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#8BA4B4' }}>TPS per slim node</Typography>
+                      <Typography variant="body2" sx={{ color: '#8BA4B4' }}>TPS per EI node</Typography>
                       <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                           <Typography variant="caption" sx={{ color: '#5A7A8A' }}>API Ingestion</Typography>
