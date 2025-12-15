@@ -7,6 +7,7 @@ import io.aurigraph.v11.quantconnect.EquityTokenizationRegistry;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -43,17 +44,35 @@ public class EINodeResource {
 
     private static final Logger LOG = Logger.getLogger(EINodeResource.class);
 
+    // Use Instance<T> for lazy/safe injection - prevents startup failures
     @Inject
-    EINodeDataFeed eiNodeDataFeed;
+    Instance<EINodeDataFeed> eiNodeDataFeedInstance;
 
     @Inject
-    EINodeExchangeIntegration exchangeIntegration;
+    Instance<EINodeExchangeIntegration> exchangeIntegrationInstance;
 
     @Inject
-    CryptoExchangeService exchangeService;
+    Instance<CryptoExchangeService> exchangeServiceInstance;
 
     @Inject
-    EquityTokenizationRegistry registry;
+    Instance<EquityTokenizationRegistry> registryInstance;
+
+    // Safe accessor methods
+    private EINodeDataFeed getEiNodeDataFeed() {
+        return eiNodeDataFeedInstance.isResolvable() ? eiNodeDataFeedInstance.get() : null;
+    }
+
+    private EINodeExchangeIntegration getExchangeIntegration() {
+        return exchangeIntegrationInstance.isResolvable() ? exchangeIntegrationInstance.get() : null;
+    }
+
+    private CryptoExchangeService getExchangeService() {
+        return exchangeServiceInstance.isResolvable() ? exchangeServiceInstance.get() : null;
+    }
+
+    private EquityTokenizationRegistry getRegistry() {
+        return registryInstance.isResolvable() ? registryInstance.get() : null;
+    }
 
     // ========================================================================
     // EI Node Overview & Health
@@ -73,42 +92,72 @@ public class EINodeResource {
             response.put("version", "12.1.0");
             response.put("description", "Lightweight nodes for external API integrations and data processing");
 
-            // Data Feed Status (with null checks)
-            if (eiNodeDataFeed != null) {
-                var dataFeedStatus = eiNodeDataFeed.getStatus();
-                response.put("dataFeed", Map.of(
-                    "nodeId", dataFeedStatus.getEINodeId(),
-                    "running", dataFeedStatus.isRunning(),
-                    "messagesProcessed", dataFeedStatus.getMessagesProcessed(),
-                    "tokenizationsCompleted", dataFeedStatus.getTokenizationsCompleted(),
-                    "uptimeSeconds", dataFeedStatus.getUptimeSeconds()
-                ));
+            // Data Feed Status (with lazy injection checks)
+            EINodeDataFeed dataFeed = getEiNodeDataFeed();
+            if (dataFeed != null) {
+                try {
+                    var dataFeedStatus = dataFeed.getStatus();
+                    if (dataFeedStatus != null) {
+                        response.put("dataFeed", Map.of(
+                            "nodeId", dataFeedStatus.getEINodeId() != null ? dataFeedStatus.getEINodeId() : "unknown",
+                            "running", dataFeedStatus.isRunning(),
+                            "messagesProcessed", dataFeedStatus.getMessagesProcessed(),
+                            "tokenizationsCompleted", dataFeedStatus.getTokenizationsCompleted(),
+                            "uptimeSeconds", dataFeedStatus.getUptimeSeconds()
+                        ));
+                    } else {
+                        response.put("dataFeed", Map.of("status", "NO_STATUS"));
+                    }
+                } catch (Exception ex) {
+                    LOG.debugf("DataFeed status unavailable: %s", ex.getMessage());
+                    response.put("dataFeed", Map.of("status", "UNAVAILABLE"));
+                }
             } else {
                 response.put("dataFeed", Map.of("status", "NOT_INITIALIZED"));
             }
 
-            // Exchange Integration Status (with null checks)
-            if (exchangeIntegration != null) {
-                var exchangeMetrics = exchangeIntegration.getMetrics();
-                response.put("exchangeIntegration", Map.of(
-                    "totalNodes", exchangeMetrics.totalEINodes(),
-                    "activeSubscriptions", exchangeMetrics.activeSubscriptions(),
-                    "tickersProcessed", exchangeMetrics.totalTickersProcessed(),
-                    "tradesProcessed", exchangeMetrics.totalTradesProcessed(),
-                    "tokenizations", exchangeMetrics.totalTokenizationsCompleted()
-                ));
+            // Exchange Integration Status (with lazy injection checks)
+            EINodeExchangeIntegration exchange = getExchangeIntegration();
+            if (exchange != null) {
+                try {
+                    var exchangeMetrics = exchange.getMetrics();
+                    if (exchangeMetrics != null) {
+                        response.put("exchangeIntegration", Map.of(
+                            "totalNodes", exchangeMetrics.totalEINodes(),
+                            "activeSubscriptions", exchangeMetrics.activeSubscriptions(),
+                            "tickersProcessed", exchangeMetrics.totalTickersProcessed(),
+                            "tradesProcessed", exchangeMetrics.totalTradesProcessed(),
+                            "tokenizations", exchangeMetrics.totalTokenizationsCompleted()
+                        ));
+                    } else {
+                        response.put("exchangeIntegration", Map.of("status", "NO_METRICS"));
+                    }
+                } catch (Exception ex) {
+                    LOG.debugf("Exchange metrics unavailable: %s", ex.getMessage());
+                    response.put("exchangeIntegration", Map.of("status", "UNAVAILABLE"));
+                }
             } else {
                 response.put("exchangeIntegration", Map.of("status", "NOT_INITIALIZED"));
             }
 
-            // Registry Stats (with null checks)
-            if (registry != null) {
-                var registryStats = registry.getStatistics();
-                response.put("registry", Map.of(
-                    "totalEquities", registryStats.getTotalEquities(),
-                    "totalTransactions", registryStats.getTotalTransactions(),
-                    "merkleRoot", registryStats.getMerkleRoot()
-                ));
+            // Registry Stats (with lazy injection checks)
+            EquityTokenizationRegistry reg = getRegistry();
+            if (reg != null) {
+                try {
+                    var registryStats = reg.getStatistics();
+                    if (registryStats != null) {
+                        response.put("registry", Map.of(
+                            "totalEquities", registryStats.getTotalEquities(),
+                            "totalTransactions", registryStats.getTotalTransactions(),
+                            "merkleRoot", registryStats.getMerkleRoot() != null ? registryStats.getMerkleRoot() : "none"
+                        ));
+                    } else {
+                        response.put("registry", Map.of("status", "NO_STATS"));
+                    }
+                } catch (Exception ex) {
+                    LOG.debugf("Registry stats unavailable: %s", ex.getMessage());
+                    response.put("registry", Map.of("status", "UNAVAILABLE"));
+                }
             } else {
                 response.put("registry", Map.of("status", "NOT_INITIALIZED"));
             }
@@ -134,7 +183,16 @@ public class EINodeResource {
         List<Map<String, Object>> apis = new ArrayList<>();
 
         // QuantConnect
-        boolean qcRunning = eiNodeDataFeed != null && eiNodeDataFeed.getStatus().isRunning();
+        boolean qcRunning = false;
+        try {
+            EINodeDataFeed dataFeed = getEiNodeDataFeed();
+            if (dataFeed != null) {
+                var status = dataFeed.getStatus();
+                qcRunning = status != null && status.isRunning();
+            }
+        } catch (Exception e) {
+            LOG.debugf("QuantConnect status check failed: %s", e.getMessage());
+        }
         apis.add(Map.of(
             "name", "QuantConnect",
             "type", "MARKET_DATA",
@@ -142,9 +200,16 @@ public class EINodeResource {
         ));
 
         // Crypto Exchanges
-        Map<String, Boolean> exchangeStatus = exchangeService != null
-            ? exchangeService.getConnectionStatus()
-            : Map.of();
+        Map<String, Boolean> exchangeStatus = Map.of();
+        try {
+            CryptoExchangeService svc = getExchangeService();
+            if (svc != null) {
+                exchangeStatus = svc.getConnectionStatus();
+                if (exchangeStatus == null) exchangeStatus = Map.of();
+            }
+        } catch (Exception e) {
+            LOG.debugf("Exchange status check failed: %s", e.getMessage());
+        }
 
         for (String exchange : List.of("binance", "coinbase", "kraken")) {
             apis.add(Map.of(
@@ -174,16 +239,30 @@ public class EINodeResource {
             String nodeId = "ei-node-1";
             int activeNodes = 0;
 
-            if (eiNodeDataFeed != null) {
-                var status = eiNodeDataFeed.getStatus();
-                dataFeedUp = status.isRunning();
-                nodeId = status.getEINodeId();
+            EINodeDataFeed dataFeed = getEiNodeDataFeed();
+            if (dataFeed != null) {
+                try {
+                    var status = dataFeed.getStatus();
+                    if (status != null) {
+                        dataFeedUp = status.isRunning();
+                        nodeId = status.getEINodeId() != null ? status.getEINodeId() : "ei-node-1";
+                    }
+                } catch (Exception ex) {
+                    LOG.debugf("DataFeed health check failed: %s", ex.getMessage());
+                }
             }
 
-            if (exchangeIntegration != null) {
-                var metrics = exchangeIntegration.getMetrics();
-                exchangeUp = metrics.activeSubscriptions() > 0;
-                activeNodes = metrics.totalEINodes();
+            EINodeExchangeIntegration exchange = getExchangeIntegration();
+            if (exchange != null) {
+                try {
+                    var metrics = exchange.getMetrics();
+                    if (metrics != null) {
+                        exchangeUp = metrics.activeSubscriptions() > 0;
+                        activeNodes = metrics.totalEINodes();
+                    }
+                } catch (Exception ex) {
+                    LOG.debugf("Exchange health check failed: %s", ex.getMessage());
+                }
             }
 
             boolean healthy = dataFeedUp || exchangeUp || activeNodes > 0;
@@ -224,22 +303,46 @@ public class EINodeResource {
     public Response getDataFeedStatus() {
         LOG.info("GET /api/v12/ei-nodes/data-feed/status");
 
-        var status = eiNodeDataFeed.getStatus();
+        EINodeDataFeed dataFeed = getEiNodeDataFeed();
+        if (dataFeed == null) {
+            return Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Data feed service not available",
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("nodeId", status.getEINodeId());
-        response.put("running", status.isRunning());
-        response.put("messagesProcessed", status.getMessagesProcessed());
-        response.put("tokenizationsCompleted", status.getTokenizationsCompleted());
-        response.put("totalEquities", status.getTotalEquities());
-        response.put("totalTransactions", status.getTotalTransactions());
-        response.put("merkleRoot", status.getMerkleRoot());
-        response.put("uptimeSeconds", status.getUptimeSeconds());
-        response.put("pollIntervalSeconds", status.getPollIntervalSeconds());
-        response.put("trackedSymbols", status.getTrackedSymbols());
-        response.put("timestamp", status.getTimestamp().toString());
+        try {
+            var status = dataFeed.getStatus();
+            if (status == null) {
+                return Response.ok(Map.of(
+                    "status", "NO_STATUS",
+                    "timestamp", Instant.now().toString()
+                )).build();
+            }
 
-        return Response.ok(response).build();
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("nodeId", status.getEINodeId() != null ? status.getEINodeId() : "unknown");
+            response.put("running", status.isRunning());
+            response.put("messagesProcessed", status.getMessagesProcessed());
+            response.put("tokenizationsCompleted", status.getTokenizationsCompleted());
+            response.put("totalEquities", status.getTotalEquities());
+            response.put("totalTransactions", status.getTotalTransactions());
+            response.put("merkleRoot", status.getMerkleRoot() != null ? status.getMerkleRoot() : "none");
+            response.put("uptimeSeconds", status.getUptimeSeconds());
+            response.put("pollIntervalSeconds", status.getPollIntervalSeconds());
+            response.put("trackedSymbols", status.getTrackedSymbols() != null ? status.getTrackedSymbols() : List.of());
+            response.put("timestamp", status.getTimestamp() != null ? status.getTimestamp().toString() : Instant.now().toString());
+
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error getting data feed status");
+            return Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
     }
 
     /**
@@ -251,16 +354,30 @@ public class EINodeResource {
     public Uni<Response> startDataFeed() {
         LOG.info("POST /api/v12/ei-nodes/data-feed/start");
 
-        return eiNodeDataFeed.start()
+        EINodeDataFeed dataFeed = getEiNodeDataFeed();
+        if (dataFeed == null) {
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Data feed service not available",
+                "timestamp", Instant.now().toString()
+            )).build());
+        }
+
+        return dataFeed.start()
             .map(status -> {
                 Map<String, Object> response = new LinkedHashMap<>();
                 response.put("message", "EI Node data feed started");
-                response.put("nodeId", status.getEINodeId());
-                response.put("running", status.isRunning());
-                response.put("pollIntervalSeconds", status.getPollIntervalSeconds());
+                response.put("nodeId", status != null && status.getEINodeId() != null ? status.getEINodeId() : "unknown");
+                response.put("running", status != null && status.isRunning());
+                response.put("pollIntervalSeconds", status != null ? status.getPollIntervalSeconds() : 0);
                 response.put("timestamp", Instant.now().toString());
                 return Response.ok(response).build();
-            });
+            })
+            .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build());
     }
 
     /**
@@ -272,17 +389,31 @@ public class EINodeResource {
     public Uni<Response> stopDataFeed() {
         LOG.info("POST /api/v12/ei-nodes/data-feed/stop");
 
-        return eiNodeDataFeed.stop()
+        EINodeDataFeed dataFeed = getEiNodeDataFeed();
+        if (dataFeed == null) {
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Data feed service not available",
+                "timestamp", Instant.now().toString()
+            )).build());
+        }
+
+        return dataFeed.stop()
             .map(status -> {
                 Map<String, Object> response = new LinkedHashMap<>();
                 response.put("message", "EI Node data feed stopped");
-                response.put("nodeId", status.getEINodeId());
-                response.put("running", status.isRunning());
-                response.put("messagesProcessed", status.getMessagesProcessed());
-                response.put("tokenizationsCompleted", status.getTokenizationsCompleted());
+                response.put("nodeId", status != null && status.getEINodeId() != null ? status.getEINodeId() : "unknown");
+                response.put("running", status != null && status.isRunning());
+                response.put("messagesProcessed", status != null ? status.getMessagesProcessed() : 0);
+                response.put("tokenizationsCompleted", status != null ? status.getTokenizationsCompleted() : 0);
                 response.put("timestamp", Instant.now().toString());
                 return Response.ok(response).build();
-            });
+            })
+            .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build());
     }
 
     /**
@@ -294,6 +425,15 @@ public class EINodeResource {
     public Uni<Response> processData(ProcessRequest request) {
         LOG.info("POST /api/v12/ei-nodes/data-feed/process");
 
+        EINodeDataFeed dataFeed = getEiNodeDataFeed();
+        if (dataFeed == null) {
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Data feed service not available",
+                "timestamp", Instant.now().toString()
+            )).build());
+        }
+
         List<String> symbols = request != null && request.symbols != null ? request.symbols : null;
         String type = request != null && request.type != null ? request.type : "equities";
 
@@ -301,25 +441,35 @@ public class EINodeResource {
             String symbol = symbols != null && !symbols.isEmpty() ? symbols.get(0) : "AAPL";
             int limit = request != null && request.limit > 0 ? request.limit : 50;
 
-            return eiNodeDataFeed.processTransactions(symbol, limit)
+            return dataFeed.processTransactions(symbol, limit)
                 .map(result -> Response.ok(Map.of(
-                    "nodeId", result.getEINodeId(),
-                    "type", result.getType(),
-                    "processed", result.getProcessed(),
-                    "tokenized", result.getTokenized(),
-                    "processingTimeMs", result.getProcessingTimeMs(),
-                    "merkleRoot", result.getMerkleRoot(),
+                    "nodeId", result != null && result.getEINodeId() != null ? result.getEINodeId() : "unknown",
+                    "type", result != null && result.getType() != null ? result.getType() : "transactions",
+                    "processed", result != null ? result.getProcessed() : 0,
+                    "tokenized", result != null ? result.getTokenized() : 0,
+                    "processingTimeMs", result != null ? result.getProcessingTimeMs() : 0,
+                    "merkleRoot", result != null && result.getMerkleRoot() != null ? result.getMerkleRoot() : "none",
+                    "timestamp", Instant.now().toString()
+                )).build())
+                .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                    "status", "ERROR",
+                    "message", e.getMessage(),
                     "timestamp", Instant.now().toString()
                 )).build());
         } else {
-            return eiNodeDataFeed.processEquities(symbols)
+            return dataFeed.processEquities(symbols)
                 .map(result -> Response.ok(Map.of(
-                    "nodeId", result.getEINodeId(),
-                    "type", result.getType(),
-                    "processed", result.getProcessed(),
-                    "tokenized", result.getTokenized(),
-                    "processingTimeMs", result.getProcessingTimeMs(),
-                    "merkleRoot", result.getMerkleRoot(),
+                    "nodeId", result != null && result.getEINodeId() != null ? result.getEINodeId() : "unknown",
+                    "type", result != null && result.getType() != null ? result.getType() : "equities",
+                    "processed", result != null ? result.getProcessed() : 0,
+                    "tokenized", result != null ? result.getTokenized() : 0,
+                    "processingTimeMs", result != null ? result.getProcessingTimeMs() : 0,
+                    "merkleRoot", result != null && result.getMerkleRoot() != null ? result.getMerkleRoot() : "none",
+                    "timestamp", Instant.now().toString()
+                )).build())
+                .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                    "status", "ERROR",
+                    "message", e.getMessage(),
                     "timestamp", Instant.now().toString()
                 )).build());
         }
@@ -338,25 +488,49 @@ public class EINodeResource {
     public Response getExchangeNodes() {
         LOG.info("GET /api/v12/ei-nodes/exchange/nodes");
 
-        var nodes = exchangeIntegration.getEINodes();
-
-        List<Map<String, Object>> nodeList = new ArrayList<>();
-        for (var entry : nodes.entrySet()) {
-            var config = entry.getValue();
-            nodeList.add(Map.of(
-                "nodeId", config.nodeId(),
-                "name", config.name(),
-                "status", config.status().name(),
-                "assignedPairs", config.assignedPairs(),
-                "lastUpdated", config.lastUpdated()
-            ));
+        EINodeExchangeIntegration exchange = getExchangeIntegration();
+        if (exchange == null) {
+            return Response.ok(Map.of(
+                "nodes", List.of(),
+                "count", 0,
+                "status", "NOT_INITIALIZED",
+                "timestamp", Instant.now().toString()
+            )).build();
         }
 
-        return Response.ok(Map.of(
-            "nodes", nodeList,
-            "count", nodeList.size(),
-            "timestamp", Instant.now().toString()
-        )).build();
+        try {
+            var nodes = exchange.getEINodes();
+            if (nodes == null) nodes = Map.of();
+
+            List<Map<String, Object>> nodeList = new ArrayList<>();
+            for (var entry : nodes.entrySet()) {
+                var config = entry.getValue();
+                if (config != null) {
+                    nodeList.add(Map.of(
+                        "nodeId", config.nodeId() != null ? config.nodeId() : "unknown",
+                        "name", config.name() != null ? config.name() : "unknown",
+                        "status", config.status() != null ? config.status().name() : "UNKNOWN",
+                        "assignedPairs", config.assignedPairs() != null ? config.assignedPairs() : List.of(),
+                        "lastUpdated", config.lastUpdated() != null ? config.lastUpdated() : Instant.now().toString()
+                    ));
+                }
+            }
+
+            return Response.ok(Map.of(
+                "nodes", nodeList,
+                "count", nodeList.size(),
+                "timestamp", Instant.now().toString()
+            )).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error getting exchange nodes");
+            return Response.ok(Map.of(
+                "nodes", List.of(),
+                "count", 0,
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
     }
 
     /**
@@ -368,19 +542,44 @@ public class EINodeResource {
     public Response getExchangeMetrics() {
         LOG.info("GET /api/v12/ei-nodes/exchange/metrics");
 
-        var metrics = exchangeIntegration.getMetrics();
+        EINodeExchangeIntegration exchange = getExchangeIntegration();
+        if (exchange == null) {
+            return Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "totalTickersProcessed", 0,
+                "totalEINodes", 0,
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("totalTickersProcessed", metrics.totalTickersProcessed());
-        response.put("totalTradesProcessed", metrics.totalTradesProcessed());
-        response.put("totalTokenizationsCompleted", metrics.totalTokenizationsCompleted());
-        response.put("totalBatchesProcessed", metrics.totalBatchesProcessed());
-        response.put("totalEINodes", metrics.totalEINodes());
-        response.put("activeSubscriptions", metrics.activeSubscriptions());
-        response.put("nodeMetrics", metrics.nodeMetrics());
-        response.put("timestamp", Instant.now().toString());
+        try {
+            var metrics = exchange.getMetrics();
+            if (metrics == null) {
+                return Response.ok(Map.of(
+                    "status", "NO_METRICS",
+                    "timestamp", Instant.now().toString()
+                )).build();
+            }
 
-        return Response.ok(response).build();
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("totalTickersProcessed", metrics.totalTickersProcessed());
+            response.put("totalTradesProcessed", metrics.totalTradesProcessed());
+            response.put("totalTokenizationsCompleted", metrics.totalTokenizationsCompleted());
+            response.put("totalBatchesProcessed", metrics.totalBatchesProcessed());
+            response.put("totalEINodes", metrics.totalEINodes());
+            response.put("activeSubscriptions", metrics.activeSubscriptions());
+            response.put("nodeMetrics", metrics.nodeMetrics() != null ? metrics.nodeMetrics() : Map.of());
+            response.put("timestamp", Instant.now().toString());
+
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error getting exchange metrics");
+            return Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
     }
 
     /**
@@ -400,7 +599,16 @@ public class EINodeResource {
 
         List<String> pairs = request.pairs != null ? request.pairs : List.of("BTC/USDT", "ETH/USDT");
 
-        return exchangeIntegration.assignExchangeToEINode(request.nodeId, request.exchange, pairs)
+        EINodeExchangeIntegration exchange = getExchangeIntegration();
+        if (exchange == null) {
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Exchange integration service not available",
+                "timestamp", Instant.now().toString()
+            )).build());
+        }
+
+        return exchange.assignExchangeToEINode(request.nodeId, request.exchange, pairs)
             .map(success -> {
                 if (success) {
                     return Response.ok(Map.of(
@@ -415,7 +623,12 @@ public class EINodeResource {
                         .entity(Map.of("error", "EI node not found: " + request.nodeId))
                         .build();
                 }
-            });
+            })
+            .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build());
     }
 
     /**
@@ -435,7 +648,16 @@ public class EINodeResource {
 
         List<String> pairs = request.pairs != null ? request.pairs : List.of("BTC/USDT", "ETH/USDT");
 
-        return exchangeIntegration.startStreaming(request.exchange, pairs)
+        EINodeExchangeIntegration exchange = getExchangeIntegration();
+        if (exchange == null) {
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Exchange integration service not available",
+                "timestamp", Instant.now().toString()
+            )).build());
+        }
+
+        return exchange.startStreaming(request.exchange, pairs)
             .map(success -> {
                 if (success) {
                     return Response.ok(Map.of(
@@ -449,7 +671,12 @@ public class EINodeResource {
                         .entity(Map.of("error", "Failed to start streaming"))
                         .build();
                 }
-            });
+            })
+            .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build());
     }
 
     /**
@@ -467,13 +694,30 @@ public class EINodeResource {
                 .build();
         }
 
-        exchangeIntegration.stopStreaming(request.exchange);
+        EINodeExchangeIntegration exchange = getExchangeIntegration();
+        if (exchange == null) {
+            return Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Exchange integration service not available",
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
 
-        return Response.ok(Map.of(
-            "message", "Exchange streaming stopped",
-            "exchange", request.exchange,
-            "timestamp", Instant.now().toString()
-        )).build();
+        try {
+            exchange.stopStreaming(request.exchange);
+            return Response.ok(Map.of(
+                "message", "Exchange streaming stopped",
+                "exchange", request.exchange,
+                "timestamp", Instant.now().toString()
+            )).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error stopping exchange stream");
+            return Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
     }
 
     /**
@@ -492,12 +736,26 @@ public class EINodeResource {
             ? request.pairs
             : List.of("BTC/USDT", "ETH/USDT", "SOL/USDT");
 
-        return exchangeIntegration.autoDistributeExchanges(exchanges, pairs)
+        EINodeExchangeIntegration exchange = getExchangeIntegration();
+        if (exchange == null) {
+            return Uni.createFrom().item(Response.ok(Map.of(
+                "status", "NOT_INITIALIZED",
+                "message", "Exchange integration service not available",
+                "timestamp", Instant.now().toString()
+            )).build());
+        }
+
+        return exchange.autoDistributeExchanges(exchanges, pairs)
             .map(distribution -> Response.ok(Map.of(
                 "message", "Exchanges auto-distributed across EI nodes",
-                "distribution", distribution,
+                "distribution", distribution != null ? distribution : Map.of(),
                 "exchanges", exchanges,
                 "pairs", pairs,
+                "timestamp", Instant.now().toString()
+            )).build())
+            .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                "status", "ERROR",
+                "message", e.getMessage(),
                 "timestamp", Instant.now().toString()
             )).build());
     }
@@ -515,48 +773,75 @@ public class EINodeResource {
     public Response listExternalAPIs() {
         LOG.info("GET /api/v12/ei-nodes/external-apis");
 
-        var exchangeStatus = exchangeService.getConnectionStatus();
-        var dataFeedStatus = eiNodeDataFeed.getStatus();
+        try {
+            Map<String, Boolean> exchangeStatus = Map.of();
+            CryptoExchangeService svc = getExchangeService();
+            if (svc != null) {
+                exchangeStatus = svc.getConnectionStatus();
+                if (exchangeStatus == null) exchangeStatus = Map.of();
+            }
 
-        List<Map<String, Object>> apis = new ArrayList<>();
+            boolean dataFeedRunning = false;
+            EINodeDataFeed dataFeed = getEiNodeDataFeed();
+            if (dataFeed != null) {
+                try {
+                    var status = dataFeed.getStatus();
+                    dataFeedRunning = status != null && status.isRunning();
+                } catch (Exception ex) {
+                    LOG.debugf("DataFeed status unavailable: %s", ex.getMessage());
+                }
+            }
 
-        // QuantConnect
-        apis.add(Map.of(
-            "id", "quantconnect",
-            "name", "QuantConnect",
-            "type", "MARKET_DATA",
-            "description", "Financial market data and algorithmic trading platform",
-            "status", dataFeedStatus.isRunning() ? "ACTIVE" : "IDLE",
-            "endpoints", List.of(
-                "/api/v12/ei-nodes/data-feed/status",
-                "/api/v12/ei-nodes/data-feed/start",
-                "/api/v12/ei-nodes/data-feed/stop"
-            ),
-            "supportedAssets", List.of("Equities", "Transactions")
-        ));
+            List<Map<String, Object>> apis = new ArrayList<>();
 
-        // Crypto Exchanges
-        for (String exchange : List.of("binance", "coinbase", "kraken", "okx", "bybit")) {
+            // QuantConnect
             apis.add(Map.of(
-                "id", exchange,
-                "name", exchange.substring(0, 1).toUpperCase() + exchange.substring(1),
-                "type", "CRYPTO_EXCHANGE",
-                "description", "Real-time cryptocurrency market data",
-                "status", exchangeStatus.getOrDefault(exchange, false) ? "CONNECTED" : "DISCONNECTED",
+                "id", "quantconnect",
+                "name", "QuantConnect",
+                "type", "MARKET_DATA",
+                "description", "Financial market data and algorithmic trading platform",
+                "status", dataFeedRunning ? "ACTIVE" : "IDLE",
                 "endpoints", List.of(
-                    "/api/v12/exchanges/" + exchange + "/ticker/{pair}",
-                    "/api/v12/exchanges/" + exchange + "/connect",
-                    "/api/v12/exchanges/" + exchange + "/disconnect"
+                    "/api/v12/ei-nodes/data-feed/status",
+                    "/api/v12/ei-nodes/data-feed/start",
+                    "/api/v12/ei-nodes/data-feed/stop"
                 ),
-                "supportedAssets", List.of("BTC", "ETH", "SOL", "XRP")
+                "supportedAssets", List.of("Equities", "Transactions")
             ));
-        }
 
-        return Response.ok(Map.of(
-            "externalAPIs", apis,
-            "count", apis.size(),
-            "timestamp", Instant.now().toString()
-        )).build();
+            // Crypto Exchanges
+            final Map<String, Boolean> finalExchangeStatus = exchangeStatus;
+            for (String exchange : List.of("binance", "coinbase", "kraken", "okx", "bybit")) {
+                apis.add(Map.of(
+                    "id", exchange,
+                    "name", exchange.substring(0, 1).toUpperCase() + exchange.substring(1),
+                    "type", "CRYPTO_EXCHANGE",
+                    "description", "Real-time cryptocurrency market data",
+                    "status", finalExchangeStatus.getOrDefault(exchange, false) ? "CONNECTED" : "DISCONNECTED",
+                    "endpoints", List.of(
+                        "/api/v12/exchanges/" + exchange + "/ticker/{pair}",
+                        "/api/v12/exchanges/" + exchange + "/connect",
+                        "/api/v12/exchanges/" + exchange + "/disconnect"
+                    ),
+                    "supportedAssets", List.of("BTC", "ETH", "SOL", "XRP")
+                ));
+            }
+
+            return Response.ok(Map.of(
+                "externalAPIs", apis,
+                "count", apis.size(),
+                "timestamp", Instant.now().toString()
+            )).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error listing external APIs");
+            return Response.ok(Map.of(
+                "externalAPIs", List.of(),
+                "count", 0,
+                "status", "ERROR",
+                "message", e.getMessage(),
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
     }
 
     /**
@@ -571,11 +856,24 @@ public class EINodeResource {
         LOG.infof("POST /api/v12/ei-nodes/external-apis/%s/connect", apiId);
 
         if ("quantconnect".equalsIgnoreCase(apiId)) {
-            return eiNodeDataFeed.start()
+            EINodeDataFeed dataFeed = getEiNodeDataFeed();
+            if (dataFeed == null) {
+                return Uni.createFrom().item(Response.ok(Map.of(
+                    "status", "NOT_INITIALIZED",
+                    "message", "Data feed service not available",
+                    "timestamp", Instant.now().toString()
+                )).build());
+            }
+            return dataFeed.start()
                 .map(status -> Response.ok(Map.of(
                     "message", "Connected to QuantConnect",
                     "apiId", apiId,
-                    "running", status.isRunning(),
+                    "running", status != null && status.isRunning(),
+                    "timestamp", Instant.now().toString()
+                )).build())
+                .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                    "status", "ERROR",
+                    "message", e.getMessage(),
                     "timestamp", Instant.now().toString()
                 )).build());
         } else {
@@ -584,7 +882,16 @@ public class EINodeResource {
                 ? request.pairs
                 : List.of("BTC/USDT", "ETH/USDT");
 
-            return exchangeService.connectToExchange(apiId.toLowerCase(), pairs)
+            CryptoExchangeService svc = getExchangeService();
+            if (svc == null) {
+                return Uni.createFrom().item(Response.ok(Map.of(
+                    "status", "NOT_INITIALIZED",
+                    "message", "Exchange service not available",
+                    "timestamp", Instant.now().toString()
+                )).build());
+            }
+
+            return svc.connectToExchange(apiId.toLowerCase(), pairs)
                 .map(success -> {
                     if (success) {
                         return Response.ok(Map.of(
@@ -598,7 +905,12 @@ public class EINodeResource {
                             .entity(Map.of("error", "Failed to connect to " + apiId))
                             .build();
                     }
-                });
+                })
+                .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                    "status", "ERROR",
+                    "message", e.getMessage(),
+                    "timestamp", Instant.now().toString()
+                )).build());
         }
     }
 
@@ -612,21 +924,50 @@ public class EINodeResource {
         LOG.infof("POST /api/v12/ei-nodes/external-apis/%s/disconnect", apiId);
 
         if ("quantconnect".equalsIgnoreCase(apiId)) {
-            return eiNodeDataFeed.stop()
+            EINodeDataFeed dataFeed = getEiNodeDataFeed();
+            if (dataFeed == null) {
+                return Uni.createFrom().item(Response.ok(Map.of(
+                    "status", "NOT_INITIALIZED",
+                    "message", "Data feed service not available",
+                    "timestamp", Instant.now().toString()
+                )).build());
+            }
+            return dataFeed.stop()
                 .map(status -> Response.ok(Map.of(
                     "message", "Disconnected from QuantConnect",
                     "apiId", apiId,
-                    "running", status.isRunning(),
+                    "running", status != null && status.isRunning(),
+                    "timestamp", Instant.now().toString()
+                )).build())
+                .onFailure().recoverWithItem(e -> Response.ok(Map.of(
+                    "status", "ERROR",
+                    "message", e.getMessage(),
                     "timestamp", Instant.now().toString()
                 )).build());
         } else {
             // Crypto exchange
-            exchangeService.disconnectFromExchange(apiId.toLowerCase());
-            return Uni.createFrom().item(Response.ok(Map.of(
-                "message", "Disconnected from " + apiId,
-                "apiId", apiId,
-                "timestamp", Instant.now().toString()
-            )).build());
+            CryptoExchangeService svc = getExchangeService();
+            if (svc == null) {
+                return Uni.createFrom().item(Response.ok(Map.of(
+                    "status", "NOT_INITIALIZED",
+                    "message", "Exchange service not available",
+                    "timestamp", Instant.now().toString()
+                )).build());
+            }
+            try {
+                svc.disconnectFromExchange(apiId.toLowerCase());
+                return Uni.createFrom().item(Response.ok(Map.of(
+                    "message", "Disconnected from " + apiId,
+                    "apiId", apiId,
+                    "timestamp", Instant.now().toString()
+                )).build());
+            } catch (Exception e) {
+                return Uni.createFrom().item(Response.ok(Map.of(
+                    "status", "ERROR",
+                    "message", e.getMessage(),
+                    "timestamp", Instant.now().toString()
+                )).build());
+            }
         }
     }
 
