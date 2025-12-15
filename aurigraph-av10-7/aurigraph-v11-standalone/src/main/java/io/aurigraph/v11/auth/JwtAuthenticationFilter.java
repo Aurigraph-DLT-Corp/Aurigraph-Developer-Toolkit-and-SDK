@@ -293,6 +293,24 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // EI (External Integration) Node endpoints (for external API integrations)
+        if (path.startsWith("/api/v12/ei-nodes/") || path.equals("/api/v12/ei-nodes")) {
+            LOG.debugf("EI Node endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Exchange endpoints (for crypto exchange integrations)
+        if (path.startsWith("/api/v12/exchanges/") || path.equals("/api/v12/exchanges")) {
+            LOG.debugf("Exchange endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // QuantConnect endpoints (for market data integration)
+        if (path.startsWith("/api/v12/quantconnect/")) {
+            LOG.debugf("QuantConnect endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         return false;
     }
 
