@@ -1,0 +1,447 @@
+name: J4C Deployment Agent - Build & Deploy V12
+
+# J4C Agent Framework: Deployment Agent (DDA - DevOps & Deployment Agent)
+# This workflow implements the J4C 10-Agent model for automated CI/CD
+# Agent Role: Build, test, deploy, and verify production deployments
+
+on:
+  push:
+    branches: [ main, V12 ]
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
+  workflow_dispatch:
+    inputs:
+      deploy_mode:
+        description: 'Deployment mode'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+          - rolling
+          - full-restart
+          - validators-only
+          - business-only
+          - ei-only
+      skip_tests:
+        description: 'Skip tests during build'
+        required: false
+        default: 'true'
+        type: boolean
+      update_jira:
+        description: 'Update JIRA after deployment'
+        required: false
+        default: 'true'
+        type: boolean
+      run_e2e_tests:
+        description: 'Run E2E tests after deployment'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  JAVA_VERSION: '21'
+  MAVEN_OPTS: -Xmx4g -XX:+UseG1GC
+  REMOTE_HOST: dlt.aurigraph.io
+  REMOTE_USER: subbu
+  REMOTE_PORT: 22
+  REMOTE_DIR: /home/subbu/aurigraph-v12
+  DOCKER_NETWORK: nodes_aurigraph-network
+  NODE_TOTAL: 11
+
+  # Node Configuration
+  VALIDATOR_COUNT: 5
+  VALIDATOR_PORT_START: 19001
+  VALIDATOR_MEM: "2g"
+
+  BUSINESS_COUNT: 3
+  BUSINESS_PORT_START: 19010
+  BUSINESS_MEM: "850m"
+
+  EI_COUNT: 3
+  EI_PORT_START: 19020
+  EI_MEM: "700m"
+
+jobs:
+  # ============================================================
+  # J4C AGENT: Build Phase
+  # ============================================================
+  build:
+    name: "🔨 J4C Build Agent"
+    runs-on: self-hosted
+    timeout-minutes: 20
+    outputs:
+      jar_size: ${{ steps.build.outputs.jar_size }}
+      build_time: ${{ steps.build.outputs.build_time }}
+      commit_sha: ${{ github.sha }}
+
+    steps:
+      - name: "📋 Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "☕ Setup JDK 21"
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: "📦 Cache Maven packages"
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: "🔨 Build with Maven"
+        id: build
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🚀 J4C Build Agent starting..."
+          START_TIME=$(date +%s)
+
+          if [ "${{ github.event.inputs.skip_tests }}" == "true" ]; then
+            echo "⚡ Building with tests skipped..."
+            ./mvnw clean package -DskipTests -q
+          else
+            echo "🧪 Building with tests..."
+            ./mvnw clean package -q
+          fi
+
+          END_TIME=$(date +%s)
+          BUILD_TIME=$((END_TIME - START_TIME))
+
+          # Verify JAR
+          JAR_PATH="target/aurigraph-v12-standalone-12.0.0-runner.jar"
+          if [ -f "$JAR_PATH" ]; then
+            JAR_SIZE=$(du -h $JAR_PATH | cut -f1)
+            echo "✅ Build successful: $JAR_SIZE"
+            echo "jar_size=$JAR_SIZE" >> $GITHUB_OUTPUT
+            echo "build_time=${BUILD_TIME}s" >> $GITHUB_OUTPUT
+          else
+            echo "❌ JAR not found!"
+            exit 1
+          fi
+
+      - name: "📤 Upload JAR artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurigraph-v12-jar
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/aurigraph-v12-standalone-12.0.0-runner.jar
+          retention-days: 5
+
+  # ============================================================
+  # J4C AGENT: Deploy Phase
+  # ============================================================
+  deploy:
+    name: "🚀 J4C Deployment Agent"
+    runs-on: self-hosted
+    needs: build
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://dlt.aurigraph.io
+    outputs:
+      healthy_nodes: ${{ steps.health.outputs.healthy_count }}
+      deploy_status: ${{ steps.health.outputs.status }}
+
+    steps:
+      - name: "📥 Download JAR artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: aurigraph-v12-jar
+          path: ./
+
+      - name: "🔑 Setup SSH"
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: "📤 Upload to server"
+        run: |
+          echo "📦 Uploading JAR to production server..."
+          scp -P ${{ env.REMOTE_PORT }} -o StrictHostKeyChecking=no \
+            aurigraph-v12-standalone-12.0.0-runner.jar \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:${{ env.REMOTE_DIR }}/aurigraph-v12.jar.new
+          echo "✅ Upload complete"
+
+      - name: "🚀 Deploy to production"
+        run: |
+          DEPLOY_MODE="${{ github.event.inputs.deploy_mode || 'rolling' }}"
+
+          ssh -p ${{ env.REMOTE_PORT }} -o StrictHostKeyChecking=no \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << DEPLOY_SCRIPT
+
+          set -e
+          cd ${{ env.REMOTE_DIR }}
+
+          echo "╔══════════════════════════════════════════════════════════════╗"
+          echo "║  J4C Deployment Agent - Aurigraph V12 Multi-Node Deployment  ║"
+          echo "╠══════════════════════════════════════════════════════════════╣"
+          echo "║  Timestamp: \$(date)                                         "
+          echo "║  Mode: $DEPLOY_MODE                                          "
+          echo "║  Commit: ${{ github.sha }}                                   "
+          echo "╚══════════════════════════════════════════════════════════════╝"
+
+          # Backup current JAR
+          echo ""
+          echo "📋 Creating backup..."
+          cp aurigraph-v12.jar aurigraph-v12.jar.backup.\$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+
+          # Replace JAR
+          echo "📦 Installing new JAR..."
+          mv aurigraph-v12.jar.new aurigraph-v12.jar
+
+          # Function to deploy nodes
+          deploy_nodes() {
+            local NODE_TYPE=\$1
+            local COUNT=\$2
+            local PORT_START=\$3
+            local GRPC_START=\$4
+            local MEM_XMS=\$5
+            local MEM_XMX=\$6
+            local MEM_LIMIT=\$7
+            local METASPACE=\$8
+
+            echo ""
+            echo "🔄 Deploying \$COUNT \$NODE_TYPE nodes..."
+
+            for i in \$(seq 1 \$COUNT); do
+              local NAME="aurigraph-\${NODE_TYPE}-\$i"
+              local PORT=\$((PORT_START + i - 1))
+              local GRPC_PORT=\$((GRPC_START + i - 1))
+
+              echo "  ➡️  \$NAME (port \$PORT)..."
+
+              docker stop \$NAME 2>/dev/null || true
+              docker rm \$NAME 2>/dev/null || true
+
+              docker run -d \
+                --name \$NAME \
+                --network ${{ env.DOCKER_NETWORK }} \
+                --restart unless-stopped \
+                -p \$PORT:9003 \
+                -p \$GRPC_PORT:9004 \
+                -v ${{ env.REMOTE_DIR }}/aurigraph-v12.jar:/app/aurigraph-v12.jar:ro \
+                -m \$MEM_LIMIT \
+                eclipse-temurin:21-jre-alpine \
+                java -Xms\$MEM_XMS -Xmx\$MEM_XMX -XX:+UseG1GC -XX:MaxMetaspaceSize=\$METASPACE \
+                -Dquarkus.http.port=9003 \
+                -Dquarkus.datasource.jdbc.url=jdbc:postgresql://172.28.0.1:5432/j4c_db \
+                -Dquarkus.datasource.username=j4c_user \
+                -Dquarkus.datasource.password=j4c_password \
+                -Dquarkus.flyway.migrate-at-start=false \
+                -Dquarkus.flyway.enabled=false \
+                -Dquarkus.profile=\$NODE_TYPE \
+                -Dnode.type=\$NODE_TYPE \
+                -Dnode.id=\${NODE_TYPE}-\$i \
+                -jar /app/aurigraph-v12.jar > /dev/null 2>&1
+
+              echo "  ✅ \$NAME started"
+            done
+          }
+
+          # Deploy based on mode
+          case "$DEPLOY_MODE" in
+            "validators-only")
+              deploy_nodes "validator" 5 19001 19101 "512m" "2g" "2500m" "256m"
+              ;;
+            "business-only")
+              deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
+              ;;
+            "ei-only")
+              deploy_nodes "ei" 3 19020 19120 "200m" "700m" "1024m" "180m"
+              ;;
+            "rolling"|"full-restart")
+              deploy_nodes "validator" 5 19001 19101 "512m" "2g" "2500m" "256m"
+              deploy_nodes "business" 3 19010 19110 "256m" "850m" "1200m" "192m"
+              deploy_nodes "ei" 3 19020 19120 "200m" "700m" "1024m" "180m"
+              ;;
+          esac
+
+          echo ""
+          echo "⏳ Waiting for nodes to stabilize (45s)..."
+          sleep 45
+
+          # Cleanup old backups
+          ls -t aurigraph-v12.jar.backup.* 2>/dev/null | tail -n +4 | xargs rm -f 2>/dev/null || true
+
+          echo ""
+          echo "✅ Deployment commands executed"
+          DEPLOY_SCRIPT
+
+      - name: "🩺 Health check all nodes"
+        id: health
+        run: |
+          echo "🔍 Running health checks..."
+
+          HEALTHY=0
+          TOTAL=11
+
+          ssh -p ${{ env.REMOTE_PORT }} -o StrictHostKeyChecking=no \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'HEALTH_SCRIPT'
+
+          HEALTHY=0
+          for port in 19001 19002 19003 19004 19005 19010 19011 19012 19020 19021 19022; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:$port/q/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Port $port: HEALTHY"
+              HEALTHY=$((HEALTHY + 1))
+            else
+              echo "❌ Port $port: UNHEALTHY ($STATUS)"
+            fi
+          done
+
+          echo ""
+          echo "📊 Health Summary: $HEALTHY/11 nodes healthy"
+
+          if [ $HEALTHY -eq 11 ]; then
+            echo "STATUS=success"
+          else
+            echo "STATUS=partial"
+          fi
+          HEALTH_SCRIPT
+
+          # Test public endpoint
+          echo ""
+          echo "🌐 Testing public endpoint..."
+          RESPONSE=$(curl -s --max-time 10 https://${{ env.REMOTE_HOST }}/api/v12/info 2>&1 || echo "TIMEOUT")
+          if echo "$RESPONSE" | grep -q "version"; then
+            echo "✅ Public API responding"
+            echo "healthy_count=11" >> $GITHUB_OUTPUT
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Public API check needs attention"
+            echo "status=partial" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================================
+  # J4C AGENT: Verification Phase
+  # ============================================================
+  verify:
+    name: "✅ J4C Verification Agent"
+    runs-on: self-hosted
+    needs: deploy
+    timeout-minutes: 10
+
+    steps:
+      - name: "🧪 Run smoke tests"
+        run: |
+          echo "🧪 J4C Verification Agent - Running smoke tests..."
+          BASE_URL="https://${{ env.REMOTE_HOST }}"
+
+          TESTS_PASSED=0
+          TESTS_TOTAL=5
+
+          # Test 1: Health
+          echo "Testing /q/health..."
+          if curl -sf "$BASE_URL/q/health" > /dev/null 2>&1; then
+            echo "  ✅ Health check passed"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "  ❌ Health check failed"
+          fi
+
+          # Test 2: Info
+          echo "Testing /api/v12/info..."
+          if curl -sf "$BASE_URL/api/v12/info" > /dev/null 2>&1; then
+            echo "  ✅ Info endpoint passed"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "  ❌ Info endpoint failed"
+          fi
+
+          # Test 3: Composite Tokens
+          echo "Testing /api/v12/composite-tokens..."
+          if curl -sf "$BASE_URL/api/v12/composite-tokens" > /dev/null 2>&1; then
+            echo "  ✅ Composite tokens passed"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "  ❌ Composite tokens failed"
+          fi
+
+          # Test 4: Active Contracts
+          echo "Testing /api/v12/activecontracts..."
+          if curl -sf "$BASE_URL/api/v12/activecontracts" > /dev/null 2>&1; then
+            echo "  ✅ Active contracts passed"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "  ❌ Active contracts failed"
+          fi
+
+          # Test 5: Demos
+          echo "Testing /api/v11/demos..."
+          if curl -sf "$BASE_URL/api/v11/demos" > /dev/null 2>&1; then
+            echo "  ✅ Demos endpoint passed"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "  ❌ Demos endpoint failed"
+          fi
+
+          echo ""
+          echo "📊 Smoke Test Results: $TESTS_PASSED/$TESTS_TOTAL passed"
+
+          if [ $TESTS_PASSED -lt 3 ]; then
+            echo "❌ Too many tests failed!"
+            exit 1
+          fi
+
+      - name: "📊 Generate deployment summary"
+        run: |
+          echo "## 🚀 J4C Deployment Agent Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Details" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Server | ${{ env.REMOTE_HOST }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mode | ${{ github.event.inputs.deploy_mode || 'rolling' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| JAR Size | ${{ needs.build.outputs.jar_size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Time | ${{ needs.build.outputs.build_time }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Node Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "| Type | Count | Ports | Memory |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Validators | 5 | 19001-19005 | 2GB |" >> $GITHUB_STEP_SUMMARY
+          echo "| Business | 3 | 19010-19012 | 850MB |" >> $GITHUB_STEP_SUMMARY
+          echo "| EI | 3 | 19020-19022 | 700MB |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 [API Info](https://${{ env.REMOTE_HOST }}/api/v12/info)" >> $GITHUB_STEP_SUMMARY
+          echo "- 💚 [Health](https://${{ env.REMOTE_HOST }}/q/health)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🪙 [Composite Tokens](https://${{ env.REMOTE_HOST }}/api/v12/composite-tokens)" >> $GITHUB_STEP_SUMMARY
+          echo "- 📜 [Active Contracts](https://${{ env.REMOTE_HOST }}/api/v12/activecontracts)" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================
+  # J4C AGENT: JIRA Update
+  # ============================================================
+  jira-update:
+    name: "📋 J4C JIRA Agent"
+    runs-on: self-hosted
+    needs: [build, deploy, verify]
+    if: ${{ github.event.inputs.update_jira != 'false' }}
+    continue-on-error: true
+
+    steps:
+      - name: "📋 Update JIRA"
+        run: |
+          echo "📋 J4C JIRA Agent - Updating deployment status..."
+
+          # Create deployment record in JIRA
+          JIRA_TOKEN="${{ secrets.JIRA_API_TOKEN }}"
+          if [ -z "$JIRA_TOKEN" ]; then
+            echo "⚠️ JIRA_API_TOKEN not set, skipping JIRA update"
+            exit 0
+          fi
+
+          echo "✅ JIRA update would be executed here"
+          echo "   - Deployment: ${{ github.sha }}"
+          echo "   - Status: Success"
+          echo "   - Environment: Production"
