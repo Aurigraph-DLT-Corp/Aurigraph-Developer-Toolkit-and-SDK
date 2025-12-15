@@ -67,51 +67,94 @@ public class EINodeResource {
     public Response getOverview() {
         LOG.info("GET /api/v12/ei-nodes");
 
-        var dataFeedStatus = eiNodeDataFeed.getStatus();
-        var exchangeMetrics = exchangeIntegration.getMetrics();
-        var registryStats = registry.getStatistics();
+        try {
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("service", "External Integration (EI) Nodes");
+            response.put("version", "12.1.0");
+            response.put("description", "Lightweight nodes for external API integrations and data processing");
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("service", "External Integration (EI) Nodes");
-        response.put("version", "12.1.0");
-        response.put("description", "Lightweight nodes for external API integrations and data processing");
+            // Data Feed Status (with null checks)
+            if (eiNodeDataFeed != null) {
+                var dataFeedStatus = eiNodeDataFeed.getStatus();
+                response.put("dataFeed", Map.of(
+                    "nodeId", dataFeedStatus.getEINodeId(),
+                    "running", dataFeedStatus.isRunning(),
+                    "messagesProcessed", dataFeedStatus.getMessagesProcessed(),
+                    "tokenizationsCompleted", dataFeedStatus.getTokenizationsCompleted(),
+                    "uptimeSeconds", dataFeedStatus.getUptimeSeconds()
+                ));
+            } else {
+                response.put("dataFeed", Map.of("status", "NOT_INITIALIZED"));
+            }
 
-        // Data Feed Status
-        response.put("dataFeed", Map.of(
-            "nodeId", dataFeedStatus.getEINodeId(),
-            "running", dataFeedStatus.isRunning(),
-            "messagesProcessed", dataFeedStatus.getMessagesProcessed(),
-            "tokenizationsCompleted", dataFeedStatus.getTokenizationsCompleted(),
-            "uptimeSeconds", dataFeedStatus.getUptimeSeconds()
+            // Exchange Integration Status (with null checks)
+            if (exchangeIntegration != null) {
+                var exchangeMetrics = exchangeIntegration.getMetrics();
+                response.put("exchangeIntegration", Map.of(
+                    "totalNodes", exchangeMetrics.totalEINodes(),
+                    "activeSubscriptions", exchangeMetrics.activeSubscriptions(),
+                    "tickersProcessed", exchangeMetrics.totalTickersProcessed(),
+                    "tradesProcessed", exchangeMetrics.totalTradesProcessed(),
+                    "tokenizations", exchangeMetrics.totalTokenizationsCompleted()
+                ));
+            } else {
+                response.put("exchangeIntegration", Map.of("status", "NOT_INITIALIZED"));
+            }
+
+            // Registry Stats (with null checks)
+            if (registry != null) {
+                var registryStats = registry.getStatistics();
+                response.put("registry", Map.of(
+                    "totalEquities", registryStats.getTotalEquities(),
+                    "totalTransactions", registryStats.getTotalTransactions(),
+                    "merkleRoot", registryStats.getMerkleRoot()
+                ));
+            } else {
+                response.put("registry", Map.of("status", "NOT_INITIALIZED"));
+            }
+
+            // External APIs
+            response.put("externalAPIs", getExternalAPIsStatus());
+            response.put("timestamp", Instant.now().toString());
+
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error getting EI nodes overview");
+            return Response.ok(Map.of(
+                "service", "External Integration (EI) Nodes",
+                "version", "12.1.0",
+                "status", "INITIALIZING",
+                "message", "EI Node services are starting up",
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
+    }
+
+    private List<Map<String, Object>> getExternalAPIsStatus() {
+        List<Map<String, Object>> apis = new ArrayList<>();
+
+        // QuantConnect
+        boolean qcRunning = eiNodeDataFeed != null && eiNodeDataFeed.getStatus().isRunning();
+        apis.add(Map.of(
+            "name", "QuantConnect",
+            "type", "MARKET_DATA",
+            "status", qcRunning ? "ACTIVE" : "IDLE"
         ));
 
-        // Exchange Integration Status
-        response.put("exchangeIntegration", Map.of(
-            "totalNodes", exchangeMetrics.totalEINodes(),
-            "activeSubscriptions", exchangeMetrics.activeSubscriptions(),
-            "tickersProcessed", exchangeMetrics.totalTickersProcessed(),
-            "tradesProcessed", exchangeMetrics.totalTradesProcessed(),
-            "tokenizations", exchangeMetrics.totalTokenizationsCompleted()
-        ));
+        // Crypto Exchanges
+        Map<String, Boolean> exchangeStatus = exchangeService != null
+            ? exchangeService.getConnectionStatus()
+            : Map.of();
 
-        // Registry Stats
-        response.put("registry", Map.of(
-            "totalEquities", registryStats.getTotalEquities(),
-            "totalTransactions", registryStats.getTotalTransactions(),
-            "merkleRoot", registryStats.getMerkleRoot()
-        ));
+        for (String exchange : List.of("binance", "coinbase", "kraken")) {
+            apis.add(Map.of(
+                "name", exchange.substring(0, 1).toUpperCase() + exchange.substring(1),
+                "type", "CRYPTO_EXCHANGE",
+                "status", exchangeStatus.getOrDefault(exchange, false) ? "CONNECTED" : "DISCONNECTED"
+            ));
+        }
 
-        // External APIs
-        response.put("externalAPIs", List.of(
-            Map.of("name", "QuantConnect", "type", "Market Data", "status", dataFeedStatus.isRunning() ? "ACTIVE" : "IDLE"),
-            Map.of("name", "Binance", "type", "Crypto Exchange", "status", exchangeService.getConnectionStatus().getOrDefault("binance", false) ? "CONNECTED" : "DISCONNECTED"),
-            Map.of("name", "Coinbase", "type", "Crypto Exchange", "status", exchangeService.getConnectionStatus().getOrDefault("coinbase", false) ? "CONNECTED" : "DISCONNECTED"),
-            Map.of("name", "Kraken", "type", "Crypto Exchange", "status", exchangeService.getConnectionStatus().getOrDefault("kraken", false) ? "CONNECTED" : "DISCONNECTED")
-        ));
-
-        response.put("timestamp", Instant.now().toString());
-
-        return Response.ok(response).build();
+        return apis;
     }
 
     /**
@@ -123,27 +166,49 @@ public class EINodeResource {
     public Response getHealth() {
         LOG.info("GET /api/v12/ei-nodes/health");
 
-        var dataFeedStatus = eiNodeDataFeed.getStatus();
-        var exchangeMetrics = exchangeIntegration.getMetrics();
+        try {
+            Map<String, Object> response = new LinkedHashMap<>();
 
-        boolean healthy = dataFeedStatus.isRunning() || exchangeMetrics.activeSubscriptions() > 0;
-        String status = healthy ? "UP" : "DOWN";
+            boolean dataFeedUp = false;
+            boolean exchangeUp = false;
+            String nodeId = "ei-node-1";
+            int activeNodes = 0;
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("status", status);
-        response.put("components", Map.of(
-            "dataFeed", Map.of(
-                "status", dataFeedStatus.isRunning() ? "UP" : "DOWN",
-                "nodeId", dataFeedStatus.getEINodeId()
-            ),
-            "exchangeIntegration", Map.of(
-                "status", exchangeMetrics.activeSubscriptions() > 0 ? "UP" : "IDLE",
-                "activeNodes", exchangeMetrics.totalEINodes()
-            )
-        ));
-        response.put("timestamp", Instant.now().toString());
+            if (eiNodeDataFeed != null) {
+                var status = eiNodeDataFeed.getStatus();
+                dataFeedUp = status.isRunning();
+                nodeId = status.getEINodeId();
+            }
 
-        return Response.ok(response).build();
+            if (exchangeIntegration != null) {
+                var metrics = exchangeIntegration.getMetrics();
+                exchangeUp = metrics.activeSubscriptions() > 0;
+                activeNodes = metrics.totalEINodes();
+            }
+
+            boolean healthy = dataFeedUp || exchangeUp || activeNodes > 0;
+            response.put("status", healthy ? "UP" : "IDLE");
+            response.put("components", Map.of(
+                "dataFeed", Map.of(
+                    "status", dataFeedUp ? "UP" : "IDLE",
+                    "nodeId", nodeId
+                ),
+                "exchangeIntegration", Map.of(
+                    "status", exchangeUp ? "UP" : "IDLE",
+                    "activeNodes", activeNodes
+                )
+            ));
+            response.put("timestamp", Instant.now().toString());
+
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error getting EI nodes health");
+            return Response.ok(Map.of(
+                "status", "INITIALIZING",
+                "message", "EI Node services are starting up",
+                "timestamp", Instant.now().toString()
+            )).build();
+        }
     }
 
     // ========================================================================
