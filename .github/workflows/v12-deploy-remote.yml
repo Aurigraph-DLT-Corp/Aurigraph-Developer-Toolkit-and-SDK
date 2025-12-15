@@ -279,38 +279,34 @@ jobs:
             exit 1
           fi
 
-      - name: Sync JAR to Docker container directory
+      - name: Sync JAR to Docker containers (symlink + restart)
         run: |
-          echo "🐳 Syncing JAR to Docker container mount directory..."
+          echo "🐳 Ensuring Docker containers use the new JAR..."
           cd /home/subbu
 
-          # Docker containers mount from /home/subbu/aurigraph-v12/ directory
-          # Ensure the container directory exists
+          # Ensure directory exists
           mkdir -p /home/subbu/aurigraph-v12
 
-          # Copy JAR to container mount directory
-          cp /home/subbu/aurigraph-v12.jar /home/subbu/aurigraph-v12/aurigraph-v12.jar
-          echo "✅ JAR synced to Docker container directory"
+          # Create/update symlink so Docker containers always read the latest JAR
+          # Docker mounts: /home/subbu/aurigraph-v12/ -> /app/
+          # Symlink: /home/subbu/aurigraph-v12/aurigraph-v12.jar -> /home/subbu/aurigraph-v12.jar
+          ln -sf /home/subbu/aurigraph-v12.jar /home/subbu/aurigraph-v12/aurigraph-v12.jar
+          echo "✅ Symlink ensures both paths point to same JAR"
 
-          # Verify both locations have the same JAR
-          echo "📁 JAR in home directory:"
-          ls -la /home/subbu/aurigraph-v12.jar
-          echo "📁 JAR in container directory:"
+          # Verify symlink
           ls -la /home/subbu/aurigraph-v12/aurigraph-v12.jar
 
-          # Restart Docker containers to pick up the new JAR
-          echo "🔄 Restarting Docker containers to use new JAR..."
-          docker restart aurigraph-validator-1 aurigraph-validator-2 aurigraph-validator-3 aurigraph-validator-4 aurigraph-validator-5 \
+          # Restart Docker containers to reload the JAR (Java caches classes)
+          echo "🔄 Restarting Docker containers..."
+          docker restart aurigraph-validator-1 aurigraph-validator-2 aurigraph-validator-3 \
+                        aurigraph-validator-4 aurigraph-validator-5 \
                         aurigraph-business-1 aurigraph-business-2 aurigraph-business-3 \
                         aurigraph-ei-1 aurigraph-ei-2 aurigraph-ei-3 2>/dev/null || echo "⚠️ Some containers may not exist"
 
-          echo "⏳ Waiting for containers to restart..."
           sleep 20
-
-          # Verify container status
           echo "📋 Container status:"
-          docker ps --format "table {{.Names}}\t{{.Status}}" | grep aurigraph || echo "No aurigraph containers running"
-          echo "✅ Docker containers restarted with new JAR"
+          docker ps --format "table {{.Names}}\t{{.Status}}" | grep aurigraph || true
+          echo "✅ Docker containers restarted"
 
       - name: Health check
         id: health_check
