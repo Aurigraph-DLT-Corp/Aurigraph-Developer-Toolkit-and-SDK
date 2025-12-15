@@ -331,7 +331,7 @@ public class EINodeResource {
             response.put("merkleRoot", status.getMerkleRoot() != null ? status.getMerkleRoot() : "none");
             response.put("uptimeSeconds", status.getUptimeSeconds());
             response.put("pollIntervalSeconds", status.getPollIntervalSeconds());
-            response.put("trackedSymbols", status.getTrackedSymbols() != null ? status.getTrackedSymbols() : List.of());
+            response.put("trackedSymbols", status.getTrackedSymbols());
             response.put("timestamp", status.getTimestamp() != null ? status.getTimestamp().toString() : Instant.now().toString());
 
             return Response.ok(response).build();
