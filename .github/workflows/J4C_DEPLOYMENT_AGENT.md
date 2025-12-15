@@ -215,7 +215,57 @@ echo "✅ Smoke tests passed"
 - **User**: subbu
 - **App Port**: 9003
 - **JAR Location**: /home/subbu/aurigraph-v12.jar
+- **Docker JAR Location**: /home/subbu/aurigraph-v12/aurigraph-v12.jar (SYMLINK)
 - **Log Location**: /home/subbu/aurigraph/logs/main-api.log
+
+## CRITICAL: JAR Path Synchronization - #MEMORIZED
+
+**PROBLEM**: Docker containers mount from `/home/subbu/aurigraph-v12/` but CI/CD deploys to `/home/subbu/aurigraph-v12.jar`
+
+**SOLUTION**: Use symlink to ensure both paths point to the same JAR file.
+
+### JAR Path Architecture
+```
+CI/CD deploys here ─────────┐
+                            ▼
+               /home/subbu/aurigraph-v12.jar (MAIN JAR)
+                            ▲
+                            │ (symlink)
+Docker containers ─────────┘
+read from here:  /home/subbu/aurigraph-v12/aurigraph-v12.jar
+```
+
+### Setup Symlink (Run once on server)
+```bash
+mkdir -p /home/subbu/aurigraph-v12
+ln -sf /home/subbu/aurigraph-v12.jar /home/subbu/aurigraph-v12/aurigraph-v12.jar
+```
+
+### Post-Deployment Container Restart - #MEMORIZED
+After every deployment, restart Docker containers to reload the JAR:
+```bash
+docker restart aurigraph-validator-1 aurigraph-validator-2 aurigraph-validator-3 \
+               aurigraph-validator-4 aurigraph-validator-5 \
+               aurigraph-business-1 aurigraph-business-2 aurigraph-business-3 \
+               aurigraph-ei-1 aurigraph-ei-2 aurigraph-ei-3
+```
+
+### Why Container Restart is Required
+- Java caches loaded classes in memory
+- File change on disk is NOT automatically detected
+- Containers MUST be restarted to load new JAR
+
+### Verification Commands
+```bash
+# Check symlink exists
+ls -la /home/subbu/aurigraph-v12/aurigraph-v12.jar
+
+# Should show: aurigraph-v12.jar -> /home/subbu/aurigraph-v12.jar
+
+# Verify both point to same file
+stat /home/subbu/aurigraph-v12.jar
+stat /home/subbu/aurigraph-v12/aurigraph-v12.jar
+```
 
 ## Database Configuration
 - **Type**: PostgreSQL
