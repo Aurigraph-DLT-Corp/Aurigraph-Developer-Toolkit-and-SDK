@@ -112,12 +112,18 @@ public class EINodeResource {
      */
     @GET
     public Response getOverview() {
-        LOG.info("GET /api/v12/ei-nodes");
+        // Return static response first to test if endpoint works at all
+        try {
+            LOG.info("GET /api/v12/ei-nodes - starting");
+        } catch (Exception logEx) {
+            // Even if logging fails, continue
+        }
 
         try {
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("service", "External Integration (EI) Nodes");
             response.put("version", "12.1.0");
+            response.put("status", "AVAILABLE");
             response.put("description", "Lightweight nodes for external API integrations and data processing");
 
             // Data Feed Status (with lazy injection checks)
