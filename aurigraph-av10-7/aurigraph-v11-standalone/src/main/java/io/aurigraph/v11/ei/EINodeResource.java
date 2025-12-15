@@ -57,21 +57,49 @@ public class EINodeResource {
     @Inject
     Instance<EquityTokenizationRegistry> registryInstance;
 
-    // Safe accessor methods
+    // Safe accessor methods with full exception handling
     private EINodeDataFeed getEiNodeDataFeed() {
-        return eiNodeDataFeedInstance.isResolvable() ? eiNodeDataFeedInstance.get() : null;
+        try {
+            if (eiNodeDataFeedInstance != null && eiNodeDataFeedInstance.isResolvable()) {
+                return eiNodeDataFeedInstance.get();
+            }
+        } catch (Exception e) {
+            LOG.debugf("EINodeDataFeed not available: %s", e.getMessage());
+        }
+        return null;
     }
 
     private EINodeExchangeIntegration getExchangeIntegration() {
-        return exchangeIntegrationInstance.isResolvable() ? exchangeIntegrationInstance.get() : null;
+        try {
+            if (exchangeIntegrationInstance != null && exchangeIntegrationInstance.isResolvable()) {
+                return exchangeIntegrationInstance.get();
+            }
+        } catch (Exception e) {
+            LOG.debugf("EINodeExchangeIntegration not available: %s", e.getMessage());
+        }
+        return null;
     }
 
     private CryptoExchangeService getExchangeService() {
-        return exchangeServiceInstance.isResolvable() ? exchangeServiceInstance.get() : null;
+        try {
+            if (exchangeServiceInstance != null && exchangeServiceInstance.isResolvable()) {
+                return exchangeServiceInstance.get();
+            }
+        } catch (Exception e) {
+            LOG.debugf("CryptoExchangeService not available: %s", e.getMessage());
+        }
+        return null;
     }
 
     private EquityTokenizationRegistry getRegistry() {
-        return registryInstance.isResolvable() ? registryInstance.get() : null;
+        try {
+            if (registryInstance != null && registryInstance.isResolvable()) {
+                return registryInstance.get();
+            }
+        } catch (Exception e) {
+            LOG.debugf("EquityTokenizationRegistry not available: %s", e.getMessage());
+        }
+        return null;
     }
 
     // ========================================================================
