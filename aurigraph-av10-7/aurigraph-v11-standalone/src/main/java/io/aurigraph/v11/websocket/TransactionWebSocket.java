@@ -21,10 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Broadcast trigger: New transaction event
  *
  * @deprecated Use EnhancedTransactionWebSocket for authenticated connections
+ * @version V12 - Re-enabled for frontend integration (December 2025)
  */
 @Deprecated
-// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
-// @ServerEndpoint("/ws/transactions/legacy")
+@ServerEndpoint("/ws/transactions/legacy")
 @ApplicationScoped
 public class TransactionWebSocket {
 

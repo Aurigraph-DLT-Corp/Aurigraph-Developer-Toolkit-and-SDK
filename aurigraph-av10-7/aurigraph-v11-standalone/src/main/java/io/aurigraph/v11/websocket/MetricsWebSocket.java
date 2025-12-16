@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Endpoint: /ws/metrics
  * Message format: MetricsMessage (JSON)
  * Broadcast frequency: 1 second
+ * @version V12 - Re-enabled for frontend integration (December 2025)
  */
-// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
-// @ServerEndpoint("/ws/metrics")
+@ServerEndpoint("/ws/metrics")
 @ApplicationScoped
 public class MetricsWebSocket {
 

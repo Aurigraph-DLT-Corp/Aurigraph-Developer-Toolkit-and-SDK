@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Endpoint: /ws/validators
  * Message format: ValidatorMessage (JSON)
  * Broadcast trigger: Validator state change
+ * @version V12 - Re-enabled for frontend integration (December 2025)
  */
-// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
-// @ServerEndpoint("/ws/validators")
+@ServerEndpoint("/ws/validators")
 @ApplicationScoped
 public class ValidatorWebSocket {
 

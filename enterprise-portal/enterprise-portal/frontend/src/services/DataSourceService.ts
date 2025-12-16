@@ -66,39 +66,288 @@ class DataSourceService {
   // Real Data Fetching Methods (to be implemented with actual API keys)
   // ==========================================================================
 
-  private async fetchWeatherData(_dataSource: AnyDataSource): Promise<WeatherData> {
-    // TODO: Implement actual OpenWeatherMap API call
-    // const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}`);
-    // return await response.json();
-    return this.generateMockData('weather') as WeatherData;
+  private async fetchWeatherData(dataSource: AnyDataSource): Promise<WeatherData> {
+    const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+
+    if (!apiKey) {
+      console.warn('VITE_WEATHER_API_KEY not configured, falling back to mock data');
+      return this.generateMockData('weather') as WeatherData;
+    }
+
+    try {
+      const weatherSource = dataSource as any;
+      const location = weatherSource.location || 'New York';
+      const units = weatherSource.units || 'metric';
+
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${apiKey}&units=${units}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`OpenWeatherMap API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        location: data.name,
+        temperature: data.main.temp,
+        humidity: data.main.humidity,
+        pressure: data.main.pressure,
+        windSpeed: data.wind.speed,
+        condition: data.weather[0]?.main || 'Unknown',
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      return this.generateMockData('weather') as WeatherData;
+    }
   }
 
-  private async fetchAlpacaData(_dataSource: AnyDataSource): Promise<AlpacaData> {
-    // TODO: Implement actual Alpaca API call
-    // const response = await fetch(`https://data.alpaca.markets/v2/stocks/${symbol}/quotes/latest`, {
-    //   headers: { 'APCA-API-KEY-ID': apiKey }
-    // });
-    return this.generateMockData('alpaca') as AlpacaData;
+  private async fetchAlpacaData(dataSource: AnyDataSource): Promise<AlpacaData> {
+    const apiKey = import.meta.env.VITE_ALPACA_API_KEY;
+    const apiSecret = import.meta.env.VITE_ALPACA_API_SECRET;
+
+    if (!apiKey || !apiSecret) {
+      console.warn('VITE_ALPACA_API_KEY or VITE_ALPACA_API_SECRET not configured, falling back to mock data');
+      return this.generateMockData('alpaca') as AlpacaData;
+    }
+
+    try {
+      const alpacaSource = dataSource as any;
+      const symbols = alpacaSource.symbols || ['AAPL'];
+      const symbol = symbols[0] || 'AAPL';
+
+      // Fetch latest quote
+      const quoteUrl = `https://data.alpaca.markets/v2/stocks/${symbol}/quotes/latest`;
+
+      const quoteResponse = await fetch(quoteUrl, {
+        headers: {
+          'APCA-API-KEY-ID': apiKey,
+          'APCA-API-SECRET-KEY': apiSecret,
+        },
+      });
+
+      if (!quoteResponse.ok) {
+        throw new Error(`Alpaca API error: ${quoteResponse.status} ${quoteResponse.statusText}`);
+      }
+
+      const quoteData = await quoteResponse.json();
+      const quote = quoteData.quote;
+
+      // Fetch snapshot for volume and daily stats
+      const snapshotUrl = `https://data.alpaca.markets/v2/stocks/${symbol}/snapshot`;
+
+      const snapshotResponse = await fetch(snapshotUrl, {
+        headers: {
+          'APCA-API-KEY-ID': apiKey,
+          'APCA-API-SECRET-KEY': apiSecret,
+        },
+      });
+
+      const snapshotData = await snapshotResponse.json();
+      const dailyBar = snapshotData.dailyBar;
+      const prevDailyBar = snapshotData.prevDailyBar;
+
+      const currentPrice = quote.ap || quote.bp || dailyBar?.c || 0;
+      const previousClose = prevDailyBar?.c || dailyBar?.o || currentPrice;
+      const change = currentPrice - previousClose;
+      const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+
+      return {
+        symbol,
+        price: currentPrice,
+        volume: dailyBar?.v || 0,
+        timestamp: quote.t || new Date().toISOString(),
+        change,
+        changePercent,
+      };
+    } catch (error) {
+      console.error('Error fetching Alpaca data:', error);
+      return this.generateMockData('alpaca') as AlpacaData;
+    }
   }
 
-  private async fetchNewsData(_dataSource: AnyDataSource): Promise<NewsData> {
-    // TODO: Implement actual NewsAPI call
-    // const response = await fetch(`https://newsapi.org/v2/everything?q=${query}&apiKey=${apiKey}`);
-    return this.generateMockData('newsapi') as NewsData;
+  private async fetchNewsData(dataSource: AnyDataSource): Promise<NewsData> {
+    const apiKey = import.meta.env.VITE_NEWSAPI_KEY;
+
+    if (!apiKey) {
+      console.warn('VITE_NEWSAPI_KEY not configured, falling back to mock data');
+      return this.generateMockData('newsapi') as NewsData;
+    }
+
+    try {
+      const newsSource = dataSource as any;
+      const query = newsSource.query || 'blockchain';
+      const language = newsSource.language || 'en';
+      const category = newsSource.category || '';
+
+      // Build URL based on whether we're using category or query
+      let url: string;
+      if (category) {
+        url = `https://newsapi.org/v2/top-headlines?category=${category}&language=${language}&apiKey=${apiKey}`;
+      } else {
+        url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=${language}&sortBy=publishedAt&pageSize=1&apiKey=${apiKey}`;
+      }
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`NewsAPI error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.articles || data.articles.length === 0) {
+        throw new Error('No articles found');
+      }
+
+      const article = data.articles[0];
+
+      // Simple sentiment analysis based on keywords (basic implementation)
+      const sentiment = this.analyzeSentiment(article.title + ' ' + article.description);
+
+      return {
+        title: article.title || 'No title',
+        description: article.description || 'No description available',
+        source: article.source?.name || 'Unknown source',
+        url: article.url || '',
+        publishedAt: article.publishedAt || new Date().toISOString(),
+        sentiment,
+      };
+    } catch (error) {
+      console.error('Error fetching news data:', error);
+      return this.generateMockData('newsapi') as NewsData;
+    }
   }
 
-  private async fetchTwitterData(_dataSource: AnyDataSource): Promise<TwitterData> {
-    // TODO: Implement actual Twitter API call
-    // const response = await fetch(`https://api.twitter.com/2/tweets/search/recent?query=${query}`, {
-    //   headers: { 'Authorization': `Bearer ${bearerToken}` }
-    // });
-    return this.generateMockData('twitter') as TwitterData;
+  /**
+   * Basic sentiment analysis helper
+   */
+  private analyzeSentiment(text: string): 'positive' | 'negative' | 'neutral' {
+    const positiveWords = ['surge', 'growth', 'gains', 'rise', 'bullish', 'optimistic', 'innovation', 'breakthrough', 'success', 'profitable'];
+    const negativeWords = ['crash', 'decline', 'falls', 'bearish', 'pessimistic', 'failure', 'loss', 'crisis', 'concern', 'warning'];
+
+    const lowerText = text.toLowerCase();
+    const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
+    const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
+
+    if (positiveCount > negativeCount) return 'positive';
+    if (negativeCount > positiveCount) return 'negative';
+    return 'neutral';
   }
 
-  private async fetchCryptoData(_dataSource: AnyDataSource): Promise<CryptoData> {
-    // TODO: Implement actual CoinGecko API call
-    // const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${symbol}&vs_currencies=usd`);
-    return this.generateMockData('crypto') as CryptoData;
+  private async fetchTwitterData(dataSource: AnyDataSource): Promise<TwitterData> {
+    const bearerToken = import.meta.env.VITE_TWITTER_BEARER_TOKEN;
+
+    if (!bearerToken) {
+      console.warn('VITE_TWITTER_BEARER_TOKEN not configured, falling back to mock data');
+      return this.generateMockData('twitter') as TwitterData;
+    }
+
+    try {
+      const twitterSource = dataSource as any;
+      const keywords = twitterSource.keywords || ['blockchain'];
+      const query = keywords.join(' OR ');
+
+      const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,public_metrics,author_id&expansions=author_id&user.fields=username`;
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Twitter API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.data || data.data.length === 0) {
+        throw new Error('No tweets found');
+      }
+
+      const tweet = data.data[0];
+      const author = data.includes?.users?.find((u: any) => u.id === tweet.author_id);
+
+      // Analyze sentiment from tweet text
+      const sentiment = this.analyzeSentiment(tweet.text);
+
+      return {
+        id: tweet.id,
+        text: tweet.text,
+        author: author?.username ? `@${author.username}` : '@unknown',
+        timestamp: tweet.created_at || new Date().toISOString(),
+        likes: tweet.public_metrics?.like_count || 0,
+        retweets: tweet.public_metrics?.retweet_count || 0,
+        sentiment,
+      };
+    } catch (error) {
+      console.error('Error fetching Twitter data:', error);
+      return this.generateMockData('twitter') as TwitterData;
+    }
+  }
+
+  private async fetchCryptoData(dataSource: AnyDataSource): Promise<CryptoData> {
+    // CoinGecko API has a free tier that doesn't require an API key
+    // For premium features, use VITE_COINGECKO_API_KEY
+    const apiKey = import.meta.env.VITE_COINGECKO_API_KEY;
+
+    try {
+      const cryptoSource = dataSource as any;
+      const symbols = cryptoSource.symbols || ['bitcoin'];
+      const currency = cryptoSource.currency || 'usd';
+
+      // CoinGecko uses lowercase coin IDs (bitcoin, ethereum, etc.)
+      const coinId = symbols[0]?.toLowerCase() || 'bitcoin';
+
+      // Build URL with optional API key
+      const baseUrl = 'https://api.coingecko.com/api/v3';
+      const params = new URLSearchParams({
+        ids: coinId,
+        vs_currencies: currency.toLowerCase(),
+        include_market_cap: 'true',
+        include_24hr_vol: 'true',
+        include_24hr_change: 'true',
+      });
+
+      const headers: HeadersInit = {};
+      if (apiKey) {
+        headers['x-cg-demo-api-key'] = apiKey;
+      }
+
+      const url = `${baseUrl}/simple/price?${params.toString()}`;
+      const response = await fetch(url, { headers });
+
+      if (!response.ok) {
+        throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data[coinId]) {
+        throw new Error(`No data found for ${coinId}`);
+      }
+
+      const coinData = data[coinId];
+      const price = coinData[currency.toLowerCase()] || 0;
+      const marketCap = coinData[`${currency.toLowerCase()}_market_cap`] || 0;
+      const volume24h = coinData[`${currency.toLowerCase()}_24h_vol`] || 0;
+      const change24h = coinData[`${currency.toLowerCase()}_24h_change`] || 0;
+
+      return {
+        symbol: coinId.toUpperCase(),
+        price,
+        marketCap,
+        volume24h,
+        change24h,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error fetching crypto data:', error);
+      return this.generateMockData('crypto') as CryptoData;
+    }
   }
 
   /**

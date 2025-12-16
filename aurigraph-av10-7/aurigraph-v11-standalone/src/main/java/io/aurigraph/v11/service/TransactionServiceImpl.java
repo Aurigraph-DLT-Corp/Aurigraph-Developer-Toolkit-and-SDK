@@ -1,21 +1,34 @@
 package io.aurigraph.v11.service;
 
+import io.aurigraph.v11.entity.TransactionEntity;
+import io.aurigraph.v11.entity.TransactionEntity.TransactionStatus;
 import io.aurigraph.v11.proto.*;
 import io.aurigraph.v11.queue.LockFreeTransactionQueue;
 import io.aurigraph.v11.queue.LockFreeTransactionQueue.TransactionEntry;
+import io.aurigraph.v11.repository.TransactionRepository;
+import io.quarkus.cache.CacheResult;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.redis.client.reactive.ReactiveRedisClient;
 import io.quarkus.runtime.Startup;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 /**
- * PHASE 4C-4B: Transaction Service Implementation - Enhanced
+ * PHASE 4C-4B + J4C: Transaction Service Implementation - Enhanced with Persistence
  *
  * Implements the TransactionService interface with:
+ * - PostgreSQL persistence via Panache ORM (NEW)
+ * - Redis caching for frequently accessed transactions (NEW)
  * - Lock-free queue for transaction buffering (32-batch optimization)
- * - In-memory transaction storage with indexed lookups
+ * - In-memory transaction cache with indexed lookups
  * - Advanced transaction lifecycle management with prioritization
  * - Comprehensive performance metrics and monitoring
  * - Batch transaction processing with parallel handling
@@ -26,6 +39,9 @@ import java.util.logging.Logger;
  * - Baseline: 776K TPS (production-verified)
  * - Target: 2M+ sustained TPS
  * - Expected improvement: +250-300K TPS with gRPC + lock-free queue
+ *
+ * @author J4C Database Agent + PHASE 4C-4B Team
+ * @version 12.0.0
  */
 @ApplicationScoped
 @Startup
@@ -34,11 +50,19 @@ public class TransactionServiceImpl implements TransactionService {
     private static final Logger LOG = Logger.getLogger(TransactionServiceImpl.class.getName());
     private static final long TRANSACTION_TIMEOUT_MS = 300000; // 5 minutes
     private static final int MAX_PENDING_TRANSACTIONS = 100000;
+    private static final String REDIS_TX_PREFIX = "tx:";
+    private static final int REDIS_TTL_SECONDS = 300; // 5 minutes
+
+    @Inject
+    TransactionRepository transactionRepository;
+
+    @Inject
+    ReactiveRedisClient redisClient;
 
     // Lock-free transaction queue for buffering
     private final LockFreeTransactionQueue transactionQueue;
 
-    // In-memory transaction storage with advanced indexing
+    // In-memory transaction storage with advanced indexing (cached layer on top of DB)
     private final Map<String, Transaction> transactionMap = new ConcurrentHashMap<>();
     private final Map<String, TransactionReceipt> receiptMap = new ConcurrentHashMap<>();
     private final Queue<String> pendingTransactions = new ConcurrentLinkedQueue<>();
@@ -72,10 +96,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     public TransactionServiceImpl() {
         this.transactionQueue = new LockFreeTransactionQueue(32, 1_000_000); // 32 batch size, 1ms timeout
-        LOG.info("TransactionServiceImpl initialized with lock-free queue");
+        LOG.info("TransactionServiceImpl initialized with lock-free queue and database persistence");
     }
 
     @Override
+    @Transactional
     public String submitTransaction(Transaction transaction, boolean prioritize) throws Exception {
         // Check pending transaction limit
         if (pendingTransactions.size() >= MAX_PENDING_TRANSACTIONS) {
@@ -88,6 +113,28 @@ public class TransactionServiceImpl implements TransactionService {
         // Generate transaction hash (placeholder - would be actual hash in production)
         String txnHash = UUID.randomUUID().toString();
 
+        // Create and persist transaction entity to database
+        TransactionEntity entity = new TransactionEntity();
+        entity.transactionId = UUID.randomUUID().toString();
+        entity.hash = txnHash;
+        entity.fromAddress = transaction.getFromAddress();
+        entity.toAddress = transaction.getToAddress();
+        entity.amount = new BigDecimal(transaction.getAmount());
+        entity.status = TransactionStatus.PENDING;
+        entity.signature = transaction.getSignature();
+        entity.gasPrice = transaction.hasGasPrice() ? new BigDecimal(transaction.getGasPrice()) : BigDecimal.ZERO;
+        entity.gasLimit = transaction.hasGasLimit() ? transaction.getGasLimit() : 21000L;
+        entity.nonce = transaction.hasNonce() ? transaction.getNonce() : 0L;
+        entity.data = transaction.hasData() ? transaction.getData() : "";
+        entity.createdAt = Instant.now();
+
+        // Persist to database
+        transactionRepository.persist(entity);
+        LOG.fine("Transaction persisted to database: " + txnHash);
+
+        // Cache in Redis for quick lookup
+        cacheTransactionInRedis(txnHash, entity.transactionId);
+
         // Create queue entry with priority
         byte[] txnData = transaction.toByteArray();
         int priority = prioritize ? 100 : 0;
@@ -97,7 +144,7 @@ public class TransactionServiceImpl implements TransactionService {
         transactionQueue.enqueue(entry);
         transactionQueue.recordProcessed();
 
-        // Store transaction with comprehensive indexing
+        // Store transaction in memory cache with comprehensive indexing
         transactionMap.put(txnHash, transaction);
         transactionTimestamps.put(txnHash, System.currentTimeMillis());
         pendingTransactions.offer(txnHash);
@@ -394,5 +441,63 @@ public class TransactionServiceImpl implements TransactionService {
         public int compareTo(TransactionPriority other) {
             return Integer.compare(other.priority, this.priority); // Higher priority first
         }
+    }
+
+    // ========== Redis Caching Helper Methods (J4C Database Agent) ==========
+
+    /**
+     * Cache transaction in Redis (async) for 5-minute TTL
+     */
+    private void cacheTransactionInRedis(String txnHash, String transactionId) {
+        try {
+            String key = REDIS_TX_PREFIX + txnHash;
+            redisClient.setex(key, String.valueOf(REDIS_TTL_SECONDS), transactionId)
+                    .subscribe().with(
+                            response -> LOG.fine("Cached transaction in Redis: " + txnHash),
+                            error -> LOG.warning("Failed to cache transaction in Redis: " + error.getMessage())
+                    );
+        } catch (Exception e) {
+            LOG.warning("Redis caching failed (non-critical): " + e.getMessage());
+        }
+    }
+
+    /**
+     * Invalidate Redis cache entry
+     */
+    private void invalidateRedisCache(String txnHash) {
+        try {
+            String key = REDIS_TX_PREFIX + txnHash;
+            redisClient.del(List.of(key))
+                    .subscribe().with(
+                            response -> LOG.fine("Invalidated Redis cache: " + txnHash),
+                            error -> LOG.warning("Failed to invalidate Redis cache: " + error.getMessage())
+                    );
+        } catch (Exception e) {
+            LOG.warning("Redis cache invalidation failed (non-critical): " + e.getMessage());
+        }
+    }
+
+    /**
+     * Load transaction from database by hash
+     */
+    private Transaction loadTransactionFromDB(String txnHash) throws Exception {
+        Optional<TransactionEntity> entityOpt = transactionRepository.findByHash(txnHash);
+        if (entityOpt.isEmpty()) {
+            return null;
+        }
+
+        TransactionEntity entity = entityOpt.get();
+        return Transaction.newBuilder()
+                .setTxnHash(entity.hash)
+                .setFromAddress(entity.fromAddress)
+                .setToAddress(entity.toAddress)
+                .setAmount(entity.amount.toString())
+                .setSignature(entity.signature)
+                .setGasPrice(entity.gasPrice != null ? entity.gasPrice.doubleValue() : 0.0)
+                .setGasLimit(entity.gasLimit != null ? entity.gasLimit : 21000L)
+                .setNonce(entity.nonce != null ? entity.nonce : 0L)
+                .setData(entity.data != null ? entity.data : "")
+                .setTimestamp(entity.createdAt.toString())
+                .build();
     }
 }

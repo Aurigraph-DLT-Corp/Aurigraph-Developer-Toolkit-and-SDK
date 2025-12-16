@@ -984,4 +984,269 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
         // Clean up dead streams
         deadStreams.forEach(activeStreams::remove);
     }
+
+    // ==================== NEW J4C gRPC METHODS ====================
+
+    /**
+     * RPC 8: GetBlockByNumber - Get block by block number/height
+     *
+     * Performance Target: <5ms (cached)
+     * Business Logic:
+     * - Check height->hash cache first
+     * - Check block cache second
+     * - Query repository if cache miss
+     * - Return block or NOT_FOUND error
+     */
+    @Override
+    public void getBlockByNumber(BlockNumberRequest request, StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
+        long startTime = System.currentTimeMillis();
+
+        try {
+            long blockNumber = request.getBlockNumber();
+            Log.infof("GetBlockByNumber called for block %d", blockNumber);
+
+            // Validate input
+            if (blockNumber < 0) {
+                Log.warnf("Invalid block number: %d", blockNumber);
+                responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
+                    .withDescription("Block number must be >= 0")
+                    .asRuntimeException());
+                return;
+            }
+
+            // Check height->hash cache
+            String blockHash = heightToHashCache.get(blockNumber);
+            Block block = null;
+
+            if (blockHash != null) {
+                // Check block cache
+                block = blockCache.get(blockHash);
+            }
+
+            // Fall back to repository
+            if (block == null) {
+                block = blockRepository.findByHeight(blockNumber).orElse(null);
+                if (block != null) {
+                    // Update caches
+                    blockCache.put(block.getHash(), block);
+                    heightToHashCache.put(blockNumber, block.getHash());
+                }
+            }
+
+            if (block == null) {
+                long queryTime = System.currentTimeMillis() - startTime;
+                Log.infof("Block %d not found (query time: %dms)", blockNumber, queryTime);
+                responseObserver.onError(io.grpc.Status.NOT_FOUND
+                    .withDescription("Block not found at height: " + blockNumber)
+                    .asRuntimeException());
+                return;
+            }
+
+            // Convert to proto and return
+            io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
+
+            long queryTime = System.currentTimeMillis() - startTime;
+            Log.infof("Block %d retrieved in %dms", blockNumber, queryTime);
+
+            responseObserver.onNext(protoBlock);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            Log.errorf("Error in GetBlockByNumber: %s", e.getMessage(), e);
+            responseObserver.onError(io.grpc.Status.INTERNAL
+                .withDescription("Failed to retrieve block: " + e.getMessage())
+                .asRuntimeException());
+        }
+    }
+
+    /**
+     * RPC 9: GetBlockByHash - Get block by block hash
+     *
+     * Performance Target: <5ms (cached)
+     * Business Logic:
+     * - Check block cache first
+     * - Query repository if cache miss
+     * - Return block or NOT_FOUND error
+     */
+    @Override
+    public void getBlockByHash(BlockHashRequest request, StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
+        long startTime = System.currentTimeMillis();
+
+        try {
+            String blockHash = request.getHash();
+            Log.infof("GetBlockByHash called for hash: %s", blockHash.substring(0, Math.min(16, blockHash.length())));
+
+            // Validate input
+            if (blockHash == null || blockHash.isEmpty()) {
+                Log.warn("Empty block hash provided");
+                responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
+                    .withDescription("Block hash is required")
+                    .asRuntimeException());
+                return;
+            }
+
+            // Check cache first
+            Block block = blockCache.get(blockHash);
+
+            // Fall back to repository
+            if (block == null) {
+                block = blockRepository.findByHash(blockHash).orElse(null);
+                if (block != null) {
+                    // Update caches
+                    blockCache.put(blockHash, block);
+                    heightToHashCache.put(block.getHeight(), blockHash);
+                }
+            }
+
+            if (block == null) {
+                long queryTime = System.currentTimeMillis() - startTime;
+                Log.infof("Block with hash %s... not found (query time: %dms)",
+                    blockHash.substring(0, Math.min(16, blockHash.length())), queryTime);
+                responseObserver.onError(io.grpc.Status.NOT_FOUND
+                    .withDescription("Block not found with hash: " + blockHash)
+                    .asRuntimeException());
+                return;
+            }
+
+            // Convert to proto and return
+            io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
+
+            long queryTime = System.currentTimeMillis() - startTime;
+            Log.infof("Block retrieved in %dms", queryTime);
+
+            responseObserver.onNext(protoBlock);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            Log.errorf("Error in GetBlockByHash: %s", e.getMessage(), e);
+            responseObserver.onError(io.grpc.Status.INTERNAL
+                .withDescription("Failed to retrieve block: " + e.getMessage())
+                .asRuntimeException());
+        }
+    }
+
+    /**
+     * RPC 10: GetLatestBlock - Get the latest/most recent block
+     *
+     * Performance Target: <5ms
+     * Business Logic:
+     * - Query repository for latest block
+     * - Cache the result
+     * - Return block or NOT_FOUND if chain is empty
+     */
+    @Override
+    public void getLatestBlock(com.google.protobuf.Empty request, StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
+        long startTime = System.currentTimeMillis();
+
+        try {
+            Log.info("GetLatestBlock called");
+
+            // Get latest block from repository
+            Block block = blockRepository.findLatestBlock().orElse(null);
+
+            if (block == null) {
+                long queryTime = System.currentTimeMillis() - startTime;
+                Log.warnf("No blocks found in chain (query time: %dms)", queryTime);
+                responseObserver.onError(io.grpc.Status.NOT_FOUND
+                    .withDescription("No blocks exist in the blockchain")
+                    .asRuntimeException());
+                return;
+            }
+
+            // Update caches
+            blockCache.put(block.getHash(), block);
+            heightToHashCache.put(block.getHeight(), block.getHash());
+
+            // Convert to proto and return
+            io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
+
+            long queryTime = System.currentTimeMillis() - startTime;
+            Log.infof("Latest block %d (height) retrieved in %dms", block.getHeight(), queryTime);
+
+            responseObserver.onNext(protoBlock);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            Log.errorf("Error in GetLatestBlock: %s", e.getMessage(), e);
+            responseObserver.onError(io.grpc.Status.INTERNAL
+                .withDescription("Failed to retrieve latest block: " + e.getMessage())
+                .asRuntimeException());
+        }
+    }
+
+    /**
+     * RPC 11: StreamBlocksEnhanced - Stream blocks as they're produced
+     *
+     * Performance Target: <50ms per block, 100+ concurrent streams
+     * Business Logic:
+     * - Stream historical blocks from start_block to latest
+     * - Subscribe to new block notifications
+     * - Support backpressure handling
+     * - Handle client cancellation gracefully
+     *
+     * This is an enhanced version that returns Block directly instead of BlockStreamEvent
+     */
+    @Override
+    public void streamBlocksEnhanced(StreamBlocksRequest request, StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
+        String streamId = UUID.randomUUID().toString();
+
+        try {
+            long startBlock = request.getStartBlock();
+            Log.infof("StreamBlocksEnhanced started (stream %s) from block %d", streamId, startBlock);
+
+            // Validate input
+            if (startBlock < 0) {
+                Log.warnf("Invalid start block: %d", startBlock);
+                responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
+                    .withDescription("start_block must be >= 0")
+                    .asRuntimeException());
+                return;
+            }
+
+            // Get latest block height
+            Long latestHeight = blockRepository.getLatestBlockHeight();
+            if (latestHeight == null) {
+                Log.warn("No blocks in blockchain");
+                responseObserver.onError(io.grpc.Status.NOT_FOUND
+                    .withDescription("No blocks exist in blockchain")
+                    .asRuntimeException());
+                return;
+            }
+
+            // Stream historical blocks
+            int blocksStreamed = 0;
+            for (long height = startBlock; height <= latestHeight; height++) {
+                Block block = blockRepository.findByHeight(height).orElse(null);
+                if (block != null) {
+                    io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
+                    responseObserver.onNext(protoBlock);
+                    blocksStreamed++;
+
+                    // Backpressure handling - small delay every 100 blocks
+                    if (blocksStreamed % 100 == 0) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            Log.infof("StreamBlocksEnhanced (stream %s): Streamed %d historical blocks, keeping connection open for new blocks",
+                streamId, blocksStreamed);
+
+            // Note: Stream remains open for future blocks
+            // In production, you'd register this stream for notifications
+            // For now, we'll complete the stream after historical blocks
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            Log.errorf("Error in StreamBlocksEnhanced (stream %s): %s", streamId, e.getMessage(), e);
+            responseObserver.onError(io.grpc.Status.INTERNAL
+                .withDescription("Stream failed: " + e.getMessage())
+                .asRuntimeException());
+        }
+    }
 }

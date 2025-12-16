@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Endpoint: /ws/network
  * Message format: NetworkMessage (JSON)
  * Broadcast trigger: Peer connection state change
+ * @version V12 - Re-enabled for frontend integration (December 2025)
  */
-// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
-// @ServerEndpoint("/ws/network")
+@ServerEndpoint("/ws/network")
 @ApplicationScoped
 public class NetworkWebSocket {
 

@@ -81,10 +81,10 @@
         </dependency>
         <!-- Caching Infrastructure (requires additional configuration for Caffeine backend) -->
         <!-- Dependency to be added when Quarkus caching extension is available -->
-        <!-- <dependency>
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-cache</artifactId>
-        </dependency> -->
+        </dependency>
         <!-- MicroProfile Metrics removed - conflicts with Micrometer -->
         <!-- <dependency>
             <groupId>io.quarkus</groupId>

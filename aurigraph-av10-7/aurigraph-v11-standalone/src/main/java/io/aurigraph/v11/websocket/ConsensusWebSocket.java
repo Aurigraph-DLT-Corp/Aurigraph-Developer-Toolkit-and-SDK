@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Endpoint: /ws/consensus
  * Message format: ConsensusMessage (JSON)
  * Broadcast trigger: Consensus state change
+ * @version V12 - Re-enabled for frontend integration (December 2025)
  */
-// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
-// @ServerEndpoint("/ws/consensus")
+@ServerEndpoint("/ws/consensus")
 @ApplicationScoped
 public class ConsensusWebSocket {
 

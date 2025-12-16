@@ -23,11 +23,10 @@ import java.util.logging.Logger;
  * - Participant updates
  * - Smart contract deployments
  *
- * @version 11.3.2
+ * @version 11.3.2 / V12 - Re-enabled for frontend integration (December 2025)
  * @since 2025-10-18
  */
-// DEPRECATED: WebSocket disabled - Use gRPC streaming instead (V12 Migration)
-// @ServerEndpoint("/ws/channels")
+@ServerEndpoint("/ws/channels")
 @ApplicationScoped
 public class ChannelWebSocket {
 

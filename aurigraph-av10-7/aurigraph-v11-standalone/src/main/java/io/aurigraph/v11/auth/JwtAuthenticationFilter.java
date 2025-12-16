@@ -311,6 +311,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // CURBy quantum cryptography endpoints (for quantum-resistant security)
+        if (path.startsWith("/api/v12/curby/") || path.equals("/api/v12/curby")) {
+            LOG.debugf("CURBy quantum endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         return false;
     }
 

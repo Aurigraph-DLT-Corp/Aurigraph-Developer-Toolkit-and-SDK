@@ -89,7 +89,7 @@ public class CURByQuantumResourceTest {
     // ==================== Key Pair Generation Tests ====================
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair - Success")
+    @DisplayName("POST /api/v12/curby/keypair - Success")
     public void testGenerateKeyPair_Success() {
         Mockito.when(curbyClient.generateKeyPair(anyString()))
             .thenReturn(Uni.createFrom().item(mockKeyPairResponse));
@@ -98,7 +98,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Dilithium\", \"securityLevel\": 5}")
         .when()
-            .post("/api/v11/curby/keypair")
+            .post("/api/v12/curby/keypair")
         .then()
             .statusCode(200)
             .body("success", is(true))
@@ -110,33 +110,33 @@ public class CURByQuantumResourceTest {
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair - Missing Algorithm")
+    @DisplayName("POST /api/v12/curby/keypair - Missing Algorithm")
     public void testGenerateKeyPair_MissingAlgorithm() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"securityLevel\": 5}")
         .when()
-            .post("/api/v11/curby/keypair")
+            .post("/api/v12/curby/keypair")
         .then()
             .statusCode(400)
             .body("error", containsString("Algorithm is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair - Empty Algorithm")
+    @DisplayName("POST /api/v12/curby/keypair - Empty Algorithm")
     public void testGenerateKeyPair_EmptyAlgorithm() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"\", \"securityLevel\": 5}")
         .when()
-            .post("/api/v11/curby/keypair")
+            .post("/api/v12/curby/keypair")
         .then()
             .statusCode(400)
             .body("error", containsString("Algorithm is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair - Service Unavailable")
+    @DisplayName("POST /api/v12/curby/keypair - Service Unavailable")
     public void testGenerateKeyPair_ServiceUnavailable() {
         Mockito.when(curbyClient.generateKeyPair(anyString()))
             .thenReturn(Uni.createFrom().failure(new CURByQuantumClient.CURByException("Service unavailable")));
@@ -145,14 +145,14 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Dilithium\", \"securityLevel\": 5}")
         .when()
-            .post("/api/v11/curby/keypair")
+            .post("/api/v12/curby/keypair")
         .then()
             .statusCode(503)
             .body("error", containsString("Service unavailable"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair - Kyber Algorithm")
+    @DisplayName("POST /api/v12/curby/keypair - Kyber Algorithm")
     public void testGenerateKeyPair_KyberAlgorithm() {
         CURByQuantumClient.QuantumKeyPairResponse kyberResponse = new CURByQuantumClient.QuantumKeyPairResponse(
             true,
@@ -172,7 +172,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Kyber\", \"securityLevel\": 5}")
         .when()
-            .post("/api/v11/curby/keypair")
+            .post("/api/v12/curby/keypair")
         .then()
             .statusCode(200)
             .body("success", is(true))
@@ -184,7 +184,7 @@ public class CURByQuantumResourceTest {
     // ==================== Signature Generation Tests ====================
 
     @Test
-    @DisplayName("POST /api/v11/curby/sign - Success")
+    @DisplayName("POST /api/v12/curby/sign - Success")
     public void testGenerateSignature_Success() {
         Mockito.when(curbyClient.generateSignature(anyString(), anyString(), anyString()))
             .thenReturn(Uni.createFrom().item(mockSignatureResponse));
@@ -193,7 +193,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"privateKey\": \"PRIVATE_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/sign")
+            .post("/api/v12/curby/sign")
         .then()
             .statusCode(200)
             .body("success", is(true))
@@ -203,46 +203,46 @@ public class CURByQuantumResourceTest {
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/sign - Missing Data")
+    @DisplayName("POST /api/v12/curby/sign - Missing Data")
     public void testGenerateSignature_MissingData() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"privateKey\": \"PRIVATE_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/sign")
+            .post("/api/v12/curby/sign")
         .then()
             .statusCode(400)
             .body("error", containsString("Data is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/sign - Missing Private Key")
+    @DisplayName("POST /api/v12/curby/sign - Missing Private Key")
     public void testGenerateSignature_MissingPrivateKey() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/sign")
+            .post("/api/v12/curby/sign")
         .then()
             .statusCode(400)
             .body("error", containsString("Private key is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/sign - Empty Data")
+    @DisplayName("POST /api/v12/curby/sign - Empty Data")
     public void testGenerateSignature_EmptyData() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"data\": \"\", \"privateKey\": \"PRIVATE_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/sign")
+            .post("/api/v12/curby/sign")
         .then()
             .statusCode(400)
             .body("error", containsString("Data is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/sign - Service Failure")
+    @DisplayName("POST /api/v12/curby/sign - Service Failure")
     public void testGenerateSignature_ServiceFailure() {
         Mockito.when(curbyClient.generateSignature(anyString(), anyString(), anyString()))
             .thenReturn(Uni.createFrom().failure(new RuntimeException("Signature generation failed")));
@@ -251,14 +251,14 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"privateKey\": \"PRIVATE_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/sign")
+            .post("/api/v12/curby/sign")
         .then()
             .statusCode(503)
             .body("error", containsString("Service unavailable"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/sign - Long Data")
+    @DisplayName("POST /api/v12/curby/sign - Long Data")
     public void testGenerateSignature_LongData() {
         String longData = "X".repeat(10000);
         Mockito.when(curbyClient.generateSignature(eq(longData), anyString(), anyString()))
@@ -268,7 +268,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body(String.format("{\"data\": \"%s\", \"privateKey\": \"PRIVATE_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}", longData))
         .when()
-            .post("/api/v11/curby/sign")
+            .post("/api/v12/curby/sign")
         .then()
             .statusCode(200)
             .body("success", is(true));
@@ -277,7 +277,7 @@ public class CURByQuantumResourceTest {
     // ==================== Signature Verification Tests ====================
 
     @Test
-    @DisplayName("POST /api/v11/curby/verify - Success (Valid Signature)")
+    @DisplayName("POST /api/v12/curby/verify - Success (Valid Signature)")
     public void testVerifySignature_Valid() {
         Mockito.when(curbyClient.verifySignature(anyString(), anyString(), anyString(), anyString()))
             .thenReturn(Uni.createFrom().item(mockVerificationResponse));
@@ -286,7 +286,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"signature\": \"SIGNATURE_DATA\", \"publicKey\": \"PUBLIC_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/verify")
+            .post("/api/v12/curby/verify")
         .then()
             .statusCode(200)
             .body("success", is(true))
@@ -296,7 +296,7 @@ public class CURByQuantumResourceTest {
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/verify - Invalid Signature")
+    @DisplayName("POST /api/v12/curby/verify - Invalid Signature")
     public void testVerifySignature_Invalid() {
         CURByQuantumClient.QuantumVerificationResponse invalidResponse =
             new CURByQuantumClient.QuantumVerificationResponse(
@@ -310,7 +310,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"signature\": \"INVALID_SIGNATURE\", \"publicKey\": \"PUBLIC_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/verify")
+            .post("/api/v12/curby/verify")
         .then()
             .statusCode(200)
             .body("success", is(true))
@@ -318,46 +318,46 @@ public class CURByQuantumResourceTest {
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/verify - Missing Data")
+    @DisplayName("POST /api/v12/curby/verify - Missing Data")
     public void testVerifySignature_MissingData() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"signature\": \"SIGNATURE_DATA\", \"publicKey\": \"PUBLIC_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/verify")
+            .post("/api/v12/curby/verify")
         .then()
             .statusCode(400)
             .body("error", containsString("Data is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/verify - Missing Signature")
+    @DisplayName("POST /api/v12/curby/verify - Missing Signature")
     public void testVerifySignature_MissingSignature() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"publicKey\": \"PUBLIC_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/verify")
+            .post("/api/v12/curby/verify")
         .then()
             .statusCode(400)
             .body("error", containsString("Signature is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/verify - Missing Public Key")
+    @DisplayName("POST /api/v12/curby/verify - Missing Public Key")
     public void testVerifySignature_MissingPublicKey() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"signature\": \"SIGNATURE_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/verify")
+            .post("/api/v12/curby/verify")
         .then()
             .statusCode(400)
             .body("error", containsString("Public key is required"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/verify - Service Failure")
+    @DisplayName("POST /api/v12/curby/verify - Service Failure")
     public void testVerifySignature_ServiceFailure() {
         Mockito.when(curbyClient.verifySignature(anyString(), anyString(), anyString(), anyString()))
             .thenReturn(Uni.createFrom().failure(new RuntimeException("Verification service error")));
@@ -366,7 +366,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", \"signature\": \"SIGNATURE_DATA\", \"publicKey\": \"PUBLIC_KEY_DATA\", \"algorithm\": \"CRYSTALS-Dilithium\"}")
         .when()
-            .post("/api/v11/curby/verify")
+            .post("/api/v12/curby/verify")
         .then()
             .statusCode(503)
             .body("error", containsString("Service unavailable"));
@@ -375,14 +375,14 @@ public class CURByQuantumResourceTest {
     // ==================== Health Status Tests ====================
 
     @Test
-    @DisplayName("GET /api/v11/curby/health - Healthy")
+    @DisplayName("GET /api/v12/curby/health - Healthy")
     public void testGetHealthStatus_Healthy() {
         Mockito.when(curbyClient.getHealthStatus())
             .thenReturn(mockHealthStatus);
 
         given()
         .when()
-            .get("/api/v11/curby/health")
+            .get("/api/v12/curby/health")
         .then()
             .statusCode(200)
             .body("enabled", is(true))
@@ -395,7 +395,7 @@ public class CURByQuantumResourceTest {
     }
 
     @Test
-    @DisplayName("GET /api/v11/curby/health - Unhealthy")
+    @DisplayName("GET /api/v12/curby/health - Unhealthy")
     public void testGetHealthStatus_Unhealthy() {
         CURByQuantumClient.CURByHealthStatus unhealthyStatus = new CURByQuantumClient.CURByHealthStatus(
             true, false, 1000L, 400L, 600L, 50L, 0.40, 10, System.currentTimeMillis()
@@ -406,7 +406,7 @@ public class CURByQuantumResourceTest {
 
         given()
         .when()
-            .get("/api/v11/curby/health")
+            .get("/api/v12/curby/health")
         .then()
             .statusCode(503)
             .body("healthy", is(false))
@@ -416,14 +416,14 @@ public class CURByQuantumResourceTest {
     // ==================== Metrics Tests ====================
 
     @Test
-    @DisplayName("GET /api/v11/curby/metrics - Success")
+    @DisplayName("GET /api/v12/curby/metrics - Success")
     public void testGetMetrics_Success() {
         Mockito.when(curbyClient.getHealthStatus())
             .thenReturn(mockHealthStatus);
 
         given()
         .when()
-            .get("/api/v11/curby/metrics")
+            .get("/api/v12/curby/metrics")
         .then()
             .statusCode(200)
             .body("totalRequests", is(1000))
@@ -439,11 +439,11 @@ public class CURByQuantumResourceTest {
     // ==================== Algorithms Tests ====================
 
     @Test
-    @DisplayName("GET /api/v11/curby/algorithms - Success")
+    @DisplayName("GET /api/v12/curby/algorithms - Success")
     public void testGetSupportedAlgorithms_Success() {
         given()
         .when()
-            .get("/api/v11/curby/algorithms")
+            .get("/api/v12/curby/algorithms")
         .then()
             .statusCode(200)
             .body("default", is("CRYSTALS-Dilithium"))
@@ -457,7 +457,7 @@ public class CURByQuantumResourceTest {
     // ==================== Batch Key Generation Tests ====================
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair/batch - Success")
+    @DisplayName("POST /api/v12/curby/keypair/batch - Success")
     public void testGenerateKeyPairBatch_Success() {
         Mockito.when(curbyClient.generateKeyPair(anyString()))
             .thenReturn(Uni.createFrom().item(mockKeyPairResponse));
@@ -466,7 +466,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Dilithium\", \"count\": 5}")
         .when()
-            .post("/api/v11/curby/keypair/batch")
+            .post("/api/v12/curby/keypair/batch")
         .then()
             .statusCode(200)
             .body("success", is(true))
@@ -474,33 +474,33 @@ public class CURByQuantumResourceTest {
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair/batch - Count Too Low")
+    @DisplayName("POST /api/v12/curby/keypair/batch - Count Too Low")
     public void testGenerateKeyPairBatch_CountTooLow() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Dilithium\", \"count\": 0}")
         .when()
-            .post("/api/v11/curby/keypair/batch")
+            .post("/api/v12/curby/keypair/batch")
         .then()
             .statusCode(400)
             .body("error", containsString("Count must be between 1 and 100"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair/batch - Count Too High")
+    @DisplayName("POST /api/v12/curby/keypair/batch - Count Too High")
     public void testGenerateKeyPairBatch_CountTooHigh() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Dilithium\", \"count\": 101}")
         .when()
-            .post("/api/v11/curby/keypair/batch")
+            .post("/api/v12/curby/keypair/batch")
         .then()
             .statusCode(400)
             .body("error", containsString("Count must be between 1 and 100"));
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair/batch - Maximum Allowed Count")
+    @DisplayName("POST /api/v12/curby/keypair/batch - Maximum Allowed Count")
     public void testGenerateKeyPairBatch_MaxCount() {
         Mockito.when(curbyClient.generateKeyPair(anyString()))
             .thenReturn(Uni.createFrom().item(mockKeyPairResponse));
@@ -509,7 +509,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Dilithium\", \"count\": 100}")
         .when()
-            .post("/api/v11/curby/keypair/batch")
+            .post("/api/v12/curby/keypair/batch")
         .then()
             .statusCode(200)
             .body("success", is(true))
@@ -517,7 +517,7 @@ public class CURByQuantumResourceTest {
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair/batch - Service Failure")
+    @DisplayName("POST /api/v12/curby/keypair/batch - Service Failure")
     public void testGenerateKeyPairBatch_ServiceFailure() {
         Mockito.when(curbyClient.generateKeyPair(anyString()))
             .thenReturn(Uni.createFrom().failure(new RuntimeException("Batch generation failed")));
@@ -526,7 +526,7 @@ public class CURByQuantumResourceTest {
             .contentType(ContentType.JSON)
             .body("{\"algorithm\": \"CRYSTALS-Dilithium\", \"count\": 5}")
         .when()
-            .post("/api/v11/curby/keypair/batch")
+            .post("/api/v12/curby/keypair/batch")
         .then()
             .statusCode(500)
             .body("error", containsString("Batch generation failed"));
@@ -535,25 +535,25 @@ public class CURByQuantumResourceTest {
     // ==================== Content Type Tests ====================
 
     @Test
-    @DisplayName("POST /api/v11/curby/keypair - Invalid Content Type")
+    @DisplayName("POST /api/v12/curby/keypair - Invalid Content Type")
     public void testGenerateKeyPair_InvalidContentType() {
         given()
             .contentType(ContentType.TEXT)
             .body("algorithm=CRYSTALS-Dilithium")
         .when()
-            .post("/api/v11/curby/keypair")
+            .post("/api/v12/curby/keypair")
         .then()
             .statusCode(415); // Unsupported Media Type
     }
 
     @Test
-    @DisplayName("POST /api/v11/curby/sign - Malformed JSON")
+    @DisplayName("POST /api/v12/curby/sign - Malformed JSON")
     public void testGenerateSignature_MalformedJSON() {
         given()
             .contentType(ContentType.JSON)
             .body("{\"data\": \"Hello World\", invalid json}")
         .when()
-            .post("/api/v11/curby/sign")
+            .post("/api/v12/curby/sign")
         .then()
             .statusCode(400); // Bad Request
     }
@@ -561,13 +561,13 @@ public class CURByQuantumResourceTest {
     // ==================== CORS and Security Tests ====================
 
     @Test
-    @DisplayName("OPTIONS /api/v11/curby/keypair - CORS Preflight")
+    @DisplayName("OPTIONS /api/v12/curby/keypair - CORS Preflight")
     public void testCORSPreflight() {
         given()
             .header("Origin", "https://example.com")
             .header("Access-Control-Request-Method", "POST")
         .when()
-            .options("/api/v11/curby/keypair")
+            .options("/api/v12/curby/keypair")
         .then()
             .statusCode(anyOf(is(200), is(204))); // Either OK or No Content
     }
