@@ -8,6 +8,7 @@ import org.jboss.logging.Logger;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -318,10 +319,10 @@ public class DemoTokenService {
         long durationMinutes = ChronoUnit.MINUTES.between(session.startedAt(), Instant.now());
 
         // Update demo record
-        Demo demo = Demo.find("demoToken", demoToken).firstResult();
+        Demo demo = Demo.findById(demoToken);
         if (demo != null) {
-            demo.status = "COMPLETED";
-            demo.completedAt = Instant.now();
+            demo.status = Demo.DemoStatus.STOPPED;
+            demo.lastActivity = LocalDateTime.now();
             demo.persist();
         }
 

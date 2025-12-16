@@ -21,6 +21,7 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -79,13 +80,13 @@ public class DemoRegistrationResource {
 
                 // Build response
                 DemoRegistrationResponse response = new DemoRegistrationResponse(
-                    demo.id.toString(),
+                    demo.id,
                     demoToken,
                     request.email(),
                     request.category(),
                     request.useCase(),
-                    demo.createdAt,
-                    calculateExpiresAt(demo.createdAt),
+                    demo.createdAt != null ? demo.createdAt.atZone(java.time.ZoneId.systemDefault()).toInstant() : Instant.now(),
+                    demo.expiresAt != null ? demo.expiresAt.atZone(java.time.ZoneId.systemDefault()).toInstant() : Instant.now().plus(7, java.time.temporal.ChronoUnit.DAYS),
                     buildDemoUrl(request.category(), request.useCase(), demoToken),
                     "Registration successful! Check your email for demo access."
                 );
@@ -112,7 +113,7 @@ public class DemoRegistrationResource {
     @PermitAll
     public Uni<Response> getDemoStatus(@PathParam("token") String token) {
         return Uni.createFrom().item(() -> {
-            Demo demo = Demo.find("demoToken", token).firstResult();
+            Demo demo = Demo.findById(token);
 
             if (demo == null) {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -120,15 +121,20 @@ public class DemoRegistrationResource {
                     .build();
             }
 
+            // Extract category and useCase from demoName (format: category_useCase)
+            String[] parts = demo.demoName != null ? demo.demoName.split("_", 2) : new String[]{"", ""};
+            String category = parts.length > 0 ? parts[0] : "";
+            String useCase = parts.length > 1 ? parts[1] : "";
+
             DemoStatusResponse status = new DemoStatusResponse(
-                demo.id.toString(),
-                demo.status,
-                demo.category,
-                demo.useCase,
-                demo.createdAt,
-                calculateExpiresAt(demo.createdAt),
-                isExpired(demo.createdAt),
-                demo.completedAt
+                demo.id,
+                demo.status.name(),
+                category,
+                useCase,
+                demo.createdAt != null ? demo.createdAt.atZone(java.time.ZoneId.systemDefault()).toInstant() : null,
+                demo.expiresAt != null ? demo.expiresAt.atZone(java.time.ZoneId.systemDefault()).toInstant() : null,
+                demo.isExpired(),
+                demo.lastActivity != null ? demo.lastActivity.atZone(java.time.ZoneId.systemDefault()).toInstant() : null
             );
 
             return Response.ok(status).build();
@@ -145,7 +151,7 @@ public class DemoRegistrationResource {
     @Transactional
     public Uni<Response> startDemo(@PathParam("token") String token) {
         return Uni.createFrom().item(() -> {
-            Demo demo = Demo.find("demoToken", token).firstResult();
+            Demo demo = Demo.findById(token);
 
             if (demo == null) {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -153,20 +159,20 @@ public class DemoRegistrationResource {
                     .build();
             }
 
-            if (isExpired(demo.createdAt)) {
+            if (demo.isExpired()) {
                 return Response.status(Response.Status.GONE)
                     .entity(new ErrorResponse("Demo token has expired"))
                     .build();
             }
 
-            demo.status = "IN_PROGRESS";
-            demo.startedAt = Instant.now();
+            demo.status = Demo.DemoStatus.RUNNING;
+            demo.lastActivity = LocalDateTime.now();
             demo.persist();
 
             return Response.ok(Map.of(
                 "status", "STARTED",
                 "message", "Demo session started",
-                "demoId", demo.id.toString()
+                "demoId", demo.id
             )).build();
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
@@ -184,7 +190,7 @@ public class DemoRegistrationResource {
         DemoCompletionRequest request
     ) {
         return Uni.createFrom().item(() -> {
-            Demo demo = Demo.find("demoToken", token).firstResult();
+            Demo demo = Demo.findById(token);
 
             if (demo == null) {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -192,36 +198,21 @@ public class DemoRegistrationResource {
                     .build();
             }
 
-            demo.status = "COMPLETED";
-            demo.completedAt = Instant.now();
-            if (request != null) {
-                demo.feedback = request.feedback();
-                demo.rating = request.rating();
+            demo.status = Demo.DemoStatus.STOPPED;
+            demo.lastActivity = LocalDateTime.now();
+            // Store feedback in description field
+            if (request != null && request.feedback() != null) {
+                demo.description = demo.description + " | Feedback: " + request.feedback() +
+                    " | Rating: " + request.rating();
             }
             demo.persist();
 
-            // Record completion interest
-            if (demo.userId != null) {
-                try {
-                    interestService.recordInterest(
-                        demo.userId,
-                        demo.category,
-                        demo.useCase,
-                        UserInterest.ActionType.DEMO_COMPLETE,
-                        "demo_completion",
-                        null, null, null,
-                        String.format("{\"demoId\":\"%s\",\"rating\":%d}",
-                            demo.id.toString(), request != null ? request.rating() : 0)
-                    );
-                } catch (Exception e) {
-                    LOG.warn("Failed to record demo completion interest", e);
-                }
-            }
+            LOG.infof("Demo completed: %s", token);
 
             return Response.ok(Map.of(
                 "status", "COMPLETED",
                 "message", "Demo completed successfully!",
-                "demoId", demo.id.toString()
+                "demoId", demo.id
             )).build();
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
@@ -292,15 +283,21 @@ public class DemoRegistrationResource {
                 .list();
 
             List<DemoHistoryItem> history = demos.stream()
-                .map(d -> new DemoHistoryItem(
-                    d.id.toString(),
-                    d.category,
-                    d.useCase,
-                    d.status,
-                    d.createdAt,
-                    d.completedAt,
-                    d.rating
-                ))
+                .map(d -> {
+                    // Extract category and useCase from demoName (format: category_useCase)
+                    String[] parts = d.demoName != null ? d.demoName.split("_", 2) : new String[]{"", ""};
+                    String category = parts.length > 0 ? parts[0] : "";
+                    String useCase = parts.length > 1 ? parts[1] : "";
+                    return new DemoHistoryItem(
+                        d.id,
+                        category,
+                        useCase,
+                        d.status.name(),
+                        d.createdAt != null ? d.createdAt.atZone(java.time.ZoneId.systemDefault()).toInstant() : null,
+                        d.lastActivity != null ? d.lastActivity.atZone(java.time.ZoneId.systemDefault()).toInstant() : null,
+                        null // No rating field in Demo entity
+                    );
+                })
                 .toList();
 
             return Response.ok(history).build();
@@ -317,14 +314,9 @@ public class DemoRegistrationResource {
         User user = User.find("email", request.email()).firstResult();
 
         if (user == null && request.createAccount()) {
-            user = new User();
-            user.email = request.email();
-            user.username = request.email().split("@")[0];
-            user.fullName = request.fullName();
-            user.company = request.company();
-            user.role = "USER";
-            user.persist();
-            LOG.infof("Created new user for demo: %s", request.email());
+            // For demo users, we don't create accounts directly
+            // They can register through the normal user registration flow
+            LOG.infof("User not found for demo registration: %s", request.email());
         }
 
         return user;
@@ -332,18 +324,17 @@ public class DemoRegistrationResource {
 
     private Demo createDemoRegistration(DemoRegistrationRequest request, User user, String token) {
         Demo demo = new Demo();
-        demo.email = request.email();
-        demo.fullName = request.fullName();
-        demo.company = request.company();
-        demo.category = request.category().toUpperCase();
-        demo.useCase = request.useCase();
-        demo.demoToken = token;
-        demo.status = "PENDING";
-        demo.source = request.source();
-        if (user != null) {
-            demo.userId = user.id;
-        }
-        demo.createdAt = Instant.now();
+        demo.id = token;
+        demo.demoName = request.category() + "_" + request.useCase();
+        demo.userEmail = request.email();
+        demo.userName = request.fullName();
+        demo.description = String.format("Demo registration - Company: %s, Category: %s, UseCase: %s, Source: %s",
+            request.company(), request.category(), request.useCase(), request.source());
+        demo.status = Demo.DemoStatus.PENDING;
+        demo.createdAt = LocalDateTime.now();
+        demo.lastActivity = LocalDateTime.now();
+        demo.expiresAt = LocalDateTime.now().plusDays(7); // 7-day demo access
+        demo.durationMinutes = 10080; // 7 days in minutes
         demo.persist();
         return demo;
     }
