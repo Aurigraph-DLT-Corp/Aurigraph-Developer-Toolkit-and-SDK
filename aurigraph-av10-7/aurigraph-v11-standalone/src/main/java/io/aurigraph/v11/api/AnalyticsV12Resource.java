@@ -50,8 +50,6 @@ public class AnalyticsV12Resource {
     @Inject
     io.aurigraph.v11.TransactionService transactionService;
 
-    @Inject
-    io.aurigraph.v11.grpc.AnalyticsStreamServiceImpl analyticsStreamService;
 
     /**
      * GET /api/v12/analytics/dashboard

@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Comprehensive test suite for ConsensusServiceImpl gRPC service.
+ * Comprehensive test suite for ConsensusServiceImpl_J4C gRPC service.
  * Tests cover all 11 RPC methods for HyperRAFT++ consensus including:
  * - Block proposal and voting
  * - Block commitment
@@ -50,7 +50,7 @@ class ConsensusServiceGrpcTest {
 
     @Inject
     @GrpcService
-    ConsensusServiceImpl consensusService;
+    ConsensusServiceImpl_J4C consensusService;
 
     // ==================== Block Proposal Tests ====================
 

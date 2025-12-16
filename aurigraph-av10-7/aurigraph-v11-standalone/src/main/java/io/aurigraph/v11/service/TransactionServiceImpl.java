@@ -122,10 +122,10 @@ public class TransactionServiceImpl implements TransactionService {
         entity.amount = new BigDecimal(transaction.getAmount());
         entity.status = TransactionStatus.PENDING;
         entity.signature = transaction.getSignature();
-        entity.gasPrice = transaction.hasGasPrice() ? new BigDecimal(transaction.getGasPrice()) : BigDecimal.ZERO;
-        entity.gasLimit = transaction.hasGasLimit() ? transaction.getGasLimit() : 21000L;
-        entity.nonce = transaction.hasNonce() ? transaction.getNonce() : 0L;
-        entity.data = transaction.hasData() ? transaction.getData() : "";
+        entity.gasPrice = transaction.getGasPrice() > 0 ? new BigDecimal(transaction.getGasPrice()) : BigDecimal.ZERO;
+        entity.gasLimit = transaction.getGasLimit() > 0 ? (long) transaction.getGasLimit() : 21000L;
+        entity.nonce = transaction.getNonce() > 0 ? (long) transaction.getNonce() : 0L;
+        entity.data = transaction.getData() != null && !transaction.getData().isEmpty() ? transaction.getData() : "";
         entity.createdAt = Instant.now();
 
         // Persist to database
@@ -179,18 +179,18 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionStatus getTransactionStatus(String txnHash) throws Exception {
+    public io.aurigraph.v11.proto.TransactionStatus getTransactionStatus(String txnHash) throws Exception {
         if (!transactionMap.containsKey(txnHash)) {
             throw new IllegalArgumentException("Transaction not found: " + txnHash);
         }
 
         // Determine status based on receipt existence
         if (receiptMap.containsKey(txnHash)) {
-            return TransactionStatus.TRANSACTION_CONFIRMED;
+            return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED;
         } else if (pendingTransactions.contains(txnHash)) {
-            return TransactionStatus.TRANSACTION_PENDING;
+            return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_PENDING;
         } else {
-            return TransactionStatus.TRANSACTION_FAILED;
+            return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_FAILED;
         }
     }
 
@@ -488,16 +488,16 @@ public class TransactionServiceImpl implements TransactionService {
 
         TransactionEntity entity = entityOpt.get();
         return Transaction.newBuilder()
-                .setTxnHash(entity.hash)
+                .setTransactionHash(entity.hash)
+                .setTransactionId(entity.transactionId)
                 .setFromAddress(entity.fromAddress)
                 .setToAddress(entity.toAddress)
                 .setAmount(entity.amount.toString())
                 .setSignature(entity.signature)
                 .setGasPrice(entity.gasPrice != null ? entity.gasPrice.doubleValue() : 0.0)
-                .setGasLimit(entity.gasLimit != null ? entity.gasLimit : 21000L)
-                .setNonce(entity.nonce != null ? entity.nonce : 0L)
+                .setGasLimit(entity.gasLimit != null ? entity.gasLimit.doubleValue() : 21000.0)
+                .setNonce(entity.nonce != null ? entity.nonce.intValue() : 0)
                 .setData(entity.data != null ? entity.data : "")
-                .setTimestamp(entity.createdAt.toString())
                 .build();
     }
 }

@@ -58,7 +58,7 @@ public class CrossChainBridgeV12ResourceTest {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("validationId", notNullValue())
-                .body("status", isIn("SUCCESS", "WARNINGS", "FAILED"))
+                .body("status", isIn(new String[]{"SUCCESS", "WARNINGS", "FAILED"}))
                 .body("timestamp", notNullValue());
     }
 

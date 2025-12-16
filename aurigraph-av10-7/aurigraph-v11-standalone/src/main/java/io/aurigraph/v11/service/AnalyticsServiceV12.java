@@ -53,7 +53,7 @@ public class AnalyticsServiceV12 {
 
     // Aggregated metrics cache
     private final Map<String, AggregatedMetrics> metricsCache = new ConcurrentHashMap<>();
-    private final Map<String, MovingAverage> movingAverages = new ConcurrentHashMap<>();
+    private final Map<String, MovingAverages> movingAverages = new ConcurrentHashMap<>();
 
     // Anomaly tracking
     private final List<Anomaly> detectedAnomalies = new ArrayList<>();

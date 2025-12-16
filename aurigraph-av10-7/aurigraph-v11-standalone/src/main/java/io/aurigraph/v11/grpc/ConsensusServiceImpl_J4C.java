@@ -6,8 +6,8 @@ import io.smallrye.mutiny.Uni;
 import io.aurigraph.v11.proto.*;
 import com.google.protobuf.Timestamp;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import java.time.Instant;
 import java.util.*;
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * @since 2025-12-16
  */
 @GrpcService
-@ApplicationScoped
+@Singleton
 public class ConsensusServiceImpl_J4C implements io.aurigraph.v11.proto.ConsensusService {
 
     private static final Logger log = LoggerFactory.getLogger(ConsensusServiceImpl_J4C.class);
@@ -528,8 +528,8 @@ public class ConsensusServiceImpl_J4C implements io.aurigraph.v11.proto.Consensu
             ValidatorInfo validator = ValidatorInfo.newBuilder()
                 .setValidatorId(validatorId)
                 .setPublicKey("pub-key-" + i)
-                .setStake(1000000L * i)
-                .setReputation(85.0 + i)
+                .setSignatureCount(100 * i)
+                .setReputationScore(85.0 + i)
                 .setIsActive(true)
                 .build();
 
@@ -701,7 +701,7 @@ public class ConsensusServiceImpl_J4C implements io.aurigraph.v11.proto.Consensu
             if (validator != null) {
                 return ValidatorInfoResponse.newBuilder()
                     .setValidator(validator)
-                    .setReputationScore(validator.getReputation())
+                    .setReputationScore(validator.getReputationScore())
                     .setBlocksValidated((int) totalRoundsCompleted.get())
                     .setFailedValidations(0)
                     .setLastActivity(createCurrentTimestamp())
