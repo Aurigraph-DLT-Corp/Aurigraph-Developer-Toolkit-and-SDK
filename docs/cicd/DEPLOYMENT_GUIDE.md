@@ -4,7 +4,7 @@
 
 This guide covers deploying Aurigraph V11 to the remote server at `dlt.aurigraph.io`.
 
-**Target**: `dlt.aurigraph.io` (SSH port 2235)
+**Target**: `dlt.aurigraph.io` (SSH port 22)
 **User**: `subbu`
 **Deployment Method**: Automated via GitHub Actions or manual script
 
@@ -77,7 +77,7 @@ mvn --version  # Should show Maven 3.9+
 ✅ **SSH Access** - To remote server
 ```bash
 # Should connect without errors
-ssh -p 2235 subbu@dlt.aurigraph.io "echo SSH OK"
+ssh -p 22 subbu@dlt.aurigraph.io "echo SSH OK"
 ```
 
 ✅ **Docker** - For local image building (optional)
@@ -90,7 +90,7 @@ docker --version
 ✅ **GitHub Secrets Configured**:
 - `SERVER_HOST` - `dlt.aurigraph.io`
 - `SERVER_USERNAME` - `subbu`
-- `SERVER_PORT` - `2235`
+- `SERVER_PORT` - `22`
 - `SERVER_SSH_PRIVATE_KEY` - SSH private key
 - `JIRA_API_TOKEN` - For integrations
 
@@ -122,7 +122,7 @@ The script will display:
 
 ```bash
 # Check if services are running
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps"
+ssh -p 22 subbu@dlt.aurigraph.io "docker ps"
 
 # Test API endpoint
 curl https://dlt.aurigraph.io/api/v11/health
@@ -232,7 +232,7 @@ After deployment, verify:
 
 ### Remote Server Status
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 docker ps --format "table {{.Names}}\t{{.Status}}"
 EOF
 ```
@@ -264,7 +264,7 @@ curl https://dlt.aurigraph.io -L | head -20
 
 ### Database Connectivity
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 docker exec -it postgres psql -U aurigraph -d aurigraph_production -c "SELECT version();"
 EOF
 ```
@@ -285,7 +285,7 @@ If deployment fails:
 ### Manual Rollback
 
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 cd /opt/aurigraph/backups
 
 # Find latest backup
@@ -337,7 +337,7 @@ docker build -t aurigraph-v11:test .
 
 ### Test 3: Check SSH Access
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io "docker --version"
+ssh -p 22 subbu@dlt.aurigraph.io "docker --version"
 ```
 
 ### Test 4: Dry Run (no actual deploy)
@@ -360,7 +360,7 @@ git diff origin/main
 ping dlt.aurigraph.io
 
 # Check SSH with verbose
-ssh -v -p 2235 subbu@dlt.aurigraph.io
+ssh -v -p 22 subbu@dlt.aurigraph.io
 
 # Verify key
 ls -la ~/.ssh/
@@ -382,14 +382,14 @@ cd aurigraph-av10-7/aurigraph-v11-standalone
 ### Deployment Hangs
 ```bash
 # Check remote server
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps"
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 | tail -50"
+ssh -p 22 subbu@dlt.aurigraph.io "docker ps"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 | tail -50"
 ```
 
 ### Health Checks Fail
 ```bash
 # Check logs
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 docker logs postgres
 docker logs redis
 docker logs traefik
@@ -397,7 +397,7 @@ docker logs aurigraph-v11
 EOF
 
 # Manually check health
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 curl -v http://localhost:9003/q/health
 curl -v http://localhost:3000
 EOF
@@ -415,15 +415,15 @@ EOF
 ### Remote Server Logs
 ```bash
 # Live logs
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs -f aurigraph-v11"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs -f aurigraph-v11"
 
 # Historical logs
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 | tail -100"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs aurigraph-v11 | tail -100"
 ```
 
 ### System Metrics
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 echo "Memory:"
 free -h
 
@@ -472,7 +472,7 @@ Before deploying:
    ```bash
    java --version
    mvn --version
-   ssh -p 2235 subbu@dlt.aurigraph.io "echo Connected"
+   ssh -p 22 subbu@dlt.aurigraph.io "echo Connected"
    ```
 
 2. **Run Deployment**:

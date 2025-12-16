@@ -18,7 +18,7 @@ on:
 env:
   JAVA_VERSION: '21'
   REMOTE_HOST: dlt.aurigraph.io
-  REMOTE_PORT: 2235
+  REMOTE_PORT: 22
   REMOTE_USER: subbu
   APP_PORT: 9003
 

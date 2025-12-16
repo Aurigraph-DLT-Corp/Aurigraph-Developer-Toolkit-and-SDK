@@ -16,7 +16,7 @@ Before starting, ensure you have:
 
 1. **SSH Access to Remote Server**
    ```bash
-   ssh -p 2235 subbu@dlt.aurigraph.io
+   ssh -p 22 subbu@dlt.aurigraph.io
    ```
 
 2. **GitHub Repository Access**
@@ -54,7 +54,7 @@ Connect to your remote server and add the public key:
 
 ```bash
 # On your local machine
-ssh -p 2235 subbu@dlt.aurigraph.io
+ssh -p 22 subbu@dlt.aurigraph.io
 
 # Once connected, add the public key
 mkdir -p ~/.ssh
@@ -63,7 +63,7 @@ chmod 600 ~/.ssh/authorized_keys
 
 # Verify SSH login works without password
 exit
-ssh -p 2235 subbu@dlt.aurigraph.io "echo SSH key works"
+ssh -p 22 subbu@dlt.aurigraph.io "echo SSH key works"
 ```
 
 ---
@@ -162,7 +162,7 @@ Ensure the remote server has:
 
 ### Create remote directories
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 mkdir -p /opt/aurigraph/{production,staging,backups}
 cd /opt/aurigraph/production
 git clone https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT.git .
@@ -171,7 +171,7 @@ EOF
 
 ### Docker & Docker Compose Installation
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 # Verify Docker is installed
 docker --version
 docker-compose --version
@@ -217,7 +217,7 @@ After the workflow completes, verify:
 
 ### Remote Server Status
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps"
+ssh -p 22 subbu@dlt.aurigraph.io "docker ps"
 ```
 
 You should see running containers:
@@ -298,7 +298,7 @@ After deployment, the system monitors for 5 minutes:
 ssh-add ~/.ssh/aurigraph-deploy-key
 
 # Test connection manually
-ssh -p 2235 -v subbu@dlt.aurigraph.io
+ssh -p 22 -v subbu@dlt.aurigraph.io
 ```
 
 ### Deployment Timeout
@@ -309,17 +309,17 @@ ssh -p 2235 -v subbu@dlt.aurigraph.io
 ### Health Check Failed
 ```bash
 # Check remote service logs
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs aurigraph-v11"
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs postgres"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs aurigraph-v11"
+ssh -p 22 subbu@dlt.aurigraph.io "docker logs postgres"
 ```
 
 ### Port Conflicts
 ```bash
 # Check ports on remote server
-ssh -p 2235 subbu@dlt.aurigraph.io "netstat -tlnp | grep -E '9003|9004|3000|80|443'"
+ssh -p 22 subbu@dlt.aurigraph.io "netstat -tlnp | grep -E '9003|9004|3000|80|443'"
 
 # Kill conflicting process if needed
-ssh -p 2235 subbu@dlt.aurigraph.io "lsof -i :9003 && kill -9 <PID>"
+ssh -p 22 subbu@dlt.aurigraph.io "lsof -i :9003 && kill -9 <PID>"
 ```
 
 ### Docker Image Not Found
@@ -328,7 +328,7 @@ ssh -p 2235 subbu@dlt.aurigraph.io "lsof -i :9003 && kill -9 <PID>"
 docker images | grep aurigraph
 
 # Manually pull on remote
-ssh -p 2235 subbu@dlt.aurigraph.io "docker pull ghcr.io/aurigraph-dlt-corp/aurigraph-dlt/aurigraph-v11:latest"
+ssh -p 22 subbu@dlt.aurigraph.io "docker pull ghcr.io/aurigraph-dlt-corp/aurigraph-dlt/aurigraph-v11:latest"
 ```
 
 ---
@@ -346,7 +346,7 @@ If deployment fails, automatic rollback is initiated:
 
 ### Manual Rollback
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
 cd /opt/aurigraph/production
 
 # Get latest backup
@@ -429,7 +429,7 @@ EOF
 
 For issues or questions:
 1. Check deployment logs: Actions → Workflow run → View logs
-2. Check remote server: `ssh -p 2235 subbu@dlt.aurigraph.io`
+2. Check remote server: `ssh -p 22 subbu@dlt.aurigraph.io`
 3. Check containers: `docker ps -a`
 4. View logs: `docker logs <container-name>`
 

@@ -40,7 +40,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/aurigraph-v11
   JAVA_VERSION: '21'
-  REMOTE_PORT: '2235'
+  REMOTE_PORT: '22'
   REMOTE_DIR: '/opt/aurigraph'
 
 permissions:

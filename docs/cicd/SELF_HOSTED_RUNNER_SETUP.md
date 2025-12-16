@@ -63,7 +63,7 @@ This guide explains how to set up GitHub Actions self-hosted runner for deployin
 ### Step 1: SSH to Remote Server
 
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io
+ssh -p 22 subbu@dlt.aurigraph.io
 ```
 
 ### Step 2: Download and Run Setup Script
@@ -73,7 +73,7 @@ ssh -p 2235 subbu@dlt.aurigraph.io
 curl -O https://raw.githubusercontent.com/Aurigraph-DLT-Corp/Aurigraph-DLT/V12/scripts/ci-cd/setup-self-hosted-runner.sh
 
 # Or copy from local
-scp -P 2235 scripts/ci-cd/setup-self-hosted-runner.sh subbu@dlt.aurigraph.io:~/
+scp -P 22 scripts/ci-cd/setup-self-hosted-runner.sh subbu@dlt.aurigraph.io:~/
 
 # Make executable and run
 chmod +x setup-self-hosted-runner.sh

@@ -6,7 +6,7 @@
 # for CI/CD deployments without needing SSH keys or password authentication.
 #
 # Target Server: dlt.aurigraph.io
-# SSH Port: 2235
+# SSH Port: 22
 # Runner Labels: self-hosted, Linux, aurigraph-prod
 #
 # Prerequisites:
@@ -15,7 +15,7 @@
 # - GitHub repository admin access (to get runner token)
 #
 # Usage:
-#   1. SSH to the remote server: ssh -p 2235 subbu@dlt.aurigraph.io
+#   1. SSH to the remote server: ssh -p 22 subbu@dlt.aurigraph.io
 #   2. Run this script: bash setup-self-hosted-runner.sh
 #   3. Follow prompts to enter the GitHub runner token
 #

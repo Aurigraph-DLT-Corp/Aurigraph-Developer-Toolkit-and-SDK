@@ -126,7 +126,7 @@ Configure these in `Settings → Secrets and variables → Actions`:
 |--------|-------------|----------|
 | `PROD_SSH_PRIVATE_KEY` | SSH key for server access | Yes |
 | `PROD_SSH_USER` | SSH username (default: subbu) | No |
-| `PROD_SSH_PORT` | SSH port (default: 2235) | No |
+| `PROD_SSH_PORT` | SSH port (default: 22) | No |
 | `GITHUB_TOKEN` | Auto-provided by GitHub | Auto |
 | `SLACK_WEBHOOK_URL` | Slack notifications | No |
 | `CODECOV_TOKEN` | Code coverage reporting | No |
@@ -176,7 +176,7 @@ docker-compose -f docker-compose.full-stack.yml down
 
 ```bash
 # SSH to production server
-ssh -p 2235 subbu@dlt.aurigraph.io
+ssh -p 22 subbu@dlt.aurigraph.io
 
 # Check backend status
 ps aux | grep quarkus
@@ -285,4 +285,4 @@ sudo nginx -t
 
 - **Repository:** https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
 - **Production URL:** https://dlt.aurigraph.io
-- **SSH Access:** `ssh -p 2235 subbu@dlt.aurigraph.io`
+- **SSH Access:** `ssh -p 22 subbu@dlt.aurigraph.io`
