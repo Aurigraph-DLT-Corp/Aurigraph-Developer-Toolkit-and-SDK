@@ -237,19 +237,29 @@ COMMENT ON MATERIALIZED VIEW mv_validator_performance IS
     'Validator performance metrics for leaderboard and monitoring';
 
 -- Blockchain health metrics
+-- Note: AVG block time computed separately to avoid window-in-aggregate error
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_blockchain_health AS
+WITH block_times AS (
+    SELECT
+        block_number,
+        timestamp,
+        transaction_count,
+        validator_id,
+        size,
+        EXTRACT(EPOCH FROM (timestamp - LAG(timestamp) OVER (ORDER BY block_number))) AS block_time_seconds
+    FROM blocks
+    WHERE timestamp >= NOW() - INTERVAL '24 hours'
+)
 SELECT
     MAX(block_number) AS current_block_height,
     COUNT(*) AS total_blocks,
     COUNT(DISTINCT validator_id) AS active_validators,
     AVG(transaction_count) AS avg_transactions_per_block,
     AVG(size) AS avg_block_size_bytes,
-    AVG(EXTRACT(EPOCH FROM (timestamp - LAG(timestamp) OVER (ORDER BY block_number))))
-        AS avg_block_time_seconds,
+    AVG(block_time_seconds) AS avg_block_time_seconds,
     SUM(transaction_count) AS total_transactions,
     MAX(timestamp) AS last_block_timestamp
-FROM blocks
-WHERE timestamp >= CURRENT_TIMESTAMP - INTERVAL '24 hours';
+FROM block_times;
 
 COMMENT ON MATERIALIZED VIEW mv_blockchain_health IS
     'Real-time blockchain health metrics (24-hour window)';
