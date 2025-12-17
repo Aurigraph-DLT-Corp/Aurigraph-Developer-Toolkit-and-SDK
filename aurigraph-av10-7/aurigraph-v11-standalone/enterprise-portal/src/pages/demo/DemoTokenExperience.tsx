@@ -794,19 +794,23 @@ export default function DemoTokenExperience() {
                       />
                     </Box>
                     <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 1 }} />
-                    {Object.entries(token.data).slice(0, 3).map(([key, value]) => (
-                      <Box key={key} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                          {key.replace(/([A-Z])/g, ' $1').trim()}:
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'rgba(255,255,255,0.8)', maxWidth: '60%', textAlign: 'right' }}
-                        >
-                          {value.length > 30 ? value.substring(0, 30) + '...' : value}
-                        </Typography>
-                      </Box>
-                    ))}
+                    {Object.entries(token.data).slice(0, 3).map(([key, value]) => {
+                      // Ensure value is a string before rendering
+                      const displayValue = typeof value === 'string' ? value : JSON.stringify(value)
+                      return (
+                        <Box key={key} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                            {key.replace(/([A-Z])/g, ' $1').trim()}:
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'rgba(255,255,255,0.8)', maxWidth: '60%', textAlign: 'right' }}
+                          >
+                            {displayValue.length > 30 ? displayValue.substring(0, 30) + '...' : displayValue}
+                          </Typography>
+                        </Box>
+                      )
+                    })}
                   </Paper>
                 </Grid>
               ))}
