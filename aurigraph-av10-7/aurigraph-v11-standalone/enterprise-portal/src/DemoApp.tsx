@@ -75,9 +75,9 @@ export const DemoApp: React.FC = () => {
       const allDemos = await DemoService.getAllDemos();
       const converted = allDemos.map((d: any) => ({
         ...d,
-        validators: Array.isArray(d.validators) ? d.validators.length : d.validators || 0,
-        businessNodes: Array.isArray(d.businessNodes) ? d.businessNodes.length : d.businessNodes || 0,
-        eiNodes: Array.isArray(d.eiNodes) ? d.eiNodes.length : d.eiNodes || 0,
+        validators: Array.isArray(d.validators) ? d.validators.length : (typeof d.validators === 'number' ? d.validators : 0),
+        businessNodes: Array.isArray(d.businessNodes) ? d.businessNodes.length : (typeof d.businessNodes === 'number' ? d.businessNodes : 0),
+        eiNodes: Array.isArray(d.eiNodes) ? d.eiNodes.length : (typeof d.eiNodes === 'number' ? d.eiNodes : 0),
       }));
       setDemos(converted);
 
