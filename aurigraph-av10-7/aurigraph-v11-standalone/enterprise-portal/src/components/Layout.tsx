@@ -137,27 +137,68 @@ export default function Layout() {
               Home
             </Button>
 
-            {/* Demo Tab - Direct Access */}
-            <Button
-              color="inherit"
-              onClick={() => navigate('/demo')}
-              startIcon={<PlayCircleOutline />}
-              sx={{
-                textTransform: 'none',
-                bgcolor: 'rgba(37, 99, 235, 0.15)',
-                '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.25)' },
-                borderRadius: 1,
-                px: 2,
-              }}
-            >
-              Demo
-              <Chip
-                label="LIVE"
-                size="small"
-                color="success"
-                sx={{ ml: 1, height: 18, fontSize: '0.65rem', fontWeight: 'bold' }}
-              />
-            </Button>
+            {/* Demo Tab - With Dropdown Menu */}
+            <Box>
+              <Button
+                color="inherit"
+                onClick={(e) => handleMenuOpen('Demo', e)}
+                startIcon={<PlayCircleOutline />}
+                endIcon={<ArrowDropDown />}
+                sx={{
+                  textTransform: 'none',
+                  bgcolor: 'rgba(37, 99, 235, 0.15)',
+                  '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.25)' },
+                  borderRadius: 1,
+                  px: 2,
+                }}
+              >
+                Demo
+                <Chip
+                  label="LIVE"
+                  size="small"
+                  color="success"
+                  sx={{ ml: 1, height: 18, fontSize: '0.65rem', fontWeight: 'bold' }}
+                />
+              </Button>
+              <Menu
+                anchorEl={anchorEls['Demo']}
+                open={Boolean(anchorEls['Demo'])}
+                onClose={() => handleMenuClose('Demo')}
+                PaperProps={{
+                  sx: {
+                    bgcolor: '#0F172A',
+                    color: 'white',
+                    minWidth: 220,
+                    border: '1px solid rgba(37, 99, 235, 0.2)',
+                  }
+                }}
+              >
+                <MenuItem
+                  onClick={() => handleNavigate('/demo', 'Demo')}
+                  sx={{ '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' } }}
+                >
+                  Demo Dashboard
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleNavigate('/demo/token-experience', 'Demo')}
+                  sx={{ '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' } }}
+                >
+                  Token Experience
+                  <Chip
+                    label="NEW"
+                    size="small"
+                    color="primary"
+                    sx={{ ml: 'auto', height: 18, fontSize: '0.65rem' }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleNavigate('/demo/high-throughput', 'Demo')}
+                  sx={{ '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' } }}
+                >
+                  High Throughput Demo
+                </MenuItem>
+              </Menu>
+            </Box>
 
             {navigationMenus.map((menu) => (
               <Box key={menu.title}>

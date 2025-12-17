@@ -37,7 +37,7 @@ import java.util.*;
  * @since V12.0.0
  * @see AV11-579
  */
-@Path("/api/v12/demos/register")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DemoRegistrationResource {
@@ -48,13 +48,93 @@ public class DemoRegistrationResource {
     UserInterestService interestService;
 
     /**
-     * Register for a demo - public endpoint
+     * V11 Compatibility Endpoint - Frontend Demo Registration
+     * POST /api/v11/demo/register
+     *
+     * Accepts the frontend DemoUser format and transforms to backend format.
+     * Integrates with Aurigraph Hermes CRM for lead tracking.
+     */
+    @POST
+    @Path("/v11/demo/register")
+    @PermitAll
+    @Transactional
+    public Uni<Response> registerForDemoV11(
+        @Valid FrontendDemoUser request,
+        @Context HttpHeaders headers
+    ) {
+        return Uni.createFrom().item(() -> {
+            try {
+                LOG.infof("V11 Demo registration: %s %s (%s) from %s",
+                    request.firstName(), request.lastName(), request.email(), request.company());
+
+                // Generate demo token
+                String demoToken = generateDemoToken();
+
+                // Create demo registration from frontend format
+                Demo demo = new Demo();
+                demo.id = demoToken;
+                demo.demoName = "token_experience_" + (request.interests() != null && !request.interests().isEmpty()
+                    ? request.interests().get(0).toLowerCase().replace(" ", "_")
+                    : "general");
+                demo.userEmail = request.email();
+                demo.userName = request.firstName() + " " + request.lastName();
+                demo.description = String.format(
+                    "Demo registration - Company: %s, Title: %s, Country: %s, Phone: %s, Interests: %s, Marketing: %s",
+                    request.company(),
+                    request.jobTitle() != null ? request.jobTitle() : "N/A",
+                    request.country() != null ? request.country() : "N/A",
+                    request.phone() != null ? request.phone() : "N/A",
+                    request.interests() != null ? String.join(", ", request.interests()) : "N/A",
+                    request.consents() != null && request.consents().marketingConsent() ? "Yes" : "No"
+                );
+                demo.status = Demo.DemoStatus.PENDING;
+                demo.createdAt = LocalDateTime.now();
+                demo.lastActivity = LocalDateTime.now();
+                demo.expiresAt = LocalDateTime.now().plusHours(48); // 48-hour demo access (matches frontend)
+                demo.durationMinutes = 2880; // 48 hours
+                demo.persist();
+
+                // Try to find or link existing user
+                User user = User.find("email", request.email()).firstResult();
+                if (user != null) {
+                    recordDemoInterestV11(user, request, headers);
+                }
+
+                // Build response
+                V11DemoRegistrationResponse response = new V11DemoRegistrationResponse(
+                    request.id() != null ? request.id() : demoToken,
+                    demoToken,
+                    request.email(),
+                    request.firstName() + " " + request.lastName(),
+                    demo.createdAt.atZone(java.time.ZoneId.systemDefault()).toInstant(),
+                    demo.expiresAt.atZone(java.time.ZoneId.systemDefault()).toInstant(),
+                    "Registration successful! Your demo experience is ready."
+                );
+
+                LOG.infof("V11 Demo registration successful: %s -> %s", request.email(), demoToken);
+
+                return Response.status(Response.Status.CREATED)
+                    .entity(response)
+                    .build();
+
+            } catch (Exception e) {
+                LOG.error("V11 Demo registration failed", e);
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(e.getMessage()))
+                    .build();
+            }
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Register for a demo - V12 endpoint
      * POST /api/v12/demos/register
      *
      * Creates a demo registration, optionally creates/links user account,
      * and records user interest for follow-up.
      */
     @POST
+    @Path("/v12/demos/register")
     @PermitAll
     @Transactional
     public Uni<Response> registerForDemo(
@@ -109,7 +189,7 @@ public class DemoRegistrationResource {
      * GET /api/v12/demos/register/{token}/status
      */
     @GET
-    @Path("/{token}/status")
+    @Path("/v12/demos/register/{token}/status")
     @PermitAll
     public Uni<Response> getDemoStatus(@PathParam("token") String token) {
         return Uni.createFrom().item(() -> {
@@ -146,7 +226,7 @@ public class DemoRegistrationResource {
      * POST /api/v12/demos/register/{token}/start
      */
     @POST
-    @Path("/{token}/start")
+    @Path("/v12/demos/register/{token}/start")
     @PermitAll
     @Transactional
     public Uni<Response> startDemo(@PathParam("token") String token) {
@@ -182,7 +262,7 @@ public class DemoRegistrationResource {
      * POST /api/v12/demos/register/{token}/complete
      */
     @POST
-    @Path("/{token}/complete")
+    @Path("/v12/demos/register/{token}/complete")
     @PermitAll
     @Transactional
     public Uni<Response> completeDemo(
@@ -222,7 +302,7 @@ public class DemoRegistrationResource {
      * GET /api/v12/demos/register/available
      */
     @GET
-    @Path("/available")
+    @Path("/v12/demos/register/available")
     @PermitAll
     public Uni<Response> getAvailableDemos() {
         return Uni.createFrom().item(() -> {
@@ -262,7 +342,7 @@ public class DemoRegistrationResource {
      * GET /api/v12/demos/register/history
      */
     @GET
-    @Path("/history")
+    @Path("/v12/demos/register/history")
     @RolesAllowed({"ADMIN", "DEVOPS", "USER"})
     public Uni<Response> getDemoHistory(
         @Context HttpHeaders headers,
@@ -437,4 +517,84 @@ public class DemoRegistrationResource {
     ) {}
 
     public record ErrorResponse(String message) {}
+
+    // V11 Frontend DTOs - Matches DemoRegistration.tsx format
+
+    /**
+     * Frontend consent structure
+     */
+    public record FrontendConsents(
+        boolean termsAccepted,
+        boolean privacyAccepted,
+        boolean cookiesAccepted,
+        boolean marketingConsent,
+        boolean dataShareConsent
+    ) {}
+
+    /**
+     * Frontend DemoUser format - matches DemoRegistration.tsx
+     */
+    public record FrontendDemoUser(
+        String id,
+        @NotBlank String firstName,
+        @NotBlank String lastName,
+        @NotBlank @Email String email,
+        @NotBlank String company,
+        String jobTitle,
+        String phone,
+        String country,
+        List<String> interests,
+        FrontendConsents consents,
+        Instant registeredAt,
+        Instant lastActiveAt
+    ) {}
+
+    /**
+     * V11 response format
+     */
+    public record V11DemoRegistrationResponse(
+        String id,
+        String demoToken,
+        String email,
+        String fullName,
+        Instant registeredAt,
+        Instant expiresAt,
+        String message
+    ) {}
+
+    /**
+     * Record demo interest for V11 format
+     */
+    private void recordDemoInterestV11(User user, FrontendDemoUser request, HttpHeaders headers) {
+        if (user == null) return;
+
+        try {
+            String userAgent = headers.getHeaderString("User-Agent");
+            String forwardedFor = headers.getHeaderString("X-Forwarded-For");
+            String ipAddress = forwardedFor != null ? forwardedFor.split(",")[0].trim() : null;
+
+            String category = request.interests() != null && !request.interests().isEmpty()
+                ? request.interests().get(0).toUpperCase().replace(" ", "_")
+                : "GENERAL";
+
+            interestService.recordInterest(
+                user.id,
+                category,
+                "token_experience",
+                UserInterest.ActionType.DEMO_START,
+                "enterprise_portal",
+                null,
+                ipAddress,
+                userAgent,
+                String.format("{\"company\":\"%s\",\"jobTitle\":\"%s\",\"country\":\"%s\",\"interests\":%s,\"marketing\":%s}",
+                    request.company(),
+                    request.jobTitle() != null ? request.jobTitle() : "",
+                    request.country() != null ? request.country() : "",
+                    request.interests() != null ? request.interests().toString() : "[]",
+                    request.consents() != null && request.consents().marketingConsent())
+            );
+        } catch (Exception e) {
+            LOG.warn("Failed to record V11 demo interest", e);
+        }
+    }
 }

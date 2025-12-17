@@ -13,6 +13,7 @@ import Profile from './pages/auth/Profile'
 import DemoApp from './DemoApp'
 import DemoTokenExperience from './pages/demo/DemoTokenExperience'
 import DemoRegistration from './pages/demo/DemoRegistration'
+import DemoProtectedRoute from './components/DemoProtectedRoute'
 import PrivacyPolicy from './pages/legal/PrivacyPolicy'
 import TermsAndConditions from './pages/legal/TermsAndConditions'
 import CookiePolicy from './pages/legal/CookiePolicy'
@@ -66,7 +67,11 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="demo" element={<DemoApp />} />
             <Route path="demo/high-throughput" element={<HighThroughputDemo />} />
-            <Route path="demo/token-experience" element={<DemoTokenExperience />} />
+            <Route path="demo/token-experience" element={
+              <DemoProtectedRoute>
+                <DemoTokenExperience />
+              </DemoProtectedRoute>
+            } />
             <Route path="demo/register" element={<DemoRegistration />} />
 
             {/* Legal Pages */}
