@@ -178,6 +178,10 @@ public class JiraIntegrationResource {
                         return Response.status(Response.Status.BAD_REQUEST)
                             .entity(createErrorResponse("Invalid JQL query: " + responseBody))
                             .build();
+                    } else if (response.code() == 410) {
+                        // 410 Gone - try API v3 as fallback
+                        LOG.warnf("JIRA API v2 returned 410 Gone, trying v3...");
+                        return tryJiraV3Search(jql, startAt, maxResults, fields, credentials);
                     } else {
                         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                             .entity(createErrorResponse("JIRA API error: " + responseBody))
@@ -207,9 +211,62 @@ public class JiraIntegrationResource {
     }
 
     /**
+     * Fallback method to try JIRA API v3 when v2 returns 410
+     */
+    private Response tryJiraV3Search(String jql, int startAt, int maxResults, String fields, String credentials) {
+        try {
+            String jiraUrl = buildJiraSearchUrlV3(jql, startAt, maxResults, fields);
+            LOG.debugf("JIRA API v3 fallback URL: %s", jiraUrl);
+
+            Request request = new Request.Builder()
+                .url(jiraUrl)
+                .header("Authorization", credentials)
+                .header("Accept", "application/json")
+                .get()
+                .build();
+
+            try (okhttp3.Response response = httpClient.newCall(request).execute()) {
+                String responseBody = response.body() != null ? response.body().string() : "{}";
+
+                if (!response.isSuccessful()) {
+                    LOG.errorf("JIRA API v3 also failed: %d - %s", response.code(), responseBody);
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity(createErrorResponse("JIRA API error (both v2 and v3 failed): " + responseBody))
+                        .build();
+                }
+
+                LOG.infof("JIRA v3 search successful - returned %d bytes", responseBody.length());
+                return Response.ok(responseBody)
+                    .header("Content-Type", "application/json")
+                    .build();
+            }
+        } catch (IOException e) {
+            LOG.errorf(e, "JIRA API v3 network error: %s", e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(createErrorResponse("Network error on JIRA v3 fallback: " + e.getMessage()))
+                .build();
+        }
+    }
+
+    /**
      * Build JIRA API search URL with query parameters
+     * Uses API v2 as v3 can return 410 Gone for some operations
      */
     private String buildJiraSearchUrl(String jql, int startAt, int maxResults, String fields) {
+        return String.format(
+            "%s/rest/api/2/search?jql=%s&startAt=%d&maxResults=%d&fields=%s",
+            jiraBaseUrl,
+            urlEncode(jql),
+            startAt,
+            maxResults,
+            urlEncode(fields)
+        );
+    }
+
+    /**
+     * Build JIRA API v3 search URL (fallback)
+     */
+    private String buildJiraSearchUrlV3(String jql, int startAt, int maxResults, String fields) {
         return String.format(
             "%s/rest/api/3/search?jql=%s&startAt=%d&maxResults=%d&fields=%s",
             jiraBaseUrl,
@@ -241,6 +298,88 @@ public class JiraIntegrationResource {
         error.put("message", message);
         error.put("timestamp", java.time.Instant.now().toString());
         return error;
+    }
+
+    /**
+     * GET /api/v3/jira/issue/{issueKey}
+     *
+     * Get a single JIRA issue by key (e.g., AV11-550)
+     * This is an alternative to search that works when search returns 410
+     *
+     * @param issueKey The JIRA issue key (e.g., AV11-550)
+     * @return JIRA issue details
+     */
+    @GET
+    @Path("/issue/{issueKey}")
+    @Operation(
+        summary = "Get JIRA issue by key",
+        description = "Retrieve a single JIRA issue by its key. Use this when search is not available."
+    )
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "JIRA issue details"),
+        @APIResponse(responseCode = "404", description = "Issue not found"),
+        @APIResponse(responseCode = "401", description = "Authentication failed")
+    })
+    public Response getIssue(
+        @Parameter(description = "JIRA issue key", required = true, example = "AV11-550")
+        @PathParam("issueKey") String issueKey
+    ) {
+        LOG.infof("GET /api/v3/jira/issue/%s", issueKey);
+
+        if (issueKey == null || issueKey.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(createErrorResponse("Issue key is required"))
+                .build();
+        }
+
+        if (jiraEmail.isEmpty() || jiraApiToken.isEmpty()) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(createErrorResponse("JIRA credentials not configured"))
+                .build();
+        }
+
+        try {
+            // Use API v2 for individual issue fetch
+            String jiraUrl = String.format("%s/rest/api/2/issue/%s", jiraBaseUrl, urlEncode(issueKey));
+            String credentials = Credentials.basic(jiraEmail.get(), jiraApiToken.get());
+
+            Request request = new Request.Builder()
+                .url(jiraUrl)
+                .header("Authorization", credentials)
+                .header("Accept", "application/json")
+                .get()
+                .build();
+
+            try (okhttp3.Response response = httpClient.newCall(request).execute()) {
+                String responseBody = response.body() != null ? response.body().string() : "{}";
+
+                if (!response.isSuccessful()) {
+                    if (response.code() == 404) {
+                        return Response.status(Response.Status.NOT_FOUND)
+                            .entity(createErrorResponse("Issue not found: " + issueKey))
+                            .build();
+                    } else if (response.code() == 401) {
+                        return Response.status(Response.Status.UNAUTHORIZED)
+                            .entity(createErrorResponse("JIRA authentication failed"))
+                            .build();
+                    }
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity(createErrorResponse("JIRA API error: " + responseBody))
+                        .build();
+                }
+
+                LOG.infof("JIRA issue %s fetched successfully", issueKey);
+                return Response.ok(responseBody)
+                    .header("Content-Type", "application/json")
+                    .build();
+            }
+
+        } catch (IOException e) {
+            LOG.errorf(e, "JIRA API network error fetching %s: %s", issueKey, e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(createErrorResponse("Network error: " + e.getMessage()))
+                .build();
+        }
     }
 
     /**

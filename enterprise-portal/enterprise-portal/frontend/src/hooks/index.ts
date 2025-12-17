@@ -44,3 +44,11 @@ export { useAuth } from './useAuth';
 
 // Query params hook
 export { useQueryParams } from './useQueryParams';
+
+// Live Demo Data hook (AV11-567)
+export {
+  useLiveDemoData,
+  type LiveDemoDataState,
+  type UseLiveDemoDataOptions,
+  type UseLiveDemoDataReturn,
+} from './useLiveDemoData';
