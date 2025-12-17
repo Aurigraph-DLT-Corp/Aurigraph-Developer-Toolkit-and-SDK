@@ -171,7 +171,7 @@ WITH RECURSIVE key_chain AS (
         rotated_to,
         status,
         1 AS rotation_depth,
-        ARRAY[key_id] AS chain
+        ARRAY[key_id]::VARCHAR[] AS chain
     FROM quantum_keys
     WHERE rotated_to IS NOT NULL
 
@@ -187,7 +187,7 @@ WITH RECURSIVE key_chain AS (
         qk.rotated_to,
         qk.status,
         kc.rotation_depth + 1,
-        kc.chain || qk.key_id
+        kc.chain || qk.key_id::VARCHAR
     FROM quantum_keys qk
     INNER JOIN key_chain kc ON qk.key_id = kc.rotated_to
 )
