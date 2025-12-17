@@ -1,7 +1,7 @@
 import { Grid, Card, CardContent, Typography, Box, Button, Chip, Avatar, Paper, Divider, LinearProgress } from '@mui/material'
 import {
   AccountBalance, TrendingUp, Token, Gavel, Security, ArrowForward,
-  PlayArrow, Inventory, ShowChart, VerifiedUser, AccountTree, Eco, Nature
+  PlayArrow, Inventory, ShowChart, VerifiedUser, AccountTree, Park, Nature
 } from '@mui/icons-material'
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -241,7 +241,7 @@ export default function Dashboard() {
               <Grid item xs={12} md={3}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Avatar sx={{ bgcolor: '#00BFA520', color: '#00BFA5', width: 64, height: 64, mx: 'auto', mb: 1 }}>
-                    <Eco sx={{ fontSize: 32 }} />
+                    <Park sx={{ fontSize: 32 }} />
                   </Avatar>
                   <Typography variant="h4" sx={{ color: '#00BFA5', fontWeight: 700 }}>
                     {carbonStats.avgCarbonPerTx.toFixed(3)}g
