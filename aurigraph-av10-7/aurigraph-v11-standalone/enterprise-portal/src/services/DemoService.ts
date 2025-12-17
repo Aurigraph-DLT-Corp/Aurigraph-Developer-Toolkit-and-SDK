@@ -155,9 +155,10 @@ class DemoServiceClass {
 
       return demo;
     } catch (error: any) {
-      // Graceful fallback: create demo locally if backend unavailable
-      if (error.response?.status === 500 || error.response?.status === 404 || !error.response) {
-        const statusMsg = error.response?.status ? `HTTP ${error.response.status}` : 'Connection refused';
+      // Graceful fallback: create demo locally if backend unavailable or returns error
+      const status = error.response?.status;
+      if (status === 500 || status === 404 || status === 400 || !error.response) {
+        const statusMsg = status ? `HTTP ${status}` : 'Connection refused';
         console.warn(`⚠️ Backend demos endpoint not available (${statusMsg}), creating demo locally...`);
 
         const demoId = `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -198,7 +199,10 @@ class DemoServiceClass {
       }
 
       console.error('❌ Failed to register demo:', error);
-      throw new Error(error.response?.data?.error || 'Failed to register demo');
+      const errorMessage = typeof error.response?.data?.error === 'string'
+        ? error.response.data.error
+        : (error.message || 'Failed to register demo');
+      throw new Error(errorMessage);
     }
   }
 
