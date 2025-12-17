@@ -6,7 +6,7 @@ Complete automated CI/CD pipeline for deploying Aurigraph V11 to remote producti
 
 **Status**: ✅ Ready for deployment
 **Architecture**: GitHub Actions + Docker + Remote SSH
-**Deployment Target**: `dlt.aurigraph.io` (Port 2235)
+**Deployment Target**: `dlt.aurigraph.io` (Port 22)
 **Blue-Green Strategy**: Zero-downtime deployments with automatic rollback
 
 ---
@@ -236,7 +236,7 @@ ls -la .github/REMOTE_DEPLOYMENT_SETUP.md
 ### Test 3: Verify Remote Server
 ```bash
 # After deployment completes
-ssh -p 2235 subbu@dlt.aurigraph.io
+ssh subbu@dlt.aurigraph.io
 
 # Check containers
 docker ps
@@ -278,7 +278,7 @@ Triggered when:
 
 ### Manual Rollback
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
+ssh subbu@dlt.aurigraph.io << 'EOF'
 cd /opt/aurigraph/production
 
 # Find latest backup
@@ -382,15 +382,15 @@ traefik-config.toml                   ← Traefik dynamic config
 ### Remote Server Logs
 ```bash
 # Container logs
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs aurigraph-v11"
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs postgres"
-ssh -p 2235 subbu@dlt.aurigraph.io "docker logs traefik"
+ssh subbu@dlt.aurigraph.io "docker logs aurigraph-v11"
+ssh subbu@dlt.aurigraph.io "docker logs postgres"
+ssh subbu@dlt.aurigraph.io "docker logs traefik"
 
 # System logs
-ssh -p 2235 subbu@dlt.aurigraph.io "journalctl -xe"
+ssh subbu@dlt.aurigraph.io "journalctl -xe"
 
 # Docker container status
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps -a"
+ssh subbu@dlt.aurigraph.io "docker ps -a"
 ```
 
 ### Slack Notifications
@@ -419,10 +419,10 @@ ssh-add ~/.ssh/aurigraph-deploy-key
 ssh-add -l
 
 # Test connection
-ssh -p 2235 -vvv subbu@dlt.aurigraph.io
+ssh -vvv subbu@dlt.aurigraph.io
 
 # Check remote authorized_keys
-ssh -p 2235 subbu@dlt.aurigraph.io "cat ~/.ssh/authorized_keys"
+ssh subbu@dlt.aurigraph.io "cat ~/.ssh/authorized_keys"
 ```
 
 ### Docker Push Fails
@@ -441,7 +441,7 @@ docker push ghcr.io/test/test:latest
 ### Health Checks Fail
 ```bash
 # SSH to remote server
-ssh -p 2235 subbu@dlt.aurigraph.io
+ssh subbu@dlt.aurigraph.io
 
 # Check container status
 docker ps -a

@@ -2,7 +2,7 @@
 
 **Date**: November 24, 2025
 **Status**: ✅ Ready for Production Deployment
-**Target**: `dlt.aurigraph.io` (SSH port 2235)
+**Target**: `dlt.aurigraph.io` (SSH port 22)
 
 ---
 
@@ -73,7 +73,7 @@ bash .github/setup-remote-deployment.sh
 
 ### 3. Verify
 ```bash
-ssh -p 2235 subbu@dlt.aurigraph.io "docker ps"
+ssh subbu@dlt.aurigraph.io "docker ps"
 curl https://dlt.aurigraph.io/api/v11/health
 ```
 

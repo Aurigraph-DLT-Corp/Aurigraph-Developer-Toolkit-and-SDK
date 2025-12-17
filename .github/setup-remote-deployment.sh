@@ -17,7 +17,7 @@ NC='\033[0m'
 # Configuration
 REMOTE_HOST="${REMOTE_HOST:-dlt.aurigraph.io}"
 REMOTE_USER="${REMOTE_USER:-subbu}"
-REMOTE_PORT="${REMOTE_PORT:-2235}"
+REMOTE_PORT="${REMOTE_PORT:-22}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-$HOME/.ssh/aurigraph-deploy-key}"
 
 # Helper functions

@@ -5,6 +5,7 @@ import io.aurigraph.v11.portal.models.*;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
@@ -19,12 +20,15 @@ import java.util.*;
  * - networkStatsService.getNetworkStatistics() for complete network stats
  * - networkStatsService.getCurrentTPS() for real-time TPS
  * - networkStatsService.calculateNetworkLatency() for latency metrics
+ *
+ * NOTE: Made optional with Instance<> to prevent cascading failures.
  */
 @ApplicationScoped
 public class NetworkDataService {
 
+    // Made optional to prevent cascading failures
     @Inject
-    NetworkStatsService networkStatsService;
+    Instance<NetworkStatsService> networkStatsService;
 
     /**
      * Get network health status

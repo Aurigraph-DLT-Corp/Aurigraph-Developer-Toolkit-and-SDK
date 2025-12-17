@@ -217,7 +217,7 @@ jobs:
 
 ### Investigation Steps
 1. Check GitHub Actions logs
-2. SSH to server: \`ssh -p 2235 subbu@dlt.aurigraph.io\`
+2. SSH to server: \`ssh subbu@dlt.aurigraph.io\`
 3. Check backend logs: \`tail -100 /home/subbu/logs/backend.log\`
 4. Check NGINX: \`sudo systemctl status nginx\`
 

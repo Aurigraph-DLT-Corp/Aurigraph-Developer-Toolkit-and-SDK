@@ -678,6 +678,7 @@ export default function TokenizeAsset() {
   const [showVVBDialog, setShowVVBDialog] = useState(false)
   const [useCompositeToken, setUseCompositeToken] = useState(true)
   const [showTokenTopology, setShowTokenTopology] = useState(true)
+  const [skipVVB, setSkipVVB] = useState(false)
 
   const handleInputChange = (field: keyof AssetForm) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -1362,13 +1363,77 @@ export default function TokenizeAsset() {
           {/* VVB Workflow */}
           <Card sx={CARD_STYLE}>
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <VerifiedUser sx={{ color: THEME_COLORS.secondary, mr: 1 }} />
-                <Typography variant="h6" sx={{ color: '#fff' }}>
-                  VVB Verification Workflow
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <VerifiedUser sx={{ color: THEME_COLORS.secondary, mr: 1 }} />
+                  <Typography variant="h6" sx={{ color: '#fff' }}>
+                    VVB Verification Workflow
+                  </Typography>
+                </Box>
               </Box>
 
+              {/* Skip VVB Toggle */}
+              <Box
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  bgcolor: skipVVB ? 'rgba(255, 107, 107, 0.1)' : 'rgba(0, 191, 165, 0.1)',
+                  borderRadius: 2,
+                  border: `1px solid ${skipVVB ? '#FF6B6B' : THEME_COLORS.primary}`,
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={skipVVB}
+                      onChange={(e) => {
+                        setSkipVVB(e.target.checked)
+                        if (e.target.checked) {
+                          setSelectedVVB(null)
+                          setActiveStep(0)
+                        }
+                      }}
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-checked': {
+                          color: '#FF6B6B',
+                        },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                          bgcolor: '#FF6B6B',
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 600 }}>
+                        Skip VVB Verification
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        {skipVVB
+                          ? 'VVB verification skipped - Demo mode only'
+                          : 'Enable to bypass third-party verification for demo'}
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ m: 0 }}
+                />
+                {skipVVB && (
+                  <Alert
+                    severity="warning"
+                    sx={{
+                      mt: 1,
+                      bgcolor: 'rgba(255, 193, 7, 0.1)',
+                      color: '#FFD93D',
+                      '& .MuiAlert-icon': { color: '#FFD93D' },
+                    }}
+                  >
+                    For demonstration purposes only. Production assets require VVB verification.
+                  </Alert>
+                )}
+              </Box>
+
+              {!skipVVB && (
+              <>
               <Stepper activeStep={activeStep} orientation="vertical" sx={{ mb: 2 }}>
                 {VVB_STAGES.map((stage, index) => (
                   <Step key={stage.status}>
@@ -1439,6 +1504,40 @@ export default function TokenizeAsset() {
                 <Typography variant="caption" sx={{ color: '#FF6B6B', mt: 1, display: 'block', textAlign: 'center' }}>
                   Complete at least 60% of asset data to start VVB workflow
                 </Typography>
+              )}
+              </>
+              )}
+
+              {/* Demo Mode - VVB Skipped */}
+              {skipVVB && (
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: 'rgba(255, 107, 107, 0.05)',
+                    borderRadius: 2,
+                    border: '1px solid rgba(255, 107, 107, 0.3)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ color: '#FFD93D', mb: 1 }}>
+                    Demo Mode Active
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                    VVB verification has been skipped. Asset will be tokenized in demo mode
+                    without third-party verification. This is suitable for testing and
+                    demonstration purposes only.
+                  </Typography>
+                  <Chip
+                    label="No Verification Required"
+                    size="small"
+                    sx={{
+                      mt: 1,
+                      bgcolor: 'rgba(255, 107, 107, 0.2)',
+                      color: '#FF6B6B',
+                      fontWeight: 500,
+                    }}
+                  />
+                </Box>
               )}
 
               <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.1)' }} />

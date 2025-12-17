@@ -67,7 +67,7 @@ env:
   # Remote Server
   REMOTE_HOST: 'dlt.aurigraph.io'
   REMOTE_USER: 'subbu'
-  REMOTE_SSH_PORT: '2235'
+  REMOTE_SSH_PORT: '22'
 
   # Docker
   DOCKER_REGISTRY: 'ghcr.io'
