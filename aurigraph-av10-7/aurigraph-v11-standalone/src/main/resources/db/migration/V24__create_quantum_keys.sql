@@ -89,14 +89,14 @@ CREATE INDEX idx_quantum_keys_owner_status ON quantum_keys(owner_address, status
 CREATE INDEX idx_quantum_keys_rotation_chain ON quantum_keys(key_id, rotated_to)
     WHERE rotated_to IS NOT NULL;
 
--- Partial index for expiring keys (for rotation alerts)
-CREATE INDEX idx_quantum_keys_expiring_soon ON quantum_keys(expires_at ASC)
-    WHERE status = 'ACTIVE' AND expires_at IS NOT NULL
-    AND expires_at <= CURRENT_TIMESTAMP + INTERVAL '30 days';
+-- Index for expiring keys (use in queries for rotation alerts)
+-- Note: Can't use CURRENT_TIMESTAMP in partial index, so filtering done at query time
+CREATE INDEX idx_quantum_keys_expiring_candidates ON quantum_keys(status, expires_at ASC)
+    WHERE expires_at IS NOT NULL;
 
--- Partial index for expired but not revoked keys (cleanup candidates)
-CREATE INDEX idx_quantum_keys_expired_active ON quantum_keys(expires_at DESC)
-    WHERE status = 'ACTIVE' AND expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP;
+-- Index for expired keys cleanup (filtering by status and expiry at query time)
+CREATE INDEX idx_quantum_keys_status_expiry ON quantum_keys(status, expires_at DESC)
+    WHERE status = 'ACTIVE' AND expires_at IS NOT NULL;
 
 -- Comments for documentation
 COMMENT ON TABLE quantum_keys IS 'Quantum-resistant cryptographic key storage and lifecycle management';
