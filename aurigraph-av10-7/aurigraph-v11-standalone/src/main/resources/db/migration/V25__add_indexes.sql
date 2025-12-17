@@ -110,11 +110,12 @@ COMMENT ON INDEX idx_consensus_performance IS
     'Monitors in-progress consensus rounds for performance tracking';
 
 -- Key expiration monitoring (security critical)
+-- Note: Time-based filtering (keys expiring within 7 days) must be done at query time
+-- since CURRENT_TIMESTAMP is not IMMUTABLE and cannot be used in partial index predicates
 CREATE INDEX IF NOT EXISTS idx_quantum_keys_expiry_alert ON quantum_keys(expires_at ASC, owner_address)
-    WHERE status = 'ACTIVE' AND expires_at IS NOT NULL
-    AND expires_at <= CURRENT_TIMESTAMP + INTERVAL '7 days';
+    WHERE status = 'ACTIVE' AND expires_at IS NOT NULL;
 COMMENT ON INDEX idx_quantum_keys_expiry_alert IS
-    'Critical: Alerts for keys expiring within 7 days';
+    'Critical: Index for finding keys by expiration date (filter for 7-day window at query time)';
 
 -- ==================================================================================
 -- COVERING INDEXES (Include frequently accessed columns)
