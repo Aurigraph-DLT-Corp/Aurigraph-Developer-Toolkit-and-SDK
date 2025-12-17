@@ -678,7 +678,7 @@ export default function TokenizeAsset() {
   const [showVVBDialog, setShowVVBDialog] = useState(false)
   const [useCompositeToken, setUseCompositeToken] = useState(true)
   const [showTokenTopology, setShowTokenTopology] = useState(true)
-  const [skipVVB, setSkipVVB] = useState(false)
+  const [skipVVB, setSkipVVB] = useState(true) // Default to demo mode (VVB optional)
 
   const handleInputChange = (field: keyof AssetForm) => (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
