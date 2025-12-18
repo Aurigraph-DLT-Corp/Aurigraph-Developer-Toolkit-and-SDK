@@ -243,7 +243,12 @@ git revert <commit-hash>
 | 2025-12-18 | 06:40 | Frontend build | Success | 4.52s, no errors |
 | 2025-12-18 | 06:42 | Backend build | Success | No errors |
 | 2025-12-18 | 06:45 | Git commit & push | Success | 42 files changed |
-| 2025-12-18 | 06:49 | Smoke tests | Pass | V12 Channels API working |
+| 2025-12-18 | 06:49 | Smoke tests (frontend) | Pass | V12 Channels API working |
+| 2025-12-18 | 07:00 | Backend V11→V12 migration | Success | DemoResource, PerformanceBenchmark, WebSocketTest |
+| 2025-12-18 | 07:02 | Removed V11 aliases | Success | ChannelResource, RWAApiResource |
+| 2025-12-18 | 07:03 | Created V11→V12 redirect | Success | DemoV11RedirectResource |
+| 2025-12-18 | 07:04 | Backend build | Success | All changes compile |
+| 2025-12-18 | 07:05 | Push & deploy trigger | Success | CI/CD running |
 
 ---
 
