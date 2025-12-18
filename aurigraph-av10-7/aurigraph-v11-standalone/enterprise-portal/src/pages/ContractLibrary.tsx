@@ -311,7 +311,7 @@ export default function ContractLibrary() {
     setLoading(true)
     try {
       const { data, success: apiSuccess } = await safeApiCall(
-        () => apiService.get('/api/v11/library/overview'),
+        () => apiService.get('/api/v12/library/overview'),
         null
       )
 
@@ -351,7 +351,7 @@ export default function ContractLibrary() {
   const fetchActiveTemplates = useCallback(async () => {
     try {
       const { data, success: apiSuccess } = await safeApiCall(
-        () => apiService.get('/api/v11/library/active/templates'),
+        () => apiService.get('/api/v12/library/active/templates'),
         []
       )
 
@@ -395,7 +395,7 @@ export default function ContractLibrary() {
   const fetchSmartTemplates = useCallback(async () => {
     try {
       const { data, success: apiSuccess } = await safeApiCall(
-        () => apiService.get('/api/v11/library/smart/templates'),
+        () => apiService.get('/api/v12/library/smart/templates'),
         []
       )
 
@@ -473,7 +473,7 @@ export default function ContractLibrary() {
   const fetchTopology = useCallback(async () => {
     try {
       const { data, success: apiSuccess } = await safeApiCall(
-        () => apiService.get('/api/v11/library/topology'),
+        () => apiService.get('/api/v12/library/topology'),
         null
       )
 
@@ -507,7 +507,7 @@ export default function ContractLibrary() {
     setLoading(true)
     try {
       const { data, success: apiSuccess } = await safeApiCall(
-        () => apiService.get(`/api/v11/library/text/${type}/${templateId}`, { responseType: 'text' }),
+        () => apiService.get(`/api/v12/library/text/${type}/${templateId}`, { responseType: 'text' }),
         ''
       )
 

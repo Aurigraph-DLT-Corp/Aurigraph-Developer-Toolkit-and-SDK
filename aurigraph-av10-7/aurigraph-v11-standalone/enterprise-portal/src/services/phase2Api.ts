@@ -29,8 +29,8 @@ import type {
 } from '../types/phase2'
 
 const API_BASE_URL = (import.meta as any).env?.PROD
-  ? 'https://dlt.aurigraph.io/api/v11'
-  : 'http://localhost:9003/api/v11'
+  ? 'https://dlt.aurigraph.io/api/v12'
+  : 'http://localhost:9003/api/v12'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -56,7 +56,7 @@ apiClient.interceptors.request.use((config) => {
 export const transactionApi = {
   /**
    * Get transaction details by hash
-   * Endpoint: GET /api/v11/blockchain/transactions/{hash}
+   * Endpoint: GET /api/v12/blockchain/transactions/{hash}
    */
   async getTransaction(hash: string): Promise<TransactionDetails> {
     const response = await apiClient.get<Phase2ApiResponse<TransactionDetails>>(
@@ -67,7 +67,7 @@ export const transactionApi = {
 
   /**
    * Get transaction receipt
-   * Endpoint: GET /api/v11/blockchain/transactions/{hash}/receipt
+   * Endpoint: GET /api/v12/blockchain/transactions/{hash}/receipt
    */
   async getTransactionReceipt(hash: string): Promise<TransactionReceipt> {
     const response = await apiClient.get<Phase2ApiResponse<TransactionReceipt>>(
@@ -78,7 +78,7 @@ export const transactionApi = {
 
   /**
    * Get pending transactions
-   * Endpoint: GET /api/v11/blockchain/transactions/pending
+   * Endpoint: GET /api/v12/blockchain/transactions/pending
    */
   async getPendingTransactions(limit: number = 50): Promise<TransactionDetails[]> {
     const response = await apiClient.get<Phase2ApiResponse<TransactionDetails[]>>(
@@ -90,7 +90,7 @@ export const transactionApi = {
 
   /**
    * Get transactions by address
-   * Endpoint: GET /api/v11/blockchain/transactions/address/{address}
+   * Endpoint: GET /api/v12/blockchain/transactions/address/{address}
    */
   async getTransactionsByAddress(
     address: string,
@@ -112,7 +112,7 @@ export const transactionApi = {
 export const contractApi = {
   /**
    * List all smart contracts
-   * Endpoint: GET /api/v11/contracts/list
+   * Endpoint: GET /api/v12/contracts/list
    */
   async getContracts(
     page: number = 1,
@@ -128,7 +128,7 @@ export const contractApi = {
 
   /**
    * Get contract details
-   * Endpoint: GET /api/v11/contracts/{address}
+   * Endpoint: GET /api/v12/contracts/{address}
    */
   async getContract(address: string): Promise<SmartContract> {
     const response = await apiClient.get<Phase2ApiResponse<SmartContract>>(
@@ -139,7 +139,7 @@ export const contractApi = {
 
   /**
    * Get contract methods
-   * Endpoint: GET /api/v11/contracts/{address}/methods
+   * Endpoint: GET /api/v12/contracts/{address}/methods
    */
   async getContractMethods(address: string): Promise<ContractMethod[]> {
     const response = await apiClient.get<Phase2ApiResponse<ContractMethod[]>>(
@@ -150,7 +150,7 @@ export const contractApi = {
 
   /**
    * Call contract method (read-only)
-   * Endpoint: POST /api/v11/contracts/{address}/call
+   * Endpoint: POST /api/v12/contracts/{address}/call
    */
   async callContractMethod(
     address: string,
@@ -166,7 +166,7 @@ export const contractApi = {
 
   /**
    * Get contract source code
-   * Endpoint: GET /api/v11/contracts/{address}/source
+   * Endpoint: GET /api/v12/contracts/{address}/source
    */
   async getContractSource(address: string): Promise<{ sourceCode: string; abi: any[] }> {
     const response = await apiClient.get<Phase2ApiResponse<{ sourceCode: string; abi: any[] }>>(
@@ -177,7 +177,7 @@ export const contractApi = {
 
   /**
    * Get contract events
-   * Endpoint: GET /api/v11/contracts/{address}/events
+   * Endpoint: GET /api/v12/contracts/{address}/events
    */
   async getContractEvents(
     address: string,
@@ -199,7 +199,7 @@ export const contractApi = {
 export const gasFeeApi = {
   /**
    * Get current gas fees
-   * Endpoint: GET /api/v11/contracts/ricardian/gas-fees
+   * Endpoint: GET /api/v12/contracts/ricardian/gas-fees
    */
   async getCurrentGasFees(): Promise<GasFeeData> {
     const response = await apiClient.get<Phase2ApiResponse<GasFeeData>>(
@@ -210,7 +210,7 @@ export const gasFeeApi = {
 
   /**
    * Get gas fee history
-   * Endpoint: GET /api/v11/gas/history
+   * Endpoint: GET /api/v12/gas/history
    */
   async getGasFeeHistory(
     period: '1h' | '24h' | '7d' | '30d' = '24h'
@@ -224,7 +224,7 @@ export const gasFeeApi = {
 
   /**
    * Estimate gas fee for transaction
-   * Endpoint: POST /api/v11/gas/estimate
+   * Endpoint: POST /api/v12/gas/estimate
    */
   async estimateGasFee(
     transactionType: string,
@@ -239,7 +239,7 @@ export const gasFeeApi = {
 
   /**
    * Get gas price trends
-   * Endpoint: GET /api/v11/gas/trends
+   * Endpoint: GET /api/v12/gas/trends
    */
   async getGasTrends(period: string = '24h'): Promise<GasTrend> {
     const response = await apiClient.get<Phase2ApiResponse<GasTrend>>(
@@ -257,7 +257,7 @@ export const gasFeeApi = {
 export const governanceApi = {
   /**
    * Get all governance proposals
-   * Endpoint: GET /api/v11/blockchain/governance/proposals
+   * Endpoint: GET /api/v12/blockchain/governance/proposals
    */
   async getProposals(
     status?: string,
@@ -273,7 +273,7 @@ export const governanceApi = {
 
   /**
    * Get proposal details
-   * Endpoint: GET /api/v11/governance/proposals/{id}
+   * Endpoint: GET /api/v12/governance/proposals/{id}
    */
   async getProposal(id: string): Promise<GovernanceProposal> {
     const response = await apiClient.get<Phase2ApiResponse<GovernanceProposal>>(
@@ -284,7 +284,7 @@ export const governanceApi = {
 
   /**
    * Get proposal votes
-   * Endpoint: GET /api/v11/governance/proposals/{id}/votes
+   * Endpoint: GET /api/v12/governance/proposals/{id}/votes
    */
   async getProposalVotes(
     id: string,
@@ -300,7 +300,7 @@ export const governanceApi = {
 
   /**
    * Get voting statistics
-   * Endpoint: GET /api/v11/governance/stats
+   * Endpoint: GET /api/v12/governance/stats
    */
   async getVotingStats(): Promise<VotingStats> {
     const response = await apiClient.get<Phase2ApiResponse<VotingStats>>(
@@ -311,7 +311,7 @@ export const governanceApi = {
 
   /**
    * Submit vote (view mode - will be disabled in UI)
-   * Endpoint: POST /api/v11/governance/proposals/{id}/vote
+   * Endpoint: POST /api/v12/governance/proposals/{id}/vote
    */
   async submitVote(
     proposalId: string,
@@ -333,7 +333,7 @@ export const governanceApi = {
 export const stakingApi = {
   /**
    * Get staking information
-   * Endpoint: GET /api/v11/blockchain/staking/info
+   * Endpoint: GET /api/v12/blockchain/staking/info
    */
   async getStakingInfo(): Promise<StakingInfo> {
     const response = await apiClient.get<Phase2ApiResponse<StakingInfo>>(
@@ -344,7 +344,7 @@ export const stakingApi = {
 
   /**
    * Get all validators
-   * Endpoint: GET /api/v11/staking/validators
+   * Endpoint: GET /api/v12/staking/validators
    */
   async getValidators(
     status?: string,
@@ -360,7 +360,7 @@ export const stakingApi = {
 
   /**
    * Get validator details
-   * Endpoint: GET /api/v11/staking/validators/{address}
+   * Endpoint: GET /api/v12/staking/validators/{address}
    */
   async getValidator(address: string): Promise<StakingValidator> {
     const response = await apiClient.get<Phase2ApiResponse<StakingValidator>>(
@@ -371,7 +371,7 @@ export const stakingApi = {
 
   /**
    * Get user staking info
-   * Endpoint: GET /api/v11/staking/user/{address}
+   * Endpoint: GET /api/v12/staking/user/{address}
    */
   async getUserStakingInfo(address: string): Promise<UserStakingInfo> {
     const response = await apiClient.get<Phase2ApiResponse<UserStakingInfo>>(
@@ -382,7 +382,7 @@ export const stakingApi = {
 
   /**
    * Get staking rewards history
-   * Endpoint: GET /api/v11/staking/rewards/{address}
+   * Endpoint: GET /api/v12/staking/rewards/{address}
    */
   async getStakingRewards(
     address: string,
@@ -398,7 +398,7 @@ export const stakingApi = {
 
   /**
    * Get staking transactions
-   * Endpoint: GET /api/v11/staking/transactions/{address}
+   * Endpoint: GET /api/v12/staking/transactions/{address}
    */
   async getStakingTransactions(
     address: string,
@@ -414,7 +414,7 @@ export const stakingApi = {
 
   /**
    * Stake tokens (view mode - will be disabled in UI)
-   * Endpoint: POST /api/v11/staking/stake
+   * Endpoint: POST /api/v12/staking/stake
    */
   async stake(
     validatorAddress: string,
@@ -429,7 +429,7 @@ export const stakingApi = {
 
   /**
    * Unstake tokens (view mode - will be disabled in UI)
-   * Endpoint: POST /api/v11/staking/unstake
+   * Endpoint: POST /api/v12/staking/unstake
    */
   async unstake(
     validatorAddress: string,
@@ -444,7 +444,7 @@ export const stakingApi = {
 
   /**
    * Claim staking rewards (view mode - will be disabled in UI)
-   * Endpoint: POST /api/v11/staking/claim
+   * Endpoint: POST /api/v12/staking/claim
    */
   async claimRewards(
     validatorAddress?: string
@@ -464,7 +464,7 @@ export const stakingApi = {
 export const ricardianContractApi = {
   /**
    * Get all Ricardian contracts
-   * Endpoint: GET /api/v11/contracts/ricardian
+   * Endpoint: GET /api/v12/contracts/ricardian
    */
   async getContracts(
     page: number = 1,
@@ -479,7 +479,7 @@ export const ricardianContractApi = {
 
   /**
    * Get Ricardian contract details
-   * Endpoint: GET /api/v11/contracts/ricardian/{id}
+   * Endpoint: GET /api/v12/contracts/ricardian/{id}
    */
   async getContract(id: string): Promise<RicardianContract> {
     const response = await apiClient.get<Phase2ApiResponse<RicardianContract>>(

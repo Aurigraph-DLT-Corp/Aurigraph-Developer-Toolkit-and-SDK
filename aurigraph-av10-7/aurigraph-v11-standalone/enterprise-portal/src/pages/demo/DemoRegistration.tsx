@@ -186,7 +186,7 @@ export default function DemoRegistration() {
 
     // Send to backend (Aurigraph Hermes integration)
     try {
-      await fetch('/api/v11/demo/register', {
+      await fetch('/api/v12/demo/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),

@@ -31,7 +31,7 @@ const mockAPIMetrics = {
   errorRate: 0.2,
   endpoints: [
     {
-      path: '/api/v11/health',
+      path: '/api/v12/health',
       method: 'GET',
       description: 'Health check endpoint',
       requestCount: 50000,
@@ -41,7 +41,7 @@ const mockAPIMetrics = {
       status: 'healthy' as const
     },
     {
-      path: '/api/v11/transactions',
+      path: '/api/v12/transactions',
       method: 'POST',
       description: 'Submit transaction',
       requestCount: 30000,
@@ -51,7 +51,7 @@ const mockAPIMetrics = {
       status: 'healthy' as const
     },
     {
-      path: '/api/v11/blockchain/stats',
+      path: '/api/v12/blockchain/stats',
       method: 'GET',
       description: 'Blockchain statistics',
       requestCount: 25000,
@@ -61,7 +61,7 @@ const mockAPIMetrics = {
       status: 'degraded' as const
     },
     {
-      path: '/api/v11/validators',
+      path: '/api/v12/validators',
       method: 'PUT',
       description: 'Update validator',
       requestCount: 10000,
@@ -356,10 +356,10 @@ describe('DeveloperDashboard Component', () => {
       render(<DeveloperDashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText('/api/v11/health')).toBeInTheDocument();
-        expect(screen.getByText('/api/v11/transactions')).toBeInTheDocument();
-        expect(screen.getByText('/api/v11/blockchain/stats')).toBeInTheDocument();
-        expect(screen.getByText('/api/v11/validators')).toBeInTheDocument();
+        expect(screen.getByText('/api/v12/health')).toBeInTheDocument();
+        expect(screen.getByText('/api/v12/transactions')).toBeInTheDocument();
+        expect(screen.getByText('/api/v12/blockchain/stats')).toBeInTheDocument();
+        expect(screen.getByText('/api/v12/validators')).toBeInTheDocument();
       });
     });
 

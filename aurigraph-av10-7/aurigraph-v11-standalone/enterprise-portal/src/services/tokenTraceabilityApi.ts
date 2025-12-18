@@ -4,7 +4,7 @@
  * Includes error handling, retries, and request/response transformations
  */
 
-const API_BASE = 'http://localhost:9003/api/v11/traceability';
+const API_BASE = 'http://localhost:9003/api/v12/traceability';
 
 // API Response Types
 export interface ApiResponse<T> {

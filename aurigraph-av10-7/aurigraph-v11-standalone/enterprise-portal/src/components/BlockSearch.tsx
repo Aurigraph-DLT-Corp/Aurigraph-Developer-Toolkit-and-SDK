@@ -80,7 +80,7 @@ export const BlockSearch: React.FC = () => {
       } catch (err) {
         // Fallback to direct endpoint
         console.warn('Block search API failed, using direct fetch')
-        const response = await fetch(`http://localhost:9003/api/v11/blocks?limit=${pageSize}`)
+        const response = await fetch(`http://localhost:9003/api/v12/blocks?limit=${pageSize}`)
         const data = await response.json()
 
         // Transform response to expected format

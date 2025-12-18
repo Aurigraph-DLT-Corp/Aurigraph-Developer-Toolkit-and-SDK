@@ -18,7 +18,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, Legend } from 'recharts';
 import ChannelService from '../services/ChannelService';
 
-const API_BASE = 'http://localhost:9003/api/v11';
+const API_BASE = 'http://localhost:9003/api/v12';
 
 // Token Types and Interfaces
 interface Token {

@@ -153,7 +153,7 @@ class ContractsApiClient {
 
     const query = params.toString() ? `?${params.toString()}` : ''
     return this.fetch<ContractsListResponse>(
-      `/api/v11/contracts${query}`,
+      `/api/v12/contracts${query}`,
       {},
       'getContracts'
     )
@@ -163,7 +163,7 @@ class ContractsApiClient {
    * Get single contract by ID
    */
   async getContract(contractId: string): Promise<Contract> {
-    return this.fetch<Contract>(`/api/v11/contracts/${contractId}`)
+    return this.fetch<Contract>(`/api/v12/contracts/${contractId}`)
   }
 
   /**
@@ -171,7 +171,7 @@ class ContractsApiClient {
    */
   async getStatistics(): Promise<ContractStatistics> {
     return this.fetch<ContractStatistics>(
-      '/api/v11/contracts/statistics',
+      '/api/v12/contracts/statistics',
       {},
       'getStatistics'
     )
@@ -181,21 +181,21 @@ class ContractsApiClient {
    * Get all contract templates
    */
   async getTemplates(): Promise<{ templates: ContractTemplate[]; count: number }> {
-    return this.fetch('/api/v11/contracts/templates')
+    return this.fetch('/api/v12/contracts/templates')
   }
 
   /**
    * Get single template by ID
    */
   async getTemplate(templateId: string): Promise<ContractTemplate> {
-    return this.fetch<ContractTemplate>(`/api/v11/contracts/templates/${templateId}`)
+    return this.fetch<ContractTemplate>(`/api/v12/contracts/templates/${templateId}`)
   }
 
   /**
    * Deploy new contract
    */
   async deployContract(request: DeployContractRequest): Promise<DeployContractResponse> {
-    return this.fetch<DeployContractResponse>('/api/v11/contracts/deploy', {
+    return this.fetch<DeployContractResponse>('/api/v12/contracts/deploy', {
       method: 'POST',
       body: JSON.stringify(request),
     })
@@ -205,7 +205,7 @@ class ContractsApiClient {
    * Verify contract
    */
   async verifyContract(contractId: string): Promise<{ success: boolean }> {
-    return this.fetch(`/api/v11/contracts/${contractId}/verify`, {
+    return this.fetch(`/api/v12/contracts/${contractId}/verify`, {
       method: 'POST',
     })
   }
@@ -217,7 +217,7 @@ class ContractsApiClient {
     contractId: string,
     auditData: Record<string, any>
   ): Promise<{ success: boolean }> {
-    return this.fetch(`/api/v11/contracts/${contractId}/audit`, {
+    return this.fetch(`/api/v12/contracts/${contractId}/audit`, {
       method: 'POST',
       body: JSON.stringify(auditData),
     })
@@ -230,7 +230,7 @@ class ContractsApiClient {
     contractId: string,
     executionData: Record<string, any>
   ): Promise<{ success: boolean; transactionHash: string }> {
-    return this.fetch(`/api/v11/contracts/${contractId}/execute`, {
+    return this.fetch(`/api/v12/contracts/${contractId}/execute`, {
       method: 'POST',
       body: JSON.stringify(executionData),
     })

@@ -11,7 +11,7 @@
  * - Node Performance Grid (4x4)
  * - Anomaly Alerts Panel
  *
- * Data Source: HTTP polling every 1 second via GET /api/v11/stats
+ * Data Source: HTTP polling every 1 second via GET /api/v12/stats
  * Architecture: gRPC/Protobuf/HTTP2 (WebSocket removed in V12)
  */
 
@@ -162,8 +162,8 @@ export const RealTimeAnalytics: React.FC = () => {
     const fetchDashboardData = async () => {
       try {
         const API_BASE_URL = (import.meta as any).env?.PROD
-          ? 'https://dlt.aurigraph.io/api/v11'
-          : 'http://localhost:9003/api/v11'
+          ? 'https://dlt.aurigraph.io/api/v12'
+          : 'http://localhost:9003/api/v12'
 
         const response = await axios.get<DashboardData>(`${API_BASE_URL}/dashboard`)
         const data = response.data
@@ -229,7 +229,7 @@ export const RealTimeAnalytics: React.FC = () => {
     // Poll for metrics every second
     const pollMetrics = async () => {
       try {
-        const response = await axios.get('/api/v11/stats')
+        const response = await axios.get('/api/v12/stats')
         if (response.data) {
           setPollingMetrics({ currentTPS: response.data.currentTPS || response.data.tps || 776000 })
           setConnectionStatus({ connected: true })

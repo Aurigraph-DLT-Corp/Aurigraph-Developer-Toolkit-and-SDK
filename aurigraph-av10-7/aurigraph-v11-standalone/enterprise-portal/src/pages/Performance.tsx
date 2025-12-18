@@ -108,7 +108,7 @@ const Performance: React.FC = () => {
   // Fetch Network Statistics (Real-time TPS)
   const fetchNetworkStats = async () => {
     try {
-      const response = await fetch('https://dlt.aurigraph.io/api/v11/blockchain/network/stats');
+      const response = await fetch('https://dlt.aurigraph.io/api/v12/blockchain/network/stats');
       if (!response.ok) throw new Error('Network stats unavailable');
       const stats = await response.json();
       setNetworkStats(stats);
@@ -131,7 +131,7 @@ const Performance: React.FC = () => {
   // Fetch Live Network Metrics
   const fetchLiveNetworkMetrics = async () => {
     try {
-      const response = await fetch('https://dlt.aurigraph.io/api/v11/live/network');
+      const response = await fetch('https://dlt.aurigraph.io/api/v12/live/network');
       if (!response.ok) throw new Error('Live network metrics unavailable');
       const liveData = await response.json();
 
@@ -218,7 +218,7 @@ const Performance: React.FC = () => {
     setError(null);
     try {
       // Real API call to performance test endpoint
-      const response = await fetch('https://dlt.aurigraph.io/api/v11/performance?iterations=100000&threads=' + testConfig.threads, {
+      const response = await fetch('https://dlt.aurigraph.io/api/v12/performance?iterations=100000&threads=' + testConfig.threads, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

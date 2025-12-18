@@ -91,7 +91,7 @@ const TokenTraceabilityDashboard: React.FC = () => {
   const [selectedTrace, setSelectedTrace] = useState<TokenTrace | null>(null);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
-  const API_BASE = 'http://localhost:9003/api/v11/traceability';
+  const API_BASE = 'http://localhost:9003/api/v12/traceability';
 
   // Fetch all token traces
   const fetchAllTraces = async () => {

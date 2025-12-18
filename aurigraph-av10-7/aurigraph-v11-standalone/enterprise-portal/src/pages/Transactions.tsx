@@ -202,7 +202,7 @@ const Transactions: React.FC = () => {
     setError(null);
     try {
       const offset = (currentPage - 1) * pageSize;
-      const url = `${API_BASE}/api/v11/blockchain/transactions?limit=${pageSize}&offset=${offset}`;
+      const url = `${API_BASE}/api/v12/blockchain/transactions?limit=${pageSize}&offset=${offset}`;
 
       console.log(`Fetching transactions from: ${url}`);
       const response = await fetch(url);
@@ -306,7 +306,7 @@ const Transactions: React.FC = () => {
   const submitTransaction = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/v11/transactions`, {
+      const response = await fetch(`${API_BASE}/api/v12/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(txForm),
@@ -328,7 +328,7 @@ const Transactions: React.FC = () => {
   const deployContract = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/v11/contracts/deploy`, {
+      const response = await fetch(`${API_BASE}/api/v12/contracts/deploy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contractForm),
@@ -354,7 +354,7 @@ const Transactions: React.FC = () => {
 
     setLoading(true);
     try {
-      await fetch(`${API_BASE}/api/v11/transactions/bulk`, {
+      await fetch(`${API_BASE}/api/v12/transactions/bulk`, {
         method: 'POST',
         body: formData,
       });
@@ -405,7 +405,7 @@ const Transactions: React.FC = () => {
     }
   };
 
-  // TODO: Fetch volumeData from /api/v11/analytics/volume endpoint
+  // TODO: Fetch volumeData from /api/v12/analytics/volume endpoint
   const volumeData: any[] = [];  // REMOVED static data - must come from API
 
   return (

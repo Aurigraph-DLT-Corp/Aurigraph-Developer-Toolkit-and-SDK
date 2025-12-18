@@ -28,7 +28,7 @@ import { getNetworkTopology, NetworkTopologyData } from '../../services/NetworkT
  * - Network connections
  * - Real-time updates
  *
- * API Endpoint: /api/v11/blockchain/network/topology
+ * API Endpoint: /api/v12/blockchain/network/topology
  */
 export const NetworkTopology: React.FC = () => {
   const [topology, setTopology] = useState<NetworkTopologyData | null>(null);

@@ -45,7 +45,7 @@ describe('Dashboard - Error Handling', () => {
   it('should display error notification when metrics endpoint fails', async () => {
     // Mock failed metrics endpoint
     vi.mocked(apiService.getMetrics).mockRejectedValue(
-      new Error('Network error: Unable to connect to /api/v11/blockchain/stats')
+      new Error('Network error: Unable to connect to /api/v12/blockchain/stats')
     );
 
     vi.mocked(apiService.getPerformance).mockResolvedValue({

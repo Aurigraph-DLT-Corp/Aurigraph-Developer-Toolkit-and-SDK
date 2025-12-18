@@ -12,7 +12,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 // Test Configuration
 const PRODUCTION_URL = 'https://dlt.aurigraph.io';
-const API_BASE = `${PRODUCTION_URL}/api/v11`;
+const API_BASE = `${PRODUCTION_URL}/api/v12`;
 const HEALTH_ENDPOINT = `${API_BASE}/health`;
 const DEFAULT_USERNAME = 'admin';
 const DEFAULT_PASSWORD = 'admin';

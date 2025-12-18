@@ -2,7 +2,7 @@
  * NetworkTopologyService.ts
  * Handles API calls for network topology data
  * HTTP-only implementation - uses polling for real-time updates
- * API Endpoint: /api/v11/blockchain/network/topology
+ * API Endpoint: /api/v12/blockchain/network/topology
  */
 
 import apiClient from './api'

@@ -11,7 +11,7 @@ import { Save, Add, Delete, Edit, Security, Backup, Speed, AccountCircle } from 
 import axios from 'axios';
 
 // API Base URL
-const API_BASE_URL = 'https://dlt.aurigraph.io/api/v11';
+const API_BASE_URL = 'https://dlt.aurigraph.io/api/v12';
 
 // Type definitions for backend API responses
 interface SystemSettings {

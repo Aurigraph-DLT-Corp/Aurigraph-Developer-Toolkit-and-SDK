@@ -27,8 +27,8 @@ import type {
 } from '../types/phase1'
 
 const API_BASE_URL = (import.meta as any).env?.PROD
-  ? 'https://dlt.aurigraph.io/api/v11'
-  : 'http://localhost:9003/api/v11'
+  ? 'https://dlt.aurigraph.io/api/v12'
+  : 'http://localhost:9003/api/v12'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

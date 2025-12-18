@@ -47,7 +47,7 @@ interface VerificationResponse {
 /**
  * MerkleVerification Component
  * Phase 2: Provides Merkle proof generation and verification for RWAT tokens
- * Endpoints: GET /api/v11/registry/rwat/{id}/merkle/proof, POST /api/v11/registry/rwat/merkle/verify
+ * Endpoints: GET /api/v12/registry/rwat/{id}/merkle/proof, POST /api/v12/registry/rwat/merkle/verify
  */
 const MerkleVerification: React.FC = () => {
   const [rwatId, setRwatId] = useState('');

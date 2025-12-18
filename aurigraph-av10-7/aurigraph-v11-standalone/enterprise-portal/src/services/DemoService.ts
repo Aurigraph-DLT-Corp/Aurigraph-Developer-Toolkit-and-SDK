@@ -9,7 +9,7 @@ import {
 
 // API Configuration
 const API_BASE_URL = window.location.origin;
-const DEMO_API = `${API_BASE_URL}/api/v11/demos`;
+const DEMO_API = `${API_BASE_URL}/api/v12/demos`;
 
 export interface Channel {
   id: string;

@@ -58,7 +58,7 @@ interface Props {
   tokenTrace?: TokenTrace;
 }
 
-const API_BASE = 'http://localhost:9003/api/v11/traceability';
+const API_BASE = 'http://localhost:9003/api/v12/traceability';
 
 const MerkleProofViewer: React.FC<Props> = ({ tokenId, tokenTrace }) => {
   const [trace, setTrace] = useState<TokenTrace | null>(tokenTrace || null);

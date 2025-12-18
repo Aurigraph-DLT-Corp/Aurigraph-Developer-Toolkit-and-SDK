@@ -46,7 +46,7 @@ interface MerkleTreeStats {
 /**
  * RegistryIntegrity Component
  * Phase 2: Displays Merkle tree root hash and registry integrity status
- * Endpoints: GET /api/v11/registry/rwat/merkle/root, GET /api/v11/registry/rwat/merkle/stats
+ * Endpoints: GET /api/v12/registry/rwat/merkle/root, GET /api/v12/registry/rwat/merkle/stats
  */
 const RegistryIntegrity: React.FC = () => {
   const [rootData, setRootData] = useState<MerkleRootData | null>(null);

@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
 
 // Use environment variable if available, otherwise use production URL
-const API_BASE_URL = (import.meta as any).env?.VITE_REACT_APP_API_URL || 'https://dlt.aurigraph.io/api/v11'
+const API_BASE_URL = (import.meta as any).env?.VITE_REACT_APP_API_URL || 'https://dlt.aurigraph.io/api/v12'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

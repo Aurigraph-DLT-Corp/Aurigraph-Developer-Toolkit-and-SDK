@@ -375,7 +375,7 @@ const DeveloperDashboard: React.FC = () => {
 {`import axios from 'axios';
 
 const client = axios.create({
-  baseURL: 'https://dlt.aurigraph.io/api/v11',
+  baseURL: 'https://dlt.aurigraph.io/api/v12',
   headers: {
     'Authorization': 'Bearer YOUR_TOKEN',
     'Content-Type': 'application/json'
@@ -407,14 +407,14 @@ console.log('Transaction:', tx.data.hash);`}
         <Paper sx={{ p: 2, bgcolor: '#f5f5f5', fontFamily: 'monospace', mb: 3, overflowX: 'auto' }}>
           <Typography variant="body2" component="pre">
 {`# Health check
-curl https://dlt.aurigraph.io/api/v11/health
+curl https://dlt.aurigraph.io/api/v12/health
 
 # Get blockchain stats
 curl -H "Authorization: Bearer YOUR_TOKEN" \\
-     https://dlt.aurigraph.io/api/v11/blockchain/stats
+     https://dlt.aurigraph.io/api/v12/blockchain/stats
 
 # Submit transaction
-curl -X POST https://dlt.aurigraph.io/api/v11/transactions \\
+curl -X POST https://dlt.aurigraph.io/api/v12/transactions \\
      -H "Authorization: Bearer YOUR_TOKEN" \\
      -H "Content-Type: application/json" \\
      -d '{
@@ -506,7 +506,7 @@ curl -X POST https://dlt.aurigraph.io/api/v11/transactions \\
                   Test API endpoints interactively with real-time responses
                 </Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2 }}>
-                  Base URL: https://sandbox.dlt.aurigraph.io/api/v11
+                  Base URL: https://sandbox.dlt.aurigraph.io/api/v12
                 </Typography>
                 <Button variant="contained">Launch Console</Button>
               </CardContent>

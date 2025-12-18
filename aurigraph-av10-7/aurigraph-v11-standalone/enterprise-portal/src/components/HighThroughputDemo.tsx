@@ -502,8 +502,8 @@ export const HighThroughputDemo: React.FC = () => {
     try {
       setTopologyLoading(true);
       const [statsRes, nodesRes] = await Promise.all([
-        fetch(`${API_BASE}/api/v11/topology/stats`),
-        fetch(`${API_BASE}/api/v11/topology/nodes`)
+        fetch(`${API_BASE}/api/v12/topology/stats`),
+        fetch(`${API_BASE}/api/v12/topology/nodes`)
       ]);
 
       if (statsRes.ok) {
