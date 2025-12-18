@@ -25,7 +25,7 @@ import java.util.Map;
  * @version V12.0.0
  * @since December 2025
  */
-@Path("/api/v11/websocket/test")
+@Path("/api/v12/websocket/test")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class WebSocketTestResource {

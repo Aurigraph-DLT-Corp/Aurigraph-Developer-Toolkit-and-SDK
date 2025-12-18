@@ -18,7 +18,7 @@ import java.util.List;
  * @author Backend Development Agent (BDA)
  * @version 12.0.0
  */
-@Path("/api/v11")
+@Path("/api/v12")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PerformanceBenchmarkResource {

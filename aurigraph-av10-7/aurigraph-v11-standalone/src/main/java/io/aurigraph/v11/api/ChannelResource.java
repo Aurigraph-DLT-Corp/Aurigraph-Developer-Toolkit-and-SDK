@@ -88,67 +88,8 @@ public class ChannelResource {
         NETWORK_CHANNELS.put(cons.id, cons);
     }
 
-    // ==================== V11 API (Frontend Compatible) ====================
-
-    /**
-     * V11 API - List all network channels as array
-     * GET /api/v11/channels
-     * Returns array format for frontend ChannelService.ts compatibility
-     */
-    @GET
-    @Path("/v11/channels")
-    @Operation(summary = "List network channels (v11)", description = "Returns array of channels for frontend")
-    public List<NetworkChannel> listNetworkChannels() {
-        LOG.info("V11 API: Listing network channels");
-
-        // Update metrics with slight variation for realism
-        NETWORK_CHANNELS.values().forEach(ch -> {
-            ch.metrics.tps = (int) (ch.metrics.tps + (Math.random() - 0.5) * 1000);
-            ch.metrics.totalTransactions += (int) (Math.random() * 100);
-            if (Math.random() > 0.9) ch.metrics.blockHeight++;
-            ch.updatedAt = Instant.now().toString();
-        });
-
-        return new ArrayList<>(NETWORK_CHANNELS.values());
-    }
-
-    /**
-     * V11 API - Get single network channel
-     * GET /api/v11/channels/{id}
-     */
-    @GET
-    @Path("/v11/channels/{id}")
-    @Operation(summary = "Get network channel (v11)", description = "Get channel by ID")
-    public Response getNetworkChannel(@PathParam("id") String id) {
-        LOG.infof("V11 API: Getting channel: %s", id);
-        NetworkChannel channel = NETWORK_CHANNELS.get(id);
-        if (channel == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity(Map.of("error", "Channel not found: " + id))
-                    .build();
-        }
-        return Response.ok(channel).build();
-    }
-
-    /**
-     * V11 API - Get channel metrics
-     * GET /api/v11/channels/{id}/metrics
-     */
-    @GET
-    @Path("/v11/channels/{id}/metrics")
-    @Operation(summary = "Get channel metrics (v11)", description = "Get metrics for a channel")
-    public Response getNetworkChannelMetrics(@PathParam("id") String id) {
-        LOG.infof("V11 API: Getting metrics for channel: %s", id);
-        NetworkChannel channel = NETWORK_CHANNELS.get(id);
-        if (channel == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity(Map.of("error", "Channel not found: " + id))
-                    .build();
-        }
-        return Response.ok(channel.metrics).build();
-    }
-
     // ==================== V12 CHANNEL OPERATIONS ====================
+    // NOTE: V11 endpoints removed (Dec 18, 2025) - all traffic migrated to V12
 
     /**
      * List all channels with pagination

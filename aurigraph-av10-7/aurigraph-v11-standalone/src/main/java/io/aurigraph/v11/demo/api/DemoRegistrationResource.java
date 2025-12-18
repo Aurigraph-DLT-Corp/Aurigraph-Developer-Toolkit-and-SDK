@@ -55,10 +55,10 @@ public class DemoRegistrationResource {
      * Integrates with Aurigraph Hermes CRM for lead tracking.
      */
     @POST
-    @Path("/v11/demo/register")
+    @Path("/v12/demo/register")
     @PermitAll
     @Transactional
-    public Uni<Response> registerForDemoV11(
+    public Uni<Response> registerForDemoV12(
         @Valid FrontendDemoUser request,
         @Context HttpHeaders headers
     ) {

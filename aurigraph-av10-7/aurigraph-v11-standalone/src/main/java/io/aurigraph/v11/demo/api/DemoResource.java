@@ -24,7 +24,7 @@ import java.util.List;
  * @version 2.0.0 (Dec 18, 2025)
  * @author Aurigraph DLT Development Team
  */
-@Path("/api/v11/demos")
+@Path("/api/v12/demos")
 @Tag(name = "Demo Management", description = "Manage live demos with 24-hour Redis persistence")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
