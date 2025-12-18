@@ -96,6 +96,43 @@ public class PortalAPIGateway {
     }
 
     /**
+     * GET /api/v12/portal/status
+     * Returns portal service status
+     */
+    @GET
+    @Path("/portal/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<PortalResponse<Map<String, Object>>> getPortalStatus() {
+        LOG.info("Portal status requested");
+
+        Map<String, Object> status = new java.util.HashMap<>();
+        status.put("status", "operational");
+        status.put("version", "12.0.0");
+        status.put("environment", "production");
+        status.put("services", Map.of(
+            "api_gateway", "healthy",
+            "blockchain_data", "healthy",
+            "token_service", "healthy",
+            "analytics_service", "healthy",
+            "network_service", "healthy",
+            "rwa_service", "healthy",
+            "contract_service", "healthy",
+            "staking_service", "healthy"
+        ));
+        status.put("features", Map.of(
+            "real_time_updates", true,
+            "websocket_enabled", true,
+            "quantum_crypto", true,
+            "cross_chain", true,
+            "rwa_tokenization", true
+        ));
+        status.put("uptime", java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime());
+        status.put("timestamp", java.time.Instant.now().toString());
+
+        return Uni.createFrom().item(PortalResponse.success(status, "Portal status retrieved"));
+    }
+
+    /**
      * GET /api/v12/blockchain/metrics
      * Returns real-time blockchain metrics
      * Live data from consensus service and network stats
