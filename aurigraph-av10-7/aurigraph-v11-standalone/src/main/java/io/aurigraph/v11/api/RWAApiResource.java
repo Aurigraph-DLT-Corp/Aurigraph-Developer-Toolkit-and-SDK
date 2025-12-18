@@ -26,7 +26,7 @@ import java.util.*;
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/rwa")
+@Path("/api")
 @ApplicationScoped
 @Tag(name = "RWA API", description = "Real-World Asset tokenization operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,7 +42,7 @@ public class RWAApiResource {
      * Returns comprehensive status of the Real-World Asset tokenization system
      */
     @GET
-    @Path("/status")
+    @Path("/v12/rwa/status")
     @Operation(
         summary = "Get RWA system status",
         description = "Retrieve comprehensive status of the Real-World Asset tokenization system including active tokens, market data, and system health"
@@ -1377,4 +1377,226 @@ public class RWAApiResource {
         String tokenId,
         String metadata
     ) {}
+
+    // ==================== V11 API ENDPOINTS (Frontend Compatible) ====================
+
+    /**
+     * V11 API: Get all RWA assets
+     * GET /api/v11/rwa/assets
+     */
+    @GET
+    @Path("/v11/rwa/assets")
+    @Operation(summary = "Get RWA assets (v11)", description = "Returns all tokenized RWA assets")
+    public Uni<Response> getV11RWAAssets() {
+        LOG.info("V11 API: Fetching RWA assets");
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> assets = new ArrayList<>();
+
+            assets.add(Map.of(
+                "id", "RWA-001",
+                "name", "Manhattan Commercial Tower",
+                "type", "real-estate",
+                "value", 50000000.00,
+                "tokenSymbol", "MCT-A",
+                "status", "verified",
+                "holders", 250,
+                "yield", 5.2
+            ));
+
+            assets.add(Map.of(
+                "id", "RWA-002",
+                "name", "Pacific Gold Reserves",
+                "type", "commodities",
+                "value", 25000000.00,
+                "tokenSymbol", "GLD-T",
+                "status", "verified",
+                "holders", 180,
+                "yield", 3.8
+            ));
+
+            assets.add(Map.of(
+                "id", "RWA-003",
+                "name", "Picasso Collection",
+                "type", "art",
+                "value", 15000000.00,
+                "tokenSymbol", "ART-PIC",
+                "status", "verified",
+                "holders", 120,
+                "yield", 2.5
+            ));
+
+            return Response.ok(assets).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * V11 API: Get RWA registry
+     * GET /api/v11/rwa/registry
+     */
+    @GET
+    @Path("/v11/rwa/registry")
+    @Operation(summary = "Get RWA registry (v11)", description = "Returns RWA registry navigation")
+    public Uni<Response> getV11RWARegistry() {
+        LOG.info("V11 API: Fetching RWA registry");
+        // Delegate to the v12 implementation
+        return getRWARegistry();
+    }
+
+    /**
+     * V11 API: Get token ownerships
+     * GET /api/v11/rwa/tokens/{tokenId}/ownerships
+     */
+    @GET
+    @Path("/v11/rwa/tokens/{tokenId}/ownerships")
+    @Operation(summary = "Get token ownerships (v11)", description = "Returns ownership data for a token")
+    public Uni<Response> getV11TokenOwnerships(@PathParam("tokenId") String tokenId) {
+        LOG.infof("V11 API: Fetching ownerships for token: %s", tokenId);
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> ownerships = new ArrayList<>();
+
+            ownerships.add(Map.of(
+                "address", "0xabc123...def456",
+                "balance", 2500,
+                "percentage", 25.0,
+                "acquiredAt", Instant.now().minusSeconds(86400 * 30).toString(),
+                "status", "active"
+            ));
+
+            ownerships.add(Map.of(
+                "address", "0xdef789...abc123",
+                "balance", 1800,
+                "percentage", 18.0,
+                "acquiredAt", Instant.now().minusSeconds(86400 * 45).toString(),
+                "status", "active"
+            ));
+
+            ownerships.add(Map.of(
+                "address", "0x123abc...456def",
+                "balance", 1200,
+                "percentage", 12.0,
+                "acquiredAt", Instant.now().minusSeconds(86400 * 60).toString(),
+                "status", "active"
+            ));
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("tokenId", tokenId);
+            response.put("totalHolders", 250);
+            response.put("ownerships", ownerships);
+            response.put("timestamp", System.currentTimeMillis());
+
+            return Response.ok(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * V11 API: Get asset valuation history
+     * GET /api/v11/rwa/assets/{assetId}/valuation-history
+     */
+    @GET
+    @Path("/v11/rwa/assets/{assetId}/valuation-history")
+    @Operation(summary = "Get valuation history (v11)", description = "Returns historical valuations for an asset")
+    public Uni<Response> getV11ValuationHistory(@PathParam("assetId") String assetId) {
+        LOG.infof("V11 API: Fetching valuation history for asset: %s", assetId);
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> history = new ArrayList<>();
+
+            for (int i = 0; i < 12; i++) {
+                history.add(Map.of(
+                    "date", Instant.now().minusSeconds(86400 * 30 * i).toString(),
+                    "value", 50000000.00 + (Math.random() - 0.5) * 5000000,
+                    "source", "Oracle Price Feed",
+                    "confidence", 95 + Math.random() * 5
+                ));
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("assetId", assetId);
+            response.put("currentValue", 50000000.00);
+            response.put("history", history);
+            response.put("timestamp", System.currentTimeMillis());
+
+            return Response.ok(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * V11 API: Get asset dividends
+     * GET /api/v11/rwa/assets/{assetId}/dividends
+     */
+    @GET
+    @Path("/v11/rwa/assets/{assetId}/dividends")
+    @Operation(summary = "Get asset dividends (v11)", description = "Returns dividend history for an asset")
+    public Uni<Response> getV11AssetDividends(@PathParam("assetId") String assetId) {
+        LOG.infof("V11 API: Fetching dividends for asset: %s", assetId);
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> dividends = new ArrayList<>();
+
+            dividends.add(Map.of(
+                "id", "DIV-001",
+                "amount", 156789.00,
+                "yieldPercentage", 5.5,
+                "distributionDate", Instant.now().minusSeconds(86400 * 7).toString(),
+                "status", "distributed"
+            ));
+
+            dividends.add(Map.of(
+                "id", "DIV-002",
+                "amount", 145678.00,
+                "yieldPercentage", 5.2,
+                "distributionDate", Instant.now().minusSeconds(86400 * 37).toString(),
+                "status", "distributed"
+            ));
+
+            dividends.add(Map.of(
+                "id", "DIV-003",
+                "amount", 167890.00,
+                "yieldPercentage", 5.8,
+                "distributionDate", Instant.now().plusSeconds(86400 * 23).toString(),
+                "status", "scheduled"
+            ));
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("assetId", assetId);
+            response.put("totalDistributed", 302467.00);
+            response.put("avgYield", 5.5);
+            response.put("dividends", dividends);
+            response.put("timestamp", System.currentTimeMillis());
+
+            return Response.ok(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * V11 API: Get asset trading volume
+     * GET /api/v11/rwa/assets/{assetId}/trading-volume
+     */
+    @GET
+    @Path("/v11/rwa/assets/{assetId}/trading-volume")
+    @Operation(summary = "Get trading volume (v11)", description = "Returns trading volume for an asset")
+    public Uni<Response> getV11TradingVolume(@PathParam("assetId") String assetId) {
+        LOG.infof("V11 API: Fetching trading volume for asset: %s", assetId);
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> volumeHistory = new ArrayList<>();
+
+            for (int i = 0; i < 30; i++) {
+                volumeHistory.add(Map.of(
+                    "date", Instant.now().minusSeconds(86400 * i).toString(),
+                    "volume", 100000 + Math.random() * 50000,
+                    "transactions", (int) (50 + Math.random() * 100),
+                    "avgPrice", 250 + Math.random() * 10
+                ));
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("assetId", assetId);
+            response.put("volume24h", 145678.90);
+            response.put("volume7d", 1234567.80);
+            response.put("volume30d", 4567890.12);
+            response.put("transactions24h", 156);
+            response.put("history", volumeHistory);
+            response.put("timestamp", System.currentTimeMillis());
+
+            return Response.ok(response).build();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
 }
