@@ -24,5 +24,5 @@
         - link "Forgot your password?" [ref=e46] [cursor=pointer]:
           - /url: /user/password/send-reset-email
           - generic [ref=e47]: Forgot your password?
-    - text: "| | | |"
+    - text: "| | | | |"
 ```

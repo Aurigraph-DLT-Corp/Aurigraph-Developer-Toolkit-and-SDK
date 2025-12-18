@@ -47,4 +47,9 @@
       - listitem [ref=e65]:
         - link "Grafana v12.3.0 (Homebrew)" [ref=e66] [cursor=pointer]:
           - /url: https://github.com/grafana/grafana/blob/main/CHANGELOG.md
+        - text: "|"
+      - listitem [ref=e67]:
+        - img [ref=e68]
+        - link "New version available!" [ref=e70] [cursor=pointer]:
+          - /url: https://grafana.com/grafana/download?utm_source=grafana_footer
 ```

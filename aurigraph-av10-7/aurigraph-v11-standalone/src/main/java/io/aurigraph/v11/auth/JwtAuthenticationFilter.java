@@ -317,6 +317,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // Portal endpoints (for Enterprise Portal status and dashboard)
+        if (path.startsWith("/api/v12/portal/")) {
+            LOG.debugf("Portal endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         return false;
     }
 
