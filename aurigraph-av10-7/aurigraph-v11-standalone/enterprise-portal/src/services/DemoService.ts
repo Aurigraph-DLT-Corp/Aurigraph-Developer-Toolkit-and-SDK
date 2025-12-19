@@ -7,8 +7,16 @@ import {
   MerkleTree,
 } from '../utils/merkleTree';
 
-// API Configuration
-const API_BASE_URL = window.location.origin;
+// API Configuration - use environment variable for HTTPS in production
+const getApiBaseUrl = (): string => {
+  const env = (import.meta as any).env || {};
+  if (env.VITE_API_URL) return env.VITE_API_URL;
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return window.location.origin;
+  }
+  return 'http://localhost:9003';
+};
+const API_BASE_URL = getApiBaseUrl();
 const DEMO_API = `${API_BASE_URL}/api/v12/demos`;
 
 export interface Channel {

@@ -60,8 +60,17 @@ export type StatusHandler = (status: GrpcStreamStatus) => void
 // CONFIGURATION
 // ============================================================================
 
+// Use secure URL in production, localhost for development
+const getGrpcBaseUrl = () => {
+  if (import.meta.env.VITE_GRPC_WEB_URL) return import.meta.env.VITE_GRPC_WEB_URL;
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return 'https://dlt.aurigraph.io/grpc-web';
+  }
+  return 'http://localhost:8080';
+};
+
 const DEFAULT_CONFIG: GrpcClientConfig = {
-  baseUrl: import.meta.env.VITE_GRPC_WEB_URL || 'http://localhost:8080',
+  baseUrl: getGrpcBaseUrl(),
   timeout: 30000,
   maxReconnectAttempts: 10,
   reconnectDelayMs: 1000,

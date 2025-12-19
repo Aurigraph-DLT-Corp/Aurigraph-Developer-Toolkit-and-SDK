@@ -26,9 +26,17 @@ import type {
   ApiResponse,
 } from '../types/phase1'
 
-const API_BASE_URL = (import.meta as any).env?.PROD
-  ? 'https://dlt.aurigraph.io/api/v12'
-  : 'http://localhost:9003/api/v12'
+// Use environment variable for API URL - ensures HTTPS in production
+const getApiBaseUrl = (): string => {
+  const env = (import.meta as any).env || {};
+  if (env.VITE_API_BASE_URL) return env.VITE_API_BASE_URL;
+  if (env.VITE_API_URL) return `${env.VITE_API_URL}/api/v12`;
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return `${window.location.origin}/api/v12`;
+  }
+  return 'http://localhost:9003/api/v12';
+};
+const API_BASE_URL = getApiBaseUrl()
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

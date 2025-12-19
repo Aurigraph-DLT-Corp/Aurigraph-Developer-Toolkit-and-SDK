@@ -113,8 +113,13 @@ class ChannelServiceClass extends EventEmitter {
 
   private async fetchChannelUpdates() {
     try {
-      // Fetch channel metrics from backend API
-      const response = await fetch('https://dlt.aurigraph.io/api/v12/channels');
+      // Fetch channel metrics from backend API - use environment variable for HTTPS
+      const env = (import.meta as any).env || {};
+      const apiBase = env.VITE_API_URL ||
+        (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+          ? window.location.origin
+          : 'http://localhost:9003');
+      const response = await fetch(`${apiBase}/api/v12/channels`);
       if (response.ok) {
         const data = await response.json();
         // Update channels with fetched data

@@ -161,8 +161,9 @@ export const RealTimeAnalytics: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const API_BASE_URL = (import.meta as any).env?.PROD
-          ? 'https://dlt.aurigraph.io/api/v12'
+        // Use window.location.origin for correct protocol detection (http vs https)
+        const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+          ? `${window.location.origin}/api/v12`
           : 'http://localhost:9003/api/v12'
 
         const response = await axios.get<DashboardData>(`${API_BASE_URL}/dashboard`)

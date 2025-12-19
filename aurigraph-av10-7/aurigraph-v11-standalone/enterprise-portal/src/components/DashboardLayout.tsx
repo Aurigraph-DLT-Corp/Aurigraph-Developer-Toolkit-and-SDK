@@ -108,7 +108,10 @@ export const DashboardLayout: React.FC<{ children?: React.ReactNode }> = ({ chil
       setLoading(true)
 
       // Fetch health data (contains network health and validator counts)
-      const healthData = await fetch('http://localhost:9003/api/v12/health').then(r => r.json())
+      const apiBase = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? window.location.origin
+        : 'http://localhost:9003';
+      const healthData = await fetch(`${apiBase}/api/v12/health`).then(r => r.json())
       const healthDataContent = healthData.data || healthData
 
       // Fetch validator list data

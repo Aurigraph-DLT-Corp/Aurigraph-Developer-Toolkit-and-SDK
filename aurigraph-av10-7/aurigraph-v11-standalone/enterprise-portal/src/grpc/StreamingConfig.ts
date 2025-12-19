@@ -111,7 +111,8 @@ export const DEFAULT_STREAMING_CONFIG: StreamingConfig = {
   },
 
   grpcWeb: {
-    baseUrl: import.meta.env.VITE_GRPC_WEB_URL || 'http://localhost:8080',
+    // Use secure URL in production, localhost for development
+    baseUrl: import.meta.env.VITE_GRPC_WEB_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? 'https://dlt.aurigraph.io/grpc-web' : 'http://localhost:8080'),
     secureBaseUrl: import.meta.env.VITE_GRPC_WEB_SECURE_URL || 'https://dlt.aurigraph.io/grpc-web',
     timeout: 30000,
     maxReconnectAttempts: 10

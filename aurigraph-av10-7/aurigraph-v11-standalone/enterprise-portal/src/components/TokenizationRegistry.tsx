@@ -18,7 +18,10 @@ import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, Legend } from 'recharts';
 import ChannelService from '../services/ChannelService';
 
-const API_BASE = 'http://localhost:9003/api/v12';
+// Use window.location.origin for correct protocol detection (http vs https)
+const API_BASE = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+  ? `${window.location.origin}/api/v12`
+  : 'http://localhost:9003/api/v12';
 
 // Token Types and Interfaces
 interface Token {
