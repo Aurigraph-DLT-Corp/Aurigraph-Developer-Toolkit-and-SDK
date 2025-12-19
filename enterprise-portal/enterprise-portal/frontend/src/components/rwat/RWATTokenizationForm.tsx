@@ -485,7 +485,7 @@ const RWATTokenizationForm: React.FC<RWATTokenizationFormProps> = ({
         },
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/v12/contracts/traceability/link`, {
+      const response = await fetch(`${API_BASE_URL}/api/v12/traceability/links`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bindingRequest),
