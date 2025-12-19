@@ -65,10 +65,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   onUploadComplete,
   onError,
   allowMultiple = false,
-  showPreview = true,
+  showPreview: _showPreview = true,
   defaultCategory = 'documents',
   className = ''
 }) => {
+  void _showPreview; // Suppress unused warning - reserved for future use
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [category, setCategory] = useState(defaultCategory);
@@ -170,7 +171,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
 
     if (!allowMultiple && validFiles.length > 0) {
-      setSelectedFiles([validFiles[0]]);
+      setSelectedFiles([validFiles[0]!]);
     } else {
       setSelectedFiles(prev => allowMultiple ? [...prev, ...validFiles] : validFiles);
     }
@@ -200,7 +201,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     const uploaded: UploadedFile[] = [];
 
     for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
+      const file = selectedFiles[i]!;
       const formData = new FormData();
       formData.append('file', file);
       formData.append('category', category);

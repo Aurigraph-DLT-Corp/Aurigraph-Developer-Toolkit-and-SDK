@@ -205,13 +205,14 @@ export function useLiveDemoData(options: UseLiveDemoDataOptions = {}): UseLiveDe
           ...prev,
           consensus: {
             term: stats.consensus.currentTerm,
-            leaderId: stats.consensus.leaderNodeId,
+            leaderId: stats.consensus.leaderNodeId || 'unknown',
             commitIndex: stats.consensus.commitIndex,
             lastApplied: stats.consensus.lastApplied,
             state: stats.consensus.leaderNodeId ? 'follower' : 'candidate',
             voters: stats.consensus.validatorCount,
             quorum: stats.consensus.activeValidators >= Math.ceil(stats.consensus.validatorCount / 2 + 1),
           },
+          lastUpdate: Date.now(),
         }));
       }
     } catch (err) {

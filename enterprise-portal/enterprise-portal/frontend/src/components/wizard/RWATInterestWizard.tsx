@@ -283,8 +283,8 @@ export const RWATInterestWizard: React.FC = () => {
 
       {/* Step content */}
       <div className="wizard-content">
-        <h2>{WIZARD_STEPS[currentStep].title}</h2>
-        <p className="step-description">{WIZARD_STEPS[currentStep].description}</p>
+        <h2>{WIZARD_STEPS[currentStep]!.title}</h2>
+        <p className="step-description">{WIZARD_STEPS[currentStep]!.description}</p>
 
         {error && <div className="error-message">{error}</div>}
 

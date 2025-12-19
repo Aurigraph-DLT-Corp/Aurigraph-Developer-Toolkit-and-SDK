@@ -37,7 +37,7 @@ import {
   LinkOutlined,
   CopyOutlined,
 } from '@ant-design/icons';
-import type { UploadFile, RcFile } from 'antd/es/upload/interface';
+import type { RcFile } from 'antd/es/upload/interface';
 import type { AssetTokenizeRequest, AssetDocument, AssetCategory } from '../../types/rwat';
 
 // API base URL for file uploads

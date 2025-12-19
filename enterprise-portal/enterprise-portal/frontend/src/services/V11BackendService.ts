@@ -443,14 +443,14 @@ class V11BackendService {
     const transactions: Transaction[] = [];
     for (let i = 0; i < pageSize; i++) {
       const statuses = ['confirmed', 'pending', 'failed'] as const;
-      const types = ['transfer', 'mint', 'burn', 'stake'];
-      const status = filters?.status || statuses[Math.floor(Math.random() * 3)];
-      const type = filters?.type || types[Math.floor(Math.random() * 4)];
+      const types = ['transfer', 'mint', 'burn', 'stake'] as const;
+      const status = filters?.status ?? statuses[Math.floor(Math.random() * 3)];
+      const type = filters?.type ?? types[Math.floor(Math.random() * 4)];
       transactions.push({
         id: `tx-${(page - 1) * pageSize + i}`,
         hash: `0x${Math.random().toString(16).substring(2, 66)}`,
-        type,
-        status,
+        type: type as string,
+        status: status as 'pending' | 'confirmed' | 'failed',
         timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString(),
         blockHeight: status === 'confirmed' ? Math.floor(Math.random() * 100000) : undefined,
         from: `0x${Math.random().toString(16).substring(2, 42)}`,

@@ -13,7 +13,7 @@
  * @version 12.0.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   Row,
@@ -152,22 +152,24 @@ const mockLeaderboard: LeaderboardEntry[] = [
 ];
 
 const UserReferralProgram: React.FC = () => {
-  const [user, setUser] = useState<UserProfile>(mockUser);
-  const [referrals, setReferrals] = useState<Referral[]>(mockReferrals);
+  const [user, _setUser] = useState<UserProfile>(mockUser);
+  const [referrals, _setReferrals] = useState<Referral[]>(mockReferrals);
   const [activeTab, setActiveTab] = useState('profile');
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [form] = Form.useForm();
+  const [_form] = Form.useForm();
+  // Suppress unused warnings - reserved for future use
+  void _setUser; void _setReferrals; void _form;
 
-  // Get current tier info
-  const currentTier = rewardTiers.find(t => t.name.toLowerCase() === user.tier) || rewardTiers[0];
+  // Get current tier info (always defined - falls back to first tier)
+  const currentTier = rewardTiers.find(t => t.name.toLowerCase() === user.tier) ?? rewardTiers[0]!;
   const nextTier = rewardTiers.find(t => t.minReferrals > user.totalReferrals);
 
   // Calculate progress to next tier
   const progressToNextTier = nextTier
-    ? ((user.totalReferrals - (currentTier?.minReferrals || 0)) /
-       (nextTier.minReferrals - (currentTier?.minReferrals || 0))) * 100
+    ? ((user.totalReferrals - currentTier.minReferrals) /
+       (nextTier.minReferrals - currentTier.minReferrals)) * 100
     : 100;
 
   // Copy referral link to clipboard
@@ -260,13 +262,14 @@ const UserReferralProgram: React.FC = () => {
       dataIndex: 'rewardStatus',
       key: 'rewardStatus',
       render: (status) => {
-        const config: Record<string, { color: string; icon: React.ReactNode }> = {
+        const config = {
           pending: { color: 'orange', icon: <ClockCircleOutlined /> },
           processing: { color: 'blue', icon: <ClockCircleOutlined spin /> },
           paid: { color: 'green', icon: <CheckCircleOutlined /> },
-        };
+        } as const;
+        const statusConfig = config[status as keyof typeof config] ?? config.pending;
         return (
-          <Tag color={config[status].color} icon={config[status].icon}>
+          <Tag color={statusConfig.color} icon={statusConfig.icon}>
             {status.toUpperCase()}
           </Tag>
         );
