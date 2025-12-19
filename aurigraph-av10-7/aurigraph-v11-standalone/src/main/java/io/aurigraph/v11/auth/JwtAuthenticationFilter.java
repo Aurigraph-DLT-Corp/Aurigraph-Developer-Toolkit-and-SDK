@@ -238,6 +238,13 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // Registry endpoints (RWA token registries - primary, secondary, composite)
+        if (path.startsWith("/api/v12/registries/") || path.equals("/api/v12/registries") ||
+            path.startsWith("/api/v12/registry/")) {
+            LOG.debugf("Registry endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         // Validator endpoints
         if (path.startsWith("/api/v12/validators/") || path.equals("/api/v12/validators")) {
             LOG.debugf("Validator endpoint detected - allowing public access: %s", path);
@@ -320,6 +327,97 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // Portal endpoints (for Enterprise Portal status and dashboard)
         if (path.startsWith("/api/v12/portal/")) {
             LOG.debugf("Portal endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // System status endpoints (for monitoring dashboards)
+        if (path.equals("/api/v12/system/status") || path.startsWith("/api/v12/system/")) {
+            LOG.debugf("System endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Governance endpoints (for proposal viewing)
+        if (path.startsWith("/api/v12/governance/")) {
+            LOG.debugf("Governance endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Security status endpoints (for dashboard display)
+        if (path.startsWith("/api/v12/security/")) {
+            LOG.debugf("Security endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Bridge status endpoints (for cross-chain dashboard)
+        if (path.startsWith("/api/v12/bridge/")) {
+            LOG.debugf("Bridge endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Infrastructure endpoints (for monitoring)
+        if (path.startsWith("/api/v12/infrastructure/")) {
+            LOG.debugf("Infrastructure endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Dashboard endpoints (for frontend stats)
+        if (path.startsWith("/api/v12/dashboard/")) {
+            LOG.debugf("Dashboard endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // AI endpoints (for AI dashboard)
+        if (path.startsWith("/api/v12/ai/")) {
+            LOG.debugf("AI endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // ML endpoints (for ML dashboard)
+        if (path.startsWith("/api/v12/ml/")) {
+            LOG.debugf("ML endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Realtime endpoints (for WebSocket topics)
+        if (path.startsWith("/api/v12/realtime/")) {
+            LOG.debugf("Realtime endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Wallet endpoints (for balance queries)
+        if (path.startsWith("/api/v12/wallet/")) {
+            LOG.debugf("Wallet endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Oracle endpoints (for price feeds)
+        if (path.startsWith("/api/v12/oracles/") || path.equals("/api/v12/oracle/status")) {
+            LOG.debugf("Oracle endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Performance endpoints (for metrics dashboard)
+        if (path.startsWith("/api/v12/performance/") || path.equals("/api/v12/performance")) {
+            LOG.debugf("Performance endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Stats endpoints (for statistics dashboard)
+        if (path.startsWith("/api/v12/stats/") || path.equals("/api/v12/stats")) {
+            LOG.debugf("Stats endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Live data endpoints (for real-time features)
+        if (path.startsWith("/api/v12/live/")) {
+            LOG.debugf("Live data endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // V11 API endpoints (backward compatibility redirects)
+        // All V11 endpoints redirect to V12, so allow them through
+        if (path.startsWith("/api/v11/")) {
+            LOG.debugf("V11 API endpoint detected - allowing for redirect: %s", path);
             return true;
         }
 

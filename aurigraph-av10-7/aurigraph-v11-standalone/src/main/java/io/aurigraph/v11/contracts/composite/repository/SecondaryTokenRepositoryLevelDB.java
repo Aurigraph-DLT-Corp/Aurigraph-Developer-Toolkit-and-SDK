@@ -40,23 +40,30 @@ public class SecondaryTokenRepositoryLevelDB {
      * Persist a secondary token
      */
     public Uni<SecondaryToken> persist(SecondaryToken token) {
+        // Prepare serialization synchronously
         return Uni.createFrom().item(() -> {
             try {
                 String key = buildKey(token.getCompositeId(), token.getTokenType());
                 SecondaryTokenWrapper wrapper = new SecondaryTokenWrapper(token);
                 String value = objectMapper.writeValueAsString(wrapper);
-                levelDB.put(key, value).await().indefinitely();
-                return token;
+                return Map.entry(key, value);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to persist secondary token", e);
+                throw new RuntimeException("Failed to serialize secondary token: " + e.getMessage(), e);
             }
-        });
+        }).flatMap(entry ->
+            // Chain the LevelDB write as a proper Uni operation
+            levelDB.put(entry.getKey(), entry.getValue())
+                .replaceWith(token)
+                .onFailure().transform(e ->
+                    new RuntimeException("Failed to persist secondary token to LevelDB: " + e.getMessage(), e))
+        );
     }
 
     /**
      * Persist all secondary tokens for a composite token
      */
     public Uni<List<SecondaryToken>> persistAll(String compositeId, List<SecondaryToken> tokens) {
+        // Prepare data synchronously first
         return Uni.createFrom().item(() -> {
             try {
                 Map<String, String> puts = new HashMap<>();
@@ -65,12 +72,17 @@ public class SecondaryTokenRepositoryLevelDB {
                     SecondaryTokenWrapper wrapper = new SecondaryTokenWrapper(token);
                     puts.put(key, objectMapper.writeValueAsString(wrapper));
                 }
-                levelDB.batchWrite(puts, null).await().indefinitely();
-                return tokens;
+                return puts;
             } catch (Exception e) {
-                throw new RuntimeException("Failed to persist all secondary tokens", e);
+                throw new RuntimeException("Failed to serialize secondary tokens: " + e.getMessage(), e);
             }
-        });
+        }).flatMap(puts ->
+            // Chain the LevelDB write as a proper Uni operation
+            levelDB.batchWrite(puts, null)
+                .replaceWith(tokens)
+                .onFailure().transform(e ->
+                    new RuntimeException("Failed to persist secondary tokens to LevelDB: " + e.getMessage(), e))
+        );
     }
 
     // ==================== FIND OPERATIONS ====================

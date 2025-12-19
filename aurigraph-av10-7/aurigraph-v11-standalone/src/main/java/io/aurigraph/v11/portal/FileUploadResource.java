@@ -19,14 +19,18 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -225,8 +229,11 @@ public class FileUploadResource {
             // Copy file to target location
             Files.copy(file.filePath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            LOG.infof("✅ Asset uploaded: %s -> %s (tokenId: %s, type: %s)",
-                originalName, newFilename, tokenId, assetType);
+            // Calculate SHA256 hash for file integrity verification
+            String fileHash = calculateSha256(targetPath);
+
+            LOG.infof("✅ Asset uploaded: %s -> %s (tokenId: %s, type: %s, hash: %s)",
+                originalName, newFilename, tokenId, assetType, fileHash.substring(0, 16) + "...");
 
             // Return upload result
             AssetUploadResponse response = new AssetUploadResponse(
@@ -238,6 +245,7 @@ public class FileUploadResource {
                 file.size(),
                 extension,
                 targetPath.toString(),
+                fileHash,
                 description,
                 Instant.now().toString()
             );
@@ -447,6 +455,26 @@ public class FileUploadResource {
         return "unknown";
     }
 
+    /**
+     * Calculate SHA256 hash of a file for integrity verification
+     */
+    private String calculateSha256(Path filePath) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (InputStream is = Files.newInputStream(filePath)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    digest.update(buffer, 0, bytesRead);
+                }
+            }
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (NoSuchAlgorithmException | IOException e) {
+            LOG.warnf("Failed to calculate SHA256 hash: %s", e.getMessage());
+            return "";
+        }
+    }
+
     // ==================== Response DTOs ====================
 
     public record FileUploadResponse(
@@ -470,6 +498,7 @@ public class FileUploadResource {
         long size,
         String extension,
         String path,
+        String hash,
         String description,
         String uploadedAt
     ) {}

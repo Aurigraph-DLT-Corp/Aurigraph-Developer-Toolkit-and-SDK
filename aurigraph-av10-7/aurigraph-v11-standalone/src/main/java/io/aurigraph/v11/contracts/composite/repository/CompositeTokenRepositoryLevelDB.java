@@ -225,12 +225,13 @@ public class CompositeTokenRepositoryLevelDB extends LevelDBRepository<Composite
     }
 
     public Uni<Void> deleteByIds(List<String> ids) {
-        return Uni.createFrom().item(() -> {
-            for (String id : ids) {
-                deleteById(id).await().indefinitely();
-            }
-            return null;
-        });
+        // Convert IDs to keys and use batch delete
+        List<String> keys = ids.stream()
+            .map(id -> getKeyPrefix() + id)
+            .collect(Collectors.toList());
+        return levelDB.batchWrite(null, keys)
+            .onFailure().transform(e ->
+                new RuntimeException("Failed to delete entities by IDs: " + e.getMessage(), e));
     }
 
     // ==================== DATA MODELS ====================

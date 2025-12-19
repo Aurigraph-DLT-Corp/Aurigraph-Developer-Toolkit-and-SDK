@@ -103,10 +103,18 @@ public class CompositeTokenFactory {
             compositeTokensCache.put(compositeId, compositeToken);
             secondaryTokensCache.put(compositeId, secondaryTokenList);
 
-            // Persist to LevelDB if enabled
+            // Persist to LevelDB if enabled (non-fatal - cache is already populated)
             if (persistenceEnabled) {
-                compositeTokenRepository.persist(compositeToken).await().indefinitely();
-                secondaryTokenRepository.persistAll(compositeId, secondaryTokenList).await().indefinitely();
+                try {
+                    compositeTokenRepository.persist(compositeToken).await().indefinitely();
+                    secondaryTokenRepository.persistAll(compositeId, secondaryTokenList).await().indefinitely();
+                    Log.debugf("Persisted composite token %s to LevelDB", compositeId);
+                } catch (Exception e) {
+                    // Log warning but don't fail - cache is already populated
+                    Log.warnf("Failed to persist composite token %s to LevelDB (non-fatal, using cache): %s",
+                        compositeId, e.getMessage());
+                    // Continue - the token is still usable from cache
+                }
             }
             
             // Step 5: Initialize verification process

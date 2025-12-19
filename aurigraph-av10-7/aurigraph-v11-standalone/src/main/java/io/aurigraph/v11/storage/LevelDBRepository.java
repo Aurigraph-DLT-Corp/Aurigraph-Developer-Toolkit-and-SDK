@@ -51,50 +51,52 @@ public abstract class LevelDBRepository<T, ID> {
      * Save an entity to LevelDB
      */
     public Uni<T> persist(T entity) {
+        // Serialize first, then chain the async write
         return Uni.createFrom().item(() -> {
             try {
                 String key = buildKey(getId(entity));
                 String value = objectMapper.writeValueAsString(entity);
-                levelDB.put(key, value).await().indefinitely();
-                return entity;
+                return java.util.Map.entry(key, value);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to persist entity", e);
+                throw new RuntimeException("Failed to serialize entity: " + e.getMessage(), e);
             }
-        });
+        }).flatMap(entry ->
+            levelDB.put(entry.getKey(), entry.getValue())
+                .replaceWith(entity)
+                .onFailure().transform(e ->
+                    new RuntimeException("Failed to persist entity to LevelDB: " + e.getMessage(), e))
+        );
     }
 
     /**
      * Find entity by ID
      */
     public Uni<Optional<T>> findById(ID id) {
-        return Uni.createFrom().item(() -> {
-            try {
-                String key = buildKey(id);
-                String value = levelDB.get(key).await().indefinitely();
+        String key = buildKey(id);
+        return levelDB.get(key)
+            .map(value -> {
                 if (value == null) {
-                    return Optional.empty();
+                    return Optional.<T>empty();
                 }
-                T entity = objectMapper.readValue(value, getEntityClass());
-                return Optional.of(entity);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to find entity by ID", e);
-            }
-        });
+                try {
+                    T entity = objectMapper.readValue(value, getEntityClass());
+                    return Optional.of(entity);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to deserialize entity: " + e.getMessage(), e);
+                }
+            })
+            .onFailure().transform(e ->
+                new RuntimeException("Failed to find entity by ID: " + e.getMessage(), e));
     }
 
     /**
      * Delete entity by ID
      */
     public Uni<Void> deleteById(ID id) {
-        return Uni.createFrom().item(() -> {
-            try {
-                String key = buildKey(id);
-                levelDB.delete(key).await().indefinitely();
-                return null;
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to delete entity", e);
-            }
-        });
+        String key = buildKey(id);
+        return levelDB.delete(key)
+            .onFailure().transform(e ->
+                new RuntimeException("Failed to delete entity: " + e.getMessage(), e));
     }
 
     /**
@@ -108,46 +110,40 @@ public abstract class LevelDBRepository<T, ID> {
      * Check if entity exists
      */
     public Uni<Boolean> existsById(ID id) {
-        return Uni.createFrom().item(() -> {
-            try {
-                String key = buildKey(id);
-                return levelDB.exists(key).await().indefinitely();
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to check existence", e);
-            }
-        });
+        String key = buildKey(id);
+        return levelDB.exists(key)
+            .onFailure().transform(e ->
+                new RuntimeException("Failed to check existence: " + e.getMessage(), e));
     }
 
     /**
      * Count all entities
      */
     public Uni<Long> count() {
-        return Uni.createFrom().item(() -> {
-            try {
-                List<String> keys = levelDB.getKeysByPrefix(getKeyPrefix()).await().indefinitely();
-                return (long) keys.size();
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to count entities", e);
-            }
-        });
+        return levelDB.getKeysByPrefix(getKeyPrefix())
+            .map(keys -> (long) keys.size())
+            .onFailure().transform(e ->
+                new RuntimeException("Failed to count entities: " + e.getMessage(), e));
     }
 
     /**
      * List all entities
      */
     public Uni<List<T>> listAll() {
-        return Uni.createFrom().item(() -> {
-            try {
-                java.util.Map<String, String> entries = levelDB.scanByPrefix(getKeyPrefix()).await().indefinitely();
+        return levelDB.scanByPrefix(getKeyPrefix())
+            .map(entries -> {
                 List<T> entities = new ArrayList<>();
                 for (String value : entries.values()) {
-                    entities.add(objectMapper.readValue(value, getEntityClass()));
+                    try {
+                        entities.add(objectMapper.readValue(value, getEntityClass()));
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to deserialize entity: " + e.getMessage(), e);
+                    }
                 }
                 return entities;
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to list all entities", e);
-            }
-        });
+            })
+            .onFailure().transform(e ->
+                new RuntimeException("Failed to list all entities: " + e.getMessage(), e));
     }
 
     // ==================== QUERY OPERATIONS ====================
@@ -191,40 +187,41 @@ public abstract class LevelDBRepository<T, ID> {
      * Save multiple entities
      */
     public Uni<List<T>> persistAll(List<T> entities) {
+        // Serialize all entities first
         return Uni.createFrom().item(() -> {
             try {
-                var puts = entities.stream()
+                return entities.stream()
                     .collect(Collectors.toMap(
                         e -> buildKey(getId(e)),
                         e -> {
                             try {
                                 return objectMapper.writeValueAsString(e);
                             } catch (Exception ex) {
-                                throw new RuntimeException(ex);
+                                throw new RuntimeException("Failed to serialize entity: " + ex.getMessage(), ex);
                             }
                         }
                     ));
-                levelDB.batchWrite(puts, null).await().indefinitely();
-                return entities;
             } catch (Exception e) {
-                throw new RuntimeException("Failed to persist all entities", e);
+                throw new RuntimeException("Failed to prepare batch persist: " + e.getMessage(), e);
             }
-        });
+        }).flatMap(puts ->
+            levelDB.batchWrite(puts, null)
+                .replaceWith(entities)
+                .onFailure().transform(e ->
+                    new RuntimeException("Failed to persist all entities to LevelDB: " + e.getMessage(), e))
+        );
     }
 
     /**
      * Delete all entities
      */
     public Uni<Void> deleteAll() {
-        return Uni.createFrom().item(() -> {
-            try {
-                List<String> keys = levelDB.getKeysByPrefix(getKeyPrefix()).await().indefinitely();
-                levelDB.batchWrite(null, keys).await().indefinitely();
-                return null;
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to delete all entities", e);
-            }
-        });
+        return levelDB.getKeysByPrefix(getKeyPrefix())
+            .flatMap(keys ->
+                levelDB.batchWrite(null, keys)
+                    .onFailure().transform(e ->
+                        new RuntimeException("Failed to delete all entities: " + e.getMessage(), e))
+            );
     }
 
     // ==================== HELPER METHODS ====================
