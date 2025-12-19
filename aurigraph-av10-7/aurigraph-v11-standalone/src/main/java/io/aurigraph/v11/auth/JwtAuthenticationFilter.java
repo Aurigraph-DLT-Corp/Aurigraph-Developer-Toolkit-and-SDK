@@ -246,7 +246,8 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         }
 
         // Validator endpoints
-        if (path.startsWith("/api/v12/validators/") || path.equals("/api/v12/validators")) {
+        if (path.startsWith("/api/v12/validators/") || path.equals("/api/v12/validators") ||
+            path.startsWith("/api/v12/validator/")) {
             LOG.debugf("Validator endpoint detected - allowing public access: %s", path);
             return true;
         }
@@ -363,6 +364,12 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // Dashboard endpoints (for frontend stats)
         if (path.startsWith("/api/v12/dashboard/")) {
             LOG.debugf("Dashboard endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
+        // Object Storage endpoints (Swift filesystem storage)
+        if (path.startsWith("/api/v12/object-storage/")) {
+            LOG.debugf("Object storage endpoint detected - allowing public access: %s", path);
             return true;
         }
 
