@@ -26,7 +26,7 @@ import java.util.*;
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api")
+@Path("/api/v12/rwa")
 @ApplicationScoped
 @Tag(name = "RWA API", description = "Real-World Asset tokenization operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,7 +42,7 @@ public class RWAApiResource {
      * Returns comprehensive status of the Real-World Asset tokenization system
      */
     @GET
-    @Path("/v12/rwa/status")
+    @Path("/status")
     @Operation(
         summary = "Get RWA system status",
         description = "Retrieve comprehensive status of the Real-World Asset tokenization system including active tokens, market data, and system health"
