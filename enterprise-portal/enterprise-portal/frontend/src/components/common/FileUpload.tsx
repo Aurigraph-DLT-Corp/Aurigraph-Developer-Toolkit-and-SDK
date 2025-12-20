@@ -79,6 +79,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [clientHash, setClientHash] = useState<string | null>(null);
+  const [verifyingFileId, setVerifyingFileId] = useState<string | null>(null);
+  const [verificationResults, setVerificationResults] = useState<Record<string, boolean | null>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -246,6 +248,36 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     // Reset progress after animation
     setTimeout(() => setUploadProgress(0), 1000);
+  };
+
+  // Verify file hash via API
+  const verifyFileHash = async (fileId: string) => {
+    setVerifyingFileId(fileId);
+    try {
+      const API_BASE = import.meta.env.VITE_API_URL || 'https://dlt.aurigraph.io';
+      const response = await fetch(`${API_BASE}/api/v12/attachments/${fileId}/verify`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Verification failed');
+      }
+
+      const result = await response.json();
+      setVerificationResults(prev => ({
+        ...prev,
+        [fileId]: result.verified === true
+      }));
+    } catch (err) {
+      console.error('Verification error:', err);
+      setVerificationResults(prev => ({
+        ...prev,
+        [fileId]: false
+      }));
+    } finally {
+      setVerifyingFileId(null);
+    }
   };
 
   // Format file size
@@ -451,14 +483,43 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                       {file.verified && <span className="ml-2">Verified</span>}
                     </p>
                   </div>
-                  <a
-                    href={file.cdnUrl || file.downloadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                  >
-                    Download
-                  </a>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => verifyFileHash(file.fileId)}
+                      disabled={verifyingFileId === file.fileId}
+                      className={`px-3 py-1 text-sm rounded transition-colors ${
+                        verificationResults[file.fileId] === true
+                          ? 'bg-emerald-600 text-white'
+                          : verificationResults[file.fileId] === false
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-600 text-white hover:bg-gray-700'
+                      }`}
+                    >
+                      {verifyingFileId === file.fileId ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Verifying
+                        </span>
+                      ) : verificationResults[file.fileId] === true ? (
+                        '✓ Verified'
+                      ) : verificationResults[file.fileId] === false ? (
+                        '✗ Failed'
+                      ) : (
+                        'Verify Hash'
+                      )}
+                    </button>
+                    <a
+                      href={file.cdnUrl || file.downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                    >
+                      Download
+                    </a>
+                  </div>
                 </div>
                 <div className="mt-2 p-2 bg-white dark:bg-gray-800 rounded text-xs">
                   <div className="grid grid-cols-2 gap-2">
