@@ -13,6 +13,7 @@ import io.quarkus.elytron.security.common.BcryptUtil;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import io.aurigraph.v11.user.JwtService;
 
 @Path("/api/v12/login")
 @Produces(MediaType.APPLICATION_JSON)
@@ -25,6 +26,9 @@ public class LoginResource {
 
     @Inject
     AuthTokenService authTokenService;
+
+    @Inject
+    JwtService jwtService;
 
     @POST
     @Path("/authenticate")
