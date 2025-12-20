@@ -21,8 +21,15 @@ import type {
   CryptoExchangeData,
 } from '../types/dataSources';
 
-// API base URL (HTTP/2)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9003';
+// API base URL (HTTP/2) - Always use HTTPS in production
+const getApiBaseUrl = (): string => {
+  const isProduction = typeof window !== 'undefined' &&
+    (window.location.hostname === 'dlt.aurigraph.io' || window.location.protocol === 'https:');
+  return isProduction
+    ? 'https://dlt.aurigraph.io'
+    : (import.meta.env.VITE_API_URL || 'http://localhost:9003');
+};
+const API_BASE_URL = getApiBaseUrl();
 const GRPC_ENDPOINT = `${API_BASE_URL}/api/v11/exchanges`;
 
 // Exchange enum mapping (matches proto Exchange enum)

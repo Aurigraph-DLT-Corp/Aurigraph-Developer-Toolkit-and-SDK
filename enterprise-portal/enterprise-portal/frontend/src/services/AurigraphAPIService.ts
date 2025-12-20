@@ -268,16 +268,16 @@ export class AurigraphAPIService {
    * Get the appropriate base URL based on environment
    */
   private getBaseURL(): string {
-    const isProduction = window.location.hostname === 'dlt.aurigraph.io';
+    // Always use HTTPS in production - check both hostname and protocol
+    const isProduction = window.location.hostname === 'dlt.aurigraph.io' ||
+      window.location.protocol === 'https:';
 
-    // Use environment variable if available, otherwise fallback to defaults
-    if (!isProduction && import.meta.env.VITE_API_BASE_URL) {
-      return import.meta.env.VITE_API_BASE_URL;
+    if (isProduction) {
+      return 'https://dlt.aurigraph.io/api/v11';
     }
 
-    return isProduction
-      ? 'https://dlt.aurigraph.io/api/v11'
-      : 'http://localhost:9004/api/v11'; // Fixed: was 9003, now 9004
+    // Use environment variable for development, fallback to localhost
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:9004/api/v11';
   }
 
   /**

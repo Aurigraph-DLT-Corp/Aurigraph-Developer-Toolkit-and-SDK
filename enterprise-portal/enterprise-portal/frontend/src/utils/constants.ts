@@ -2,11 +2,20 @@
  * Application Constants
  */
 
-// API Configuration
-// NOTE: Integrated with Aurigraph DLT V11.3.1 backend via NGINX HTTPS proxy
-// Backend API is proxied through NGINX at /api/v11/
-// Uses relative paths - works on both production and development
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+// API Configuration - Always use HTTPS in production
+// NOTE: Integrated with Aurigraph DLT V12 backend
+const getApiBaseUrl = (): string => {
+  // Check if we have an environment variable
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  // In production (HTTPS or production hostname), use production API
+  const isProduction = typeof window !== 'undefined' &&
+    (window.location.protocol === 'https:' || window.location.hostname === 'dlt.aurigraph.io');
+  return isProduction ? 'https://dlt.aurigraph.io/api/v12' : '/api/v12';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 export const WS_URL = import.meta.env.VITE_WS_URL || `wss://${window.location.host}`;
 
 // Performance Settings

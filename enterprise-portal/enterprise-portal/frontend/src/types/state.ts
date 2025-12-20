@@ -476,7 +476,12 @@ export const DEFAULT_SETTINGS_STATE: SettingsState = {
       updateInterval: 30000,
     },
   },
-  apiBaseUrl: 'http://localhost:9003',
-  wsUrl: 'ws://localhost:9003',
+  // Use production URLs when on production domain
+  apiBaseUrl: typeof window !== 'undefined' && (window.location.protocol === 'https:' || window.location.hostname === 'dlt.aurigraph.io')
+    ? 'https://dlt.aurigraph.io'
+    : 'http://localhost:9003',
+  wsUrl: typeof window !== 'undefined' && (window.location.protocol === 'https:' || window.location.hostname === 'dlt.aurigraph.io')
+    ? 'wss://dlt.aurigraph.io'
+    : 'ws://localhost:9003',
   demoMode: true,
 };

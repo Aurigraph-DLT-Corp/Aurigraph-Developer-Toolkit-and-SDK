@@ -38,6 +38,14 @@ import {
   Tooltip,
   Timeline,
 } from 'antd';
+
+// Environment-aware API URL helper
+const getApiBaseUrl = (): string => {
+  const isProduction = typeof window !== 'undefined' &&
+    (window.location.hostname === 'dlt.aurigraph.io' || window.location.protocol === 'https:');
+  return isProduction ? 'https://dlt.aurigraph.io' : 'http://localhost:9003';
+};
+const API_BASE_URL = getApiBaseUrl();
 import {
   CloudServerOutlined,
   DesktopOutlined,
@@ -378,7 +386,7 @@ const InfrastructureMonitoring: React.FC = () => {
   // Fetch local infrastructure status
   const fetchLocalStatus = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:9003/api/v11/health', {
+      const response = await fetch(`${API_BASE_URL}/api/v11/health`, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
       }).catch(() => null);
@@ -404,11 +412,15 @@ const InfrastructureMonitoring: React.FC = () => {
         });
       }
 
-      const portalResponse = await fetch('http://localhost:3000', { method: 'GET' }).catch(() => null);
+      // In production, check current domain; in dev, check localhost:3000
+      const portalUrl = window.location.hostname === 'dlt.aurigraph.io'
+        ? 'https://dlt.aurigraph.io'
+        : 'http://localhost:3000';
+      const portalResponse = await fetch(portalUrl, { method: 'GET' }).catch(() => null);
       services.push({
         name: 'Enterprise Portal',
         status: portalResponse?.ok ? 'running' : 'stopped',
-        port: 3000,
+        port: window.location.hostname === 'dlt.aurigraph.io' ? 443 : 3000,
         lastCheck: Date.now(),
       });
 
