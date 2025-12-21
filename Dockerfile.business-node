@@ -1,0 +1,75 @@
+# Dockerfile for Aurigraph V12 Business Node
+# Separate container for business logic and smart contract execution
+#
+# Features:
+# - Transaction execution and processing
+# - Smart contract (Ricardian) processing
+# - Workflow orchestration
+# - Business metrics and audit logging
+#
+# Build: docker build -f Dockerfile.business-node -t aurigraph-business-node:12.0.0 .
+# Run: docker run -d -p 9030:9003 --name business-1 aurigraph-business-node:12.0.0
+
+FROM maven:3.9-eclipse-temurin-21 AS builder
+
+WORKDIR /build
+
+# Copy pom.xml and source
+COPY aurigraph-av10-7/aurigraph-v11-standalone/pom.xml .
+COPY aurigraph-av10-7/aurigraph-v11-standalone/src ./src
+
+# Build the application
+RUN mvn clean package -DskipTests \
+    -Dmaven.javadoc.skip=true \
+    -Dlombok.addLombokGeneratedAnnotation=true \
+    -q && \
+    echo "Business Node build completed"
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+LABEL maintainer="Aurigraph V12 Platform"
+LABEL version="12.0.0"
+LABEL description="Aurigraph Business Node for transaction and contract execution"
+LABEL node.type="BUSINESS"
+
+WORKDIR /app
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Copy the built JAR from builder stage
+COPY --from=builder /build/target/quarkus-app /app/
+
+# Set node-specific environment variables
+ENV QUARKUS_HTTP_PORT=9003 \
+    QUARKUS_HTTP_HTTP2=true \
+    QUARKUS_PROFILE=production \
+    JAVA_OPTS="-Xms256m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication" \
+    AURIGRAPH_NODE_TYPE=BUSINESS \
+    AURIGRAPH_MODE=production \
+    # Business node specific settings
+    TRANSACTION_MAX_CONCURRENT=10000 \
+    CONTRACT_EXECUTION_TIMEOUT_MS=5000 \
+    CONTRACT_MAX_GAS_LIMIT=10000000 \
+    STATE_CACHE_SIZE_MB=1024 \
+    AUDIT_LOG_MAX_ENTRIES=10000 \
+    # Performance settings
+    BATCH_PROCESSOR_ENABLED=true \
+    BATCH_SIZE=100 \
+    TRANSACTION_TIMEOUT_MS=30000
+
+# Create non-root user for security
+RUN addgroup -S aurigraph && adduser -S aurigraph -G aurigraph
+RUN chown -R aurigraph:aurigraph /app
+USER aurigraph
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=30s \
+    CMD curl -f http://localhost:9003/q/health/ready || exit 1
+
+# Expose ports
+EXPOSE 9003
+
+# Run the application
+CMD ["java", "-jar", "quarkus-run.jar"]

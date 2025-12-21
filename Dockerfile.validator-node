@@ -1,0 +1,75 @@
+# Dockerfile for Aurigraph V12 Validator Node
+# Separate container for consensus-participating validator nodes
+#
+# Features:
+# - HyperRAFT++ consensus participation
+# - Block validation and production
+# - Leader election capability
+# - High-performance transaction validation
+#
+# Build: docker build -f Dockerfile.validator-node -t aurigraph-validator-node:12.0.0 .
+# Run: docker run -d -p 9020:9003 -p 9021:9004 --name validator-1 aurigraph-validator-node:12.0.0
+
+FROM maven:3.9-eclipse-temurin-21 AS builder
+
+WORKDIR /build
+
+# Copy pom.xml and source
+COPY aurigraph-av10-7/aurigraph-v11-standalone/pom.xml .
+COPY aurigraph-av10-7/aurigraph-v11-standalone/src ./src
+
+# Build the application
+RUN mvn clean package -DskipTests \
+    -Dmaven.javadoc.skip=true \
+    -Dlombok.addLombokGeneratedAnnotation=true \
+    -q && \
+    echo "Validator Node build completed"
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+LABEL maintainer="Aurigraph V12 Platform"
+LABEL version="12.0.0"
+LABEL description="Aurigraph Validator Node for HyperRAFT++ consensus"
+LABEL node.type="VALIDATOR"
+
+WORKDIR /app
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Copy the built JAR from builder stage
+COPY --from=builder /build/target/quarkus-app /app/
+
+# Set node-specific environment variables
+ENV QUARKUS_HTTP_PORT=9003 \
+    QUARKUS_HTTP_HTTP2=true \
+    QUARKUS_PROFILE=production \
+    JAVA_OPTS="-Xms256m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:+UseStringDeduplication" \
+    AURIGRAPH_NODE_TYPE=VALIDATOR \
+    AURIGRAPH_MODE=production \
+    # Consensus specific settings
+    CONSENSUS_LEADER_ELECTION=true \
+    CONSENSUS_HEARTBEAT_INTERVAL=50 \
+    CONSENSUS_ELECTION_TIMEOUT_MIN=150 \
+    CONSENSUS_ELECTION_TIMEOUT_MAX=300 \
+    CONSENSUS_TARGET_TPS=776000 \
+    # Validator specific settings
+    VALIDATOR_STAKE_REQUIREMENT=1000 \
+    VALIDATOR_BLOCK_PRODUCTION=true \
+    VALIDATOR_TRANSACTION_VALIDATION=true
+
+# Create non-root user for security
+RUN addgroup -S aurigraph && adduser -S aurigraph -G aurigraph
+RUN chown -R aurigraph:aurigraph /app
+USER aurigraph
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=45s \
+    CMD curl -f http://localhost:9003/q/health/ready || exit 1
+
+# Expose ports
+EXPOSE 9003 9004
+
+# Run the application
+CMD ["java", "-jar", "quarkus-run.jar"]

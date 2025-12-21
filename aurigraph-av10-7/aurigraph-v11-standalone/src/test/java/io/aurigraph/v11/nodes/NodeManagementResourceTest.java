@@ -1,0 +1,698 @@
+package io.aurigraph.v11.nodes;
+
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer;
+
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
+
+/**
+ * Integration tests for NodeManagementResource REST API
+ * Sprint 1 - Test Coverage Enhancement (AV11-605)
+ *
+ * Tests cover:
+ * - Node type discovery endpoints
+ * - Node lifecycle management (CRUD operations)
+ * - Health and metrics endpoints
+ * - Bulk operations
+ * - Error handling
+ */
+@QuarkusTest
+@DisplayName("NodeManagementResource Integration Tests")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class NodeManagementResourceTest {
+
+    private static final String BASE_PATH = "/api/v12/nodes";
+
+    // ============================================
+    // NODE TYPE DISCOVERY TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Node Type Discovery Tests")
+    class NodeTypeDiscoveryTests {
+
+        @Test
+        @Order(1)
+        @DisplayName("Should list all node types")
+        void shouldListAllNodeTypes() {
+            given()
+                .when()
+                .get(BASE_PATH + "/types")
+                .then()
+                .statusCode(200)
+                .body("types", notNullValue())
+                .body("types.size()", greaterThan(0))
+                .body("count", greaterThan(0));
+        }
+
+        @Test
+        @Order(2)
+        @DisplayName("Should get VALIDATOR node type details")
+        void shouldGetValidatorNodeTypeDetails() {
+            given()
+                .when()
+                .get(BASE_PATH + "/types/VALIDATOR")
+                .then()
+                .statusCode(200)
+                .body("type", equalTo("VALIDATOR"))
+                .body("displayName", notNullValue())
+                .body("description", notNullValue())
+                .body("canValidate", equalTo(true))
+                .body("isConsensusNode", equalTo(true));
+        }
+
+        @Test
+        @Order(3)
+        @DisplayName("Should get BUSINESS node type details")
+        void shouldGetBusinessNodeTypeDetails() {
+            given()
+                .when()
+                .get(BASE_PATH + "/types/BUSINESS")
+                .then()
+                .statusCode(200)
+                .body("type", equalTo("BUSINESS"))
+                .body("isBusinessNode", equalTo(true));
+        }
+
+        @Test
+        @Order(4)
+        @DisplayName("Should get EI_EXCHANGE node type details")
+        void shouldGetEIExchangeNodeTypeDetails() {
+            given()
+                .when()
+                .get(BASE_PATH + "/types/EI_EXCHANGE")
+                .then()
+                .statusCode(200)
+                .body("type", equalTo("EI_EXCHANGE"))
+                .body("isExternalIntegration", equalTo(true));
+        }
+
+        @Test
+        @Order(5)
+        @DisplayName("Should return 404 for unknown node type")
+        void shouldReturn404ForUnknownNodeType() {
+            given()
+                .when()
+                .get(BASE_PATH + "/types/UNKNOWN_TYPE")
+                .then()
+                .statusCode(404)
+                .body("error", containsString("Unknown node type"));
+        }
+
+        @Test
+        @Order(6)
+        @DisplayName("Should be case insensitive for node type")
+        void shouldBeCaseInsensitiveForNodeType() {
+            given()
+                .when()
+                .get(BASE_PATH + "/types/validator")
+                .then()
+                .statusCode(200)
+                .body("type", equalTo("VALIDATOR"));
+        }
+    }
+
+    // ============================================
+    // NODE CREATION TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Node Creation Tests")
+    class NodeCreationTests {
+
+        @Test
+        @Order(10)
+        @DisplayName("Should create VALIDATOR node with custom ID")
+        void shouldCreateValidatorNodeWithCustomId() {
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "test-validator-1"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH)
+                .then()
+                .statusCode(201)
+                .body("nodeId", equalTo("test-validator-1"))
+                .body("type", equalTo("VALIDATOR"))
+                .body("typeDisplayName", notNullValue())
+                .body("running", notNullValue())
+                .body("healthy", notNullValue());
+        }
+
+        @Test
+        @Order(11)
+        @DisplayName("Should create BUSINESS node with auto-generated ID")
+        void shouldCreateBusinessNodeWithAutoGeneratedId() {
+            Map<String, Object> request = Map.of(
+                "type", "BUSINESS"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH)
+                .then()
+                .statusCode(201)
+                .body("nodeId", notNullValue())
+                .body("type", equalTo("BUSINESS"));
+        }
+
+        @Test
+        @Order(12)
+        @DisplayName("Should create EI_EXCHANGE node")
+        void shouldCreateEIExchangeNode() {
+            Map<String, Object> request = Map.of(
+                "type", "EI_EXCHANGE",
+                "nodeId", "test-ei-1"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH)
+                .then()
+                .statusCode(201)
+                .body("nodeId", equalTo("test-ei-1"))
+                .body("type", equalTo("EI_EXCHANGE"));
+        }
+
+        @Test
+        @Order(13)
+        @DisplayName("Should return 400 for invalid node type")
+        void shouldReturn400ForInvalidNodeType() {
+            Map<String, Object> request = Map.of(
+                "type", "INVALID_TYPE"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH)
+                .then()
+                .statusCode(400)
+                .body("error", notNullValue());
+        }
+    }
+
+    // ============================================
+    // NODE LISTING TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Node Listing Tests")
+    class NodeListingTests {
+
+        @Test
+        @Order(20)
+        @DisplayName("Should list all nodes")
+        void shouldListAllNodes() {
+            given()
+                .when()
+                .get(BASE_PATH)
+                .then()
+                .statusCode(200)
+                .body("nodes", notNullValue())
+                .body("count", greaterThanOrEqualTo(0))
+                .body("totalCached", greaterThanOrEqualTo(0));
+        }
+
+        @Test
+        @Order(21)
+        @DisplayName("Should filter nodes by type")
+        void shouldFilterNodesByType() {
+            // First create a validator node to ensure we have one
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "filter-test-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH)
+                .then()
+                .statusCode(anyOf(equalTo(201), equalTo(400))); // 400 if already exists
+
+            given()
+                .queryParam("type", "VALIDATOR")
+                .when()
+                .get(BASE_PATH)
+                .then()
+                .statusCode(200)
+                .body("nodes", notNullValue());
+        }
+
+        @Test
+        @Order(22)
+        @DisplayName("Should return empty list for non-existent type filter")
+        void shouldReturnEmptyListForNonExistentTypeFilter() {
+            given()
+                .queryParam("type", "NONEXISTENT")
+                .when()
+                .get(BASE_PATH)
+                .then()
+                .statusCode(200)
+                .body("nodes", hasSize(0))
+                .body("count", equalTo(0));
+        }
+    }
+
+    // ============================================
+    // NODE RETRIEVAL TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Node Retrieval Tests")
+    class NodeRetrievalTests {
+
+        @Test
+        @Order(30)
+        @DisplayName("Should get node by type and ID")
+        void shouldGetNodeByTypeAndId() {
+            // First create the node
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "get-test-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH)
+                .then()
+                .statusCode(anyOf(equalTo(201), equalTo(400)));
+
+            given()
+                .when()
+                .get(BASE_PATH + "/VALIDATOR/get-test-validator")
+                .then()
+                .statusCode(200)
+                .body("nodeId", equalTo("get-test-validator"))
+                .body("type", equalTo("VALIDATOR"));
+        }
+
+        @Test
+        @Order(31)
+        @DisplayName("Should return 404 for non-existent node")
+        void shouldReturn404ForNonExistentNode() {
+            given()
+                .when()
+                .get(BASE_PATH + "/VALIDATOR/non-existent-node")
+                .then()
+                .statusCode(404)
+                .body("error", containsString("Node not found"));
+        }
+
+        @Test
+        @Order(32)
+        @DisplayName("Should return 400 for invalid node type in path")
+        void shouldReturn400ForInvalidNodeTypeInPath() {
+            given()
+                .when()
+                .get(BASE_PATH + "/INVALID_TYPE/some-node")
+                .then()
+                .statusCode(400)
+                .body("error", containsString("Invalid node type"));
+        }
+    }
+
+    // ============================================
+    // NODE LIFECYCLE TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Node Lifecycle Tests")
+    class NodeLifecycleTests {
+
+        @Test
+        @Order(40)
+        @DisplayName("Should start a node")
+        void shouldStartNode() {
+            // Create node first
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "lifecycle-start-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH)
+                .then()
+                .statusCode(anyOf(equalTo(201), equalTo(400)));
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/lifecycle-start-validator/start")
+                .then()
+                .statusCode(200)
+                .body("nodeId", equalTo("lifecycle-start-validator"))
+                .body("status", equalTo("started"))
+                .body("running", equalTo(true));
+        }
+
+        @Test
+        @Order(41)
+        @DisplayName("Should stop a node")
+        void shouldStopNode() {
+            // Create and start node
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "lifecycle-stop-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH);
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/lifecycle-stop-validator/start");
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/lifecycle-stop-validator/stop")
+                .then()
+                .statusCode(200)
+                .body("nodeId", equalTo("lifecycle-stop-validator"))
+                .body("status", equalTo("stopped"))
+                .body("running", equalTo(false));
+        }
+
+        @Test
+        @Order(42)
+        @DisplayName("Should restart a node")
+        void shouldRestartNode() {
+            // Create and start node
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "lifecycle-restart-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH);
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/lifecycle-restart-validator/start");
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/lifecycle-restart-validator/restart")
+                .then()
+                .statusCode(200)
+                .body("nodeId", equalTo("lifecycle-restart-validator"))
+                .body("status", equalTo("restarted"))
+                .body("running", equalTo(true));
+        }
+
+        @Test
+        @Order(43)
+        @DisplayName("Should return 404 when starting non-existent node")
+        void shouldReturn404WhenStartingNonExistentNode() {
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/non-existent/start")
+                .then()
+                .statusCode(404)
+                .body("error", containsString("Node not found"));
+        }
+    }
+
+    // ============================================
+    // NODE DELETION TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Node Deletion Tests")
+    class NodeDeletionTests {
+
+        @Test
+        @Order(50)
+        @DisplayName("Should delete a node")
+        void shouldDeleteNode() {
+            // Create node first
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "delete-test-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH);
+
+            given()
+                .when()
+                .delete(BASE_PATH + "/VALIDATOR/delete-test-validator")
+                .then()
+                .statusCode(200)
+                .body("nodeId", equalTo("delete-test-validator"))
+                .body("deleted", equalTo(true));
+        }
+
+        @Test
+        @Order(51)
+        @DisplayName("Should return 404 when deleting non-existent node")
+        void shouldReturn404WhenDeletingNonExistentNode() {
+            given()
+                .when()
+                .delete(BASE_PATH + "/VALIDATOR/non-existent-delete")
+                .then()
+                .statusCode(404)
+                .body("error", containsString("Node not found"));
+        }
+
+        @Test
+        @Order(52)
+        @DisplayName("Should stop running node before deletion")
+        void shouldStopRunningNodeBeforeDeletion() {
+            // Create, start, and delete node
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "running-delete-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH);
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/running-delete-validator/start");
+
+            given()
+                .when()
+                .delete(BASE_PATH + "/VALIDATOR/running-delete-validator")
+                .then()
+                .statusCode(200)
+                .body("deleted", equalTo(true));
+        }
+    }
+
+    // ============================================
+    // HEALTH & METRICS TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Health & Metrics Tests")
+    class HealthMetricsTests {
+
+        @Test
+        @Order(60)
+        @DisplayName("Should get node health")
+        void shouldGetNodeHealth() {
+            // Create and start node
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "health-test-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH);
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/health-test-validator/start");
+
+            given()
+                .when()
+                .get(BASE_PATH + "/VALIDATOR/health-test-validator/health")
+                .then()
+                .statusCode(200)
+                .body("nodeId", equalTo("health-test-validator"))
+                .body("health.status", notNullValue())
+                .body("health.healthy", notNullValue())
+                .body("health.uptimeSeconds", notNullValue())
+                .body("health.components", notNullValue());
+        }
+
+        @Test
+        @Order(61)
+        @DisplayName("Should get node metrics")
+        void shouldGetNodeMetrics() {
+            // Create and start node
+            Map<String, Object> request = Map.of(
+                "type", "VALIDATOR",
+                "nodeId", "metrics-test-validator"
+            );
+
+            given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post(BASE_PATH);
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/metrics-test-validator/start");
+
+            given()
+                .when()
+                .get(BASE_PATH + "/VALIDATOR/metrics-test-validator/metrics")
+                .then()
+                .statusCode(200)
+                .body("nodeId", equalTo("metrics-test-validator"))
+                .body("metrics.tps", notNullValue())
+                .body("metrics.latencyMs", notNullValue())
+                .body("metrics.cpuUsage", notNullValue())
+                .body("metrics.memoryUsage", notNullValue())
+                .body("metrics.custom", notNullValue());
+        }
+
+        @Test
+        @Order(62)
+        @DisplayName("Should get all nodes health")
+        void shouldGetAllNodesHealth() {
+            given()
+                .when()
+                .get(BASE_PATH + "/health")
+                .then()
+                .statusCode(200)
+                .body("nodes", notNullValue())
+                .body("summary.total", greaterThanOrEqualTo(0))
+                .body("summary.healthy", greaterThanOrEqualTo(0))
+                .body("summary.unhealthy", greaterThanOrEqualTo(0));
+        }
+
+        @Test
+        @Order(63)
+        @DisplayName("Should get all nodes metrics")
+        void shouldGetAllNodesMetrics() {
+            given()
+                .when()
+                .get(BASE_PATH + "/metrics")
+                .then()
+                .statusCode(200)
+                .body("nodes", notNullValue())
+                .body("aggregate.totalTps", notNullValue())
+                .body("aggregate.averageLatencyMs", notNullValue())
+                .body("aggregate.nodeCount", greaterThanOrEqualTo(0));
+        }
+
+        @Test
+        @Order(64)
+        @DisplayName("Should return 404 for health of non-existent node")
+        void shouldReturn404ForHealthOfNonExistentNode() {
+            given()
+                .when()
+                .get(BASE_PATH + "/VALIDATOR/non-existent/health")
+                .then()
+                .statusCode(404)
+                .body("error", containsString("Node not found"));
+        }
+    }
+
+    // ============================================
+    // BULK OPERATIONS TESTS
+    // ============================================
+
+    @Nested
+    @DisplayName("Bulk Operations Tests")
+    class BulkOperationsTests {
+
+        @Test
+        @Order(70)
+        @DisplayName("Should start all nodes of a type")
+        void shouldStartAllNodesOfType() {
+            // Create a few nodes
+            for (int i = 0; i < 3; i++) {
+                Map<String, Object> request = Map.of(
+                    "type", "VALIDATOR",
+                    "nodeId", "bulk-start-validator-" + i
+                );
+
+                given()
+                    .contentType(ContentType.JSON)
+                    .body(request)
+                    .when()
+                    .post(BASE_PATH);
+            }
+
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/start-all")
+                .then()
+                .statusCode(200)
+                .body("type", equalTo("VALIDATOR"))
+                .body("action", equalTo("start-all"))
+                .body("nodesStarted", greaterThanOrEqualTo(0));
+        }
+
+        @Test
+        @Order(71)
+        @DisplayName("Should stop all nodes of a type")
+        void shouldStopAllNodesOfType() {
+            given()
+                .when()
+                .post(BASE_PATH + "/VALIDATOR/stop-all")
+                .then()
+                .statusCode(200)
+                .body("type", equalTo("VALIDATOR"))
+                .body("action", equalTo("stop-all"))
+                .body("nodesStopped", greaterThanOrEqualTo(0));
+        }
+
+        @Test
+        @Order(72)
+        @DisplayName("Should return 400 for bulk operation on invalid type")
+        void shouldReturn400ForBulkOperationOnInvalidType() {
+            given()
+                .when()
+                .post(BASE_PATH + "/INVALID_TYPE/start-all")
+                .then()
+                .statusCode(400)
+                .body("error", notNullValue());
+        }
+    }
+}
