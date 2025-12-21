@@ -21,27 +21,40 @@ npx playwright test         # E2E
 
 ### State: 2025-12-21 | Branch: V12
 
-**Completed**: WebSocket→gRPC, SSE Streaming, Multi-Node Infra, V12 Nodes, API Integrations, E2E Fixes, Infra Monitoring, **ActiveContracts (129 SP)**
+**V12 Progress**: 85/215 SP (Sprint 1-2 Complete)
 
-**ActiveContracts**: All 9 Sprints Complete (129 SP)
-- Sprint 1-3: Core Data Model + Wizard (34 SP)
-- Sprint 4-7: Signatures/Tokens/VVB/Triggers (62 SP)
-- Sprint 8-9: Frontend + Tests (33 SP)
+**Sprint 1 - Security Hardening (40 SP)** ✓
+- BridgeCircuitBreaker, BridgeRateLimiter, FlashLoanDetector
+- HQCCryptoService, ChainlinkProofOfReserve
+- BridgeSecurityResource.java @ `/api/v12/security/*`
 
-**Architecture**: `Browser ──gRPC-web──> :9004` | `──SSE──> :9003/api/v12/stream/*`
+**Sprint 2 - Interoperability (45 SP)** ✓
+- CCIPAdapter.java: Chainlink CCIP (5 chains)
+- ArbitrumBridge.java: 7-day challenge, retryable tickets
+- OptimismBridge.java: OP Stack + Base
+- IBCLightClient.java: Cosmos IBC, Tendermint
+- InteroperabilityResource.java @ `/api/v12/interop/*`
 
-**Key Files**: SignatureWorkflowResource.java, TokenBindingResource.java, VVBVerificationResource.java, TriggerExecutionResource.java
+**ActiveContracts (129 SP)** ✓ - All 9 Sprints
+
+**Next**: Sprint 3 - RWA Token Standards (40 SP)
+
+### Key Files
+- `/bridge/security/*` - Circuit breaker, rate limiter, flash loan detector
+- `/bridge/adapters/*` - CCIP, Arbitrum, Optimism, IBC
+- `/rest/BridgeSecurityResource.java` - Security API
+- `/rest/InteroperabilityResource.java` - Cross-chain API
 
 ### Commits
 ```
+b5885446 feat: Sprint 2 Cross-Chain Bridge Adapters (45 SP)
+98936fdb feat: Sprint 2 Cross-Chain Interoperability REST API
+035f03ac feat: Sprint 1 Security Hardening (40 SP)
+aea304eb docs: #infinitecontext ActiveContracts complete
 10a7d5f1 feat: ActiveContracts Sprint 4-9 (95 SP)
-48f57b44 docs: #infinitecontext ActiveContracts Sprint 1-3
-c597c483 feat: Multi-server infrastructure monitoring
-3704177a fix: E2E CSS selectors/ports
-a6a926bb feat: Twitter/Weather/News APIs
 ```
 
 ### Resume
 ```bash
-git log -5 --oneline && git status --short && ./mvnw quarkus:dev
+git log -5 --oneline && ./mvnw compile -q && ./mvnw quarkus:dev
 ```
