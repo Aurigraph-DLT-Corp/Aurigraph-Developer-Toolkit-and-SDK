@@ -21,21 +21,24 @@ npx playwright test         # E2E
 
 ### State: 2025-12-21 | Branch: V12
 
-**Completed**: WebSocket→gRPC, SSE Streaming, Multi-Node Infra, V12 Nodes, API Integrations, E2E Fixes, Infra Monitoring
+**Completed**: WebSocket→gRPC, SSE Streaming, Multi-Node Infra, V12 Nodes, API Integrations, E2E Fixes, Infra Monitoring, **ActiveContracts (129 SP)**
 
-**ActiveContracts**: Sprint 1-3 Done (34 SP) | Sprint 4+ Pending (95 SP)
+**ActiveContracts**: All 9 Sprints Complete (129 SP)
+- Sprint 1-3: Core Data Model + Wizard (34 SP)
+- Sprint 4-7: Signatures/Tokens/VVB/Triggers (62 SP)
+- Sprint 8-9: Frontend + Tests (33 SP)
 
 **Architecture**: `Browser ──gRPC-web──> :9004` | `──SSE──> :9003/api/v12/stream/*`
 
-**Key Files**: LiveStreamingResource.java, streaming.proto, docker-compose.multi-node.yml
+**Key Files**: SignatureWorkflowResource.java, TokenBindingResource.java, VVBVerificationResource.java, TriggerExecutionResource.java
 
 ### Commits
 ```
+10a7d5f1 feat: ActiveContracts Sprint 4-9 (95 SP)
 48f57b44 docs: #infinitecontext ActiveContracts Sprint 1-3
 c597c483 feat: Multi-server infrastructure monitoring
 3704177a fix: E2E CSS selectors/ports
 a6a926bb feat: Twitter/Weather/News APIs
-c6e9efe0 feat: Multi-node infrastructure
 ```
 
 ### Resume
