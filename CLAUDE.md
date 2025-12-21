@@ -39,6 +39,21 @@ npx playwright test                   # E2E tests
 | External API Integrations | ✅ Complete | Twitter/Weather/News |
 | E2E Test Fixes | ✅ Complete | CSS selectors, ports |
 | Infrastructure Monitoring | ✅ Complete | Multi-server health checks |
+| ActiveContracts Sprint 1 | ✅ Complete | Core Data Model (13 SP) |
+
+#### ActiveContracts Status (129 SP Total):
+| Sprint | Focus | SP | Status |
+|--------|-------|-----|--------|
+| Sprint 1 | Core Data Model | 13 | ✅ Done |
+| Sprint 2 | Wizard - Prose | 8 | ✅ Done |
+| Sprint 3 | Wizard - Params/Programming | 13 | ✅ Done |
+| Sprint 4+ | Version/RBAC/Token/VVB/Triggers/Frontend | 95 | Pending |
+
+**Implemented Files:**
+- ContractProse.java, ContractParameters.java, ContractProgramming.java, ContractVersion.java
+- ActiveContractWizardService.java, ActiveContractWizardResource.java
+- ActiveContractFeeService.java, ContractVersionService.java
+- EINodeDataService.java, EINodeDataResource.java
 
 #### Active Architecture:
 ```
