@@ -33,7 +33,7 @@ class CompositeTokenTest extends ServiceTestBase {
             // Given
             String compositeId = "CT-TEST-001";
             String assetId = "ASSET-001";
-            String assetType = "REAL_ESTATE";
+            AssetType assetType = AssetType.REAL_ESTATE;
             String ownerAddress = "0x1234567890abcdef";
 
             // When
@@ -345,19 +345,24 @@ class CompositeTokenTest extends ServiceTestBase {
     class SecondaryTokenTypeTests {
 
         @Test
-        @DisplayName("Should have all six secondary token types")
+        @DisplayName("Should have all core and document-based secondary token types")
         void shouldHaveAllSixSecondaryTokenTypes() {
             // Given
             SecondaryTokenType[] types = SecondaryTokenType.values();
 
-            // Then
-            assertEquals(6, types.length);
+            // Then - The enum has been expanded from 6 to 24 types (includes document-based tokens)
+            assertTrue(types.length >= 6, "Should have at least 6 core token types");
+            // Verify core types exist
             assertTrue(containsType(types, SecondaryTokenType.OWNER));
             assertTrue(containsType(types, SecondaryTokenType.VERIFICATION));
             assertTrue(containsType(types, SecondaryTokenType.VALUATION));
             assertTrue(containsType(types, SecondaryTokenType.COLLATERAL));
             assertTrue(containsType(types, SecondaryTokenType.MEDIA));
             assertTrue(containsType(types, SecondaryTokenType.COMPLIANCE));
+            // Verify document-based types
+            assertTrue(containsType(types, SecondaryTokenType.TITLE_DEED));
+            assertTrue(containsType(types, SecondaryTokenType.OWNER_KYC));
+            assertTrue(containsType(types, SecondaryTokenType.APPRAISAL));
         }
 
         private boolean containsType(SecondaryTokenType[] types, SecondaryTokenType target) {

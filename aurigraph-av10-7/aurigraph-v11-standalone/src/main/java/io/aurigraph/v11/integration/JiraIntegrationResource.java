@@ -265,10 +265,14 @@ public class JiraIntegrationResource {
 
     /**
      * Build JIRA API v3 search URL (fallback)
+     *
+     * Note: As of 2025, JIRA Cloud uses /rest/api/3/search/jql endpoint
+     * instead of /rest/api/3/search (which now returns 410 Gone)
+     * See: https://developer.atlassian.com/changelog/#CHANGE-2046
      */
     private String buildJiraSearchUrlV3(String jql, int startAt, int maxResults, String fields) {
         return String.format(
-            "%s/rest/api/3/search?jql=%s&startAt=%d&maxResults=%d&fields=%s",
+            "%s/rest/api/3/search/jql?jql=%s&startAt=%d&maxResults=%d&fields=%s",
             jiraBaseUrl,
             urlEncode(jql),
             startAt,

@@ -367,6 +367,13 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
             return true;
         }
 
+        // Compliance endpoints (for Enterprise Portal compliance dashboard)
+        // MiCA compliance, SOC 2 readiness, audit trail, incident reporting
+        if (path.startsWith("/api/v12/compliance/")) {
+            LOG.debugf("Compliance endpoint detected - allowing public access: %s", path);
+            return true;
+        }
+
         // Object Storage endpoints (Swift filesystem storage)
         if (path.startsWith("/api/v12/object-storage/")) {
             LOG.debugf("Object storage endpoint detected - allowing public access: %s", path);
@@ -425,6 +432,13 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
         // All V11 endpoints redirect to V12, so allow them through
         if (path.startsWith("/api/v11/")) {
             LOG.debugf("V11 API endpoint detected - allowing for redirect: %s", path);
+            return true;
+        }
+
+        // JIRA Integration endpoints (for development/test tooling)
+        // These are proxy endpoints to JIRA API - authentication handled by JIRA
+        if (path.startsWith("/api/v3/jira/")) {
+            LOG.debugf("JIRA integration endpoint detected - allowing public access: %s", path);
             return true;
         }
 
