@@ -38,6 +38,7 @@ npx playwright test                   # E2E tests
 | V12 Node Architecture | ✅ Complete | EI/Business/Validator nodes |
 | External API Integrations | ✅ Complete | Twitter/Weather/News |
 | E2E Test Fixes | ✅ Complete | CSS selectors, ports |
+| Infrastructure Monitoring | ✅ Complete | Multi-server health checks |
 
 #### Active Architecture:
 ```
@@ -61,17 +62,21 @@ Browser ──grpc-web──> Quarkus:9004 (gRPC)
 
 #### Recent Commits (2025-12-21):
 ```
+c597c483 feat: Multi-server infrastructure monitoring with health checks
+1cd198f9 chore: Complete WebSocket cleanup and compact #infinitecontext
 3704177a fix: E2E test CSS selector and port fixes
 a6a926bb feat: Twitter, Weather, News API integrations
 c6e9efe0 feat: Multi-node infrastructure
 3936fb24 feat: V12 node architecture + enterprise dashboards
-d0c2f8cc feat: EINode, EINodeService, NodeStorageService
-60ee4bf1 feat: Consolidate Validator/Business/EI nodes
 ```
 
-#### Files Pending Commit:
-- WebSocket deletions (49 files) - gRPC migration cleanup
-- Node architecture updates (NodeManagementResource.java)
+#### Infrastructure Monitoring Endpoints:
+| Endpoint | Purpose |
+|----------|---------|
+| `/api/v12/infrastructure/servers` | All servers health status |
+| `/api/v12/infrastructure/servers/{id}/health` | Individual server health |
+| `/api/v12/infrastructure/servers/{id}/ports` | Port status scan |
+| `/api/v12/infrastructure/overview` | Complete infrastructure overview |
 
 ---
 
