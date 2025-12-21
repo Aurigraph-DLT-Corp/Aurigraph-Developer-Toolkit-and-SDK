@@ -3,7 +3,7 @@
  * JIRA: AV11-314
  *
  * Displays real-time streaming data feeds with:
- * - WebSocket connection status
+ * - gRPC stream connection status (migrated from WebSocket in V12)
  * - Live transaction stream with filtering
  * - Data throughput metrics (messages/sec, bytes/sec)
  * - Data source selector (transactions, blocks, events)
@@ -42,7 +42,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
-import { useWebSocket } from '../../hooks/useWebSocket';
+import { useTransactionStream, useMultiGrpcStream } from '../../hooks/useGrpcStream';
 import {
   addTransaction,
   clearTransactions,
@@ -204,57 +204,63 @@ const StreamingDataDashboard: React.FC = () => {
     });
   }, []);
 
-  // WebSocket message handler
-  const handleMessage = useCallback(
-    (event: { data: StreamMessage | Transaction }) => {
-      if (isPaused) return;
+  // gRPC streaming connection (migrated from WebSocket in V12)
+  const {
+    data: streamData,
+    status,
+    error,
+    isConnected,
+    connect,
+    disconnect,
+  } = useTransactionStream({
+    autoConnect: true,
+    updateIntervalMs: 100,
+  });
 
-      try {
-        const messageSize = JSON.stringify(event.data).length;
-        updateMetrics(messageSize);
+  const isConnecting = status === 'connecting';
 
-        // Handle different message formats
-        const data = event.data as any;
+  // Handle incoming stream data
+  useEffect(() => {
+    if (!streamData || isPaused) return;
 
-        // Check if it's a wrapped message or direct transaction
-        if (data.type === 'transaction' || data.id) {
-          const txData = data.type === 'transaction' ? data.data : data;
-          dispatch(addTransaction(txData as Transaction));
-        } else if (data.type === 'block') {
-          setBlocks((prev) => {
-            const newBlocks = [data.data as BlockData, ...prev];
-            return newBlocks.slice(0, 100); // Keep last 100 blocks
-          });
-        } else if (data.type === 'event') {
-          setEvents((prev) => {
-            const newEvents = [data.data as EventData, ...prev];
-            return newEvents.slice(0, 100); // Keep last 100 events
-          });
-        }
-      } catch (err: any) {
-        console.error('Error processing streaming message:', err);
-        dispatch(setError({ channel: 'channels', error: err.message }));
+    try {
+      const messageSize = JSON.stringify(streamData).length;
+      updateMetrics(messageSize);
+
+      // Handle transaction data from gRPC stream
+      if (streamData.transactionHash) {
+        const txData: Transaction = {
+          id: streamData.eventId || streamData.transactionHash,
+          from: streamData.fromAddress || 'Unknown',
+          to: streamData.toAddress || 'Unknown',
+          amount: parseFloat(streamData.amount) || 0,
+          hash: streamData.transactionHash || '',
+          blockHeight: streamData.blockHeight || 0,
+          timestamp: new Date().toISOString(),
+          status: streamData.status === 'CONFIRMED' ? 'confirmed' :
+                  streamData.status === 'FAILED' ? 'failed' : 'pending',
+          fee: 0,
+          gasUsed: streamData.gasUsed,
+        };
+        dispatch(addTransaction(txData));
       }
-    },
-    [dispatch, isPaused, updateMetrics]
-  );
-
-  // WebSocket connection
-  const { isConnected, isConnecting, error, connect, disconnect } = useWebSocket(
-    'live-stream',
-    {
-      onMessage: handleMessage,
-      onConnect: () => {
-        dispatch(setConnectionState({ channel: 'liveStream', connected: true }));
-      },
-      onDisconnect: () => {
-        dispatch(setConnectionState({ channel: 'liveStream', connected: false }));
-      },
-      onError: (err) => {
-        dispatch(setError({ channel: 'channels', error: err.message }));
-      },
+    } catch (err: any) {
+      console.error('Error processing streaming message:', err);
+      dispatch(setError({ channel: 'channels', error: err.message }));
     }
-  );
+  }, [streamData, dispatch, isPaused, updateMetrics]);
+
+  // Update connection state in Redux
+  useEffect(() => {
+    dispatch(setConnectionState({ channel: 'liveStream', connected: isConnected }));
+  }, [isConnected, dispatch]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      dispatch(setError({ channel: 'channels', error: error.message }));
+    }
+  }, [error, dispatch]);
 
   // Update metrics display periodically
   useEffect(() => {

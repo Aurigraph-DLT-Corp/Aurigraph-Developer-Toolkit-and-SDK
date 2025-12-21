@@ -55,6 +55,7 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-grpc</artifactId>
         </dependency>
+        <!-- gRPC-Web Support is enabled via quarkus.grpc.server.enable-reflection and quarkus.grpc.web configuration -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-reactive-streams-operators</artifactId>

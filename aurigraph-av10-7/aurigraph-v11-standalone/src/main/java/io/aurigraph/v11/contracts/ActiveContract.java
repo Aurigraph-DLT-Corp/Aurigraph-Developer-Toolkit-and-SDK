@@ -103,12 +103,32 @@ public class ActiveContract {
     
     @JsonProperty("auditTrail")
     private List<String> auditTrail = new ArrayList<>();
-    
+
     @JsonProperty("executions")
     private List<ExecutionResult> executions = new ArrayList<>();
-    
+
     @JsonProperty("quantumSafe")
     private boolean quantumSafe = true; // All contracts use quantum-safe crypto
+
+    // ==================== Ricardian Contract Structure (V12) ====================
+
+    @JsonProperty("prose")
+    private ContractProse prose; // Legal text section
+
+    @JsonProperty("parameters")
+    private ContractParameters parameters; // Configuration section
+
+    @JsonProperty("programming")
+    private ContractProgramming programming; // Executable logic section
+
+    @JsonProperty("versions")
+    private List<ContractVersion> versions = new ArrayList<>();
+
+    @JsonProperty("currentVersion")
+    private ContractVersion currentVersion;
+
+    @JsonProperty("feeEstimate")
+    private ContractFee feeEstimate;
 
     // Default constructor
     public ActiveContract() {
@@ -237,6 +257,82 @@ public class ActiveContract {
     
     public boolean isQuantumSafe() { return quantumSafe; }
     public void setQuantumSafe(boolean quantumSafe) { this.quantumSafe = quantumSafe; }
+
+    // Ricardian Contract Structure (V12) getters and setters
+    public ContractProse getProse() { return prose; }
+    public void setProse(ContractProse prose) {
+        this.prose = prose;
+        this.updatedAt = java.time.Instant.now();
+    }
+
+    public ContractParameters getParameters() { return parameters; }
+    public void setParameters(ContractParameters parameters) {
+        this.parameters = parameters;
+        this.updatedAt = java.time.Instant.now();
+    }
+
+    public ContractProgramming getProgramming() { return programming; }
+    public void setProgramming(ContractProgramming programming) {
+        this.programming = programming;
+        this.updatedAt = java.time.Instant.now();
+    }
+
+    public List<ContractVersion> getVersions() { return versions; }
+    public void setVersions(List<ContractVersion> versions) { this.versions = versions; }
+
+    public ContractVersion getCurrentVersion() { return currentVersion; }
+    public void setCurrentVersion(ContractVersion currentVersion) {
+        this.currentVersion = currentVersion;
+        if (currentVersion != null) {
+            this.version = currentVersion.getVersionString();
+        }
+    }
+
+    public ContractFee getFeeEstimate() { return feeEstimate; }
+    public void setFeeEstimate(ContractFee feeEstimate) { this.feeEstimate = feeEstimate; }
+
+    /**
+     * Create initial version from current state
+     */
+    public ContractVersion createVersion(String description, ContractVersion.ChangeType changeType) {
+        ContractVersion newVersion = new ContractVersion(this.contractId);
+        newVersion.setProseSnapshot(this.prose);
+        newVersion.setParametersSnapshot(this.parameters);
+        newVersion.setProgrammingSnapshot(this.programming);
+        newVersion.setDescription(description);
+        newVersion.setChangeType(changeType);
+
+        if (currentVersion != null) {
+            newVersion.setPreviousVersionId(currentVersion.getVersionId());
+            // Increment version based on change type
+            newVersion.setMajor(currentVersion.getMajor());
+            newVersion.setMinor(currentVersion.getMinor());
+            newVersion.setPatch(currentVersion.getPatch());
+
+            switch (changeType) {
+                case MAJOR -> newVersion.incrementMajor();
+                case MINOR -> newVersion.incrementMinor();
+                case PATCH, CORRECTION -> newVersion.incrementPatch();
+                case INITIAL -> {} // Keep as is
+                case AMENDMENT -> {
+                    newVersion.incrementMinor();
+                    newVersion.setAmendment(true);
+                }
+            }
+        }
+
+        versions.add(newVersion);
+        this.currentVersion = newVersion;
+        this.version = newVersion.getVersionString();
+        return newVersion;
+    }
+
+    /**
+     * Check if contract has Ricardian structure
+     */
+    public boolean hasRicardianStructure() {
+        return prose != null || parameters != null || programming != null;
+    }
 
     // Utility methods
     public boolean isActive() {
@@ -447,6 +543,26 @@ public class ActiveContract {
 
         public ActiveContractBuilder version(String version) {
             contract.version = version;
+            return this;
+        }
+
+        public ActiveContractBuilder prose(ContractProse prose) {
+            contract.prose = prose;
+            return this;
+        }
+
+        public ActiveContractBuilder parameters(ContractParameters parameters) {
+            contract.parameters = parameters;
+            return this;
+        }
+
+        public ActiveContractBuilder programming(ContractProgramming programming) {
+            contract.programming = programming;
+            return this;
+        }
+
+        public ActiveContractBuilder feeEstimate(ContractFee feeEstimate) {
+            contract.feeEstimate = feeEstimate;
             return this;
         }
 

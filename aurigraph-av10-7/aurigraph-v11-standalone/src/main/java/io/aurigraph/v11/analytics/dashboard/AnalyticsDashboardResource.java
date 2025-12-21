@@ -1,5 +1,6 @@
 package io.aurigraph.v11.analytics.dashboard;
 
+import io.aurigraph.v11.grpc.GrpcStreamManager;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -43,6 +44,9 @@ public class AnalyticsDashboardResource {
 
     @Inject
     AnalyticsDashboardService dashboardService;
+
+    @Inject
+    GrpcStreamManager streamManager;
 
     /**
      * Get comprehensive dashboard metrics
@@ -267,40 +271,62 @@ public class AnalyticsDashboardResource {
     }
 
     /**
-     * Get WebSocket connection status
-     * Returns number of active WebSocket connections
+     * Get gRPC stream connection status
+     * Returns number of active gRPC stream subscriptions
+     * Note: Migrated from WebSocket to gRPC streaming in V12
+     */
+    @GET
+    @Path("/stream-status")
+    @Operation(
+        summary = "Get Streaming Status",
+        description = "Returns status of gRPC stream connections for real-time streaming"
+    )
+    @APIResponse(
+        responseCode = "200",
+        description = "Stream status retrieved successfully"
+    )
+    public Response getStreamStatus() {
+        LOG.debug("GET /api/v12/dashboard/stream-status - Fetching gRPC stream status");
+
+        try {
+            int connections = streamManager.getSubscriptionCount();
+            boolean hasConnections = connections > 0;
+
+            return Response.ok(Map.of(
+                "protocol", "gRPC",
+                "port", 9004,
+                "activeSubscriptions", connections,
+                "hasActiveSubscriptions", hasConnections,
+                "status", hasConnections ? "active" : "idle",
+                "updateInterval", "1000ms",
+                "supportedStreams", List.of("transactions", "metrics", "consensus", "validators", "network")
+            )).build();
+        } catch (Exception e) {
+            LOG.error("Failed to get stream status", e);
+            return Response.serverError()
+                .entity(Map.of("error", "Failed to retrieve stream status", "message", e.getMessage()))
+                .build();
+        }
+    }
+
+    /**
+     * Legacy WebSocket status endpoint - redirects to gRPC stream status
+     * @deprecated Use /stream-status instead. WebSocket has been replaced by gRPC streaming in V12.
      */
     @GET
     @Path("/websocket-status")
     @Operation(
-        summary = "Get WebSocket Status",
-        description = "Returns status of WebSocket connections for real-time streaming"
+        summary = "Get WebSocket Status (Deprecated)",
+        description = "Deprecated: WebSocket has been replaced by gRPC streaming. Use /stream-status instead."
     )
     @APIResponse(
         responseCode = "200",
-        description = "WebSocket status retrieved successfully"
+        description = "Returns gRPC stream status for backward compatibility"
     )
+    @Deprecated
     public Response getWebSocketStatus() {
-        LOG.debug("GET /api/v12/dashboard/websocket-status - Fetching WebSocket status");
-
-        try {
-            int connections = AnalyticsDashboardWebSocket.getConnectionCount();
-            boolean hasConnections = AnalyticsDashboardWebSocket.hasConnections();
-
-            return Response.ok(Map.of(
-                "endpoint", "/ws/dashboard",
-                "activeConnections", connections,
-                "hasActiveConnections", hasConnections,
-                "status", hasConnections ? "active" : "idle",
-                "updateInterval", "1000ms",
-                "supportedChannels", List.of("all", "transactions", "blocks", "nodes", "performance")
-            )).build();
-        } catch (Exception e) {
-            LOG.error("Failed to get WebSocket status", e);
-            return Response.serverError()
-                .entity(Map.of("error", "Failed to retrieve WebSocket status", "message", e.getMessage()))
-                .build();
-        }
+        LOG.warn("GET /api/v12/dashboard/websocket-status - Deprecated endpoint called, use /stream-status instead");
+        return getStreamStatus();
     }
 
     /**

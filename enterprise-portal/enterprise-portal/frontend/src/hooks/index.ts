@@ -20,13 +20,6 @@ export {
   useDashboard,
 } from './useV11Backend';
 
-// WebSocket hooks
-export {
-  useWebSocket,
-  type UseWebSocketOptions,
-  type UseWebSocketResult,
-} from './useWebSocket';
-
 // External feeds hooks (Alpaca, Weather, Twitter, CoinGecko)
 export {
   useStockQuotes,
@@ -52,3 +45,26 @@ export {
   type UseLiveDemoDataOptions,
   type UseLiveDemoDataReturn,
 } from './useLiveDemoData';
+
+// gRPC Stream hooks (V12)
+export {
+  useGrpcStream,
+  useTransactionStream,
+  useMetricsStream,
+  useConsensusStream,
+  useValidatorStream,
+  useNetworkStream,
+  useMultiGrpcStream,
+  type StreamType,
+  type StreamStatus,
+  type ConnectionStatus,
+  type UseGrpcStreamOptions,
+  type UseGrpcStreamReturn,
+  type UseMultiGrpcStreamOptions,
+  type UseMultiGrpcStreamReturn,
+  type TransactionEvent,
+  type MetricEvent,
+  type ConsensusEvent,
+  type ValidatorEvent,
+  type NetworkEvent,
+} from './useGrpcStream';

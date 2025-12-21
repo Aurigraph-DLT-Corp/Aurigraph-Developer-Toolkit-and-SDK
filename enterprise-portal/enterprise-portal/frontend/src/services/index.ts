@@ -58,9 +58,19 @@ export {
   type CoinPrice,
 } from './CoinGeckoClient';
 
-// WebSocket Service - Real-time updates
+// gRPC-Web Service - Real-time streaming (V12 - replaces WebSocket)
 export {
-  websocketService,
-  type WebSocketChannel,
-  type WebSocketEvent,
-} from './websocketService';
+  grpcService,
+  default as GrpcService,
+  type StreamRequest,
+  type TransactionEvent,
+  type MetricEvent,
+  type ConsensusEvent,
+  type ValidatorEvent,
+  type NetworkEvent,
+  type StreamEvent,
+  type StreamType,
+  type ConnectionStatus,
+  type StreamSubscription,
+  type StreamConfig,
+} from './grpcService';
