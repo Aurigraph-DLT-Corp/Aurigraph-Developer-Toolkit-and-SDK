@@ -86,6 +86,26 @@ public class NodeMetrics {
         this.nodeId = nodeId;
     }
 
+    /**
+     * Creates a node metrics report with key performance indicators.
+     *
+     * @param tps transactions per second
+     * @param avgLatency average latency in milliseconds
+     * @param p95Latency 95th percentile latency
+     * @param p99Latency 99th percentile latency
+     * @param customMetrics additional custom metrics
+     */
+    public NodeMetrics(double tps, double avgLatency, double p95Latency, double p99Latency, Map<String, Object> customMetrics) {
+        this();
+        this.requestsPerSecond = tps;
+        this.averageLatency = avgLatency;
+        this.p95Latency = p95Latency;
+        this.p99Latency = p99Latency;
+        if (customMetrics != null) {
+            this.customMetrics.putAll(customMetrics);
+        }
+    }
+
     // Getters and Setters
 
     public String getNodeId() {

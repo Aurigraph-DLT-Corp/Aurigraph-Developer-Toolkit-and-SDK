@@ -3,6 +3,7 @@ package io.aurigraph.v11.nodes;
 import io.aurigraph.v11.demo.nodes.AbstractNode;
 import io.aurigraph.v11.demo.models.NodeHealth;
 import io.aurigraph.v11.demo.models.NodeMetrics;
+import io.smallrye.mutiny.Uni;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
@@ -68,107 +69,117 @@ public class BusinessNode extends AbstractNode {
     }
 
     @Override
-    protected void doStart() {
-        LOG.infof("Starting BusinessNode %s", getNodeId());
+    protected Uni<Void> doStart() {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Starting BusinessNode %s", getNodeId());
 
-        // Initialize transaction executor with virtual threads if available
-        transactionExecutor = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors() * 2,
-            r -> {
-                Thread t = new Thread(r, "business-tx-" + getNodeId());
+            // Initialize transaction executor with virtual threads if available
+            transactionExecutor = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors() * 2,
+                r -> {
+                    Thread t = new Thread(r, "business-tx-" + getNodeId());
+                    t.setDaemon(true);
+                    return t;
+                }
+            );
+
+            // Start transaction processing workers
+            for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+                transactionExecutor.submit(this::processTransactionQueue);
+            }
+
+            // Initialize metrics executor
+            metricsExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "business-metrics-" + getNodeId());
                 t.setDaemon(true);
                 return t;
-            }
-        );
+            });
 
-        // Start transaction processing workers
-        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
-            transactionExecutor.submit(this::processTransactionQueue);
-        }
+            // Schedule metrics collection
+            metricsExecutor.scheduleAtFixedRate(
+                this::collectMetrics,
+                60,
+                60,
+                TimeUnit.SECONDS
+            );
 
-        // Initialize metrics executor
-        metricsExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "business-metrics-" + getNodeId());
-            t.setDaemon(true);
-            return t;
+            LOG.infof("BusinessNode %s started successfully", getNodeId());
+            return null;
         });
-
-        // Schedule metrics collection
-        metricsExecutor.scheduleAtFixedRate(
-            this::collectMetrics,
-            60,
-            60,
-            TimeUnit.SECONDS
-        );
-
-        LOG.infof("BusinessNode %s started successfully", getNodeId());
     }
 
     @Override
-    protected void doStop() {
-        LOG.infof("Stopping BusinessNode %s", getNodeId());
+    protected Uni<Void> doStop() {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Stopping BusinessNode %s", getNodeId());
 
-        if (transactionExecutor != null) {
-            transactionExecutor.shutdown();
-            try {
-                if (!transactionExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+            if (transactionExecutor != null) {
+                transactionExecutor.shutdown();
+                try {
+                    if (!transactionExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                        transactionExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
                     transactionExecutor.shutdownNow();
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                transactionExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
             }
-        }
 
-        if (metricsExecutor != null) {
-            metricsExecutor.shutdown();
-        }
+            if (metricsExecutor != null) {
+                metricsExecutor.shutdown();
+            }
 
-        LOG.infof("BusinessNode %s stopped", getNodeId());
+            LOG.infof("BusinessNode %s stopped", getNodeId());
+            return null;
+        });
     }
 
     @Override
-    protected NodeHealth doHealthCheck() {
-        Map<String, Object> components = new HashMap<>();
-        components.put("transactionQueue", pendingTransactions.get() < MAX_CONCURRENT_TRANSACTIONS * 0.9);
-        components.put("contracts", contracts.size());
-        components.put("stateCache", stateCache.size() < STATE_CACHE_SIZE_MB * 1000);
-        components.put("activeExecutions", activeExecutions.get());
-        components.put("failureRate", getFailureRate() < 0.05); // Less than 5%
+    protected Uni<NodeHealth> doHealthCheck() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> components = new HashMap<>();
+            components.put("transactionQueue", pendingTransactions.get() < MAX_CONCURRENT_TRANSACTIONS * 0.9);
+            components.put("contracts", contracts.size());
+            components.put("stateCache", stateCache.size() < STATE_CACHE_SIZE_MB * 1000);
+            components.put("activeExecutions", activeExecutions.get());
+            components.put("failureRate", getFailureRate() < 0.05); // Less than 5%
 
-        boolean healthy = components.values().stream()
-            .allMatch(v -> v instanceof Boolean ? (Boolean) v : true);
+            boolean healthy = components.values().stream()
+                .allMatch(v -> v instanceof Boolean ? (Boolean) v : true);
 
-        return new NodeHealth(
-            healthy ? io.aurigraph.v11.demo.models.NodeStatus.RUNNING : io.aurigraph.v11.demo.models.NodeStatus.ERROR,
-            healthy,
-            getUptimeSeconds(),
-            components
-        );
+            return new NodeHealth(
+                healthy ? io.aurigraph.v11.demo.models.NodeStatus.RUNNING : io.aurigraph.v11.demo.models.NodeStatus.ERROR,
+                healthy,
+                getUptimeSeconds(),
+                components
+            );
+        });
     }
 
     @Override
-    protected NodeMetrics doGetMetrics() {
-        Map<String, Object> customMetrics = new HashMap<>();
-        customMetrics.put("executedTransactions", executedTransactions.get());
-        customMetrics.put("executedContracts", executedContracts.get());
-        customMetrics.put("failedTransactions", failedTransactions.get());
-        customMetrics.put("pendingTransactions", pendingTransactions.get());
-        customMetrics.put("totalGasUsed", totalGasUsed.get());
-        customMetrics.put("activeExecutions", activeExecutions.get());
-        customMetrics.put("registeredContracts", contracts.size());
-        customMetrics.put("activeWorkflows", workflows.size());
-        customMetrics.put("stateCacheSize", stateCache.size());
-        customMetrics.put("failureRate", getFailureRate());
+    protected Uni<NodeMetrics> doGetMetrics() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> customMetrics = new HashMap<>();
+            customMetrics.put("executedTransactions", executedTransactions.get());
+            customMetrics.put("executedContracts", executedContracts.get());
+            customMetrics.put("failedTransactions", failedTransactions.get());
+            customMetrics.put("pendingTransactions", pendingTransactions.get());
+            customMetrics.put("totalGasUsed", totalGasUsed.get());
+            customMetrics.put("activeExecutions", activeExecutions.get());
+            customMetrics.put("registeredContracts", contracts.size());
+            customMetrics.put("activeWorkflows", workflows.size());
+            customMetrics.put("stateCacheSize", stateCache.size());
+            customMetrics.put("failureRate", getFailureRate());
 
-        // Calculate TPS and latency
-        long uptime = getUptimeSeconds();
-        double tps = uptime > 0 ? (double) executedTransactions.get() / uptime : 0;
-        double avgLatency = executedTransactions.get() > 0
-            ? (double) totalExecutionTimeNs.get() / executedTransactions.get() / 1_000_000
-            : 0;
+            // Calculate TPS and latency
+            long uptime = getUptimeSeconds();
+            double tps = uptime > 0 ? (double) executedTransactions.get() / uptime : 0;
+            double avgLatency = executedTransactions.get() > 0
+                ? (double) totalExecutionTimeNs.get() / executedTransactions.get() / 1_000_000
+                : 0;
 
-        return new NodeMetrics(tps, avgLatency, 0, 0, customMetrics);
+            return new NodeMetrics(tps, avgLatency, 0, 0, customMetrics);
+        });
     }
 
     // ============================================
@@ -408,6 +419,45 @@ public class BusinessNode extends AbstractNode {
     private double getFailureRate() {
         long total = executedTransactions.get() + failedTransactions.get();
         return total > 0 ? (double) failedTransactions.get() / total : 0;
+    }
+
+    // ============================================
+    // PUBLIC GETTERS FOR METRICS
+    // ============================================
+
+    public long getExecutedTransactionCount() {
+        return executedTransactions.get();
+    }
+
+    public long getFailedTransactionCount() {
+        return failedTransactions.get();
+    }
+
+    public int getPendingTransactionCount() {
+        return pendingTransactions.get();
+    }
+
+    public long getExecutedContractCount() {
+        return executedContracts.get();
+    }
+
+    public int getRegisteredContractCount() {
+        return contracts.size();
+    }
+
+    public int getActiveWorkflowCount() {
+        return workflows.size();
+    }
+
+    public double getCurrentTps() {
+        long uptime = getUptimeSeconds();
+        return uptime > 0 ? (double) executedTransactions.get() / uptime : 0;
+    }
+
+    public double getAverageLatencyMs() {
+        return executedTransactions.get() > 0
+            ? (double) totalExecutionTimeNs.get() / executedTransactions.get() / 1_000_000
+            : 0;
     }
 
     // ============================================

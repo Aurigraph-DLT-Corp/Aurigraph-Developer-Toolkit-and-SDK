@@ -320,31 +320,31 @@ public class EINodeService extends GenericNodeService<EINode> {
         Map<String, Object> stats = new ConcurrentHashMap<>();
 
         long totalMessagesReceived = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("messagesReceived", 0L)).longValue())
+            .mapToLong(EINode::getMessagesReceivedCount)
             .sum();
 
         long totalMessagesSent = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("messagesSent", 0L)).longValue())
+            .mapToLong(EINode::getMessagesSentCount)
             .sum();
 
         long totalDataBytes = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("totalDataBytes", 0L)).longValue())
+            .mapToLong(EINode::getTotalDataBytesCount)
             .sum();
 
         long totalExchanges = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("exchangeConnections", 0L)).longValue())
+            .mapToLong(EINode::getExchangeConnectionCount)
             .sum();
 
         long totalFeeds = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("activeDataFeeds", 0L)).longValue())
+            .mapToLong(EINode::getActiveDataFeedCount)
             .sum();
 
         long openCircuitBreakers = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("openCircuitBreakers", 0L)).longValue())
+            .mapToLong(EINode::getOpenCircuitBreakerCount)
             .sum();
 
         double avgThroughput = getAllNodes().values().stream()
-            .mapToDouble(n -> n.getMetrics().tps())
+            .mapToDouble(EINode::getCurrentThroughput)
             .average()
             .orElse(0);
 
@@ -371,7 +371,7 @@ public class EINodeService extends GenericNodeService<EINode> {
     public double getTotalThroughput() {
         return getAllNodes().values().stream()
             .filter(EINode::isRunning)
-            .mapToDouble(n -> n.getMetrics().tps())
+            .mapToDouble(EINode::getCurrentThroughput)
             .sum();
     }
 }

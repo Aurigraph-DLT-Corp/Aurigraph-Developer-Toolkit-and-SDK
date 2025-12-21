@@ -8,6 +8,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jboss.logging.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -169,60 +171,70 @@ public abstract class GenericNodeService<T extends Node> {
      * Get node health
      */
     public Uni<NodeHealth> healthCheck(String nodeId) {
-        return Uni.createFrom().item(() -> {
-            T node = nodes.get(nodeId);
-            if (node == null) {
-                throw new IllegalArgumentException("Node not found: " + nodeId);
-            }
-            return node.healthCheck();
-        });
+        T node = nodes.get(nodeId);
+        if (node == null) {
+            return Uni.createFrom().failure(new IllegalArgumentException("Node not found: " + nodeId));
+        }
+        return node.healthCheck();
     }
 
     /**
      * Get node metrics
      */
     public Uni<NodeMetrics> getMetrics(String nodeId) {
-        return Uni.createFrom().item(() -> {
-            T node = nodes.get(nodeId);
-            if (node == null) {
-                throw new IllegalArgumentException("Node not found: " + nodeId);
-            }
-            return node.getMetrics();
-        });
+        T node = nodes.get(nodeId);
+        if (node == null) {
+            return Uni.createFrom().failure(new IllegalArgumentException("Node not found: " + nodeId));
+        }
+        return node.getMetrics();
     }
 
     /**
      * Get all nodes health
      */
     public Uni<Map<String, NodeHealth>> healthCheckAll() {
-        return Uni.createFrom().item(() -> {
-            Map<String, NodeHealth> results = new ConcurrentHashMap<>();
-            nodes.forEach((id, node) -> {
-                try {
-                    results.put(id, node.healthCheck());
-                } catch (Exception e) {
-                    LOG.warnf(e, "Error checking health for node %s", id);
-                }
-            });
-            return results;
+        if (nodes.isEmpty()) {
+            return Uni.createFrom().item(new ConcurrentHashMap<>());
+        }
+
+        List<Uni<Void>> healthChecks = new ArrayList<>();
+        Map<String, NodeHealth> results = new ConcurrentHashMap<>();
+
+        nodes.forEach((id, node) -> {
+            Uni<Void> check = node.healthCheck()
+                .onItem().invoke(health -> results.put(id, health))
+                .onFailure().invoke(e -> LOG.warnf(e, "Error checking health for node %s", id))
+                .onFailure().recoverWithNull()
+                .replaceWithVoid();
+            healthChecks.add(check);
         });
+
+        return Uni.join().all(healthChecks).andFailFast()
+            .replaceWith(results);
     }
 
     /**
      * Get all nodes metrics
      */
     public Uni<Map<String, NodeMetrics>> getMetricsAll() {
-        return Uni.createFrom().item(() -> {
-            Map<String, NodeMetrics> results = new ConcurrentHashMap<>();
-            nodes.forEach((id, node) -> {
-                try {
-                    results.put(id, node.getMetrics());
-                } catch (Exception e) {
-                    LOG.warnf(e, "Error getting metrics for node %s", id);
-                }
-            });
-            return results;
+        if (nodes.isEmpty()) {
+            return Uni.createFrom().item(new ConcurrentHashMap<>());
+        }
+
+        List<Uni<Void>> metricsChecks = new ArrayList<>();
+        Map<String, NodeMetrics> results = new ConcurrentHashMap<>();
+
+        nodes.forEach((id, node) -> {
+            Uni<Void> check = node.getMetrics()
+                .onItem().invoke(metrics -> results.put(id, metrics))
+                .onFailure().invoke(e -> LOG.warnf(e, "Error getting metrics for node %s", id))
+                .onFailure().recoverWithNull()
+                .replaceWithVoid();
+            metricsChecks.add(check);
         });
+
+        return Uni.join().all(metricsChecks).andFailFast()
+            .replaceWith(results);
     }
 
     // ============================================

@@ -333,15 +333,15 @@ public class NodeManagementResource {
                     .build();
             }
 
-            NodeHealth health = node.healthCheck();
+            NodeHealth health = node.healthCheck().await().indefinitely();
             return Response.ok(Map.of(
                 "nodeId", nodeId,
                 "type", type.name(),
                 "health", Map.of(
-                    "status", health.status().name(),
-                    "healthy", health.healthy(),
-                    "uptimeSeconds", health.uptimeSeconds(),
-                    "components", health.components()
+                    "status", health.getStatus().name(),
+                    "healthy", health.isHealthy(),
+                    "uptimeSeconds", health.getUptimeSeconds(),
+                    "components", health.getComponentChecks()
                 )
             )).build();
         } catch (IllegalArgumentException e) {
@@ -367,16 +367,16 @@ public class NodeManagementResource {
                     .build();
             }
 
-            NodeMetrics metrics = node.getMetrics();
+            NodeMetrics metrics = node.getMetrics().await().indefinitely();
             return Response.ok(Map.of(
                 "nodeId", nodeId,
                 "type", type.name(),
                 "metrics", Map.of(
-                    "tps", metrics.tps(),
-                    "latencyMs", metrics.latencyMs(),
-                    "cpuUsage", metrics.cpuUsage(),
-                    "memoryUsage", metrics.memoryUsage(),
-                    "custom", metrics.customMetrics()
+                    "tps", metrics.getRequestsPerSecond(),
+                    "latencyMs", metrics.getAverageLatency(),
+                    "cpuUsage", metrics.getCpuUsagePercent(),
+                    "memoryUsage", metrics.getMemoryUsagePercent(),
+                    "custom", metrics.getCustomMetrics()
                 )
             )).build();
         } catch (IllegalArgumentException e) {
@@ -398,13 +398,13 @@ public class NodeManagementResource {
             .map(entry -> {
                 String[] parts = entry.getKey().split(":");
                 Node node = entry.getValue();
-                NodeHealth health = node.healthCheck();
+                NodeHealth health = node.healthCheck().await().indefinitely();
 
                 Map<String, Object> info = new LinkedHashMap<>();
                 info.put("nodeId", node.getNodeId());
                 info.put("type", parts[0]);
-                info.put("status", health.status().name());
-                info.put("healthy", health.healthy());
+                info.put("status", health.getStatus().name());
+                info.put("healthy", health.isHealthy());
                 info.put("running", node.isRunning());
                 return info;
             })
@@ -436,13 +436,13 @@ public class NodeManagementResource {
             .map(entry -> {
                 String[] parts = entry.getKey().split(":");
                 Node node = entry.getValue();
-                NodeMetrics metrics = node.getMetrics();
+                NodeMetrics metrics = node.getMetrics().await().indefinitely();
 
                 Map<String, Object> info = new LinkedHashMap<>();
                 info.put("nodeId", node.getNodeId());
                 info.put("type", parts[0]);
-                info.put("tps", metrics.tps());
-                info.put("latencyMs", metrics.latencyMs());
+                info.put("tps", metrics.getRequestsPerSecond());
+                info.put("latencyMs", metrics.getAverageLatency());
                 return info;
             })
             .collect(Collectors.toList());
@@ -562,8 +562,8 @@ public class NodeManagementResource {
             info.put("connectedPeers", validator.getConnectedPeers().size());
             info.put("stakedAmount", validator.getStakedAmount().toString());
         } else if (node instanceof BusinessNode business) {
-            NodeMetrics metrics = business.getMetrics();
-            info.put("customMetrics", metrics.customMetrics());
+            NodeMetrics metrics = business.getMetrics().await().indefinitely();
+            info.put("customMetrics", metrics.getCustomMetrics());
         }
 
         return info;

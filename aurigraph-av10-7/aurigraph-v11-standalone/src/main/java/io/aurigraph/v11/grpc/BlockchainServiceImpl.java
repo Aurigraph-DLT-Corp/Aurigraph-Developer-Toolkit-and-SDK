@@ -941,14 +941,13 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
     /**
      * Convert TransactionStatus to proto TransactionStatus
+     * Updated for AV11-360 fix - uses TransactionStatus.toProto() for complete mapping
      */
     private io.aurigraph.v11.proto.TransactionStatus convertToProtoTransactionStatus(TransactionStatus status) {
-        switch (status) {
-            case PENDING: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_PENDING;
-            case CONFIRMED: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED;
-            case FAILED: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_FAILED;
-            default: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_UNKNOWN;
+        if (status == null) {
+            return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_UNKNOWN;
         }
+        return status.toProto();
     }
 
     /**

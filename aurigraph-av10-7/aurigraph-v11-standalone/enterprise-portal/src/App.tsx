@@ -54,6 +54,12 @@ import SecurityAudit from './pages/dashboards/SecurityAudit'
 import DeveloperDashboard from './pages/dashboards/DeveloperDashboard'
 import RicardianContracts from './pages/dashboards/RicardianContracts'
 
+// Sprint 4: Portal & Analytics Enhancement Dashboards (AV11-308 EPIC)
+import StreamingDataDashboard from './pages/dashboards/StreamingDataDashboard'
+import BusinessMetricsDashboard from './pages/dashboards/BusinessMetricsDashboard'
+import NetworkTopologyDashboard from './pages/dashboards/NetworkTopologyDashboard'
+import CostOptimizationDashboard from './pages/dashboards/CostOptimizationDashboard'
+
 function App() {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
 
@@ -117,6 +123,12 @@ function App() {
             <Route path="dashboards/security-audit" element={<SecurityAudit />} />
             <Route path="dashboards/developer" element={<DeveloperDashboard />} />
             <Route path="dashboards/ricardian-contracts" element={<RicardianContracts />} />
+
+            {/* Sprint 4: Portal & Analytics Enhancement (AV11-308 EPIC) */}
+            <Route path="dashboards/streaming-data" element={<StreamingDataDashboard />} />
+            <Route path="dashboards/business-metrics" element={<BusinessMetricsDashboard />} />
+            <Route path="dashboards/network-topology" element={<NetworkTopologyDashboard />} />
+            <Route path="dashboards/cost-optimization" element={<CostOptimizationDashboard />} />
           </Route>
           <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
         </Routes>

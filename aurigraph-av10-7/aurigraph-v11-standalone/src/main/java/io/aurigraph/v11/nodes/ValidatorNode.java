@@ -3,6 +3,7 @@ package io.aurigraph.v11.nodes;
 import io.aurigraph.v11.demo.nodes.AbstractNode;
 import io.aurigraph.v11.demo.models.NodeHealth;
 import io.aurigraph.v11.demo.models.NodeMetrics;
+import io.smallrye.mutiny.Uni;
 import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
@@ -66,92 +67,102 @@ public class ValidatorNode extends AbstractNode {
     }
 
     @Override
-    protected void doStart() {
-        LOG.infof("Starting ValidatorNode %s", getNodeId());
+    protected Uni<Void> doStart() {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Starting ValidatorNode %s", getNodeId());
 
-        // Initialize consensus executor
-        consensusExecutor = Executors.newScheduledThreadPool(4, r -> {
-            Thread t = new Thread(r, "validator-" + getNodeId());
-            t.setDaemon(true);
-            return t;
+            // Initialize consensus executor
+            consensusExecutor = Executors.newScheduledThreadPool(4, r -> {
+                Thread t = new Thread(r, "validator-" + getNodeId());
+                t.setDaemon(true);
+                return t;
+            });
+
+            // Start block proposal loop
+            consensusExecutor.scheduleAtFixedRate(
+                this::proposeBlockIfLeader,
+                BLOCK_TIME_MS,
+                BLOCK_TIME_MS,
+                TimeUnit.MILLISECONDS
+            );
+
+            // Start heartbeat
+            consensusExecutor.scheduleAtFixedRate(
+                this::sendHeartbeat,
+                1000,
+                5000,
+                TimeUnit.MILLISECONDS
+            );
+
+            LOG.infof("ValidatorNode %s started successfully", getNodeId());
+            return null;
         });
-
-        // Start block proposal loop
-        consensusExecutor.scheduleAtFixedRate(
-            this::proposeBlockIfLeader,
-            BLOCK_TIME_MS,
-            BLOCK_TIME_MS,
-            TimeUnit.MILLISECONDS
-        );
-
-        // Start heartbeat
-        consensusExecutor.scheduleAtFixedRate(
-            this::sendHeartbeat,
-            1000,
-            5000,
-            TimeUnit.MILLISECONDS
-        );
-
-        LOG.infof("ValidatorNode %s started successfully", getNodeId());
     }
 
     @Override
-    protected void doStop() {
-        LOG.infof("Stopping ValidatorNode %s", getNodeId());
+    protected Uni<Void> doStop() {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Stopping ValidatorNode %s", getNodeId());
 
-        if (consensusExecutor != null) {
-            consensusExecutor.shutdown();
-            try {
-                if (!consensusExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+            if (consensusExecutor != null) {
+                consensusExecutor.shutdown();
+                try {
+                    if (!consensusExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        consensusExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
                     consensusExecutor.shutdownNow();
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                consensusExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
             }
-        }
 
-        LOG.infof("ValidatorNode %s stopped", getNodeId());
+            LOG.infof("ValidatorNode %s stopped", getNodeId());
+            return null;
+        });
     }
 
     @Override
-    protected NodeHealth doHealthCheck() {
-        Map<String, Object> components = new HashMap<>();
-        components.put("consensus", isLeader.get() ? "leader" : "follower");
-        components.put("mempool", mempoolSize.get() < MAX_MEMPOOL_SIZE * 0.9);
-        components.put("peers", connectedPeers.size() >= 3);
-        components.put("staking", stakedAmount.compareTo(BigDecimal.ZERO) > 0);
+    protected Uni<NodeHealth> doHealthCheck() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> components = new HashMap<>();
+            components.put("consensus", isLeader.get() ? "leader" : "follower");
+            components.put("mempool", mempoolSize.get() < MAX_MEMPOOL_SIZE * 0.9);
+            components.put("peers", connectedPeers.size() >= 3);
+            components.put("staking", stakedAmount.compareTo(BigDecimal.ZERO) > 0);
 
-        boolean healthy = components.values().stream()
-            .allMatch(v -> v instanceof Boolean ? (Boolean) v : true);
+            boolean healthy = components.values().stream()
+                .allMatch(v -> v instanceof Boolean ? (Boolean) v : true);
 
-        return new NodeHealth(
-            healthy ? io.aurigraph.v11.demo.models.NodeStatus.RUNNING : io.aurigraph.v11.demo.models.NodeStatus.ERROR,
-            healthy,
-            getUptimeSeconds(),
-            components
-        );
+            return new NodeHealth(
+                healthy ? io.aurigraph.v11.demo.models.NodeStatus.RUNNING : io.aurigraph.v11.demo.models.NodeStatus.ERROR,
+                healthy,
+                getUptimeSeconds(),
+                components
+            );
+        });
     }
 
     @Override
-    protected NodeMetrics doGetMetrics() {
-        Map<String, Object> customMetrics = new HashMap<>();
-        customMetrics.put("blockHeight", currentBlockHeight.get());
-        customMetrics.put("validatedTransactions", validatedTransactions.get());
-        customMetrics.put("proposedBlocks", proposedBlocks.get());
-        customMetrics.put("consensusRound", consensusRound.get());
-        customMetrics.put("isLeader", isLeader.get());
-        customMetrics.put("mempoolSize", mempoolSize.get());
-        customMetrics.put("connectedPeers", connectedPeers.size());
-        customMetrics.put("stakedAmount", stakedAmount.toString());
-        customMetrics.put("reputationScore", reputationScore);
-        customMetrics.put("averageBlockTime", averageBlockTime.get());
+    protected Uni<NodeMetrics> doGetMetrics() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> customMetrics = new HashMap<>();
+            customMetrics.put("blockHeight", currentBlockHeight.get());
+            customMetrics.put("validatedTransactions", validatedTransactions.get());
+            customMetrics.put("proposedBlocks", proposedBlocks.get());
+            customMetrics.put("consensusRound", consensusRound.get());
+            customMetrics.put("isLeader", isLeader.get());
+            customMetrics.put("mempoolSize", mempoolSize.get());
+            customMetrics.put("connectedPeers", connectedPeers.size());
+            customMetrics.put("stakedAmount", stakedAmount.toString());
+            customMetrics.put("reputationScore", reputationScore);
+            customMetrics.put("averageBlockTime", averageBlockTime.get());
 
-        // Calculate TPS
-        long uptime = getUptimeSeconds();
-        double tps = uptime > 0 ? (double) validatedTransactions.get() / uptime : 0;
+            // Calculate TPS
+            long uptime = getUptimeSeconds();
+            double tps = uptime > 0 ? (double) validatedTransactions.get() / uptime : 0;
 
-        return new NodeMetrics(tps, averageBlockTime.get(), 0, 0, customMetrics);
+            return new NodeMetrics(tps, averageBlockTime.get(), 0, 0, customMetrics);
+        });
     }
 
     // ============================================

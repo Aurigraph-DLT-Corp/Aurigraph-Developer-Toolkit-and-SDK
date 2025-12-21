@@ -257,10 +257,17 @@ public class NodeFactory {
      * Create an API integration node
      */
     private Node createApiIntegrationNode(String nodeId) {
-        // API integration nodes handle external integrations
-        BusinessNode node = new BusinessNode(nodeId);
+        // API integration nodes handle external API integrations
+        APIIntegrationNode node = new APIIntegrationNode(nodeId);
         LOG.debugf("Created API integration node: %s", nodeId);
         return node;
+    }
+
+    /**
+     * Create an APIIntegrationNode with typed return
+     */
+    public APIIntegrationNode createAPIIntegrationNode(String nodeId) {
+        return (APIIntegrationNode) createNode(NodeType.API_INTEGRATION, nodeId);
     }
 
     /**

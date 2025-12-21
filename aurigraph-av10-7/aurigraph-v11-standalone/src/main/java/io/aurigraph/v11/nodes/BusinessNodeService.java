@@ -110,7 +110,7 @@ public class BusinessNodeService extends GenericNodeService<BusinessNode> {
         // Select least loaded healthy node
         return getAllNodes().values().stream()
             .filter(n -> n.isRunning() && n.isHealthy())
-            .min(Comparator.comparingInt(n -> (int) n.getMetrics().customMetrics().getOrDefault("pendingTransactions", 0)))
+            .min(Comparator.comparingInt(BusinessNode::getPendingTransactionCount))
             .orElse(null);
     }
 
@@ -283,28 +283,28 @@ public class BusinessNodeService extends GenericNodeService<BusinessNode> {
         Map<String, Object> stats = new ConcurrentHashMap<>();
 
         long totalExecuted = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("executedTransactions", 0L)).longValue())
+            .mapToLong(BusinessNode::getExecutedTransactionCount)
             .sum();
 
         long totalFailed = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("failedTransactions", 0L)).longValue())
+            .mapToLong(BusinessNode::getFailedTransactionCount)
             .sum();
 
         long totalContracts = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("registeredContracts", 0L)).longValue())
+            .mapToLong(BusinessNode::getRegisteredContractCount)
             .sum();
 
         long totalWorkflows = getAllNodes().values().stream()
-            .mapToLong(n -> ((Number) n.getMetrics().customMetrics().getOrDefault("activeWorkflows", 0L)).longValue())
+            .mapToLong(BusinessNode::getActiveWorkflowCount)
             .sum();
 
         double avgTps = getAllNodes().values().stream()
-            .mapToDouble(n -> n.getMetrics().tps())
+            .mapToDouble(BusinessNode::getCurrentTps)
             .average()
             .orElse(0);
 
         double avgLatency = getAllNodes().values().stream()
-            .mapToDouble(n -> n.getMetrics().latencyMs())
+            .mapToDouble(BusinessNode::getAverageLatencyMs)
             .average()
             .orElse(0);
 
@@ -334,7 +334,7 @@ public class BusinessNodeService extends GenericNodeService<BusinessNode> {
     public double getTotalTps() {
         return getAllNodes().values().stream()
             .filter(BusinessNode::isRunning)
-            .mapToDouble(n -> n.getMetrics().tps())
+            .mapToDouble(BusinessNode::getCurrentTps)
             .sum();
     }
 }

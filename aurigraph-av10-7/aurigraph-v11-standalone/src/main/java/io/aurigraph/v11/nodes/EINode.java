@@ -3,6 +3,7 @@ package io.aurigraph.v11.nodes;
 import io.aurigraph.v11.demo.nodes.AbstractNode;
 import io.aurigraph.v11.demo.models.NodeHealth;
 import io.aurigraph.v11.demo.models.NodeMetrics;
+import io.smallrye.mutiny.Uni;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
@@ -67,160 +68,170 @@ public class EINode extends AbstractNode {
     }
 
     @Override
-    protected void doStart() {
-        LOG.infof("Starting EINode %s", getNodeId());
+    protected Uni<Void> doStart() {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Starting EINode %s", getNodeId());
 
-        // Initialize connection monitor
-        connectionMonitor = Executors.newScheduledThreadPool(2, r -> {
-            Thread t = new Thread(r, "ei-monitor-" + getNodeId());
-            t.setDaemon(true);
-            return t;
-        });
-
-        // Initialize data processor
-        dataProcessor = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors(),
-            r -> {
-                Thread t = new Thread(r, "ei-processor-" + getNodeId());
+            // Initialize connection monitor
+            connectionMonitor = Executors.newScheduledThreadPool(2, r -> {
+                Thread t = new Thread(r, "ei-monitor-" + getNodeId());
                 t.setDaemon(true);
                 return t;
-            }
-        );
+            });
 
-        // Start connection health monitoring
-        connectionMonitor.scheduleAtFixedRate(
-            this::monitorConnections,
-            5000,
-            10000,
-            TimeUnit.MILLISECONDS
-        );
+            // Initialize data processor
+            dataProcessor = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors(),
+                r -> {
+                    Thread t = new Thread(r, "ei-processor-" + getNodeId());
+                    t.setDaemon(true);
+                    return t;
+                }
+            );
 
-        // Start data feed polling
-        connectionMonitor.scheduleAtFixedRate(
-            this::pollDataFeeds,
-            1000,
-            1000,
-            TimeUnit.MILLISECONDS
-        );
+            // Start connection health monitoring
+            connectionMonitor.scheduleAtFixedRate(
+                this::monitorConnections,
+                5000,
+                10000,
+                TimeUnit.MILLISECONDS
+            );
 
-        LOG.infof("EINode %s started successfully", getNodeId());
+            // Start data feed polling
+            connectionMonitor.scheduleAtFixedRate(
+                this::pollDataFeeds,
+                1000,
+                1000,
+                TimeUnit.MILLISECONDS
+            );
+
+            LOG.infof("EINode %s started successfully", getNodeId());
+            return null;
+        });
     }
 
     @Override
-    protected void doStop() {
-        LOG.infof("Stopping EINode %s", getNodeId());
+    protected Uni<Void> doStop() {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Stopping EINode %s", getNodeId());
 
-        // Close all connections
-        exchanges.values().forEach(this::disconnectExchange);
-        dataFeeds.values().forEach(feed -> feed.active = false);
+            // Close all connections
+            exchanges.values().forEach(this::disconnectExchange);
+            dataFeeds.values().forEach(feed -> feed.active = false);
 
-        // Shutdown executors
-        if (connectionMonitor != null) {
-            connectionMonitor.shutdown();
-            try {
-                if (!connectionMonitor.awaitTermination(5, TimeUnit.SECONDS)) {
+            // Shutdown executors
+            if (connectionMonitor != null) {
+                connectionMonitor.shutdown();
+                try {
+                    if (!connectionMonitor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        connectionMonitor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
                     connectionMonitor.shutdownNow();
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                connectionMonitor.shutdownNow();
-                Thread.currentThread().interrupt();
             }
-        }
 
-        if (dataProcessor != null) {
-            dataProcessor.shutdown();
-            try {
-                if (!dataProcessor.awaitTermination(5, TimeUnit.SECONDS)) {
+            if (dataProcessor != null) {
+                dataProcessor.shutdown();
+                try {
+                    if (!dataProcessor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        dataProcessor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
                     dataProcessor.shutdownNow();
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                dataProcessor.shutdownNow();
-                Thread.currentThread().interrupt();
             }
-        }
 
-        LOG.infof("EINode %s stopped", getNodeId());
+            LOG.infof("EINode %s stopped", getNodeId());
+            return null;
+        });
     }
 
     @Override
-    protected NodeHealth doHealthCheck() {
-        Map<String, Object> components = new HashMap<>();
+    protected Uni<NodeHealth> doHealthCheck() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> components = new HashMap<>();
 
-        // Check exchange connections
-        long activeExchanges = exchanges.values().stream().filter(e -> e.connected).count();
-        components.put("exchanges", Map.of(
-            "total", exchanges.size(),
-            "active", activeExchanges,
-            "healthy", activeExchanges == exchanges.size()
-        ));
+            // Check exchange connections
+            long activeExchanges = exchanges.values().stream().filter(e -> e.connected).count();
+            components.put("exchanges", Map.of(
+                "total", exchanges.size(),
+                "active", activeExchanges,
+                "healthy", activeExchanges == exchanges.size()
+            ));
 
-        // Check data feeds
-        long activeFeeds = dataFeeds.values().stream().filter(f -> f.active).count();
-        components.put("dataFeeds", Map.of(
-            "total", dataFeeds.size(),
-            "active", activeFeeds,
-            "healthy", activeFeeds > 0 || dataFeeds.isEmpty()
-        ));
+            // Check data feeds
+            long activeFeeds = dataFeeds.values().stream().filter(f -> f.active).count();
+            components.put("dataFeeds", Map.of(
+                "total", dataFeeds.size(),
+                "active", activeFeeds,
+                "healthy", activeFeeds > 0 || dataFeeds.isEmpty()
+            ));
 
-        // Check circuit breakers
-        long openCircuits = circuitBreakers.values().stream()
-            .filter(cb -> cb.state == CircuitState.OPEN)
-            .count();
-        components.put("circuitBreakers", Map.of(
-            "total", circuitBreakers.size(),
-            "open", openCircuits,
-            "healthy", openCircuits == 0
-        ));
+            // Check circuit breakers
+            long openCircuits = circuitBreakers.values().stream()
+                .filter(cb -> cb.state == CircuitState.OPEN)
+                .count();
+            components.put("circuitBreakers", Map.of(
+                "total", circuitBreakers.size(),
+                "open", openCircuits,
+                "healthy", openCircuits == 0
+            ));
 
-        // Check API endpoints
-        long healthyEndpoints = apiEndpoints.values().stream()
-            .filter(ep -> ep.healthy)
-            .count();
-        components.put("apiEndpoints", Map.of(
-            "total", apiEndpoints.size(),
-            "healthy", healthyEndpoints
-        ));
+            // Check API endpoints
+            long healthyEndpoints = apiEndpoints.values().stream()
+                .filter(ep -> ep.healthy)
+                .count();
+            components.put("apiEndpoints", Map.of(
+                "total", apiEndpoints.size(),
+                "healthy", healthyEndpoints
+            ));
 
-        // Check error rate
-        double errorRate = getErrorRate();
-        components.put("errorRate", errorRate);
-        components.put("errorRateHealthy", errorRate < 0.05);
+            // Check error rate
+            double errorRate = getErrorRate();
+            components.put("errorRate", errorRate);
+            components.put("errorRateHealthy", errorRate < 0.05);
 
-        boolean healthy = activeExchanges == exchanges.size()
-            && openCircuits == 0
-            && errorRate < 0.05;
+            boolean healthy = activeExchanges == exchanges.size()
+                && openCircuits == 0
+                && errorRate < 0.05;
 
-        return new NodeHealth(
-            healthy ? io.aurigraph.v11.demo.models.NodeStatus.RUNNING : io.aurigraph.v11.demo.models.NodeStatus.DEGRADED,
-            healthy,
-            getUptimeSeconds(),
-            components
-        );
+            return new NodeHealth(
+                healthy ? io.aurigraph.v11.demo.models.NodeStatus.RUNNING : io.aurigraph.v11.demo.models.NodeStatus.ERROR,
+                healthy,
+                getUptimeSeconds(),
+                components
+            );
+        });
     }
 
     @Override
-    protected NodeMetrics doGetMetrics() {
-        Map<String, Object> customMetrics = new HashMap<>();
-        customMetrics.put("messagesReceived", messagesReceived.get());
-        customMetrics.put("messagesSent", messagesSent.get());
-        customMetrics.put("totalDataBytes", totalDataBytes.get());
-        customMetrics.put("successfulRequests", successfulRequests.get());
-        customMetrics.put("failedRequests", failedRequests.get());
-        customMetrics.put("exchangeConnections", exchanges.size());
-        customMetrics.put("activeDataFeeds", dataFeeds.values().stream().filter(f -> f.active).count());
-        customMetrics.put("apiEndpoints", apiEndpoints.size());
-        customMetrics.put("openCircuitBreakers", circuitBreakers.values().stream()
-            .filter(cb -> cb.state == CircuitState.OPEN).count());
-        customMetrics.put("cacheSize", dataCache.size());
-        customMetrics.put("eventSubscribers", eventSubscribers.values().stream()
-            .mapToInt(Set::size).sum());
-        customMetrics.put("errorRate", getErrorRate());
+    protected Uni<NodeMetrics> doGetMetrics() {
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> customMetrics = new HashMap<>();
+            customMetrics.put("messagesReceived", messagesReceived.get());
+            customMetrics.put("messagesSent", messagesSent.get());
+            customMetrics.put("totalDataBytes", totalDataBytes.get());
+            customMetrics.put("successfulRequests", successfulRequests.get());
+            customMetrics.put("failedRequests", failedRequests.get());
+            customMetrics.put("exchangeConnections", exchanges.size());
+            customMetrics.put("activeDataFeeds", dataFeeds.values().stream().filter(f -> f.active).count());
+            customMetrics.put("apiEndpoints", apiEndpoints.size());
+            customMetrics.put("openCircuitBreakers", circuitBreakers.values().stream()
+                .filter(cb -> cb.state == CircuitState.OPEN).count());
+            customMetrics.put("cacheSize", dataCache.size());
+            customMetrics.put("eventSubscribers", eventSubscribers.values().stream()
+                .mapToInt(Set::size).sum());
+            customMetrics.put("errorRate", getErrorRate());
 
-        // Calculate throughput
-        long uptime = getUptimeSeconds();
-        double messagesPerSecond = uptime > 0 ? (double) messagesReceived.get() / uptime : 0;
+            // Calculate throughput
+            long uptime = getUptimeSeconds();
+            double messagesPerSecond = uptime > 0 ? (double) messagesReceived.get() / uptime : 0;
 
-        return new NodeMetrics(messagesPerSecond, 0, 0, 0, customMetrics);
+            return new NodeMetrics(messagesPerSecond, 0, 0, 0, customMetrics);
+        });
     }
 
     // ============================================
@@ -615,6 +626,40 @@ public class EINode extends AbstractNode {
     private double getErrorRate() {
         long total = successfulRequests.get() + failedRequests.get();
         return total > 0 ? (double) failedRequests.get() / total : 0;
+    }
+
+    // ============================================
+    // PUBLIC GETTERS FOR METRICS
+    // ============================================
+
+    public long getMessagesReceivedCount() {
+        return messagesReceived.get();
+    }
+
+    public long getMessagesSentCount() {
+        return messagesSent.get();
+    }
+
+    public long getTotalDataBytesCount() {
+        return totalDataBytes.get();
+    }
+
+    public int getExchangeConnectionCount() {
+        return exchanges.size();
+    }
+
+    public long getActiveDataFeedCount() {
+        return dataFeeds.values().stream().filter(f -> f.active).count();
+    }
+
+    public long getOpenCircuitBreakerCount() {
+        return circuitBreakers.values().stream()
+            .filter(cb -> cb.state == CircuitState.OPEN).count();
+    }
+
+    public double getCurrentThroughput() {
+        long uptime = getUptimeSeconds();
+        return uptime > 0 ? (double) messagesReceived.get() / uptime : 0;
     }
 
     // ============================================

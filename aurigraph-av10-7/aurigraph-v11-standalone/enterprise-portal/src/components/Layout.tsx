@@ -51,6 +51,15 @@ const navigationMenus = [
       { text: 'Settings', path: '/settings' },
     ]
   },
+  {
+    title: 'Analytics',
+    items: [
+      { text: 'Streaming Data', path: '/dashboards/streaming-data', badge: 'LIVE' },
+      { text: 'Business Metrics', path: '/dashboards/business-metrics', badge: 'NEW' },
+      { text: 'Network Topology', path: '/dashboards/network-topology' },
+      { text: 'Cost Optimization', path: '/dashboards/cost-optimization', badge: 'NEW' },
+    ]
+  },
 ]
 
 export default function Layout() {
