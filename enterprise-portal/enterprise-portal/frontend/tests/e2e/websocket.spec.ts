@@ -33,7 +33,7 @@ test.describe('WebSocket Connections', () => {
 
     // Look for transaction table or feed
     const transactionTable = page.locator('table, [data-testid*="transaction" i]');
-    const transactionHeader = page.locator('text=/transaction|txn/i');
+    const transactionHeader = page.getByText(/transaction|txn/i);
 
     const hasTransactionUI = await Promise.any([
       transactionTable.first().isVisible(),
@@ -41,9 +41,9 @@ test.describe('WebSocket Connections', () => {
     ]).catch(() => false);
 
     // Check for connection status indicator
-    const connectionStatus = page.locator(
-      '[aria-label*="connection" i], text=/connected|disconnected/i'
-    );
+    const connectionStatusByLabel = page.locator('[aria-label*="connection" i]');
+    const connectionStatusByText = page.getByText(/connected|disconnected/i);
+    const connectionStatus = await connectionStatusByLabel.count() > 0 ? connectionStatusByLabel : connectionStatusByText;
 
     expect(hasTransactionUI || (await connectionStatus.count()) > 0).toBeTruthy();
   });
@@ -53,8 +53,10 @@ test.describe('WebSocket Connections', () => {
 
     // Navigate to metrics dashboard
     // Look for metrics components
-    const metricsCard = page.locator('[data-testid*="metric" i], text=/tps|latency/i');
-    const tpsDisplay = page.locator('text=/tps|transactions?.*second/i');
+    const metricsCardByTestId = page.locator('[data-testid*="metric" i]');
+    const metricsCardByText = page.getByText(/tps|latency/i);
+    const metricsCard = await metricsCardByTestId.count() > 0 ? metricsCardByTestId : metricsCardByText;
+    const tpsDisplay = page.getByText(/tps|transactions?.*second/i);
 
     const hasMetricsUI = await Promise.any([
       metricsCard.first().isVisible(),
@@ -96,9 +98,11 @@ test.describe('WebSocket Connections', () => {
     await page.waitForTimeout(3000);
 
     // Check connection status in UI
-    const connectedBadge = page.locator(
-      'text=/connected/i, [aria-label*="connected" i], .ant-badge-success'
-    );
+    const connectedBadgeByText = page.getByText(/connected/i);
+    const connectedBadgeByLabel = page.locator('[aria-label*="connected" i]');
+    const connectedBadgeByClass = page.locator('.ant-badge-success');
+    const connectedBadge = await connectedBadgeByText.count() > 0 ? connectedBadgeByText :
+                           await connectedBadgeByLabel.count() > 0 ? connectedBadgeByLabel : connectedBadgeByClass;
 
     const isConnected = await connectedBadge.count().then((count) => count > 0);
     expect(isConnected || wsConnected).toBeTruthy();
@@ -152,7 +156,11 @@ test.describe('WebSocket Connections', () => {
     await page.goto('/');
 
     // Simulate connection failure by checking error handling
-    const errorAlert = page.locator('[role="alert"], .ant-alert-error, text=/error|failed/i');
+    const errorAlertByRole = page.locator('[role="alert"]');
+    const errorAlertByClass = page.locator('.ant-alert-error');
+    const errorAlertByText = page.getByText(/error|failed/i);
+    const errorAlert = await errorAlertByRole.count() > 0 ? errorAlertByRole :
+                       await errorAlertByClass.count() > 0 ? errorAlertByClass : errorAlertByText;
 
     // Error may or may not appear depending on backend availability
     // Just verify error handling UI exists
@@ -166,7 +174,11 @@ test.describe('WebSocket Connections', () => {
     await page.goto('/');
 
     // Look for connection status badge or indicator
-    const statusBadge = page.locator('.ant-badge, [aria-label*="status" i], text=/connected|disconnected/i');
+    const statusBadgeByClass = page.locator('.ant-badge');
+    const statusBadgeByLabel = page.locator('[aria-label*="status" i]');
+    const statusBadgeByText = page.getByText(/connected|disconnected/i);
+    const statusBadge = await statusBadgeByClass.count() > 0 ? statusBadgeByClass :
+                        await statusBadgeByLabel.count() > 0 ? statusBadgeByLabel : statusBadgeByText;
 
     const hasStatusIndicator = await statusBadge.count().then((count) => count > 0);
 
