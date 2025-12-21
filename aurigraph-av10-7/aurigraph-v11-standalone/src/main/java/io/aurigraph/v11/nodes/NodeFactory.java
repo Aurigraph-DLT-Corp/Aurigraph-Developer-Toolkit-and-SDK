@@ -267,10 +267,17 @@ public class NodeFactory {
      * Create an EI (Enterprise Infrastructure) node
      */
     private Node createEiNode(String nodeId) {
-        // EI nodes integrate with enterprise systems
-        BusinessNode node = new BusinessNode(nodeId);
+        // EI nodes integrate with enterprise systems (exchanges, data feeds)
+        EINode node = new EINode(nodeId);
         LOG.debugf("Created EI node: %s", nodeId);
         return node;
+    }
+
+    /**
+     * Create an EINode with typed return
+     */
+    public EINode createEINode(String nodeId) {
+        return (EINode) createNode(NodeType.EI_NODE, nodeId);
     }
 
     // ============================================
