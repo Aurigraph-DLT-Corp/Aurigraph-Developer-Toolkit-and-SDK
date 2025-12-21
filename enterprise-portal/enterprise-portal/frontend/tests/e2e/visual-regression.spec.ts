@@ -101,10 +101,8 @@ test.describe('Visual Regression Tests', () => {
   test('should render modal dialog consistently', async ({ page }) => {
     await page.waitForTimeout(1000);
 
-    // Look for modal/dialog triggers
-    const modalTriggers = page.locator(
-      'button:has-text(/open|view|details|edit/i)'
-    );
+    // Look for modal/dialog triggers using getByRole with regex
+    const modalTriggers = page.getByRole('button', { name: /open|view|details|edit/i });
 
     if (await modalTriggers.count() > 0) {
       const firstTrigger = modalTriggers.first();
@@ -238,10 +236,15 @@ test.describe('Visual Regression - Theme', () => {
   test('should render dashboard in dark theme', async ({ page }) => {
     await page.waitForTimeout(1000);
 
-    // Look for theme toggle button
-    const themeToggle = page.locator(
-      'button:has-text(/theme|dark|light/i), [aria-label*="theme" i]'
-    );
+    // Look for theme toggle button using getByRole or aria-label
+    const themeToggleByRole = page.getByRole('button', { name: /theme|dark|light/i });
+    const themeToggleByLabel = page.locator('[aria-label*="theme" i]');
+
+    // Try role-based locator first, then aria-label
+    let themeToggle = themeToggleByRole;
+    if (await themeToggleByRole.count() === 0) {
+      themeToggle = themeToggleByLabel;
+    }
 
     if (await themeToggle.count() > 0) {
       // Click theme toggle to switch to dark mode
@@ -266,10 +269,14 @@ test.describe('Visual Regression - Theme', () => {
 
     expect(initialContrast).toBeTruthy();
 
-    // Toggle theme
-    const themeToggle = page.locator(
-      'button:has-text(/theme|dark|light/i), [aria-label*="theme" i]'
-    );
+    // Toggle theme using getByRole or aria-label
+    const themeToggleByRole = page.getByRole('button', { name: /theme|dark|light/i });
+    const themeToggleByLabel = page.locator('[aria-label*="theme" i]');
+
+    let themeToggle = themeToggleByRole;
+    if (await themeToggleByRole.count() === 0) {
+      themeToggle = themeToggleByLabel;
+    }
 
     if (await themeToggle.count() > 0) {
       await themeToggle.first().click();
@@ -345,8 +352,14 @@ test.describe('Visual Regression - Animations', () => {
     // Capture initial state
     const initialScreenshot = await page.screenshot({ fullPage: true });
 
-    // Click navigation link
-    const navLinks = page.locator('a[href*="/"], button:has-text(/home|dashboard/i)');
+    // Click navigation link - use separate locators to avoid regex in CSS
+    const navLinksHref = page.locator('a[href*="/"]');
+    const navButtons = page.getByRole('button', { name: /home|dashboard/i });
+
+    let navLinks = navLinksHref;
+    if (await navLinksHref.count() === 0) {
+      navLinks = navButtons;
+    }
 
     if (await navLinks.count() > 0) {
       await navLinks.first().click();

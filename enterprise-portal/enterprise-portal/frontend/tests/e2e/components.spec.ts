@@ -41,8 +41,10 @@ test.describe('Component Interactions', () => {
   test('should navigate between pages', async ({ page }) => {
     await page.waitForTimeout(1000);
 
-    // Find navigation links
-    const navLinks = page.locator('a[href*="/"], button:has-text(/home|dashboard|analytics/i)');
+    // Find navigation links - use separate locators to avoid regex in CSS
+    const navLinksHref = page.locator('a[href*="/"]');
+    const navButtons = page.getByRole('button', { name: /home|dashboard|analytics/i });
+    const navLinks = await navLinksHref.count() > 0 ? navLinksHref : navButtons;
 
     if (await navLinks.count() > 0) {
       const firstLink = navLinks.first();
@@ -62,10 +64,10 @@ test.describe('Component Interactions', () => {
   test('should toggle theme mode if available', async ({ page }) => {
     await page.waitForTimeout(1000);
 
-    // Look for theme toggle button
-    const themeToggle = page.locator(
-      'button:has-text(/theme|dark|light/i), [aria-label*="theme" i]'
-    );
+    // Look for theme toggle button using getByRole or aria-label
+    const themeToggleByRole = page.getByRole('button', { name: /theme|dark|light/i });
+    const themeToggleByLabel = page.locator('[aria-label*="theme" i]');
+    const themeToggle = await themeToggleByRole.count() > 0 ? themeToggleByRole : themeToggleByLabel;
 
     if (await themeToggle.count() > 0) {
       // Get initial classes
@@ -85,8 +87,10 @@ test.describe('Component Interactions', () => {
   test('should display dashboard with statistics', async ({ page }) => {
     await page.waitForTimeout(1500);
 
-    // Look for statistic cards
-    const statistics = page.locator('[class*="statistic" i], text=/transactions|tps|latency/i');
+    // Look for statistic cards using separate locators
+    const statisticsByClass = page.locator('[class*="statistic" i]');
+    const statisticsByText = page.getByText(/transactions|tps|latency/i);
+    const statistics = await statisticsByClass.count() > 0 ? statisticsByClass : statisticsByText;
     const hasStats = await statistics.count().then((count) => count > 0);
 
     // Dashboard should render
@@ -154,7 +158,9 @@ test.describe('Component Interactions', () => {
     if (await form.count() > 0) {
       // Find input fields
       const inputs = form.locator('input');
-      const submitButton = form.locator('button[type="submit"], button:has-text("submit" i)');
+      const submitByType = form.locator('button[type="submit"]');
+      const submitByText = form.getByRole('button', { name: /submit/i });
+      const submitButton = await submitByType.count() > 0 ? submitByType : submitByText;
 
       if ((await inputs.count()) > 0 && (await submitButton.count()) > 0) {
         // Fill first input with test data
@@ -197,16 +203,20 @@ test.describe('Component Interactions', () => {
   test('should close modals when clicking close button', async ({ page }) => {
     await page.waitForTimeout(1000);
 
-    // Look for buttons that might open modals
-    const buttons = page.locator('button:has-text(/open|view|details|edit/i)');
+    // Look for buttons that might open modals using getByRole
+    const buttons = page.getByRole('button', { name: /open|view|details|edit/i });
 
     if (await buttons.count() > 0) {
       const firstButton = buttons.first();
       await firstButton.click();
       await page.waitForTimeout(500);
 
-      // Look for close button
-      const closeButton = page.locator('[aria-label*="close" i], button:has-text("×"), .ant-modal-close');
+      // Look for close button using proper locators
+      const closeByLabel = page.locator('[aria-label*="close" i]');
+      const closeByClass = page.locator('.ant-modal-close');
+      const closeByText = page.getByRole('button', { name: /×|close/i });
+      const closeButton = await closeByLabel.count() > 0 ? closeByLabel :
+                          await closeByClass.count() > 0 ? closeByClass : closeByText;
 
       if (await closeButton.count() > 0) {
         await closeButton.first().click();
