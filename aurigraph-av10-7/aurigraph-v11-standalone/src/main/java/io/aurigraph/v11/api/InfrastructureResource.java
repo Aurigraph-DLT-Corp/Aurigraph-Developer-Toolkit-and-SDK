@@ -13,6 +13,11 @@ import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URL;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -376,7 +381,306 @@ public class InfrastructureResource {
         });
     }
 
+    /**
+     * Get all infrastructure servers status (local + remote)
+     */
+    @GET
+    @Path("/servers")
+    @Operation(summary = "Get all servers", description = "Returns status of all configured infrastructure servers")
+    public Uni<Response> getAllServers() {
+        LOG.info("GET /api/v12/infrastructure/servers");
+
+        return Uni.createFrom().item(() -> {
+            List<Map<String, Object>> servers = new ArrayList<>();
+
+            // Local server
+            servers.add(checkServerHealth("local", "localhost", 9003, "/q/health"));
+
+            // Remote server - dlt.aurigraph.io
+            servers.add(checkServerHealth("production", "dlt.aurigraph.io", 443, "/api/v11/health"));
+
+            // Additional configured servers
+            servers.add(checkServerHealth("dev4", "dev4.aurigraph.io", 443, "/api/v11/health"));
+
+            // Calculate summary
+            long healthy = servers.stream().filter(s -> "healthy".equals(s.get("health"))).count();
+            long degraded = servers.stream().filter(s -> "degraded".equals(s.get("health"))).count();
+            long unhealthy = servers.stream().filter(s -> "unhealthy".equals(s.get("health"))).count();
+
+            return Response.ok(Map.of(
+                "servers", servers,
+                "summary", Map.of(
+                    "total", servers.size(),
+                    "healthy", healthy,
+                    "degraded", degraded,
+                    "unhealthy", unhealthy
+                ),
+                "timestamp", Instant.now().toString()
+            )).build();
+        });
+    }
+
+    /**
+     * Check health of a specific remote server
+     */
+    @GET
+    @Path("/servers/{serverId}/health")
+    @Operation(summary = "Check server health", description = "Returns health status of a specific server")
+    public Uni<Response> checkServerById(@PathParam("serverId") String serverId) {
+        LOG.info("GET /api/v12/infrastructure/servers/" + serverId + "/health");
+
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> serverConfig = getServerConfig(serverId);
+            if (serverConfig == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", "Server not found: " + serverId))
+                    .build();
+            }
+
+            String host = (String) serverConfig.get("host");
+            int port = (int) serverConfig.get("port");
+            String healthPath = (String) serverConfig.get("healthPath");
+
+            Map<String, Object> health = checkServerHealth(serverId, host, port, healthPath);
+            return Response.ok(health).build();
+        });
+    }
+
+    /**
+     * Check multiple service ports on a server
+     */
+    @GET
+    @Path("/servers/{serverId}/ports")
+    @Operation(summary = "Check server ports", description = "Returns port status for all services on a server")
+    public Uni<Response> checkServerPorts(@PathParam("serverId") String serverId) {
+        LOG.info("GET /api/v12/infrastructure/servers/" + serverId + "/ports");
+
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> serverConfig = getServerConfig(serverId);
+            if (serverConfig == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", "Server not found: " + serverId))
+                    .build();
+            }
+
+            String host = (String) serverConfig.get("host");
+            List<Map<String, Object>> ports = new ArrayList<>();
+
+            // Common service ports
+            int[][] servicePorts = {
+                {80, 80},     // HTTP
+                {443, 443},   // HTTPS
+                {9003, 9003}, // V11 API
+                {9004, 9004}, // gRPC
+                {5432, 5432}, // PostgreSQL
+                {6379, 6379}, // Redis
+                {8080, 8080}, // Alternative HTTP
+                {22, 22}      // SSH
+            };
+
+            String[] serviceNames = {
+                "HTTP", "HTTPS", "V11 API", "gRPC",
+                "PostgreSQL", "Redis", "Alt HTTP", "SSH"
+            };
+
+            for (int i = 0; i < servicePorts.length; i++) {
+                int port = servicePorts[i][0];
+                Map<String, Object> portInfo = new HashMap<>();
+                portInfo.put("port", port);
+                portInfo.put("service", serviceNames[i]);
+
+                long startTime = System.currentTimeMillis();
+                boolean isOpen = checkPort(host, port, 3000);
+                long latency = System.currentTimeMillis() - startTime;
+
+                portInfo.put("status", isOpen ? "open" : "closed");
+                portInfo.put("latency", latency);
+                ports.add(portInfo);
+            }
+
+            long openPorts = ports.stream().filter(p -> "open".equals(p.get("status"))).count();
+
+            return Response.ok(Map.of(
+                "serverId", serverId,
+                "host", host,
+                "ports", ports,
+                "summary", Map.of(
+                    "total", ports.size(),
+                    "open", openPorts,
+                    "closed", ports.size() - openPorts
+                ),
+                "timestamp", Instant.now().toString()
+            )).build();
+        });
+    }
+
+    /**
+     * Get complete infrastructure overview
+     */
+    @GET
+    @Path("/overview")
+    @Operation(summary = "Infrastructure overview", description = "Returns complete infrastructure status including local and remote servers")
+    public Uni<Response> getInfrastructureOverview() {
+        LOG.info("GET /api/v12/infrastructure/overview");
+
+        return Uni.createFrom().item(() -> {
+            Map<String, Object> overview = new HashMap<>();
+
+            // Environment info
+            Map<String, Object> environment = new HashMap<>();
+            environment.put("hostname", getHostname());
+            environment.put("os", System.getProperty("os.name"));
+            environment.put("osVersion", System.getProperty("os.version"));
+            environment.put("javaVersion", System.getProperty("java.version"));
+            environment.put("javaVendor", System.getProperty("java.vendor"));
+            environment.put("timezone", TimeZone.getDefault().getID());
+            environment.put("locale", Locale.getDefault().toString());
+            overview.put("environment", environment);
+
+            // Get system metrics
+            OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+            MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+            Runtime runtime = Runtime.getRuntime();
+
+            Map<String, Object> resources = new HashMap<>();
+            resources.put("cpuCores", osBean.getAvailableProcessors());
+            resources.put("cpuLoad", osBean.getSystemLoadAverage());
+            resources.put("heapUsed", memoryBean.getHeapMemoryUsage().getUsed() / (1024 * 1024));
+            resources.put("heapMax", memoryBean.getHeapMemoryUsage().getMax() / (1024 * 1024));
+            resources.put("memoryUsed", (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024));
+            resources.put("memoryTotal", runtime.totalMemory() / (1024 * 1024));
+            overview.put("resources", resources);
+
+            // Server status summary
+            List<Map<String, Object>> servers = new ArrayList<>();
+            servers.add(checkServerHealth("local", "localhost", 9003, "/q/health"));
+            servers.add(checkServerHealth("production", "dlt.aurigraph.io", 443, "/api/v11/health"));
+
+            long healthyCount = servers.stream().filter(s -> "healthy".equals(s.get("health"))).count();
+            overview.put("servers", Map.of(
+                "list", servers,
+                "healthy", healthyCount,
+                "total", servers.size()
+            ));
+
+            // Uptime
+            long uptimeMs = ManagementFactory.getRuntimeMXBean().getUptime();
+            Duration uptime = Duration.ofMillis(uptimeMs);
+            overview.put("uptime", Map.of(
+                "milliseconds", uptimeMs,
+                "formatted", String.format("%dd %dh %dm %ds",
+                    uptime.toDays(),
+                    uptime.toHours() % 24,
+                    uptime.toMinutes() % 60,
+                    uptime.getSeconds() % 60)
+            ));
+
+            overview.put("timestamp", Instant.now().toString());
+
+            return Response.ok(overview).build();
+        });
+    }
+
     // Helper methods
+
+    private Map<String, Object> checkServerHealth(String serverId, String host, int port, String healthPath) {
+        Map<String, Object> server = new HashMap<>();
+        server.put("id", serverId);
+        server.put("host", host);
+        server.put("port", port);
+
+        long startTime = System.currentTimeMillis();
+        boolean isReachable = false;
+        String healthStatus = "unhealthy";
+        String message = "";
+        int httpStatus = 0;
+
+        try {
+            if ("localhost".equals(host) || "127.0.0.1".equals(host)) {
+                // Local health check
+                isReachable = checkPort(host, port, 2000);
+                if (isReachable) {
+                    healthStatus = "healthy";
+                    message = "Local service is running";
+                } else {
+                    message = "Local service not responding on port " + port;
+                }
+            } else {
+                // Remote health check via HTTPS
+                String protocol = port == 443 ? "https" : "http";
+                URL url = new URL(protocol + "://" + host + healthPath);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setRequestProperty("Accept", "application/json");
+
+                httpStatus = conn.getResponseCode();
+                isReachable = true;
+
+                if (httpStatus >= 200 && httpStatus < 300) {
+                    healthStatus = "healthy";
+                    message = "Server responding normally";
+                } else if (httpStatus >= 400 && httpStatus < 500) {
+                    healthStatus = "degraded";
+                    message = "Server responding with client error: " + httpStatus;
+                } else if (httpStatus >= 500) {
+                    healthStatus = "unhealthy";
+                    message = "Server responding with error: " + httpStatus;
+                }
+
+                conn.disconnect();
+            }
+        } catch (Exception e) {
+            healthStatus = "unhealthy";
+            message = "Connection failed: " + e.getMessage();
+            LOG.debug("Health check failed for " + host + ": " + e.getMessage());
+        }
+
+        long latency = System.currentTimeMillis() - startTime;
+
+        server.put("health", healthStatus);
+        server.put("status", isReachable ? "online" : "offline");
+        server.put("latency", latency);
+        server.put("httpStatus", httpStatus);
+        server.put("message", message);
+        server.put("lastCheck", Instant.now().toString());
+
+        return server;
+    }
+
+    private boolean checkPort(String host, int port, int timeoutMs) {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(host, port), timeoutMs);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private Map<String, Object> getServerConfig(String serverId) {
+        Map<String, Map<String, Object>> configs = new HashMap<>();
+
+        configs.put("local", Map.of(
+            "host", "localhost",
+            "port", 9003,
+            "healthPath", "/q/health"
+        ));
+
+        configs.put("production", Map.of(
+            "host", "dlt.aurigraph.io",
+            "port", 443,
+            "healthPath", "/api/v11/health"
+        ));
+
+        configs.put("dev4", Map.of(
+            "host", "dev4.aurigraph.io",
+            "port", 443,
+            "healthPath", "/api/v11/health"
+        ));
+
+        return configs.get(serverId);
+    }
 
     private Map<String, String> getContainerStats(String containerId) {
         Map<String, String> stats = new HashMap<>();
