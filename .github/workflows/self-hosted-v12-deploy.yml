@@ -1,52 +1,52 @@
 name: Self-Hosted V12 Deploy (Port 22)
 
 on:
-  push:
-    branches:
-      - V12
-  workflow_dispatch:
+    push:
+        branches:
+            - V12
+    workflow_dispatch:
 
 env:
-  REMOTE_HOST: dlt.aurigraph.io
-  REMOTE_USER: subbu
-  REMOTE_PORT: 22
+    REMOTE_HOST: dlt.aurigraph.io
+    REMOTE_USER: subbu
+    REMOTE_PORT: 22
 
 jobs:
-  build-and-deploy:
-    runs-on: self-hosted
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    build-and-deploy:
+        runs-on: [self-hosted, aurigraph-prod]
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
+            - name: Set up JDK 21
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "21"
+                  distribution: "temurin"
+                  cache: "maven"
 
-      - name: Build V12 Backend
-        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
-        run: |
-          ./mvnw clean package -DskipTests -B
+            - name: Build V12 Backend
+              working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+              run: |
+                  ./mvnw clean package -DskipTests -B
 
-      - name: Build Frontend
-        working-directory: enterprise-portal/enterprise-portal/frontend
-        run: |
-          npm ci
-          npm run build
+            - name: Build Frontend
+              working-directory: enterprise-portal/enterprise-portal/frontend
+              run: |
+                  npm ci
+                  npm run build
 
-      - name: Deploy via execute deploy.sh
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          # The deploy.sh script handles the heavy lifting
-          chmod +x deploy.sh
-          # We need to make sure SSH is configured for scp/ssh commands in deploy.sh
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts
-          
-          # Run the internal deployment script
-          ./deploy.sh --env production --version v12
+            - name: Deploy via execute deploy.sh
+              env:
+                  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+              run: |
+                  # The deploy.sh script handles the heavy lifting
+                  chmod +x deploy.sh
+                  # We need to make sure SSH is configured for scp/ssh commands in deploy.sh
+                  mkdir -p ~/.ssh
+                  echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+                  chmod 600 ~/.ssh/id_rsa
+                  ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ env.REMOTE_HOST }} >> ~/.ssh/known_hosts
+
+                  # Run the internal deployment script
+                  ./deploy.sh --env production --version v12
