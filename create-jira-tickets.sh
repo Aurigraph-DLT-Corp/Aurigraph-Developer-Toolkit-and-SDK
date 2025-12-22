@@ -1,14 +1,30 @@
 #!/bin/bash
 # Create JIRA tickets for December 22, 2025 session work
 # Uses JIRA REST API v3
+# SECURITY: Uses environment variables or interactive prompts for credentials
 
 set -e
 
-# Load credentials
-export JIRA_EMAIL="subbu@aurigraph.io"
-export JIRA_API_TOKEN="ATATT3xFfGF0c79X44m_ecHcP5d2F-jx5ljisCVB11tCEl5jB0Cx_FaapQt_u44IqcmBwfq8Gl8CsMFdtu9mqV8SgzcUwjZ2TiHRJo9eh718fUYw7ptk5ZFOzc-aLV2FH_ywq2vSsJ5gLvSorz-eB4JeKxUSLyYiGS9Y05-WhlEWa0cgFUdhUI4=0BECD4F5"
+# Load credentials from environment or prompt user
+if [ -z "$JIRA_EMAIL" ]; then
+    read -p "Enter JIRA email address: " JIRA_EMAIL
+fi
+
+if [ -z "$JIRA_API_TOKEN" ]; then
+    read -sp "Enter JIRA API token (will not be displayed): " JIRA_API_TOKEN
+    echo ""
+fi
+
+export JIRA_EMAIL
+export JIRA_API_TOKEN
 export JIRA_BASE_URL="https://aurigraphdlt.atlassian.net"
 export JIRA_PROJECT_KEY="AV11"
+
+# Validate credentials
+if [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_API_TOKEN" ]; then
+    echo "❌ JIRA credentials are required"
+    exit 1
+fi
 
 # Colors for output
 GREEN='\033[0;32m'

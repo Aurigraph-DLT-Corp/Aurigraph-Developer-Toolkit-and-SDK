@@ -1,6 +1,7 @@
 #!/bin/bash
 # Add JIRA credentials to GitHub Secrets
 # Requires GitHub CLI (gh) to be installed and authenticated
+# SECURITY: Prompts for credentials instead of hardcoding
 
 set -e
 
@@ -26,12 +27,24 @@ fi
 echo "✅ GitHub CLI is installed and authenticated"
 echo ""
 
+# Prompt for credentials securely
+read -p "Enter JIRA email address: " JIRA_EMAIL
+read -sp "Enter JIRA API token (will not be displayed): " JIRA_API_TOKEN
+echo ""
+echo ""
+
+# Validate inputs
+if [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_API_TOKEN" ]; then
+    echo "❌ Email and API token are required"
+    exit 1
+fi
+
 # Add secrets
 echo "Adding JIRA_EMAIL secret..."
-echo "subbu@aurigraph.io" | gh secret set JIRA_EMAIL
+echo "$JIRA_EMAIL" | gh secret set JIRA_EMAIL
 
 echo "Adding JIRA_API_TOKEN secret..."
-echo "ATATT3xFfGF0c79X44m_ecHcP5d2F-jx5ljisCVB11tCEl5jB0Cx_FaapQt_u44IqcmBwfq8Gl8CsMFdtu9mqV8SgzcUwjZ2TiHRJo9eh718fUYw7ptk5ZFOzc-aLV2FH_ywq2vSsJ5gLvSorz-eB4JeKxUSLyYiGS9Y05-WhlEWa0cgFUdhUI4=0BECD4F5" | gh secret set JIRA_API_TOKEN
+echo "$JIRA_API_TOKEN" | gh secret set JIRA_API_TOKEN
 
 echo ""
 echo "✅ JIRA credentials added to GitHub Secrets"
