@@ -54,7 +54,7 @@ function show_help() {
 
 # --- Argument Parsing ---
 while [[ $# -gt 0 ]]; do
-  key=""
+  key="$1"
   case $key in
     --env)
       ENVIRONMENT="$2"
