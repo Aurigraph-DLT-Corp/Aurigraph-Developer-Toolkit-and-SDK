@@ -145,7 +145,7 @@ export const TopNavRouter = ({
         label: 'Profile',
       },
       {
-        key: 'settings',
+        key: '/admin/settings',
         icon: <SettingOutlined />,
         label: 'Settings',
       },

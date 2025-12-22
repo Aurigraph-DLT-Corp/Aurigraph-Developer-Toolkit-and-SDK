@@ -61,6 +61,7 @@ const BankingTokenization = lazy(() => import('../components/banking/BankingToke
 
 // Admin & Infrastructure
 const InfrastructureMonitoring = lazy(() => import('../components/admin/InfrastructureMonitoring'));
+const RWATAssetSettings = lazy(() => import('../components/admin/RWATAssetSettings'));
 
 // User & Referral
 const UserReferralProgram = lazy(() => import('../components/UserReferralProgram'));
@@ -775,6 +776,17 @@ export const routes: RouteDefinition[] = [
     description: 'Monitor local and remote server infrastructure',
     category: 'admin',
     order: 82,
+  },
+  {
+    path: '/admin/settings',
+    component: RWATAssetSettings,
+    label: 'Enterprise Settings',
+    breadcrumbLabel: 'Enterprise Settings',
+    parent: '/',
+    icon: 'SettingOutlined',
+    description: 'Configure enterprise-wide settings',
+    category: 'admin',
+    order: 83,
   },
 
   // =========================================================================
