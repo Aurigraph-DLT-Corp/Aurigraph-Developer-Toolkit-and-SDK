@@ -1,0 +1,171 @@
+name: Sync Commits to JIRA
+
+on:
+  push:
+    branches:
+      - V12
+      - main
+      - develop
+
+jobs:
+  sync-to-jira:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Get commit message
+        id: commit
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          COMMIT_HASH=$(git log -1 --pretty=%H)
+          COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+          COMMIT_DATE=$(git log -1 --pretty=%ci)
+          
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
+          echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+      
+      - name: Extract JIRA ticket from commit
+        id: jira
+        run: |
+          COMMIT_MSG="${{ steps.commit.outputs.message }}"
+          
+          # Extract JIRA ticket (AV11-XXX pattern)
+          TICKET=$(echo "$COMMIT_MSG" | grep -oE 'AV11-[0-9]+' | head -1 || echo "")
+          
+          if [ -z "$TICKET" ]; then
+            echo "No JIRA ticket found in commit message"
+            echo "found=false" >> $GITHUB_OUTPUT
+          else
+            echo "Found JIRA ticket: $TICKET"
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "ticket=$TICKET" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Add comment to JIRA ticket
+        if: steps.jira.outputs.found == 'true'
+        run: |
+          TICKET="${{ steps.jira.outputs.ticket }}"
+          COMMIT_HASH="${{ steps.commit.outputs.hash }}"
+          COMMIT_AUTHOR="${{ steps.commit.outputs.author }}"
+          COMMIT_MSG="${{ steps.commit.outputs.message }}"
+          REPO_URL="https://github.com/${{ github.repository }}"
+          
+          # Create comment body
+          COMMENT=$(cat <<EOF
+{
+  "body": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Commit pushed to GitHub:",
+            "marks": [{"type": "strong"}]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Hash: "
+          },
+          {
+            "type": "text",
+            "text": "${COMMIT_HASH:0:8}",
+            "marks": [{"type": "code"}]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Author: ${COMMIT_AUTHOR}"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Message: ${COMMIT_MSG}"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "View on GitHub",
+            "marks": [
+              {
+                "type": "link",
+                "attrs": {
+                  "href": "${REPO_URL}/commit/${COMMIT_HASH}"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+EOF
+)
+          
+          # Post comment to JIRA
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -u "${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
+            -d "$COMMENT" \
+            "https://aurigraphdlt.atlassian.net/rest/api/3/issue/$TICKET/comment"
+          
+          echo "✅ Comment added to $TICKET"
+      
+      - name: Transition ticket if needed
+        if: steps.jira.outputs.found == 'true'
+        run: |
+          TICKET="${{ steps.jira.outputs.ticket }}"
+          COMMIT_MSG="${{ steps.commit.outputs.message }}"
+          
+          # Check if commit message indicates completion
+          if echo "$COMMIT_MSG" | grep -qiE '(fix|close|resolve|complete)'; then
+            echo "Commit indicates completion, transitioning ticket..."
+            
+            # Get available transitions
+            TRANSITIONS=$(curl -s -X GET \
+              -H "Content-Type: application/json" \
+              -u "${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
+              "https://aurigraphdlt.atlassian.net/rest/api/3/issue/$TICKET/transitions")
+            
+            # Find "Done" transition ID
+            DONE_ID=$(echo "$TRANSITIONS" | grep -o '"id":"[0-9]*","name":"Done"' | grep -o '[0-9]*' | head -1)
+            
+            if [ -n "$DONE_ID" ]; then
+              curl -X POST \
+                -H "Content-Type: application/json" \
+                -u "${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
+                -d "{\"transition\":{\"id\":\"$DONE_ID\"}}" \
+                "https://aurigraphdlt.atlassian.net/rest/api/3/issue/$TICKET/transitions"
+              
+              echo "✅ Ticket $TICKET transitioned to Done"
+            fi
+          fi
