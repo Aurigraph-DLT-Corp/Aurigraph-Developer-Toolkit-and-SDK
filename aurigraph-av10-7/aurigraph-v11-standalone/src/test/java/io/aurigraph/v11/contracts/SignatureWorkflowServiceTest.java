@@ -1,7 +1,16 @@
 package io.aurigraph.v11.contracts;
 
-import io.aurigraph.v11.contracts.models.*;
-import io.aurigraph.v11.contracts.SignatureWorkflowService.*;
+import io.aurigraph.v11.contracts.models.ContractParty;
+import io.aurigraph.v11.contracts.models.ContractSignature;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.CollectionMode;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.SignatureRequest;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.SignatureRequirement;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.SignatureRole;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.SignatureVerificationResult;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.SignatureWorkflow;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.SignatureWorkflowStatus;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.WorkflowState;
+import io.aurigraph.v11.contracts.SignatureWorkflowService.SignatureWorkflowException;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
 import io.smallrye.mutiny.Uni;
@@ -128,7 +137,7 @@ class SignatureWorkflowServiceTest {
 
         // Mock the contract service
         when(contractService.getContract(TEST_CONTRACT_ID))
-            .thenReturn(Uni.createFrom().item(testContract));
+                .thenReturn(Uni.createFrom().item(testContract));
     }
 
     // ==========================================================================
@@ -140,8 +149,8 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should request signature from a valid party")
     void testRequestSignatureFromValidParty() {
         SignatureRequest request = signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
+                .await().indefinitely();
 
         assertNotNull(request);
         assertNotNull(request.getRequestId());
@@ -163,8 +172,8 @@ class SignatureWorkflowServiceTest {
     void testRequestSignatureFromNonExistentParty() {
         assertThrows(SignatureWorkflowException.class, () -> {
             signatureWorkflowService
-                .requestSignature(TEST_CONTRACT_ID, "NON_EXISTENT_PARTY")
-                .await().indefinitely();
+                    .requestSignature(TEST_CONTRACT_ID, "NON_EXISTENT_PARTY")
+                    .await().indefinitely();
         });
     }
 
@@ -174,14 +183,14 @@ class SignatureWorkflowServiceTest {
     void testRequestSignatureFromAlreadySignedParty() {
         // First, add a signature for the owner
         ContractSignature existingSignature = new ContractSignature(
-            owner.getAddress(), TEST_SIGNATURE_DATA);
+                owner.getAddress(), TEST_SIGNATURE_DATA);
         existingSignature.setPartyId(owner.getPartyId());
         testContract.addSignature(existingSignature);
 
         assertThrows(SignatureWorkflowException.class, () -> {
             signatureWorkflowService
-                .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
-                .await().indefinitely();
+                    .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
+                    .await().indefinitely();
         });
     }
 
@@ -190,12 +199,12 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should set workflow state to PENDING_SIGNATURES after first request")
     void testWorkflowStateAfterFirstRequest() {
         signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         SignatureWorkflowStatus status = signatureWorkflowService
-            .getSignatureStatus(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .getSignatureStatus(TEST_CONTRACT_ID)
+                .await().indefinitely();
 
         assertEquals(WorkflowState.PENDING_SIGNATURES, status.getState());
     }
@@ -210,16 +219,16 @@ class SignatureWorkflowServiceTest {
     void testSubmitValidSignature() {
         // First request a signature
         SignatureRequest request = signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         assertNotNull(request);
 
         // Then submit the signature
         ContractSignature signature = signatureWorkflowService
-            .submitSignature(TEST_CONTRACT_ID, buyer.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature(TEST_CONTRACT_ID, buyer.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         assertNotNull(signature);
         assertNotNull(signature.getSignatureId());
@@ -245,13 +254,13 @@ class SignatureWorkflowServiceTest {
         newContract.addParty(buyer);
 
         when(contractService.getContract("AC-NO-WORKFLOW"))
-            .thenReturn(Uni.createFrom().item(newContract));
+                .thenReturn(Uni.createFrom().item(newContract));
 
         assertThrows(SignatureWorkflowException.class, () -> {
             signatureWorkflowService
-                .submitSignature("AC-NO-WORKFLOW", buyer.getPartyId(),
-                               TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-                .await().indefinitely();
+                    .submitSignature("AC-NO-WORKFLOW", buyer.getPartyId(),
+                            TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                    .await().indefinitely();
         });
     }
 
@@ -261,14 +270,14 @@ class SignatureWorkflowServiceTest {
     void testSubmitSignatureForNonExistentParty() {
         // First create a workflow
         signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         assertThrows(SignatureWorkflowException.class, () -> {
             signatureWorkflowService
-                .submitSignature(TEST_CONTRACT_ID, "NON_EXISTENT",
-                               TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-                .await().indefinitely();
+                    .submitSignature(TEST_CONTRACT_ID, "NON_EXISTENT",
+                            TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                    .await().indefinitely();
         });
     }
 
@@ -278,15 +287,15 @@ class SignatureWorkflowServiceTest {
     void testSubmitSignatureWithoutPendingRequest() {
         // Create workflow but request for different party
         signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         // Try to submit for seller (no request made)
         assertThrows(SignatureWorkflowException.class, () -> {
             signatureWorkflowService
-                .submitSignature(TEST_CONTRACT_ID, seller.getPartyId(),
-                               TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-                .await().indefinitely();
+                    .submitSignature(TEST_CONTRACT_ID, seller.getPartyId(),
+                            TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                    .await().indefinitely();
         });
     }
 
@@ -300,18 +309,18 @@ class SignatureWorkflowServiceTest {
     void testVerifyExistingSignature() {
         // Request and submit a signature first
         signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         signatureWorkflowService
-            .submitSignature(TEST_CONTRACT_ID, buyer.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature(TEST_CONTRACT_ID, buyer.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         // Verify the signature
         SignatureVerificationResult result = signatureWorkflowService
-            .verifySignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .verifySignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         assertNotNull(result);
         assertEquals(TEST_CONTRACT_ID, result.getContractId());
@@ -330,8 +339,8 @@ class SignatureWorkflowServiceTest {
     void testVerifyNonExistentSignature() {
         assertThrows(SignatureWorkflowException.class, () -> {
             signatureWorkflowService
-                .verifySignature(TEST_CONTRACT_ID, "NON_EXISTENT_PARTY")
-                .await().indefinitely();
+                    .verifySignature(TEST_CONTRACT_ID, "NON_EXISTENT_PARTY")
+                    .await().indefinitely();
         });
     }
 
@@ -345,12 +354,12 @@ class SignatureWorkflowServiceTest {
     void testGetWorkflowStatus() {
         // Create workflow
         signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         SignatureWorkflowStatus status = signatureWorkflowService
-            .getSignatureStatus(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .getSignatureStatus(TEST_CONTRACT_ID)
+                .await().indefinitely();
 
         assertNotNull(status);
         assertEquals(TEST_CONTRACT_ID, status.getContractId());
@@ -375,11 +384,11 @@ class SignatureWorkflowServiceTest {
         newContract.addParty(buyer);
 
         when(contractService.getContract("AC-NEW"))
-            .thenReturn(Uni.createFrom().item(newContract));
+                .thenReturn(Uni.createFrom().item(newContract));
 
         SignatureWorkflowStatus status = signatureWorkflowService
-            .getSignatureStatus("AC-NEW")
-            .await().indefinitely();
+                .getSignatureStatus("AC-NEW")
+                .await().indefinitely();
 
         assertNotNull(status);
         assertEquals(WorkflowState.DRAFT, status.getState());
@@ -391,17 +400,17 @@ class SignatureWorkflowServiceTest {
     void testWorkflowStatePartiallySignedAfterFirstSignature() {
         // Request and submit first signature
         signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
+                .await().indefinitely();
 
         signatureWorkflowService
-            .submitSignature(TEST_CONTRACT_ID, owner.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature(TEST_CONTRACT_ID, owner.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         SignatureWorkflowStatus status = signatureWorkflowService
-            .getSignatureStatus(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .getSignatureStatus(TEST_CONTRACT_ID)
+                .await().indefinitely();
 
         assertEquals(WorkflowState.PARTIALLY_SIGNED, status.getState());
         assertTrue(status.getSignedCount() > 0);
@@ -417,8 +426,8 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should get list of required signatures")
     void testGetRequiredSignatures() {
         List<SignatureRequirement> requirements = signatureWorkflowService
-            .getRequiredSignatures(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .getRequiredSignatures(TEST_CONTRACT_ID)
+                .await().indefinitely();
 
         assertNotNull(requirements);
         assertFalse(requirements.isEmpty());
@@ -438,22 +447,22 @@ class SignatureWorkflowServiceTest {
     void testRequirementMarkedAsSigned() {
         // Request and submit signature
         signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, owner.getPartyId())
+                .await().indefinitely();
 
         signatureWorkflowService
-            .submitSignature(TEST_CONTRACT_ID, owner.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature(TEST_CONTRACT_ID, owner.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         List<SignatureRequirement> requirements = signatureWorkflowService
-            .getRequiredSignatures(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .getRequiredSignatures(TEST_CONTRACT_ID)
+                .await().indefinitely();
 
         SignatureRequirement ownerReq = requirements.stream()
-            .filter(r -> r.getPartyId().equals(owner.getPartyId()))
-            .findFirst()
-            .orElse(null);
+                .filter(r -> r.getPartyId().equals(owner.getPartyId()))
+                .findFirst()
+                .orElse(null);
 
         assertNotNull(ownerReq);
         assertTrue(ownerReq.isSigned());
@@ -465,8 +474,8 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should check if contract is fully signed")
     void testIsFullySigned() {
         Boolean fullySigned = signatureWorkflowService
-            .isFullySigned(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .isFullySigned(TEST_CONTRACT_ID)
+                .await().indefinitely();
 
         assertFalse(fullySigned);
     }
@@ -480,8 +489,8 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should set collection mode to SEQUENTIAL")
     void testSetSequentialCollectionMode() {
         SignatureWorkflow workflow = signatureWorkflowService
-            .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.SEQUENTIAL)
-            .await().indefinitely();
+                .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.SEQUENTIAL)
+                .await().indefinitely();
 
         assertNotNull(workflow);
         assertEquals(CollectionMode.SEQUENTIAL, workflow.getCollectionMode());
@@ -493,8 +502,8 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should set collection mode to PARALLEL")
     void testSetParallelCollectionMode() {
         SignatureWorkflow workflow = signatureWorkflowService
-            .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.PARALLEL)
-            .await().indefinitely();
+                .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.PARALLEL)
+                .await().indefinitely();
 
         assertNotNull(workflow);
         assertEquals(CollectionMode.PARALLEL, workflow.getCollectionMode());
@@ -506,8 +515,8 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should support all collection modes")
     void testAllCollectionModes(CollectionMode mode) {
         SignatureWorkflow workflow = signatureWorkflowService
-            .setCollectionMode(TEST_CONTRACT_ID, mode)
-            .await().indefinitely();
+                .setCollectionMode(TEST_CONTRACT_ID, mode)
+                .await().indefinitely();
 
         assertEquals(mode, workflow.getCollectionMode());
     }
@@ -519,8 +528,8 @@ class SignatureWorkflowServiceTest {
         long expirySeconds = 3 * 24 * 60 * 60; // 3 days
 
         SignatureWorkflow workflow = signatureWorkflowService
-            .setRequestExpiry(TEST_CONTRACT_ID, expirySeconds)
-            .await().indefinitely();
+                .setRequestExpiry(TEST_CONTRACT_ID, expirySeconds)
+                .await().indefinitely();
 
         assertNotNull(workflow);
         assertEquals(expirySeconds, workflow.getRequestExpirySeconds());
@@ -531,8 +540,8 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should add role requirement to workflow")
     void testAddRoleRequirement() {
         SignatureWorkflow workflow = signatureWorkflowService
-            .addRoleRequirement(TEST_CONTRACT_ID, SignatureRole.VVB, 2)
-            .await().indefinitely();
+                .addRoleRequirement(TEST_CONTRACT_ID, SignatureRole.VVB, 2)
+                .await().indefinitely();
 
         assertNotNull(workflow);
         assertEquals(2, workflow.getRoleRequirements().get(SignatureRole.VVB));
@@ -548,20 +557,20 @@ class SignatureWorkflowServiceTest {
     void testSequentialModeEnforcement() {
         // Set to sequential mode
         signatureWorkflowService
-            .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.SEQUENTIAL)
-            .await().indefinitely();
+                .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.SEQUENTIAL)
+                .await().indefinitely();
 
         // Add role requirement for OWNER
         signatureWorkflowService
-            .addRoleRequirement(TEST_CONTRACT_ID, SignatureRole.OWNER, 1)
-            .await().indefinitely();
+                .addRoleRequirement(TEST_CONTRACT_ID, SignatureRole.OWNER, 1)
+                .await().indefinitely();
 
         // Try to request signature from PARTY before OWNER signs
         // OWNER has priority 1, PARTY has priority 2
         assertThrows(SignatureWorkflowException.class, () -> {
             signatureWorkflowService
-                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-                .await().indefinitely();
+                    .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                    .await().indefinitely();
         });
     }
 
@@ -577,17 +586,17 @@ class SignatureWorkflowServiceTest {
         seqContract.addParty(buyer);
 
         when(contractService.getContract("AC-SEQ-TEST"))
-            .thenReturn(Uni.createFrom().item(seqContract));
+                .thenReturn(Uni.createFrom().item(seqContract));
 
         // Set to sequential mode
         signatureWorkflowService
-            .setCollectionMode("AC-SEQ-TEST", CollectionMode.SEQUENTIAL)
-            .await().indefinitely();
+                .setCollectionMode("AC-SEQ-TEST", CollectionMode.SEQUENTIAL)
+                .await().indefinitely();
 
         // Request from OWNER first (priority 1)
         SignatureRequest ownerRequest = signatureWorkflowService
-            .requestSignature("AC-SEQ-TEST", owner.getPartyId())
-            .await().indefinitely();
+                .requestSignature("AC-SEQ-TEST", owner.getPartyId())
+                .await().indefinitely();
 
         assertNotNull(ownerRequest);
         assertEquals(owner.getPartyId(), ownerRequest.getPartyId());
@@ -599,13 +608,13 @@ class SignatureWorkflowServiceTest {
     void testParallelModeNoOrderRestriction() {
         // Ensure parallel mode
         signatureWorkflowService
-            .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.PARALLEL)
-            .await().indefinitely();
+                .setCollectionMode(TEST_CONTRACT_ID, CollectionMode.PARALLEL)
+                .await().indefinitely();
 
         // Should be able to request from PARTY before OWNER in parallel mode
         SignatureRequest partyRequest = signatureWorkflowService
-            .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature(TEST_CONTRACT_ID, buyer.getPartyId())
+                .await().indefinitely();
 
         assertNotNull(partyRequest);
         assertEquals(buyer.getPartyId(), partyRequest.getPartyId());
@@ -629,65 +638,65 @@ class SignatureWorkflowServiceTest {
         lifecycleContract.addParty(buyer);
 
         when(contractService.getContract("AC-LIFECYCLE"))
-            .thenReturn(Uni.createFrom().item(lifecycleContract));
+                .thenReturn(Uni.createFrom().item(lifecycleContract));
 
         // Step 2: Configure workflow
         SignatureWorkflow workflow = signatureWorkflowService
-            .setCollectionMode("AC-LIFECYCLE", CollectionMode.PARALLEL)
-            .await().indefinitely();
+                .setCollectionMode("AC-LIFECYCLE", CollectionMode.PARALLEL)
+                .await().indefinitely();
 
         assertEquals(CollectionMode.PARALLEL, workflow.getCollectionMode());
         assertEquals(WorkflowState.DRAFT, workflow.getState());
 
         // Step 3: Request signatures from all required parties
         SignatureRequest ownerRequest = signatureWorkflowService
-            .requestSignature("AC-LIFECYCLE", owner.getPartyId())
-            .await().indefinitely();
+                .requestSignature("AC-LIFECYCLE", owner.getPartyId())
+                .await().indefinitely();
 
         SignatureRequest buyerRequest = signatureWorkflowService
-            .requestSignature("AC-LIFECYCLE", buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature("AC-LIFECYCLE", buyer.getPartyId())
+                .await().indefinitely();
 
         assertNotNull(ownerRequest);
         assertNotNull(buyerRequest);
 
         // Step 4: Check workflow state after requests
         SignatureWorkflowStatus statusAfterRequests = signatureWorkflowService
-            .getSignatureStatus("AC-LIFECYCLE")
-            .await().indefinitely();
+                .getSignatureStatus("AC-LIFECYCLE")
+                .await().indefinitely();
 
         assertEquals(WorkflowState.PENDING_SIGNATURES, statusAfterRequests.getState());
 
         // Step 5: Submit owner signature
         ContractSignature ownerSig = signatureWorkflowService
-            .submitSignature("AC-LIFECYCLE", owner.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature("AC-LIFECYCLE", owner.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         assertNotNull(ownerSig);
         assertTrue(ownerSig.isVerified());
 
         // Step 6: Check workflow state after first signature
         SignatureWorkflowStatus statusAfterFirst = signatureWorkflowService
-            .getSignatureStatus("AC-LIFECYCLE")
-            .await().indefinitely();
+                .getSignatureStatus("AC-LIFECYCLE")
+                .await().indefinitely();
 
         assertEquals(WorkflowState.PARTIALLY_SIGNED, statusAfterFirst.getState());
         assertEquals(1, statusAfterFirst.getSignedCount());
 
         // Step 7: Submit buyer signature
         ContractSignature buyerSig = signatureWorkflowService
-            .submitSignature("AC-LIFECYCLE", buyer.getPartyId(),
-                           TEST_SIGNATURE_DATA + "_BUYER", "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature("AC-LIFECYCLE", buyer.getPartyId(),
+                        TEST_SIGNATURE_DATA + "_BUYER", "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         assertNotNull(buyerSig);
         assertTrue(buyerSig.isVerified());
 
         // Step 8: Check workflow is FULLY_SIGNED
         SignatureWorkflowStatus finalStatus = signatureWorkflowService
-            .getSignatureStatus("AC-LIFECYCLE")
-            .await().indefinitely();
+                .getSignatureStatus("AC-LIFECYCLE")
+                .await().indefinitely();
 
         assertEquals(WorkflowState.FULLY_SIGNED, finalStatus.getState());
         assertEquals(2, finalStatus.getSignedCount());
@@ -696,27 +705,27 @@ class SignatureWorkflowServiceTest {
 
         // Step 9: Verify all signatures
         SignatureVerificationResult ownerVerification = signatureWorkflowService
-            .verifySignature("AC-LIFECYCLE", owner.getPartyId())
-            .await().indefinitely();
+                .verifySignature("AC-LIFECYCLE", owner.getPartyId())
+                .await().indefinitely();
 
         SignatureVerificationResult buyerVerification = signatureWorkflowService
-            .verifySignature("AC-LIFECYCLE", buyer.getPartyId())
-            .await().indefinitely();
+                .verifySignature("AC-LIFECYCLE", buyer.getPartyId())
+                .await().indefinitely();
 
         assertTrue(ownerVerification.isValid());
         assertTrue(buyerVerification.isValid());
 
         // Step 10: Check required signatures list
         List<SignatureRequirement> requirements = signatureWorkflowService
-            .getRequiredSignatures("AC-LIFECYCLE")
-            .await().indefinitely();
+                .getRequiredSignatures("AC-LIFECYCLE")
+                .await().indefinitely();
 
         assertTrue(requirements.stream().allMatch(SignatureRequirement::isSigned));
 
         // Step 11: Verify isFullySigned
         Boolean isFullySigned = signatureWorkflowService
-            .isFullySigned("AC-LIFECYCLE")
-            .await().indefinitely();
+                .isFullySigned("AC-LIFECYCLE")
+                .await().indefinitely();
 
         assertTrue(isFullySigned);
     }
@@ -734,26 +743,26 @@ class SignatureWorkflowServiceTest {
         carbonContract.addParty(vvb);
 
         when(contractService.getContract("AC-CARBON"))
-            .thenReturn(Uni.createFrom().item(carbonContract));
+                .thenReturn(Uni.createFrom().item(carbonContract));
 
         // Add VVB role requirement
         signatureWorkflowService
-            .addRoleRequirement("AC-CARBON", SignatureRole.VVB, 1)
-            .await().indefinitely();
+                .addRoleRequirement("AC-CARBON", SignatureRole.VVB, 1)
+                .await().indefinitely();
 
         // Request VVB signature
         SignatureRequest vvbRequest = signatureWorkflowService
-            .requestSignature("AC-CARBON", vvb.getPartyId())
-            .await().indefinitely();
+                .requestSignature("AC-CARBON", vvb.getPartyId())
+                .await().indefinitely();
 
         assertNotNull(vvbRequest);
         assertEquals(SignatureRole.VVB, vvbRequest.getPartyRole());
 
         // Submit VVB signature
         ContractSignature vvbSig = signatureWorkflowService
-            .submitSignature("AC-CARBON", vvb.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature("AC-CARBON", vvb.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         assertNotNull(vvbSig);
         assertTrue(vvbSig.isVerified());
@@ -773,29 +782,29 @@ class SignatureWorkflowServiceTest {
         multiRoleContract.addParty(vvb);
 
         when(contractService.getContract("AC-MULTI-ROLE"))
-            .thenReturn(Uni.createFrom().item(multiRoleContract));
+                .thenReturn(Uni.createFrom().item(multiRoleContract));
 
         // Request and submit signatures from different roles
         signatureWorkflowService
-            .requestSignature("AC-MULTI-ROLE", owner.getPartyId())
-            .await().indefinitely();
+                .requestSignature("AC-MULTI-ROLE", owner.getPartyId())
+                .await().indefinitely();
         signatureWorkflowService
-            .submitSignature("AC-MULTI-ROLE", owner.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature("AC-MULTI-ROLE", owner.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         signatureWorkflowService
-            .requestSignature("AC-MULTI-ROLE", buyer.getPartyId())
-            .await().indefinitely();
+                .requestSignature("AC-MULTI-ROLE", buyer.getPartyId())
+                .await().indefinitely();
         signatureWorkflowService
-            .submitSignature("AC-MULTI-ROLE", buyer.getPartyId(),
-                           TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
-            .await().indefinitely();
+                .submitSignature("AC-MULTI-ROLE", buyer.getPartyId(),
+                        TEST_SIGNATURE_DATA, "CRYSTALS-Dilithium")
+                .await().indefinitely();
 
         // Check signatures by role
         SignatureWorkflowStatus status = signatureWorkflowService
-            .getSignatureStatus("AC-MULTI-ROLE")
-            .await().indefinitely();
+                .getSignatureStatus("AC-MULTI-ROLE")
+                .await().indefinitely();
 
         assertNotNull(status.getSignaturesByRole());
         assertTrue(status.getSignaturesByRole().containsKey("OWNER"));
@@ -880,13 +889,13 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should handle contract not found exception")
     void testContractNotFoundHandling() {
         when(contractService.getContract("NON_EXISTENT"))
-            .thenReturn(Uni.createFrom().failure(
-                new ActiveContractService.ContractNotFoundException("Contract not found")));
+                .thenReturn(Uni.createFrom().failure(
+                        new ActiveContractService.ContractNotFoundException("Contract not found")));
 
         assertThrows(ActiveContractService.ContractNotFoundException.class, () -> {
             signatureWorkflowService
-                .requestSignature("NON_EXISTENT", buyer.getPartyId())
-                .await().indefinitely();
+                    .requestSignature("NON_EXISTENT", buyer.getPartyId())
+                    .await().indefinitely();
         });
     }
 
@@ -894,8 +903,7 @@ class SignatureWorkflowServiceTest {
     @Order(131)
     @DisplayName("Should create SignatureWorkflowException with message")
     void testSignatureWorkflowExceptionCreation() {
-        SignatureWorkflowException exception =
-            new SignatureWorkflowException("Test error message");
+        SignatureWorkflowException exception = new SignatureWorkflowException("Test error message");
 
         assertEquals("Test error message", exception.getMessage());
     }
@@ -905,8 +913,7 @@ class SignatureWorkflowServiceTest {
     @DisplayName("Should create SignatureWorkflowException with cause")
     void testSignatureWorkflowExceptionWithCause() {
         RuntimeException cause = new RuntimeException("Root cause");
-        SignatureWorkflowException exception =
-            new SignatureWorkflowException("Test error", cause);
+        SignatureWorkflowException exception = new SignatureWorkflowException("Test error", cause);
 
         assertEquals("Test error", exception.getMessage());
         assertEquals(cause, exception.getCause());
