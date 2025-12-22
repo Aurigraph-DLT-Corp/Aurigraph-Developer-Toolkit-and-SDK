@@ -3,7 +3,7 @@ package io.aurigraph.v11.contracts;
 import io.aurigraph.v11.contracts.models.ContractParty;
 import io.aurigraph.v11.contracts.models.ContractSignature;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
@@ -27,7 +27,8 @@ import static org.mockito.Mockito.*;
  * - Reject verification
  * - Get pending verifications
  * - Verifier registration
- * - State flow (FULLY_SIGNED -> VVB_REVIEW -> VVB_APPROVED/VVB_REJECTED -> ACTIVE)
+ * - State flow (FULLY_SIGNED -> VVB_REVIEW -> VVB_APPROVED/VVB_REJECTED ->
+ * ACTIVE)
  *
  * @version 1.0.0
  * @author Aurigraph V11 Development Team
@@ -55,7 +56,7 @@ class VVBVerificationServiceTest {
 
         // Mock the contract service to return our test contract
         when(contractService.getContract(TEST_CONTRACT_ID))
-            .thenReturn(Uni.createFrom().item(testContract));
+                .thenReturn(Uni.createFrom().item(testContract));
     }
 
     // ==========================================================================
@@ -73,24 +74,24 @@ class VVBVerificationServiceTest {
 
         // Add parties that require signatures
         ContractParty buyer = ContractParty.builder()
-            .partyId("BUYER_001")
-            .name("Carbon Buyer Corp")
-            .address("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb")
-            .role("BUYER")
-            .signatureRequired(true)
-            .kycVerified(true)
-            .createdAt(Instant.now())
-            .build();
+                .partyId("BUYER_001")
+                .name("Carbon Buyer Corp")
+                .address("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb")
+                .role("BUYER")
+                .signatureRequired(true)
+                .kycVerified(true)
+                .createdAt(Instant.now())
+                .build();
 
         ContractParty seller = ContractParty.builder()
-            .partyId("SELLER_001")
-            .name("Green Energy Inc")
-            .address("0x8a91DC2D28B689474298D91899f0c1baF62cB85E")
-            .role("SELLER")
-            .signatureRequired(true)
-            .kycVerified(true)
-            .createdAt(Instant.now())
-            .build();
+                .partyId("SELLER_001")
+                .name("Green Energy Inc")
+                .address("0x8a91DC2D28B689474298D91899f0c1baF62cB85E")
+                .role("SELLER")
+                .signatureRequired(true)
+                .kycVerified(true)
+                .createdAt(Instant.now())
+                .build();
 
         contract.addParty(buyer);
         contract.addParty(seller);
@@ -117,14 +118,14 @@ class VVBVerificationServiceTest {
         contract.setExecutableCode("function execute() { }");
 
         ContractParty party = ContractParty.builder()
-            .partyId("PARTY_001")
-            .name("Test Party")
-            .address("0x1234567890abcdef")
-            .role("OWNER")
-            .signatureRequired(true)
-            .kycVerified(true)
-            .createdAt(Instant.now())
-            .build();
+                .partyId("PARTY_001")
+                .name("Test Party")
+                .address("0x1234567890abcdef")
+                .role("OWNER")
+                .signatureRequired(true)
+                .kycVerified(true)
+                .createdAt(Instant.now())
+                .build();
 
         contract.addParty(party);
         // No signatures added - contract is not fully signed
@@ -148,7 +149,7 @@ class VVBVerificationServiceTest {
     @DisplayName("Should submit fully signed contract for VVB review")
     void testSubmitForReview() {
         VVBVerificationService.VVBReview review = vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         assertNotNull(review);
         assertNotNull(review.getReviewId());
@@ -166,11 +167,11 @@ class VVBVerificationServiceTest {
     void testSubmitForReviewUnsignedContract() {
         ActiveContract unsignedContract = createUnsignedContract();
         when(contractService.getContract("UNSIGNED-CONTRACT-001"))
-            .thenReturn(Uni.createFrom().item(unsignedContract));
+                .thenReturn(Uni.createFrom().item(unsignedContract));
 
         assertThrows(VVBVerificationService.VVBVerificationException.class, () -> {
             vvbVerificationService.submitForReview("UNSIGNED-CONTRACT-001")
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -180,12 +181,12 @@ class VVBVerificationServiceTest {
     void testDuplicateSubmission() {
         // First submission should succeed
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Second submission should fail
         assertThrows(VVBVerificationService.VVBVerificationException.class, () -> {
             vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -199,11 +200,11 @@ class VVBVerificationServiceTest {
     void testGetReviewStatus() {
         // First submit for review
         VVBVerificationService.VVBReview submitted = vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Then get status
         VVBVerificationService.VVBReview status = vvbVerificationService.getReviewStatus(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         assertNotNull(status);
         assertEquals(submitted.getReviewId(), status.getReviewId());
@@ -216,7 +217,7 @@ class VVBVerificationServiceTest {
     void testGetStatusForNonExistentReview() {
         assertThrows(VVBVerificationService.VVBReviewNotFoundException.class, () -> {
             vvbVerificationService.getReviewStatus("NON-EXISTENT-CONTRACT")
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -230,12 +231,13 @@ class VVBVerificationServiceTest {
     void testApproveVerification() {
         // Submit for review first
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Approve the verification
         VVBVerificationService.VVBAttestationRequest attestation = createAttestationRequest();
-        VVBVerificationService.VVBReview review = vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, attestation)
-            .await().indefinitely();
+        VVBVerificationService.VVBReview review = vvbVerificationService
+                .approve(TEST_CONTRACT_ID, TEST_VVB_ID, attestation)
+                .await().indefinitely();
 
         assertNotNull(review);
         assertEquals(VVBVerificationService.VVBReviewStatus.APPROVED, review.getStatus());
@@ -251,15 +253,15 @@ class VVBVerificationServiceTest {
     void testAttestationCreation() {
         // Submit and approve
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         VVBVerificationService.VVBAttestationRequest attestationRequest = createAttestationRequest();
         vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, attestationRequest)
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Get attestation
         VVBVerificationService.VVBAttestation attestation = vvbVerificationService.getAttestation(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         assertNotNull(attestation);
         assertEquals(TEST_CONTRACT_ID, attestation.getContractId());
@@ -280,14 +282,14 @@ class VVBVerificationServiceTest {
     void testApproveAlreadyApproved() {
         // Submit and approve
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Try to approve again
         assertThrows(VVBVerificationService.VVBVerificationException.class, () -> {
             vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -297,7 +299,7 @@ class VVBVerificationServiceTest {
     void testApproveWithoutReview() {
         assertThrows(VVBVerificationService.VVBReviewNotFoundException.class, () -> {
             vvbVerificationService.approve("NO-REVIEW-CONTRACT", TEST_VVB_ID, createAttestationRequest())
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -311,11 +313,12 @@ class VVBVerificationServiceTest {
     void testRejectVerification() {
         // Submit for review first
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         String rejectionReason = "Carbon credits do not meet verification standards";
-        VVBVerificationService.VVBReview review = vvbVerificationService.reject(TEST_CONTRACT_ID, TEST_VVB_ID, rejectionReason)
-            .await().indefinitely();
+        VVBVerificationService.VVBReview review = vvbVerificationService
+                .reject(TEST_CONTRACT_ID, TEST_VVB_ID, rejectionReason)
+                .await().indefinitely();
 
         assertNotNull(review);
         assertEquals(VVBVerificationService.VVBReviewStatus.REJECTED, review.getStatus());
@@ -330,14 +333,14 @@ class VVBVerificationServiceTest {
     void testRejectAlreadyRejected() {
         // Submit and reject
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         vvbVerificationService.reject(TEST_CONTRACT_ID, TEST_VVB_ID, "First rejection")
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Try to reject again
         assertThrows(VVBVerificationService.VVBVerificationException.class, () -> {
             vvbVerificationService.reject(TEST_CONTRACT_ID, TEST_VVB_ID, "Second rejection")
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -347,14 +350,14 @@ class VVBVerificationServiceTest {
     void testRejectAfterApproval() {
         // Submit and approve
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Try to reject
         assertThrows(VVBVerificationService.VVBVerificationException.class, () -> {
             vvbVerificationService.reject(TEST_CONTRACT_ID, TEST_VVB_ID, "Late rejection")
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -364,14 +367,14 @@ class VVBVerificationServiceTest {
     void testApproveAfterRejection() {
         // Submit and reject
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         vvbVerificationService.reject(TEST_CONTRACT_ID, TEST_VVB_ID, "Initial rejection")
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Try to approve
         assertThrows(VVBVerificationService.VVBVerificationException.class, () -> {
             vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -384,10 +387,9 @@ class VVBVerificationServiceTest {
     @DisplayName("Should register VVB entity")
     void testRegisterVVB() {
         VVBVerificationService.VVBEntity vvb = vvbVerificationService.registerVVB(
-            "VVB-CARBON-001",
-            "Carbon Credit Verification Authority",
-            VVBVerificationService.VVBType.CARBON_CREDIT
-        );
+                "VVB-CARBON-001",
+                "Carbon Credit Verification Authority",
+                VVBVerificationService.VVBType.CARBON_CREDIT);
 
         assertNotNull(vvb);
         assertEquals("VVB-CARBON-001", vvb.getVvbId());
@@ -405,10 +407,9 @@ class VVBVerificationServiceTest {
     void testRegisterVVBAllTypes(VVBVerificationService.VVBType type) {
         String vvbId = "VVB-" + type.name() + "-001";
         VVBVerificationService.VVBEntity vvb = vvbVerificationService.registerVVB(
-            vvbId,
-            type.name() + " Verification Body",
-            type
-        );
+                vvbId,
+                type.name() + " Verification Body",
+                type);
 
         assertNotNull(vvb);
         assertEquals(type, vvb.getType());
@@ -435,12 +436,12 @@ class VVBVerificationServiceTest {
     void testAutoRegisterVVB() {
         // Submit for review
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Approve with unregistered VVB - should auto-register
         String newVvbId = "VVB-AUTO-" + UUID.randomUUID().toString().substring(0, 8);
         vvbVerificationService.approve(TEST_CONTRACT_ID, newVvbId, createAttestationRequest())
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Verify VVB was auto-registered
         List<VVBVerificationService.VVBEntity> vvbs = vvbVerificationService.getRegisteredVVBs();
@@ -474,7 +475,7 @@ class VVBVerificationServiceTest {
         long initialSubmitted = (long) vvbVerificationService.getMetrics().get("reviewsSubmitted");
 
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         long afterSubmit = (long) vvbVerificationService.getMetrics().get("reviewsSubmitted");
         assertEquals(initialSubmitted + 1, afterSubmit);
@@ -485,12 +486,12 @@ class VVBVerificationServiceTest {
     @DisplayName("Should update metrics on approval")
     void testMetricsOnApproval() {
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         long initialApproved = (long) vvbVerificationService.getMetrics().get("reviewsApproved");
 
         vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-            .await().indefinitely();
+                .await().indefinitely();
 
         long afterApproval = (long) vvbVerificationService.getMetrics().get("reviewsApproved");
         assertEquals(initialApproved + 1, afterApproval);
@@ -501,12 +502,12 @@ class VVBVerificationServiceTest {
     @DisplayName("Should update metrics on rejection")
     void testMetricsOnRejection() {
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         long initialRejected = (long) vvbVerificationService.getMetrics().get("reviewsRejected");
 
         vvbVerificationService.reject(TEST_CONTRACT_ID, TEST_VVB_ID, "Test rejection")
-            .await().indefinitely();
+                .await().indefinitely();
 
         long afterRejection = (long) vvbVerificationService.getMetrics().get("reviewsRejected");
         assertEquals(initialRejected + 1, afterRejection);
@@ -522,7 +523,7 @@ class VVBVerificationServiceTest {
     void testGetNonExistentAttestation() {
         assertThrows(VVBVerificationService.VVBAttestationNotFoundException.class, () -> {
             vvbVerificationService.getAttestation("NON-EXISTENT-CONTRACT")
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -532,12 +533,12 @@ class VVBVerificationServiceTest {
     void testAttestationValidity() {
         // Submit and approve
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-            .await().indefinitely();
+                .await().indefinitely();
 
         VVBVerificationService.VVBAttestation attestation = vvbVerificationService.getAttestation(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Verify validity period is approximately one year
         long validityDays = java.time.Duration.between(attestation.getIssuedAt(), attestation.getValidUntil()).toDays();
@@ -554,7 +555,7 @@ class VVBVerificationServiceTest {
     void testApprovalStateFlow() {
         // State 1: FULLY_SIGNED -> Submit for VVB_REVIEW
         VVBVerificationService.VVBReview review = vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         assertEquals(VVBVerificationService.VVBReviewStatus.PENDING, review.getStatus());
 
         // Verify contract metadata updated
@@ -563,7 +564,7 @@ class VVBVerificationServiceTest {
 
         // State 2: VVB_REVIEW -> VVB_APPROVED
         review = vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-            .await().indefinitely();
+                .await().indefinitely();
         assertEquals(VVBVerificationService.VVBReviewStatus.APPROVED, review.getStatus());
 
         // Verify contract metadata updated
@@ -577,13 +578,13 @@ class VVBVerificationServiceTest {
     void testRejectionStateFlow() {
         // State 1: FULLY_SIGNED -> Submit for VVB_REVIEW
         VVBVerificationService.VVBReview review = vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         assertEquals(VVBVerificationService.VVBReviewStatus.PENDING, review.getStatus());
 
         // State 2: VVB_REVIEW -> VVB_REJECTED
         String reason = "Does not meet compliance standards";
         review = vvbVerificationService.reject(TEST_CONTRACT_ID, TEST_VVB_ID, reason)
-            .await().indefinitely();
+                .await().indefinitely();
         assertEquals(VVBVerificationService.VVBReviewStatus.REJECTED, review.getStatus());
 
         // Verify contract metadata updated
@@ -600,19 +601,19 @@ class VVBVerificationServiceTest {
 
         // Submit for review
         vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Check audit entry for submission
         assertTrue(testContract.getAuditTrail().stream()
-            .anyMatch(entry -> entry.contains("Submitted for VVB review")));
+                .anyMatch(entry -> entry.contains("Submitted for VVB review")));
 
         // Approve
         vvbVerificationService.approve(TEST_CONTRACT_ID, TEST_VVB_ID, createAttestationRequest())
-            .await().indefinitely();
+                .await().indefinitely();
 
         // Check audit entry for approval
         assertTrue(testContract.getAuditTrail().stream()
-            .anyMatch(entry -> entry.contains("VVB approved by")));
+                .anyMatch(entry -> entry.contains("VVB approved by")));
     }
 
     // ==========================================================================
@@ -655,11 +656,11 @@ class VVBVerificationServiceTest {
     @DisplayName("Should handle contract service exception")
     void testContractServiceException() {
         when(contractService.getContract("ERROR-CONTRACT"))
-            .thenReturn(Uni.createFrom().failure(new RuntimeException("Contract service unavailable")));
+                .thenReturn(Uni.createFrom().failure(new RuntimeException("Contract service unavailable")));
 
         assertThrows(RuntimeException.class, () -> {
             vvbVerificationService.submitForReview("ERROR-CONTRACT")
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -668,11 +669,11 @@ class VVBVerificationServiceTest {
     @DisplayName("Should handle null contract from service")
     void testNullContractFromService() {
         when(contractService.getContract("NULL-CONTRACT"))
-            .thenReturn(Uni.createFrom().nullItem());
+                .thenReturn(Uni.createFrom().nullItem());
 
         assertThrows(NullPointerException.class, () -> {
             vvbVerificationService.submitForReview("NULL-CONTRACT")
-                .await().indefinitely();
+                    .await().indefinitely();
         });
     }
 
@@ -685,10 +686,9 @@ class VVBVerificationServiceTest {
     @DisplayName("Should initialize VVB entity with empty collections")
     void testVVBEntityInitialization() {
         VVBVerificationService.VVBEntity vvb = vvbVerificationService.registerVVB(
-            "VVB-INIT-TEST",
-            "Initialization Test VVB",
-            VVBVerificationService.VVBType.GENERAL
-        );
+                "VVB-INIT-TEST",
+                "Initialization Test VVB",
+                VVBVerificationService.VVBType.GENERAL);
 
         assertNotNull(vvb.getCertifications());
         assertTrue(vvb.getCertifications().isEmpty());
@@ -706,15 +706,14 @@ class VVBVerificationServiceTest {
     void testCompleteVVBLifecycle() {
         // 1. Register a VVB
         VVBVerificationService.VVBEntity vvb = vvbVerificationService.registerVVB(
-            "VVB-LIFECYCLE-001",
-            "Carbon Credit Verification Authority",
-            VVBVerificationService.VVBType.CARBON_CREDIT
-        );
+                "VVB-LIFECYCLE-001",
+                "Carbon Credit Verification Authority",
+                VVBVerificationService.VVBType.CARBON_CREDIT);
         assertTrue(vvb.isActive());
 
         // 2. Submit contract for review
         VVBVerificationService.VVBReview review = vvbVerificationService.submitForReview(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         assertEquals(VVBVerificationService.VVBReviewStatus.PENDING, review.getStatus());
 
         // 3. Check metrics
@@ -728,12 +727,12 @@ class VVBVerificationServiceTest {
         attestation.setRecommendations("Approved for trading. Annual re-verification required.");
 
         review = vvbVerificationService.approve(TEST_CONTRACT_ID, vvb.getVvbId(), attestation)
-            .await().indefinitely();
+                .await().indefinitely();
         assertEquals(VVBVerificationService.VVBReviewStatus.APPROVED, review.getStatus());
 
         // 5. Retrieve and verify attestation
         VVBVerificationService.VVBAttestation att = vvbVerificationService.getAttestation(TEST_CONTRACT_ID)
-            .await().indefinitely();
+                .await().indefinitely();
         assertNotNull(att);
         assertTrue(att.isValid());
         assertEquals(vvb.getVvbId(), att.getVvbId());
