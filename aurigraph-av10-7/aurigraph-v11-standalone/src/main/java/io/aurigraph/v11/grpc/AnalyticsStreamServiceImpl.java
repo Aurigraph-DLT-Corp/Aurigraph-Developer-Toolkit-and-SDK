@@ -3,7 +3,7 @@ package io.aurigraph.v11.grpc;
 import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since V12
  */
 @GrpcService
-@ApplicationScoped
+@Singleton
 public class AnalyticsStreamServiceImpl {
 
     private static final Logger LOG = Logger.getLogger(AnalyticsStreamServiceImpl.class);
@@ -59,12 +59,13 @@ public class AnalyticsStreamServiceImpl {
      * - Block time
      * - Memory/CPU usage
      *
-     * @param clientId Client identifier
+     * @param clientId   Client identifier
      * @param intervalMs Update interval in milliseconds (default: 1000ms)
      * @return Multi<MetricsSnapshot> stream of metrics
      */
     public Multi<MetricsSnapshot> streamMetrics(String clientId, int intervalMs) {
-        if (intervalMs <= 0) intervalMs = 1000;
+        if (intervalMs <= 0)
+            intervalMs = 1000;
 
         final int updateInterval = intervalMs;
 
@@ -93,12 +94,13 @@ public class AnalyticsStreamServiceImpl {
      * - TPS measurements (1m, 5m, 1h windows)
      * - Success/failure rates
      *
-     * @param clientId Client identifier
+     * @param clientId   Client identifier
      * @param intervalMs Update interval in milliseconds (default: 5000ms)
      * @return Multi<TransactionAnalytics> stream of transaction data
      */
     public Multi<TransactionAnalytics> streamTransactionAnalytics(String clientId, int intervalMs) {
-        if (intervalMs <= 0) intervalMs = 5000;
+        if (intervalMs <= 0)
+            intervalMs = 5000;
 
         final int updateInterval = intervalMs;
 
@@ -128,12 +130,13 @@ public class AnalyticsStreamServiceImpl {
      * - Network uptime percentage
      * - Consensus participation rate
      *
-     * @param clientId Client identifier
+     * @param clientId   Client identifier
      * @param intervalMs Update interval in milliseconds (default: 2000ms)
      * @return Multi<NetworkHealth> stream of network health data
      */
     public Multi<NetworkHealth> streamNetworkHealth(String clientId, int intervalMs) {
-        if (intervalMs <= 0) intervalMs = 2000;
+        if (intervalMs <= 0)
+            intervalMs = 2000;
 
         final int updateInterval = intervalMs;
 
@@ -162,7 +165,7 @@ public class AnalyticsStreamServiceImpl {
      * - Threshold violations
      * - Network events
      *
-     * @param clientId Client identifier
+     * @param clientId   Client identifier
      * @param alertLevel Minimum alert level to stream
      * @return Multi<SystemAlert> stream of alerts
      */
@@ -196,22 +199,21 @@ public class AnalyticsStreamServiceImpl {
         var transactionStats = transactionService.getStats();
 
         return new MetricsSnapshot(
-            System.currentTimeMillis(),
-            // TPS metrics
-            transactionStats.currentThroughputMeasurement(),
-            transactionStats.throughputTarget(),
-            transactionStats.ultraHighThroughputProcessed(),
-            // Latency metrics
-            transactionStats.avgLatencyMs(),
-            transactionStats.p99LatencyMs(),
-            transactionStats.maxLatencyMs(),
-            // Block metrics
-            calculateBlockTime(),
-            // Resource metrics
-            perfMetrics.memoryUsage().used(),
-            perfMetrics.cpuUtilization(),
-            perfMetrics.errorRate()
-        );
+                System.currentTimeMillis(),
+                // TPS metrics
+                transactionStats.currentThroughputMeasurement(),
+                transactionStats.throughputTarget(),
+                transactionStats.ultraHighThroughputProcessed(),
+                // Latency metrics
+                transactionStats.avgLatencyMs(),
+                transactionStats.p99LatencyMs(),
+                transactionStats.maxLatencyMs(),
+                // Block metrics
+                calculateBlockTime(),
+                // Resource metrics
+                perfMetrics.memoryUsage().used(),
+                perfMetrics.cpuUtilization(),
+                perfMetrics.errorRate());
     }
 
     /**
@@ -221,21 +223,20 @@ public class AnalyticsStreamServiceImpl {
         var stats = transactionService.getStats();
 
         return new TransactionAnalytics(
-            System.currentTimeMillis(),
-            stats.totalProcessed(),
-            stats.storedTransactions(),
-            calculateTPSTrend(),
-            // Gas metrics
-            calculateAvgGasUsage(),
-            calculatePeakGasUsage(),
-            calculateTotalGasUsed(),
-            // Time windows
-            calculateTPS1m(),
-            calculateTPS5m(),
-            calculateTPS1h(),
-            // Success rate
-            calculateSuccessRate()
-        );
+                System.currentTimeMillis(),
+                stats.totalProcessed(),
+                stats.storedTransactions(),
+                calculateTPSTrend(),
+                // Gas metrics
+                calculateAvgGasUsage(),
+                calculatePeakGasUsage(),
+                calculateTotalGasUsed(),
+                // Time windows
+                calculateTPS1m(),
+                calculateTPS5m(),
+                calculateTPS1h(),
+                // Success rate
+                calculateSuccessRate());
     }
 
     /**
@@ -243,17 +244,16 @@ public class AnalyticsStreamServiceImpl {
      */
     private NetworkHealth buildNetworkHealth() {
         return new NetworkHealth(
-            System.currentTimeMillis(),
-            calculateActiveValidators(),
-            calculateTotalValidators(),
-            calculateNetworkLatency(),
-            calculateP95Latency(),
-            calculateP99Latency(),
-            calculatePeerConnections(),
-            calculateNetworkUptime(),
-            calculateConsensusParticipation(),
-            calculateSyncStatus()
-        );
+                System.currentTimeMillis(),
+                calculateActiveValidators(),
+                calculateTotalValidators(),
+                calculateNetworkLatency(),
+                calculateP95Latency(),
+                calculateP99Latency(),
+                calculatePeerConnections(),
+                calculateNetworkUptime(),
+                calculateConsensusParticipation(),
+                calculateSyncStatus());
     }
 
     /**
@@ -266,26 +266,24 @@ public class AnalyticsStreamServiceImpl {
         // Example: TPS drops below threshold
         if (stats.currentThroughputMeasurement() < stats.throughputTarget() * 0.5) {
             return new SystemAlert(
-                System.currentTimeMillis(),
-                "WARNING",
-                "LOW_THROUGHPUT",
-                "TPS dropped below 50% of target",
-                String.format("Current: %.0f TPS, Target: %.0f TPS",
-                    stats.currentThroughputMeasurement(),
-                    stats.throughputTarget())
-            );
+                    System.currentTimeMillis(),
+                    "WARNING",
+                    "LOW_THROUGHPUT",
+                    "TPS dropped below 50% of target",
+                    String.format("Current: %.0f TPS, Target: %.0f TPS",
+                            stats.currentThroughputMeasurement(),
+                            stats.throughputTarget()));
         }
 
         // Example: High error rate
         var perfMetrics = analyticsService.getPerformanceMetrics();
         if (perfMetrics.errorRate() > 1.0) {
             return new SystemAlert(
-                System.currentTimeMillis(),
-                "CRITICAL",
-                "HIGH_ERROR_RATE",
-                "Error rate exceeded 1%",
-                String.format("Current error rate: %.2f%%", perfMetrics.errorRate())
-            );
+                    System.currentTimeMillis(),
+                    "CRITICAL",
+                    "HIGH_ERROR_RATE",
+                    "Error rate exceeded 1%",
+                    String.format("Current error rate: %.2f%%", perfMetrics.errorRate()));
         }
 
         // No alerts
@@ -374,68 +372,67 @@ public class AnalyticsStreamServiceImpl {
     // ==================== DTOs ====================
 
     public record MetricsSnapshot(
-        long timestamp,
-        double currentTPS,
-        double peakTPS,
-        long totalTransactions,
-        double avgLatency,
-        double p99Latency,
-        double maxLatency,
-        double blockTime,
-        long memoryUsed,
-        double cpuUtilization,
-        double errorRate
-    ) {}
+            long timestamp,
+            double currentTPS,
+            double peakTPS,
+            long totalTransactions,
+            double avgLatency,
+            double p99Latency,
+            double maxLatency,
+            double blockTime,
+            long memoryUsed,
+            double cpuUtilization,
+            double errorRate) {
+    }
 
     public record TransactionAnalytics(
-        long timestamp,
-        long totalTransactions,
-        long pendingTransactions,
-        double tpsTrend,
-        long avgGasUsage,
-        long peakGasUsage,
-        long totalGasUsed,
-        double tps1m,
-        double tps5m,
-        double tps1h,
-        double successRate
-    ) {}
+            long timestamp,
+            long totalTransactions,
+            long pendingTransactions,
+            double tpsTrend,
+            long avgGasUsage,
+            long peakGasUsage,
+            long totalGasUsed,
+            double tps1m,
+            double tps5m,
+            double tps1h,
+            double successRate) {
+    }
 
     public record NetworkHealth(
-        long timestamp,
-        int activeValidators,
-        int totalValidators,
-        double avgLatency,
-        double p95Latency,
-        double p99Latency,
-        int peerConnections,
-        double networkUptime,
-        double consensusParticipation,
-        String syncStatus
-    ) {}
+            long timestamp,
+            int activeValidators,
+            int totalValidators,
+            double avgLatency,
+            double p95Latency,
+            double p99Latency,
+            int peerConnections,
+            double networkUptime,
+            double consensusParticipation,
+            String syncStatus) {
+    }
 
     public record SystemAlert(
-        long timestamp,
-        String level,
-        String type,
-        String message,
-        String details
-    ) {}
+            long timestamp,
+            String level,
+            String type,
+            String message,
+            String details) {
+    }
 
     /**
      * Get streaming statistics
      */
     public StreamingStats getStreamingStats() {
         return new StreamingStats(
-            streamedMetricsCount.get(),
-            activeSubscriptions.get(),
-            clientSubscriptions.size()
-        );
+                streamedMetricsCount.get(),
+                activeSubscriptions.get(),
+                clientSubscriptions.size());
     }
 
     public record StreamingStats(
-        long totalMetricsStreamed,
-        long activeSubscriptions,
-        int uniqueClients
-    ) {}
+            long totalMetricsStreamed,
+            long activeSubscriptions,
+            int uniqueClients) {
+    }
 }

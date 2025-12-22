@@ -64,10 +64,13 @@ source scripts/agent-framework-session-init.sh
 
 ### Documentation
 
-- **AGENT-FRAMEWORK-DEFAULT-MODEL.md** - Complete framework specification ⭐ START HERE
-- **GIT-WORKTREES-GUIDE.md** - Detailed worktree usage guide
-- **AGENT-FRAMEWORK-WORKTREES-INTEGRATION.md** - Architecture and integration details
-- **AURIGRAPH-TEAM-AGENTS.md** - Agent descriptions and responsibilities
+- **[Documentation Map](docs/README.md)** - Central navigation for all technical and product docs ⭐ START HERE
+- **[Architecture Deep Dive](docs/architecture/ARCHITECTURE-MAIN.md)** - Comprehensive architecture documentation
+- **[Product Requirements (PRD)](docs/product/PRD-EXECUTIVE-SUMMARY.md)** - RWA Tokenization Platform PRD
+- **[Project Plan](docs/PROJECT_PLAN.md)** - Current roadmap and sprint progress
+- **[Claus Context](docs/CLAUDE-MAIN.md)** - Project overview for AI assistants
+- **[Agent Framework Specification](AGENT-FRAMEWORK-DEFAULT-MODEL.md)** - Complete framework specification
+- **[Git Worktrees Guide](GIT-WORKTREES-GUIDE.md)** - Detailed worktree usage guide
 
 ---
 

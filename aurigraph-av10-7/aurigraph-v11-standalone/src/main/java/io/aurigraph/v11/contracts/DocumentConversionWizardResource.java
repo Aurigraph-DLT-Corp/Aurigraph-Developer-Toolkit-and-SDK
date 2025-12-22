@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version 12.0.0
  * @author J4C Development Agent
  */
-@Path("/api/v12/contracts/wizard")
+@Path("/api/v12/contracts/conversion-wizard")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -67,12 +67,11 @@ public class DocumentConversionWizardResource {
                 ValidationResult validation = validateDocument(form);
                 if (!validation.isValid()) {
                     return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of(
-                            "success", false,
-                            "step", 1,
-                            "errors", validation.getErrors()
-                        ))
-                        .build();
+                            .entity(Map.of(
+                                    "success", false,
+                                    "step", 1,
+                                    "errors", validation.getErrors()))
+                            .build();
                 }
 
                 // Read file content
@@ -115,23 +114,23 @@ public class DocumentConversionWizardResource {
                 result.put("fileName", form.fileName);
                 result.put("fileSize", fileContent.length);
                 result.put("extractedTextPreview", extractedText.length() > 500
-                    ? extractedText.substring(0, 500) + "..."
-                    : extractedText);
+                        ? extractedText.substring(0, 500) + "..."
+                        : extractedText);
                 result.put("detectedDocumentType", session.detectedDocumentType);
                 result.put("detectedParties", session.detectedParties);
                 result.put("detectedTermsCount", session.detectedTerms.size());
                 result.put("message", "Document uploaded and analyzed. Proceed to Step 2 to review parties.");
 
                 LOG.infof("Wizard session created: %s, detected %d parties, %d terms",
-                    sessionId, session.detectedParties.size(), session.detectedTerms.size());
+                        sessionId, session.detectedParties.size(), session.detectedTerms.size());
 
                 return Response.ok(result).build();
 
             } catch (Exception e) {
                 LOG.error("Error in wizard step 1", e);
                 return Response.serverError()
-                    .entity(Map.of("error", "Document upload failed: " + e.getMessage()))
-                    .build();
+                        .entity(Map.of("error", "Document upload failed: " + e.getMessage()))
+                        .build();
             }
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
@@ -150,17 +149,17 @@ public class DocumentConversionWizardResource {
         WizardSession session = wizardSessions.get(sessionId);
         if (session == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                .entity(Map.of("error", "Session not found or expired"))
-                .build();
+                    .entity(Map.of("error", "Session not found or expired"))
+                    .build();
         }
 
         return Response.ok(Map.of(
-            "sessionId", sessionId,
-            "step", 2,
-            "parties", session.detectedParties,
-            "suggestedRoles", List.of("BUYER", "SELLER", "LESSOR", "LESSEE", "LICENSOR", "LICENSEE", "PARTY_A", "PARTY_B"),
-            "message", "Review and edit detected parties, then proceed to Step 3."
-        )).build();
+                "sessionId", sessionId,
+                "step", 2,
+                "parties", session.detectedParties,
+                "suggestedRoles",
+                List.of("BUYER", "SELLER", "LESSOR", "LESSEE", "LICENSOR", "LICENSEE", "PARTY_A", "PARTY_B"),
+                "message", "Review and edit detected parties, then proceed to Step 3.")).build();
     }
 
     /**
@@ -178,15 +177,15 @@ public class DocumentConversionWizardResource {
         WizardSession session = wizardSessions.get(sessionId);
         if (session == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                .entity(Map.of("error", "Session not found or expired"))
-                .build();
+                    .entity(Map.of("error", "Session not found or expired"))
+                    .build();
         }
 
         // Validate minimum parties
         if (request.parties == null || request.parties.size() < 2) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(Map.of("error", "At least 2 parties are required"))
-                .build();
+                    .entity(Map.of("error", "At least 2 parties are required"))
+                    .build();
         }
 
         // Update parties
@@ -194,13 +193,12 @@ public class DocumentConversionWizardResource {
         session.currentStep = 2;
 
         return Response.ok(Map.of(
-            "success", true,
-            "sessionId", sessionId,
-            "step", 2,
-            "nextStep", 3,
-            "partiesConfirmed", session.confirmedParties.size(),
-            "message", "Parties confirmed. Proceed to Step 3 to configure terms."
-        )).build();
+                "success", true,
+                "sessionId", sessionId,
+                "step", 2,
+                "nextStep", 3,
+                "partiesConfirmed", session.confirmedParties.size(),
+                "message", "Parties confirmed. Proceed to Step 3 to configure terms.")).build();
     }
 
     // ==================== STEP 3: Configure Terms ====================
@@ -217,19 +215,19 @@ public class DocumentConversionWizardResource {
         WizardSession session = wizardSessions.get(sessionId);
         if (session == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                .entity(Map.of("error", "Session not found or expired"))
-                .build();
+                    .entity(Map.of("error", "Session not found or expired"))
+                    .build();
         }
 
         return Response.ok(Map.of(
-            "sessionId", sessionId,
-            "step", 3,
-            "terms", session.detectedTerms,
-            "contractType", session.contractType,
-            "jurisdiction", session.jurisdiction,
-            "suggestedTermTypes", List.of("PAYMENT", "DELIVERY", "WARRANTY", "TERMINATION", "DISPUTE_RESOLUTION", "CONFIDENTIALITY"),
-            "message", "Review and configure contract terms, then proceed to Step 4."
-        )).build();
+                "sessionId", sessionId,
+                "step", 3,
+                "terms", session.detectedTerms,
+                "contractType", session.contractType,
+                "jurisdiction", session.jurisdiction,
+                "suggestedTermTypes",
+                List.of("PAYMENT", "DELIVERY", "WARRANTY", "TERMINATION", "DISPUTE_RESOLUTION", "CONFIDENTIALITY"),
+                "message", "Review and configure contract terms, then proceed to Step 4.")).build();
     }
 
     /**
@@ -247,8 +245,8 @@ public class DocumentConversionWizardResource {
         WizardSession session = wizardSessions.get(sessionId);
         if (session == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                .entity(Map.of("error", "Session not found or expired"))
-                .build();
+                    .entity(Map.of("error", "Session not found or expired"))
+                    .build();
         }
 
         // Update settings
@@ -268,13 +266,12 @@ public class DocumentConversionWizardResource {
         session.currentStep = 3;
 
         return Response.ok(Map.of(
-            "success", true,
-            "sessionId", sessionId,
-            "step", 3,
-            "nextStep", 4,
-            "termsConfirmed", session.confirmedTerms != null ? session.confirmedTerms.size() : 0,
-            "message", "Terms configured. Proceed to Step 4 to preview contract."
-        )).build();
+                "success", true,
+                "sessionId", sessionId,
+                "step", 3,
+                "nextStep", 4,
+                "termsConfirmed", session.confirmedTerms != null ? session.confirmedTerms.size() : 0,
+                "message", "Terms configured. Proceed to Step 4 to preview contract.")).build();
     }
 
     // ==================== STEP 4: Preview Contract ====================
@@ -292,8 +289,8 @@ public class DocumentConversionWizardResource {
             WizardSession session = wizardSessions.get(sessionId);
             if (session == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                    .entity(Map.of("error", "Session not found or expired"))
-                    .build();
+                        .entity(Map.of("error", "Session not found or expired"))
+                        .build();
             }
 
             // Generate preview
@@ -306,11 +303,12 @@ public class DocumentConversionWizardResource {
             contract.put("name", session.contractName != null ? session.contractName : "Untitled Contract");
             contract.put("type", session.contractType);
             contract.put("jurisdiction", session.jurisdiction);
-            contract.put("parties", session.confirmedParties != null ? session.confirmedParties : session.detectedParties);
+            contract.put("parties",
+                    session.confirmedParties != null ? session.confirmedParties : session.detectedParties);
             contract.put("terms", session.confirmedTerms != null ? session.confirmedTerms : session.detectedTerms);
             contract.put("legalTextPreview", session.extractedText.length() > 1000
-                ? session.extractedText.substring(0, 1000) + "..."
-                : session.extractedText);
+                    ? session.extractedText.substring(0, 1000) + "..."
+                    : session.extractedText);
 
             // Enforceability analysis
             Map<String, Object> analysis = new HashMap<>();
@@ -318,10 +316,14 @@ public class DocumentConversionWizardResource {
             int termCount = session.confirmedTerms != null ? session.confirmedTerms.size() : 0;
 
             double enforceabilityScore = 50.0;
-            if (partyCount >= 2) enforceabilityScore += 20;
-            if (termCount >= 3) enforceabilityScore += 15;
-            if (session.jurisdiction != null) enforceabilityScore += 10;
-            if (session.extractedText.length() > 500) enforceabilityScore += 5;
+            if (partyCount >= 2)
+                enforceabilityScore += 20;
+            if (termCount >= 3)
+                enforceabilityScore += 15;
+            if (session.jurisdiction != null)
+                enforceabilityScore += 10;
+            if (session.extractedText.length() > 500)
+                enforceabilityScore += 5;
 
             analysis.put("enforceabilityScore", Math.min(100, enforceabilityScore));
             analysis.put("partyCount", partyCount);
@@ -358,21 +360,21 @@ public class DocumentConversionWizardResource {
             WizardSession session = wizardSessions.get(sessionId);
             if (session == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                    .entity(Map.of("error", "Session not found or expired"))
-                    .build();
+                        .entity(Map.of("error", "Session not found or expired"))
+                        .build();
             }
 
             try {
                 // Use conversion service to create RicardianContract
                 RicardianContract ricardianContract = conversionService.convertDocumentToContract(
-                    session.fileName,
-                    session.fileContent,
-                    session.contractType,
-                    session.jurisdiction,
-                    convertToContractParties(session.confirmedParties != null
-                        ? session.confirmedParties
-                        : session.detectedParties)
-                ).await().indefinitely();
+                        session.fileName,
+                        session.fileContent,
+                        session.contractType,
+                        session.jurisdiction,
+                        convertToContractParties(session.confirmedParties != null
+                                ? session.confirmedParties
+                                : session.detectedParties))
+                        .await().indefinitely();
 
                 // Set name if provided
                 if (session.contractName != null) {
@@ -405,21 +407,20 @@ public class DocumentConversionWizardResource {
                 result.put("enforceabilityScore", ricardianContract.getEnforceabilityScore());
                 result.put("message", "Contract created successfully. Ready for party signatures.");
                 result.put("nextActions", List.of(
-                    "Add party signatures",
-                    "Configure execution conditions",
-                    "Activate contract when all parties sign"
-                ));
+                        "Add party signatures",
+                        "Configure execution conditions",
+                        "Activate contract when all parties sign"));
 
                 LOG.infof("Contract created: %s from wizard session: %s",
-                    activeContract.getContractId(), sessionId);
+                        activeContract.getContractId(), sessionId);
 
                 return Response.ok(result).build();
 
             } catch (Exception e) {
                 LOG.error("Error finalizing contract", e);
                 return Response.serverError()
-                    .entity(Map.of("error", "Contract creation failed: " + e.getMessage()))
-                    .build();
+                        .entity(Map.of("error", "Contract creation failed: " + e.getMessage()))
+                        .build();
             }
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
@@ -436,8 +437,8 @@ public class DocumentConversionWizardResource {
         WizardSession session = wizardSessions.get(sessionId);
         if (session == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                .entity(Map.of("error", "Session not found or expired"))
-                .build();
+                    .entity(Map.of("error", "Session not found or expired"))
+                    .build();
         }
 
         Map<String, Object> status = new HashMap<>();
@@ -465,15 +466,14 @@ public class DocumentConversionWizardResource {
         WizardSession removed = wizardSessions.remove(sessionId);
         if (removed == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                .entity(Map.of("error", "Session not found"))
-                .build();
+                    .entity(Map.of("error", "Session not found"))
+                    .build();
         }
 
         return Response.ok(Map.of(
-            "success", true,
-            "message", "Wizard session cancelled",
-            "sessionId", sessionId
-        )).build();
+                "success", true,
+                "message", "Wizard session cancelled",
+                "sessionId", sessionId)).build();
     }
 
     /**
@@ -484,29 +484,26 @@ public class DocumentConversionWizardResource {
     @Path("/supported-types")
     public Response getSupportedTypes() {
         return Response.ok(Map.of(
-            "documentFormats", List.of("PDF", "DOCX", "DOC", "TXT", "MD"),
-            "contractTypes", List.of(
-                Map.of("value", "SALE_AGREEMENT", "label", "Sale Agreement"),
-                Map.of("value", "SERVICE_AGREEMENT", "label", "Service Agreement"),
-                Map.of("value", "NDA", "label", "Non-Disclosure Agreement"),
-                Map.of("value", "EMPLOYMENT", "label", "Employment Contract"),
-                Map.of("value", "PARTNERSHIP", "label", "Partnership Agreement"),
-                Map.of("value", "LICENSING", "label", "Licensing Agreement"),
-                Map.of("value", "LEASE", "label", "Lease Agreement"),
-                Map.of("value", "LOAN", "label", "Loan Agreement")
-            ),
-            "jurisdictions", List.of(
-                Map.of("value", "US", "label", "United States"),
-                Map.of("value", "UK", "label", "United Kingdom"),
-                Map.of("value", "EU", "label", "European Union"),
-                Map.of("value", "CA", "label", "Canada"),
-                Map.of("value", "AU", "label", "Australia"),
-                Map.of("value", "SG", "label", "Singapore"),
-                Map.of("value", "JP", "label", "Japan"),
-                Map.of("value", "INTERNATIONAL", "label", "International")
-            ),
-            "maxFileSize", "10MB"
-        )).build();
+                "documentFormats", List.of("PDF", "DOCX", "DOC", "TXT", "MD"),
+                "contractTypes", List.of(
+                        Map.of("value", "SALE_AGREEMENT", "label", "Sale Agreement"),
+                        Map.of("value", "SERVICE_AGREEMENT", "label", "Service Agreement"),
+                        Map.of("value", "NDA", "label", "Non-Disclosure Agreement"),
+                        Map.of("value", "EMPLOYMENT", "label", "Employment Contract"),
+                        Map.of("value", "PARTNERSHIP", "label", "Partnership Agreement"),
+                        Map.of("value", "LICENSING", "label", "Licensing Agreement"),
+                        Map.of("value", "LEASE", "label", "Lease Agreement"),
+                        Map.of("value", "LOAN", "label", "Loan Agreement")),
+                "jurisdictions", List.of(
+                        Map.of("value", "US", "label", "United States"),
+                        Map.of("value", "UK", "label", "United Kingdom"),
+                        Map.of("value", "EU", "label", "European Union"),
+                        Map.of("value", "CA", "label", "Canada"),
+                        Map.of("value", "AU", "label", "Australia"),
+                        Map.of("value", "SG", "label", "Singapore"),
+                        Map.of("value", "JP", "label", "Japan"),
+                        Map.of("value", "INTERNATIONAL", "label", "International")),
+                "maxFileSize", "10MB")).build();
     }
 
     // ==================== Helper Methods ====================
@@ -523,7 +520,7 @@ public class DocumentConversionWizardResource {
         } else {
             String ext = form.fileName.toLowerCase();
             if (!ext.endsWith(".pdf") && !ext.endsWith(".docx") &&
-                !ext.endsWith(".doc") && !ext.endsWith(".txt") && !ext.endsWith(".md")) {
+                    !ext.endsWith(".doc") && !ext.endsWith(".txt") && !ext.endsWith(".md")) {
                 errors.add("Unsupported file type. Supported: PDF, DOCX, DOC, TXT, MD");
             }
         }
@@ -541,35 +538,35 @@ public class DocumentConversionWizardResource {
 
         // Return sample extracted text for demo
         return """
-            CONTRACT AGREEMENT
+                CONTRACT AGREEMENT
 
-            This Agreement is made and entered into as of the date of last signature below.
+                This Agreement is made and entered into as of the date of last signature below.
 
-            PARTIES:
-            Party A: [To be determined from document]
-            Party B: [To be determined from document]
+                PARTIES:
+                Party A: [To be determined from document]
+                Party B: [To be determined from document]
 
-            TERMS AND CONDITIONS:
+                TERMS AND CONDITIONS:
 
-            1. PURPOSE
-            The parties agree to the terms and conditions set forth in this agreement.
+                1. PURPOSE
+                The parties agree to the terms and conditions set forth in this agreement.
 
-            2. OBLIGATIONS
-            Each party shall fulfill their respective obligations as described herein.
+                2. OBLIGATIONS
+                Each party shall fulfill their respective obligations as described herein.
 
-            3. PAYMENT TERMS
-            Payment shall be made according to the schedule outlined in this agreement.
+                3. PAYMENT TERMS
+                Payment shall be made according to the schedule outlined in this agreement.
 
-            4. TERM AND TERMINATION
-            This agreement shall remain in effect until terminated by mutual consent.
+                4. TERM AND TERMINATION
+                This agreement shall remain in effect until terminated by mutual consent.
 
-            5. GOVERNING LAW
-            This agreement shall be governed by applicable laws.
+                5. GOVERNING LAW
+                This agreement shall be governed by applicable laws.
 
-            6. DISPUTE RESOLUTION
-            Any disputes shall be resolved through arbitration.
+                6. DISPUTE RESOLUTION
+                Any disputes shall be resolved through arbitration.
 
-            [Document content extracted from: """ + fileName + "]";
+                [Document content extracted from: """ + fileName + "]";
     }
 
     private String detectDocumentType(String text) {
@@ -603,18 +600,16 @@ public class DocumentConversionWizardResource {
             String lower = line.toLowerCase().trim();
             if (lower.startsWith("party a:") || lower.startsWith("buyer:") || lower.startsWith("lessor:")) {
                 parties.add(Map.of(
-                    "id", UUID.randomUUID().toString().substring(0, 8),
-                    "name", line.substring(line.indexOf(":") + 1).trim(),
-                    "role", lower.contains("buyer") ? "BUYER" : lower.contains("lessor") ? "LESSOR" : "PARTY_A",
-                    "detected", true
-                ));
+                        "id", UUID.randomUUID().toString().substring(0, 8),
+                        "name", line.substring(line.indexOf(":") + 1).trim(),
+                        "role", lower.contains("buyer") ? "BUYER" : lower.contains("lessor") ? "LESSOR" : "PARTY_A",
+                        "detected", true));
             } else if (lower.startsWith("party b:") || lower.startsWith("seller:") || lower.startsWith("lessee:")) {
                 parties.add(Map.of(
-                    "id", UUID.randomUUID().toString().substring(0, 8),
-                    "name", line.substring(line.indexOf(":") + 1).trim(),
-                    "role", lower.contains("seller") ? "SELLER" : lower.contains("lessee") ? "LESSEE" : "PARTY_B",
-                    "detected", true
-                ));
+                        "id", UUID.randomUUID().toString().substring(0, 8),
+                        "name", line.substring(line.indexOf(":") + 1).trim(),
+                        "role", lower.contains("seller") ? "SELLER" : lower.contains("lessee") ? "LESSEE" : "PARTY_B",
+                        "detected", true));
             }
         }
 
@@ -637,11 +632,10 @@ public class DocumentConversionWizardResource {
             if (trimmed.matches("^\\d+\\.\\s+.*")) {
                 String title = trimmed.substring(trimmed.indexOf(" ") + 1).trim();
                 terms.add(Map.of(
-                    "id", "term-" + terms.size(),
-                    "title", title.length() > 50 ? title.substring(0, 50) : title,
-                    "type", classifyTerm(title),
-                    "detected", true
-                ));
+                        "id", "term-" + terms.size(),
+                        "title", title.length() > 50 ? title.substring(0, 50) : title,
+                        "type", classifyTerm(title),
+                        "detected", true));
             }
         }
 
@@ -650,20 +644,28 @@ public class DocumentConversionWizardResource {
 
     private String classifyTerm(String title) {
         String lower = title.toLowerCase();
-        if (lower.contains("payment") || lower.contains("price")) return "PAYMENT";
-        if (lower.contains("delivery") || lower.contains("ship")) return "DELIVERY";
-        if (lower.contains("warranty") || lower.contains("guarantee")) return "WARRANTY";
-        if (lower.contains("termination") || lower.contains("cancel")) return "TERMINATION";
-        if (lower.contains("dispute") || lower.contains("arbitration")) return "DISPUTE_RESOLUTION";
-        if (lower.contains("confidential") || lower.contains("secret")) return "CONFIDENTIALITY";
-        if (lower.contains("govern") || lower.contains("law")) return "GOVERNING_LAW";
+        if (lower.contains("payment") || lower.contains("price"))
+            return "PAYMENT";
+        if (lower.contains("delivery") || lower.contains("ship"))
+            return "DELIVERY";
+        if (lower.contains("warranty") || lower.contains("guarantee"))
+            return "WARRANTY";
+        if (lower.contains("termination") || lower.contains("cancel"))
+            return "TERMINATION";
+        if (lower.contains("dispute") || lower.contains("arbitration"))
+            return "DISPUTE_RESOLUTION";
+        if (lower.contains("confidential") || lower.contains("secret"))
+            return "CONFIDENTIALITY";
+        if (lower.contains("govern") || lower.contains("law"))
+            return "GOVERNING_LAW";
         return "GENERAL";
     }
 
     private List<String> generateWarnings(WizardSession session) {
         List<String> warnings = new ArrayList<>();
 
-        int partyCount = session.confirmedParties != null ? session.confirmedParties.size() : session.detectedParties.size();
+        int partyCount = session.confirmedParties != null ? session.confirmedParties.size()
+                : session.detectedParties.size();
         if (partyCount < 2) {
             warnings.add("At least 2 parties are required for a valid contract");
         }
@@ -684,13 +686,13 @@ public class DocumentConversionWizardResource {
         List<ContractParty> result = new ArrayList<>();
         for (Map<String, Object> party : parties) {
             result.add(ContractParty.builder()
-                .partyId((String) party.getOrDefault("id", UUID.randomUUID().toString()))
-                .name((String) party.getOrDefault("name", "Unknown"))
-                .role((String) party.getOrDefault("role", "PARTY"))
-                .signatureRequired(true)
-                .kycVerified(false)
-                .createdAt(Instant.now())
-                .build());
+                    .partyId((String) party.getOrDefault("id", UUID.randomUUID().toString()))
+                    .name((String) party.getOrDefault("name", "Unknown"))
+                    .role((String) party.getOrDefault("role", "PARTY"))
+                    .signatureRequired(true)
+                    .kycVerified(false)
+                    .createdAt(Instant.now())
+                    .build());
         }
         return result;
     }
@@ -713,20 +715,20 @@ public class DocumentConversionWizardResource {
     }
 
     public record UpdatePartiesRequest(
-        List<Map<String, Object>> parties
-    ) {}
+            List<Map<String, Object>> parties) {
+    }
 
     public record UpdateTermsRequest(
-        String contractName,
-        String contractType,
-        String jurisdiction,
-        List<Map<String, Object>> terms
-    ) {}
+            String contractName,
+            String contractType,
+            String jurisdiction,
+            List<Map<String, Object>> terms) {
+    }
 
     public record FinalizeRequest(
-        String ownerAddress,
-        boolean skipValidation
-    ) {}
+            String ownerAddress,
+            boolean skipValidation) {
+    }
 
     private static class WizardSession {
         String sessionId;
@@ -755,7 +757,12 @@ public class DocumentConversionWizardResource {
             this.errors = errors;
         }
 
-        boolean isValid() { return valid; }
-        List<String> getErrors() { return errors; }
+        boolean isValid() {
+            return valid;
+        }
+
+        List<String> getErrors() {
+            return errors;
+        }
     }
 }

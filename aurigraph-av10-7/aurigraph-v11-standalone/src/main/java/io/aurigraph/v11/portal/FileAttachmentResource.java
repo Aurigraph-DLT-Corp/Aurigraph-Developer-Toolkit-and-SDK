@@ -97,6 +97,7 @@ public class FileAttachmentResource {
     public Response uploadWithTransaction(
             @PathParam("transactionId") String transactionId,
             @RestForm("file") FileUpload file,
+            @RestForm("tokenId") String tokenId,
             @RestForm("category") @DefaultValue("documents") String category,
             @RestForm("description") String description) {
 
@@ -107,6 +108,13 @@ public class FileAttachmentResource {
             if (transactionId == null || transactionId.isBlank()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("error", "Transaction ID is required"))
+                    .build();
+            }
+
+            // Validate token ID
+            if (tokenId == null || tokenId.isBlank()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "Token ID is required"))
                     .build();
             }
 
@@ -163,12 +171,12 @@ public class FileAttachmentResource {
             String fileId = UUID.randomUUID().toString();
             String storedName = sha256Hash.substring(0, 8) + "_" + sanitizeFilename(originalName);
 
-            // Create transaction directory
-            java.nio.file.Path txDir = attachmentsRoot.resolve(transactionId);
-            Files.createDirectories(txDir);
+            // Create token directory
+            java.nio.file.Path tokenDir = attachmentsRoot.resolve(tokenId);
+            Files.createDirectories(tokenDir);
 
             // Copy file to local storage as fallback
-            java.nio.file.Path targetPath = txDir.resolve(storedName);
+            java.nio.file.Path targetPath = tokenDir.resolve(storedName);
             Files.copy(file.filePath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
             LOG.infof("File stored locally at: %s", targetPath);
 
@@ -189,6 +197,7 @@ public class FileAttachmentResource {
             attachment.originalName = originalName;
             attachment.storedName = storedName;
             attachment.transactionId = transactionId;
+            attachment.tokenId = tokenId;
             attachment.category = category;
             attachment.fileSize = fileSize;
             attachment.sha256Hash = sha256Hash;

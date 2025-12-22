@@ -7,6 +7,7 @@ import io.aurigraph.v11.service.NodeTopologyService;
 import io.grpc.stub.StreamObserver;
 import io.quarkus.grpc.GrpcService;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jboss.logging.Logger;
 
 import java.util.concurrent.Executors;
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * GitHub Issue: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT/issues/11
  */
 @GrpcService
+@Singleton
 public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServiceImplBase {
 
     private static final Logger LOG = Logger.getLogger(TopologyStreamServiceImpl.class);
@@ -41,11 +43,11 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
      */
     @Override
     public void streamTopology(TopologyStreamRequest request,
-                               StreamObserver<TopologyUpdate> responseObserver) {
+            StreamObserver<TopologyUpdate> responseObserver) {
         LOG.infof("Starting topology stream - channel: %s, type: %s, interval: %dms",
-            request.getChannelId(),
-            request.getNodeTypeFilter(),
-            request.getUpdateIntervalMs());
+                request.getChannelId(),
+                request.getNodeTypeFilter(),
+                request.getUpdateIntervalMs());
 
         AtomicBoolean isActive = new AtomicBoolean(true);
         AtomicInteger sequenceNumber = new AtomicInteger(0);
@@ -65,13 +67,13 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
                 responseObserver.onNext(protoUpdate);
 
                 LOG.debugf("Sent topology update #%d with %d nodes",
-                    sequenceNumber.get(), updateDTO.nodes().size());
+                        sequenceNumber.get(), updateDTO.nodes().size());
             } catch (Exception e) {
                 LOG.errorf("Error sending topology update: %s", e.getMessage());
                 isActive.set(false);
                 responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Error generating topology update: " + e.getMessage())
-                    .asRuntimeException());
+                        .withDescription("Error generating topology update: " + e.getMessage())
+                        .asRuntimeException());
             }
         }, 0, intervalMs, TimeUnit.MILLISECONDS);
 
@@ -88,12 +90,12 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
      */
     @Override
     public void streamChannelTopology(ChannelTopologyRequest request,
-                                      StreamObserver<ChannelTopologyUpdate> responseObserver) {
+            StreamObserver<ChannelTopologyUpdate> responseObserver) {
         String channelId = request.getChannelId();
         if (channelId == null || channelId.isEmpty()) {
             responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
-                .withDescription("channel_id is required")
-                .asRuntimeException());
+                    .withDescription("channel_id is required")
+                    .asRuntimeException());
             return;
         }
 
@@ -113,14 +115,14 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
                 long channelTx = nodes.stream().mapToLong(NodeTopologyDTO::transactionsHandled).sum();
 
                 ChannelTopologyUpdate.Builder updateBuilder = ChannelTopologyUpdate.newBuilder()
-                    .setChannelId(channelId)
-                    .setChannelName("Channel " + channelId)
-                    .setNodeCount(nodes.size())
-                    .setChannelTps(channelTps)
-                    .setChannelTransactions(channelTx)
-                    .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                        .setSeconds(java.time.Instant.now().getEpochSecond())
-                        .build());
+                        .setChannelId(channelId)
+                        .setChannelName("Channel " + channelId)
+                        .setNodeCount(nodes.size())
+                        .setChannelTps(channelTps)
+                        .setChannelTransactions(channelTx)
+                        .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(java.time.Instant.now().getEpochSecond())
+                                .build());
 
                 for (NodeTopologyDTO node : nodes) {
                     updateBuilder.addNodes(convertNodeToProto(node));
@@ -131,8 +133,8 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
                 LOG.errorf("Error sending channel topology update: %s", e.getMessage());
                 isActive.set(false);
                 responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Error generating channel topology: " + e.getMessage())
-                    .asRuntimeException());
+                        .withDescription("Error generating channel topology: " + e.getMessage())
+                        .asRuntimeException());
             }
         }, 0, intervalMs, TimeUnit.MILLISECONDS);
 
@@ -148,7 +150,7 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
      */
     @Override
     public void getNodeTopology(NodeTopologyRequest request,
-                                StreamObserver<NodeTopologyResponse> responseObserver) {
+            StreamObserver<NodeTopologyResponse> responseObserver) {
         String nodeId = request.getNodeId();
         LOG.infof("Getting topology for node: %s", nodeId);
 
@@ -159,10 +161,10 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
 
             if (nodeOpt.isPresent()) {
                 responseBuilder.setNode(convertNodeToProto(nodeOpt.get()))
-                    .setFound(true);
+                        .setFound(true);
             } else {
                 responseBuilder.setFound(false)
-                    .setErrorMessage("Node not found: " + nodeId);
+                        .setErrorMessage("Node not found: " + nodeId);
             }
 
             responseObserver.onNext(responseBuilder.build());
@@ -170,8 +172,8 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
         } catch (Exception e) {
             LOG.errorf("Error getting node topology: %s", e.getMessage());
             responseObserver.onError(io.grpc.Status.INTERNAL
-                .withDescription("Error getting node topology: " + e.getMessage())
-                .asRuntimeException());
+                    .withDescription("Error getting node topology: " + e.getMessage())
+                    .asRuntimeException());
         }
     }
 
@@ -180,29 +182,29 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
      */
     @Override
     public void getTopologyStats(TopologyStatsRequest request,
-                                 StreamObserver<TopologyStatsResponse> responseObserver) {
+            StreamObserver<TopologyStatsResponse> responseObserver) {
         LOG.info("Getting topology statistics");
 
         try {
             TopologyStatsDTO stats = nodeTopologyService.getTopologyStats();
 
             TopologyStatsResponse.Builder responseBuilder = TopologyStatsResponse.newBuilder()
-                .setTotalNodes(stats.totalNodes())
-                .setValidatorCount(stats.validatorCount())
-                .setBusinessCount(stats.businessCount())
-                .setEiCount(stats.eiCount())
-                .setChannelCount(stats.channelCount())
-                .setTotalTps(stats.totalTps())
-                .setAvgLatencyMs(stats.avgLatencyMs())
-                .setTotalContracts(stats.totalContracts())
-                .setAvgCpuPercent(stats.avgCpuPercent())
-                .setAvgMemoryPercent(stats.avgMemoryPercent())
-                .setHealthyNodes(stats.healthyNodes())
-                .setDegradedNodes(stats.degradedNodes())
-                .setUnhealthyNodes(stats.unhealthyNodes())
-                .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                    .setSeconds(stats.timestamp().getEpochSecond())
-                    .build());
+                    .setTotalNodes(stats.totalNodes())
+                    .setValidatorCount(stats.validatorCount())
+                    .setBusinessCount(stats.businessCount())
+                    .setEiCount(stats.eiCount())
+                    .setChannelCount(stats.channelCount())
+                    .setTotalTps(stats.totalTps())
+                    .setAvgLatencyMs(stats.avgLatencyMs())
+                    .setTotalContracts(stats.totalContracts())
+                    .setAvgCpuPercent(stats.avgCpuPercent())
+                    .setAvgMemoryPercent(stats.avgMemoryPercent())
+                    .setHealthyNodes(stats.healthyNodes())
+                    .setDegradedNodes(stats.degradedNodes())
+                    .setUnhealthyNodes(stats.unhealthyNodes())
+                    .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+                            .setSeconds(stats.timestamp().getEpochSecond())
+                            .build());
 
             // Add nodes by region
             stats.nodesByRegion().forEach(responseBuilder::putNodesByRegion);
@@ -215,8 +217,8 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
         } catch (Exception e) {
             LOG.errorf("Error getting topology stats: %s", e.getMessage());
             responseObserver.onError(io.grpc.Status.INTERNAL
-                .withDescription("Error getting topology stats: " + e.getMessage())
-                .asRuntimeException());
+                    .withDescription("Error getting topology stats: " + e.getMessage())
+                    .asRuntimeException());
         }
     }
 
@@ -250,13 +252,13 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
 
     private TopologyUpdate convertToProto(TopologyUpdateDTO dto, int sequence) {
         TopologyUpdate.Builder builder = TopologyUpdate.newBuilder()
-            .setTotalNodes(dto.totalNodes())
-            .setNetworkTps(dto.networkTps())
-            .setTotalTransactions(dto.totalTransactions())
-            .setUpdateSequence(sequence)
-            .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                .setSeconds(dto.timestamp().getEpochSecond())
-                .build());
+                .setTotalNodes(dto.totalNodes())
+                .setNetworkTps(dto.networkTps())
+                .setTotalTransactions(dto.totalTransactions())
+                .setUpdateSequence(sequence)
+                .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+                        .setSeconds(dto.timestamp().getEpochSecond())
+                        .build());
 
         for (NodeTopologyDTO node : dto.nodes()) {
             builder.addNodes(convertNodeToProto(node));
@@ -267,87 +269,92 @@ public class TopologyStreamServiceImpl extends TopologyServiceGrpc.TopologyServi
 
     private NodeTopology convertNodeToProto(NodeTopologyDTO dto) {
         NodeTopology.Builder builder = NodeTopology.newBuilder()
-            .setNodeId(dto.nodeId())
-            .setChannelId(dto.channelId() != null ? dto.channelId() : "")
-            .setNodeType(convertToProtoNodeType(dto.nodeType()))
-            .setTimeActiveSeconds(dto.timeActiveSeconds())
-            .setTransactionsHandled(dto.transactionsHandled())
-            .setCurrentTps(dto.currentTps())
-            .setDataSource(dto.dataSource() == NodeTopologyDTO.DataSource.PRIMARY ?
-                TopologyDataSource.TOPOLOGY_PRIMARY : TopologyDataSource.TOPOLOGY_REPLICA)
-            .setContainerId(dto.containerId() != null ? dto.containerId() : "")
-            .setContainerImage(dto.containerImage() != null ? dto.containerImage() : "")
-            .setStakingAmount(dto.stakingAmount() != null ? dto.stakingAmount() : "0")
-            .setCpuPercent(dto.cpuPercent())
-            .setMemoryPercent(dto.memoryPercent())
-            .setMemoryUsedMb(dto.memoryUsedMb())
-            .setMemoryTotalMb(dto.memoryTotalMb())
-            .setIsMobile(dto.isMobile())
-            .setDeviceType(dto.deviceType() != null ? dto.deviceType() : "server")
-            .setBandwidthMbps(dto.bandwidthMbps())
-            .setLatencyMs(dto.latencyMs())
-            .setPeersConnected(dto.peersConnected())
-            .setContractCount(dto.contractCount())
-            .setHealthScore(dto.healthScore())
-            .setHealthStatus(dto.healthStatus() != null ? dto.healthStatus() : "unknown");
+                .setNodeId(dto.nodeId())
+                .setChannelId(dto.channelId() != null ? dto.channelId() : "")
+                .setNodeType(convertToProtoNodeType(dto.nodeType()))
+                .setTimeActiveSeconds(dto.timeActiveSeconds())
+                .setTransactionsHandled(dto.transactionsHandled())
+                .setCurrentTps(dto.currentTps())
+                .setDataSource(
+                        dto.dataSource() == NodeTopologyDTO.DataSource.PRIMARY ? TopologyDataSource.TOPOLOGY_PRIMARY
+                                : TopologyDataSource.TOPOLOGY_REPLICA)
+                .setContainerId(dto.containerId() != null ? dto.containerId() : "")
+                .setContainerImage(dto.containerImage() != null ? dto.containerImage() : "")
+                .setStakingAmount(dto.stakingAmount() != null ? dto.stakingAmount() : "0")
+                .setCpuPercent(dto.cpuPercent())
+                .setMemoryPercent(dto.memoryPercent())
+                .setMemoryUsedMb(dto.memoryUsedMb())
+                .setMemoryTotalMb(dto.memoryTotalMb())
+                .setIsMobile(dto.isMobile())
+                .setDeviceType(dto.deviceType() != null ? dto.deviceType() : "server")
+                .setBandwidthMbps(dto.bandwidthMbps())
+                .setLatencyMs(dto.latencyMs())
+                .setPeersConnected(dto.peersConnected())
+                .setContractCount(dto.contractCount())
+                .setHealthScore(dto.healthScore())
+                .setHealthStatus(dto.healthStatus() != null ? dto.healthStatus() : "unknown");
 
         // Add location if present
         if (dto.location() != null) {
             builder.setLocation(Location.newBuilder()
-                .setLatitude(dto.location().latitude())
-                .setLongitude(dto.location().longitude())
-                .setCity(dto.location().city() != null ? dto.location().city() : "")
-                .setCountry(dto.location().country() != null ? dto.location().country() : "")
-                .setRegion(dto.location().region() != null ? dto.location().region() : "")
-                .setDataCenter(dto.location().dataCenter() != null ? dto.location().dataCenter() : "")
-                .build());
+                    .setLatitude(dto.location().latitude())
+                    .setLongitude(dto.location().longitude())
+                    .setCity(dto.location().city() != null ? dto.location().city() : "")
+                    .setCountry(dto.location().country() != null ? dto.location().country() : "")
+                    .setRegion(dto.location().region() != null ? dto.location().region() : "")
+                    .setDataCenter(dto.location().dataCenter() != null ? dto.location().dataCenter() : "")
+                    .build());
         }
 
         // Add registry status if present
         if (dto.registryStatus() != null) {
             builder.setRegistryStatus(RegistryStatus.newBuilder()
-                .setRegistered(dto.registryStatus().registered())
-                .setVersion(dto.registryStatus().version() != null ? dto.registryStatus().version() : "")
-                .setProtocolVersion(dto.registryStatus().protocolVersion() != null ? dto.registryStatus().protocolVersion() : "")
-                .setIsHealthy(dto.registryStatus().isHealthy())
-                .setLastHeartbeat(com.google.protobuf.Timestamp.newBuilder()
-                    .setSeconds(dto.registryStatus().lastHeartbeat() != null ?
-                        dto.registryStatus().lastHeartbeat().getEpochSecond() : 0)
-                    .build())
-                .build());
+                    .setRegistered(dto.registryStatus().registered())
+                    .setVersion(dto.registryStatus().version() != null ? dto.registryStatus().version() : "")
+                    .setProtocolVersion(
+                            dto.registryStatus().protocolVersion() != null ? dto.registryStatus().protocolVersion()
+                                    : "")
+                    .setIsHealthy(dto.registryStatus().isHealthy())
+                    .setLastHeartbeat(com.google.protobuf.Timestamp.newBuilder()
+                            .setSeconds(dto.registryStatus().lastHeartbeat() != null
+                                    ? dto.registryStatus().lastHeartbeat().getEpochSecond()
+                                    : 0)
+                            .build())
+                    .build());
         }
 
         // Add active contracts
         if (dto.activeContracts() != null) {
             for (ActiveContractDTO contract : dto.activeContracts()) {
                 builder.addActiveContracts(ActiveContract.newBuilder()
-                    .setContractAddress(contract.contractAddress() != null ? contract.contractAddress() : "")
-                    .setContractName(contract.contractName() != null ? contract.contractName() : "")
-                    .setStatus(convertContractStatus(contract.status()))
-                    .setExecutionCount(contract.executionCount())
-                    .setTotalGasUsed(contract.totalGasUsed() != null ? contract.totalGasUsed() : "0")
-                    .setOwnerAddress(contract.ownerAddress() != null ? contract.ownerAddress() : "")
-                    .setContractVersion(contract.contractVersion() != null ? contract.contractVersion() : "")
-                    .setDeployedAt(com.google.protobuf.Timestamp.newBuilder()
-                        .setSeconds(contract.deployedAt() != null ? contract.deployedAt().getEpochSecond() : 0)
-                        .build())
-                    .setLastExecution(com.google.protobuf.Timestamp.newBuilder()
-                        .setSeconds(contract.lastExecution() != null ? contract.lastExecution().getEpochSecond() : 0)
-                        .build())
-                    .build());
+                        .setContractAddress(contract.contractAddress() != null ? contract.contractAddress() : "")
+                        .setContractName(contract.contractName() != null ? contract.contractName() : "")
+                        .setStatus(convertContractStatus(contract.status()))
+                        .setExecutionCount(contract.executionCount())
+                        .setTotalGasUsed(contract.totalGasUsed() != null ? contract.totalGasUsed() : "0")
+                        .setOwnerAddress(contract.ownerAddress() != null ? contract.ownerAddress() : "")
+                        .setContractVersion(contract.contractVersion() != null ? contract.contractVersion() : "")
+                        .setDeployedAt(com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(contract.deployedAt() != null ? contract.deployedAt().getEpochSecond() : 0)
+                                .build())
+                        .setLastExecution(com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(contract.lastExecution() != null ? contract.lastExecution().getEpochSecond()
+                                        : 0)
+                                .build())
+                        .build());
             }
         }
 
         // Add timestamps
         if (dto.lastUpdated() != null) {
             builder.setLastUpdated(com.google.protobuf.Timestamp.newBuilder()
-                .setSeconds(dto.lastUpdated().getEpochSecond())
-                .build());
+                    .setSeconds(dto.lastUpdated().getEpochSecond())
+                    .build());
         }
         if (dto.startedAt() != null) {
             builder.setStartedAt(com.google.protobuf.Timestamp.newBuilder()
-                .setSeconds(dto.startedAt().getEpochSecond())
-                .build());
+                    .setSeconds(dto.startedAt().getEpochSecond())
+                    .build());
         }
 
         return builder.build();
