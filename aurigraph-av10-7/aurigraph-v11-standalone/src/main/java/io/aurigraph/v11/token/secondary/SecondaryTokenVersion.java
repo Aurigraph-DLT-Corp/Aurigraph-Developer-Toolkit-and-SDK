@@ -162,6 +162,52 @@ public class SecondaryTokenVersion extends PanacheEntity {
     public String rejectionReason;
 
     // =========================================================================
+    // Approval Execution (Story 6)
+    // =========================================================================
+
+    /**
+     * Reference to VVB approval request (Story 5 integration)
+     */
+    @Column(name = "approval_request_id", columnDefinition = "UUID")
+    public UUID approvalRequestId;
+
+    /**
+     * Approval threshold percentage (e.g., 66.67 for >2/3)
+     */
+    @Column(name = "approval_threshold_percentage")
+    public Double approvalThresholdPercentage;
+
+    /**
+     * Count of validators who approved this version
+     */
+    @Column(name = "approved_by_count")
+    public Integer approvedByCount;
+
+    /**
+     * Timestamp when approval was granted
+     */
+    @Column(name = "approval_timestamp")
+    public LocalDateTime approvalTimestamp;
+
+    /**
+     * JSON array of approver identifiers
+     */
+    @Column(name = "approvers_list", columnDefinition = "JSONB")
+    public String approversList;
+
+    /**
+     * Deadline for approval voting window
+     */
+    @Column(name = "approval_expiry_deadline")
+    public LocalDateTime approvalExpiryDeadline;
+
+    /**
+     * Timestamp when version transitioned to ACTIVE status
+     */
+    @Column(name = "activated_at")
+    public LocalDateTime activatedAt;
+
+    // =========================================================================
     // Audit Timestamps
     // =========================================================================
 
