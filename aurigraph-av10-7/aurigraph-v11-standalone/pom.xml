@@ -448,6 +448,8 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-flyway</artifactId>
         </dependency>
+        <!-- Quarkus JSONB support - using native Quarkus/Hibernate JSON mapping -->
+        <!-- Removed hypersistence-utils-hibernate-63 due to Hibernate 7.x incompatibility -->
 
         <!-- Test Coverage and Reporting -->
         <dependency>

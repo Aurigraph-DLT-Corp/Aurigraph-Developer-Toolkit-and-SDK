@@ -12,6 +12,7 @@ import io.quarkus.redis.client.reactive.ReactiveRedisClient;
 import io.quarkus.runtime.Startup;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -57,7 +58,7 @@ public class TransactionServiceImpl implements TransactionService {
     TransactionRepository transactionRepository;
 
     @Inject
-    ReactiveRedisClient redisClient;
+    Instance<ReactiveRedisClient> redisClientInstance;
 
     // Lock-free transaction queue for buffering
     private final LockFreeTransactionQueue transactionQueue;
@@ -449,7 +450,11 @@ public class TransactionServiceImpl implements TransactionService {
      * Cache transaction in Redis (async) for 5-minute TTL
      */
     private void cacheTransactionInRedis(String txnHash, String transactionId) {
+        if (!redisClientInstance.isResolvable()) {
+            return; // Redis not available, skip caching
+        }
         try {
+            ReactiveRedisClient redisClient = redisClientInstance.get();
             String key = REDIS_TX_PREFIX + txnHash;
             redisClient.setex(key, String.valueOf(REDIS_TTL_SECONDS), transactionId)
                     .subscribe().with(
@@ -465,7 +470,11 @@ public class TransactionServiceImpl implements TransactionService {
      * Invalidate Redis cache entry
      */
     private void invalidateRedisCache(String txnHash) {
+        if (!redisClientInstance.isResolvable()) {
+            return; // Redis not available, skip cache invalidation
+        }
         try {
+            ReactiveRedisClient redisClient = redisClientInstance.get();
             String key = REDIS_TX_PREFIX + txnHash;
             redisClient.del(List.of(key))
                     .subscribe().with(

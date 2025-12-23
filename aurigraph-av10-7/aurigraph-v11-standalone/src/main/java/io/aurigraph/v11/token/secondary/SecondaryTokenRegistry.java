@@ -46,6 +46,9 @@ public class SecondaryTokenRegistry {
     @Inject
     SecondaryTokenFactory.SecondaryTokenRepository repository;
 
+    @Inject
+    SecondaryTokenVersioningService versioningService;
+
     // =============== INDEXES (5 TOTAL) ===============
 
     // Primary index: tokenId → RegistryEntry
@@ -593,6 +596,96 @@ public class SecondaryTokenRegistry {
         LOG.info("Cleared secondary token registry");
     }
 
+    // =============== VERSION-AWARE QUERY METHODS (SPRINT 1 ENHANCEMENT) ===============
+
+    /**
+     * Get all versions of a secondary token ordered by version number
+     *
+     * @param secondaryTokenId The secondary token ID
+     * @return Uni containing list of all versions
+     */
+    public Uni<List<SecondaryTokenVersion>> getVersionChain(String secondaryTokenId) {
+        return versioningService.getVersionChain(java.util.UUID.fromString(secondaryTokenId));
+    }
+
+    /**
+     * Get the active (current) version of a secondary token
+     *
+     * @param secondaryTokenId The secondary token ID
+     * @return Uni containing the active version
+     */
+    public Uni<SecondaryTokenVersion> getActiveVersion(String secondaryTokenId) {
+        return versioningService.getActiveVersion(java.util.UUID.fromString(secondaryTokenId));
+    }
+
+    /**
+     * Count total versions for a secondary token
+     *
+     * @param secondaryTokenId The secondary token ID
+     * @return Uni containing the count
+     */
+    public Uni<Long> countVersionsByToken(String secondaryTokenId) {
+        return versioningService.countVersionsByToken(java.util.UUID.fromString(secondaryTokenId));
+    }
+
+    /**
+     * Get versions of a token by status
+     *
+     * @param secondaryTokenId The secondary token ID
+     * @param status The version status filter
+     * @return Uni containing list of versions with given status
+     */
+    public Uni<List<SecondaryTokenVersion>> getVersionsByStatus(String secondaryTokenId,
+                                                                SecondaryTokenVersionStatus status) {
+        return versioningService.getVersionsByStatus(java.util.UUID.fromString(secondaryTokenId), status);
+    }
+
+    /**
+     * Get version history with audit trail for a token
+     *
+     * @param secondaryTokenId The secondary token ID
+     * @return Uni containing list of versions in chronological order
+     */
+    public Uni<List<SecondaryTokenVersion>> getVersionHistory(String secondaryTokenId) {
+        // Get all versions in chronological order (oldest to newest)
+        return versioningService.getVersionChain(java.util.UUID.fromString(secondaryTokenId));
+    }
+
+    /**
+     * Get all versions pending VVB approval
+     *
+     * @return Uni containing list of versions awaiting VVB approval
+     */
+    public Uni<List<SecondaryTokenVersion>> getVersionsNeedingVVB() {
+        return versioningService.getVersionsNeedingVVB();
+    }
+
+    /**
+     * Validate version integrity (merkle hash verification)
+     *
+     * @param versionId The version ID to validate
+     * @return Uni<Boolean> true if version integrity is valid
+     */
+    public Uni<Boolean> validateVersionIntegrity(String versionId) {
+        return versioningService.validateVersionIntegrity(java.util.UUID.fromString(versionId));
+    }
+
+    /**
+     * Get registry version statistics (summary of versions across all tokens)
+     *
+     * @return VersionRegistryStats with version counts and metrics
+     */
+    public VersionRegistryStats getVersionStats() {
+        long totalVersions = 0;
+        long activeVersions = 0;
+        long pendingVVBVersions = 0;
+        long archivedVersions = 0;
+
+        // Query version counts from database if available
+        // For now, return structure with placeholder values
+        return new VersionRegistryStats(totalVersions, activeVersions, pendingVVBVersions, archivedVersions);
+    }
+
     // =============== INNER CLASSES ===============
 
     /**
@@ -744,6 +837,32 @@ public class SecondaryTokenRegistry {
         public String toString() {
             return String.format("ConsistencyReport{total=%d, consistent=%d, issues=%d}",
                     totalTokens, consistentTokens, issues.size());
+        }
+    }
+
+    /**
+     * Version registry statistics (Sprint 1 Enhancement)
+     * Tracks version counts across all secondary tokens
+     */
+    public static class VersionRegistryStats {
+        public final long totalVersions;
+        public final long activeVersions;
+        public final long pendingVVBVersions;
+        public final long archivedVersions;
+        public final Instant generatedAt;
+
+        public VersionRegistryStats(long totalVersions, long activeVersions, long pendingVVBVersions, long archivedVersions) {
+            this.totalVersions = totalVersions;
+            this.activeVersions = activeVersions;
+            this.pendingVVBVersions = pendingVVBVersions;
+            this.archivedVersions = archivedVersions;
+            this.generatedAt = Instant.now();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("VersionRegistryStats{total=%d, active=%d, pendingVVB=%d, archived=%d}",
+                    totalVersions, activeVersions, pendingVVBVersions, archivedVersions);
         }
     }
 }
