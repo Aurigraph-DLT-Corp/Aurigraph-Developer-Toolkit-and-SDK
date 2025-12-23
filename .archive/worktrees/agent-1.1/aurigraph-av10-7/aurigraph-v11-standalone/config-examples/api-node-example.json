@@ -1,0 +1,57 @@
+{
+  "nodeType": "API_INTEGRATION",
+  "nodeId": "api-node-001",
+  "version": "11.0.0",
+  "apiConfigs": {
+    "alpaca": {
+      "baseUrl": "https://api.alpaca.markets",
+      "rateLimit": 200,
+      "apiKey": "encrypted-api-key-here"
+    },
+    "weather": {
+      "baseUrl": "https://api.weather.com",
+      "rateLimit": 100,
+      "apiKey": "encrypted-api-key-here"
+    }
+  },
+  "cacheSize": "5GB",
+  "cacheTTL": 300,
+  "enableOracleService": true,
+  "oracleVerificationMode": "multi_source",
+  "maxConcurrentRequests": 1000,
+  "requestTimeout": 5000,
+  "enableCircuitBreaker": true,
+  "circuitBreakerThreshold": 5,
+  "circuitBreakerTimeout": 30000,
+  "enableExponentialBackoff": true,
+  "maxRetryAttempts": 3,
+  "initialBackoffDelay": 1000,
+  "enableResponseValidation": true,
+  "enableMetrics": true,
+  "network": {
+    "networkId": "aurigraph-mainnet",
+    "bootstrapNodes": [
+      "api1.aurigraph.io:9000",
+      "api2.aurigraph.io:9000"
+    ],
+    "maxPeers": 100,
+    "enableDiscovery": true
+  },
+  "performance": {
+    "threadPoolSize": 256,
+    "queueSize": 100000,
+    "batchSize": 1000
+  },
+  "security": {
+    "enableTLS": true,
+    "tlsCertPath": "/etc/aurigraph/tls/cert.pem",
+    "tlsKeyPath": "/etc/aurigraph/tls/key.pem",
+    "quantumResistant": true
+  },
+  "monitoring": {
+    "metricsEnabled": true,
+    "metricsPort": 9090,
+    "healthCheckPort": 9091,
+    "logLevel": "INFO"
+  }
+}

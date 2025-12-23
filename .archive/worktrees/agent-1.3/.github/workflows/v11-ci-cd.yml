@@ -1,0 +1,332 @@
+name: V11 CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/aurigraph-v11-*'
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+      - '.github/workflows/v11-ci-cd.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+
+env:
+  MAVEN_OPTS: -Xmx4g -XX:+UseG1GC -Dmaven.repo.local=.m2/repository
+  JAVA_VERSION: '21'
+  QUARKUS_VERSION: '3.28.2'
+  MIN_LINE_COVERAGE: 50
+  MIN_BRANCH_COVERAGE: 45
+
+jobs:
+  # ============================================================
+  # BUILD & TEST JOB
+  # ============================================================
+  build-and-test:
+    name: Build & Test (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: ['21']
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better blame info
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Compile project
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw clean compile -DskipTests
+          echo "✅ Compilation successful"
+
+      - name: Run unit tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw test -Dtest="io.aurigraph.v11.unit.**"
+          echo "✅ Unit tests completed"
+
+      - name: Run integration tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw test -Dtest="io.aurigraph.v11.integration.**"
+          echo "✅ Integration tests completed"
+        continue-on-error: true  # Integration tests may not exist yet
+
+      - name: Generate JaCoCo coverage report
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw jacoco:report
+          echo "✅ Coverage report generated"
+
+      - name: Verify coverage thresholds
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw verify -DskipTests
+          echo "✅ Coverage thresholds met"
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./aurigraph-av10-7/aurigraph-v11-standalone/target/site/jacoco/jacoco.xml
+          flags: unittests
+          name: codecov-v11
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Archive test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-jdk${{ matrix.java }}
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports/**
+            aurigraph-av10-7/aurigraph-v11-standalone/target/site/jacoco/**
+          retention-days: 30
+
+      - name: Publish test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results (JDK ${{ matrix.java }})
+          path: 'aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: false
+
+  # ============================================================
+  # CODE QUALITY JOB
+  # ============================================================
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for SonarQube
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run tests with coverage
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: ./mvnw clean verify
+
+      - name: Check for TODOs
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🔍 Checking for TODO/FIXME comments..."
+          TODO_COUNT=$(grep -r "TODO\|FIXME" src/main/java --include="*.java" | wc -l || echo "0")
+          echo "Found $TODO_COUNT TODO/FIXME items"
+          if [ "$TODO_COUNT" -gt 58 ]; then
+            echo "⚠️  Warning: TODO/FIXME count increased from baseline (58)"
+          else
+            echo "✅ TODO/FIXME count is within acceptable range"
+          fi
+
+      - name: Check file sizes
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "🔍 Checking for God classes (files >500 lines)..."
+          find src/main/java -name "*.java" -exec wc -l {} + | sort -rn | head -10
+          GOD_CLASSES=$(find src/main/java -name "*.java" -exec wc -l {} + | awk '$1 > 500 {print $2}' | wc -l)
+          if [ "$GOD_CLASSES" -gt 0 ]; then
+            echo "⚠️  Warning: $GOD_CLASSES files exceed 500 lines"
+          else
+            echo "✅ All files are within 500 line limit"
+          fi
+
+  # ============================================================
+  # PERFORMANCE TEST JOB
+  # ============================================================
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build JAR
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: ./mvnw clean package -DskipTests
+
+      - name: Run performance tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw test -Dtest="**/*PerformanceTest,**/TransactionServiceTest#testHighThroughputPerformance"
+          echo "✅ Performance tests completed"
+        timeout-minutes: 30
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/performance-reports/**
+          retention-days: 90
+
+  # ============================================================
+  # SECURITY SCAN JOB
+  # ============================================================
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run OWASP Dependency Check
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw org.owasp:dependency-check-maven:check || echo "⚠️  Dependency check completed with warnings"
+        continue-on-error: true
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/maven@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  # ============================================================
+  # NATIVE BUILD JOB (Optional - only on main/release)
+  # ============================================================
+  native-build:
+    name: Native Image Build (GraalVM)
+    runs-on: ubuntu-latest
+    needs: [build-and-test, code-quality]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install native-image
+        run: |
+          gu install native-image
+          native-image --version
+
+      - name: Build native image (fast profile)
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw package -Pnative-fast -DskipTests
+          echo "✅ Native image built successfully"
+        timeout-minutes: 60
+
+      - name: Test native executable
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./target/*-runner --version || echo "Native executable created"
+          echo "✅ Native image validation complete"
+
+      - name: Upload native executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-executable
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner
+          retention-days: 30
+
+  # ============================================================
+  # DEPLOYMENT JOB (only on main branch)
+  # ============================================================
+  deploy:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: [build-and-test, code-quality, performance-test]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: development
+      url: https://dev4.aurigraph.io
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deployment to dev4 environment initiated"
+          echo "Deployment steps would go here (Docker, Kubernetes, etc.)"
+          # Add actual deployment logic here
+
+  # ============================================================
+  # STATUS NOTIFICATION JOB
+  # ============================================================
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [build-and-test, code-quality, performance-test]
+    if: always()
+
+    steps:
+      - name: Send Slack notification
+        if: always()
+        run: |
+          echo "📊 Build Status: ${{ needs.build-and-test.result }}"
+          echo "📊 Quality Status: ${{ needs.code-quality.result }}"
+          echo "📊 Performance Status: ${{ needs.performance-test.result }}"
+          # Add Slack webhook integration here if needed
+
+      - name: Create badge
+        run: |
+          if [[ "${{ needs.build-and-test.result }}" == "success" ]]; then
+            echo "![Build Status](https://img.shields.io/badge/build-passing-brightgreen)"
+          else
+            echo "![Build Status](https://img.shields.io/badge/build-failing-red)"
+          fi

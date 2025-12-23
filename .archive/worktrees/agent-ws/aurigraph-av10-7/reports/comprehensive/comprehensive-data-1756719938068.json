@@ -1,0 +1,478 @@
+{
+  "timestamp": "2025-09-01T09:45:37.258Z",
+  "platform": "AV11-7 Quantum Nexus",
+  "version": "10.7.0",
+  "testSuite": "Comprehensive",
+  "results": {},
+  "coverage": {
+    "total": {
+      "lines": {
+        "total": 1531,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 1599,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 341,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 269,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branchesTrue": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/ai/AIOptimizer.ts": {
+      "lines": {
+        "total": 50,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 15,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 52,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 4,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/api/MonitoringAPIServer.ts": {
+      "lines": {
+        "total": 60,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 20,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 60,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 6,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/api/VizorAPIEndpoints.ts": {
+      "lines": {
+        "total": 151,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 23,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 154,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 30,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/consensus/HyperRAFTPlusPlus.ts": {
+      "lines": {
+        "total": 226,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 56,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 243,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 37,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/consensus/ValidatorNode.ts": {
+      "lines": {
+        "total": 110,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 17,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 111,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 26,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/consensus/ValidatorOrchestrator.ts": {
+      "lines": {
+        "total": 114,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 19,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 117,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 17,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/core/AV11Node.ts": {
+      "lines": {
+        "total": 121,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 29,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 124,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 8,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/core/ConfigManager.ts": {
+      "lines": {
+        "total": 45,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 13,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 47,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 12,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/core/Logger.ts": {
+      "lines": {
+        "total": 29,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 7,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 31,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 14,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/crosschain/CrossChainBridge.ts": {
+      "lines": {
+        "total": 168,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 33,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 177,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 39,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/crypto/QuantumCryptoManager.ts": {
+      "lines": {
+        "total": 112,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 23,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 118,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 7,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/monitoring/MonitoringService.ts": {
+      "lines": {
+        "total": 29,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 11,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 31,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 4,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/monitoring/VizorDashboard.ts": {
+      "lines": {
+        "total": 70,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 20,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 76,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 14,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/network/ChannelManager.ts": {
+      "lines": {
+        "total": 100,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 14,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 101,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 18,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/network/NetworkOrchestrator.ts": {
+      "lines": {
+        "total": 27,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 8,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 29,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    },
+    "/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/src/zk/ZKProofSystem.ts": {
+      "lines": {
+        "total": 119,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 33,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 128,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 33,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    }
+  },
+  "summary": {},
+  "git": {
+    "commit": "a783add4dc1ab862f882b1c49a0bae538483de8b",
+    "shortCommit": "a783add",
+    "branch": "AV11-7-v10-revolutionary-platform-implementation-core-i",
+    "author": "Subramanya Jois",
+    "message": "Implement comprehensive automated testing framework for AV11-7 platform",
+    "timestamp": "2025-09-01 14:52:47 +0530"
+  },
+  "dependencies": {
+    "total": 41,
+    "runtime": 10,
+    "dev": 31
+  },
+  "environment": {
+    "nodeVersion": "v22.18.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "memory": 4,
+    "uptime": 1
+  }
+}

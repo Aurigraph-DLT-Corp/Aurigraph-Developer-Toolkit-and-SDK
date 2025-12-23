@@ -1,0 +1,433 @@
+version: '3.9'
+
+# AURIGRAPH V11 PRODUCTION - MULTI-NODE ARCHITECTURE
+#
+# Architecture:
+# - 1x Database Tier (PostgreSQL cluster)
+# - 1x Validator Container (7-9 validator nodes)
+# - 2x Business Containers (4-5 business nodes each, high-throughput processing)
+# - 1x Slim Container (3-4 slim nodes, external API integration)
+# - 1x Load Balancer (NGINX with round-robin)
+#
+# Node Distribution:
+# Validator Nodes (9 total): Full consensus, block creation, 776K+ TPS each
+# Business Nodes (8 total): Processing, caching, reduced consensus
+# Slim Nodes (3 total): Light clients, external APIs, data tokenization
+#
+# Total TPS Capacity: 9*776K + 8*1M + 3*100K = 10M+ TPS
+
+services:
+  # ==================== DATABASE TIER ====================
+  postgres:
+    image: postgres:15-alpine
+    container_name: v11-postgres-primary
+    restart: always
+    environment:
+      POSTGRES_DB: aurigraph
+      POSTGRES_USER: aurigraph
+      POSTGRES_PASSWORD: aurigraph
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - v11-production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurigraph"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 16G
+        reservations:
+          cpus: '4'
+          memory: 8G
+
+  # ==================== VALIDATOR CONTAINER ====================
+  # Runs 7-9 validator nodes in single container
+  # Each node participates in consensus, creates blocks
+  validators:
+    image: openjdk:21-slim
+    container_name: v11-validators
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ./backend.jar:/app/backend.jar:ro
+      - v11-validators-data:/app/data
+      - ./logs/validators:/app/logs
+    environment:
+      # JVM Configuration - optimized for 9 concurrent validator nodes
+      JAVA_OPTS: "-Xmx12g -Xms8g -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+UnlockDiagnosticVMOptions -XX:G1SummarizeRSetStatsPeriod=1"
+
+      # Primary Validator Node (Leader)
+      NODE_ID: "validator-1"
+      NODE_TYPE: "validator"
+      NODE_ROLE: "leader"
+      quarkus.http.port: "9003"
+      quarkus.grpc.server.port: "9004"
+
+      # Consensus Configuration
+      CONSENSUS_MODE: "hyperraft"
+      CONSENSUS_TIMEOUT: "5000"
+      BLOCK_SIZE: "10000"
+      TARGET_TPS: "776000"
+      PARALLEL_THREADS: "256"
+
+      # Cluster Configuration - validator nodes can discover each other
+      CLUSTER_MODE: "enabled"
+      CLUSTER_ID: "validators"
+      CLUSTER_SIZE: "9"
+
+      # Database
+      quarkus.datasource.jdbc.url: "jdbc:postgresql://postgres:5432/aurigraph"
+      quarkus.datasource.username: "aurigraph"
+      quarkus.datasource.password: "aurigraph"
+      quarkus.flyway.migrate-at-start: "false"
+
+      # Features
+      QUANTUM_ENABLED: "true"
+      AI_OPTIMIZATION: "true"
+      ZK_PROOFS_ENABLED: "true"
+      CROSS_CHAIN_ENABLED: "true"
+
+      # Peer Discovery
+      SEED_NODES: "validators:9003,business-1:9009,business-2:9011,slim-nodes:9013"
+
+      # Additional Validator Instance Ports (for nodes 2-9 within container)
+      VALIDATOR_NODES: "validator-1:9003,validator-2:9103,validator-3:9203,validator-4:9303,validator-5:9403,validator-6:9503,validator-7:9603,validator-8:9703,validator-9:9803"
+
+    command: ["java", "-jar", "/app/backend.jar"]
+    ports:
+      # Primary validator
+      - "9003:9003"
+      - "9004:9004"
+      # Additional validators (9 total)
+      - "9103:9103"
+      - "9203:9203"
+      - "9303:9303"
+      - "9403:9403"
+      - "9503:9503"
+      - "9603:9603"
+      - "9703:9703"
+      - "9803:9803"
+    networks:
+      - v11-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/api/v11/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 32G
+        reservations:
+          cpus: '12'
+          memory: 24G
+
+  # ==================== BUSINESS NODE CONTAINER 1 ====================
+  # High-throughput processing, 4-5 business nodes
+  business-1:
+    image: openjdk:21-slim
+    container_name: v11-business-1
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ./backend.jar:/app/backend.jar:ro
+      - v11-business-1-data:/app/data
+      - ./logs/business-1:/app/logs
+    environment:
+      # JVM Configuration - optimized for 5 concurrent business nodes
+      JAVA_OPTS: "-Xmx10g -Xms6g -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:+ParallelRefProcEnabled"
+
+      # Primary Business Node
+      NODE_ID: "business-1"
+      NODE_TYPE: "business"
+      NODE_ROLE: "processor"
+      quarkus.http.port: "9009"
+      quarkus.grpc.server.port: "9010"
+
+      # Consensus Configuration (Observer mode)
+      CONSENSUS_MODE: "hyperraft-observer"
+      BLOCK_SIZE: "20000"
+      TARGET_TPS: "1000000"
+      PARALLEL_THREADS: "256"
+
+      # Cluster Configuration
+      CLUSTER_MODE: "enabled"
+      CLUSTER_ID: "business-1"
+      CLUSTER_SIZE: "5"
+
+      # Database
+      quarkus.datasource.jdbc.url: "jdbc:postgresql://postgres:5432/aurigraph"
+      quarkus.datasource.username: "aurigraph"
+      quarkus.datasource.password: "aurigraph"
+      quarkus.flyway.migrate-at-start: "false"
+
+      # Features
+      QUANTUM_ENABLED: "true"
+      AI_OPTIMIZATION: "true"
+      CACHE_ENABLED: "true"
+      CACHE_SIZE: "10000"
+      CACHE_TTL: "300"
+
+      # Peer Discovery
+      SEED_NODES: "validators:9003,business-1:9009,business-2:9011,slim-nodes:9013"
+
+      # Business Node Instances
+      BUSINESS_NODES: "business-1-1:9009,business-1-2:9109,business-1-3:9209,business-1-4:9309,business-1-5:9409"
+
+    command: ["java", "-jar", "/app/backend.jar"]
+    ports:
+      - "9009:9009"
+      - "9010:9010"
+      - "9109:9109"
+      - "9209:9209"
+      - "9309:9309"
+      - "9409:9409"
+    networks:
+      - v11-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9009/api/v11/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 32G
+        reservations:
+          cpus: '12'
+          memory: 24G
+
+  # ==================== BUSINESS NODE CONTAINER 2 ====================
+  # High-throughput processing, 4-5 business nodes
+  business-2:
+    image: openjdk:21-slim
+    container_name: v11-business-2
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ./backend.jar:/app/backend.jar:ro
+      - v11-business-2-data:/app/data
+      - ./logs/business-2:/app/logs
+    environment:
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx10g -Xms6g -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:+ParallelRefProcEnabled"
+
+      # Primary Business Node
+      NODE_ID: "business-2"
+      NODE_TYPE: "business"
+      NODE_ROLE: "processor"
+      quarkus.http.port: "9011"
+      quarkus.grpc.server.port: "9012"
+
+      # Consensus Configuration
+      CONSENSUS_MODE: "hyperraft-observer"
+      BLOCK_SIZE: "20000"
+      TARGET_TPS: "1000000"
+      PARALLEL_THREADS: "256"
+
+      # Cluster Configuration
+      CLUSTER_MODE: "enabled"
+      CLUSTER_ID: "business-2"
+      CLUSTER_SIZE: "5"
+
+      # Database
+      quarkus.datasource.jdbc.url: "jdbc:postgresql://postgres:5432/aurigraph"
+      quarkus.datasource.username: "aurigraph"
+      quarkus.datasource.password: "aurigraph"
+      quarkus.flyway.migrate-at-start: "false"
+
+      # Features
+      QUANTUM_ENABLED: "true"
+      AI_OPTIMIZATION: "true"
+      CACHE_ENABLED: "true"
+      CACHE_SIZE: "10000"
+
+      # Peer Discovery
+      SEED_NODES: "validators:9003,business-1:9009,business-2:9011,slim-nodes:9013"
+
+      # Business Node Instances
+      BUSINESS_NODES: "business-2-1:9011,business-2-2:9111,business-2-3:9211,business-2-4:9311,business-2-5:9411"
+
+    command: ["java", "-jar", "/app/backend.jar"]
+    ports:
+      - "9011:9011"
+      - "9012:9012"
+      - "9111:9111"
+      - "9211:9211"
+      - "9311:9311"
+      - "9411:9411"
+    networks:
+      - v11-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9011/api/v11/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 32G
+        reservations:
+          cpus: '12'
+          memory: 24G
+
+  # ==================== SLIM NODES CONTAINER ====================
+  # Light clients, external API integration, data tokenization
+  slim-nodes:
+    image: openjdk:21-slim
+    container_name: v11-slim-nodes
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ./backend.jar:/app/backend.jar:ro
+      - v11-slim-nodes-data:/app/data
+      - ./logs/slim:/app/logs
+      - ./integrations:/app/integrations:ro
+    environment:
+      # JVM Configuration - optimized for 3-4 slim nodes
+      JAVA_OPTS: "-Xmx4g -Xms2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+
+      # Primary Slim Node
+      NODE_ID: "slim-1"
+      NODE_TYPE: "slim"
+      NODE_ROLE: "light"
+      quarkus.http.port: "9013"
+
+      # Consensus Configuration (None - light client)
+      CONSENSUS_MODE: "none"
+      READ_ONLY: "true"
+
+      # Cluster Configuration
+      CLUSTER_MODE: "enabled"
+      CLUSTER_ID: "slim"
+      CLUSTER_SIZE: "4"
+
+      # Database (read-only replica)
+      quarkus.datasource.jdbc.url: "jdbc:postgresql://postgres:5432/aurigraph"
+      quarkus.datasource.username: "aurigraph"
+      quarkus.datasource.password: "aurigraph"
+      quarkus.flyway.migrate-at-start: "false"
+
+      # Features
+      QUANTUM_ENABLED: "true"
+      READ_ONLY: "true"
+      EXTERNAL_API_ENABLED: "true"
+
+      # External API Integrations
+      EXTERNAL_APIS: "stock-data,real-estate,carbon-credits,supply-chain"
+      STOCK_DATA_API: "https://api.example.com/stocks"
+      STOCK_DATA_KEY: "${STOCK_API_KEY}"
+      REAL_ESTATE_API: "https://api.example.com/real-estate"
+      REAL_ESTATE_KEY: "${REAL_ESTATE_API_KEY}"
+      CARBON_CREDITS_API: "https://api.example.com/carbon"
+      CARBON_CREDITS_KEY: "${CARBON_API_KEY}"
+      SUPPLY_CHAIN_API: "https://api.example.com/supply-chain"
+      SUPPLY_CHAIN_KEY: "${SUPPLY_CHAIN_API_KEY}"
+
+      # Data Tokenization
+      TOKENIZATION_ENABLED: "true"
+      TOKENIZATION_INTERVAL: "10000"
+      CHANNEL_ID: "external-data-channel"
+
+      # Peer Discovery
+      SEED_NODES: "validators:9003,business-1:9009,business-2:9011,slim-nodes:9013"
+
+      # Slim Node Instances
+      SLIM_NODES: "slim-1:9013,slim-2:9113,slim-3:9213,slim-4:9313"
+
+    command: ["java", "-jar", "/app/backend.jar"]
+    ports:
+      # Primary slim node
+      - "9013:9013"
+      # Additional slim nodes
+      - "9113:9113"
+      - "9213:9213"
+      - "9313:9313"
+    networks:
+      - v11-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9013/api/v11/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 8G
+        reservations:
+          cpus: '4'
+          memory: 4G
+
+  # ==================== LOAD BALANCER / NGINX ====================
+  nginx:
+    image: nginx:latest
+    container_name: v11-nginx-lb
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "9000:9000"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx-v11-multinode.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    environment:
+      - DOMAIN=dlt.aurigraph.io
+    networks:
+      - v11-production
+    depends_on:
+      - validators
+      - business-1
+      - business-2
+      - slim-nodes
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+        reservations:
+          cpus: '2'
+          memory: 1G
+
+volumes:
+  postgres_data:
+  v11-validators-data:
+  v11-business-1-data:
+  v11-business-2-data:
+  v11-slim-nodes-data:
+
+networks:
+  v11-production:
+    driver: bridge

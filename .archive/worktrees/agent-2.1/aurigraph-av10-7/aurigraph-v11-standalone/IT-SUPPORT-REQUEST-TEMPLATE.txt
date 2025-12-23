@@ -1,0 +1,387 @@
+========================================
+IT SUPPORT REQUEST TEMPLATE
+Aurigraph v11.4.4 Server Connectivity Issue
+========================================
+
+TO: [Infrastructure/DevOps Team Email]
+CC: [Manager/Team Lead Email]
+SUBJECT: URGENT: Server Connectivity Issue - dlt.aurigraph.io Unreachable
+
+Priority: HIGH
+Date: [Current Date]
+Reported By: [Your Name]
+Server: dlt.aurigraph.io
+Application: Aurigraph v11.4.4
+
+========================================
+EXECUTIVE SUMMARY
+========================================
+
+The Aurigraph v11.4.4 production server at dlt.aurigraph.io is completely unreachable
+as of [Date/Time]. The server was successfully deployed and operational on November 9,
+2025, but is now experiencing 100% packet loss. This is blocking all production operations.
+
+Request: Please investigate and restore server connectivity immediately.
+
+========================================
+PROBLEM DESCRIPTION
+========================================
+
+Symptoms:
+- Server Status: Completely unreachable (100% packet loss)
+- Last Known Working: November 9, 2025
+- All ports non-responsive: SSH (22/2235), HTTP (9003), gRPC (9004)
+- Duration of Outage: [X hours/days]
+- Impact: [High/Critical] - Production service down
+
+What We've Tried:
+[ ] Ping tests - 100% packet loss
+[ ] SSH connection attempts - timeout/connection refused
+[ ] HTTP health endpoint checks - unreachable
+[ ] DNS resolution - [works/fails]
+[ ] Traceroute analysis - [results]
+[ ] Alternative network/ISP testing - [results]
+
+========================================
+SERVER DETAILS
+========================================
+
+Hostname: dlt.aurigraph.io
+IP Address: [Insert IP if known, or "Unknown - DNS not resolving"]
+
+Expected Services:
+- Application: Aurigraph DLT Platform v11.4.4
+- HTTP API Port: 9003
+- gRPC Port: 9004
+- SSH Port: 22 or 2235
+
+Last Known Configuration (Nov 9, 2025):
+- Application Process PID: 1721015
+- Health Endpoint: http://dlt.aurigraph.io:9003/actuator/health
+- Status at Last Check: {"status":"UP"}
+- JAR File: aurigraph-v11.4.4-SNAPSHOT.jar
+- Deployment Method: SCP transfer via port 22
+
+========================================
+DIAGNOSTIC RESULTS
+========================================
+
+1. PING TEST
+Command: ping -c 10 dlt.aurigraph.io
+Result:
+[ ] Success (X% packet loss)
+[ ] Failed (100% packet loss) - MOST COMMON
+[ ] Other: ____________________
+
+Paste output here:
+---
+[PASTE PING OUTPUT]
+---
+
+2. DNS RESOLUTION TEST
+Command: nslookup dlt.aurigraph.io
+Result:
+[ ] Resolves correctly to IP: ____________________
+[ ] DNS resolution fails
+[ ] Resolves to wrong IP: ____________________
+
+Paste output here:
+---
+[PASTE NSLOOKUP OUTPUT]
+---
+
+3. SSH CONNECTIVITY TEST
+Command: nc -zv dlt.aurigraph.io 22
+Command: nc -zv dlt.aurigraph.io 2235
+Result:
+[ ] Port 22 open
+[ ] Port 2235 open
+[ ] Connection timeout
+[ ] Connection refused
+[ ] Host unreachable
+
+Paste output here:
+---
+[PASTE NETCAT OUTPUT]
+---
+
+4. HTTP PORT TEST
+Command: nc -zv dlt.aurigraph.io 9003
+Command: curl -v http://dlt.aurigraph.io:9003/actuator/health
+Result:
+[ ] Port 9003 open
+[ ] HTTP endpoint responds
+[ ] Connection timeout
+[ ] Connection refused
+
+Paste output here:
+---
+[PASTE CURL OUTPUT]
+---
+
+5. TRACEROUTE ANALYSIS
+Command: traceroute dlt.aurigraph.io
+Result:
+[ ] Reaches destination
+[ ] Stops at hop #___: ____________________
+[ ] Times out completely
+
+Key findings:
+- Last successful hop: ____________________
+- Point of failure: ____________________
+
+Paste output here:
+---
+[PASTE TRACEROUTE OUTPUT]
+---
+
+6. PORT SCAN (if nmap available)
+Command: nmap -p 22,9003,9004 dlt.aurigraph.io
+Result:
+[ ] All ports filtered
+[ ] All ports closed
+[ ] Host appears down
+[ ] Other: ____________________
+
+Paste output here:
+---
+[PASTE NMAP OUTPUT]
+---
+
+========================================
+REQUESTED ACTIONS
+========================================
+
+IMMEDIATE (Required):
+1. [ ] Verify server is powered on and running
+2. [ ] Check server console for boot errors or kernel panics
+3. [ ] Verify network interface is up (eth0 or similar)
+4. [ ] Check hosting provider status page for known outages
+5. [ ] Provide console/KVM access if SSH unavailable
+
+SERVER-SIDE CHECKS (If accessible):
+6. [ ] Verify firewall rules allow ports 22, 9003, 9004
+7. [ ] Check if Aurigraph Java process is running (PID 1721015 or new)
+8. [ ] Review application logs: ~/aurigraph-v11.4.4.log
+9. [ ] Verify ports 9003 and 9004 are in LISTEN state
+10. [ ] Check system resources (memory, disk, CPU)
+
+NETWORK CHECKS:
+11. [ ] Verify cloud security groups allow inbound traffic
+12. [ ] Check for recent firewall configuration changes
+13. [ ] Review routing tables and network ACLs
+14. [ ] Verify DNS A records point to correct IP
+15. [ ] Check for DDoS protection blocking legitimate traffic
+
+========================================
+CLOUD PROVIDER INFORMATION
+========================================
+
+Hosting Provider: [AWS/Azure/GCP/Other: ____________________]
+Account ID: [____________________]
+Instance ID: [____________________]
+Region: [____________________]
+Security Group: [____________________]
+
+Cloud-Specific Checks Needed:
+[ ] Security group inbound rules
+[ ] Network ACLs
+[ ] Instance state (running/stopped/terminated)
+[ ] Auto-scaling group status
+[ ] Load balancer health checks
+[ ] VPC routing tables
+
+========================================
+ACCESS INFORMATION
+========================================
+
+SSH Access:
+- Command: ssh -p2235 subbu@dlt.aurigraph.io
+- Username: subbu
+- Port: 2235 (or 22)
+- Authentication: [Password/SSH Key]
+
+Note: For security reasons, credentials are maintained in secure vault.
+Contact [Security Team/Manager] for access credentials if needed.
+
+========================================
+BUSINESS IMPACT
+========================================
+
+Severity: [ ] Critical  [ ] High  [ ] Medium  [ ] Low
+
+Impact Description:
+- Production service completely unavailable
+- [X] users/customers affected
+- [Describe business operations blocked]
+- Estimated revenue impact: [$ per hour/day]
+
+SLA Status:
+- Uptime SLA: [X%]
+- Current outage duration: [X hours]
+- SLA breach: [ ] Yes  [ ] No  [ ] Approaching
+
+========================================
+EXPECTED TIMELINE
+========================================
+
+Request Priority: URGENT
+
+Expected Response Times:
+- Initial acknowledgment: Within 1 hour
+- Status update: Every 2 hours until resolved
+- Target resolution: Within [X] hours
+
+Please provide:
+1. Immediate acknowledgment of this request
+2. Initial assessment within 1 hour
+3. Regular status updates every 2 hours
+4. Estimated time to resolution (ETR)
+5. Root cause analysis after resolution
+
+========================================
+COMMUNICATION
+========================================
+
+Primary Contact: [Your Name]
+Email: [Your Email]
+Phone: [Your Phone]
+Alternate Contact: [Backup Person]
+Alternate Phone: [Backup Phone]
+
+Preferred Communication Method:
+[ ] Email updates
+[ ] Phone call for critical updates
+[ ] Slack/Teams channel: ____________________
+[ ] Conference bridge: ____________________
+
+Please cc: [List team members to keep informed]
+
+========================================
+REFERENCE DOCUMENTATION
+========================================
+
+Attached/Referenced Documents:
+1. SERVER-CONNECTIVITY-DIAGNOSTIC-GUIDE.md (detailed procedures)
+2. Deployment logs from November 9, 2025
+3. Last known good configuration files
+4. [Other relevant documentation]
+
+Previous Incidents:
+- [List any similar past issues and resolutions]
+
+========================================
+ADDITIONAL NOTES
+========================================
+
+Additional Context:
+- [Any recent changes to server, network, or application]
+- [Known maintenance windows]
+- [Other relevant information]
+
+Attempted Workarounds:
+- [List any workarounds attempted]
+
+Questions for Infrastructure Team:
+1. Has there been any scheduled maintenance on this server?
+2. Have there been any recent firewall or security policy changes?
+3. Are other servers in the same network/region affected?
+4. Is there a recent backup we can restore if hardware failure?
+5. Can you provide console/KVM access for direct server access?
+
+========================================
+POST-RESOLUTION REQUEST
+========================================
+
+After resolving the issue, please provide:
+1. [ ] Root cause analysis (RCA)
+2. [ ] Actions taken to resolve
+3. [ ] Preventive measures to avoid recurrence
+4. [ ] Monitoring recommendations
+5. [ ] Updated runbook/documentation
+6. [ ] Server configuration backup
+
+========================================
+ESCALATION PATH
+========================================
+
+If no response within 2 hours, escalate to:
+- Level 2: [Manager Name] - [Email] - [Phone]
+- Level 3: [Director Name] - [Email] - [Phone]
+- Emergency On-Call: [Phone Number]
+
+========================================
+
+Thank you for your immediate attention to this critical issue.
+
+[Your Name]
+[Your Title]
+[Date/Time]
+
+========================================
+DIAGNOSTIC OUTPUT ATTACHMENTS
+========================================
+
+Please attach or paste below:
+
+1. PING OUTPUT:
+```
+[PASTE HERE]
+```
+
+2. NSLOOKUP OUTPUT:
+```
+[PASTE HERE]
+```
+
+3. TRACEROUTE OUTPUT:
+```
+[PASTE HERE]
+```
+
+4. NETCAT/TELNET TESTS:
+```
+[PASTE HERE]
+```
+
+5. CURL/HTTP TESTS:
+```
+[PASTE HERE]
+```
+
+6. NMAP SCAN (if available):
+```
+[PASTE HERE]
+```
+
+7. ANY OTHER RELEVANT OUTPUT:
+```
+[PASTE HERE]
+```
+
+========================================
+INTERNAL USE - RESPONSE TRACKING
+========================================
+
+[For IT team to fill out]
+
+Ticket Number: ____________________
+Assigned To: ____________________
+Initial Response Time: ____________________
+Resolution Time: ____________________
+Root Cause: ____________________
+
+Actions Taken:
+[ ] Server restarted
+[ ] Network reconfigured
+[ ] Firewall rules updated
+[ ] Application restarted
+[ ] Hardware replaced
+[ ] Other: ____________________
+
+Resolution Notes:
+____________________
+____________________
+____________________
+
+========================================

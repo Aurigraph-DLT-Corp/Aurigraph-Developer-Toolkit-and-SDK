@@ -1,0 +1,279 @@
+version: '3.8'
+
+services:
+  # Consensus Channel Nodes (3 nodes for HyperRAFT++)
+  consensus-node1:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-consensus-1
+    ports:
+      - "8100:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=consensus-node-1
+      - AURIGRAPH_CHANNEL_TYPE=CONSENSUS
+      - AURIGRAPH_CHANNEL_ID=consensus-primary
+      - AURIGRAPH_AUTO_JOIN=true
+    volumes:
+      - consensus1_data:/work/data
+    networks:
+      - aurigraph-consensus
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+    labels:
+      - "com.aurigraph.channel=consensus-primary"
+      - "com.aurigraph.role=consensus-participant"
+
+  consensus-node2:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-consensus-2
+    ports:
+      - "8101:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=consensus-node-2
+      - AURIGRAPH_CHANNEL_TYPE=CONSENSUS
+      - AURIGRAPH_CHANNEL_ID=consensus-primary
+      - AURIGRAPH_AUTO_JOIN=true
+    volumes:
+      - consensus2_data:/work/data
+    networks:
+      - aurigraph-consensus
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+
+  consensus-node3:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-consensus-3
+    ports:
+      - "8102:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=consensus-node-3
+      - AURIGRAPH_CHANNEL_TYPE=CONSENSUS
+      - AURIGRAPH_CHANNEL_ID=consensus-primary
+      - AURIGRAPH_AUTO_JOIN=true
+    volumes:
+      - consensus3_data:/work/data
+    networks:
+      - aurigraph-consensus
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+
+  # DeFi Processing Channel Nodes (2 nodes for transaction processing)
+  defi-node1:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-defi-1
+    ports:
+      - "8110:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=defi-node-1
+      - AURIGRAPH_CHANNEL_TYPE=PROCESSING
+      - AURIGRAPH_CHANNEL_ID=processing-defi
+      - AURIGRAPH_SPECIALIZATION=DEFI
+      - AURIGRAPH_AUTO_JOIN=true
+    volumes:
+      - defi1_data:/work/data
+    networks:
+      - aurigraph-processing
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+    labels:
+      - "com.aurigraph.channel=processing-defi"
+      - "com.aurigraph.role=transaction-processor"
+
+  defi-node2:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-defi-2
+    ports:
+      - "8111:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=defi-node-2
+      - AURIGRAPH_CHANNEL_TYPE=PROCESSING
+      - AURIGRAPH_CHANNEL_ID=processing-defi
+      - AURIGRAPH_SPECIALIZATION=DEFI
+      - AURIGRAPH_AUTO_JOIN=true
+    volumes:
+      - defi2_data:/work/data
+    networks:
+      - aurigraph-processing
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+
+  # Geographic Channel Nodes (US region)
+  geo-us-node1:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-geo-us-1
+    ports:
+      - "8120:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=geo-us-node-1
+      - AURIGRAPH_CHANNEL_TYPE=GEOGRAPHIC
+      - AURIGRAPH_CHANNEL_ID=geographic-us
+      - AURIGRAPH_REGION=US_EAST
+      - AURIGRAPH_AUTO_JOIN=true
+    volumes:
+      - geo_us1_data:/work/data
+    networks:
+      - aurigraph-geographic
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+    labels:
+      - "com.aurigraph.channel=geographic-us"
+      - "com.aurigraph.role=regional-processor"
+
+  geo-us-node2:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-geo-us-2
+    ports:
+      - "8121:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=geo-us-node-2
+      - AURIGRAPH_CHANNEL_TYPE=GEOGRAPHIC
+      - AURIGRAPH_CHANNEL_ID=geographic-us
+      - AURIGRAPH_REGION=US_EAST
+      - AURIGRAPH_AUTO_JOIN=true
+    volumes:
+      - geo_us2_data:/work/data
+    networks:
+      - aurigraph-geographic
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+
+  # Channel Load Balancers
+  consensus-lb:
+    image: nginx:alpine
+    container_name: aurigraph-consensus-lb
+    ports:
+      - "9100:80"
+    volumes:
+      - ./nginx.consensus.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - aurigraph-consensus
+    restart: unless-stopped
+    depends_on:
+      - consensus-node1
+      - consensus-node2
+      - consensus-node3
+    labels:
+      - "com.aurigraph.service=load-balancer"
+      - "com.aurigraph.channel=consensus-primary"
+
+  defi-lb:
+    image: nginx:alpine
+    container_name: aurigraph-defi-lb
+    ports:
+      - "9110:80"
+    volumes:
+      - ./nginx.defi.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - aurigraph-processing
+    restart: unless-stopped
+    depends_on:
+      - defi-node1
+      - defi-node2
+    labels:
+      - "com.aurigraph.service=load-balancer"
+      - "com.aurigraph.channel=processing-defi"
+
+  geo-us-lb:
+    image: nginx:alpine
+    container_name: aurigraph-geo-us-lb
+    ports:
+      - "9120:80"
+    volumes:
+      - ./nginx.geo-us.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - aurigraph-geographic
+    restart: unless-stopped
+    depends_on:
+      - geo-us-node1
+      - geo-us-node2
+    labels:
+      - "com.aurigraph.service=load-balancer"
+      - "com.aurigraph.channel=geographic-us"
+
+  # Channel Discovery and Management Service
+  channel-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-channel-manager
+    ports:
+      - "8200:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=channel-manager
+      - AURIGRAPH_ROLE=CHANNEL_MANAGER
+      - AURIGRAPH_MANAGE_ALL_CHANNELS=true
+    volumes:
+      - channel_manager_data:/work/data
+    networks:
+      - aurigraph-consensus
+      - aurigraph-processing
+      - aurigraph-geographic
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 1.0
+    labels:
+      - "com.aurigraph.service=channel-manager"
+      - "com.aurigraph.role=coordinator"
+
+volumes:
+  consensus1_data:
+  consensus2_data:
+  consensus3_data:
+  defi1_data:
+  defi2_data:
+  geo_us1_data:
+  geo_us2_data:
+  channel_manager_data:
+
+networks:
+  aurigraph-consensus:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+    labels:
+      - "com.aurigraph.network=consensus"
+      
+  aurigraph-processing:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+    labels:
+      - "com.aurigraph.network=processing"
+      
+  aurigraph-geographic:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+    labels:
+      - "com.aurigraph.network=geographic"

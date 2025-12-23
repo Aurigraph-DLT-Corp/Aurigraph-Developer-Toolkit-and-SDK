@@ -5,7 +5,6 @@ import io.aurigraph.v11.ai.AIConsensusOptimizer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.annotation.PostConstruct;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -55,70 +54,24 @@ public class HyperRAFTConsensusService {
     @ConfigProperty(name = "consensus.snapshot.threshold", defaultValue = "100000")
     int snapshotThreshold;
 
-    // FIXED: Use programmatic config access to prevent ArC container initialization issues
-    // @ConfigProperty Optional<Boolean> still goes through ConfigStaticInitCheckInterceptor which fails
-    // Using ConfigProvider.getConfig() at runtime avoids the static initialization issue
+    @ConfigProperty(name = "consensus.ai.optimization.enabled", defaultValue = "true")
+    boolean aiOptimizationEnabled;
 
-    // Safe accessor methods with programmatic config access and default values
-    private boolean isAiOptimizationEnabled() {
-        try {
-            return ConfigProvider.getConfig()
-                .getOptionalValue("consensus.ai.optimization.enabled", Boolean.class)
-                .orElse(true);
-        } catch (Exception e) {
-            return true; // default
-        }
-    }
+    @ConfigProperty(name = "consensus.auto.promote.leader", defaultValue = "true")
+    boolean autoPromoteLeader;
 
-    private boolean isAutoPromoteLeader() {
-        try {
-            return ConfigProvider.getConfig()
-                .getOptionalValue("consensus.auto.promote.leader", Boolean.class)
-                .orElse(true);
-        } catch (Exception e) {
-            return true; // default
-        }
-    }
+    @ConfigProperty(name = "consensus.background.updates.enabled", defaultValue = "true")
+    boolean backgroundUpdatesEnabled;
 
-    private boolean isBackgroundUpdatesEnabled() {
-        try {
-            return ConfigProvider.getConfig()
-                .getOptionalValue("consensus.background.updates.enabled", Boolean.class)
-                .orElse(true);
-        } catch (Exception e) {
-            return true; // default
-        }
-    }
+    // PHASE 4B-3: Consensus Timing Optimization configuration
+    @ConfigProperty(name = "consensus.heartbeat.adaptive", defaultValue = "true")
+    boolean adaptiveHeartbeatEnabled;
 
-    private boolean isAdaptiveHeartbeatEnabled() {
-        try {
-            return ConfigProvider.getConfig()
-                .getOptionalValue("consensus.heartbeat.adaptive", Boolean.class)
-                .orElse(true);
-        } catch (Exception e) {
-            return true; // default
-        }
-    }
+    @ConfigProperty(name = "consensus.election.timeout.dynamic", defaultValue = "true")
+    boolean dynamicElectionTimeoutEnabled;
 
-    private boolean isDynamicElectionTimeoutEnabled() {
-        try {
-            return ConfigProvider.getConfig()
-                .getOptionalValue("consensus.election.timeout.dynamic", Boolean.class)
-                .orElse(true);
-        } catch (Exception e) {
-            return true; // default
-        }
-    }
-
-    private boolean isNetworkLatencyMeasurementEnabled() {
-        try {
-            return ConfigProvider.getConfig()
-                .getOptionalValue("consensus.network.latency.measurement", Boolean.class)
-                .orElse(true);
-        } catch (Exception e) {
-            return true; // default
-        }
-    }
+    @ConfigProperty(name = "consensus.network.latency.measurement", defaultValue = "true")
+    boolean networkLatencyMeasurementEnabled;
 
     // Consensus state
     private final AtomicReference<NodeState> currentState = new AtomicReference<>(NodeState.FOLLOWER);
@@ -154,16 +107,8 @@ public class HyperRAFTConsensusService {
     private volatile long electionTimeout = 200; // Dynamic timeout
 
     // PHASE 4B: Virtual Thread Executors for better parallelism
-    // FIXED: Use programmatic config access to prevent ArC container initialization issues
-    private boolean isVirtualThreadsEnabled() {
-        try {
-            return ConfigProvider.getConfig()
-                .getOptionalValue("consensus.virtual.threads.enabled", Boolean.class)
-                .orElse(true);
-        } catch (Exception e) {
-            return true; // default
-        }
-    }
+    @ConfigProperty(name = "consensus.virtual.threads.enabled", defaultValue = "true")
+    boolean virtualThreadsEnabled;
 
     // Scheduled executors - will use virtual threads if enabled
     private ScheduledExecutorService heartbeatExecutor;
@@ -193,7 +138,7 @@ public class HyperRAFTConsensusService {
 
         // Perform initial election to become leader (production mode only)
         // In test mode, service starts in FOLLOWER state
-        if (isAutoPromoteLeader()) {
+        if (autoPromoteLeader) {
             currentState.set(NodeState.LEADER);
             currentTerm.set(1);
             commitIndex.set(145000);
@@ -213,16 +158,16 @@ public class HyperRAFTConsensusService {
 
         LOG.infof("Initialized consensus cluster: %d nodes (1 leader + 6 followers)", clusterNodes.size() + 1);
         LOG.infof("Configuration - AI optimization: %s, batch size: %d, heartbeat: %dms, background updates: %s",
-                isAiOptimizationEnabled(), batchSize, heartbeatInterval, isBackgroundUpdatesEnabled());
+                aiOptimizationEnabled, batchSize, heartbeatInterval, backgroundUpdatesEnabled);
 
         // Start background services (only in production mode)
-        if (isBackgroundUpdatesEnabled()) {
+        if (backgroundUpdatesEnabled) {
             startLiveConsensusUpdates();
             startHeartbeatService();
             startElectionMonitor();
             startBatchProcessor();
 
-            if (isAiOptimizationEnabled()) {
+            if (aiOptimizationEnabled) {
                 startAIOptimization();
             }
             LOG.info("Background consensus services started");
@@ -245,7 +190,7 @@ public class HyperRAFTConsensusService {
      * - Batch processor: 8x parallelism for log replication
      */
     private void initializeExecutors() {
-        if (isVirtualThreadsEnabled()) {
+        if (virtualThreadsEnabled) {
             LOG.info("PHASE 4B-1: Initializing Virtual Thread Executors");
 
             // Heartbeat executor: 2 virtual threads for concurrent heartbeat sending
@@ -312,7 +257,7 @@ public class HyperRAFTConsensusService {
 
         // Record performance for AI optimization
         // AIConsensusOptimizer stub - full implementation pending
-        if (isAiOptimizationEnabled() && consensusOptimizer != null) {
+        if (aiOptimizationEnabled && consensusOptimizer != null) {
             LOG.debugf("Performance recorded for node %s", nodeId);
         }
 
@@ -344,14 +289,14 @@ public class HyperRAFTConsensusService {
                 sendHeartbeats();
 
                 // Periodically optimize election timeout based on network latency
-                if (isDynamicElectionTimeoutEnabled() && totalConsensusOperations.get() % 20 == 0) {
+                if (dynamicElectionTimeoutEnabled && totalConsensusOperations.get() % 20 == 0) {
                     optimizeElectionTimeout();
                 }
             }
         }, 0, heartbeatInterval, TimeUnit.MILLISECONDS);
 
         LOG.infof("PHASE 4B-3: Heartbeat service started (interval: %dms, adaptive: %s, dynamic timeout: %s)",
-                heartbeatInterval, isAdaptiveHeartbeatEnabled(), isDynamicElectionTimeoutEnabled());
+                heartbeatInterval, adaptiveHeartbeatEnabled, dynamicElectionTimeoutEnabled);
     }
 
     private void sendHeartbeats() {
@@ -365,7 +310,7 @@ public class HyperRAFTConsensusService {
 
         // Check for network partitions using AI
         // AIConsensusOptimizer stub - full implementation pending
-        if (isAiOptimizationEnabled() && consensusOptimizer != null) {
+        if (aiOptimizationEnabled && consensusOptimizer != null) {
             LOG.debugf("Network partition detection (AI optimization stub)");
         }
     }
@@ -404,7 +349,7 @@ public class HyperRAFTConsensusService {
             }
 
             // Optimize election timeout using AI
-            if (isAiOptimizationEnabled() && consensusOptimizer != null) {
+            if (aiOptimizationEnabled && consensusOptimizer != null) {
                 optimizeElectionTimeout();
             }
         }, 0, electionTimeout / 2, TimeUnit.MILLISECONDS);
@@ -418,7 +363,7 @@ public class HyperRAFTConsensusService {
      * Measurement: timeout = 3x network latency (accounts for RTT + processing)
      */
     private void optimizeElectionTimeout() {
-        if (!isDynamicElectionTimeoutEnabled()) {
+        if (!dynamicElectionTimeoutEnabled) {
             return;
         }
 
@@ -448,7 +393,7 @@ public class HyperRAFTConsensusService {
      * Uses nodeLastSeen map to determine response delays
      */
     private long calculateAverageNetworkLatency() {
-        if (isNetworkLatencyMeasurementEnabled() && networkLatencySamples.get() > 0) {
+        if (networkLatencyMeasurementEnabled && networkLatencySamples.get() > 0) {
             long avgLatency = networkLatencySum.get() / networkLatencySamples.get();
             return Math.max(5, Math.min(100, avgLatency)); // Clamp between 5-100ms
         }
@@ -464,7 +409,7 @@ public class HyperRAFTConsensusService {
      * Called when heartbeat acknowledgments are received
      */
     public void recordNetworkLatency(long latencyMs) {
-        if (isNetworkLatencyMeasurementEnabled() && latencyMs > 0) {
+        if (networkLatencyMeasurementEnabled && latencyMs > 0) {
             networkLatencySamples.incrementAndGet();
             networkLatencySum.addAndGet(latencyMs);
 
@@ -487,7 +432,7 @@ public class HyperRAFTConsensusService {
      * - High load (CPU > 80%): heartbeat_interval * 2 (reduced overhead)
      */
     private long calculateAdaptiveHeartbeatInterval() {
-        if (!isAdaptiveHeartbeatEnabled()) {
+        if (!adaptiveHeartbeatEnabled) {
             currentHeartbeatInterval = heartbeatInterval;
             return currentHeartbeatInterval;
         }
@@ -548,7 +493,7 @@ public class HyperRAFTConsensusService {
     private void initializeHeartbeatInterval() {
         currentHeartbeatInterval = heartbeatInterval;
         LOG.infof("Heartbeat interval initialized: %dms (adaptive: %s)",
-                heartbeatInterval, isAdaptiveHeartbeatEnabled());
+                heartbeatInterval, adaptiveHeartbeatEnabled);
     }
 
     /**
@@ -558,7 +503,7 @@ public class HyperRAFTConsensusService {
      */
     private void startBatchProcessor() {
         // Use appropriate executor based on virtual thread configuration
-        ScheduledExecutorService executor = (isVirtualThreadsEnabled() && batchProcessorScheduler != null)
+        ScheduledExecutorService executor = (virtualThreadsEnabled && batchProcessorScheduler != null)
                 ? batchProcessorScheduler
                 : (legacyBatchProcessor != null ? legacyBatchProcessor : Executors.newScheduledThreadPool(1));
 
@@ -569,7 +514,7 @@ public class HyperRAFTConsensusService {
         }, 0, 50, TimeUnit.MILLISECONDS);
 
         LOG.infof("Batch processor started (batch size: %d, interval: 50ms, virtual threads: %s)",
-                batchSize, isVirtualThreadsEnabled());
+                batchSize, virtualThreadsEnabled);
     }
 
     private void processBatch() {
@@ -743,7 +688,7 @@ public class HyperRAFTConsensusService {
                     batch.size(), chunks.size());
 
             // Replicate each chunk in parallel to all cluster nodes
-            if (isVirtualThreadsEnabled() && batchProcessorVirtual != null) {
+            if (virtualThreadsEnabled && batchProcessorVirtual != null) {
                 // Use virtual thread executor for maximum parallelism
                 replicateChunksVirtual(chunks);
             } else {
@@ -753,7 +698,7 @@ public class HyperRAFTConsensusService {
 
             long replicationTimeMs = System.currentTimeMillis() - startReplicationMs;
             LOG.infof("Batch replication completed in %dms (parallelism: %d, virtual threads: %b)",
-                    replicationTimeMs, replicationParallelism, isVirtualThreadsEnabled());
+                    replicationTimeMs, replicationParallelism, virtualThreadsEnabled);
 
         } catch (Exception e) {
             LOG.errorf(e, "Parallel batch replication failed");
@@ -863,7 +808,7 @@ public class HyperRAFTConsensusService {
                     } catch (Exception e) {
                         LOG.errorf(e, "Replication to node %s failed", nodeId);
                     }
-                }, isVirtualThreadsEnabled() && batchProcessorVirtual != null
+                }, virtualThreadsEnabled && batchProcessorVirtual != null
                     ? batchProcessorVirtual
                     : ForkJoinPool.commonPool());
 
@@ -1267,7 +1212,7 @@ public class HyperRAFTConsensusService {
             // - Node's performance metrics
 
             // Use AI optimizer if available for smarter voting
-            if (isAiOptimizationEnabled() && consensusOptimizer != null) {
+            if (aiOptimizationEnabled && consensusOptimizer != null) {
                 // Higher approval rate for nodes with good performance
                 double performanceScore = 0.7 + (Math.random() * 0.3); // 0.7-1.0
                 return performanceScore > 0.75;

@@ -1,0 +1,273 @@
+# Prometheus Alert Rules for Aurigraph V11
+# Defines critical alerts for service health and performance monitoring
+
+groups:
+  - name: 'v11_service_alerts'
+    interval: 30s
+    rules:
+      # V11 Backend Service Down
+      - alert: V11ServiceDown
+        expr: up{job="v11-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: backend
+          service: v11-api
+        annotations:
+          summary: "V11 Backend Service Down"
+          description: "V11 backend service at localhost:9003 is not responding"
+          impact: "API endpoint unavailable, blockchain operations halted"
+          action: "SSH to dlt.aurigraph.io and check: ps aux | grep java"
+
+      # V11 Health Check Failed
+      - alert: V11HealthCheckFailed
+        expr: v11_health_status != 1
+        for: 2m
+        labels:
+          severity: critical
+          component: health
+          service: v11-api
+        annotations:
+          summary: "V11 Health Check Failed"
+          description: "V11 backend health check endpoint returning unhealthy status"
+          impact: "Service degradation, potential data loss risk"
+          action: "Check service logs: tail -100 /home/subbu/v11-service.log"
+
+  - name: 'database_alerts'
+    interval: 30s
+    rules:
+      # PostgreSQL Down
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+          service: postgres
+        annotations:
+          summary: "PostgreSQL Database Down"
+          description: "PostgreSQL 16 database is not responding on port 5432"
+          impact: "Database operations blocked, V11 backend cannot function"
+          action: "SSH to dlt.aurigraph.io and check: sudo systemctl status postgresql"
+
+      # PostgreSQL Connection Pool Exhausted
+      - alert: PostgreSQLConnectionPoolExhausted
+        expr: pg_stat_activity_count > 9
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+          service: postgres
+        annotations:
+          summary: "PostgreSQL Connection Pool Nearly Exhausted"
+          description: "{{ $value }} of 10 PostgreSQL connections in use"
+          impact: "Database performance degradation, potential connection timeouts"
+          action: "Review active connections: SELECT * FROM pg_stat_activity;"
+
+      # PostgreSQL Cache Hit Ratio Low
+      - alert: PostgreSQLLowCacheHitRatio
+        expr: pg_stat_user_tables_idx_blks_hit / (pg_stat_user_tables_idx_blks_hit + pg_stat_user_tables_idx_blks_read) < 0.95
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+          service: postgres
+        annotations:
+          summary: "PostgreSQL Cache Hit Ratio Low"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }}, below 95% target"
+          impact: "Slow database queries, increased disk I/O"
+          action: "Review slow queries and add indices if needed"
+
+  - name: 'blockchain_alerts'
+    interval: 30s
+    rules:
+      # Blockchain Not Synced
+      - alert: BlockchainNotSynced
+        expr: v11_blockchain_sync_status != 1
+        for: 2m
+        labels:
+          severity: critical
+          component: blockchain
+          service: v11-api
+        annotations:
+          summary: "Blockchain Out of Sync"
+          description: "V11 blockchain is not synchronized with network consensus"
+          impact: "Potential fork, incorrect blockchain state"
+          action: "Check peer connections: curl http://localhost:9003/api/v11/health"
+
+      # Blockchain Chain Height Stalled
+      - alert: BlockchainHeightStalled
+        expr: increase(v11_blockchain_height[5m]) == 0
+        for: 3m
+        labels:
+          severity: warning
+          component: blockchain
+          service: v11-api
+        annotations:
+          summary: "Blockchain Height Not Increasing"
+          description: "No new blocks added in last 5 minutes"
+          impact: "Transaction processing halted, network congestion possible"
+          action: "Check consensus status and validator connectivity"
+
+      # Consensus Round Stalled
+      - alert: ConsensusRoundStalled
+        expr: increase(v11_consensus_round[5m]) == 0
+        for: 3m
+        labels:
+          severity: warning
+          component: consensus
+          service: v11-api
+        annotations:
+          summary: "Consensus Rounds Not Progressing"
+          description: "Consensus mechanism appears stuck"
+          impact: "Block production stalled, transactions pending"
+          action: "Check validator status: curl http://localhost:9003/api/v11/consensus/status"
+
+      # Too Few Active Validators
+      - alert: TooFewValidators
+        expr: v11_validators_active < 10
+        for: 2m
+        labels:
+          severity: warning
+          component: consensus
+          service: v11-api
+        annotations:
+          summary: "Insufficient Active Validators"
+          description: "Only {{ $value }} validators active, need at least 10"
+          impact: "Consensus stability at risk, network resilience reduced"
+          action: "Check validator status and restart any failed nodes"
+
+      # Memory Pool Size Dangerously High
+      - alert: MemoryPoolTooLarge
+        expr: v11_mempool_size > 10000
+        for: 2m
+        labels:
+          severity: warning
+          component: mempool
+          service: v11-api
+        annotations:
+          summary: "Memory Pool Size Critically High"
+          description: "{{ $value }} transactions pending in memory pool (normal: <1000)"
+          impact: "Transaction processing bottleneck, potential congestion"
+          action: "Monitor transaction processing rate and check network conditions"
+
+  - name: 'performance_alerts'
+    interval: 30s
+    rules:
+      # High API Response Time
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, v11_api_request_duration_seconds_bucket) > 1
+        for: 2m
+        labels:
+          severity: warning
+          component: api
+          service: v11-api
+        annotations:
+          summary: "High API Response Time"
+          description: "95th percentile response time is {{ $value }}s (target: <0.5s)"
+          impact: "Slow API responses, potential user experience degradation"
+          action: "Check database performance and API endpoint latency"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: node_cpu_seconds_total > 80
+        for: 3m
+        labels:
+          severity: warning
+          component: system
+          service: host
+        annotations:
+          summary: "High CPU Usage Detected"
+          description: "CPU usage is {{ $value }}% (threshold: 80%)"
+          impact: "System performance degradation, risk of service interruption"
+          action: "Check running processes: top -b -n 1"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.8
+        for: 3m
+        labels:
+          severity: warning
+          component: system
+          service: host
+        annotations:
+          summary: "High Memory Usage Detected"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          impact: "System slowdown, potential OOM killer activation"
+          action: "Check memory usage: free -h"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.15
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+          service: host
+        annotations:
+          summary: "Disk Space Running Low"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining (threshold: 15%)"
+          impact: "Potential service failure if disk fills, database corruption risk"
+          action: "Check disk usage: df -h"
+
+  - name: 'network_alerts'
+    interval: 30s
+    rules:
+      # High Network Error Rate
+      - alert: HighNetworkErrorRate
+        expr: rate(node_network_receive_errs_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: network
+          service: host
+        annotations:
+          summary: "High Network Error Rate"
+          description: "Network error rate is {{ $value }} errors/sec"
+          impact: "Potential network connectivity issues"
+          action: "Check network interface status: netstat -i"
+
+      # Peer Connectivity Low
+      - alert: LowPeerConnectivity
+        expr: v11_network_peers_connected < 50
+        for: 3m
+        labels:
+          severity: warning
+          component: network
+          service: v11-api
+        annotations:
+          summary: "Low Peer Connectivity"
+          description: "Only {{ $value }} peers connected (normal: >100)"
+          impact: "Network partitioning risk, blockchain sync delays"
+          action: "Check peer connectivity and network routing"
+
+  - name: 'infrastructure_alerts'
+    interval: 30s
+    rules:
+      # Container Restart Rate High
+      - alert: ContainerRestartRateHigh
+        expr: increase(container_restarts_total[1h]) > 2
+        for: 2m
+        labels:
+          severity: warning
+          component: docker
+          service: container
+        annotations:
+          summary: "High Container Restart Rate"
+          description: "Container restarted {{ $value }} times in last hour"
+          impact: "Service stability issues, potential cascading failures"
+          action: "Check container logs: docker logs <container-id>"
+
+      # Prometheus Scrape Error
+      - alert: PrometheusScrapeError
+        expr: increase(prometheus_sd_consul_rpc_duration_seconds_count[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          component: prometheus
+          service: monitoring
+        annotations:
+          summary: "Prometheus Scrape Error"
+          description: "Prometheus unable to scrape metrics from services"
+          impact: "Missing metrics, blind spots in monitoring"
+          action: "Check Prometheus logs and target endpoint health"

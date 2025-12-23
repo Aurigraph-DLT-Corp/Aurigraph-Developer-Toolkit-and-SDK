@@ -2,10 +2,6 @@
  * useNetworkStream.ts
  * Custom hook for real-time network topology streaming via WebSocket
  *
- * @deprecated This hook is deprecated. Use useNetworkGrpc from '../grpc' instead.
- * Migration: import { useNetworkGrpc } from '../grpc'
- * Sunset date: 2025-03-01
- *
  * Endpoint: ws://localhost:9003/ws/network
  * Trigger: On peer connection/disconnection
  * Features: Peer connections, network latency updates, version information

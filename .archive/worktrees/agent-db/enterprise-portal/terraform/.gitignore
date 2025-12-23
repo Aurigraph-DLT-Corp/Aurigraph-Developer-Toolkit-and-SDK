@@ -1,0 +1,30 @@
+# Terraform files
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+*.tfvars
+!terraform.tfvars.example
+.terraform/
+.terraform.lock.hcl
+terraform.tfplan
+
+# Deployment packages
+*.tar.gz
+
+# Generated nginx configs
+nginx-complete.conf
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Sensitive files
+*.pem
+*.key
+*.crt
+
+# macOS
+.DS_Store
+
+# Backup files
+*.backup

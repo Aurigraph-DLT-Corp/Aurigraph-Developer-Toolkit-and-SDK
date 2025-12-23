@@ -12,7 +12,7 @@ public class StorageInfo {
 
     public String basePath;
     public long totalSize;  // Total bytes stored
-    public int eiNodeCount;  // Number of EI nodes (legacy field)
+    public int slimNodeCount;  // Number of slim nodes (legacy field)
     public int channelCount;  // Number of active channels
     public boolean compressionEnabled;
     public boolean encryptionEnabled;
@@ -21,12 +21,12 @@ public class StorageInfo {
         // Default constructor for Jackson/JSON deserialization
     }
 
-    public StorageInfo(String basePath, long totalSize, int eiNodeCount,
+    public StorageInfo(String basePath, long totalSize, int slimNodeCount,
                       int channelCount, boolean compressionEnabled,
                       boolean encryptionEnabled) {
         this.basePath = basePath;
         this.totalSize = totalSize;
-        this.eiNodeCount = eiNodeCount;
+        this.slimNodeCount = slimNodeCount;
         this.channelCount = channelCount;
         this.compressionEnabled = compressionEnabled;
         this.encryptionEnabled = encryptionEnabled;

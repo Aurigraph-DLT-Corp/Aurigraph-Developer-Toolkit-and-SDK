@@ -1,0 +1,43 @@
+[Unit]
+Description=Aurigraph V11 Production Service
+Documentation=https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aurigraph
+Group=aurigraph
+WorkingDirectory=/opt/aurigraph/releases/v11.4.4
+ExecStart=/usr/bin/java -jar /opt/aurigraph/releases/v11.4.4/aurigraph-v11-standalone-11.4.4-runner.jar
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=aurigraph-v11
+
+# Environment Configuration
+Environment="JAVA_OPTS=-XX:+UseG1GC -XX:MaxGCPauseMillis=10"
+Environment="QUARKUS_HTTP_PORT=9003"
+Environment="QUARKUS_GRPC_SERVER_PORT=9004"
+
+# Performance Tuning
+LimitNOFILE=1048576
+LimitNPROC=512000
+LimitCORE=infinity
+
+# Security Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/aurigraph/logs
+ReadWritePaths=/opt/aurigraph/data
+
+# Resource Limits
+CPUQuota=95%
+MemoryMax=48G
+MemoryHigh=40G
+
+[Install]
+WantedBy=multi-user.target

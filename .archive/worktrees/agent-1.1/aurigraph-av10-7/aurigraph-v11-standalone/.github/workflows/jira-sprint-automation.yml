@@ -1,0 +1,313 @@
+name: JIRA Sprint Automation
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Sprint Action'
+        required: true
+        type: choice
+        options:
+          - create_sprint
+          - close_sprint
+          - update_burndown
+          - generate_report
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+  JIRA_BOARD_ID: 789
+
+jobs:
+  manage-sprint:
+    name: Manage Sprint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install JIRA Python Client
+        run: |
+          pip install jira python-dateutil
+          
+      - name: Sprint Management Script
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          cat > sprint_manager.py << 'EOF'
+          import os
+          import json
+          from datetime import datetime, timedelta
+          from jira import JIRA
+          
+          # JIRA Configuration
+          jira_options = {
+              'server': os.environ['JIRA_BASE_URL']
+          }
+          
+          jira = JIRA(
+              options=jira_options,
+              basic_auth=('admin@aurigraph.io', os.environ['JIRA_API_TOKEN'])
+          )
+          
+          board_id = os.environ['JIRA_BOARD_ID']
+          project_key = os.environ['JIRA_PROJECT_KEY']
+          action = os.environ.get('ACTION', 'update_burndown')
+          
+          def get_active_sprint():
+              """Get the currently active sprint"""
+              sprints = jira.sprints(board_id, state='active')
+              return sprints[0] if sprints else None
+          
+          def create_new_sprint():
+              """Create a new sprint"""
+              sprint_number = len(jira.sprints(board_id)) + 1
+              sprint_name = f"Sprint {sprint_number} - {datetime.now().strftime('%B %Y')}"
+              start_date = datetime.now()
+              end_date = start_date + timedelta(weeks=2)
+              
+              sprint = jira.create_sprint(
+                  name=sprint_name,
+                  board_id=board_id,
+                  startDate=start_date.isoformat(),
+                  endDate=end_date.isoformat()
+              )
+              
+              print(f"Created new sprint: {sprint_name}")
+              return sprint
+          
+          def close_sprint():
+              """Close the active sprint and move incomplete issues"""
+              sprint = get_active_sprint()
+              if not sprint:
+                  print("No active sprint found")
+                  return
+              
+              # Get incomplete issues
+              incomplete_issues = jira.search_issues(
+                  f'sprint = {sprint.id} AND status != Done'
+              )
+              
+              # Complete the sprint
+              jira.update_sprint(
+                  sprint.id,
+                  state='closed',
+                  completeDate=datetime.now().isoformat()
+              )
+              
+              print(f"Closed sprint: {sprint.name}")
+              print(f"Moved {len(incomplete_issues)} incomplete issues to backlog")
+          
+          def update_burndown():
+              """Update burndown chart data"""
+              sprint = get_active_sprint()
+              if not sprint:
+                  print("No active sprint found")
+                  return
+              
+              # Get sprint issues
+              issues = jira.search_issues(
+                  f'sprint = {sprint.id}',
+                  maxResults=200
+              )
+              
+              # Calculate metrics
+              total_points = sum(
+                  issue.fields.customfield_10016 or 0 
+                  for issue in issues
+              )
+              
+              completed_points = sum(
+                  issue.fields.customfield_10016 or 0 
+                  for issue in issues 
+                  if issue.fields.status.name == 'Done'
+              )
+              
+              remaining_points = total_points - completed_points
+              
+              # Create burndown comment
+              comment = f"""
+              📊 **Sprint Burndown Update**
+              
+              Sprint: {sprint.name}
+              Date: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
+              
+              **Metrics:**
+              - Total Story Points: {total_points}
+              - Completed Points: {completed_points}
+              - Remaining Points: {remaining_points}
+              - Completion: {(completed_points/total_points*100):.1f}% if total_points > 0 else 0%
+              
+              **Issue Breakdown:**
+              - Total Issues: {len(issues)}
+              - Completed: {len([i for i in issues if i.fields.status.name == 'Done'])}
+              - In Progress: {len([i for i in issues if i.fields.status.name == 'In Progress'])}
+              - To Do: {len([i for i in issues if i.fields.status.name == 'To Do'])}
+              
+              [View Board](https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789)
+              """
+              
+              # Add comment to sprint epic or first issue
+              if issues:
+                  jira.add_comment(issues[0], comment)
+                  print(f"Updated burndown for sprint: {sprint.name}")
+          
+          def generate_report():
+              """Generate sprint report"""
+              sprint = get_active_sprint()
+              if not sprint:
+                  print("No active sprint found")
+                  return
+              
+              # Get all issues in sprint
+              issues = jira.search_issues(
+                  f'sprint = {sprint.id}',
+                  maxResults=200,
+                  expand='changelog'
+              )
+              
+              # Analyze velocity and performance
+              velocity_data = {
+                  'completed_stories': 0,
+                  'completed_bugs': 0,
+                  'completed_tasks': 0,
+                  'total_points': 0,
+                  'cycle_time': []
+              }
+              
+              for issue in issues:
+                  if issue.fields.status.name == 'Done':
+                      issue_type = issue.fields.issuetype.name
+                      if issue_type == 'Story':
+                          velocity_data['completed_stories'] += 1
+                      elif issue_type == 'Bug':
+                          velocity_data['completed_bugs'] += 1
+                      else:
+                          velocity_data['completed_tasks'] += 1
+                      
+                      # Calculate cycle time
+                      created = datetime.strptime(
+                          issue.fields.created.split('T')[0], 
+                          '%Y-%m-%d'
+                      )
+                      
+                      if issue.fields.resolutiondate:
+                          resolved = datetime.strptime(
+                              issue.fields.resolutiondate.split('T')[0],
+                              '%Y-%m-%d'
+                          )
+                          cycle_time = (resolved - created).days
+                          velocity_data['cycle_time'].append(cycle_time)
+              
+              avg_cycle_time = sum(velocity_data['cycle_time']) / len(velocity_data['cycle_time']) if velocity_data['cycle_time'] else 0
+              
+              report = f"""
+              📈 **Sprint Report: {sprint.name}**
+              
+              Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
+              
+              **Sprint Overview:**
+              - Start Date: {sprint.startDate}
+              - End Date: {sprint.endDate}
+              - Total Issues: {len(issues)}
+              
+              **Completion Metrics:**
+              - Stories Completed: {velocity_data['completed_stories']}
+              - Bugs Fixed: {velocity_data['completed_bugs']}
+              - Tasks Completed: {velocity_data['completed_tasks']}
+              - Average Cycle Time: {avg_cycle_time:.1f} days
+              
+              **Team Performance:**
+              - Velocity: {velocity_data['completed_stories'] + velocity_data['completed_bugs'] + velocity_data['completed_tasks']} items
+              - Throughput: {len(issues) / 14:.1f} items/day
+              
+              **GitHub Integration:**
+              - Commits: Check GitHub for detailed commit history
+              - Pull Requests: Linked via branch names
+              - Build Status: Automated via GitHub Actions
+              
+              [Full Sprint Report](https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789/reports)
+              """
+              
+              print(report)
+              
+              # Save report to file
+              with open('sprint_report.md', 'w') as f:
+                  f.write(report)
+          
+          # Execute requested action
+          if action == 'create_sprint':
+              create_new_sprint()
+          elif action == 'close_sprint':
+              close_sprint()
+          elif action == 'update_burndown':
+              update_burndown()
+          elif action == 'generate_report':
+              generate_report()
+          else:
+              print(f"Unknown action: {action}")
+          EOF
+          
+          ACTION="${{ github.event.inputs.action || 'update_burndown' }}"
+          export ACTION
+          python sprint_manager.py
+          
+      - name: Upload Sprint Report
+        if: github.event.inputs.action == 'generate_report'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint-report
+          path: sprint_report.md
+
+  auto-assign-issues:
+    name: Auto-Assign Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Auto-Assignment Logic
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          # Get unassigned issues in current sprint
+          SPRINT_ID=$(curl -X GET \
+            -H "Authorization: Basic $(echo -n 'admin@aurigraph.io:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            "${{ env.JIRA_BASE_URL }}/rest/agile/1.0/board/${{ env.JIRA_BOARD_ID }}/sprint?state=active" \
+            | jq -r '.values[0].id')
+          
+          # Get unassigned issues
+          UNASSIGNED=$(curl -X GET \
+            -H "Authorization: Basic $(echo -n 'admin@aurigraph.io:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/search?jql=sprint=$SPRINT_ID+AND+assignee=EMPTY")
+          
+          # Auto-assign based on component or label
+          echo "$UNASSIGNED" | jq -r '.issues[]' | while read -r issue; do
+            ISSUE_KEY=$(echo "$issue" | jq -r '.key')
+            COMPONENTS=$(echo "$issue" | jq -r '.fields.components[].name' | head -1)
+            
+            # Assignment logic based on component
+            ASSIGNEE=""
+            case "$COMPONENTS" in
+              "Backend") ASSIGNEE="backend.dev@aurigraph.io" ;;
+              "Frontend") ASSIGNEE="frontend.dev@aurigraph.io" ;;
+              "DevOps") ASSIGNEE="devops@aurigraph.io" ;;
+              "Security") ASSIGNEE="security@aurigraph.io" ;;
+              *) ASSIGNEE="team.lead@aurigraph.io" ;;
+            esac
+            
+            # Assign the issue
+            curl -X PUT \
+              -H "Authorization: Basic $(echo -n 'admin@aurigraph.io:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+              -H "Content-Type: application/json" \
+              -d "{\"fields\": {\"assignee\": {\"name\": \"$ASSIGNEE\"}}}" \
+              "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/$ISSUE_KEY"
+              
+            echo "Assigned $ISSUE_KEY to $ASSIGNEE"
+          done

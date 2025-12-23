@@ -1,0 +1,1 @@
+{"version":3,"file":"index-classical-simple.d.ts","sourceRoot":"","sources":["../src/index-classical-simple.ts"],"names":[],"mappings":"AAAA;;;GAGG"}

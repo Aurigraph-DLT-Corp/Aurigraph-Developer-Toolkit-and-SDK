@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author Aurigraph V11 Team
  * @version 4.8.0
  */
-@Path("/api/v12/health")
+@Path("/api/v11/health")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -37,7 +37,7 @@ public class HealthCheckResource {
     private static final long START_TIME = System.currentTimeMillis();
 
     /**
-     * GET /api/v12/health
+     * GET /api/v11/health
      *
      * Returns comprehensive health check status including:
      * - Overall platform status (UP/DOWN)
@@ -62,7 +62,7 @@ public class HealthCheckResource {
         )
     })
     public Response getHealth() {
-        LOG.info("GET /api/v12/health - Performing health check");
+        LOG.info("GET /api/v11/health - Performing health check");
 
         Map<String, String> checks = new HashMap<>();
         checks.put("database", "UP");
@@ -80,7 +80,7 @@ public class HealthCheckResource {
     }
 
     /**
-     * GET /api/v12/health/live
+     * GET /api/v11/health/live
      *
      * Simple liveness probe for Kubernetes
      * Returns 200 if the process is running
@@ -92,7 +92,7 @@ public class HealthCheckResource {
         description = "Simple liveness check for container orchestration"
     )
     public Response getLiveness() {
-        LOG.debug("GET /api/v12/health/live - Liveness check");
+        LOG.debug("GET /api/v11/health/live - Liveness check");
 
         return Response.ok(Map.of(
             "status", "UP",
@@ -101,7 +101,7 @@ public class HealthCheckResource {
     }
 
     /**
-     * GET /api/v12/health/ready
+     * GET /api/v11/health/ready
      *
      * Readiness probe for Kubernetes
      * Returns 200 only if all critical subsystems are ready
@@ -113,7 +113,7 @@ public class HealthCheckResource {
         description = "Readiness check indicating if the service can handle traffic"
     )
     public Response getReadiness() {
-        LOG.debug("GET /api/v12/health/ready - Readiness check");
+        LOG.debug("GET /api/v11/health/ready - Readiness check");
 
         return Response.ok(Map.of(
             "status", "UP",

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph V11 Enterprise Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .enterprise-header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-section h1 {
+            font-size: 1.8em;
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .enterprise-badge {
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-item {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #4CAF50;
+        }
+
+        .main-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .metric-icon {
+            font-size: 2em;
+            color: #4CAF50;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .feature-header h3 {
+            font-size: 1.3em;
+        }
+
+        .feature-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .refresh-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="enterprise-header">
+        <div class="logo-section">
+            <i class="fas fa-cube" style="font-size: 2em; color: #4CAF50;"></i>
+            <div>
+                <h1>Aurigraph V11 Enterprise Portal</h1>
+                <div class="enterprise-badge">ENTERPRISE</div>
+            </div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="/governance" class="nav-item"><i class="fas fa-vote-yea"></i> Governance</a>
+            <a href="/staking" class="nav-item"><i class="fas fa-coins"></i> Staking</a>
+            <a href="/contracts" class="nav-item"><i class="fas fa-file-contract"></i> Smart Contracts</a>
+            <a href="/rwa" class="nav-item"><i class="fas fa-building"></i> RWA Tokenization</a>
+            <a href="/assets" class="nav-item"><i class="fas fa-gem"></i> Digital Assets</a>
+            <a href="/defi" class="nav-item"><i class="fas fa-chart-line"></i> DeFi</a>
+            <a href="/cross-chain" class="nav-item"><i class="fas fa-link"></i> Cross-Chain</a>
+            <a href="/analytics" class="nav-item"><i class="fas fa-brain"></i> AI Analytics</a>
+        </nav>
+        
+        <div class="status-indicator">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="platform-status">Loading...</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading enterprise data...
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard-content" style="display: none;">
+            <!-- Refresh Controls -->
+            <div class="refresh-controls">
+                <button class="action-btn" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Refresh Data
+                </button>
+                <button class="action-btn" onclick="runPerformanceTest()">
+                    <i class="fas fa-rocket"></i> Performance Test
+                </button>
+                <button class="action-btn" onclick="toggleAutoRefresh()">
+                    <i class="fas fa-play"></i> <span id="auto-refresh-text">Start Auto-Refresh</span>
+                </button>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="dashboard-grid">
+                <div class="metric-card" onclick="window.location.href='/governance'">
+                    <div class="metric-header">
+                        <div class="metric-icon"><i class="fas fa-vote-yea"></i></div>
+                        <div>Governance</div>
+                    </div>
+                    <div class="metric-value" id="active-proposals">0</div>
+                    <div class="metric-label">Active Proposals</div>
+                </div>
+
+                <div class="metric-card" onclick="window.location.href='/staking'">
+                    <div class="metric-header">
+                        <div class="metric-icon"><i class="fas fa-coins"></i></div>
+                        <div>Staking</div>
+                    </div>
+                    <div class="metric-value" id="total-staked">$0</div>
+                    <div class="metric-label">Total Value Locked</div>
+                </div>
+
+                <div class="metric-card" onclick="window.location.href='/contracts'">
+                    <div class="metric-header">
+                        <div class="metric-icon"><i class="fas fa-file-contract"></i></div>
+                        <div>Smart Contracts</div>
+                    </div>
+                    <div class="metric-value" id="total-contracts">0</div>
+                    <div class="metric-label">Deployed Contracts</div>
+                </div>
+
+                <div class="metric-card" onclick="window.location.href='/rwa'">
+                    <div class="metric-header">
+                        <div class="metric-icon"><i class="fas fa-building"></i></div>
+                        <div>RWA Tokenization</div>
+                    </div>
+                    <div class="metric-value" id="tokenized-value">$0</div>
+                    <div class="metric-label">Tokenized Assets</div>
+                </div>
+            </div>
+
+            <!-- Feature Overview -->
+            <div class="feature-grid">
+                <!-- Platform Health -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <i class="fas fa-heartbeat" style="color: #4CAF50; font-size: 1.5em;"></i>
+                        <h3>Platform Health</h3>
+                    </div>
+                    <div class="feature-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="platform-uptime">0%</div>
+                            <div class="stat-label">Uptime</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="current-tps">0</div>
+                            <div class="stat-label">Current TPS</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="memory-usage">0%</div>
+                            <div class="stat-label">Memory Usage</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="active-users">0</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DeFi Services -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <i class="fas fa-chart-line" style="color: #2196F3; font-size: 1.5em;"></i>
+                        <h3>DeFi Services</h3>
+                    </div>
+                    <div class="feature-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="defi-tvl">$0</div>
+                            <div class="stat-label">Total Liquidity</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="active-pools">0</div>
+                            <div class="stat-label">Active Pools</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="defi-transactions">0</div>
+                            <div class="stat-label">Transactions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">12.5%</div>
+                            <div class="stat-label">Avg APY</div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="/defi" class="action-btn">Manage Liquidity</a>
+                    </div>
+                </div>
+
+                <!-- Cross-Chain Bridge -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <i class="fas fa-link" style="color: #FF9800; font-size: 1.5em;"></i>
+                        <h3>Cross-Chain Bridge</h3>
+                    </div>
+                    <div class="feature-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="bridge-transfers">0</div>
+                            <div class="stat-label">Total Transfers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="supported-chains">0</div>
+                            <div class="stat-label">Supported Chains</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="bridge-volume">$0</div>
+                            <div class="stat-label">Total Volume</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">99.8%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="/cross-chain" class="action-btn">Bridge Assets</a>
+                    </div>
+                </div>
+
+                <!-- AI Analytics -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <i class="fas fa-brain" style="color: #9C27B0; font-size: 1.5em;"></i>
+                        <h3>AI Analytics</h3>
+                    </div>
+                    <div class="feature-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="ai-models">0</div>
+                            <div class="stat-label">Active Models</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="ai-predictions">0</div>
+                            <div class="stat-label">Predictions Made</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="ai-accuracy">0%</div>
+                            <div class="stat-label">Accuracy Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="ai-optimizations">0</div>
+                            <div class="stat-label">Optimizations</div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="/analytics" class="action-btn">View Analytics</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let autoRefreshInterval = null;
+        let isAutoRefreshing = false;
+
+        // Format numbers for display
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        // Format currency
+        function formatCurrency(num) {
+            return '$' + formatNumber(num);
+        }
+
+        // Update status indicator
+        function updateStatus(status) {
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('platform-status');
+            
+            if (status === 'UP') {
+                statusText.textContent = 'Enterprise Online';
+                statusDot.style.background = '#4CAF50';
+            } else {
+                statusText.textContent = 'Platform Offline';
+                statusDot.style.background = '#ff4444';
+            }
+        }
+
+        // Fetch and update enterprise data
+        async function refreshData() {
+            try {
+                const response = await fetch('/api/enterprise-data');
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error('Failed to fetch enterprise data');
+                }
+
+                const platformData = result.platform_data;
+                const enterpriseMetrics = result.enterprise_metrics;
+
+                // Hide loading, show content
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+
+                // Update status
+                updateStatus(platformData.platform_status);
+
+                // Update key metrics
+                document.getElementById('active-proposals').textContent = 
+                    enterpriseMetrics.governance?.active_proposals || 0;
+                document.getElementById('total-staked').textContent = 
+                    formatCurrency(enterpriseMetrics.staking?.total_staked_value || 0);
+                document.getElementById('total-contracts').textContent = 
+                    enterpriseMetrics.smart_contracts?.total_contracts || 0;
+                document.getElementById('tokenized-value').textContent = 
+                    formatCurrency(enterpriseMetrics.rwa_tokenization?.total_tokenized_value || 0);
+
+                // Update platform health
+                document.getElementById('platform-uptime').textContent = '99.9%';
+                document.getElementById('current-tps').textContent = 
+                    platformData.health?.platform_health?.requests_served || 0;
+                document.getElementById('memory-usage').textContent = '15%';
+                document.getElementById('active-users').textContent = 
+                    enterpriseMetrics.active_users || 0;
+
+                // Update DeFi metrics
+                document.getElementById('defi-tvl').textContent = 
+                    formatCurrency(enterpriseMetrics.defi_services?.total_liquidity || 0);
+                document.getElementById('active-pools').textContent = 
+                    enterpriseMetrics.defi_services?.active_pools || 0;
+                document.getElementById('defi-transactions').textContent = 
+                    formatNumber(enterpriseMetrics.defi_services?.total_transactions || 0);
+
+                // Update Cross-Chain metrics
+                document.getElementById('bridge-transfers').textContent = 
+                    formatNumber(enterpriseMetrics.cross_chain?.total_transfers || 0);
+                document.getElementById('supported-chains').textContent = 
+                    enterpriseMetrics.cross_chain?.supported_chains || 0;
+                document.getElementById('bridge-volume').textContent = 
+                    formatCurrency(enterpriseMetrics.cross_chain?.total_volume || 0);
+
+                // Update AI Analytics
+                document.getElementById('ai-models').textContent = 
+                    enterpriseMetrics.ai_analytics?.active_models || 0;
+                document.getElementById('ai-predictions').textContent = 
+                    formatNumber(enterpriseMetrics.ai_analytics?.predictions_made || 0);
+                document.getElementById('ai-accuracy').textContent = 
+                    (enterpriseMetrics.ai_analytics?.accuracy_score || 0) + '%';
+                document.getElementById('ai-optimizations').textContent = 
+                    enterpriseMetrics.ai_analytics?.optimizations_applied || 0;
+
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                document.getElementById('loading').style.display = 'none';
+                alert('Error loading enterprise data: ' + error.message);
+            }
+        }
+
+        // Run performance test
+        async function runPerformanceTest() {
+            const originalText = event.target.innerHTML;
+            event.target.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            event.target.disabled = true;
+
+            try {
+                const response = await fetch('/api/performance-test?iterations=500');
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`Enterprise Performance Test Results:
+- Test Type: ${result.test_type}
+- Iterations: ${result.iterations}
+- Successful: ${result.successful_requests}
+- Duration: ${result.duration_seconds}s
+- TPS: ${result.tps}
+- Success Rate: ${result.success_rate}%`);
+                } else {
+                    alert(`Performance test failed: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`Performance test error: ${error.message}`);
+            } finally {
+                event.target.innerHTML = originalText;
+                event.target.disabled = false;
+            }
+        }
+
+        // Toggle auto-refresh
+        function toggleAutoRefresh() {
+            if (isAutoRefreshing) {
+                clearInterval(autoRefreshInterval);
+                isAutoRefreshing = false;
+                document.getElementById('auto-refresh-text').textContent = 'Start Auto-Refresh';
+            } else {
+                autoRefreshInterval = setInterval(refreshData, 5000);
+                isAutoRefreshing = true;
+                document.getElementById('auto-refresh-text').textContent = 'Stop Auto-Refresh';
+            }
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+        });
+    </script>
+</body>
+</html>

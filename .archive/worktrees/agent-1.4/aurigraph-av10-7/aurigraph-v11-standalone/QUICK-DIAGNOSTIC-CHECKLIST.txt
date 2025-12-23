@@ -1,0 +1,514 @@
+================================================================================
+QUICK DIAGNOSTIC CHECKLIST - dlt.aurigraph.io Server Connectivity Issue
+================================================================================
+Estimated Completion Time: 15 minutes
+Server: dlt.aurigraph.io
+Application: Aurigraph v11.4.4-SNAPSHOT
+Issue: Complete connectivity loss (100% packet loss)
+Date: November 10, 2025
+
+================================================================================
+TOP 5 MOST LIKELY ISSUES (Prioritized by Probability)
+================================================================================
+
+1. SERVER POWERED OFF / CRASHED (80% probability)
+   Quick Test: ping -c 5 dlt.aurigraph.io && nc -zv dlt.aurigraph.io 22
+   Expected: Both fail completely
+   If Confirmed: Contact hosting provider for console access immediately
+
+2. FIREWALL BLOCKING PORTS (10% probability)
+   Quick Test: ssh subbu@dlt.aurigraph.io "sudo iptables -L -n | grep -E '9003|9004'"
+   Expected: SSH works, but iptables shows DROP/REJECT rules
+   If Confirmed: Add firewall rules (see commands below)
+
+3. APPLICATION CRASHED (5% probability)
+   Quick Test: ssh subbu@dlt.aurigraph.io "ps aux | grep java"
+   Expected: SSH works, but no Java process found
+   If Confirmed: Restart application (see restart commands below)
+
+4. DNS RESOLUTION FAILURE (3% probability)
+   Quick Test: nslookup dlt.aurigraph.io && dig dlt.aurigraph.io +short
+   Expected: No IP address returned or NXDOMAIN error
+   If Confirmed: Update DNS records at provider
+
+5. PORT CONFLICT (2% probability)
+   Quick Test: ssh subbu@dlt.aurigraph.io "lsof -i :9003 && lsof -i :9004"
+   Expected: SSH works, wrong process using ports 9003/9004
+   If Confirmed: Kill conflicting process (see commands below)
+
+================================================================================
+IF/THEN DECISION TREE (Follow sequentially)
+================================================================================
+
+START HERE
+│
+├─ STEP 1: Test DNS Resolution (30 seconds)
+│  │
+│  │  Command:  nslookup dlt.aurigraph.io
+│  │
+│  ├─ SUCCESS: DNS returns IP address → GO TO STEP 2
+│  │
+│  └─ FAILURE: No IP or NXDOMAIN
+│     │
+│     │  LIKELY CAUSE: DNS records deleted/expired
+│     │  ACTION: Check DNS provider (GoDaddy/Cloudflare/Route53)
+│     │  COMMAND: dig dlt.aurigraph.io ANY
+│     │  FIX: Update A record to correct IP address
+│     │
+│     └─ STOP - DNS issue identified, escalate to network admin
+│
+├─ STEP 2: Test Basic Connectivity (30 seconds)
+│  │
+│  │  Command:  ping -c 5 dlt.aurigraph.io
+│  │
+│  ├─ SUCCESS: <100% packet loss → GO TO STEP 3
+│  │
+│  └─ FAILURE: 100% packet loss
+│     │
+│     │  NOTE: ICMP may be blocked for security (this is normal)
+│     │  ACTION: Continue to TCP tests (SSH/HTTP)
+│     │
+│     └─ GO TO STEP 3 (ping failure may be normal)
+│
+├─ STEP 3: Test SSH Port (1 minute)
+│  │
+│  │  Command:  nc -zv dlt.aurigraph.io 22
+│  │  Alternate: nc -zv dlt.aurigraph.io 2235  (if custom port)
+│  │
+│  ├─ SUCCESS: Port 22 open → GO TO STEP 4 (SSH works)
+│  │
+│  └─ FAILURE: Connection refused or timeout
+│     │
+│     │  LIKELY CAUSE: Server down or firewall blocking SSH
+│     │  ACTION: Test alternate methods
+│     │
+│     │  Command:  nmap -p 22,2235 dlt.aurigraph.io
+│     │
+│     ├─ Both ports closed → LIKELY: Server powered off
+│     │  │
+│     │  │  CRITICAL ACTION REQUIRED:
+│     │  │  1. Contact hosting provider immediately
+│     │  │  2. Request console/KVM access
+│     │  │  3. Verify server power state
+│     │  │  4. Check for hardware failure
+│     │  │
+│     │  └─ STOP - Requires hosting provider intervention
+│     │
+│     └─ One port responds → Try SSH on responding port
+│
+├─ STEP 4: Attempt SSH Login (2 minutes)
+│  │
+│  │  Command:  ssh -v subbu@dlt.aurigraph.io
+│  │  Password: subbuFuture@2025
+│  │
+│  ├─ SUCCESS: SSH login works → GO TO STEP 5 (Server-side tests)
+│  │
+│  └─ FAILURE: Connection timeout or refused
+│     │
+│     │  LIKELY CAUSE: SSH daemon not running or firewall
+│     │  ACTION: Cannot proceed with server-side tests
+│     │
+│     └─ STOP - Requires console access or hosting provider help
+│
+├─ STEP 5: Check Application Process (2 minutes)
+│  │
+│  │  PREREQUISITE: SSH access must work
+│  │
+│  │  Command:  ps aux | grep java
+│  │  Command:  ps -p 1721015 -f  (check deployment PID)
+│  │
+│  ├─ SUCCESS: Java process found → GO TO STEP 6
+│  │
+│  └─ FAILURE: No Java process running
+│     │
+│     │  LIKELY CAUSE: Application crashed or stopped
+│     │  ACTION: Check application logs first
+│     │
+│     │  Command:  tail -n 100 ~/aurigraph-v11.4.4.log
+│     │  Command:  grep -i error ~/aurigraph-v11.4.4.log
+│     │
+│     ├─ LOGS SHOW ERROR → Investigate specific error
+│     │  │
+│     │  │  Common Errors:
+│     │  │  - "OutOfMemoryError" → Increase heap size (-Xmx4g)
+│     │  │  - "Address already in use" → Port conflict (see STEP 7)
+│     │  │  - "ClassNotFoundException" → Re-deploy JAR file
+│     │  │
+│     │  └─ Fix error and restart application (see restart section)
+│     │
+│     └─ NO ERRORS FOUND → Unexpected shutdown, restart application
+│
+├─ STEP 6: Check Application Ports (2 minutes)
+│  │
+│  │  Command:  netstat -tulpn | grep -E "9003|9004"
+│  │  Alternate: ss -tulpn | grep -E "9003|9004"
+│  │
+│  ├─ SUCCESS: Both ports in LISTEN state → GO TO STEP 8 (Firewall)
+│  │
+│  └─ FAILURE: Ports not listening
+│     │
+│     │  LIKELY CAUSE: Application started but failed to bind
+│     │  ACTION: Check application logs for binding errors
+│     │
+│     │  Command:  grep -i "bind" ~/aurigraph-v11.4.4.log
+│     │  Command:  grep -i "Address already in use" ~/aurigraph-v11.4.4.log
+│     │
+│     └─ GO TO STEP 7 (Port conflict check)
+│
+├─ STEP 7: Check Port Conflicts (2 minutes)
+│  │
+│  │  Command:  lsof -i :9003
+│  │  Command:  lsof -i :9004
+│  │
+│  ├─ PORTS IN USE BY DIFFERENT PROCESS → Port conflict confirmed
+│  │  │
+│  │  │  ACTION: Kill conflicting process (if safe)
+│  │  │
+│  │  │  Command:  kill -9 <PID>  (use PID from lsof output)
+│  │  │
+│  │  └─ Restart application after killing conflicting process
+│  │
+│  └─ PORTS NOT IN USE → Application failed to bind
+│     │
+│     │  ACTION: Check application configuration
+│     │
+│     │  Command:  grep "server.port" ~/application.properties
+│     │
+│     └─ Verify ports are 9003/9004, then restart application
+│
+├─ STEP 8: Check Firewall Rules (3 minutes)
+│  │
+│  │  Command:  sudo iptables -L -n -v
+│  │  Command:  sudo iptables -L INPUT -n --line-numbers
+│  │
+│  ├─ PORTS 9003/9004 ALLOWED → Firewall OK, GO TO STEP 9
+│  │
+│  └─ PORTS BLOCKED OR NOT IN RULES
+│     │
+│     │  LIKELY CAUSE: Firewall rules changed or not configured
+│     │  ACTION: Add firewall rules
+│     │
+│     │  For iptables:
+│     │  Command:  sudo iptables -I INPUT -p tcp --dport 9003 -j ACCEPT
+│     │  Command:  sudo iptables -I INPUT -p tcp --dport 9004 -j ACCEPT
+│     │  Command:  sudo iptables-save > /etc/iptables/rules.v4
+│     │
+│     │  For UFW (Ubuntu):
+│     │  Command:  sudo ufw allow 9003/tcp
+│     │  Command:  sudo ufw allow 9004/tcp
+│     │  Command:  sudo ufw reload
+│     │
+│     │  For firewalld (RHEL/CentOS):
+│     │  Command:  sudo firewall-cmd --permanent --add-port=9003/tcp
+│     │  Command:  sudo firewall-cmd --permanent --add-port=9004/tcp
+│     │  Command:  sudo firewall-cmd --reload
+│     │
+│     └─ Test connectivity after adding rules
+│
+├─ STEP 9: Check System Resources (2 minutes)
+│  │
+│  │  Command:  free -h
+│  │  Command:  df -h
+│  │  Command:  uptime
+│  │
+│  ├─ ADEQUATE RESOURCES (>1GB RAM, >10% disk) → GO TO STEP 10
+│  │
+│  └─ RESOURCE EXHAUSTION DETECTED
+│     │
+│     │  MEMORY FULL (<100MB available):
+│     │  Command:  free -h | grep "Mem:"
+│     │  ACTION: Kill memory-heavy processes or restart server
+│     │
+│     │  DISK FULL (<5% free):
+│     │  Command:  df -h | grep -v "tmpfs"
+│     │  ACTION: Clean logs and temporary files
+│     │  Command:  find /var/log -name "*.log" -mtime +30 -delete
+│     │  Command:  apt clean (or yum clean all)
+│     │
+│     └─ Free resources and restart application
+│
+└─ STEP 10: Test External Connectivity (2 minutes)
+   │
+   │  From your local machine:
+   │  Command:  curl -v http://dlt.aurigraph.io:9003/actuator/health
+   │
+   ├─ SUCCESS: Returns {"status":"UP"}
+   │  │
+   │  │  ISSUE RESOLVED!
+   │  │  Document what fixed it
+   │  │
+   │  └─ DONE - Connectivity restored
+   │
+   └─ FAILURE: Connection timeout or refused
+      │
+      │  LIKELY CAUSE: Cloud security group blocking traffic
+      │  ACTION: Check cloud provider console
+      │
+      │  For AWS Security Groups:
+      │  1. Log into AWS Console
+      │  2. Navigate to EC2 > Security Groups
+      │  3. Find security group for dlt.aurigraph.io
+      │  4. Verify inbound rules include TCP 9003, 9004
+      │  5. Add rules if missing
+      │
+      │  For Azure NSG:
+      │  1. Log into Azure Portal
+      │  2. Navigate to Network Security Groups
+      │  3. Check inbound rules
+      │
+      │  For GCP Firewall:
+      │  1. Log into GCP Console
+      │  2. Navigate to VPC Network > Firewall
+      │  3. Verify tcp:9003,9004 allowed
+      │
+      └─ Update cloud firewall and retest
+
+================================================================================
+COPY-PASTE READY COMMANDS (Run in sequence)
+================================================================================
+
+# SECTION A: BASIC CONNECTIVITY TESTS (Run from your local machine)
+# -------------------------------------------------------------------------
+
+# A1: Test DNS resolution (30 seconds)
+nslookup dlt.aurigraph.io
+dig dlt.aurigraph.io +short
+
+# A2: Test basic connectivity (30 seconds)
+ping -c 5 dlt.aurigraph.io
+
+# A3: Test SSH port (30 seconds)
+nc -zv dlt.aurigraph.io 22
+nc -zv dlt.aurigraph.io 2235
+
+# A4: Test application ports (30 seconds)
+nc -zv dlt.aurigraph.io 9003
+nc -zv dlt.aurigraph.io 9004
+
+# A5: Port scan (if nc/telnet not available)
+nmap -p 22,2235,9003,9004 dlt.aurigraph.io
+
+# A6: Traceroute to identify where packets stop
+traceroute dlt.aurigraph.io
+
+# -------------------------------------------------------------------------
+# EXPECTED OUTPUT FOR SECTION A (Healthy Server):
+# -------------------------------------------------------------------------
+# nslookup: Should return an IP address (e.g., 1.2.3.4)
+# ping: 0% packet loss (or timeout if ICMP blocked - normal)
+# nc -zv: "Connection to dlt.aurigraph.io 22 port [tcp/ssh] succeeded!"
+# nmap: "22/tcp open ssh", "9003/tcp open unknown", "9004/tcp open unknown"
+# traceroute: Should complete to destination (last hop = server IP)
+# -------------------------------------------------------------------------
+
+# IF ALL SECTION A TESTS FAIL → Server likely powered off
+# ACTION: Contact hosting provider immediately for console access
+
+
+# SECTION B: SERVER-SIDE DIAGNOSTICS (SSH must work first)
+# -------------------------------------------------------------------------
+
+# B1: SSH into server (use password: subbuFuture@2025)
+ssh subbu@dlt.aurigraph.io
+# OR if custom port:
+ssh -p2235 subbu@dlt.aurigraph.io
+
+# B2: Check if application is running
+ps aux | grep java
+ps -p 1721015 -f
+
+# B3: Check which ports are listening
+netstat -tulpn | grep -E "9003|9004"
+ss -tulpn | grep -E "9003|9004"
+
+# B4: Check application logs
+tail -n 100 ~/aurigraph-v11.4.4.log
+grep -i error ~/aurigraph-v11.4.4.log
+grep -i warn ~/aurigraph-v11.4.4.log
+
+# B5: Check port conflicts
+lsof -i :9003
+lsof -i :9004
+
+# B6: Check system resources
+free -h
+df -h
+uptime
+
+# B7: Check firewall rules
+sudo iptables -L -n -v
+sudo iptables -L INPUT -n --line-numbers | grep -E "9003|9004"
+
+# B8: Check UFW status (Ubuntu)
+sudo ufw status verbose
+
+# B9: Check fail2ban (if installed)
+sudo systemctl status fail2ban
+sudo fail2ban-client status sshd
+
+# -------------------------------------------------------------------------
+# EXPECTED OUTPUT FOR SECTION B (Healthy Application):
+# -------------------------------------------------------------------------
+# ps aux | grep java: Should show Java process with PID 1721015 (or similar)
+#   Example: subbu  1721015  ... java -jar aurigraph-v11.4.4-SNAPSHOT.jar
+#
+# netstat: Should show:
+#   tcp6  0  0  :::9003  :::*  LISTEN  1721015/java
+#   tcp6  0  0  :::9004  :::*  LISTEN  1721015/java
+#
+# tail log: Should show "Started AurigraphApplication in X seconds"
+#
+# lsof: Should show only Java process using ports 9003/9004
+#
+# free -h: Should show >1GB available memory
+#
+# df -h: Should show >10% disk space free
+#
+# iptables: Should have ACCEPT rules for ports 9003 and 9004:
+#   ACCEPT  tcp  --  0.0.0.0/0  0.0.0.0/0  tcp dpt:9003
+#   ACCEPT  tcp  --  0.0.0.0/0  0.0.0.0/0  tcp dpt:9004
+# -------------------------------------------------------------------------
+
+
+# SECTION C: EMERGENCY FIXES (If application not running)
+# -------------------------------------------------------------------------
+
+# C1: Restart application (standard)
+cd ~
+nohup java -Xms2g -Xmx4g -jar aurigraph-v11.4.4-SNAPSHOT.jar > aurigraph.log 2>&1 &
+
+# C2: Monitor startup logs
+tail -f ~/aurigraph.log
+# Wait for: "Started AurigraphApplication in X seconds"
+# Press Ctrl+C when you see startup complete
+
+# C3: Verify application started
+ps aux | grep java
+netstat -tulpn | grep -E "9003|9004"
+
+# C4: Test health endpoint locally
+curl http://localhost:9003/actuator/health
+# Expected: {"status":"UP"}
+
+# C5: If ports already in use, kill conflicting process
+lsof -i :9003  # Note the PID
+kill -9 <PID>  # Replace <PID> with actual PID
+# Then restart application (C1)
+
+# -------------------------------------------------------------------------
+# EXPECTED OUTPUT FOR SECTION C (After Restart):
+# -------------------------------------------------------------------------
+# tail -f: Should show Spring Boot startup logs ending with:
+#   "Started AurigraphApplication in 15.234 seconds"
+#   "Tomcat started on port(s): 9003 (http)"
+#
+# ps aux: Should show new Java process
+#
+# curl localhost:9003: Should return {"status":"UP"}
+# -------------------------------------------------------------------------
+
+
+# SECTION D: FIREWALL FIXES (If application running but ports blocked)
+# -------------------------------------------------------------------------
+
+# D1: Add iptables rules
+sudo iptables -I INPUT -p tcp --dport 9003 -j ACCEPT
+sudo iptables -I INPUT -p tcp --dport 9004 -j ACCEPT
+sudo iptables-save > /etc/iptables/rules.v4
+
+# D2: Add UFW rules (Ubuntu)
+sudo ufw allow 9003/tcp
+sudo ufw allow 9004/tcp
+sudo ufw reload
+
+# D3: Add firewalld rules (RHEL/CentOS)
+sudo firewall-cmd --permanent --add-port=9003/tcp
+sudo firewall-cmd --permanent --add-port=9004/tcp
+sudo firewall-cmd --reload
+
+# D4: Verify rules added
+sudo iptables -L INPUT -n | grep -E "9003|9004"
+
+# -------------------------------------------------------------------------
+# EXPECTED OUTPUT FOR SECTION D (After Adding Rules):
+# -------------------------------------------------------------------------
+# iptables -L: Should show new ACCEPT rules:
+#   ACCEPT  tcp  --  0.0.0.0/0  0.0.0.0/0  tcp dpt:9003
+#   ACCEPT  tcp  --  0.0.0.0/0  0.0.0.0/0  tcp dpt:9004
+#
+# ufw status: Should show:
+#   9003/tcp                   ALLOW       Anywhere
+#   9004/tcp                   ALLOW       Anywhere
+# -------------------------------------------------------------------------
+
+
+# SECTION E: FINAL VERIFICATION (Run from your local machine)
+# -------------------------------------------------------------------------
+
+# E1: Test HTTP endpoint
+curl -v http://dlt.aurigraph.io:9003/actuator/health
+
+# E2: Test with timeout
+curl -v --connect-timeout 10 http://dlt.aurigraph.io:9003/actuator/health
+
+# E3: Test port connectivity
+nc -zv dlt.aurigraph.io 9003
+nc -zv dlt.aurigraph.io 9004
+
+# -------------------------------------------------------------------------
+# EXPECTED OUTPUT FOR SECTION E (Issue Resolved):
+# -------------------------------------------------------------------------
+# curl: Should return:
+#   HTTP/1.1 200 OK
+#   {"status":"UP"}
+#
+# nc -zv: Should return:
+#   Connection to dlt.aurigraph.io 9003 port [tcp/*] succeeded!
+#   Connection to dlt.aurigraph.io 9004 port [tcp/*] succeeded!
+# -------------------------------------------------------------------------
+
+================================================================================
+QUICK REFERENCE: COMMON ERROR PATTERNS IN LOGS
+================================================================================
+
+# Pattern 1: OutOfMemoryError
+# Log shows: java.lang.OutOfMemoryError: Java heap space
+# FIX: Restart with more memory:
+java -Xms4g -Xmx8g -jar aurigraph-v11.4.4-SNAPSHOT.jar
+
+# Pattern 2: Port Already in Use
+# Log shows: java.net.BindException: Address already in use
+# FIX: Kill process using port:
+lsof -i :9003 | tail -n1 | awk '{print $2}' | xargs kill -9
+
+# Pattern 3: ClassNotFoundException
+# Log shows: java.lang.ClassNotFoundException: ...
+# FIX: Re-deploy JAR (may be corrupted)
+
+# Pattern 4: Database Connection Error
+# Log shows: Unable to acquire JDBC Connection
+# FIX: Check database is running and accessible
+
+# Pattern 5: File Not Found
+# Log shows: FileNotFoundException: application.properties
+# FIX: Ensure config file exists in same directory as JAR
+
+================================================================================
+ESCALATION CONTACTS
+================================================================================
+
+IF YOU CANNOT RESOLVE IN 15 MINUTES:
+
+Level 1 Escalation (Application Team):
+- Contact: Subbu Jois
+- Email: subbu@aurigraph.io
+- Alternate: sjoish12@gmail.com
+
+Level 2 Escalation (Hosting Provider):
+- Check hosting provider account for support contact
+- Request console/KVM access
+- Provide this checklist results
+
+================================================================================
+END OF QUICK DIAGNOSTIC CHECKLIST
+================================================================================

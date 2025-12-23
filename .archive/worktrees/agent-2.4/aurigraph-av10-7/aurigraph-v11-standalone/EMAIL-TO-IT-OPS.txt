@@ -1,0 +1,354 @@
+Subject: URGENT - Server Connectivity Issue: dlt.aurigraph.io (Aurigraph v11.4.4 Unreachable)
+Priority: HIGH
+SLA: Response required within 4 hours
+Escalation Contact: subbu@aurigraph.io (Subbu Jois)
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+The production server hosting Aurigraph v11.4.4 blockchain platform
+(dlt.aurigraph.io) has become completely unreachable as of November 10, 2025.
+
+BUSINESS IMPACT:
+- CRITICAL: Cannot verify application deployment status
+- CRITICAL: Cannot access production blockchain services (776K TPS platform)
+- CRITICAL: Cannot perform health checks or monitoring
+- All ports unreachable: SSH (port 22), HTTP API (port 9003), gRPC (port 9004)
+- 100% packet loss on ping tests (ICMP may be blocked - this is expected)
+
+LAST KNOWN WORKING STATE:
+- Date: November 9, 2025
+- Application: Aurigraph v11.4.4-SNAPSHOT successfully deployed
+- Health Check: Returned {"status":"UP"} at deployment time
+- Process ID: 1721015 (Java application)
+- JAR Transfer: Successful via SCP on port 22
+
+CURRENT STATE:
+- Server Status: Completely unreachable (all connectivity tests fail)
+- SSH Access: Connection timeout (no response)
+- HTTP API: Connection timeout on port 9003
+- gRPC Service: Connection timeout on port 9004
+- Network Tests: 100% packet loss (ping), traceroute fails
+
+================================================================================
+IMMEDIATE ACTION REQUIRED
+================================================================================
+
+We require infrastructure diagnostics to identify root cause. Please execute
+the diagnostic procedures detailed in the attached guide:
+SERVER-CONNECTIVITY-DIAGNOSTIC-GUIDE.md
+
+QUICK DIAGNOSTIC CHECKLIST (see attached: QUICK-DIAGNOSTIC-CHECKLIST.txt):
+The checklist provides copy-paste ready commands that can be completed in
+approximately 15 minutes.
+
+================================================================================
+SPECIFIC TESTS REQUESTED (In Priority Order)
+================================================================================
+
+PHASE 1: NETWORK LAYER DIAGNOSTICS (15 minutes)
+-----------------------------------------------
+
+1. DNS Resolution Tests
+   - Verify domain resolves to correct IP address
+   - Commands: nslookup, dig, host
+   - Expected: DNS should return valid IP address
+   - If fails: Check DNS provider records (may be expired/deleted)
+
+2. Basic Network Connectivity
+   - Test if server responds to ping (ICMP may be blocked for security)
+   - Command: ping -c 10 dlt.aurigraph.io
+   - Expected: 0% packet loss (or timeout if ICMP blocked - this is normal)
+   - If fails: Continue to TCP-level tests (SSH, HTTP)
+
+3. Network Routing Analysis
+   - Identify where packets are being dropped
+   - Commands: traceroute, mtr, tcptraceroute
+   - Expected: Traceroute completes to destination
+   - If fails: Contact hosting provider for routing investigation
+
+PHASE 2: SSH CONNECTIVITY TESTS (10 minutes)
+--------------------------------------------
+
+4. SSH Port Connectivity
+   - Verify SSH service is accessible
+   - Commands: telnet dlt.aurigraph.io 22, nc -zv dlt.aurigraph.io 22
+   - Also test custom SSH port if configured: port 2235
+   - Expected: Port responds with SSH banner
+   - If fails: Requires console/physical access to server
+
+5. SSH Login Attempt
+   - Attempt SSH login with credentials
+   - Command: ssh -v subbu@dlt.aurigraph.io (or ssh -p2235 if custom port)
+   - Credentials: subbu / subbuFuture@2025
+   - Expected: Password prompt and successful authentication
+   - If fails: See Phase 4 server-side diagnostics
+
+PHASE 3: APPLICATION PORT TESTS (10 minutes)
+--------------------------------------------
+
+6. HTTP Port 9003 Connectivity
+   - Verify application HTTP endpoint
+   - Commands:
+     * telnet dlt.aurigraph.io 9003
+     * curl -v http://dlt.aurigraph.io:9003/actuator/health
+   - Expected: Returns {"status":"UP"}
+   - If fails: Application may have crashed or firewall blocking port
+
+7. gRPC Port 9004 Connectivity
+   - Verify gRPC service port
+   - Commands: nc -zv dlt.aurigraph.io 9004
+   - Expected: Port responds as open
+   - If fails: Same as HTTP port (firewall or application issue)
+
+PHASE 4: SERVER-SIDE DIAGNOSTICS (Requires SSH Access - 15 minutes)
+-------------------------------------------------------------------
+
+8. Application Process Verification
+   - Check if Aurigraph Java application is running
+   - Commands:
+     * ps aux | grep java
+     * ps -p 1721015 -f  (check specific PID from deployment)
+     * netstat -tulpn | grep -E "9003|9004"
+   - Expected: Java process found, ports 9003/9004 in LISTEN state
+   - If fails: Application crashed - check logs
+
+9. Application Log Analysis
+   - Check for startup or runtime errors
+   - Commands:
+     * tail -n 500 ~/aurigraph-v11.4.4.log
+     * grep -i error ~/aurigraph-v11.4.4.log
+   - Look for: OutOfMemoryError, BindException, ClassNotFoundException
+   - Expected: "Started AurigraphApplication" message
+   - If fails: Restart application or investigate error
+
+10. System Resource Check
+    - Verify adequate resources available
+    - Commands: free -h, df -h, uptime
+    - Expected: >1GB available memory, >10% disk space
+    - If fails: Resource exhaustion - clean up or upgrade
+
+PHASE 5: FIREWALL CHECKS (15 minutes)
+-------------------------------------
+
+11. Firewall Rules Verification
+    - Check if firewall allows required ports
+    - Commands:
+      * sudo iptables -L -n -v
+      * sudo ufw status verbose  (Ubuntu)
+      * sudo firewall-cmd --list-all  (RHEL/CentOS)
+    - Expected: Ports 22, 9003, 9004 allowed in INPUT chain
+    - If fails: Add firewall rules (see diagnostic guide)
+
+12. Cloud Security Groups
+    - Verify cloud provider firewall (AWS/Azure/GCP console required)
+    - Check: Security group attached to dlt.aurigraph.io instance
+    - Expected: Inbound rules allow TCP 22, 9003, 9004
+    - If fails: Update security group rules in cloud console
+
+13. fail2ban or IP Blocking
+    - Check if testing IP is banned
+    - Commands:
+      * sudo fail2ban-client status
+      * sudo fail2ban-client get sshd banned
+    - Expected: Testing IP not in ban list
+    - If fails: Unban IP with fail2ban-client unban
+
+================================================================================
+TOP 5 MOST LIKELY ROOT CAUSES (Prioritized)
+================================================================================
+
+1. SERVER POWERED OFF / CRASHED (Probability: 80%)
+   Symptoms: 100% packet loss, all ports unreachable, cannot SSH
+   Verification: Cannot access via any method
+   Solution: Contact hosting provider for console access, check hardware
+
+2. FIREWALL CONFIGURATION CHANGED (Probability: 10%)
+   Symptoms: Specific ports timeout, possibly SSH works
+   Verification: Can SSH but curl/telnet to 9003/9004 fails
+   Solution: Check iptables/ufw/cloud security groups, restore rules
+
+3. APPLICATION CRASHED (Probability: 5%)
+   Symptoms: SSH works, but application ports not listening
+   Verification: SSH successful, ps aux | grep java returns nothing
+   Solution: Restart application, check logs for crash cause
+
+4. NETWORK CONFIGURATION CHANGED (Probability: 3%)
+   Symptoms: DNS fails or returns wrong IP
+   Verification: nslookup fails or returns unexpected IP
+   Solution: Update DNS records, wait for propagation
+
+5. HOSTING PROVIDER OUTAGE (Probability: 2%)
+   Symptoms: Everything appears correct but still unreachable
+   Verification: Check hosting provider status page
+   Solution: Contact hosting provider support
+
+================================================================================
+EXPECTED DELIVERABLES FROM IT TEAM
+================================================================================
+
+Please provide the following information:
+
+1. NETWORK STATUS:
+   - DNS resolution result (IP address returned)
+   - Ping test results (packet loss percentage)
+   - Traceroute output (where packets stop)
+
+2. SERVER ACCESS STATUS:
+   - Can you access server via SSH? (Yes/No)
+   - Can you access server via console/KVM? (Yes/No)
+   - Is server powered on? (Yes/No)
+
+3. APPLICATION STATUS (if SSH accessible):
+   - Is Java process running? (ps aux | grep java output)
+   - Are ports 9003 and 9004 listening? (netstat -tulpn output)
+   - Last 100 lines of application log (tail -n 100 ~/aurigraph-v11.4.4.log)
+
+4. FIREWALL STATUS:
+   - Are ports 9003/9004 allowed? (iptables -L output)
+   - Cloud security group configuration (screenshot or rule list)
+
+5. SYSTEM RESOURCES (if accessible):
+   - Memory usage (free -h output)
+   - Disk usage (df -h output)
+   - CPU load (uptime output)
+
+6. RECOMMENDED ACTION:
+   - Root cause identified (if found)
+   - Recommended fix with steps
+   - Timeline for resolution
+
+================================================================================
+CONNECTIVITY ISSUE TIMELINE
+================================================================================
+
+For detailed timeline documentation, see attached: CONNECTIVITY-ISSUE-TIMELINE.md
+
+Key Events:
+- November 9, 2025: Successful deployment of Aurigraph v11.4.4
+- November 9, 2025: Health check passed ({"status":"UP"})
+- November 10, 2025: Server became unreachable (exact time unknown)
+- November 10, 2025 (Current): All connectivity tests failing
+
+================================================================================
+ESCALATION PATH AND SLA
+================================================================================
+
+EXPECTED RESPONSE TIME: 4 hours from receipt of this email
+
+ESCALATION TIMELINE:
+- 0-4 hours: IT Operations Team (Primary contact)
+- 4-8 hours: Senior System Administrator / Team Lead
+- 8+ hours: Hosting Provider Support + Management Escalation
+
+PRIMARY CONTACT:
+- Name: Subbu Jois
+- Email: subbu@aurigraph.io
+- Alternate: sjoish12@gmail.com
+- Phone: [Provide if available]
+
+HOSTING PROVIDER INFORMATION:
+- Server: dlt.aurigraph.io
+- Account: [Provide account ID if known]
+- Support Portal: [Provide support portal URL if known]
+
+================================================================================
+ATTACHED DOCUMENTATION
+================================================================================
+
+1. SERVER-CONNECTIVITY-DIAGNOSTIC-GUIDE.md
+   - Comprehensive 1000+ line diagnostic procedures guide
+   - Phase-by-phase diagnostic steps
+   - Expected outputs and failure scenarios
+   - Emergency recovery procedures
+
+2. QUICK-DIAGNOSTIC-CHECKLIST.txt
+   - Abbreviated 15-minute rapid response guide
+   - Copy-paste ready commands
+   - Decision tree for quick diagnosis
+   - Top 5 most likely issues prioritized
+
+3. CONNECTIVITY-ISSUE-TIMELINE.md
+   - Detailed timeline of events
+   - Last known working state documentation
+   - Recovery procedures needed
+
+================================================================================
+COMMUNICATION PROTOCOL
+================================================================================
+
+Please reply with:
+1. Acknowledgment of receipt within 1 hour
+2. Initial diagnostic findings within 4 hours
+3. Estimated time to resolution
+4. Any additional information required
+
+For urgent updates or immediate questions:
+- Email: subbu@aurigraph.io (monitored continuously)
+
+================================================================================
+ADDITIONAL CONTEXT
+================================================================================
+
+SERVER SPECIFICATIONS:
+- Hostname: dlt.aurigraph.io
+- OS: Ubuntu 24.04.3 LTS (expected)
+- RAM: 49Gi
+- vCPU: 16 cores
+- Application: Aurigraph v11.4.4-SNAPSHOT (Java/Quarkus blockchain platform)
+- Performance: 776K TPS capability
+- Critical Service: Production blockchain infrastructure
+
+DEPLOYMENT DETAILS:
+- JAR File: aurigraph-v11.4.4-SNAPSHOT.jar
+- Deployment Date: November 9, 2025
+- Deployment Method: SCP transfer to server
+- Process Started: PID 1721015
+- Startup Script: nohup java -jar aurigraph-v11.4.4-SNAPSHOT.jar &
+
+ACCESS CREDENTIALS:
+- SSH User: subbu
+- SSH Password: subbuFuture@2025
+- SSH Port: 22 (standard) or 2235 (if custom configured)
+
+EXPECTED ENDPOINTS:
+- HTTP API: http://dlt.aurigraph.io:9003/actuator/health
+- gRPC Service: dlt.aurigraph.io:9004
+
+================================================================================
+RISK ASSESSMENT
+================================================================================
+
+CRITICAL RISKS:
+- Production blockchain platform offline (business impact)
+- No visibility into server state (monitoring blind spot)
+- Potential data loss if disk full or application crashed
+- Extended downtime affecting user confidence
+
+URGENCY JUSTIFICATION:
+- Platform handles financial/blockchain transactions
+- 776K TPS capacity unavailable to users
+- No failover configured (single point of failure)
+- Cannot perform routine health checks or monitoring
+
+================================================================================
+THANK YOU
+================================================================================
+
+We appreciate your immediate attention to this critical infrastructure issue.
+The comprehensive diagnostic guides attached should enable rapid root cause
+identification and resolution.
+
+Please acknowledge receipt and provide initial diagnostic update within 4 hours.
+
+Regards,
+Subbu Jois
+Aurigraph Platform Team
+Email: subbu@aurigraph.io
+Alternate: sjoish12@gmail.com
+
+Attachments:
+1. SERVER-CONNECTIVITY-DIAGNOSTIC-GUIDE.md (Comprehensive diagnostics)
+2. QUICK-DIAGNOSTIC-CHECKLIST.txt (15-minute rapid response)
+3. CONNECTIVITY-ISSUE-TIMELINE.md (Detailed timeline)

@@ -1,0 +1,37 @@
+services:
+  enterprise-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile.enterprise-portal
+    container_name: aurigraph-enterprise-portal
+    expose:
+      - "3000"
+    environment:
+      - AURIGRAPH_API_URL=http://localhost:9003
+      - PORT=3000
+      - API_VERSION=v11
+    volumes:
+      - ./enterprise_portal_fastapi.py:/app/enterprise_portal_fastapi.py:ro
+      - ./aurigraph-av10-7/aurigraph-v11-standalone/aurigraph-v11-enterprise-portal.html:/app/public/index.html:ro
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: aurigraph-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-production.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    depends_on:
+      - enterprise-portal
+
+networks:
+  aurigraph-network:
+    driver: bridge

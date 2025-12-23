@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # Multi-node container with 3 basic nodes
+  aurigraph-multinodes:
+    build:
+      context: .
+      dockerfile: Dockerfile.multi
+    container_name: aurigraph-multinodes
+    ports:
+      - "8080:8080"  # Node 1
+      - "8081:8081"  # Node 2  
+      - "8082:8082"  # Node 3
+      - "9080:80"    # Load balancer (if nginx enabled)
+    environment:
+      - NODE_COUNT=3
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - JAVA_OPTS=-Xmx128m -XX:+UseG1GC
+    volumes:
+      - multinodes_data:/work/data
+      - multinodes_logs:/work/logs
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    mem_limit: 1024m  # 3 nodes × 128MB + overhead
+    cpus: 4.0         # 3 nodes × 1 core + overhead  
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:8080/q/health && curl -f http://localhost:8081/q/health && curl -f http://localhost:8082/q/health"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "com.aurigraph.service=multinodes"
+      - "com.aurigraph.version=10.19.0"
+      - "com.aurigraph.node-count=3"
+
+  # Individual node containers (alternative deployment)
+  aurigraph-node1:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-node1
+    ports:
+      - "8080:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=basic-node-1
+    volumes:
+      - node1_data:/work/data
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+    profiles: ["individual"]
+
+  aurigraph-node2:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-node2
+    ports:
+      - "8081:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=basic-node-2
+    volumes:
+      - node2_data:/work/data
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+    profiles: ["individual"]
+
+  aurigraph-node3:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    container_name: aurigraph-node3
+    ports:
+      - "8082:8080"
+    environment:
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=basic-node-3
+    volumes:
+      - node3_data:/work/data
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+    profiles: ["individual"]
+
+  # Load balancer for individual nodes
+  nginx-lb:
+    image: nginx:alpine
+    container_name: aurigraph-nginx-lb
+    ports:
+      - "9080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    depends_on:
+      - aurigraph-node1
+      - aurigraph-node2
+      - aurigraph-node3
+    profiles: ["individual"]
+
+volumes:
+  multinodes_data:
+    driver: local
+  multinodes_logs:
+    driver: local
+  node1_data:
+    driver: local
+  node2_data:
+    driver: local
+  node3_data:
+    driver: local
+
+networks:
+  aurigraph-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

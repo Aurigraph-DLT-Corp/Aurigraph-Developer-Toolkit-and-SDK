@@ -1,0 +1,4002 @@
+[
+  {
+    "key": "AV11-1",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-2",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-12",
+    "summary": "[PHASE 1] Project Foundation & Architecture Planning - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-13",
+    "summary": "[PHASE 2] Core Services Implementation - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-18",
+    "summary": "[PHASE 3] Advanced Features & Optimization - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-23",
+    "summary": "[PHASE 4] Production Launch & Global Deployment - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-30",
+    "summary": "V11: Project Kickoff and Architecture Planning",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-63",
+    "summary": "[EPIC] V11: Interactive Demo Platform with Real-time Visualization",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-73",
+    "summary": "[EPIC] Foundation & Architecture",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-74",
+    "summary": "[EPIC] Core Services Implementation",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-75",
+    "summary": "[EPIC] Consensus & Performance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-76",
+    "summary": "[EPIC] Security & Cryptography",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-77",
+    "summary": "[EPIC] Cross-Chain Integration",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-78",
+    "summary": "[EPIC] Testing & Quality Assurance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-79",
+    "summary": "[EPIC] DevOps & Infrastructure",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-80",
+    "summary": "[EPIC] Production Deployment",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-81",
+    "summary": "[EPIC] Documentation & Knowledge Transfer",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-82",
+    "summary": "[EPIC] Demo & Visualization Platform",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-86",
+    "summary": "[EPIC] V11 Platform Migration - TypeScript to Java/Quarkus (40% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-87",
+    "summary": "[EPIC] AI/ML Infrastructure and Optimization (95% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-88",
+    "summary": "[EPIC] Cross-Chain Bridge Infrastructure (90% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-89",
+    "summary": "[EPIC] Performance Optimization to 2M+ TPS (35% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-90",
+    "summary": "[EPIC] UI/Dashboard Development (85% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-91",
+    "summary": "[EPIC] Documentation and Knowledge Management (75% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-92",
+    "summary": "[EPIC] Testing and Quality Assurance (25% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-93",
+    "summary": "[EPIC] DevOps and Deployment (30% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-1",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-2",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-12",
+    "summary": "[PHASE 1] Project Foundation & Architecture Planning - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-13",
+    "summary": "[PHASE 2] Core Services Implementation - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-18",
+    "summary": "[PHASE 3] Advanced Features & Optimization - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-23",
+    "summary": "[PHASE 4] Production Launch & Global Deployment - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-30",
+    "summary": "V11: Project Kickoff and Architecture Planning",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-63",
+    "summary": "[EPIC] V11: Interactive Demo Platform with Real-time Visualization",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-73",
+    "summary": "[EPIC] Foundation & Architecture",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-74",
+    "summary": "[EPIC] Core Services Implementation",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-75",
+    "summary": "[EPIC] Consensus & Performance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-76",
+    "summary": "[EPIC] Security & Cryptography",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-77",
+    "summary": "[EPIC] Cross-Chain Integration",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-78",
+    "summary": "[EPIC] Testing & Quality Assurance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-79",
+    "summary": "[EPIC] DevOps & Infrastructure",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-80",
+    "summary": "[EPIC] Production Deployment",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-81",
+    "summary": "[EPIC] Documentation & Knowledge Transfer",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-82",
+    "summary": "[EPIC] Demo & Visualization Platform",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-86",
+    "summary": "[EPIC] V11 Platform Migration - TypeScript to Java/Quarkus (40% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-87",
+    "summary": "[EPIC] AI/ML Infrastructure and Optimization (95% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-88",
+    "summary": "[EPIC] Cross-Chain Bridge Infrastructure (90% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-89",
+    "summary": "[EPIC] Performance Optimization to 2M+ TPS (35% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-90",
+    "summary": "[EPIC] UI/Dashboard Development (85% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-91",
+    "summary": "[EPIC] Documentation and Knowledge Management (75% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-92",
+    "summary": "[EPIC] Testing and Quality Assurance (25% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-93",
+    "summary": "[EPIC] DevOps and Deployment (30% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-1",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-2",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-12",
+    "summary": "[PHASE 1] Project Foundation & Architecture Planning - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-13",
+    "summary": "[PHASE 2] Core Services Implementation - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-18",
+    "summary": "[PHASE 3] Advanced Features & Optimization - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-23",
+    "summary": "[PHASE 4] Production Launch & Global Deployment - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-30",
+    "summary": "V11: Project Kickoff and Architecture Planning",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-63",
+    "summary": "[EPIC] V11: Interactive Demo Platform with Real-time Visualization",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-73",
+    "summary": "[EPIC] Foundation & Architecture",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-74",
+    "summary": "[EPIC] Core Services Implementation",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-75",
+    "summary": "[EPIC] Consensus & Performance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-76",
+    "summary": "[EPIC] Security & Cryptography",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-77",
+    "summary": "[EPIC] Cross-Chain Integration",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-78",
+    "summary": "[EPIC] Testing & Quality Assurance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-79",
+    "summary": "[EPIC] DevOps & Infrastructure",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-80",
+    "summary": "[EPIC] Production Deployment",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-81",
+    "summary": "[EPIC] Documentation & Knowledge Transfer",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-82",
+    "summary": "[EPIC] Demo & Visualization Platform",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-86",
+    "summary": "[EPIC] V11 Platform Migration - TypeScript to Java/Quarkus (40% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-87",
+    "summary": "[EPIC] AI/ML Infrastructure and Optimization (95% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-88",
+    "summary": "[EPIC] Cross-Chain Bridge Infrastructure (90% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-89",
+    "summary": "[EPIC] Performance Optimization to 2M+ TPS (35% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-90",
+    "summary": "[EPIC] UI/Dashboard Development (85% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-91",
+    "summary": "[EPIC] Documentation and Knowledge Management (75% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-92",
+    "summary": "[EPIC] Testing and Quality Assurance (25% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-93",
+    "summary": "[EPIC] DevOps and Deployment (30% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-1",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-2",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-12",
+    "summary": "[PHASE 1] Project Foundation & Architecture Planning - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-13",
+    "summary": "[PHASE 2] Core Services Implementation - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-18",
+    "summary": "[PHASE 3] Advanced Features & Optimization - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-23",
+    "summary": "[PHASE 4] Production Launch & Global Deployment - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-30",
+    "summary": "V11: Project Kickoff and Architecture Planning",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-63",
+    "summary": "[EPIC] V11: Interactive Demo Platform with Real-time Visualization",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-73",
+    "summary": "[EPIC] Foundation & Architecture",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-74",
+    "summary": "[EPIC] Core Services Implementation",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-75",
+    "summary": "[EPIC] Consensus & Performance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-76",
+    "summary": "[EPIC] Security & Cryptography",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-77",
+    "summary": "[EPIC] Cross-Chain Integration",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-78",
+    "summary": "[EPIC] Testing & Quality Assurance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-79",
+    "summary": "[EPIC] DevOps & Infrastructure",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-80",
+    "summary": "[EPIC] Production Deployment",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-81",
+    "summary": "[EPIC] Documentation & Knowledge Transfer",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-82",
+    "summary": "[EPIC] Demo & Visualization Platform",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-86",
+    "summary": "[EPIC] V11 Platform Migration - TypeScript to Java/Quarkus (40% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-87",
+    "summary": "[EPIC] AI/ML Infrastructure and Optimization (95% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-88",
+    "summary": "[EPIC] Cross-Chain Bridge Infrastructure (90% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-89",
+    "summary": "[EPIC] Performance Optimization to 2M+ TPS (35% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-90",
+    "summary": "[EPIC] UI/Dashboard Development (85% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-91",
+    "summary": "[EPIC] Documentation and Knowledge Management (75% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-92",
+    "summary": "[EPIC] Testing and Quality Assurance (25% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-93",
+    "summary": "[EPIC] DevOps and Deployment (30% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-1",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-2",
+    "summary": "[EPIC] V11 Java/Quarkus/GraalVM Platform - PRODUCTION LAUNCHED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-12",
+    "summary": "[PHASE 1] Project Foundation & Architecture Planning - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-13",
+    "summary": "[PHASE 2] Core Services Implementation - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-18",
+    "summary": "[PHASE 3] Advanced Features & Optimization - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-23",
+    "summary": "[PHASE 4] Production Launch & Global Deployment - COMPLETED",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-30",
+    "summary": "V11: Project Kickoff and Architecture Planning",
+    "type": "Epic",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-63",
+    "summary": "[EPIC] V11: Interactive Demo Platform with Real-time Visualization",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-73",
+    "summary": "[EPIC] Foundation & Architecture",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-74",
+    "summary": "[EPIC] Core Services Implementation",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-75",
+    "summary": "[EPIC] Consensus & Performance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-76",
+    "summary": "[EPIC] Security & Cryptography",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-77",
+    "summary": "[EPIC] Cross-Chain Integration",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-78",
+    "summary": "[EPIC] Testing & Quality Assurance",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-79",
+    "summary": "[EPIC] DevOps & Infrastructure",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-80",
+    "summary": "[EPIC] Production Deployment",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-81",
+    "summary": "[EPIC] Documentation & Knowledge Transfer",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-82",
+    "summary": "[EPIC] Demo & Visualization Platform",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-86",
+    "summary": "[EPIC] V11 Platform Migration - TypeScript to Java/Quarkus (40% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-87",
+    "summary": "[EPIC] AI/ML Infrastructure and Optimization (95% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-88",
+    "summary": "[EPIC] Cross-Chain Bridge Infrastructure (90% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-89",
+    "summary": "[EPIC] Performance Optimization to 2M+ TPS (35% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-90",
+    "summary": "[EPIC] UI/Dashboard Development (85% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-91",
+    "summary": "[EPIC] Documentation and Knowledge Management (75% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-92",
+    "summary": "[EPIC] Testing and Quality Assurance (25% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-93",
+    "summary": "[EPIC] DevOps and Deployment (30% Complete)",
+    "type": "Epic",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-3",
+    "summary": "HyperRAFT++ Consensus Service - 2M+ TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-4",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-5",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-6",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-7",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-8",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-9",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-10",
+    "summary": "Production Load Testing & Performance Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-11",
+    "summary": "Production Launch & Global Deployment - LIVE",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-14",
+    "summary": "HyperRAFT++ Consensus Service - 2.25M TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-15",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-16",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-17",
+    "summary": "Performance Testing Framework & Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-19",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-20",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-21",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-22",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-24",
+    "summary": "Production Deployment Validation & Global Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-25",
+    "summary": "3M+ TPS Production Load Testing - WORLD RECORD ACHIEVED",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-26",
+    "summary": "Production Security Audit & Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-27",
+    "summary": "Production Monitoring, Alerting & Observability",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-28",
+    "summary": "Market Launch Preparation & Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-29",
+    "summary": "Final Project Completion & JIRA Synchronization",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-31",
+    "summary": "V11: Setup Java/Quarkus Development Environment",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-32",
+    "summary": "V11: Design System Architecture",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-33",
+    "summary": "V11: Configure GraalVM Native Compilation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-34",
+    "summary": "V11: Implement REST API Framework",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-35",
+    "summary": "V11: Core Transaction Processing Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-36",
+    "summary": "V11: Virtual Threads Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-37",
+    "summary": "V11: Native Compilation Pipeline",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-38",
+    "summary": "V11: AI/ML Optimization Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-39",
+    "summary": "V11: HMS Healthcare Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-40",
+    "summary": "V11: gRPC Service Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-41",
+    "summary": "V11: HyperRAFT++ Consensus Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-42",
+    "summary": "V11: Performance Optimization to 2M+ TPS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-43",
+    "summary": "V11: JMeter Load Testing Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-44",
+    "summary": "V11: Memory Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-45",
+    "summary": "V11: Quantum-Resistant Cryptography Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-46",
+    "summary": "V11: SPHINCS+ Hash-Based Signatures",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-47",
+    "summary": "V11: HSM Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-48",
+    "summary": "V11: Cross-Chain Bridge Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-49",
+    "summary": "V11: Ethereum Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-50",
+    "summary": "V11: Solana Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-51",
+    "summary": "V11: Unit Test Suite Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-52",
+    "summary": "V11: Integration Testing with TestContainers",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-53",
+    "summary": "V11: Security Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-54",
+    "summary": "V11: Kubernetes Deployment Configuration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-55",
+    "summary": "V11: Prometheus & Grafana Monitoring",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-56",
+    "summary": "V11: CI/CD Pipeline with GitHub Actions",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-57",
+    "summary": "V11: Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-58",
+    "summary": "V11: Developer Onboarding Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-59",
+    "summary": "V11: Performance Tuning Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-60",
+    "summary": "V11: Production Deployment to AWS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-61",
+    "summary": "V11: Disaster Recovery Planning",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-62",
+    "summary": "V11: SLA & Performance Guarantees",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-64",
+    "summary": "V11 Demo: Create Interactive Web UI",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-65",
+    "summary": "V11 Demo: Build FastAPI Backend Server",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-66",
+    "summary": "V11 Demo: Implement Vizro Real-time Dashboard",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-67",
+    "summary": "V11 Demo: WebSocket Real-time Streaming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-68",
+    "summary": "V11 Demo: Transaction Generation Engine",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-69",
+    "summary": "V11 Demo: Performance Metrics Collection",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-70",
+    "summary": "V11 Demo: Deploy to Production Environment",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-71",
+    "summary": "V11 Demo: Create User Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-72",
+    "summary": "V11 Demo: Performance Benchmarking Suite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-83",
+    "summary": "AI/ML Infrastructure Implementation - Neural Network Consensus Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-84",
+    "summary": "Cross-Chain Bridge Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-85",
+    "summary": "Core Models and Test Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-94",
+    "summary": "AI/ML Infrastructure Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-95",
+    "summary": "Cross-Chain Bridge Infrastructure - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-96",
+    "summary": "Dashboard UI Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-97",
+    "summary": "HyperRAFT++ Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-98",
+    "summary": "AI Optimization Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-99",
+    "summary": "T001 - Initialize React TypeScript project with Vite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-100",
+    "summary": "T002 - Install and configure Material-UI theming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-3",
+    "summary": "HyperRAFT++ Consensus Service - 2M+ TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-4",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-5",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-6",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-7",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-8",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-9",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-10",
+    "summary": "Production Load Testing & Performance Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-11",
+    "summary": "Production Launch & Global Deployment - LIVE",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-14",
+    "summary": "HyperRAFT++ Consensus Service - 2.25M TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-15",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-16",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-17",
+    "summary": "Performance Testing Framework & Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-19",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-20",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-21",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-22",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-24",
+    "summary": "Production Deployment Validation & Global Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-25",
+    "summary": "3M+ TPS Production Load Testing - WORLD RECORD ACHIEVED",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-26",
+    "summary": "Production Security Audit & Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-27",
+    "summary": "Production Monitoring, Alerting & Observability",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-28",
+    "summary": "Market Launch Preparation & Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-29",
+    "summary": "Final Project Completion & JIRA Synchronization",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-31",
+    "summary": "V11: Setup Java/Quarkus Development Environment",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-32",
+    "summary": "V11: Design System Architecture",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-33",
+    "summary": "V11: Configure GraalVM Native Compilation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-34",
+    "summary": "V11: Implement REST API Framework",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-35",
+    "summary": "V11: Core Transaction Processing Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-36",
+    "summary": "V11: Virtual Threads Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-37",
+    "summary": "V11: Native Compilation Pipeline",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-38",
+    "summary": "V11: AI/ML Optimization Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-39",
+    "summary": "V11: HMS Healthcare Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-40",
+    "summary": "V11: gRPC Service Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-41",
+    "summary": "V11: HyperRAFT++ Consensus Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-42",
+    "summary": "V11: Performance Optimization to 2M+ TPS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-43",
+    "summary": "V11: JMeter Load Testing Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-44",
+    "summary": "V11: Memory Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-45",
+    "summary": "V11: Quantum-Resistant Cryptography Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-46",
+    "summary": "V11: SPHINCS+ Hash-Based Signatures",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-47",
+    "summary": "V11: HSM Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-48",
+    "summary": "V11: Cross-Chain Bridge Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-49",
+    "summary": "V11: Ethereum Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-50",
+    "summary": "V11: Solana Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-51",
+    "summary": "V11: Unit Test Suite Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-52",
+    "summary": "V11: Integration Testing with TestContainers",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-53",
+    "summary": "V11: Security Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-54",
+    "summary": "V11: Kubernetes Deployment Configuration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-55",
+    "summary": "V11: Prometheus & Grafana Monitoring",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-56",
+    "summary": "V11: CI/CD Pipeline with GitHub Actions",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-57",
+    "summary": "V11: Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-58",
+    "summary": "V11: Developer Onboarding Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-59",
+    "summary": "V11: Performance Tuning Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-60",
+    "summary": "V11: Production Deployment to AWS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-61",
+    "summary": "V11: Disaster Recovery Planning",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-62",
+    "summary": "V11: SLA & Performance Guarantees",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-64",
+    "summary": "V11 Demo: Create Interactive Web UI",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-65",
+    "summary": "V11 Demo: Build FastAPI Backend Server",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-66",
+    "summary": "V11 Demo: Implement Vizro Real-time Dashboard",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-67",
+    "summary": "V11 Demo: WebSocket Real-time Streaming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-68",
+    "summary": "V11 Demo: Transaction Generation Engine",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-69",
+    "summary": "V11 Demo: Performance Metrics Collection",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-70",
+    "summary": "V11 Demo: Deploy to Production Environment",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-71",
+    "summary": "V11 Demo: Create User Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-72",
+    "summary": "V11 Demo: Performance Benchmarking Suite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-83",
+    "summary": "AI/ML Infrastructure Implementation - Neural Network Consensus Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-84",
+    "summary": "Cross-Chain Bridge Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-85",
+    "summary": "Core Models and Test Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-94",
+    "summary": "AI/ML Infrastructure Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-95",
+    "summary": "Cross-Chain Bridge Infrastructure - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-96",
+    "summary": "Dashboard UI Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-97",
+    "summary": "HyperRAFT++ Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-98",
+    "summary": "AI Optimization Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-99",
+    "summary": "T001 - Initialize React TypeScript project with Vite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-100",
+    "summary": "T002 - Install and configure Material-UI theming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-3",
+    "summary": "HyperRAFT++ Consensus Service - 2M+ TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-4",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-5",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-6",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-7",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-8",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-9",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-10",
+    "summary": "Production Load Testing & Performance Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-11",
+    "summary": "Production Launch & Global Deployment - LIVE",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-14",
+    "summary": "HyperRAFT++ Consensus Service - 2.25M TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-15",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-16",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-17",
+    "summary": "Performance Testing Framework & Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-19",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-20",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-21",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-22",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-24",
+    "summary": "Production Deployment Validation & Global Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-25",
+    "summary": "3M+ TPS Production Load Testing - WORLD RECORD ACHIEVED",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-26",
+    "summary": "Production Security Audit & Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-27",
+    "summary": "Production Monitoring, Alerting & Observability",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-28",
+    "summary": "Market Launch Preparation & Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-29",
+    "summary": "Final Project Completion & JIRA Synchronization",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-31",
+    "summary": "V11: Setup Java/Quarkus Development Environment",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-32",
+    "summary": "V11: Design System Architecture",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-33",
+    "summary": "V11: Configure GraalVM Native Compilation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-34",
+    "summary": "V11: Implement REST API Framework",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-35",
+    "summary": "V11: Core Transaction Processing Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-36",
+    "summary": "V11: Virtual Threads Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-37",
+    "summary": "V11: Native Compilation Pipeline",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-38",
+    "summary": "V11: AI/ML Optimization Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-39",
+    "summary": "V11: HMS Healthcare Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-40",
+    "summary": "V11: gRPC Service Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-41",
+    "summary": "V11: HyperRAFT++ Consensus Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-42",
+    "summary": "V11: Performance Optimization to 2M+ TPS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-43",
+    "summary": "V11: JMeter Load Testing Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-44",
+    "summary": "V11: Memory Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-45",
+    "summary": "V11: Quantum-Resistant Cryptography Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-46",
+    "summary": "V11: SPHINCS+ Hash-Based Signatures",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-47",
+    "summary": "V11: HSM Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-48",
+    "summary": "V11: Cross-Chain Bridge Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-49",
+    "summary": "V11: Ethereum Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-50",
+    "summary": "V11: Solana Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-51",
+    "summary": "V11: Unit Test Suite Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-52",
+    "summary": "V11: Integration Testing with TestContainers",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-53",
+    "summary": "V11: Security Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-54",
+    "summary": "V11: Kubernetes Deployment Configuration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-55",
+    "summary": "V11: Prometheus & Grafana Monitoring",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-56",
+    "summary": "V11: CI/CD Pipeline with GitHub Actions",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-57",
+    "summary": "V11: Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-58",
+    "summary": "V11: Developer Onboarding Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-59",
+    "summary": "V11: Performance Tuning Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-60",
+    "summary": "V11: Production Deployment to AWS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-61",
+    "summary": "V11: Disaster Recovery Planning",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-62",
+    "summary": "V11: SLA & Performance Guarantees",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-64",
+    "summary": "V11 Demo: Create Interactive Web UI",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-65",
+    "summary": "V11 Demo: Build FastAPI Backend Server",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-66",
+    "summary": "V11 Demo: Implement Vizro Real-time Dashboard",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-67",
+    "summary": "V11 Demo: WebSocket Real-time Streaming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-68",
+    "summary": "V11 Demo: Transaction Generation Engine",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-69",
+    "summary": "V11 Demo: Performance Metrics Collection",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-70",
+    "summary": "V11 Demo: Deploy to Production Environment",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-71",
+    "summary": "V11 Demo: Create User Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-72",
+    "summary": "V11 Demo: Performance Benchmarking Suite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-83",
+    "summary": "AI/ML Infrastructure Implementation - Neural Network Consensus Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-84",
+    "summary": "Cross-Chain Bridge Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-85",
+    "summary": "Core Models and Test Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-94",
+    "summary": "AI/ML Infrastructure Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-95",
+    "summary": "Cross-Chain Bridge Infrastructure - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-96",
+    "summary": "Dashboard UI Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-97",
+    "summary": "HyperRAFT++ Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-98",
+    "summary": "AI Optimization Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-99",
+    "summary": "T001 - Initialize React TypeScript project with Vite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-100",
+    "summary": "T002 - Install and configure Material-UI theming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-3",
+    "summary": "HyperRAFT++ Consensus Service - 2M+ TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-4",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-5",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-6",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-7",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-8",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-9",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-10",
+    "summary": "Production Load Testing & Performance Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-11",
+    "summary": "Production Launch & Global Deployment - LIVE",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-14",
+    "summary": "HyperRAFT++ Consensus Service - 2.25M TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-15",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-16",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-17",
+    "summary": "Performance Testing Framework & Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-19",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-20",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-21",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-22",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-24",
+    "summary": "Production Deployment Validation & Global Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-25",
+    "summary": "3M+ TPS Production Load Testing - WORLD RECORD ACHIEVED",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-26",
+    "summary": "Production Security Audit & Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-27",
+    "summary": "Production Monitoring, Alerting & Observability",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-28",
+    "summary": "Market Launch Preparation & Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-29",
+    "summary": "Final Project Completion & JIRA Synchronization",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-31",
+    "summary": "V11: Setup Java/Quarkus Development Environment",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-32",
+    "summary": "V11: Design System Architecture",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-33",
+    "summary": "V11: Configure GraalVM Native Compilation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-34",
+    "summary": "V11: Implement REST API Framework",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-35",
+    "summary": "V11: Core Transaction Processing Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-36",
+    "summary": "V11: Virtual Threads Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-37",
+    "summary": "V11: Native Compilation Pipeline",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-38",
+    "summary": "V11: AI/ML Optimization Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-39",
+    "summary": "V11: HMS Healthcare Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-40",
+    "summary": "V11: gRPC Service Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-41",
+    "summary": "V11: HyperRAFT++ Consensus Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-42",
+    "summary": "V11: Performance Optimization to 2M+ TPS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-43",
+    "summary": "V11: JMeter Load Testing Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-44",
+    "summary": "V11: Memory Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-45",
+    "summary": "V11: Quantum-Resistant Cryptography Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-46",
+    "summary": "V11: SPHINCS+ Hash-Based Signatures",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-47",
+    "summary": "V11: HSM Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-48",
+    "summary": "V11: Cross-Chain Bridge Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-49",
+    "summary": "V11: Ethereum Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-50",
+    "summary": "V11: Solana Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-51",
+    "summary": "V11: Unit Test Suite Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-52",
+    "summary": "V11: Integration Testing with TestContainers",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-53",
+    "summary": "V11: Security Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-54",
+    "summary": "V11: Kubernetes Deployment Configuration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-55",
+    "summary": "V11: Prometheus & Grafana Monitoring",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-56",
+    "summary": "V11: CI/CD Pipeline with GitHub Actions",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-57",
+    "summary": "V11: Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-58",
+    "summary": "V11: Developer Onboarding Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-59",
+    "summary": "V11: Performance Tuning Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-60",
+    "summary": "V11: Production Deployment to AWS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-61",
+    "summary": "V11: Disaster Recovery Planning",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-62",
+    "summary": "V11: SLA & Performance Guarantees",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-64",
+    "summary": "V11 Demo: Create Interactive Web UI",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-65",
+    "summary": "V11 Demo: Build FastAPI Backend Server",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-66",
+    "summary": "V11 Demo: Implement Vizro Real-time Dashboard",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-67",
+    "summary": "V11 Demo: WebSocket Real-time Streaming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-68",
+    "summary": "V11 Demo: Transaction Generation Engine",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-69",
+    "summary": "V11 Demo: Performance Metrics Collection",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-70",
+    "summary": "V11 Demo: Deploy to Production Environment",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-71",
+    "summary": "V11 Demo: Create User Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-72",
+    "summary": "V11 Demo: Performance Benchmarking Suite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-83",
+    "summary": "AI/ML Infrastructure Implementation - Neural Network Consensus Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-84",
+    "summary": "Cross-Chain Bridge Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-85",
+    "summary": "Core Models and Test Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-94",
+    "summary": "AI/ML Infrastructure Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-95",
+    "summary": "Cross-Chain Bridge Infrastructure - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-96",
+    "summary": "Dashboard UI Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-97",
+    "summary": "HyperRAFT++ Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-98",
+    "summary": "AI Optimization Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-99",
+    "summary": "T001 - Initialize React TypeScript project with Vite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-100",
+    "summary": "T002 - Install and configure Material-UI theming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-3",
+    "summary": "HyperRAFT++ Consensus Service - 2M+ TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-4",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-5",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-6",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-7",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-8",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-9",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-10",
+    "summary": "Production Load Testing & Performance Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-11",
+    "summary": "Production Launch & Global Deployment - LIVE",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-14",
+    "summary": "HyperRAFT++ Consensus Service - 2.25M TPS Achievement",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-15",
+    "summary": "High-Performance gRPC/HTTP2 Network Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-16",
+    "summary": "Post-Quantum Cryptography (NIST Level 5) Implementation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-17",
+    "summary": "Performance Testing Framework & Validation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-19",
+    "summary": "AI/ML Optimization Service - World First AI Blockchain",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-20",
+    "summary": "Universal Cross-Chain Bridge - 50+ Blockchain Support",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-21",
+    "summary": "Enhanced 3M+ TPS Transaction Engine - WORLD RECORD",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-22",
+    "summary": "Production Kubernetes Deployment & Auto-Scaling",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-24",
+    "summary": "Production Deployment Validation & Global Infrastructure",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-25",
+    "summary": "3M+ TPS Production Load Testing - WORLD RECORD ACHIEVED",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-26",
+    "summary": "Production Security Audit & Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-27",
+    "summary": "Production Monitoring, Alerting & Observability",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-28",
+    "summary": "Market Launch Preparation & Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-29",
+    "summary": "Final Project Completion & JIRA Synchronization",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-31",
+    "summary": "V11: Setup Java/Quarkus Development Environment",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-32",
+    "summary": "V11: Design System Architecture",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-33",
+    "summary": "V11: Configure GraalVM Native Compilation",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-34",
+    "summary": "V11: Implement REST API Framework",
+    "type": "Task (Orphan)",
+    "status": "Done",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-35",
+    "summary": "V11: Core Transaction Processing Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-36",
+    "summary": "V11: Virtual Threads Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-37",
+    "summary": "V11: Native Compilation Pipeline",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-38",
+    "summary": "V11: AI/ML Optimization Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-39",
+    "summary": "V11: HMS Healthcare Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-40",
+    "summary": "V11: gRPC Service Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-41",
+    "summary": "V11: HyperRAFT++ Consensus Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-42",
+    "summary": "V11: Performance Optimization to 2M+ TPS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-43",
+    "summary": "V11: JMeter Load Testing Framework",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-44",
+    "summary": "V11: Memory Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-45",
+    "summary": "V11: Quantum-Resistant Cryptography Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-46",
+    "summary": "V11: SPHINCS+ Hash-Based Signatures",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-47",
+    "summary": "V11: HSM Integration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-48",
+    "summary": "V11: Cross-Chain Bridge Service",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-49",
+    "summary": "V11: Ethereum Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-50",
+    "summary": "V11: Solana Integration Adapter",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-51",
+    "summary": "V11: Unit Test Suite Migration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-52",
+    "summary": "V11: Integration Testing with TestContainers",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-53",
+    "summary": "V11: Security Penetration Testing",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-54",
+    "summary": "V11: Kubernetes Deployment Configuration",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-55",
+    "summary": "V11: Prometheus & Grafana Monitoring",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-56",
+    "summary": "V11: CI/CD Pipeline with GitHub Actions",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-57",
+    "summary": "V11: Technical Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-58",
+    "summary": "V11: Developer Onboarding Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-59",
+    "summary": "V11: Performance Tuning Guide",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-60",
+    "summary": "V11: Production Deployment to AWS",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-61",
+    "summary": "V11: Disaster Recovery Planning",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-62",
+    "summary": "V11: SLA & Performance Guarantees",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-64",
+    "summary": "V11 Demo: Create Interactive Web UI",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-65",
+    "summary": "V11 Demo: Build FastAPI Backend Server",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-66",
+    "summary": "V11 Demo: Implement Vizro Real-time Dashboard",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-67",
+    "summary": "V11 Demo: WebSocket Real-time Streaming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-68",
+    "summary": "V11 Demo: Transaction Generation Engine",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-69",
+    "summary": "V11 Demo: Performance Metrics Collection",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-70",
+    "summary": "V11 Demo: Deploy to Production Environment",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-71",
+    "summary": "V11 Demo: Create User Documentation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-72",
+    "summary": "V11 Demo: Performance Benchmarking Suite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-83",
+    "summary": "AI/ML Infrastructure Implementation - Neural Network Consensus Optimization",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-84",
+    "summary": "Cross-Chain Bridge Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-85",
+    "summary": "Core Models and Test Infrastructure Implementation",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-94",
+    "summary": "AI/ML Infrastructure Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-95",
+    "summary": "Cross-Chain Bridge Infrastructure - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-96",
+    "summary": "Dashboard UI Implementation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-97",
+    "summary": "HyperRAFT++ Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-98",
+    "summary": "AI Optimization Documentation - COMPLETED",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-99",
+    "summary": "T001 - Initialize React TypeScript project with Vite",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  },
+  {
+    "key": "AV11-100",
+    "summary": "T002 - Install and configure Material-UI theming",
+    "type": "Task (Orphan)",
+    "status": "To Do",
+    "storyPoints": 0,
+    "children": []
+  }
+]

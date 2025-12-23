@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @author Backend Development Agent (BDA)
  * @since V11.3.1
  */
-@Path("/api/v12/users")
+@Path("/api/v11/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class UserResource {
@@ -38,7 +38,7 @@ public class UserResource {
 
     /**
      * List all users with pagination
-     * GET /api/v12/users?page=0&size=20
+     * GET /api/v11/users?page=0&size=20
      * Requires: ADMIN or DEVOPS role
      */
     @GET
@@ -71,7 +71,7 @@ public class UserResource {
 
     /**
      * Get user by ID
-     * GET /api/v12/users/{id}
+     * GET /api/v11/users/{id}
      * Requires: ADMIN, DEVOPS, or USER role
      */
     @GET
@@ -98,7 +98,7 @@ public class UserResource {
 
     /**
      * Create new user
-     * POST /api/v12/users
+     * POST /api/v11/users
      * Requires: ADMIN role
      */
     @POST
@@ -128,7 +128,7 @@ public class UserResource {
 
     /**
      * Update user
-     * PUT /api/v12/users/{id}
+     * PUT /api/v11/users/{id}
      * Requires: ADMIN role
      */
     @PUT
@@ -164,7 +164,7 @@ public class UserResource {
 
     /**
      * Delete user
-     * DELETE /api/v12/users/{id}
+     * DELETE /api/v11/users/{id}
      * Requires: ADMIN role
      */
     @DELETE
@@ -191,7 +191,7 @@ public class UserResource {
 
     /**
      * Update user role
-     * PUT /api/v12/users/{id}/role
+     * PUT /api/v11/users/{id}/role
      * Requires: ADMIN role
      */
     @PUT
@@ -222,7 +222,7 @@ public class UserResource {
 
     /**
      * Update user status
-     * PUT /api/v12/users/{id}/status
+     * PUT /api/v11/users/{id}/status
      * Requires: ADMIN role
      */
     @PUT
@@ -253,7 +253,7 @@ public class UserResource {
 
     /**
      * Update user password
-     * PUT /api/v12/users/{id}/password
+     * PUT /api/v11/users/{id}/password
      * Requires: ADMIN or USER role (users can only change their own password)
      */
     @PUT
@@ -282,54 +282,8 @@ public class UserResource {
     }
 
     /**
-     * Public user registration
-     * POST /api/v12/users/register
-     * Creates a new user account with USER role (no authentication required)
-     */
-    @POST
-    @Path("/register")
-    public Uni<Response> register(@Valid RegisterUserRequest request) {
-        return Uni.createFrom().item(() -> {
-            try {
-                LOG.infof("Registering new user: %s", request.username());
-
-                // Create user with default USER role
-                User user = userService.createUser(
-                    request.username(),
-                    request.email(),
-                    request.password(),
-                    "USER"  // Default role for public registration
-                );
-
-                // Set status to PENDING_VERIFICATION for email verification flow
-                // For now, we'll set it to ACTIVE for demo purposes
-                // user.status = User.UserStatus.PENDING_VERIFICATION;
-                // user.persist();
-
-                return Response.status(Response.Status.CREATED)
-                    .entity(new RegistrationResponse(
-                        toUserResponse(user),
-                        "Registration successful! You can now log in."
-                    ))
-                    .build();
-            } catch (ValidationException e) {
-                String message = e.getMessage();
-                // Provide user-friendly error messages
-                if (message.contains("username") && message.contains("exists")) {
-                    message = "Username is already taken. Please choose a different username.";
-                } else if (message.contains("email") && message.contains("exists")) {
-                    message = "Email is already registered. Please use a different email or try to log in.";
-                }
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(message))
-                    .build();
-            }
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
      * Authenticate user
-     * POST /api/v12/users/authenticate
+     * POST /api/v11/users/authenticate
      * Returns JWT token on successful authentication
      */
     @POST
@@ -407,17 +361,6 @@ public class UserResource {
     public record AuthenticateRequest(
         String username,
         String password
-    ) {}
-
-    public record RegisterUserRequest(
-        String username,
-        String email,
-        String password
-    ) {}
-
-    public record RegistrationResponse(
-        UserResponse user,
-        String message
     ) {}
 
     public record UserResponse(

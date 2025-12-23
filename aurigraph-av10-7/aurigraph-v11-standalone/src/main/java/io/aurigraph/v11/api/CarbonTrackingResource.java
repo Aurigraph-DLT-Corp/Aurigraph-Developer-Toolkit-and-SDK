@@ -23,14 +23,14 @@ import java.util.*;
  * Part of Enterprise Portal V4.8.0 implementation.
  *
  * Endpoints:
- * - GET /api/v12/carbon/emissions - Get carbon emission metrics
- * - POST /api/v12/carbon/report - Submit carbon offset report
- * - GET /api/v12/carbon/summary - Get carbon tracking summary
+ * - GET /api/v11/carbon/emissions - Get carbon emission metrics
+ * - POST /api/v11/carbon/report - Submit carbon offset report
+ * - GET /api/v11/carbon/summary - Get carbon tracking summary
  *
  * @author Aurigraph V11 Team
  * @version 4.8.0
  */
-@Path("/api/v12/carbon")
+@Path("/api/v11/carbon")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -44,7 +44,7 @@ public class CarbonTrackingResource {
     private static long reportIdCounter = 1;
 
     /**
-     * GET /api/v12/carbon/emissions
+     * GET /api/v11/carbon/emissions
      *
      * Returns carbon emission metrics for blockchain operations.
      *
@@ -92,7 +92,7 @@ public class CarbonTrackingResource {
 
         return Uni.createFrom().item(() -> {
             try {
-                LOG.infof("GET /api/v12/carbon/emissions - timeRange=%s", timeRange);
+                LOG.infof("GET /api/v11/carbon/emissions - timeRange=%s", timeRange);
 
                 // Validate time range
                 if (!Arrays.asList("daily", "weekly", "monthly", "yearly", "custom").contains(timeRange)) {
@@ -119,7 +119,7 @@ public class CarbonTrackingResource {
     }
 
     /**
-     * POST /api/v12/carbon/report
+     * POST /api/v11/carbon/report
      *
      * Submit a carbon offset report.
      *
@@ -165,7 +165,7 @@ public class CarbonTrackingResource {
     public Uni<Response> submitReport(CarbonReportRequest request) {
         return Uni.createFrom().item(() -> {
             try {
-                LOG.infof("POST /api/v12/carbon/report - type=%s, offset=%.2f kg",
+                LOG.infof("POST /api/v11/carbon/report - type=%s, offset=%.2f kg",
                     request.reportType(), request.offsetAmount());
 
                 // Validate request
@@ -227,7 +227,7 @@ public class CarbonTrackingResource {
     }
 
     /**
-     * GET /api/v12/carbon/summary
+     * GET /api/v11/carbon/summary
      *
      * Returns summary of carbon tracking metrics.
      */
@@ -241,7 +241,7 @@ public class CarbonTrackingResource {
     public Uni<Response> getSummary() {
         return Uni.createFrom().item(() -> {
             try {
-                LOG.info("GET /api/v12/carbon/summary");
+                LOG.info("GET /api/v11/carbon/summary");
 
                 // Calculate summary metrics
                 double totalOffsets = reports.stream()
@@ -282,7 +282,7 @@ public class CarbonTrackingResource {
     }
 
     /**
-     * GET /api/v12/carbon/reports
+     * GET /api/v11/carbon/reports
      *
      * Returns list of submitted carbon reports.
      */
@@ -300,7 +300,7 @@ public class CarbonTrackingResource {
 
         return Uni.createFrom().item(() -> {
             try {
-                LOG.infof("GET /api/v12/carbon/reports - status=%s, page=%d, size=%d",
+                LOG.infof("GET /api/v11/carbon/reports - status=%s, page=%d, size=%d",
                     statusFilter, page, size);
 
                 // Filter reports
@@ -339,180 +339,6 @@ public class CarbonTrackingResource {
                     .build();
             }
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    // ==================== PER-TRANSACTION CARBON FOOTPRINT ====================
-
-    /**
-     * GET /api/v12/carbon/transaction/{txId}
-     *
-     * Returns carbon footprint for a specific transaction.
-     * Target: <0.17 grams CO2 per transaction (Aurigraph DLT whitepaper spec)
-     */
-    @GET
-    @Path("/transaction/{txId}")
-    @Operation(
-        summary = "Get transaction carbon footprint",
-        description = "Returns carbon footprint metrics for a specific transaction"
-    )
-    @APIResponses({
-        @APIResponse(
-            responseCode = "200",
-            description = "Carbon footprint retrieved successfully",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = TransactionCarbonFootprint.class)
-            )
-        ),
-        @APIResponse(responseCode = "404", description = "Transaction not found"),
-        @APIResponse(responseCode = "500", description = "Internal server error")
-    })
-    public Uni<Response> getTransactionCarbonFootprint(@PathParam("txId") String txId) {
-        return Uni.createFrom().item(() -> {
-            try {
-                LOG.infof("GET /api/v12/carbon/transaction/%s", txId);
-
-                if (txId == null || txId.trim().isEmpty()) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Transaction ID is required"))
-                        .build();
-                }
-
-                // Calculate carbon footprint for transaction
-                // Base energy: ~0.0001 kWh per transaction (optimized HyperRAFT++)
-                // Grid carbon intensity varies by region (50-800 gCO2/kWh)
-                double baseEnergyKWh = 0.0001;
-                double carbonIntensity = 200.0; // gCO2/kWh (average)
-                double carbonFootprintGrams = baseEnergyKWh * carbonIntensity;
-
-                // Adjust for transaction complexity
-                double complexityFactor = calculateComplexityFactor(txId);
-                carbonFootprintGrams *= complexityFactor;
-
-                TransactionCarbonFootprint footprint = new TransactionCarbonFootprint(
-                    txId,
-                    Math.round(carbonFootprintGrams * 1000.0) / 1000.0, // gCO2 (3 decimal places)
-                    baseEnergyKWh * complexityFactor,
-                    carbonIntensity,
-                    "HyperRAFT++ Consensus",
-                    complexityFactor > 1.5 ? "HIGH" : (complexityFactor > 1.0 ? "MEDIUM" : "LOW"),
-                    carbonFootprintGrams < 0.17 ? "ULTRA_GREEN" : (carbonFootprintGrams < 1.0 ? "GREEN" : "STANDARD"),
-                    carbonFootprintGrams < 0.17,
-                    Map.of(
-                        "bitcoin_equivalent", carbonFootprintGrams / 700000.0, // Bitcoin ~700kg per tx
-                        "ethereum_equivalent", carbonFootprintGrams / 35000.0, // Ethereum ~35g per tx
-                        "visa_equivalent", carbonFootprintGrams / 0.4 // Visa ~0.4g per tx
-                    ),
-                    System.currentTimeMillis()
-                );
-
-                return Response.ok(footprint).build();
-
-            } catch (Exception e) {
-                LOG.errorf(e, "Failed to retrieve transaction carbon footprint");
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve carbon footprint", "message", e.getMessage()))
-                    .build();
-            }
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * GET /api/v12/carbon/channel/{channelId}
-     *
-     * Returns carbon footprint metrics for a specific channel.
-     */
-    @GET
-    @Path("/channel/{channelId}")
-    @Operation(
-        summary = "Get channel carbon footprint",
-        description = "Returns carbon footprint metrics for all transactions in a channel"
-    )
-    @APIResponses({
-        @APIResponse(
-            responseCode = "200",
-            description = "Channel carbon footprint retrieved successfully",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = ChannelCarbonFootprint.class)
-            )
-        ),
-        @APIResponse(responseCode = "404", description = "Channel not found"),
-        @APIResponse(responseCode = "500", description = "Internal server error")
-    })
-    public Uni<Response> getChannelCarbonFootprint(
-            @PathParam("channelId") String channelId,
-            @QueryParam("startTime") Long startTime,
-            @QueryParam("endTime") Long endTime) {
-        return Uni.createFrom().item(() -> {
-            try {
-                LOG.infof("GET /api/v12/carbon/channel/%s", channelId);
-
-                if (channelId == null || channelId.trim().isEmpty()) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Channel ID is required"))
-                        .build();
-                }
-
-                // Calculate channel carbon metrics (mock data for demo)
-                long transactionCount = 10000 + (long)(Math.random() * 50000);
-                double avgCarbonPerTx = 0.015 + (Math.random() * 0.015); // 0.015-0.03 gCO2
-                double totalCarbonGrams = transactionCount * avgCarbonPerTx;
-                double totalEnergyKWh = (transactionCount * 0.0001);
-
-                // Carbon offset calculation
-                double offsetCreditsApplied = Math.random() * totalCarbonGrams * 0.5;
-                double netCarbon = totalCarbonGrams - offsetCreditsApplied;
-
-                ChannelCarbonFootprint footprint = new ChannelCarbonFootprint(
-                    channelId,
-                    transactionCount,
-                    Math.round(totalCarbonGrams * 100.0) / 100.0, // gCO2
-                    Math.round(avgCarbonPerTx * 1000.0) / 1000.0, // gCO2 per tx
-                    Math.round(totalEnergyKWh * 10000.0) / 10000.0, // kWh
-                    Math.round(offsetCreditsApplied * 100.0) / 100.0,
-                    Math.round(netCarbon * 100.0) / 100.0,
-                    netCarbon <= 0 ? "CARBON_NEUTRAL" : (avgCarbonPerTx < 0.17 ? "ULTRA_GREEN" : "GREEN"),
-                    startTime != null ? startTime : System.currentTimeMillis() - (24 * 60 * 60 * 1000),
-                    endTime != null ? endTime : System.currentTimeMillis(),
-                    List.of(
-                        new CarbonBreakdown("Consensus", totalCarbonGrams * 0.35),
-                        new CarbonBreakdown("Transaction Processing", totalCarbonGrams * 0.25),
-                        new CarbonBreakdown("State Storage", totalCarbonGrams * 0.20),
-                        new CarbonBreakdown("Network Communication", totalCarbonGrams * 0.15),
-                        new CarbonBreakdown("Cryptographic Operations", totalCarbonGrams * 0.05)
-                    ),
-                    System.currentTimeMillis()
-                );
-
-                return Response.ok(footprint).build();
-
-            } catch (Exception e) {
-                LOG.errorf(e, "Failed to retrieve channel carbon footprint");
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve channel carbon footprint", "message", e.getMessage()))
-                    .build();
-            }
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * Calculate transaction complexity factor based on tx ID
-     */
-    private double calculateComplexityFactor(String txId) {
-        // Simple hash-based complexity (in production, analyze actual transaction)
-        int hashCode = Math.abs(txId.hashCode());
-        double baseFactor = 1.0;
-
-        if (txId.contains("smart") || txId.contains("contract")) {
-            baseFactor = 1.5; // Smart contract execution
-        } else if (txId.contains("batch") || txId.contains("multi")) {
-            baseFactor = 1.3; // Batch transaction
-        } else if (txId.contains("transfer")) {
-            baseFactor = 0.8; // Simple transfer
-        }
-
-        return baseFactor * (0.9 + (hashCode % 100) / 500.0);
     }
 
     // ==================== HELPER METHODS ====================
@@ -640,48 +466,5 @@ public class CarbonTrackingResource {
         String status,
         Instant submittedAt,
         Instant verifiedAt
-    ) {}
-
-    /**
-     * Per-transaction carbon footprint response
-     * Target: <0.17 grams CO2 per transaction (Aurigraph DLT whitepaper spec)
-     */
-    public record TransactionCarbonFootprint(
-        String transactionId,
-        double carbonFootprintGrams,    // CO2 in grams
-        double energyConsumedKWh,       // Energy in kWh
-        double carbonIntensity,         // gCO2/kWh grid intensity
-        String consensusProtocol,       // HyperRAFT++
-        String complexityLevel,         // LOW, MEDIUM, HIGH
-        String sustainabilityRating,    // ULTRA_GREEN (<0.17g), GREEN (<1g), STANDARD
-        boolean meetsWhitepaperTarget,  // <0.17g CO2 target
-        Map<String, Double> comparison, // vs Bitcoin, Ethereum, Visa
-        long timestamp
-    ) {}
-
-    /**
-     * Per-channel carbon footprint response
-     */
-    public record ChannelCarbonFootprint(
-        String channelId,
-        long transactionCount,
-        double totalCarbonGrams,        // Total CO2 in grams
-        double avgCarbonPerTxGrams,     // Average per transaction
-        double totalEnergyKWh,          // Total energy consumed
-        double offsetCreditsApplied,    // Offset credits used
-        double netCarbonGrams,          // Net after offsets
-        String sustainabilityStatus,    // CARBON_NEUTRAL, ULTRA_GREEN, GREEN
-        long startTime,
-        long endTime,
-        List<CarbonBreakdown> breakdown, // By operation type
-        long timestamp
-    ) {}
-
-    /**
-     * Carbon breakdown by operation type
-     */
-    public record CarbonBreakdown(
-        String operationType,           // Consensus, Transaction Processing, etc.
-        double carbonGrams              // CO2 in grams
     ) {}
 }

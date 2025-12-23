@@ -1,0 +1,388 @@
+name: CI - Build, Test & Quality
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '21'
+  MAVEN_OPTS: '-Xmx4g -XX:+UseG1GC -Dmaven.compiler.fork=true -Dmaven.compiler.maxmem=2048m'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: aurigraph-dlt/aurigraph-v11
+
+jobs:
+  # Job 1: Build and Unit Tests
+  build-and-test:
+    name: Build & Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        profile: [default, native-fast]
+      fail-fast: false
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for SonarQube
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Cache GraalVM Native Image Build
+        if: matrix.profile == 'native-fast'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/native-image
+            ~/target/quarkus-app
+          key: ${{ runner.os }}-graalvm-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-graalvm-
+
+      - name: Build Project (JVM Mode)
+        if: matrix.profile == 'default'
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw clean package -DskipTests
+          echo "✅ JVM build completed successfully"
+
+      - name: Build Project (Native Fast Mode)
+        if: matrix.profile == 'native-fast'
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw clean package -Pnative-fast -DskipTests
+          echo "✅ Native fast build completed successfully"
+
+      - name: Run Unit Tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw test
+          echo "✅ Unit tests completed"
+
+      - name: Generate Test Coverage Report
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw jacoco:report
+          echo "✅ Coverage report generated"
+
+      - name: Check Test Coverage Thresholds
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw jacoco:check
+          echo "✅ Coverage thresholds validated (95% line coverage)"
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.profile }}
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports/
+            aurigraph-av10-7/aurigraph-v11-standalone/target/site/jacoco/
+          retention-days: 30
+
+      - name: Upload Build Artifacts
+        if: matrix.profile == 'default'
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarkus-app
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app/
+          retention-days: 7
+
+      - name: Upload Native Binary
+        if: matrix.profile == 'native-fast'
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-runner
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner
+          retention-days: 7
+
+  # Job 2: Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: aurigraph_test
+          POSTGRES_USER: aurigraph
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: quarkus-app
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app/
+
+      - name: Run Integration Tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        env:
+          QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://localhost:5432/aurigraph_test
+          QUARKUS_DATASOURCE_USERNAME: aurigraph
+          QUARKUS_DATASOURCE_PASSWORD: test_password
+          QUARKUS_REDIS_HOSTS: redis://localhost:6379
+        run: |
+          ./mvnw verify -DskipTests=false
+          echo "✅ Integration tests completed"
+
+      - name: Upload Integration Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/failsafe-reports/
+          retention-days: 30
+
+  # Job 3: Performance Tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: quarkus-app
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app/
+
+      - name: Run Performance Tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          ./mvnw test -Pperformance-test
+          echo "✅ Performance tests completed (776K TPS baseline)"
+
+      - name: Upload Performance Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports/
+            aurigraph-av10-7/aurigraph-v11-standalone/target/jmh-results/
+          retention-days: 30
+
+  # Job 4: Docker Build & Push
+  docker-build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: [build-and-test, integration-tests]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: quarkus-app
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/quarkus-app/
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: aurigraph-av10-7/aurigraph-v11-standalone
+          file: aurigraph-av10-7/aurigraph-v11-standalone/src/main/docker/Dockerfile.jvm
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+
+      - name: Image Digest
+        run: echo "Image pushed with digest ${{ steps.meta.outputs.digest }}"
+
+  # Job 5: SonarQube Code Quality Scan
+  sonarqube-scan:
+    name: SonarQube Code Quality
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    timeout-minutes: 20
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for accurate analysis
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Cache SonarQube Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-default
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/
+
+      - name: Run SonarQube Analysis
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          ./mvnw sonar:sonar \
+            -Dsonar.projectKey=aurigraph-dlt-v11 \
+            -Dsonar.organization=aurigraph-dlt-corp \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.java.coveragePlugin=jacoco \
+            -Dsonar.qualitygate.wait=true
+          echo "✅ SonarQube analysis completed"
+
+      - name: SonarQube Quality Gate Check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
+
+  # Job 6: Build Summary & Notifications
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build-and-test, integration-tests, performance-tests, docker-build, sonarqube-scan]
+    if: always()
+
+    steps:
+      - name: Generate Build Summary
+        run: |
+          echo "# 🚀 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Build Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Workflow**: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Job Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Build & Test: ${{ needs.build-and-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Integration Tests: ${{ needs.integration-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Tests: ${{ needs.performance-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Build: ${{ needs.docker-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- SonarQube Scan: ${{ needs.sonarqube-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Quality Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Coverage: ≥95% (JaCoCo enforced)" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Baseline: 776K TPS" >> $GITHUB_STEP_SUMMARY
+          echo "- Java Version: ${{ env.JAVA_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Quarkus Version: 3.29.0" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check Overall Status
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: |
+          echo "❌ CI Pipeline failed. Check job details above."
+          exit 1

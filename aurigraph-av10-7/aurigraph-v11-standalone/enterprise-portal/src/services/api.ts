@@ -1,31 +1,15 @@
-import axios, { AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError } from 'axios'
 
-// Use environment variable for API URL - ensures HTTPS in production
-// Priority: VITE_API_BASE_URL > VITE_API_URL + version > window.location.origin
-const getApiBaseUrl = (): string => {
-  const env = (import.meta as any).env || {};
-
-  // Check for full API base URL
-  if (env.VITE_API_BASE_URL) return env.VITE_API_BASE_URL;
-
-  // Check for base URL and append version
-  if (env.VITE_API_URL) return `${env.VITE_API_URL}/api/${env.VITE_API_VERSION || 'v12'}`;
-
-  // Fallback: use current page origin for production, localhost for development
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return `${window.location.origin}/api/v12`;
-  }
-
-  return 'http://localhost:9003/api/v12';
-};
-const API_BASE_URL = getApiBaseUrl()
+const API_BASE_URL = (import.meta as any).env?.PROD
+  ? 'https://dlt.aurigraph.io/api/v11'
+  : 'http://localhost:9003/api/v11'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 10000, // 10 second timeout
 })
 
 // Add auth token to requests
@@ -34,868 +18,878 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // Add API key - IMPORTANT: Vite exposes as VITE_REACT_APP_API_KEY
   const apiKey = import.meta.env.VITE_REACT_APP_API_KEY
   if (apiKey) {
     config.headers['X-API-Key'] = apiKey
+    console.debug(`[API] Sending X-API-Key header`)
+  } else {
+    console.warn('[API] No API key found in environment variables. Check .env file for VITE_REACT_APP_API_KEY')
   }
+
   return config
 })
 
-// Handle response errors
+// Handle response errors including 401 Unauthorized
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log rate limit headers if present
+    const remaining = response.headers['x-ratelimit-remaining']
+    const reset = response.headers['x-ratelimit-reset']
+    if (remaining !== undefined) {
+      console.debug(`Rate limit: ${remaining} remaining, resets at ${reset}`)
+    }
+    return response
+  },
   async (error) => {
     const status = error.response?.status
     const url = error.config?.url || 'unknown'
-    const currentToken = localStorage.getItem('auth_token')
 
-    // Demo mode - don't redirect on 401
-    if (status === 401 && currentToken?.startsWith('demo-token-')) {
-      console.debug(`[API] 401 on ${url} - demo mode`)
-      return Promise.reject(new Error('Demo mode'))
+    switch (status) {
+      case 401:
+        // Unauthorized - clear token and redirect to login
+        console.error(`401 Unauthorized on ${url}`)
+        localStorage.removeItem('auth_token')
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
+        }
+        return Promise.reject(new Error('Authentication failed. Please log in again.'))
+
+      case 403:
+        // Forbidden
+        console.error(`403 Forbidden on ${url}`)
+        return Promise.reject(new Error('Access forbidden'))
+
+      case 404:
+        // Not found
+        console.error(`404 Not Found on ${url}`)
+        return Promise.reject(new Error(`Resource not found: ${url}`))
+
+      case 429:
+        // Rate limited
+        console.warn(`429 Rate Limited on ${url}`)
+        const retryAfter = error.response?.headers['retry-after'] || 60
+        return Promise.reject(new Error(`Rate limited. Please retry after ${retryAfter} seconds`))
+
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        // Server error
+        console.error(`${status} Server error on ${url}`)
+        return Promise.reject(new Error(`Server error (${status})`))
+
+      default:
+        console.error(`API Error on ${url}:`, error.message)
+        return Promise.reject(error)
     }
-
-    // Real 401 - redirect to login
-    if (status === 401) {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        window.location.href = '/login'
-      }
-    }
-
-    console.error(`[API] ${status || 'Network'} error on ${url}`)
-    return Promise.reject(error)
   }
 )
 
 // ============================================================================
-// SAFE HELPERS - Use these throughout the app
+// RETRY LOGIC WITH EXPONENTIAL BACKOFF
 // ============================================================================
 
-/**
- * Safe number helper - prevents undefined.toFixed() crashes
- */
-export function safeNum(val: number | undefined | null, fallback: number = 0): number {
-  if (val === undefined || val === null || typeof val !== 'number' || isNaN(val) || !isFinite(val)) {
-    return fallback
-  }
-  return val
+interface RetryOptions {
+  maxRetries?: number
+  initialDelay?: number
+  maxDelay?: number
+  backoffFactor?: number
+}
+
+const DEFAULT_RETRY_OPTIONS: RetryOptions = {
+  maxRetries: 3,
+  initialDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds
+  backoffFactor: 2,
 }
 
 /**
- * Safe string helper
+ * Retry a function with exponential backoff
  */
-export function safeStr(val: string | undefined | null, fallback: string = ''): string {
-  if (val === undefined || val === null || typeof val !== 'string') {
-    return fallback
-  }
-  return val
-}
-
-/**
- * Safe array helper
- */
-export function safeArr<T>(val: T[] | undefined | null, fallback: T[] = []): T[] {
-  if (!Array.isArray(val)) return fallback
-  return val
-}
-
-/**
- * Safe object helper
- */
-export function safeObj<T extends object>(val: T | undefined | null, fallback: T): T {
-  if (val === undefined || val === null || typeof val !== 'object') {
-    return fallback
-  }
-  return val
-}
-
-/**
- * Normalize API response - handles {status, data} wrapper or raw data
- */
-function normalizeResponse<T>(response: AxiosResponse, fallback: T): T {
-  const data = response?.data
-  if (!data) return fallback
-
-  // Handle wrapped responses: {status: 200, data: {...}}
-  if (typeof data === 'object' && 'data' in data && data.status !== undefined) {
-    return data.data ?? fallback
-  }
-
-  // Handle direct data responses
-  return data ?? fallback
-}
-
-/**
- * Safe API call wrapper - ALL API calls should use this
- */
-async function safeCall<T>(
-  apiCall: () => Promise<AxiosResponse>,
-  fallback: T,
-  logContext: string = 'API'
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {}
 ): Promise<T> {
-  try {
-    const response = await apiCall()
-    return normalizeResponse(response, fallback)
-  } catch (error) {
-    console.warn(`[${logContext}] Failed, using fallback:`, error instanceof Error ? error.message : error)
-    return fallback
+  const opts = { ...DEFAULT_RETRY_OPTIONS, ...options }
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= (opts.maxRetries || 0); attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+
+      // Don't retry on client errors (4xx)
+      if (error instanceof AxiosError && error.response?.status && error.response.status >= 400 && error.response.status < 500) {
+        throw error
+      }
+
+      // Don't retry if we've exhausted attempts
+      if (attempt === opts.maxRetries) {
+        throw error
+      }
+
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        (opts.initialDelay || 1000) * Math.pow(opts.backoffFactor || 2, attempt),
+        opts.maxDelay || 10000
+      )
+
+      console.warn(`Request failed (attempt ${attempt + 1}/${(opts.maxRetries || 0) + 1}). Retrying in ${delay}ms...`, error)
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
   }
+
+  throw lastError
 }
 
 /**
- * Safe API call wrapper - returns { success, data, error } for compatibility with existing code
- * Use this when you need to handle errors gracefully in components
+ * Gracefully handle API calls with fallback values
  */
-export async function safeApiCall<T>(
+async function safeApiCall<T>(
   apiCall: () => Promise<T>,
-  fallback: T
-): Promise<{ success: boolean; data: T; error: Error | null }> {
+  fallbackValue: T,
+  options: RetryOptions = {}
+): Promise<{ data: T; error: Error | null; success: boolean }> {
   try {
-    const data = await apiCall()
-    return { success: true, data: data ?? fallback, error: null }
+    const data = await retryWithBackoff(apiCall, options)
+    return { data, error: null, success: true }
   } catch (error) {
-    const errorObj = error instanceof Error ? error : new Error(String(error))
-    console.warn('[safeApiCall] Failed, using fallback:', errorObj.message)
-    return { success: false, data: fallback, error: errorObj }
+    const err = error as Error
+    console.error('API call failed after retries:', err)
+    return { data: fallbackValue, error: err, success: false }
   }
 }
 
-// ============================================================================
-// COMPREHENSIVE FALLBACK DATA - Safe defaults for ALL API responses
-// ============================================================================
-
-const FALLBACKS = {
-  // Health & Status
-  health: { status: 'unknown', checks: {}, version: '12.0.0', timestamp: new Date().toISOString() },
-  info: { status: 'unavailable', version: '12.0.0' },
-
-  // Metrics & Performance
-  metrics: { tps: 0, blockHeight: 0, activeNodes: 0, transactionVolume: 0, networkStatus: 'offline' },
-  performance: { avgLatency: 0, p99Latency: 0, throughput: 0, errorRate: 0 },
-  blockchainStats: { currentTPS: 0, tps: 0, targetTPS: 2000000, peakTPS: 0, averageTPS: 0, blockHeight: 0, latency: 0, throughput: 0 },
-
-  // Lists
-  emptyList: [],
-  emptyPaginatedList: { data: [], total: 0, page: 0, pageSize: 20 },
-
-  // Transactions & Blocks
-  transactions: { transactions: [], total: 0 },
-  blocks: { blocks: [], total: 0 },
-
-  // Nodes & Network
-  nodes: { nodes: [], total: 0 },
-  nodeDetails: { id: '', status: 'unknown', type: 'unknown' },
-  networkHealth: { status: 'unknown', activePeers: 0, totalPeers: 0, consensusHealth: 'UNKNOWN', uptime: 0, activeValidators: 0, totalValidators: 0, stakingRatio: 0 },
-  networkTopology: { nodes: [], links: [], regions: [] },
-  networkStats: { totalNodes: 0, activeNodes: 0, avgLatency: 0, throughput: 0 },
-
-  // Channels
-  channels: { channels: [], total: 0 },
-  channelDetails: { id: '', name: '', status: 'unknown' },
-  channelMetrics: { tps: 0, latency: 0, throughput: 0 },
-
-  // ML & AI
-  mlMetrics: { optimization: 0, efficiency: 0, predictions: 0 },
-  mlPredictions: { predictions: [] },
-  mlPerformance: { optimization: 0, efficiency: 0, accuracy: 0, performanceGainPercent: 0, lastOptimization: new Date().toISOString() },
-  mlConfidence: { confidence: 0, accuracy: 0 },
-
-  // Contracts
-  contracts: { contracts: [], total: 0 },
-  contractDetails: { id: '', status: 'unknown' },
-  contractTemplates: { templates: [] },
-  contractStatistics: { total: 0, active: 0, deployed: 0, verified: 0 },
-  ricardianContracts: { contracts: [] },
-
-  // Tokens
-  tokens: { tokens: [], total: 0 },
-  tokenDetails: { id: '', symbol: '', status: 'unknown' },
-  tokenTemplates: { templates: [] },
-  tokenStatistics: { total: 0, active: 0, locked: 0, totalSupply: 0, marketCap: 0 },
-  rwaTokens: { tokens: [] },
-
-  // Active Contracts
-  activeContracts: { contracts: [] },
-  activeContractDetails: { id: '', status: 'unknown' },
-  activeContractTemplates: { templates: [] },
-
-  // Validators & Staking
-  validators: { validators: [], total: 0 },
-  validatorDetails: { address: '', status: 'unknown', stake: 0, uptime: 0 },
-  stakingInfo: { totalStaked: 0, stakingRatio: 0, validators: 0, apy: 0 },
-  validatorSlashing: { events: [] },
-
-  // RWA
-  rwaPortfolio: { tokens: [], totalValue: '0' },
-  rwaTokenization: { status: 'unknown', total: 0 },
-  rwaFractionalization: { status: 'unknown' },
-  rwaDistribution: { distributions: [] },
-  rwaValuation: { total: 0, assets: [] },
-  rwaPools: { pools: [] },
-
-  // Gas & Fees
-  gasTrends: { current: 0, average: 0, trends: [] },
-  gasHistory: { history: [] },
-
-  // Consensus & Bridge
-  consensusState: { status: 'unknown', leader: '', term: 0, commitIndex: 0 },
-  bridgeStatistics: { transfers: 0, volume: 0, chains: [] },
-  bridgeHealth: { status: 'unknown', connectedChains: 0 },
-  bridgeTransfers: { transfers: [] },
-
-  // Enterprise & Governance
-  enterpriseSettings: { settings: {} },
-  governanceProposals: { proposals: [] },
-
-  // Security
-  securityAuditLog: { events: [] },
-  securityMetrics: { score: 0, vulnerabilities: 0, lastAudit: '' },
-
-  // Analytics
-  analytics: { summary: {}, trends: [] },
-  analyticsNetworkUsage: { usage: 0, peak: 0 },
-  analyticsValidatorEarnings: { earnings: [] },
-  analyticsPerformance: { latency: 0, throughput: 0, errorRate: 0 },
-
-  // Carbon
-  carbonMetrics: { emissions: 0, offsets: 0, netCarbon: 0 },
-  carbonReport: { report: {} },
-
-  // Demos
-  demos: { demos: [] },
-  demoDetails: { id: '', name: '', status: 'unknown' },
-
-  // Live Data
-  liveMetrics: { tps: 0, latency: 0, activeNodes: 0 },
-  liveNetwork: { status: 'unknown', nodes: 0 },
-  liveTransactions: { transactions: [] },
-
-  // System
-  systemStatus: { status: 'unknown', uptime: 0 },
-  systemConfig: { config: {} },
-
-  // Merkle Tree
-  merkleRoot: { hash: '', timestamp: '' },
-  merkleProof: { proof: [], valid: false },
-  merkleStats: { height: 0, leaves: 0, root: '' },
-
-  // Crypto & Quantum
-  cryptoStatus: { algorithms: [], status: 'unknown' },
-  quantumReadiness: { ready: false, score: 0 },
-
-  // Advanced & Config
-  advancedFeatures: { features: [] },
-  configStatus: { configured: false },
-
-  // Mobile
-  mobileStatus: { status: 'unknown' },
-  mobileMetrics: { activeUsers: 0, sessions: 0 },
-
-  // QuantConnect
-  quantConnectStats: { totalEquities: 0, totalTransactions: 0, merkleRoot: '', treeHeight: 0, lastUpdate: new Date().toISOString(), registeredSymbols: 0 },
-  quantConnectNavigation: { totalEntries: 0, merkleRoot: '', treeHeight: 0, categories: {}, recentTokenizations: [] },
-  quantConnectEINode: { eiNodeId: 'ei-node-1', running: false, messagesProcessed: 0, tokenizationsCompleted: 0, totalEquities: 0, totalTransactions: 0, merkleRoot: '', uptimeSeconds: 0, pollIntervalSeconds: 60, trackedSymbols: 0, timestamp: new Date().toISOString() },
-  quantConnectEquities: { equities: [] },
-  quantConnectTransactions: { transactions: [] },
+// Default fallback data for failed requests
+const FALLBACK_DATA = {
+  metrics: {
+    tps: 0,
+    blockHeight: 0,
+    activeNodes: 0,
+    transactionVolume: 0,
+    networkStatus: 'offline',
+  },
+  performance: {
+    avgLatency: 0,
+    p99Latency: 0,
+    throughput: 0,
+    errorRate: 0,
+  },
+  health: {
+    status: 'unknown',
+    timestamp: new Date().toISOString(),
+  },
 }
-
-// ============================================================================
-// API SERVICE - All methods with safe error handling
-// ============================================================================
 
 export const apiService = {
-  // ==================== HEALTH & INFO ====================
+  // Health & Info
   async getHealth() {
-    return safeCall(() => apiClient.get('/health'), FALLBACKS.health, 'getHealth')
+    try {
+      const response = await apiClient.get('/health')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch health:', error)
+      return FALLBACK_DATA.health
+    }
   },
 
   async getInfo() {
-    return safeCall(() => apiClient.get('/info'), FALLBACKS.info, 'getInfo')
+    try {
+      const response = await apiClient.get('/info')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch info:', error)
+      return { status: 'unavailable' }
+    }
   },
 
-  // ==================== METRICS & PERFORMANCE ====================
+  // Metrics
   async getMetrics() {
-    return safeCall(() => apiClient.get('/blockchain/stats'), FALLBACKS.metrics, 'getMetrics')
+    try {
+      const response = await apiClient.get('/blockchain/stats')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch metrics:', error)
+      return FALLBACK_DATA.metrics
+    }
   },
 
   async getPerformance() {
-    return safeCall(() => apiClient.get('/performance'), FALLBACKS.performance, 'getPerformance')
+    try {
+      const response = await apiClient.get('/performance')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch performance:', error)
+      return FALLBACK_DATA.performance
+    }
   },
 
   async getAnalyticsPerformance() {
-    return safeCall(() => apiClient.get('/analytics/performance'), FALLBACKS.analyticsPerformance, 'getAnalyticsPerformance')
+    const response = await apiClient.get('/analytics/performance')
+    return response.data
   },
 
-  async getBlockchainStats() {
-    return safeCall(() => apiClient.get('/blockchain/stats'), FALLBACKS.blockchainStats, 'getBlockchainStats')
-  },
-
-  async getBlockchainHealth() {
-    return safeCall(() => apiClient.get('/blockchain/health'), FALLBACKS.health, 'getBlockchainHealth')
-  },
-
-  async getTransactionStats() {
-    return safeCall(() => apiClient.get('/blockchain/transactions/stats'), { total: 0, pending: 0, confirmed: 0 }, 'getTransactionStats')
-  },
-
-  async getBlockStats() {
-    return safeCall(() => apiClient.get('/blockchain/blocks/stats'), { total: 0, avgTime: 0 }, 'getBlockStats')
-  },
-
-  // ==================== TRANSACTIONS ====================
+  // Transactions
   async getTransactions(params?: { limit?: number; offset?: number }) {
-    return safeCall(() => apiClient.get('/blockchain/transactions', { params }), FALLBACKS.transactions, 'getTransactions')
+    const response = await apiClient.get('/blockchain/transactions', { params })
+    return response.data
   },
 
   async getTransaction(id: string) {
-    return safeCall(() => apiClient.get(`/blockchain/transactions/${id}`), { id, status: 'unknown' }, 'getTransaction')
+    const response = await apiClient.get(`/blockchain/transactions/${id}`)
+    return response.data
   },
 
-  // ==================== BLOCKS ====================
+  // Blocks
   async getBlocks(params?: { limit?: number; offset?: number }) {
-    return safeCall(() => apiClient.get('/blockchain/blocks', { params }), FALLBACKS.blocks, 'getBlocks')
+    const response = await apiClient.get('/blockchain/blocks', { params })
+    return response.data
   },
 
   async getBlock(height: number) {
-    return safeCall(() => apiClient.get(`/blockchain/blocks/${height}`), { height, status: 'unknown' }, 'getBlock')
+    const response = await apiClient.get(`/blockchain/blocks/${height}`)
+    return response.data
   },
 
-  // ==================== NODES ====================
+  // Nodes
   async getNodes() {
-    return safeCall(() => apiClient.get('/nodes'), FALLBACKS.nodes, 'getNodes')
+    const response = await apiClient.get('/nodes')
+    return response.data
   },
 
   async getNode(id: string) {
-    return safeCall(() => apiClient.get(`/nodes/${id}`), FALLBACKS.nodeDetails, 'getNode')
+    const response = await apiClient.get(`/nodes/${id}`)
+    return response.data
   },
 
-  // ==================== CHANNELS ====================
+  // Channels
   async getChannels() {
-    return safeCall(() => apiClient.get('/channels'), FALLBACKS.channels, 'getChannels')
+    const response = await apiClient.get('/channels')
+    return response.data
   },
 
   async getChannel(id: string) {
-    return safeCall(() => apiClient.get(`/channels/${id}`), FALLBACKS.channelDetails, 'getChannel')
+    const response = await apiClient.get(`/channels/${id}`)
+    return response.data
   },
 
   async createChannel(channel: any) {
-    return safeCall(() => apiClient.post('/channels', channel), { success: false }, 'createChannel')
+    const response = await apiClient.post('/channels', channel)
+    return response.data
   },
 
   async updateChannelConfig(id: string, config: any) {
-    return safeCall(() => apiClient.put(`/channels/${id}/config`, config), { success: false }, 'updateChannelConfig')
+    const response = await apiClient.put(`/channels/${id}/config`, config)
+    return response.data
   },
 
-  async getChannelMetrics(id: string) {
-    return safeCall(() => apiClient.get(`/channels/${id}/metrics`), FALLBACKS.channelMetrics, 'getChannelMetrics')
-  },
-
-  async getChannelTransactions(id: string, params?: { limit?: number; offset?: number }) {
-    return safeCall(() => apiClient.get(`/channels/${id}/transactions`, { params }), FALLBACKS.transactions, 'getChannelTransactions')
-  },
-
-  // ==================== ML & AI ====================
+  // ML & AI Optimization
   async getMLMetrics() {
-    return safeCall(() => apiClient.get('/ml/metrics'), FALLBACKS.mlMetrics, 'getMLMetrics')
+    const response = await apiClient.get('/ai/metrics')
+    return response.data
   },
 
   async getMLPredictions() {
-    return safeCall(() => apiClient.get('/ml/predictions'), FALLBACKS.mlPredictions, 'getMLPredictions')
+    const response = await apiClient.get('/ai/predictions')
+    return response.data
   },
 
   async getMLPerformance() {
-    return safeCall(() => apiClient.get('/ml/performance'), FALLBACKS.mlPerformance, 'getMLPerformance')
+    try {
+      const response = await apiClient.get('/ai/performance')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch ML performance:', error)
+      return { optimization: 0, efficiency: 0, accuracy: 0 }
+    }
   },
 
   async getMLConfidence() {
-    return safeCall(() => apiClient.get('/ml/confidence'), FALLBACKS.mlConfidence, 'getMLConfidence')
+    const response = await apiClient.get('/ai/confidence')
+    return response.data
   },
 
-  // ==================== SMART CONTRACTS ====================
+  async getChannelMetrics(id: string) {
+    const response = await apiClient.get(`/channels/${id}/metrics`)
+    return response.data
+  },
+
+  async getChannelTransactions(id: string, params?: { limit?: number; offset?: number }) {
+    const response = await apiClient.get(`/channels/${id}/transactions`, { params })
+    return response.data
+  },
+
+  // Smart Contracts
   async getContracts(params?: { channelId?: string; status?: string }) {
-    return safeCall(() => apiClient.get('/contracts', { params }), FALLBACKS.contracts, 'getContracts')
+    const response = await apiClient.get('/contracts', { params })
+    return response.data
   },
 
   async getContract(id: string) {
-    return safeCall(() => apiClient.get(`/contracts/${id}`), FALLBACKS.contractDetails, 'getContract')
+    const response = await apiClient.get(`/contracts/${id}`)
+    return response.data
   },
 
   async getContractTemplates() {
-    return safeCall(() => apiClient.get('/contracts/templates'), FALLBACKS.contractTemplates, 'getContractTemplates')
+    const response = await apiClient.get('/contracts/templates')
+    return response.data
   },
 
+  // Ricardian Contracts
   async getRicardianContracts(params?: { limit?: number; status?: string }) {
-    return safeCall(() => apiClient.get('/contracts/ricardian', { params }), FALLBACKS.ricardianContracts, 'getRicardianContracts')
+    const response = await apiClient.get('/contracts/ricardian', { params })
+    return response.data
   },
 
   async deployContract(request: any) {
-    return safeCall(() => apiClient.post('/contracts/deploy', request), { success: false }, 'deployContract')
+    const response = await apiClient.post('/contracts/deploy', request)
+    return response.data
   },
 
   async verifyContract(id: string) {
-    return safeCall(() => apiClient.post(`/contracts/${id}/verify`), { success: false }, 'verifyContract')
+    const response = await apiClient.post(`/contracts/${id}/verify`)
+    return response.data
   },
 
   async auditContract(id: string, auditData: any) {
-    return safeCall(() => apiClient.post(`/contracts/${id}/audit`, auditData), { success: false }, 'auditContract')
+    const response = await apiClient.post(`/contracts/${id}/audit`, auditData)
+    return response.data
   },
 
   async executeContract(id: string, data: any) {
-    return safeCall(() => apiClient.post(`/contracts/${id}/execute`, data), { success: false }, 'executeContract')
+    const response = await apiClient.post(`/contracts/${id}/execute`, data)
+    return response.data
   },
 
   async getContractStatistics() {
-    return safeCall(() => apiClient.get('/contracts/statistics'), FALLBACKS.contractStatistics, 'getContractStatistics')
+    const response = await apiClient.get('/contracts/statistics')
+    return response.data
   },
 
-  // ==================== TOKENS ====================
+  // Tokens
   async getTokens(params?: { type?: string; channelId?: string; verified?: boolean }) {
-    return safeCall(() => apiClient.get('/tokens', { params }), FALLBACKS.tokens, 'getTokens')
+    const response = await apiClient.get('/tokens', { params })
+    return response.data
   },
 
   async getToken(id: string) {
-    return safeCall(() => apiClient.get(`/tokens/${id}`), FALLBACKS.tokenDetails, 'getToken')
+    const response = await apiClient.get(`/tokens/${id}`)
+    return response.data
   },
 
   async getTokenTemplates() {
-    return safeCall(() => apiClient.get('/tokens/templates'), FALLBACKS.tokenTemplates, 'getTokenTemplates')
+    const response = await apiClient.get('/tokens/templates')
+    return response.data
   },
 
   async createToken(request: any) {
-    return safeCall(() => apiClient.post('/tokens/create', request), { success: false }, 'createToken')
+    const response = await apiClient.post('/tokens/create', request)
+    return response.data
   },
 
   async mintTokens(id: string, amount: number) {
-    return safeCall(() => apiClient.post(`/tokens/${id}/mint`, { amount }), { success: false }, 'mintTokens')
+    const response = await apiClient.post(`/tokens/${id}/mint`, { amount })
+    return response.data
   },
 
   async burnTokens(id: string, amount: number) {
-    return safeCall(() => apiClient.post(`/tokens/${id}/burn`, { amount }), { success: false }, 'burnTokens')
+    const response = await apiClient.post(`/tokens/${id}/burn`, { amount })
+    return response.data
   },
 
   async verifyToken(id: string) {
-    return safeCall(() => apiClient.post(`/tokens/${id}/verify`), { success: false }, 'verifyToken')
+    const response = await apiClient.post(`/tokens/${id}/verify`)
+    return response.data
   },
 
   async getTokenStatistics() {
-    return safeCall(() => apiClient.get('/tokens/statistics'), FALLBACKS.tokenStatistics, 'getTokenStatistics')
+    try {
+      const response = await apiClient.get('/tokens/statistics')
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch token statistics:', error)
+      return { total: 0, active: 0, locked: 0 }
+    }
   },
 
   async getRWATokens() {
-    return safeCall(() => apiClient.get('/tokens/rwa'), FALLBACKS.rwaTokens, 'getRWATokens')
+    const response = await apiClient.get('/tokens/rwa')
+    return response.data
   },
 
-  // ==================== ACTIVE CONTRACTS ====================
+  // ActiveContracts
   async getActiveContracts() {
-    return safeCall(() => apiClient.get('/activecontracts/contracts'), FALLBACKS.activeContracts, 'getActiveContracts')
+    const response = await apiClient.get('/activecontracts/contracts')
+    return response.data
   },
 
   async getActiveContract(id: string) {
-    return safeCall(() => apiClient.get(`/activecontracts/contracts/${id}`), FALLBACKS.activeContractDetails, 'getActiveContract')
+    const response = await apiClient.get(`/activecontracts/contracts/${id}`)
+    return response.data
   },
 
   async createActiveContract(request: any) {
-    return safeCall(() => apiClient.post('/activecontracts/create', request), { success: false }, 'createActiveContract')
+    const response = await apiClient.post('/activecontracts/create', request)
+    return response.data
   },
 
   async executeContractAction(contractId: string, actionId: string, parameters: any) {
-    return safeCall(() => apiClient.post(`/activecontracts/${contractId}/execute/${actionId}`, parameters), { success: false }, 'executeContractAction')
+    const response = await apiClient.post(`/activecontracts/${contractId}/execute/${actionId}`, parameters)
+    return response.data
   },
 
   async getActiveContractTemplates() {
-    return safeCall(() => apiClient.get('/activecontracts/templates'), FALLBACKS.activeContractTemplates, 'getActiveContractTemplates')
+    const response = await apiClient.get('/activecontracts/templates')
+    return response.data
   },
 
   async createFromTemplate(templateId: string, parameters: any) {
-    return safeCall(() => apiClient.post(`/activecontracts/templates/${templateId}/instantiate`, parameters), { success: false }, 'createFromTemplate')
+    const response = await apiClient.post(`/activecontracts/templates/${templateId}/instantiate`, parameters)
+    return response.data
   },
 
-  // ==================== AUTH ====================
+  // Auth
   async login(credentials: { username: string; password: string }) {
-    try {
-      const response = await apiClient.post('/auth/login', credentials)
-      if (response.data.token) {
-        localStorage.setItem('auth_token', response.data.token)
-      }
-      return response.data
-    } catch (error) {
-      console.error('Login failed:', error)
-      return { success: false, error: 'Login failed' }
+    const response = await apiClient.post('/auth/login', credentials)
+    if (response.data.token) {
+      localStorage.setItem('auth_token', response.data.token)
     }
+    return response.data
   },
 
   async logout() {
     localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
     return { success: true }
   },
 
-  // ==================== ANALYTICS ====================
+  // Analytics
   async getAnalytics(period: '24h' | '7d' | '30d' = '24h') {
-    return safeCall(() => apiClient.get(`/analytics/${period}`), FALLBACKS.analytics, 'getAnalytics')
+    const response = await apiClient.get(`/analytics/${period}`)
+    return response.data
   },
 
-  async getAnalyticsPeriod(period: '24h' | '7d' | '30d' | '90d' = '24h') {
-    return safeCall(() => apiClient.get(`/analytics/${period}`), FALLBACKS.analytics, 'getAnalyticsPeriod')
-  },
-
-  async getAnalyticsNetworkUsage() {
-    return safeCall(() => apiClient.get('/analytics/network-usage'), FALLBACKS.analyticsNetworkUsage, 'getAnalyticsNetworkUsage')
-  },
-
-  async getAnalyticsValidatorEarnings() {
-    return safeCall(() => apiClient.get('/analytics/validator-earnings'), FALLBACKS.analyticsValidatorEarnings, 'getAnalyticsValidatorEarnings')
-  },
-
-  // ==================== SYSTEM ====================
+  // System
   async getSystemStatus() {
-    return safeCall(() => apiClient.get('/system/status'), FALLBACKS.systemStatus, 'getSystemStatus')
+    const response = await apiClient.get('/system/status')
+    return response.data
   },
 
   async getSystemConfig() {
-    return safeCall(() => apiClient.get('/system/config'), FALLBACKS.systemConfig, 'getSystemConfig')
+    const response = await apiClient.get('/system/config')
+    return response.data
   },
 
-  // ==================== MERKLE TREE ====================
+  // Merkle Tree Registry
   async getMerkleRootHash() {
-    return safeCall(() => apiClient.get('/registry/rwat/merkle/root'), FALLBACKS.merkleRoot, 'getMerkleRootHash')
+    const response = await apiClient.get('/registry/rwat/merkle/root')
+    return response.data
   },
 
   async generateMerkleProof(rwatId: string) {
-    return safeCall(() => apiClient.get(`/registry/rwat/${rwatId}/merkle/proof`), FALLBACKS.merkleProof, 'generateMerkleProof')
+    const response = await apiClient.get(`/registry/rwat/${rwatId}/merkle/proof`)
+    return response.data
   },
 
   async verifyMerkleProof(proofData: any) {
-    return safeCall(() => apiClient.post('/registry/rwat/merkle/verify', proofData), { valid: false }, 'verifyMerkleProof')
+    const response = await apiClient.post('/registry/rwat/merkle/verify', proofData)
+    return response.data
   },
 
   async getMerkleTreeStats() {
-    return safeCall(() => apiClient.get('/registry/rwat/merkle/stats'), FALLBACKS.merkleStats, 'getMerkleTreeStats')
+    const response = await apiClient.get('/registry/rwat/merkle/stats')
+    return response.data
   },
 
-  // ==================== DEMOS ====================
+  // Demo Contracts (using actual backend endpoint)
   async getDemos(params?: { limit?: number; offset?: number }) {
-    return safeCall(() => apiClient.get('/demos', { params }), FALLBACKS.demos, 'getDemos')
+    const response = await apiClient.get('/demos', { params })
+    return response.data
   },
 
-  async getDemoById(id: string) {
-    return safeCall(() => apiClient.get(`/demos/${id}`), FALLBACKS.demoDetails, 'getDemoById')
-  },
-
-  async startDemo(id: string) {
-    return safeCall(() => apiClient.post(`/demos/${id}/start`), { success: false }, 'startDemo')
-  },
-
-  async stopDemo(id: string) {
-    return safeCall(() => apiClient.post(`/demos/${id}/stop`), { success: false }, 'stopDemo')
-  },
-
-  // ==================== VALIDATORS & STAKING ====================
+  // Validators & Staking
   async getValidators(params?: { status?: string; limit?: number; offset?: number }) {
-    return safeCall(() => apiClient.get('/blockchain/validators', { params }), FALLBACKS.validators, 'getValidators')
+    const response = await apiClient.get('/blockchain/validators', { params })
+    return response.data
   },
 
   async getValidatorDetails(address: string) {
-    return safeCall(() => apiClient.get(`/blockchain/validators/${address}`), FALLBACKS.validatorDetails, 'getValidatorDetails')
+    const response = await apiClient.get(`/blockchain/validators/${address}`)
+    return response.data
   },
 
   async getStakingInfo() {
-    return safeCall(() => apiClient.get('/staking/info'), FALLBACKS.stakingInfo, 'getStakingInfo')
+    const response = await apiClient.get('/staking/info')
+    return response.data
   },
 
   async getNetworkHealth() {
-    return safeCall(() => apiClient.get('/blockchain/network/health'), FALLBACKS.networkHealth, 'getNetworkHealth')
+    const response = await apiClient.get('/blockchain/network/health')
+    return response.data
   },
 
   async claimRewards(validatorAddress: string) {
-    return safeCall(() => apiClient.post(`/staking/validators/${validatorAddress}/claim-rewards`), { success: false }, 'claimRewards')
+    const response = await apiClient.post(`/staking/validators/${validatorAddress}/claim-rewards`)
+    return response.data
   },
 
-  async getValidatorMetrics(validatorId: string) {
-    return safeCall(() => apiClient.get(`/validators/${validatorId}/metrics`), { uptime: 0, blocksProduced: 0 }, 'getValidatorMetrics')
-  },
+  // ============================================================================
+  // ENHANCED ENDPOINTS - PHASE 2 INTEGRATION ADDITIONS
+  // ============================================================================
 
-  async getValidatorSlashing() {
-    return safeCall(() => apiClient.get('/validators/slashing'), FALLBACKS.validatorSlashing, 'getValidatorSlashing')
-  },
-
-  // ==================== RWA ====================
+  // Real-World Assets (RWA)
   async getRWAPortfolio(params?: { userId?: string }) {
-    return safeCall(() => apiClient.get('/rwa/portfolio', { params }), FALLBACKS.rwaPortfolio, 'getRWAPortfolio')
+    const response = await apiClient.get('/rwa/portfolio', { params })
+    return response.data
   },
 
   async getRWATokenization() {
-    return safeCall(() => apiClient.get('/rwa/tokenization'), FALLBACKS.rwaTokenization, 'getRWATokenization')
+    const response = await apiClient.get('/rwa/tokenization')
+    return response.data
   },
 
   async getRWAFractionalization() {
-    return safeCall(() => apiClient.get('/rwa/fractionalization'), FALLBACKS.rwaFractionalization, 'getRWAFractionalization')
+    const response = await apiClient.get('/rwa/fractionalization')
+    return response.data
   },
 
   async getRWADistribution() {
-    return safeCall(() => apiClient.get('/rwa/distribution'), FALLBACKS.rwaDistribution, 'getRWADistribution')
+    const response = await apiClient.get('/rwa/distribution')
+    return response.data
   },
 
   async getRWAValuation() {
-    return safeCall(() => apiClient.get('/rwa/valuation'), FALLBACKS.rwaValuation, 'getRWAValuation')
+    const response = await apiClient.get('/rwa/valuation')
+    return response.data
   },
 
   async getRWAPools() {
-    return safeCall(() => apiClient.get('/rwa/pools'), FALLBACKS.rwaPools, 'getRWAPools')
+    const response = await apiClient.get('/rwa/pools')
+    return response.data
   },
 
-  async getRWARegistry() {
-    return safeCall(() => apiClient.get('/rwa/registry'), { assets: [], stats: {} }, 'getRWARegistry')
-  },
-
-  async getRWADividends() {
-    return safeCall(() => apiClient.get('/rwa/dividends'), { totalDividends: 0, pendingDividends: 0, history: [] }, 'getRWADividends')
-  },
-
-  async getRWACompliance() {
-    return safeCall(() => apiClient.get('/rwa/compliance'), { overallStatus: 'UNKNOWN', complianceScore: 0, regulations: [] }, 'getRWACompliance')
-  },
-
-  // ==================== GAS & FEES ====================
+  // Gas & Fee Tracking
   async getGasTrends(params?: { period?: '1h' | '24h' | '7d' }) {
-    return safeCall(() => apiClient.get('/gas/trends', { params }), FALLBACKS.gasTrends, 'getGasTrends')
+    const response = await apiClient.get('/gas/trends', { params })
+    return response.data
   },
 
   async getGasHistory(params?: { limit?: number; offset?: number }) {
-    return safeCall(() => apiClient.get('/gas/history', { params }), FALLBACKS.gasHistory, 'getGasHistory')
+    const response = await apiClient.get('/gas/history', { params })
+    return response.data
   },
 
-  // ==================== NETWORK ====================
+  // Network Topology & Health
   async getNetworkTopology() {
-    return safeCall(() => apiClient.get('/network/topology'), FALLBACKS.networkTopology, 'getNetworkTopology')
+    const response = await apiClient.get('/network/topology')
+    return response.data
   },
 
   async getNetworkStats() {
-    return safeCall(() => apiClient.get('/network/stats'), FALLBACKS.networkStats, 'getNetworkStats')
+    const response = await apiClient.get('/network/stats')
+    return response.data
   },
 
-  // ==================== CONSENSUS & BRIDGE ====================
+  // Consensus & Bridge Monitoring
   async getConsensusState() {
-    return safeCall(() => apiClient.get('/consensus/state'), FALLBACKS.consensusState, 'getConsensusState')
+    const response = await apiClient.get('/consensus/state')
+    return response.data
   },
 
   async getBridgeStatistics() {
-    return safeCall(() => apiClient.get('/bridge/statistics'), FALLBACKS.bridgeStatistics, 'getBridgeStatistics')
+    const response = await apiClient.get('/bridge/statistics')
+    return response.data
   },
 
   async getBridgeHealth() {
-    return safeCall(() => apiClient.get('/bridge/health'), FALLBACKS.bridgeHealth, 'getBridgeHealth')
+    const response = await apiClient.get('/bridge/health')
+    return response.data
   },
 
   async getBridgeTransfers(params?: { limit?: number; offset?: number }) {
-    return safeCall(() => apiClient.get('/bridge/transfers', { params }), FALLBACKS.bridgeTransfers, 'getBridgeTransfers')
+    const response = await apiClient.get('/bridge/transfers', { params })
+    return response.data
   },
 
-  // ==================== ENTERPRISE & GOVERNANCE ====================
+  // Enterprise Settings & Governance
   async getEnterpriseSettings() {
-    return safeCall(() => apiClient.get('/enterprise/settings'), FALLBACKS.enterpriseSettings, 'getEnterpriseSettings')
+    const response = await apiClient.get('/enterprise/settings')
+    return response.data
   },
 
   async updateEnterpriseSettings(settings: any) {
-    return safeCall(() => apiClient.put('/enterprise/settings', settings), { success: false }, 'updateEnterpriseSettings')
+    const response = await apiClient.put('/enterprise/settings', settings)
+    return response.data
   },
 
   async getGovernanceProposals(params?: { status?: string; limit?: number }) {
-    return safeCall(() => apiClient.get('/governance/proposals', { params }), FALLBACKS.governanceProposals, 'getGovernanceProposals')
+    const response = await apiClient.get('/governance/proposals', { params })
+    return response.data
   },
 
   async voteOnProposal(proposalId: string, vote: 'yes' | 'no' | 'abstain') {
-    return safeCall(() => apiClient.post(`/governance/proposals/${proposalId}/vote`, { vote }), { success: false }, 'voteOnProposal')
+    const response = await apiClient.post(`/governance/proposals/${proposalId}/vote`, { vote })
+    return response.data
   },
 
-  // ==================== SECURITY ====================
+  // Security & Audit
   async getSecurityAuditLog(params?: { limit?: number; offset?: number; severity?: string }) {
-    return safeCall(() => apiClient.get('/security/audit-log', { params }), FALLBACKS.securityAuditLog, 'getSecurityAuditLog')
+    const response = await apiClient.get('/security/audit-log', { params })
+    return response.data
   },
 
   async getSecurityMetrics() {
-    return safeCall(() => apiClient.get('/security/metrics'), FALLBACKS.securityMetrics, 'getSecurityMetrics')
+    const response = await apiClient.get('/security/metrics')
+    return response.data
   },
 
-  // ==================== CARBON ====================
+  // Analytics Dashboard
+  async getAnalyticsPeriod(period: '24h' | '7d' | '30d' | '90d' = '24h') {
+    const response = await apiClient.get(`/analytics/${period}`)
+    return response.data
+  },
+
+  async getAnalyticsNetworkUsage() {
+    const response = await apiClient.get('/analytics/network-usage')
+    return response.data
+  },
+
+  async getAnalyticsValidatorEarnings() {
+    const response = await apiClient.get('/analytics/validator-earnings')
+    return response.data
+  },
+
+  // Carbon Tracking
   async getCarbonMetrics() {
-    return safeCall(() => apiClient.get('/carbon/metrics'), FALLBACKS.carbonMetrics, 'getCarbonMetrics')
+    const response = await apiClient.get('/carbon/metrics')
+    return response.data
   },
 
   async getCarbonReport(params?: { startDate?: string; endDate?: string }) {
-    return safeCall(() => apiClient.get('/carbon/report', { params }), FALLBACKS.carbonReport, 'getCarbonReport')
+    const response = await apiClient.get('/carbon/report', { params })
+    return response.data
   },
 
-  // ==================== LIVE DATA ====================
+  // Demo & Testing (for development)
+  async getDemoById(id: string) {
+    const response = await apiClient.get(`/demos/${id}`)
+    return response.data
+  },
+
+  async startDemo(id: string) {
+    const response = await apiClient.post(`/demos/${id}/start`)
+    return response.data
+  },
+
+  async stopDemo(id: string) {
+    const response = await apiClient.post(`/demos/${id}/stop`)
+    return response.data
+  },
+
+  // Live Data Streaming Endpoints
   async getLiveMetrics() {
-    return safeCall(() => apiClient.get('/live/metrics'), FALLBACKS.liveMetrics, 'getLiveMetrics')
+    const response = await apiClient.get('/live/metrics')
+    return response.data
   },
 
   async getLiveNetworkStatus() {
-    return safeCall(() => apiClient.get('/live/network'), FALLBACKS.liveNetwork, 'getLiveNetworkStatus')
+    const response = await apiClient.get('/live/network')
+    return response.data
   },
 
   async getLiveTransactions(params?: { limit?: number }) {
-    return safeCall(() => apiClient.get('/live/transactions', { params }), FALLBACKS.liveTransactions, 'getLiveTransactions')
+    const response = await apiClient.get('/live/transactions', { params })
+    return response.data
   },
 
-  // ==================== CRYPTO & QUANTUM ====================
+  // Validator Management
+  async getValidatorMetrics(validatorId: string) {
+    const response = await apiClient.get(`/validators/${validatorId}/metrics`)
+    return response.data
+  },
+
+  async getValidatorSlashing() {
+    const response = await apiClient.get('/validators/slashing')
+    return response.data
+  },
+
+  // Blockchain Statistics (Enhanced)
+  async getBlockchainStats() {
+    const response = await apiClient.get('/blockchain/stats')
+    return response.data
+  },
+
+  async getBlockchainHealth() {
+    const response = await apiClient.get('/blockchain/health')
+    return response.data
+  },
+
+  async getTransactionStats() {
+    const response = await apiClient.get('/blockchain/transactions/stats')
+    return response.data
+  },
+
+  async getBlockStats() {
+    const response = await apiClient.get('/blockchain/blocks/stats')
+    return response.data
+  },
+
+  // Cryptography & Security (Post-Quantum)
   async getCryptoStatus() {
-    return safeCall(() => apiClient.get('/crypto/status'), FALLBACKS.cryptoStatus, 'getCryptoStatus')
+    const response = await apiClient.get('/crypto/status')
+    return response.data
   },
 
   async getQuantumReadiness() {
-    return safeCall(() => apiClient.get('/security/quantum-readiness'), FALLBACKS.quantumReadiness, 'getQuantumReadiness')
+    const response = await apiClient.get('/security/quantum-readiness')
+    return response.data
   },
 
-  // ==================== ADVANCED & CONFIG ====================
+  // Configuration & Advanced Features
   async getAdvancedFeatures() {
-    return safeCall(() => apiClient.get('/advanced/features'), FALLBACKS.advancedFeatures, 'getAdvancedFeatures')
+    const response = await apiClient.get('/advanced/features')
+    return response.data
   },
 
   async getConfigStatus() {
-    return safeCall(() => apiClient.get('/config/status'), FALLBACKS.configStatus, 'getConfigStatus')
+    const response = await apiClient.get('/config/status')
+    return response.data
   },
 
-  // ==================== MOBILE ====================
+  // Mobile API Endpoints
   async getMobileStatus() {
-    return safeCall(() => apiClient.get('/mobile/status'), FALLBACKS.mobileStatus, 'getMobileStatus')
+    const response = await apiClient.get('/mobile/status')
+    return response.data
   },
 
   async getMobileMetrics() {
-    return safeCall(() => apiClient.get('/mobile/metrics'), FALLBACKS.mobileMetrics, 'getMobileMetrics')
-  },
-
-  // ==================== FILE ATTACHMENTS ====================
-  async uploadAttachment(file: File, transactionId?: string, category?: string, description?: string) {
-    const formData = new FormData()
-    formData.append('file', file)
-    if (category) formData.append('category', category)
-    if (description) formData.append('description', description)
-
-    const url = transactionId ? `/attachments/${transactionId}` : '/attachments'
-    return safeCall(
-      () => apiClient.post(url, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 60000, // 60s timeout for uploads
-      }),
-      { success: false },
-      'uploadAttachment'
-    )
-  },
-
-  async getAttachmentsByTransaction(transactionId: string) {
-    return safeCall(
-      () => apiClient.get(`/attachments/transaction/${transactionId}`),
-      { transactionId, count: 0, attachments: [] },
-      'getAttachmentsByTransaction'
-    )
-  },
-
-  async getAttachment(fileId: string) {
-    return safeCall(
-      () => apiClient.get(`/attachments/${fileId}`),
-      { fileId, error: 'Not found' },
-      'getAttachment'
-    )
-  },
-
-  async verifyAttachmentHash(fileId: string) {
-    return safeCall(
-      () => apiClient.post(`/attachments/${fileId}/verify`),
-      { fileId, verified: false },
-      'verifyAttachmentHash'
-    )
-  },
-
-  async downloadAttachment(fileId: string) {
-    return safeCall(
-      () => apiClient.get(`/attachments/${fileId}/download`, { responseType: 'blob' }),
-      null,
-      'downloadAttachment'
-    )
-  },
-
-  async linkAttachmentToTransaction(fileId: string, transactionId: string) {
-    return safeCall(
-      () => apiClient.post(`/attachments/${fileId}/link/${transactionId}`),
-      { success: false },
-      'linkAttachmentToTransaction'
-    )
-  },
-
-  async deleteAttachment(fileId: string) {
-    return safeCall(
-      () => apiClient.delete(`/attachments/${fileId}`),
-      { success: false },
-      'deleteAttachment'
-    )
-  },
-
-  // ==================== QUANTCONNECT ====================
-  async getQuantConnectRegistryStats() {
-    return safeCall(() => apiClient.get('/quantconnect/registry/stats'), FALLBACKS.quantConnectStats, 'getQuantConnectRegistryStats')
-  },
-
-  async getQuantConnectNavigation() {
-    return safeCall(() => apiClient.get('/quantconnect/registry/navigation'), FALLBACKS.quantConnectNavigation, 'getQuantConnectNavigation')
-  },
-
-  async getQuantConnectEINodeStatus() {
-    return safeCall(() => apiClient.get('/quantconnect/slimnode/status'), FALLBACKS.quantConnectEINode, 'getQuantConnectEINodeStatus')
-  },
-
-  async getQuantConnectEquities() {
-    return safeCall(() => apiClient.get('/quantconnect/registry/equities'), FALLBACKS.quantConnectEquities, 'getQuantConnectEquities')
-  },
-
-  async getQuantConnectTransactions() {
-    return safeCall(() => apiClient.get('/quantconnect/registry/transactions'), FALLBACKS.quantConnectTransactions, 'getQuantConnectTransactions')
-  },
-
-  async getQuantConnectBySymbol(symbol: string) {
-    return safeCall(() => apiClient.get(`/quantconnect/registry/symbol/${symbol}`), { symbol, data: null }, 'getQuantConnectBySymbol')
-  },
-
-  async verifyQuantConnectToken(tokenId: string) {
-    return safeCall(() => apiClient.get(`/quantconnect/registry/verify/${tokenId}`), { valid: false }, 'verifyQuantConnectToken')
-  },
-
-  async getQuantConnectToken(tokenId: string) {
-    return safeCall(() => apiClient.get(`/quantconnect/registry/token/${tokenId}`), { tokenId, data: null }, 'getQuantConnectToken')
-  },
-
-  async startQuantConnectEINode() {
-    return safeCall(() => apiClient.post('/quantconnect/slimnode/start'), { success: false }, 'startQuantConnectEINode')
-  },
-
-  async stopQuantConnectEINode() {
-    return safeCall(() => apiClient.post('/quantconnect/slimnode/stop'), { success: false }, 'stopQuantConnectEINode')
-  },
-
-  async processQuantConnectEquities(symbols?: string[]) {
-    return safeCall(() => apiClient.post('/quantconnect/slimnode/process/equities', { symbols }), { success: false }, 'processQuantConnectEquities')
-  },
-
-  async processQuantConnectTransactions(symbol?: string, limit?: number) {
-    return safeCall(() => apiClient.post('/quantconnect/slimnode/process/transactions', { symbol, limit }), { success: false }, 'processQuantConnectTransactions')
-  },
-
-  async fetchQuantConnectEquities(symbols?: string[]) {
-    return safeCall(() => apiClient.post('/quantconnect/fetch', { symbols }), { equities: [] }, 'fetchQuantConnectEquities')
-  },
-
-  async tokenizeQuantConnectEquity(equity: any) {
-    return safeCall(() => apiClient.post('/quantconnect/tokenize', equity), { success: false }, 'tokenizeQuantConnectEquity')
-  },
-
-  async searchQuantConnectRegistry(query: string, type?: string) {
-    return safeCall(() => apiClient.get('/quantconnect/registry/search', { params: { query, type } }), { results: [] }, 'searchQuantConnectRegistry')
+    const response = await apiClient.get('/mobile/metrics')
+    return response.data
   },
 }
 
-// Export helpers and types
-export { safeCall, normalizeResponse, FALLBACKS }
+// ============================================================================
+// WEBSOCKET SUPPORT FOR REAL-TIME DATA
+// ============================================================================
+
+/**
+ * WebSocket connection manager for real-time data streaming
+ */
+export class WebSocketManager {
+  private ws: WebSocket | null = null
+  private url: string
+  private messageHandlers: Map<string, (data: any) => void> = new Map()
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 5
+  private reconnectDelay = 3000
+
+  constructor() {
+    const protocol = import.meta.env.PROD ? 'wss' : 'ws'
+    const host = import.meta.env.PROD ? 'dlt.aurigraph.io' : 'localhost:9003'
+    this.url = `${protocol}://${host}/api/v11/live/stream`
+  }
+
+  /**
+   * Connect to WebSocket server
+   */
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        this.ws = new WebSocket(this.url)
+
+        this.ws.onopen = () => {
+          console.log('WebSocket connected')
+          this.reconnectAttempts = 0
+          resolve()
+        }
+
+        this.ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            const { type, payload } = data
+
+            // Call registered handlers for this message type
+            const handler = this.messageHandlers.get(type)
+            if (handler) {
+              handler(payload)
+            }
+          } catch (error) {
+            console.error('Failed to parse WebSocket message:', error)
+          }
+        }
+
+        this.ws.onerror = (error) => {
+          console.error('WebSocket error:', error)
+          reject(error)
+        }
+
+        this.ws.onclose = () => {
+          console.log('WebSocket disconnected')
+          this.attemptReconnect()
+        }
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  /**
+   * Reconnect to WebSocket with exponential backoff
+   */
+  private attemptReconnect(): void {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++
+      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
+      console.log(`Attempting WebSocket reconnect in ${delay}ms...`)
+      setTimeout(() => this.connect(), delay)
+    }
+  }
+
+  /**
+   * Register a handler for a specific message type
+   */
+  onMessage(type: string, handler: (data: any) => void): void {
+    this.messageHandlers.set(type, handler)
+  }
+
+  /**
+   * Send a message through WebSocket
+   */
+  send(type: string, payload: any): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type, payload }))
+    } else {
+      console.warn('WebSocket is not connected')
+    }
+  }
+
+  /**
+   * Disconnect WebSocket
+   */
+  disconnect(): void {
+    if (this.ws) {
+      this.ws.close()
+      this.ws = null
+    }
+  }
+
+  /**
+   * Check if WebSocket is connected
+   */
+  isConnected(): boolean {
+    return this.ws !== null && this.ws.readyState === WebSocket.OPEN
+  }
+}
+
+// Export WebSocket manager singleton
+export const webSocketManager = new WebSocketManager()
+
+// Export helper functions for use in components
+export { retryWithBackoff, safeApiCall }
+export type { RetryOptions }
+
 export default apiService

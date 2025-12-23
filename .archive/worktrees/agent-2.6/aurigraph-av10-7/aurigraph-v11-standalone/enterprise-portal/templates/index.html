@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph V11 Enterprise Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .enterprise-header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-section h1 {
+            font-size: 1.8em;
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .enterprise-badge {
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 25px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        .main-container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .enterprise-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-title {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .feature-description {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .feature-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
+        .metrics-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .metrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .metric-label {
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+        }
+
+        .action-button {
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <header class="enterprise-header">
+        <div class="logo-section">
+            <h1><i class="fas fa-cube"></i> Aurigraph V11</h1>
+            <span class="enterprise-badge">Enterprise Portal</span>
+        </div>
+        <div class="connection-status">
+            <span class="status-indicator"></span>
+            <span>Connected to Platform</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="enterprise-features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <h3 class="feature-title">Governance</h3>
+                <p class="feature-description">
+                    Decentralized governance with on-chain voting, proposal management, and automated execution of community decisions.
+                </p>
+                <div class="feature-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ governance.active_proposals|default(0) }}</div>
+                        <div class="stat-label">Active Proposals</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ governance.total_votes|default(0) }}</div>
+                        <div class="stat-label">Total Votes</div>
+                    </div>
+                </div>
+                <button class="action-button">Access Governance</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <h3 class="feature-title">Staking & Rewards</h3>
+                <p class="feature-description">
+                    Advanced staking mechanisms with dynamic APY, liquid staking derivatives, and automated reward distribution.
+                </p>
+                <div class="feature-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ staking.total_staked|default(0) }}</div>
+                        <div class="stat-label">Total Staked</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ staking.current_apy|default("0") }}%</div>
+                        <div class="stat-label">Current APY</div>
+                    </div>
+                </div>
+                <button class="action-button">Manage Staking</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3 class="feature-title">Smart Contracts</h3>
+                <p class="feature-description">
+                    Deploy and manage Ricardian smart contracts with formal verification, AI optimization, and gas-free execution.
+                </p>
+                <div class="feature-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ smart_contracts.deployed|default(0) }}</div>
+                        <div class="stat-label">Deployed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ smart_contracts.executions|default(0) }}</div>
+                        <div class="stat-label">Executions</div>
+                    </div>
+                </div>
+                <button class="action-button">Contract Studio</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h3 class="feature-title">RWA Tokenization</h3>
+                <p class="feature-description">
+                    Tokenize real-world assets with regulatory compliance, fractional ownership, and automated settlement.
+                </p>
+                <div class="feature-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${{ rwa.total_value|default(0) }}</div>
+                        <div class="stat-label">Total Value</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ rwa.assets_count|default(0) }}</div>
+                        <div class="stat-label">Assets</div>
+                    </div>
+                </div>
+                <button class="action-button">Tokenize Assets</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="feature-title">DeFi Services</h3>
+                <p class="feature-description">
+                    Access lending, borrowing, yield farming, and liquidity pools with automated market making and risk management.
+                </p>
+                <div class="feature-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${{ defi.tvl|default(0) }}</div>
+                        <div class="stat-label">Total TVL</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ defi.pools|default(0) }}</div>
+                        <div class="stat-label">Active Pools</div>
+                    </div>
+                </div>
+                <button class="action-button">Enter DeFi</button>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-link"></i>
+                </div>
+                <h3 class="feature-title">Cross-Chain Bridge</h3>
+                <p class="feature-description">
+                    Seamless interoperability with major blockchains, atomic swaps, and multi-chain asset management.
+                </p>
+                <div class="feature-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ cross_chain.chains|default(0) }}</div>
+                        <div class="stat-label">Chains</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ cross_chain.transfers|default(0) }}</div>
+                        <div class="stat-label">Transfers</div>
+                    </div>
+                </div>
+                <button class="action-button">Bridge Assets</button>
+            </div>
+        </div>
+
+        <div class="metrics-section">
+            <div class="metrics-header">
+                <h2>Platform Metrics</h2>
+                <span>Live Data</span>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">{{ health.target_tps|default("2,000,000") }}</div>
+                    <div class="metric-label">Target TPS</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ health.uptime_seconds|default(0) }}s</div>
+                    <div class="metric-label">Uptime</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ health.requests_served|default(0) }}</div>
+                    <div class="metric-label">Requests Served</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ info.consensus_protocol|default("HyperRAFT++") }}</div>
+                    <div class="metric-label">Consensus</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ info.quantum_security|default("NIST-5") }}</div>
+                    <div class="metric-label">Security Level</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ performance.current_tps|default(0) }}</div>
+                    <div class="metric-label">Current TPS</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh metrics every 3 seconds
+        setInterval(() => {
+            fetch('/api/enterprise/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    // Update metrics dynamically
+                    console.log('Metrics updated:', data);
+                })
+                .catch(error => console.error('Error fetching metrics:', error));
+        }, 3000);
+
+        // Handle feature card clicks
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.feature-title').textContent;
+                console.log('Feature selected:', title);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+{{- if .Values.global.environment == "production" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aurigraph-v11.fullname" . }}-production
+  namespace: {{ .Values.app.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "aurigraph-v11.labels" . | nindent 4 }}
+    component: dlt-platform
+    deployment-type: production
+    version: {{ .Values.app.version }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  strategy:
+    type: {{ .Values.deployment.strategy.type }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.deployment.strategy.maxUnavailable }}
+      maxSurge: {{ .Values.deployment.strategy.maxSurge }}
+  selector:
+    matchLabels:
+      {{- include "aurigraph-v11.selectorLabels" . | nindent 6 }}
+      deployment-type: production
+  template:
+    metadata:
+      labels:
+        {{- include "aurigraph-v11.selectorLabels" . | nindent 8 }}
+        component: dlt-platform
+        deployment-type: production
+        version: {{ .Values.app.version }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9003"
+        prometheus.io/path: "/q/metrics"
+        sidecar.istio.io/inject: "{{ .Values.serviceMesh.istio.injection }}"
+        sidecar.istio.io/proxyCPU: "100m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+    spec:
+      serviceAccountName: {{ include "aurigraph-v11.serviceAccountName" . }}
+      
+      # Security Context
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      
+      # Node Selection for High Performance
+      nodeSelector:
+        {{- toYaml .Values.deployment.nodeSelector | nindent 8 }}
+      
+      # Tolerations for Dedicated Nodes
+      tolerations:
+        {{- toYaml .Values.deployment.tolerations | nindent 8 }}
+      
+      # Pod Anti-Affinity for High Availability
+      affinity:
+        {{- toYaml .Values.deployment.affinity | nindent 8 }}
+      
+      # Image Pull Secrets
+      imagePullSecrets:
+        {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end }}
+      
+      # Initialize containers for setup
+      initContainers:
+      - name: db-migration
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        command:
+          - "/bin/sh"
+          - "-c"
+          - |
+            echo "Running database migration..."
+            # Add database migration logic here
+            echo "Migration completed"
+        env:
+          {{- include "aurigraph-v11.env" . | nindent 10 }}
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      
+      containers:
+      - name: aurigraph-v11
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        
+        # Optimized resource allocation for 2M+ TPS
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        
+        # Health checks optimized for native binary
+        livenessProbe:
+          {{- toYaml .Values.healthChecks.livenessProbe | nindent 10 }}
+        
+        readinessProbe:
+          {{- toYaml .Values.healthChecks.readinessProbe | nindent 10 }}
+        
+        startupProbe:
+          {{- toYaml .Values.healthChecks.startupProbe | nindent 10 }}
+        
+        # Ports
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.ports.http.targetPort }}
+          protocol: TCP
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc.targetPort }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.service.ports.metrics.targetPort }}
+          protocol: TCP
+        - name: p2p
+          containerPort: 9005
+          protocol: TCP
+        
+        # Environment variables
+        env:
+          {{- include "aurigraph-v11.env" . | nindent 10 }}
+        
+        # Configuration from ConfigMap and Secrets
+        envFrom:
+        - configMapRef:
+            name: {{ include "aurigraph-v11.fullname" . }}-config
+        - secretRef:
+            name: {{ include "aurigraph-v11.fullname" . }}-secrets
+            optional: false
+        
+        # Volume mounts
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: logs-volume
+          mountPath: /app/logs
+        
+        # Security context for container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+              - ALL
+      
+      # Sidecar for log shipping (optional)
+      {{- if .Values.logging.enabled }}
+      - name: log-shipper
+        image: fluent/fluentd:v1.16-1
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+        volumeMounts:
+        - name: logs-volume
+          mountPath: /var/log/aurigraph
+          readOnly: true
+        - name: fluentd-config
+          mountPath: /fluentd/etc
+      {{- end }}
+      
+      # Volumes
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: {{ include "aurigraph-v11.fullname" . }}-data
+      - name: config-volume
+        configMap:
+          name: {{ include "aurigraph-v11.fullname" . }}-config
+          defaultMode: 0644
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: logs-volume
+        emptyDir:
+          sizeLimit: 10Gi
+      {{- if .Values.logging.enabled }}
+      - name: fluentd-config
+        configMap:
+          name: {{ include "aurigraph-v11.fullname" . }}-fluentd
+      {{- end }}
+      
+      # DNS Configuration for performance
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+        - name: ndots
+          value: "2"
+        - name: edns0
+        - name: timeout
+          value: "3"
+        - name: attempts
+          value: "2"
+      
+      # Termination settings
+      terminationGracePeriodSeconds: 60
+      
+      # Priority class for critical workloads
+      priorityClassName: high-priority
+---
+# StatefulSet for consensus nodes (require stable network identities)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "aurigraph-v11.fullname" . }}-consensus
+  namespace: {{ .Values.app.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "aurigraph-v11.labels" . | nindent 4 }}
+    component: consensus
+spec:
+  serviceName: {{ include "aurigraph-v11.fullname" . }}-consensus-headless
+  replicas: {{ .Values.config.aurigraph.consensus.clusterSize }}
+  selector:
+    matchLabels:
+      {{- include "aurigraph-v11.selectorLabels" . | nindent 6 }}
+      component: consensus
+  template:
+    metadata:
+      labels:
+        {{- include "aurigraph-v11.selectorLabels" . | nindent 8 }}
+        component: consensus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9003"
+    spec:
+      serviceAccountName: {{ include "aurigraph-v11.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      
+      containers:
+      - name: consensus
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        
+        env:
+        - name: CONSENSUS_NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: CONSENSUS_CLUSTER_SIZE
+          value: {{ .Values.config.aurigraph.consensus.clusterSize | quote }}
+        {{- include "aurigraph-v11.env" . | nindent 8 }}
+        
+        ports:
+        - name: consensus
+          containerPort: 7000
+        - name: metrics
+          containerPort: 9003
+        
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        
+        volumeMounts:
+        - name: consensus-data
+          mountPath: /app/consensus
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+  
+  volumeClaimTemplates:
+  - metadata:
+      name: consensus-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: {{ .Values.persistence.storageClass }}
+      resources:
+        requests:
+          storage: 50Gi
+      
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ include "aurigraph-v11.fullname" . }}-config
+{{- end }}

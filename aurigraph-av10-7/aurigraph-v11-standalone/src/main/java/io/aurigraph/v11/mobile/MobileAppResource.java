@@ -19,7 +19,7 @@ import java.util.Map;
  * @version 11.4.0
  * @since 2025-10-13
  */
-@Path("/api/v12/mobile")
+@Path("/api/v11/mobile")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class MobileAppResource {
@@ -32,7 +32,7 @@ public class MobileAppResource {
     /**
      * Register new mobile app user
      *
-     * POST /api/v12/mobile/register
+     * POST /api/v11/mobile/register
      */
     @POST
     @Path("/register")
@@ -52,7 +52,7 @@ public class MobileAppResource {
     /**
      * Get user by ID
      *
-     * GET /api/v12/mobile/users/{userId}
+     * GET /api/v11/mobile/users/{userId}
      */
     @GET
     @Path("/users/{userId}")
@@ -71,7 +71,7 @@ public class MobileAppResource {
     /**
      * List all users
      *
-     * GET /api/v12/mobile/users
+     * GET /api/v11/mobile/users
      */
     @GET
     @Path("/users")
@@ -99,7 +99,7 @@ public class MobileAppResource {
     /**
      * Update user status
      *
-     * PUT /api/v12/mobile/users/{userId}/status
+     * PUT /api/v11/mobile/users/{userId}/status
      */
     @PUT
     @Path("/users/{userId}/status")
@@ -123,7 +123,7 @@ public class MobileAppResource {
     /**
      * Update user KYC status
      *
-     * PUT /api/v12/mobile/users/{userId}/kyc
+     * PUT /api/v11/mobile/users/{userId}/kyc
      */
     @PUT
     @Path("/users/{userId}/kyc")
@@ -152,7 +152,7 @@ public class MobileAppResource {
     /**
      * Get mobile app statistics
      *
-     * GET /api/v12/mobile/stats
+     * GET /api/v11/mobile/stats
      */
     @GET
     @Path("/stats")
@@ -166,7 +166,7 @@ public class MobileAppResource {
     /**
      * Delete user (GDPR)
      *
-     * DELETE /api/v12/mobile/users/{userId}
+     * DELETE /api/v11/mobile/users/{userId}
      */
     @DELETE
     @Path("/users/{userId}")
@@ -185,7 +185,7 @@ public class MobileAppResource {
     /**
      * Record user login
      *
-     * POST /api/v12/mobile/users/{userId}/login
+     * POST /api/v11/mobile/users/{userId}/login
      */
     @POST
     @Path("/users/{userId}/login")

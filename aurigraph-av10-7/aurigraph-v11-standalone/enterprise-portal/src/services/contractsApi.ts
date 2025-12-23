@@ -3,16 +3,9 @@
  * Handles all Smart Contracts Registry API interactions
  */
 
-// Use environment variable for API URL - ensures HTTPS in production
-const getApiBaseUrl = (): string => {
-  const env = (import.meta as any).env || {};
-  if (env.VITE_API_URL) return env.VITE_API_URL;
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return window.location.origin;
-  }
-  return 'http://localhost:9003';
-};
-const API_BASE_URL = getApiBaseUrl()
+const API_BASE_URL = (import.meta as any).env?.PROD
+  ? 'https://dlt.aurigraph.io'
+  : 'http://localhost:9003'
 const API_TIMEOUT = Number((import.meta as any).env?.VITE_API_TIMEOUT) || 30000
 
 // ============================================================================
@@ -160,7 +153,7 @@ class ContractsApiClient {
 
     const query = params.toString() ? `?${params.toString()}` : ''
     return this.fetch<ContractsListResponse>(
-      `/api/v12/contracts${query}`,
+      `/api/v11/contracts${query}`,
       {},
       'getContracts'
     )
@@ -170,7 +163,7 @@ class ContractsApiClient {
    * Get single contract by ID
    */
   async getContract(contractId: string): Promise<Contract> {
-    return this.fetch<Contract>(`/api/v12/contracts/${contractId}`)
+    return this.fetch<Contract>(`/api/v11/contracts/${contractId}`)
   }
 
   /**
@@ -178,7 +171,7 @@ class ContractsApiClient {
    */
   async getStatistics(): Promise<ContractStatistics> {
     return this.fetch<ContractStatistics>(
-      '/api/v12/contracts/statistics',
+      '/api/v11/contracts/statistics',
       {},
       'getStatistics'
     )
@@ -188,21 +181,21 @@ class ContractsApiClient {
    * Get all contract templates
    */
   async getTemplates(): Promise<{ templates: ContractTemplate[]; count: number }> {
-    return this.fetch('/api/v12/contracts/templates')
+    return this.fetch('/api/v11/contracts/templates')
   }
 
   /**
    * Get single template by ID
    */
   async getTemplate(templateId: string): Promise<ContractTemplate> {
-    return this.fetch<ContractTemplate>(`/api/v12/contracts/templates/${templateId}`)
+    return this.fetch<ContractTemplate>(`/api/v11/contracts/templates/${templateId}`)
   }
 
   /**
    * Deploy new contract
    */
   async deployContract(request: DeployContractRequest): Promise<DeployContractResponse> {
-    return this.fetch<DeployContractResponse>('/api/v12/contracts/deploy', {
+    return this.fetch<DeployContractResponse>('/api/v11/contracts/deploy', {
       method: 'POST',
       body: JSON.stringify(request),
     })
@@ -212,7 +205,7 @@ class ContractsApiClient {
    * Verify contract
    */
   async verifyContract(contractId: string): Promise<{ success: boolean }> {
-    return this.fetch(`/api/v12/contracts/${contractId}/verify`, {
+    return this.fetch(`/api/v11/contracts/${contractId}/verify`, {
       method: 'POST',
     })
   }
@@ -224,7 +217,7 @@ class ContractsApiClient {
     contractId: string,
     auditData: Record<string, any>
   ): Promise<{ success: boolean }> {
-    return this.fetch(`/api/v12/contracts/${contractId}/audit`, {
+    return this.fetch(`/api/v11/contracts/${contractId}/audit`, {
       method: 'POST',
       body: JSON.stringify(auditData),
     })
@@ -237,7 +230,7 @@ class ContractsApiClient {
     contractId: string,
     executionData: Record<string, any>
   ): Promise<{ success: boolean; transactionHash: string }> {
-    return this.fetch(`/api/v12/contracts/${contractId}/execute`, {
+    return this.fetch(`/api/v11/contracts/${contractId}/execute`, {
       method: 'POST',
       body: JSON.stringify(executionData),
     })

@@ -1,0 +1,267 @@
+name: Aurigraph AV10-7 Test Automation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run nightly performance tests at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '20'
+  PERFORMANCE_TIMEOUT: '30m'
+
+jobs:
+  # Fast feedback - Unit and Smoke Tests
+  quick-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm run ui:install
+        
+    - name: TypeScript compilation check
+      run: npm run typecheck
+      
+    - name: Code linting
+      run: npm run lint
+      
+    - name: Unit tests
+      run: npm test -- --testPathPattern="unit" --coverage
+      
+    - name: Smoke tests
+      run: npm test -- --testPathPattern="smoke"
+      
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unit-tests
+        
+  # Security and Quality Gates
+  security-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Security audit
+      run: npm audit --audit-level=moderate
+      
+    - name: Snyk security scan
+      run: npm run test:security
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        
+    - name: Build verification
+      run: npm run build
+      
+  # Integration Tests
+  integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [quick-validation]
+    
+    services:
+      # Future: Add Redis, PostgreSQL, etc. if needed
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build platform
+      run: npm run build
+      
+    - name: Start platform for testing
+      run: |
+        npm start &
+        sleep 10 # Wait for platform startup
+        
+    - name: Integration tests
+      run: npm test -- --testPathPattern="integration"
+      
+    - name: Regression tests
+      run: npm test -- --testPathPattern="regression"
+      
+  # Performance Tests (Nightly or on demand)
+  performance-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[perf-test]')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build platform
+      run: npm run build
+      
+    - name: Start platform for performance testing
+      run: |
+        npm start &
+        sleep 15 # Allow full startup
+        
+    - name: Performance benchmarks
+      run: npm test -- --testPathPattern="performance" --testTimeout=180000
+      
+    - name: Generate performance report
+      run: |
+        node scripts/testing/generate-performance-report.js
+        
+    - name: Upload performance artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-report
+        path: reports/performance/
+        
+  # UI Tests (when UI changes detected)
+  ui-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: contains(github.event.head_commit.message, 'ui/') || github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm run ui:install
+        
+    - name: Build UI
+      run: npm run ui:build
+      
+    - name: UI type checking
+      run: cd ui && npm run type-check
+      
+  # Nightly comprehensive testing
+  nightly-comprehensive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: github.event_name == 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Full test suite
+      run: |
+        npm run build
+        npm start &
+        sleep 20
+        npm test -- --coverage --testTimeout=300000
+        
+    - name: Generate comprehensive test report
+      run: node scripts/testing/generate-comprehensive-report.js
+      
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: nightly-test-report
+        path: reports/
+        
+    - name: Notify on failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Nightly Test Suite Failed',
+            body: `The nightly comprehensive test suite failed on ${new Date().toISOString()}.\n\nPlease review the test results and fix any issues.`,
+            labels: ['bug', 'testing', 'priority-high']
+          });
+
+  # Security-focused testing
+  security-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: contains(github.event.head_commit.message, 'security') || github.event_name == 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Security tests
+      run: npm test -- --testPathPattern="security"
+      
+    - name: Dependency vulnerability scan
+      run: npm audit --audit-level=high
+      
+    - name: Generate security report
+      run: node scripts/testing/generate-security-report.js
+      
+    - name: Upload security artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-report
+        path: reports/security/

@@ -6,7 +6,6 @@ import io.aurigraph.v11.proto.*;
 import io.aurigraph.v11.service.TransactionService;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,7 +38,6 @@ import java.util.logging.Logger;
  * - Expected performance: +250-300K TPS over REST baseline
  */
 @GrpcService
-@Singleton
 public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.TransactionServiceImplBase {
 
     private static final Logger LOG = Logger.getLogger(TransactionServiceGrpcImpl.class.getName());
@@ -58,7 +56,7 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void submitTransaction(SubmitTransactionRequest request,
-            StreamObserver<TransactionSubmissionResponse> responseObserver) {
+                                 StreamObserver<TransactionSubmissionResponse> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
@@ -67,16 +65,17 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
             // PHASE 4C-1: Fast path for gRPC
             // Submit with priority based on flag
             String txnHash = transactionService.submitTransaction(
-                    transaction,
-                    request.getPrioritize());
+                transaction,
+                request.getPrioritize()
+            );
 
             // Record metrics (placeholder - metrics service integration pending)
 
             // Build response
             TransactionSubmissionResponse response = TransactionSubmissionResponse.newBuilder()
-                    .setTransactionHash(txnHash)
-                    .setMessage("Transaction submitted successfully")
-                    .build();
+                .setTransactionHash(txnHash)
+                .setMessage("Transaction submitted successfully")
+                .build();
 
             LOG.fine("Transaction submitted: " + txnHash);
             responseObserver.onNext(response);
@@ -95,7 +94,7 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void batchSubmitTransactions(BatchTransactionSubmissionRequest request,
-            StreamObserver<BatchTransactionSubmissionResponse> responseObserver) {
+                                       StreamObserver<BatchTransactionSubmissionResponse> responseObserver) {
         totalBatchesProcessed.incrementAndGet();
         totalRpcCalls.addAndGet(request.getTransactionsList().size());
 
@@ -113,27 +112,27 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
                     // Metrics tracking pending
 
                     responses.add(TransactionSubmissionResponse.newBuilder()
-                            .setTransactionHash(txnHash)
-                            .setMessage("OK")
-                            .build());
+                        .setTransactionHash(txnHash)
+                        .setMessage("OK")
+                        .build());
                     acceptedCount++;
                 } catch (Exception e) {
                     // Metrics tracking pending
                     rejectedCount++;
 
                     responses.add(TransactionSubmissionResponse.newBuilder()
-                            .setTransactionHash("")
-                            .setMessage(e.getMessage())
-                            .build());
+                        .setTransactionHash("")
+                        .setMessage(e.getMessage())
+                        .build());
                 }
             }
 
             BatchTransactionSubmissionResponse response = BatchTransactionSubmissionResponse.newBuilder()
-                    .addAllResponses(responses)
-                    .setAcceptedCount(acceptedCount)
-                    .setRejectedCount(rejectedCount)
-                    .setBatchId(request.getBatchId())
-                    .build();
+                .addAllResponses(responses)
+                .setAcceptedCount(acceptedCount)
+                .setRejectedCount(rejectedCount)
+                .setBatchId(request.getBatchId())
+                .build();
 
             LOG.info("Batch submitted: " + acceptedCount + "/" + transactions.size() + " accepted");
             responseObserver.onNext(response);
@@ -151,7 +150,7 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void getTransactionStatus(GetTransactionStatusRequest request,
-            StreamObserver<TransactionStatusResponse> responseObserver) {
+                                    StreamObserver<TransactionStatusResponse> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
@@ -168,8 +167,8 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
             Transaction transaction = transactionService.getTransaction(txnHash);
 
             TransactionStatusResponse response = TransactionStatusResponse.newBuilder()
-                    .setTransaction(transaction)
-                    .build();
+                .setTransaction(transaction)
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -185,7 +184,7 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void getTransactionReceipt(GetTransactionStatusRequest request,
-            StreamObserver<TransactionReceipt> responseObserver) {
+                                     StreamObserver<TransactionReceipt> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
@@ -213,17 +212,17 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void cancelTransaction(CancelTransactionRequest request,
-            StreamObserver<CancelTransactionResponse> responseObserver) {
+                                 StreamObserver<CancelTransactionResponse> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
             boolean success = transactionService.cancelTransaction(request.getTransactionHash());
 
             CancelTransactionResponse response = CancelTransactionResponse.newBuilder()
-                    .setTransactionHash(request.getTransactionHash())
-                    .setCancellationSuccessful(success)
-                    .setReason(request.getCancellationReason())
-                    .build();
+                .setTransactionHash(request.getTransactionHash())
+                .setCancellationSuccessful(success)
+                .setReason(request.getCancellationReason())
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -239,19 +238,20 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void resendTransaction(ResendTransactionRequest request,
-            StreamObserver<ResendTransactionResponse> responseObserver) {
+                                 StreamObserver<ResendTransactionResponse> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
             String newTxnHash = transactionService.resendTransaction(
-                    request.getOriginalTransactionHash(),
-                    request.getNewGasPrice());
+                request.getOriginalTransactionHash(),
+                request.getNewGasPrice()
+            );
 
             ResendTransactionResponse response = ResendTransactionResponse.newBuilder()
-                    .setOriginalTransactionHash(request.getOriginalTransactionHash())
-                    .setNewTransactionHash(newTxnHash)
-                    .setNewGasPrice(request.getNewGasPrice())
-                    .build();
+                .setOriginalTransactionHash(request.getOriginalTransactionHash())
+                .setNewTransactionHash(newTxnHash)
+                .setNewGasPrice(request.getNewGasPrice())
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -267,20 +267,21 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void estimateGasCost(EstimateGasCostRequest request,
-            StreamObserver<GasEstimate> responseObserver) {
+                               StreamObserver<GasEstimate> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
             double estimatedGas = transactionService.estimateGas(
-                    request.getFromAddress(),
-                    request.getToAddress(),
-                    request.getData());
+                request.getFromAddress(),
+                request.getToAddress(),
+                request.getData()
+            );
 
             GasEstimate response = GasEstimate.newBuilder()
-                    .setEstimatedGas(estimatedGas)
-                    .setGasPriceWei(50.0) // Current gas price
-                    .setTotalCost(String.valueOf(estimatedGas * 50.0))
-                    .build();
+                .setEstimatedGas(estimatedGas)
+                .setGasPriceWei(50.0) // Current gas price
+                .setTotalCost(String.valueOf(estimatedGas * 50.0))
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -296,19 +297,20 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void validateTransactionSignature(ValidateTransactionSignatureRequest request,
-            StreamObserver<TransactionSignatureValidationResult> responseObserver) {
+                                            StreamObserver<TransactionSignatureValidationResult> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
             boolean signatureValid = transactionService.validateSignature(
-                    request.getTransaction().getSignature(),
-                    request.getTransaction().getSignature().getBytes());
+                request.getTransaction().getSignature(),
+                request.getTransaction().getSignature().getBytes()
+            );
 
             TransactionSignatureValidationResult response = TransactionSignatureValidationResult.newBuilder()
-                    .setSignatureValid(signatureValid)
-                    .setSenderValid(true)
-                    .setNonceValid(true)
-                    .build();
+                .setSignatureValid(signatureValid)
+                .setSenderValid(true)
+                .setNonceValid(true)
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -324,19 +326,20 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void getPendingTransactions(GetPendingTransactionsRequest request,
-            StreamObserver<PendingTransactionsResponse> responseObserver) {
+                                      StreamObserver<PendingTransactionsResponse> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
             List<Transaction> pending = transactionService.getPendingTransactions(
-                    request.getLimit(),
-                    request.getSortByFee());
+                request.getLimit(),
+                request.getSortByFee()
+            );
 
             PendingTransactionsResponse response = PendingTransactionsResponse.newBuilder()
-                    .addAllTransactions(pending)
-                    .setTotalPending(pending.size())
-                    .setAverageGasPrice(50.0)
-                    .build();
+                .addAllTransactions(pending)
+                .setTotalPending(pending.size())
+                .setAverageGasPrice(50.0)
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -352,21 +355,22 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void getTransactionHistory(GetTransactionHistoryRequest request,
-            StreamObserver<TransactionHistoryResponse> responseObserver) {
+                                     StreamObserver<TransactionHistoryResponse> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
             List<Transaction> history = transactionService.getTransactionHistory(
-                    request.getAddress(),
-                    request.getLimit(),
-                    request.getOffset());
+                request.getAddress(),
+                request.getLimit(),
+                request.getOffset()
+            );
 
             TransactionHistoryResponse response = TransactionHistoryResponse.newBuilder()
-                    .addAllTransactions(history)
-                    .setTotalCount(history.size())
-                    .setReturnedCount(history.size())
-                    .setOffset(request.getOffset())
-                    .build();
+                .addAllTransactions(history)
+                .setTotalCount(history.size())
+                .setReturnedCount(history.size())
+                .setOffset(request.getOffset())
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -382,7 +386,7 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void getTxPoolSize(GetTxPoolSizeRequest request,
-            StreamObserver<TxPoolStatistics> responseObserver) {
+                             StreamObserver<TxPoolStatistics> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
@@ -390,14 +394,14 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
             double avgGasPrice = transactionService.getAverageGasPrice();
 
             TxPoolStatistics response = TxPoolStatistics.newBuilder()
-                    .setTotalPending(totalPending)
-                    .setTotalQueued(0)
-                    .setAverageGasPrice(avgGasPrice)
-                    .setMinGasPrice(25.0)
-                    .setMaxGasPrice(100.0)
-                    .setTotalPoolSizeBytes(totalPending * 256) // Estimate
-                    .setPoolUtilizationPercent((totalPending * 100.0) / 10000.0)
-                    .build();
+                .setTotalPending(totalPending)
+                .setTotalQueued(0)
+                .setAverageGasPrice(avgGasPrice)
+                .setMinGasPrice(25.0)
+                .setMaxGasPrice(100.0)
+                .setTotalPoolSizeBytes(totalPending * 256) // Estimate
+                .setPoolUtilizationPercent((totalPending * 100.0) / 10000.0)
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -414,7 +418,7 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
      */
     @Override
     public void streamTransactionEvents(StreamTransactionEventsRequest request,
-            StreamObserver<TransactionEvent> responseObserver) {
+                                       StreamObserver<TransactionEvent> responseObserver) {
         totalRpcCalls.incrementAndGet();
 
         try {
@@ -427,10 +431,10 @@ public class TransactionServiceGrpcImpl extends TransactionServiceGrpc.Transacti
             // For now, send some sample events
             for (int i = 0; i < 5; i++) {
                 TransactionEvent event = TransactionEvent.newBuilder()
-                        .setStreamId(streamId)
-                        .setEventSequence(i)
-                        .setEventType("PENDING")
-                        .build();
+                    .setStreamId(streamId)
+                    .setEventSequence(i)
+                    .setEventType("PENDING")
+                    .build();
 
                 responseObserver.onNext(event);
             }

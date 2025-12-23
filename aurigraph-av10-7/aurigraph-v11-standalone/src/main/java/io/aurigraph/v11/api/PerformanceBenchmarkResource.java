@@ -12,13 +12,13 @@ import java.util.List;
  * Simple Performance Benchmark API endpoint
  * No CDI dependencies for maximum reliability
  *
- * GET /api/v12/performance/benchmark
+ * GET /api/v11/performance/benchmark
  * Returns V12 performance configuration and metrics
  *
  * @author Backend Development Agent (BDA)
  * @version 12.0.0
  */
-@Path("/api/v12")
+@Path("/api/v11")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PerformanceBenchmarkResource {
@@ -26,7 +26,7 @@ public class PerformanceBenchmarkResource {
     private static final Logger LOG = Logger.getLogger(PerformanceBenchmarkResource.class);
 
     /**
-     * GET /api/v12/performance/benchmark
+     * GET /api/v11/performance/benchmark
      * Returns current performance configuration and metrics
      * V12 Priority 5: Performance Optimization - Target 2M+ TPS
      */

@@ -2,10 +2,6 @@
  * useValidatorStream.ts
  * Custom hook for real-time validator status streaming via WebSocket
  *
- * @deprecated This hook is deprecated. Use useValidatorGrpc from '../grpc' instead.
- * Migration: import { useValidatorGrpc } from '../grpc'
- * Sunset date: 2025-03-01
- *
  * Endpoint: ws://localhost:9003/ws/validators
  * Trigger: On validator status change
  * Features: Real-time validator updates, uptime tracking, voting power changes

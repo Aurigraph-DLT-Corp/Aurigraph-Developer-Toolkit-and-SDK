@@ -3,7 +3,6 @@ syntax = "proto3";
 package io.aurigraph.v11.proto;
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 import "common.proto";
 import "core_types.proto";
 
@@ -201,17 +200,16 @@ message TransactionExecutionResponse {
   Transaction transaction = 1;         // Executed transaction
   bool success = 2;                    // Execution success
   string result_data = 3;              // Execution result
-  repeated BlockchainStateChange state_changes = 4;  // State modifications
+  repeated StateChange state_changes = 4;  // State modifications
   string error_message = 5;            // Error if failed
   google.protobuf.Timestamp timestamp = 6;
 }
 
 /**
- * BlockchainStateChange represents a single state modification
+ * StateChange represents a single state modification
  * Used to track transaction effects on blockchain state
- * (Renamed from StateChange to avoid collision with contract.proto)
  */
-message BlockchainStateChange {
+message StateChange {
   string key = 1;                      // State key modified
   string old_value = 2;                // Previous value
   string new_value = 3;                // New value
@@ -351,34 +349,9 @@ message BlockchainHealthStatus {
   repeated string issues = 6;
 }
 
-// ============================================================================
-// New RPC Methods - GetBlockByNumber, GetBlockByHash, GetLatestBlock
-// ============================================================================
-
-/**
- * BlockNumberRequest for retrieving block by number
- */
-message BlockNumberRequest {
-  int64 block_number = 1;              // Block number/height to retrieve
-}
-
-/**
- * BlockHashRequest for retrieving block by hash
- */
-message BlockHashRequest {
-  string hash = 1;                     // Block hash to retrieve
-}
-
-/**
- * StreamBlocksRequest for streaming blocks
- */
-message StreamBlocksRequest {
-  int64 start_block = 1;               // Starting block number (0 for genesis)
-}
-
 /**
  * Service gRPC definition for BlockchainService
- * Defines 11 RPC methods for blockchain operations (7 original + 4 new)
+ * Defines 7 RPC methods for blockchain operations
  */
 service BlockchainService {
   /**
@@ -450,46 +423,4 @@ service BlockchainService {
    * Purpose: Real-time block stream subscription
    */
   rpc streamBlocks(BlockStreamRequest) returns (stream BlockStreamEvent);
-
-  // ========== NEW METHODS (J4C gRPC Agent) ==========
-
-  /**
-   * GetBlockByNumber retrieves block by block number/height
-   * RPC: Unary (Uni<Block>)
-   * Input: BlockNumberRequest { block_number }
-   * Output: Block
-   * Timeout: 5 seconds
-   * Purpose: Simple, efficient block lookup by number
-   */
-  rpc GetBlockByNumber(BlockNumberRequest) returns (Block);
-
-  /**
-   * GetBlockByHash retrieves block by block hash
-   * RPC: Unary (Uni<Block>)
-   * Input: BlockHashRequest { hash }
-   * Output: Block
-   * Timeout: 5 seconds
-   * Purpose: Simple, efficient block lookup by hash
-   */
-  rpc GetBlockByHash(BlockHashRequest) returns (Block);
-
-  /**
-   * GetLatestBlock retrieves the latest/most recent block
-   * RPC: Unary (Uni<Block>)
-   * Input: google.protobuf.Empty
-   * Output: Block
-   * Timeout: 5 seconds
-   * Purpose: Quick access to chain tip
-   */
-  rpc GetLatestBlock(google.protobuf.Empty) returns (Block);
-
-  /**
-   * StreamBlocks streams blocks as they are produced (enhanced)
-   * RPC: Server-side Streaming (Multi<Block>)
-   * Input: StreamBlocksRequest { start_block }
-   * Output: stream Block
-   * Timeout: Infinite (with keepalive)
-   * Purpose: Real-time block stream with backpressure support
-   */
-  rpc StreamBlocksEnhanced(StreamBlocksRequest) returns (stream Block);
 }

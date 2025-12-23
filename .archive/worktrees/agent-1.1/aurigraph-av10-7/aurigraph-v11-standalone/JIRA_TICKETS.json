@@ -1,0 +1,192 @@
+{
+  "project": "AV11",
+  "epic": {
+    "key": "AV11-PORTAL",
+    "summary": "Enterprise Portal API Integration & Dashboard Development",
+    "description": "Complete integration of Aurigraph V11 Enterprise Portal with production API endpoints deployed at dlt.aurigraph.io:9003. This epic covers infrastructure setup, authentication, dashboard integration, and missing UI development.",
+    "labels": ["enterprise-portal", "ui", "api-integration", "v11"],
+    "priority": "Highest"
+  },
+  "tickets": [
+    {
+      "summary": "Build API Client Service Layer for V11 Integration",
+      "description": "## Overview\nCreate a centralized API client service layer to handle all HTTP communications with the V11 backend API at dlt.aurigraph.io:9003.\n\n## Business Value\nBlocks all production functionality. Without this foundational service, no UI component can communicate with the backend.\n\n## Technical Requirements\n1. Setup HTTP client using axios with TypeScript\n2. Configure base URL from environment variables\n3. Implement request/response interceptors\n4. Add global error handling middleware\n5. Implement retry logic with exponential backoff\n6. Configure request timeout (30s default)\n7. Add request/response logging for debugging\n8. Create TypeScript interfaces for all API responses\n\n## API Endpoints to Support\n- Base URL: http://dlt.aurigraph.io:9003/api/v11\n- All 17 V11 endpoints\n\n## Acceptance Criteria\n- [ ] Axios client configured with interceptors\n- [ ] Environment-based URL configuration (.env files)\n- [ ] Global error handling catches all API errors\n- [ ] Request retry on network failures (3 retries max)\n- [ ] TypeScript types for all API responses\n- [ ] Request/response logging in development mode\n- [ ] Unit tests for client service (>80% coverage)\n- [ ] Documentation with usage examples\n\n## Technical Details\n```typescript\n// Example structure\nclass ApiClient {\n  constructor(baseURL: string)\n  get<T>(endpoint: string, config?: AxiosConfig): Promise<T>\n  post<T>(endpoint: string, data: any, config?: AxiosConfig): Promise<T>\n  // Error handling, retry logic, etc.\n}\n```\n\n## Dependencies\nNone - foundational work\n\n## Files to Create/Modify\n- `/ui/services/ApiClient.ts` (new)\n- `/ui/services/endpoints.ts` (new)\n- `/ui/types/api.ts` (new)\n- `/ui/.env.example` (update)\n\n## Definition of Done\n- Code reviewed and approved\n- Unit tests passing\n- Integration tested with production API\n- Documentation complete",
+      "type": "Story",
+      "priority": "Highest",
+      "labels": ["infrastructure", "api-client", "critical-path"],
+      "components": ["Frontend", "Infrastructure"],
+      "storyPoints": 5,
+      "assignee": null,
+      "sprint": "Sprint 1"
+    },
+    {
+      "summary": "Implement JWT Authentication System for Enterprise Portal",
+      "description": "## Overview\nImplement complete authentication and authorization system for the enterprise portal with JWT tokens, role-based access control, and secure session management.\n\n## Business Value\nCritical security requirement. Cannot deploy to production without proper authentication. Enables user management and role-based feature access.\n\n## Technical Requirements\n1. JWT token authentication flow\n2. Login/logout UI components\n3. Session management (token storage, refresh)\n4. Protected route wrapper component\n5. Role-based access control (RBAC)\n6. API key management interface\n7. User profile management\n8. Password reset functionality\n9. Remember me functionality\n10. Multi-factor authentication (MFA) support\n\n## User Roles\n- **Admin**: Full system access\n- **Validator**: Node management, consensus participation\n- **Observer**: Read-only access\n- **Developer**: API testing, performance tools\n\n## Acceptance Criteria\n- [ ] Login page with email/password\n- [ ] JWT token stored securely (httpOnly cookies preferred)\n- [ ] Automatic token refresh before expiry\n- [ ] Logout functionality clears session\n- [ ] Protected routes redirect to login if unauthenticated\n- [ ] RBAC restricts features by role\n- [ ] Session timeout after 30 minutes inactivity\n- [ ] Remember me extends session to 30 days\n- [ ] Password reset via email\n- [ ] MFA setup and verification (TOTP)\n- [ ] User profile view and edit\n- [ ] API key generation and management\n\n## UI Components\n- LoginPage\n- LogoutButton\n- ProtectedRoute wrapper\n- UserProfile page\n- PasswordReset flow\n- MFASetup component\n- APIKeyManagement dashboard\n\n## API Integration\nAssuming backend provides:\n- POST /api/v11/auth/login\n- POST /api/v11/auth/logout\n- POST /api/v11/auth/refresh\n- POST /api/v11/auth/reset-password\n- GET/PUT /api/v11/auth/profile\n- POST /api/v11/auth/mfa/setup\n- POST /api/v11/auth/mfa/verify\n\n## Security Requirements\n- Passwords never logged or stored in localStorage\n- JWT tokens in httpOnly cookies (not localStorage)\n- CSRF protection\n- Rate limiting on login attempts\n- Password strength requirements\n- Secure password reset tokens\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n\n## Files to Create/Modify\n- `/ui/pages/auth/login.tsx` (new)\n- `/ui/pages/auth/reset-password.tsx` (new)\n- `/ui/pages/auth/profile.tsx` (new)\n- `/ui/components/auth/ProtectedRoute.tsx` (new)\n- `/ui/contexts/AuthContext.tsx` (new)\n- `/ui/hooks/useAuth.ts` (new)\n- `/ui/services/authService.ts` (new)\n\n## Definition of Done\n- Code reviewed and approved\n- Security audit passed\n- Unit and integration tests passing\n- Documentation complete\n- User acceptance testing passed",
+      "type": "Story",
+      "priority": "Highest",
+      "labels": ["authentication", "security", "critical-path"],
+      "components": ["Frontend", "Security"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 1-2"
+    },
+    {
+      "summary": "Setup Global State Management with Redux Toolkit",
+      "description": "## Overview\nImplement centralized state management using Redux Toolkit to manage global application state, API data caching, and real-time updates.\n\n## Business Value\nEnables efficient data sharing across components, reduces API calls through caching, and improves application performance.\n\n## Technical Requirements\n1. Setup Redux Toolkit store\n2. Create state slices:\n   - auth (user, token, permissions)\n   - platform (status, info, metrics)\n   - transactions (list, stats, filters)\n   - consensus (status, proposals)\n   - crypto (status, operations)\n   - bridge (stats, transfers)\n   - ai (stats, config)\n   - hms (stats, assets)\n3. Implement selector hooks\n4. Add Redux middleware for API calls (RTK Query)\n5. Setup state persistence (localStorage)\n6. Integrate Redux DevTools\n7. Implement optimistic updates\n\n## State Structure\n```typescript\ninterface RootState {\n  auth: AuthState\n  platform: PlatformState\n  transactions: TransactionsState\n  consensus: ConsensusState\n  crypto: CryptoState\n  bridge: BridgeState\n  ai: AIState\n  hms: HMSState\n}\n```\n\n## Acceptance Criteria\n- [ ] Redux Toolkit configured and integrated\n- [ ] All state slices created with proper typing\n- [ ] Selector hooks for data access\n- [ ] RTK Query setup for API caching\n- [ ] State persists across page refreshes\n- [ ] Redux DevTools working in development\n- [ ] No prop drilling in components\n- [ ] Efficient re-renders (using selectors)\n- [ ] Optimistic updates for mutations\n- [ ] Unit tests for reducers and selectors\n\n## Caching Strategy\n- Platform metrics: 5-minute cache\n- Transaction stats: 10-second cache\n- Consensus status: 5-second cache\n- User profile: Session cache\n- Historical data: 1-hour cache\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n\n## Files to Create/Modify\n- `/ui/store/index.ts` (new)\n- `/ui/store/slices/authSlice.ts` (new)\n- `/ui/store/slices/platformSlice.ts` (new)\n- `/ui/store/slices/transactionsSlice.ts` (new)\n- `/ui/store/slices/consensusSlice.ts` (new)\n- `/ui/store/slices/cryptoSlice.ts` (new)\n- `/ui/store/slices/bridgeSlice.ts` (new)\n- `/ui/store/slices/aiSlice.ts` (new)\n- `/ui/store/slices/hmsSlice.ts` (new)\n- `/ui/hooks/useAppSelector.ts` (new)\n- `/ui/hooks/useAppDispatch.ts` (new)\n- `/ui/app/layout.tsx` (modify - add Provider)\n\n## Definition of Done\n- Code reviewed and approved\n- All slices implemented and tested\n- DevTools integration verified\n- Performance benchmarks met\n- Documentation complete",
+      "type": "Story",
+      "priority": "Highest",
+      "labels": ["state-management", "redux", "critical-path"],
+      "components": ["Frontend", "Infrastructure"],
+      "storyPoints": 8,
+      "assignee": null,
+      "sprint": "Sprint 2"
+    },
+    {
+      "summary": "Implement Real-Time Data Infrastructure (WebSocket/Polling)",
+      "description": "## Overview\nBuild infrastructure for real-time data updates using WebSocket connections with fallback to polling for metrics that require live updates.\n\n## Business Value\nEnables real-time monitoring dashboards with sub-second latency for critical metrics like TPS, consensus status, and transaction processing.\n\n## Technical Requirements\n1. WebSocket client for real-time metrics\n2. Server-Sent Events (SSE) client for streaming\n3. Polling service for periodic updates\n4. Connection state management\n5. Automatic reconnection logic\n6. Heartbeat/ping mechanism\n7. Data refresh strategies per endpoint type\n8. Fallback to polling if WebSocket fails\n\n## Real-Time Endpoints\n- Platform status (1s updates)\n- Performance metrics (1s updates)\n- Transaction stats (5s updates)\n- Consensus status (2s updates)\n- AI optimization level (10s updates)\n\n## Polling Endpoints\n- System info (60s updates)\n- Bridge stats (30s updates)\n- HMS stats (60s updates)\n\n## Acceptance Criteria\n- [ ] WebSocket connection established to backend\n- [ ] Real-time TPS updates (<1s latency)\n- [ ] Connection status indicator in UI\n- [ ] Automatic reconnection on disconnect\n- [ ] Fallback to polling if WebSocket unavailable\n- [ ] Configurable refresh intervals per metric\n- [ ] Data staleness indicators\n- [ ] Pause/resume real-time updates (when tab inactive)\n- [ ] Memory leak prevention (cleanup on unmount)\n- [ ] Error handling for connection failures\n\n## Connection State\n```typescript\ntype ConnectionState = 'connected' | 'connecting' | 'disconnected' | 'error'\n```\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-003 (Global State Management)\n- Backend WebSocket support (may need implementation)\n\n## Files to Create/Modify\n- `/ui/services/websocketService.ts` (new)\n- `/ui/services/pollingService.ts` (new)\n- `/ui/hooks/useRealTimeData.ts` (new)\n- `/ui/components/ConnectionStatus.tsx` (new)\n- `/ui/store/slices/connectionSlice.ts` (new)\n\n## Definition of Done\n- Code reviewed and approved\n- Unit and integration tests passing\n- Connection stability tested\n- Memory leak tests passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "High",
+      "labels": ["real-time", "websocket", "infrastructure"],
+      "components": ["Frontend", "Infrastructure"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 3"
+    },
+    {
+      "summary": "Integrate Dashboard with Production API Endpoints",
+      "description": "## Overview\nReplace all mock data in the main dashboard with real API integrations for platform status, performance metrics, transactions, consensus, crypto, bridge, and AI statistics.\n\n## Business Value\nTransforms dashboard from prototype to production-ready monitoring tool with real-time data from the V11 platform.\n\n## API Endpoints to Integrate\n1. GET /api/v11/status - Platform health and uptime\n2. GET /api/v11/info - System information\n3. GET /api/v11/transactions/stats - Transaction statistics\n4. GET /api/v11/performance/metrics - Performance metrics\n5. GET /api/v11/consensus/status - Consensus status\n6. GET /api/v11/crypto/status - Quantum crypto status\n7. GET /api/v11/bridge/stats - Bridge statistics\n8. GET /api/v11/ai/stats - AI optimization statistics\n\n## Current Mock Data to Replace\n- TPS counter (950K-1.1M random)\n- Latency (200-500ms random)\n- Active validators (21 static)\n- Security level (Level 5 static)\n- Cross-chain metrics (random)\n- AI optimization level (90-100% random)\n\n## Technical Requirements\n1. Remove all `Math.random()` mock data generation\n2. Implement data fetching with useEffect/Redux\n3. Add loading states for each metric card\n4. Add error states with retry buttons\n5. Implement real-time updates (via GAP-004)\n6. Add data caching (5-minute TTL)\n7. Add manual refresh button\n8. Add last updated timestamp\n9. Optimize API call patterns (batch where possible)\n\n## Acceptance Criteria\n- [ ] All metrics display real API data\n- [ ] Loading spinners during data fetch\n- [ ] Error messages with retry option\n- [ ] Real-time updates for live metrics\n- [ ] Data cached appropriately\n- [ ] Manual refresh works\n- [ ] Last updated timestamp displayed\n- [ ] No console errors\n- [ ] Performance: page loads in <2s\n- [ ] Graceful degradation if API unavailable\n\n## UI Components to Update\n- `/ui/app/page.tsx` - Main dashboard\n- `/ui/components/MetricCard.tsx` - Add loading/error states\n- `/ui/components/PerformanceChart.tsx` - Real data source\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-003 (Global State Management)\n- GAP-004 (Real-Time Data Infrastructure)\n\n## Definition of Done\n- Code reviewed and approved\n- All mock data removed\n- Integration tests passing\n- Performance benchmarks met\n- User acceptance testing passed\n- Documentation updated",
+      "type": "Story",
+      "priority": "Highest",
+      "labels": ["dashboard", "api-integration", "critical-path"],
+      "components": ["Frontend", "Dashboard"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 3"
+    },
+    {
+      "summary": "Integrate Transactions Page with API (Submit & View)",
+      "description": "## Overview\nReplace mock transaction data with real API integration for submitting transactions and viewing transaction history.\n\n## API Endpoints to Integrate\n1. POST /api/v11/transactions - Submit transaction\n2. GET /api/v11/transactions/stats - Transaction statistics\n\n## Current Mock Functionality to Replace\n- Random transaction generation\n- Fake transaction search\n- Simulated transaction statuses\n\n## Technical Requirements\n1. Implement transaction submission form\n2. Replace mock transaction list with API data\n3. Add real-time transaction updates\n4. Implement pagination (backend support needed)\n5. Add advanced filtering (backend support needed)\n6. Implement export functionality (CSV)\n7. Add transaction detail fetching\n8. Error handling for failed transactions\n\n## Acceptance Criteria\n- [ ] Submit transactions via API\n- [ ] Transaction receipt displayed\n- [ ] View actual transaction history\n- [ ] Real-time updates for new transactions\n- [ ] Search transactions (client-side initially)\n- [ ] Filter by status, type, privacy\n- [ ] Transaction detail modal with real data\n- [ ] Export transactions to CSV\n- [ ] Pagination with lazy loading\n- [ ] Error handling with user-friendly messages\n\n## UI Enhancements\n- Form validation for transaction inputs\n- Amount calculator with fee estimation\n- Success/error notifications\n- Transaction confirmation dialog\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System)\n- GAP-003 (Global State Management)\n\n## Files to Modify\n- `/ui/app/transactions/page.tsx`\n- `/ui/components/TransactionForm.tsx` (new)\n- `/ui/store/slices/transactionsSlice.ts`\n\n## Definition of Done\n- Code reviewed and approved\n- Unit and integration tests passing\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "Highest",
+      "labels": ["transactions", "api-integration"],
+      "components": ["Frontend", "Transactions"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 4"
+    },
+    {
+      "summary": "Build Performance Testing Dashboard",
+      "description": "## Overview\nCreate a new dashboard for executing performance tests and visualizing results using the POST /api/v11/performance/test endpoint.\n\n## Business Value\nEnables performance validation and capacity planning. Critical for demonstrating 2M+ TPS target achievement.\n\n## API Endpoint\n- POST /api/v11/performance/test\n\n## Technical Requirements\n1. Performance test configuration form\n2. Test execution controls (start/stop)\n3. Real-time test progress visualization\n4. Live TPS meter during test\n5. Test results display with grade\n6. Historical test comparison chart\n7. Performance trending analysis\n8. Test result export (CSV/JSON)\n\n## UI Components\n1. **Test Configuration Panel**\n   - Iterations slider (1K - 1M)\n   - Thread count selector (1-256)\n   - Test preset templates (Quick/Standard/Stress)\n   - Custom configuration\n\n2. **Test Execution Panel**\n   - Start/Stop/Pause buttons\n   - Progress bar\n   - Live TPS meter\n   - Estimated time remaining\n\n3. **Results Display**\n   - Total iterations\n   - Duration\n   - Achieved TPS\n   - Performance grade\n   - Target achievement status\n   - Thread utilization\n\n4. **Historical Comparison**\n   - Chart comparing last 10 tests\n   - Trend line\n   - Best/worst performance markers\n\n## Acceptance Criteria\n- [ ] Configure test parameters\n- [ ] Execute performance tests\n- [ ] View real-time progress\n- [ ] Display comprehensive results\n- [ ] Compare with historical tests\n- [ ] Export results to CSV/JSON\n- [ ] Error handling for failed tests\n- [ ] Performance grade visualization\n- [ ] Thread scaling analysis\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System)\n\n## Files to Create\n- `/ui/app/performance/page.tsx` (new)\n- `/ui/components/performance/TestConfig.tsx` (new)\n- `/ui/components/performance/TestProgress.tsx` (new)\n- `/ui/components/performance/TestResults.tsx` (new)\n- `/ui/store/slices/performanceSlice.ts` (new)\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "High",
+      "labels": ["performance", "dashboard", "testing"],
+      "components": ["Frontend", "Dashboard"],
+      "storyPoints": 8,
+      "assignee": null,
+      "sprint": "Sprint 5"
+    },
+    {
+      "summary": "Build Batch Transaction Upload Interface",
+      "description": "## Overview\nCreate interface for uploading and processing batch transactions via CSV/JSON files using POST /api/v11/transactions/batch.\n\n## Business Value\nEnables enterprise bulk operations and high-volume transaction processing.\n\n## API Endpoint\n- POST /api/v11/transactions/batch\n\n## Technical Requirements\n1. File upload interface (CSV/JSON)\n2. File validation and preview\n3. Batch processing with progress tracking\n4. Success/failure summary\n5. Failed transaction report\n6. Batch history with filters\n7. Template download\n8. Retry failed transactions\n\n## UI Components\n1. **Upload Panel**\n   - Drag-and-drop file upload\n   - File format selector (CSV/JSON)\n   - File size limit (10MB)\n   - Template download button\n\n2. **Validation Panel**\n   - Preview first 10 transactions\n   - Validation errors display\n   - Total transaction count\n   - Estimated processing time\n\n3. **Processing Panel**\n   - Progress bar\n   - TPS during processing\n   - Success/failure counters\n   - Cancel button\n\n4. **Results Panel**\n   - Total processed\n   - Success count\n   - Failure count\n   - Failed transaction details\n   - Export failed transactions\n   - Retry failed button\n\n## File Formats\n**CSV:**\n```\ntransactionId,amount\ntx_001,100.50\ntx_002,200.75\n```\n\n**JSON:**\n```json\n{\n  \"transactions\": [\n    {\"transactionId\": \"tx_001\", \"amount\": 100.50},\n    {\"transactionId\": \"tx_002\", \"amount\": 200.75}\n  ]\n}\n```\n\n## Acceptance Criteria\n- [ ] Upload CSV/JSON files\n- [ ] Validate file format and content\n- [ ] Preview transactions before submission\n- [ ] Process batch with progress tracking\n- [ ] Display success/failure summary\n- [ ] Export failed transactions\n- [ ] Retry failed transactions\n- [ ] Download CSV/JSON templates\n- [ ] Batch size limits enforced (max 10,000)\n- [ ] Error handling with user messages\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System)\n\n## Files to Create\n- `/ui/app/transactions/batch/page.tsx` (new)\n- `/ui/components/batch/FileUpload.tsx` (new)\n- `/ui/components/batch/BatchPreview.tsx` (new)\n- `/ui/components/batch/BatchProgress.tsx` (new)\n- `/ui/components/batch/BatchResults.tsx` (new)\n- `/ui/store/slices/batchSlice.ts` (new)\n\n## Definition of Done\n- Code reviewed and approved\n- Unit and integration tests passing\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "High",
+      "labels": ["transactions", "batch", "enterprise"],
+      "components": ["Frontend", "Transactions"],
+      "storyPoints": 8,
+      "assignee": null,
+      "sprint": "Sprint 5"
+    },
+    {
+      "summary": "Integrate Security Page with Quantum Crypto API",
+      "description": "## Overview\nReplace mock cryptographic metrics with real API data from GET /api/v11/crypto/status.\n\n## API Endpoint\n- GET /api/v11/crypto/status\n\n## Current Mock Data to Replace\n- Keys generated counter\n- Signatures verified counter\n- Encryption operations counter\n- ZK proof metrics\n- Security alerts\n\n## Technical Requirements\n1. Replace mock crypto metrics with API data\n2. Implement real-time crypto operations counters\n3. Add actual security alert fetching\n4. Implement algorithm status monitoring\n5. Add performance metrics per algorithm\n6. Implement security event timeline\n\n## Acceptance Criteria\n- [ ] Real cryptographic metrics displayed\n- [ ] Actual key generation statistics\n- [ ] Real signature verification counts\n- [ ] Live security alerts from API\n- [ ] Algorithm performance data\n- [ ] Security event history\n- [ ] Real-time updates for counters\n- [ ] Error handling\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-003 (Global State Management)\n\n## Files to Modify\n- `/ui/app/security/page.tsx`\n- `/ui/store/slices/cryptoSlice.ts`\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- Documentation complete",
+      "type": "Story",
+      "priority": "High",
+      "labels": ["security", "api-integration", "crypto"],
+      "components": ["Frontend", "Security"],
+      "storyPoints": 8,
+      "assignee": null,
+      "sprint": "Sprint 6"
+    },
+    {
+      "summary": "Integrate Cross-Chain Page with Bridge API",
+      "description": "## Overview\nReplace mock bridge data with real API integration for bridge statistics and cross-chain transfers.\n\n## API Endpoints\n1. GET /api/v11/bridge/stats - Bridge statistics\n2. POST /api/v11/bridge/transfer - Initiate transfer\n\n## Current Mock Data to Replace\n- Chain connection status\n- Bridge volume and transactions\n- Transfer history\n- Success rate\n\n## Technical Requirements\n1. Replace mock bridge stats with API data\n2. Implement actual cross-chain transfer\n3. Add real chain connection status\n4. Implement transfer tracking\n5. Add transfer history from API\n6. Implement fee estimation\n7. Add supported chain matrix\n\n## Acceptance Criteria\n- [ ] Real bridge statistics displayed\n- [ ] Actual chain connection status\n- [ ] Functional cross-chain transfers\n- [ ] Transfer status tracking\n- [ ] Real transfer history\n- [ ] Accurate fee calculation\n- [ ] Error handling for failed transfers\n- [ ] Multi-chain support (9+ chains)\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System)\n- GAP-003 (Global State Management)\n\n## Files to Modify\n- `/ui/app/crosschain/page.tsx`\n- `/ui/store/slices/bridgeSlice.ts`\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "High",
+      "labels": ["bridge", "api-integration", "cross-chain"],
+      "components": ["Frontend", "Bridge"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 6"
+    },
+    {
+      "summary": "Integrate AI Optimizer Page with API",
+      "description": "## Overview\nReplace mock AI metrics with real API integration for AI optimization statistics and controls.\n\n## API Endpoints\n1. GET /api/v11/ai/stats - AI statistics\n2. POST /api/v11/ai/optimize - Trigger optimization\n\n## Current Mock Data to Replace\n- AI optimization level\n- Model metrics (accuracy, latency)\n- AI suggestions\n- Optimization history\n\n## Technical Requirements\n1. Replace mock AI metrics with API data\n2. Implement functional AI enable/disable\n3. Add real optimization trigger\n4. Implement actual AI suggestions from API\n5. Add optimization history from API\n6. Implement model configuration updates\n7. Add performance impact tracking\n\n## Acceptance Criteria\n- [ ] Real AI optimization metrics\n- [ ] Functional AI toggle\n- [ ] Trigger optimizations via API\n- [ ] View actual AI suggestions\n- [ ] Track optimization history\n- [ ] Update model configuration\n- [ ] Measure optimization impact\n- [ ] Error handling\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System)\n- GAP-003 (Global State Management)\n\n## Files to Modify\n- `/ui/app/ai/page.tsx`\n- `/ui/store/slices/aiSlice.ts`\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "High",
+      "labels": ["ai", "api-integration", "optimization"],
+      "components": ["Frontend", "AI"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 7"
+    },
+    {
+      "summary": "Build Consensus Proposal Submission Interface",
+      "description": "## Overview\nCreate interface for submitting governance proposals to the HyperRAFT++ consensus algorithm.\n\n## API Endpoint\n- POST /api/v11/consensus/propose\n\n## Business Value\nEnables decentralized governance and protocol upgrades through validator consensus.\n\n## Technical Requirements\n1. Proposal creation form\n2. JSON editor for proposal data\n3. Proposal validation\n4. Proposal submission\n5. Proposal status tracking\n6. Voting interface (validators only)\n7. Proposal history\n8. Proposal templates\n\n## UI Components\n1. **Proposal Form**\n   - Proposal ID (auto-generated)\n   - Proposal type selector\n   - JSON editor with syntax highlighting\n   - Validation feedback\n   - Submit button\n\n2. **Proposal Tracking**\n   - Status badges\n   - Voting progress\n   - Acceptance threshold\n   - Time remaining\n\n3. **Voting Interface** (Validators only)\n   - Vote Yes/No/Abstain\n   - Voting power display\n   - Voting deadline\n\n4. **Proposal History**\n   - Filter by status\n   - Search by ID\n   - Proposal outcomes\n\n## Acceptance Criteria\n- [ ] Create and submit proposals\n- [ ] JSON editor with validation\n- [ ] Track proposal status\n- [ ] View voting results\n- [ ] Proposal history\n- [ ] Role-based access (validators)\n- [ ] Proposal templates\n- [ ] Error handling\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System with RBAC)\n\n## Files to Create\n- `/ui/app/consensus/proposals/page.tsx` (new)\n- `/ui/components/consensus/ProposalForm.tsx` (new)\n- `/ui/components/consensus/VotingPanel.tsx` (new)\n- `/ui/store/slices/proposalsSlice.ts` (new)\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- RBAC verified\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "Medium",
+      "labels": ["consensus", "governance", "proposals"],
+      "components": ["Frontend", "Consensus"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 8"
+    },
+    {
+      "summary": "Build Quantum Data Signing Interface",
+      "description": "## Overview\nCreate interface for signing data with post-quantum cryptographic algorithms.\n\n## API Endpoint\n- POST /api/v11/crypto/sign\n\n## Business Value\nEnables cryptographic signing operations for documents, transactions, and compliance requirements.\n\n## Technical Requirements\n1. Data signing form (text/file upload)\n2. Algorithm selection (Dilithium/Kyber/SPHINCS+)\n3. Signature display and copy\n4. Signature verification interface\n5. Signed document repository\n6. Signature audit trail\n7. Batch signing\n8. Algorithm performance comparison\n\n## UI Components\n1. **Signing Form**\n   - Data input (text area or file upload)\n   - Algorithm selector\n   - Sign button\n   - Signature output\n   - Copy to clipboard\n\n2. **Verification Panel**\n   - Data input\n   - Signature input\n   - Verify button\n   - Verification result\n\n3. **Document Repository**\n   - List of signed documents\n   - Download signed documents\n   - View signatures\n\n4. **Audit Trail**\n   - Timestamp\n   - Algorithm used\n   - Signer identity\n   - Verification status\n\n## Acceptance Criteria\n- [ ] Sign data with selected algorithm\n- [ ] Verify signatures\n- [ ] Store signed documents\n- [ ] View audit trail\n- [ ] Batch signing support\n- [ ] Performance metrics per algorithm\n- [ ] File upload support\n- [ ] Error handling\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System)\n\n## Files to Create\n- `/ui/app/crypto/signing/page.tsx` (new)\n- `/ui/components/crypto/SigningForm.tsx` (new)\n- `/ui/components/crypto/VerificationPanel.tsx` (new)\n- `/ui/store/slices/signingSlice.ts` (new)\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- Security audit passed\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "Medium",
+      "labels": ["crypto", "signing", "security"],
+      "components": ["Frontend", "Security"],
+      "storyPoints": 8,
+      "assignee": null,
+      "sprint": "Sprint 8"
+    },
+    {
+      "summary": "Build HMS Integration Dashboard",
+      "description": "## Overview\nCreate dashboard for monitoring Healthcare Management System (HMS) integration and real-world asset tokenization.\n\n## API Endpoint\n- GET /api/v11/hms/stats\n\n## Business Value\nEnables monitoring of real-world asset tokenization for healthcare applications.\n\n## Technical Requirements\n1. HMS statistics overview\n2. Asset tokenization tracking\n3. Tokenized asset inventory\n4. Compliance status indicators\n5. HMS transaction history\n6. Real-world asset visualization\n7. Integration logs and errors\n8. HMS configuration panel\n\n## UI Components\n1. **Statistics Overview**\n   - Total tokenized assets\n   - Transaction volume\n   - Integration health\n   - Compliance score\n\n2. **Asset Tracking**\n   - Asset list\n   - Asset details\n   - Tokenization status\n   - Ownership chain\n\n3. **Transaction History**\n   - HMS transactions\n   - Asset transfers\n   - Audit trail\n\n4. **Compliance Dashboard**\n   - Regulatory compliance status\n   - Required certifications\n   - Compliance alerts\n\n## Acceptance Criteria\n- [ ] Display HMS statistics\n- [ ] Track tokenized assets\n- [ ] Monitor integration health\n- [ ] View transaction history\n- [ ] Compliance dashboard\n- [ ] Error tracking and alerts\n- [ ] Real-time updates\n- [ ] Export reports\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-002 (Authentication System)\n- GAP-003 (Global State Management)\n\n## Files to Create\n- `/ui/app/hms/page.tsx` (new)\n- `/ui/components/hms/StatsOverview.tsx` (new)\n- `/ui/components/hms/AssetInventory.tsx` (new)\n- `/ui/store/slices/hmsSlice.ts`\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- User acceptance testing passed\n- Documentation complete",
+      "type": "Story",
+      "priority": "Medium",
+      "labels": ["hms", "rwa", "tokenization"],
+      "components": ["Frontend", "HMS"],
+      "storyPoints": 13,
+      "assignee": null,
+      "sprint": "Sprint 9"
+    },
+    {
+      "summary": "Integrate Consensus Status Page with API",
+      "description": "## Overview\nReplace mock consensus data with real API integration.\n\n## API Endpoint\n- GET /api/v11/consensus/status\n\n## Technical Requirements\n1. Replace mock consensus data\n2. Implement real validator status\n3. Add actual consensus metrics\n4. Implement node health monitoring\n5. Add consensus round tracking\n6. Implement leader/follower visualization\n\n## Acceptance Criteria\n- [ ] Real consensus statistics\n- [ ] Actual validator status\n- [ ] Live consensus metrics\n- [ ] Node health monitoring\n- [ ] Consensus round tracking\n- [ ] Byzantine fault indicators\n\n## Dependencies\n- GAP-001 (API Client Service Layer)\n- GAP-003 (Global State Management)\n\n## Files to Modify\n- `/ui/app/nodes/page.tsx`\n- `/ui/store/slices/consensusSlice.ts`\n\n## Definition of Done\n- Code reviewed and approved\n- Integration tests passing\n- Documentation complete",
+      "type": "Story",
+      "priority": "Medium",
+      "labels": ["consensus", "api-integration"],
+      "components": ["Frontend", "Consensus"],
+      "storyPoints": 8,
+      "assignee": null,
+      "sprint": "Sprint 9"
+    }
+  ],
+  "summary": {
+    "totalTickets": 15,
+    "totalStoryPoints": 157,
+    "estimatedSprints": 10,
+    "priorities": {
+      "highest": 5,
+      "high": 7,
+      "medium": 3
+    },
+    "categories": {
+      "infrastructure": 4,
+      "dashboards": 8,
+      "integration": 3
+    }
+  }
+}

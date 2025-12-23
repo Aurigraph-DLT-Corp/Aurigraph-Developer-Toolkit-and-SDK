@@ -91,11 +91,7 @@ const TokenTraceabilityDashboard: React.FC = () => {
   const [selectedTrace, setSelectedTrace] = useState<TokenTrace | null>(null);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
-  // Use window.location.origin for correct protocol detection (http vs https)
-  const getBaseUrl = () => typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? window.location.origin
-    : 'http://localhost:9003';
-  const API_BASE = `${getBaseUrl()}/api/v12/traceability`;
+  const API_BASE = 'http://localhost:9003/api/v11/traceability';
 
   // Fetch all token traces
   const fetchAllTraces = async () => {

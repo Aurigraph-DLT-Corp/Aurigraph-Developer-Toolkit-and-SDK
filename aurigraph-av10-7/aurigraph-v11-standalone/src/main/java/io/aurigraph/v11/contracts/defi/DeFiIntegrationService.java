@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 
  * Performance Target: 50K+ DeFi operations per second
  */
-@Path("/api/v12/defi")
+@Path("/api/v11/defi")
 @ApplicationScoped
 public class DeFiIntegrationService {
     

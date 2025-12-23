@@ -1,0 +1,17 @@
+{
+  "agent_id": "2.6",
+  "agent_name": "Agent 2.6",
+  "module": "Portal Integration",
+  "feature_branch": "feature/2.6-portal-integration",
+  "effort_hours": 320,
+  "timeline_weeks": 8,
+  "created_at": "2025-11-13T02:10:02Z",
+  "status": "ready_for_development",
+  "responsibilities": [
+    "Implement Portal Integration module",
+    "Write unit tests (60-95 tests target)",
+    "Create REST API endpoints",
+    "Develop React components",
+    "Submit PR for code review"
+  ]
+}

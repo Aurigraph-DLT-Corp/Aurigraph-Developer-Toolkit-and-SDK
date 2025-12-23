@@ -1,0 +1,53 @@
+# Prometheus Configuration for Aurigraph V11 Native Cluster
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    cluster: 'aurigraph-v11'
+    environment: 'production'
+
+scrape_configs:
+  # Aurigraph Node Metrics
+  - job_name: 'aurigraph-nodes'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets:
+        - 'aurigraph-node-1:9005'
+        - 'aurigraph-node-2:9005'
+        - 'aurigraph-node-3:9005'
+        labels:
+          group: 'consensus-nodes'
+  
+  # Application Metrics
+  - job_name: 'aurigraph-app'
+    metrics_path: '/api/v11/metrics'
+    static_configs:
+      - targets:
+        - 'aurigraph-node-1:9003'
+        - 'aurigraph-node-2:9003'
+        - 'aurigraph-node-3:9003'
+        labels:
+          group: 'application'
+  
+  # HAProxy Metrics
+  - job_name: 'haproxy'
+    metrics_path: '/stats'
+    static_configs:
+      - targets: ['load-balancer:8082']
+        labels:
+          group: 'load-balancer'
+  
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+# Alert Rules
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Alertmanager Configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets: ['alertmanager:9093']

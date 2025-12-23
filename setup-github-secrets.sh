@@ -1,53 +1,81 @@
 #!/bin/bash
-# Add JIRA credentials to GitHub Secrets
-# Requires GitHub CLI (gh) to be installed and authenticated
-# SECURITY: Prompts for credentials instead of hardcoding
 
-set -e
+# GitHub Secrets Setup Script for Aurigraph DLT Deployment
+# This script helps configure the required GitHub secrets for the deployment workflow
 
-echo "========================================="
-echo "Adding JIRA Credentials to GitHub Secrets"
-echo "========================================="
+echo "================================================"
+echo "GitHub Secrets Configuration for Aurigraph DLT"
+echo "================================================"
 echo ""
-
-# Check if gh CLI is installed
-if ! command -v gh &> /dev/null; then
-    echo "❌ GitHub CLI (gh) is not installed"
-    echo "Install it with: brew install gh"
-    exit 1
-fi
-
-# Check if authenticated
-if ! gh auth status &> /dev/null; then
-    echo "❌ Not authenticated with GitHub CLI"
-    echo "Run: gh auth login"
-    exit 1
-fi
-
-echo "✅ GitHub CLI is installed and authenticated"
+echo "Please configure the following secrets in your GitHub repository:"
+echo "Go to: Settings > Secrets and variables > Actions"
 echo ""
-
-# Prompt for credentials securely
-read -p "Enter JIRA email address: " JIRA_EMAIL
-read -sp "Enter JIRA API token (will not be displayed): " JIRA_API_TOKEN
+echo "Required Secrets:"
+echo "-----------------"
 echo ""
+echo "1. SERVER_USERNAME"
+echo "   Value: subbu"
+echo "   Description: SSH username for the deployment server"
 echo ""
-
-# Validate inputs
-if [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_API_TOKEN" ]; then
-    echo "❌ Email and API token are required"
-    exit 1
-fi
-
-# Add secrets
-echo "Adding JIRA_EMAIL secret..."
-echo "$JIRA_EMAIL" | gh secret set JIRA_EMAIL
-
-echo "Adding JIRA_API_TOKEN secret..."
-echo "$JIRA_API_TOKEN" | gh secret set JIRA_API_TOKEN
-
+echo "2. SERVER_HOST"
+echo "   Value: dlt.aurigraph.io"
+echo "   Description: Hostname or IP address of the deployment server"
 echo ""
-echo "✅ JIRA credentials added to GitHub Secrets"
+echo "3. SERVER_PORT"
+echo "   Value: 2235"
+echo "   Description: SSH port for the deployment server"
 echo ""
-echo "Verify secrets:"
-gh secret list
+echo "4. SERVER_SSH_PRIVATE_KEY"
+echo "   Description: Private SSH key for authentication"
+echo "   To generate if you don't have one:"
+echo "   $ ssh-keygen -t rsa -b 4096 -C 'github-actions@aurigraph.io' -f ~/.ssh/github_deploy_key"
+echo "   Then copy the private key content:"
+echo "   $ cat ~/.ssh/github_deploy_key"
+echo "   And add the public key to the server:"
+echo "   $ ssh-copy-id -p 2235 -i ~/.ssh/github_deploy_key.pub subbu@dlt.aurigraph.io"
+echo ""
+echo "Optional Secrets (with defaults):"
+echo "----------------------------------"
+echo ""
+echo "5. DB_PASSWORD"
+echo "   Default: AurigraphSecure2025!"
+echo "   Description: PostgreSQL database password"
+echo ""
+echo "6. REDIS_PASSWORD"
+echo "   Default: AurigraphRedis2025!"
+echo "   Description: Redis cache password"
+echo ""
+echo "================================================"
+echo ""
+echo "Using GitHub CLI? Run these commands:"
+echo "--------------------------------------"
+echo ""
+echo "# First, login to GitHub CLI"
+echo "gh auth login"
+echo ""
+echo "# Set the secrets (replace with actual values)"
+echo "gh secret set SERVER_USERNAME --body 'subbu'"
+echo "gh secret set SERVER_HOST --body 'dlt.aurigraph.io'"
+echo "gh secret set SERVER_PORT --body '2235'"
+echo "gh secret set SERVER_SSH_PRIVATE_KEY < ~/.ssh/github_deploy_key"
+echo ""
+echo "# Optional: Set custom passwords"
+echo "gh secret set DB_PASSWORD --body 'YourSecurePassword'"
+echo "gh secret set REDIS_PASSWORD --body 'YourRedisPassword'"
+echo ""
+echo "================================================"
+echo ""
+echo "Server Requirements:"
+echo "--------------------"
+echo "✓ Docker and Docker Compose installed"
+echo "✓ SSL certificates at: /etc/letsencrypt/live/aurcrt/"
+echo "✓ Web root directory: /var/www/html/"
+echo "✓ Ports 80 and 443 open in firewall"
+echo ""
+echo "Deployment Triggers:"
+echo "--------------------"
+echo "• Push to 'main' branch"
+echo "• Push to 'production' branch"
+echo "• Manual trigger from Actions tab"
+echo ""
+echo "================================================"

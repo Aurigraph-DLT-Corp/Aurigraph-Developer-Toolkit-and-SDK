@@ -1,20 +1,18 @@
 /**
  * Live Transaction Feed Component
  *
- * Displays real-time transaction updates via gRPC streaming
+ * Displays real-time transaction updates from WebSocket
  * - Transaction list with latest updates at top
  * - Status indicators (pending, confirmed, failed)
  * - Connection status display
  * - Auto-scrolling to newest transactions
- *
- * Migrated from WebSocket to gRPC streaming (V12)
  */
 
 import { useMemo, useEffect } from 'react';
 import { Table, Tag, Space, Card, Statistic, Row, Col, Empty, Spin, Alert, Badge } from 'antd';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
-import { useTransactionStream } from '../hooks/useGrpcStream';
+import { useWebSocket } from '../hooks/useWebSocket';
 import {
   addTransaction,
   updateTransaction,
@@ -29,49 +27,51 @@ const LiveTransactionFeed = () => {
     (state: RootState) => state.liveData
   );
 
-  // Use gRPC streaming instead of WebSocket
-  const { data: txEvent, status, error, isConnected } = useTransactionStream({
-    autoConnect: true,
-    updateIntervalMs: 100,
+  const { isConnected, isConnecting, error } = useWebSocket('transactions', {
+    onMessage: (event) => {
+      try {
+        const data = event.data as any;
+
+        // Handle transaction update
+        if (data.id) {
+          const transaction: LiveTransaction = {
+            id: data.id,
+            from: data.from || 'Unknown',
+            to: data.to || 'Unknown',
+            amount: data.amount || 0,
+            hash: data.hash || '',
+            blockHeight: data.blockHeight || 0,
+            timestamp: data.timestamp || new Date().toISOString(),
+            status: data.status || 'pending',
+            fee: data.fee || 0,
+            gasUsed: data.gasUsed,
+          };
+
+          // Update or add transaction
+          const existing = transactions.find((t) => t.id === transaction.id);
+          if (existing) {
+            dispatch(updateTransaction(transaction));
+          } else {
+            dispatch(addTransaction(transaction));
+          }
+        }
+      } catch (err: any) {
+        console.error('Error processing transaction message:', err);
+        dispatch(setError({ channel: 'transactions', error: err.message }));
+      }
+    },
+    onConnect: () => {
+      // Connection state is handled by useWebSocket hook
+    },
+    onDisconnect: () => {
+      // Disconnection state is handled by useWebSocket hook
+    },
+    onError: (err) => {
+      dispatch(setError({ channel: 'transactions', error: err.message }));
+    },
   });
 
-  const isConnecting = status === 'connecting';
-
-  // Update Redux store when gRPC stream data arrives
-  useEffect(() => {
-    if (txEvent && txEvent.transactionHash) {
-      const transaction: LiveTransaction = {
-        id: txEvent.eventId || txEvent.transactionHash,
-        from: txEvent.fromAddress || 'Unknown',
-        to: txEvent.toAddress || 'Unknown',
-        amount: parseFloat(txEvent.amount) || 0,
-        hash: txEvent.transactionHash || '',
-        blockHeight: txEvent.blockHeight || 0,
-        timestamp: new Date().toISOString(),
-        status: txEvent.status === 'CONFIRMED' ? 'confirmed' :
-                txEvent.status === 'FAILED' ? 'failed' : 'pending',
-        fee: 0,
-        gasUsed: txEvent.gasUsed,
-      };
-
-      // Update or add transaction
-      const existing = transactions.find((t) => t.hash === transaction.hash);
-      if (existing) {
-        dispatch(updateTransaction(transaction));
-      } else {
-        dispatch(addTransaction(transaction));
-      }
-    }
-  }, [txEvent, transactions, dispatch]);
-
-  // Handle errors
-  useEffect(() => {
-    if (error) {
-      dispatch(setError({ channel: 'transactions', error: error.message }));
-    }
-  }, [error, dispatch]);
-
-  // Update connection state
+  // Update connection state if WebSocket state changes
   useEffect(() => {
     if (isConnected) {
       dispatch(setConnectionState({ channel: 'transactions', connected: true }));

@@ -35,25 +35,11 @@ public class Phase2ComprehensiveApiResource {
     // ==================== ANALYTICS ENDPOINTS ====================
 
     /**
-     * ENDPOINT 16a: GET /api/v12/analytics/network
-     * Alias for network-usage (frontend compatibility)
-     */
-    @GET
-    @Path("/api/v12/analytics/network")
-    @Tag(name = "Analytics API", description = "Network analytics and metrics")
-    @Operation(summary = "Get network analytics (alias)", description = "Alias for /network-usage - Retrieve network bandwidth and usage statistics")
-    @APIResponse(responseCode = "200", description = "Analytics retrieved successfully")
-    public Uni<NetworkUsageResponse> getNetworkAlias(
-        @QueryParam("period") @DefaultValue("24h") String period) {
-        return getNetworkUsage(period);
-    }
-
-    /**
-     * ENDPOINT 16: GET /api/v12/analytics/network-usage
+     * ENDPOINT 16: GET /api/v11/analytics/network-usage
      * Network bandwidth and usage analytics
      */
     @GET
-    @Path("/api/v12/analytics/network-usage")
+    @Path("/api/v11/analytics/network-usage")
     @Tag(name = "Analytics API", description = "Network analytics and metrics")
     @Operation(summary = "Get network usage analytics", description = "Retrieve network bandwidth and usage statistics")
     @APIResponse(responseCode = "200", description = "Analytics retrieved successfully")
@@ -91,11 +77,11 @@ public class Phase2ComprehensiveApiResource {
     }
 
     /**
-     * ENDPOINT 17: GET /api/v12/analytics/validator-earnings
+     * ENDPOINT 17: GET /api/v11/analytics/validator-earnings
      * Validator earnings tracking and statistics
      */
     @GET
-    @Path("/api/v12/analytics/validator-earnings")
+    @Path("/api/v11/analytics/validator-earnings")
     @Tag(name = "Analytics API")
     @Operation(summary = "Get validator earnings", description = "Track validator rewards and earnings")
     @APIResponse(responseCode = "200", description = "Earnings retrieved successfully")
@@ -146,11 +132,11 @@ public class Phase2ComprehensiveApiResource {
     // ==================== GATEWAY ENDPOINTS ====================
 
     /**
-     * ENDPOINT 18: GET /api/v12/gateway/balance/{address}
+     * ENDPOINT 18: GET /api/v11/gateway/balance/{address}
      * Query account balance
      */
     @GET
-    @Path("/api/v12/gateway/balance/{address}")
+    @Path("/api/v11/gateway/balance/{address}")
     @Tag(name = "Gateway API", description = "Account and transaction gateway")
     @Operation(summary = "Get account balance", description = "Query account balance and assets")
     @APIResponse(responseCode = "200", description = "Balance retrieved successfully")
@@ -184,11 +170,11 @@ public class Phase2ComprehensiveApiResource {
     }
 
     /**
-     * ENDPOINT 19: POST /api/v12/gateway/transfer
+     * ENDPOINT 19: POST /api/v11/gateway/transfer
      * Initiate fund transfer
      */
     @POST
-    @Path("/api/v12/gateway/transfer")
+    @Path("/api/v11/gateway/transfer")
     @Tag(name = "Gateway API")
     @Operation(summary = "Transfer funds", description = "Initiate a fund transfer")
     @APIResponse(responseCode = "201", description = "Transfer initiated")
@@ -218,11 +204,11 @@ public class Phase2ComprehensiveApiResource {
     // ==================== CONTRACT ENDPOINTS ====================
 
     /**
-     * ENDPOINT 20: GET /api/v12/contracts/list
+     * ENDPOINT 20: GET /api/v11/contracts/list
      * List smart contracts
      */
     @GET
-    @Path("/api/v12/contracts/list")
+    @Path("/api/v11/contracts/list")
     @Tag(name = "Smart Contracts API", description = "Smart contract operations")
     @Operation(summary = "List contracts", description = "Retrieve smart contract inventory")
     @APIResponse(responseCode = "200", description = "Contracts listed successfully")
@@ -257,11 +243,11 @@ public class Phase2ComprehensiveApiResource {
     }
 
     /**
-     * ENDPOINT 21: GET /api/v12/contracts/{id}/state
+     * ENDPOINT 21: GET /api/v11/contracts/{id}/state
      * Query contract state
      */
     @GET
-    @Path("/api/v12/contracts/{id}/state")
+    @Path("/api/v11/contracts/{id}/state")
     @Tag(name = "Smart Contracts API")
     @Operation(summary = "Get contract state", description = "Query current contract state")
     @APIResponse(responseCode = "200", description = "State retrieved successfully")
@@ -281,11 +267,11 @@ public class Phase2ComprehensiveApiResource {
     }
 
     /**
-     * ENDPOINT 22: POST /api/v12/contracts/{id}/invoke
+     * ENDPOINT 22: POST /api/v11/contracts/{id}/invoke
      * Invoke contract method
      */
     @POST
-    @Path("/api/v12/contracts/{id}/invoke")
+    @Path("/api/v11/contracts/{id}/invoke")
     @Tag(name = "Smart Contracts API")
     @Operation(summary = "Invoke contract", description = "Execute a contract method")
     @APIResponse(responseCode = "200", description = "Invocation successful")
@@ -308,11 +294,11 @@ public class Phase2ComprehensiveApiResource {
     // ==================== DATAFEED ENDPOINTS ====================
 
     /**
-     * ENDPOINT 23: GET /api/v12/datafeeds/sources
+     * ENDPOINT 23: GET /api/v11/datafeeds/sources
      * List datafeed sources
      */
     @GET
-    @Path("/api/v12/datafeeds/sources")
+    @Path("/api/v11/datafeeds/sources")
     @Tag(name = "Datafeeds API", description = "External data feed integration")
     @Operation(summary = "List datafeed sources", description = "Retrieve available datafeed sources")
     @APIResponse(responseCode = "200", description = "Sources retrieved successfully")
@@ -347,11 +333,11 @@ public class Phase2ComprehensiveApiResource {
     // ==================== GOVERNANCE ENDPOINTS ====================
 
     /**
-     * ENDPOINT 24: POST /api/v12/governance/votes/submit
+     * ENDPOINT 24: POST /api/v11/governance/votes/submit
      * Submit governance vote
      */
     @POST
-    @Path("/api/v12/governance/votes/submit")
+    @Path("/api/v11/governance/votes/submit")
     @Tag(name = "Governance API", description = "Governance and voting operations")
     @Operation(summary = "Submit vote", description = "Cast a governance vote")
     @APIResponse(responseCode = "201", description = "Vote submitted successfully")
@@ -373,11 +359,11 @@ public class Phase2ComprehensiveApiResource {
     // ==================== SHARD ENDPOINTS ====================
 
     /**
-     * ENDPOINT 25: GET /api/v12/shards
+     * ENDPOINT 25: GET /api/v11/shards
      * Get shard information
      */
     @GET
-    @Path("/api/v12/shards")
+    @Path("/api/v11/shards")
     @Tag(name = "Sharding API", description = "Shard management and routing")
     @Operation(summary = "Get shard information", description = "Retrieve shard topology and routing")
     @APIResponse(responseCode = "200", description = "Shards retrieved successfully")
@@ -409,11 +395,11 @@ public class Phase2ComprehensiveApiResource {
     // ==================== CUSTOM METRICS ENDPOINTS ====================
 
     /**
-     * ENDPOINT 26: GET /api/v12/metrics/custom
+     * ENDPOINT 26: GET /api/v11/metrics/custom
      * Get custom business metrics
      */
     @GET
-    @Path("/api/v12/metrics/custom")
+    @Path("/api/v11/metrics/custom")
     @Tag(name = "Custom Metrics API", description = "Custom business metrics")
     @Operation(summary = "Get custom metrics", description = "Retrieve custom business metrics")
     @APIResponse(responseCode = "200", description = "Metrics retrieved successfully")

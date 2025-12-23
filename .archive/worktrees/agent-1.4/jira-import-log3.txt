@@ -1,0 +1,56 @@
+
+🚀 Starting JIRA Ticket Import for AV11 Enterprise Portal
+
+======================================================================
+
+📋 Fetching JIRA project configuration...
+✅ Found 3 issue types in project AV11
+
+📌 Using existing Epic: AV11-176
+
+📝 Creating 15 Tasks...
+
+Creating Task: Build API Client Service Layer for V11 Integration
+  ✅ Task created: AV11-177 (5 SP)
+Creating Task: Implement JWT Authentication System for Enterprise Portal
+  ✅ Task created: AV11-178 (13 SP)
+Creating Task: Setup Global State Management with Redux Toolkit
+  ✅ Task created: AV11-179 (8 SP)
+Creating Task: Implement Real-Time Data Infrastructure (WebSocket/Polling)
+  ✅ Task created: AV11-180 (13 SP)
+Creating Task: Integrate Dashboard with Production API Endpoints
+  ✅ Task created: AV11-181 (13 SP)
+Creating Task: Integrate Transactions Page with API (Submit & View)
+  ✅ Task created: AV11-182 (13 SP)
+Creating Task: Build Performance Testing Dashboard
+  ✅ Task created: AV11-183 (8 SP)
+Creating Task: Build Batch Transaction Upload Interface
+  ✅ Task created: AV11-184 (8 SP)
+Creating Task: Integrate Security Page with Quantum Crypto API
+  ✅ Task created: AV11-185 (8 SP)
+Creating Task: Integrate Cross-Chain Page with Bridge API
+  ✅ Task created: AV11-186 (13 SP)
+Creating Task: Integrate AI Optimizer Page with API
+  ✅ Task created: AV11-187 (13 SP)
+Creating Task: Build Consensus Proposal Submission Interface
+  ✅ Task created: AV11-188 (13 SP)
+Creating Task: Build Quantum Data Signing Interface
+  ✅ Task created: AV11-189 (8 SP)
+Creating Task: Build HMS Integration Dashboard
+  ✅ Task created: AV11-190 (13 SP)
+Creating Task: Integrate Consensus Status Page with API
+  ✅ Task created: AV11-191 (8 SP)
+
+======================================================================
+✅ Import Complete!
+
+Epic: AV11-176 - Enterprise Portal API Integration & Dashboard Development
+Stories Created: 15/15
+
+View in JIRA: https://aurigraphdlt.atlassian.net/browse/AV11-176
+======================================================================
+
+
+❌ Import failed: epic is not defined
+ReferenceError: epic is not defined
+    at importTickets (/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/import-jira-tickets.js:241:13)

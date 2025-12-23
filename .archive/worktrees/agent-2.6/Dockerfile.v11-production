@@ -1,0 +1,80 @@
+################################################################################
+# Dockerfile.v11-production
+# Production Aurigraph V11 Docker Image
+# Built from JAR with optimized JVM configuration
+################################################################################
+
+FROM openjdk:21-jdk-slim as builder
+
+WORKDIR /app
+
+# Copy the built JAR
+COPY aurigraph-av10-7/aurigraph-v11-standalone/target/aurigraph-v11-standalone-11.4.4-runner.jar app.jar
+
+# Verify JAR exists
+RUN test -f app.jar && echo "✓ JAR verified" || (echo "JAR not found" && exit 1)
+
+################################################################################
+# Runtime Stage
+################################################################################
+
+FROM openjdk:21-jdk-slim
+
+WORKDIR /app
+
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Copy JAR from builder
+COPY --from=builder /app/app.jar /app/aurigraph-v11.jar
+
+# Create data and logs directories
+RUN mkdir -p /app/data/leveldb /app/data/snapshots /app/logs /app/tmp && \
+    chmod -R 777 /app
+
+# Environment variables for JVM optimization
+ENV JAVA_OPTS="-XX:+UseG1GC \
+               -XX:MaxGCPauseMillis=200 \
+               -XX:InitialHeapSize=256m \
+               -XX:MaxHeapSize=512m \
+               -XX:+ParallelRefProcEnabled \
+               -XX:+UnlockDiagnosticVMOptions \
+               -XX:G1SummarizeRSetStatsPeriod=5000 \
+               -Djava.io.tmpdir=/app/tmp"
+
+# Virtual Thread settings (Java 21+)
+ENV JDK_JAVA_OPTIONS="-Djdk.virtualThreadScheduler.parallelism=256 \
+                      -Djdk.virtualThreadScheduler.maxPoolSize=512"
+
+# Quarkus Configuration
+ENV QUARKUS_HTTP_HOST=0.0.0.0 \
+    QUARKUS_HTTP_PORT=9003 \
+    QUARKUS_HTTP_HTTP2=true
+
+# Aurigraph Configuration
+ENV AURIGRAPH_CLUSTER_ENABLED=true \
+    AURIGRAPH_CONSENSUS_TYPE=hyperraft-plus \
+    AURIGRAPH_CRYPTO_MODE=quantum-resistant \
+    AURIGRAPH_CRYPTO_LEVEL=nist-level-5 \
+    AURIGRAPH_AI_OPTIMIZATION=enabled \
+    AURIGRAPH_METRICS_ENABLED=true \
+    AURIGRAPH_LOG_LEVEL=INFO
+
+# LevelDB Configuration
+ENV LEVELDB_PATH=/app/data/leveldb \
+    LEVELDB_CACHE_SIZE=200m \
+    LEVELDB_WRITE_BUFFER_SIZE=64m \
+    LEVELDB_COMPRESSION=snappy \
+    LEVELDB_BLOOM_FILTER=true \
+    LEVELDB_BLOCK_SIZE=4096 \
+    LEVELDB_MMAP_ENABLED=true
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:9003/q/health/ready || exit 1
+
+# Expose ports
+EXPOSE 9003 9004 9090
+
+# Start command
+CMD ["java", "-jar", "/app/aurigraph-v11.jar"]

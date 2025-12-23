@@ -1,0 +1,14 @@
+==================================================
+API Integration Verification
+==================================================
+Base URL: https://dlt.aurigraph.io
+Timeout: 10s
+Date: Fri Oct 10 16:49:14 IST 2025
+==================================================
+
+==================================================
+CATEGORY 1: CORE INFRASTRUCTURE
+==================================================
+[1] Health - GET /q/health ... [0;32m✅ AVAILABLE (HTTP 200)[0m
+[2] Metrics - GET /q/metrics ... [0;32m✅ AVAILABLE (HTTP 200)[0m
+[3] System Info - GET /api/v11/info ... [1;33m⚠️  NOT FOUND (HTTP 404)[0m

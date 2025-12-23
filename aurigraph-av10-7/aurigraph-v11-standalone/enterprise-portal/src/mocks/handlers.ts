@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 
-const API_BASE_URL = 'https://dlt.aurigraph.io/api/v12';
+const API_BASE_URL = 'https://dlt.aurigraph.io/api/v11';
 
 // P0 Priority - Critical Endpoints (8)
 // P1 Priority - Important Endpoints (12)

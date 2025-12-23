@@ -1,0 +1,30 @@
+{
+  "name": "@aurigraph/claude-code-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Aurigraph DLT operations in Claude Code",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "mcp",
+    "claude-code",
+    "aurigraph",
+    "blockchain",
+    "dlt"
+  ],
+  "author": "Aurigraph DLT Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.6.0",
+    "ssh2": "^1.15.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

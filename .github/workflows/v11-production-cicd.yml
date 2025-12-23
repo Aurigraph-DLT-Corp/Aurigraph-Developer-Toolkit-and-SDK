@@ -451,7 +451,7 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_KEY }}
           SSH_HOST: dlt.aurigraph.io
-          SSH_PORT: 22
+          SSH_PORT: 2235
           SSH_USER: subbu
         run: |
           mkdir -p ~/.ssh
@@ -517,7 +517,7 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_KEY }}
           SSH_HOST: dlt.aurigraph.io
-          SSH_PORT: 22
+          SSH_PORT: 2235
           SSH_USER: subbu
         run: |
           echo "🔄 Rolling back deployment"

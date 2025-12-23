@@ -1,0 +1,585 @@
+name: JIRA Bulk Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Bulk operation to perform'
+        required: true
+        type: choice
+        options:
+          - update_old_tickets
+          - close_stale_tickets
+          - reassign_unassigned
+          - update_priorities
+          - add_missing_labels
+          - fix_sprint_assignments
+          - update_story_points
+          - link_related_issues
+      days_old:
+        description: 'Days old for stale tickets'
+        required: false
+        default: '30'
+        type: string
+      target_status:
+        description: 'Target status for updates'
+        required: false
+        type: choice
+        options:
+          - To Do
+          - In Progress
+          - In Review
+          - Done
+          - Blocked
+      dry_run:
+        description: 'Dry run mode'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+  JIRA_BOARD_ID: 789
+
+jobs:
+  bulk-operations:
+    name: Execute Bulk JIRA Operations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: pip install jira python-dateutil
+          
+      - name: Bulk Operations Script
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          cat > bulk_operations.py << 'EOF'
+          import os
+          import re
+          from datetime import datetime, timedelta
+          from jira import JIRA
+          import json
+          
+          # Configuration
+          JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
+          JIRA_PROJECT_KEY = os.environ['JIRA_PROJECT_KEY']
+          JIRA_USER_EMAIL = 'admin@aurigraph.io'
+          JIRA_API_TOKEN = os.environ['JIRA_API_TOKEN']
+          
+          OPERATION = os.environ.get('OPERATION', 'update_old_tickets')
+          DAYS_OLD = int(os.environ.get('DAYS_OLD', '30'))
+          TARGET_STATUS = os.environ.get('TARGET_STATUS', '')
+          DRY_RUN = os.environ.get('DRY_RUN', 'true').lower() == 'true'
+          
+          # Initialize JIRA
+          jira = JIRA(
+              server=JIRA_BASE_URL,
+              basic_auth=(JIRA_USER_EMAIL, JIRA_API_TOKEN)
+          )
+          
+          class BulkOperator:
+              def __init__(self):
+                  self.processed = []
+                  self.errors = []
+                  
+              def update_old_tickets(self):
+                  """Update tickets older than specified days"""
+                  print(f"🔄 Updating tickets older than {DAYS_OLD} days...")
+                  
+                  cutoff_date = (datetime.now() - timedelta(days=DAYS_OLD)).strftime('%Y-%m-%d')
+                  
+                  # Find old tickets not updated recently
+                  jql = f'''project = {JIRA_PROJECT_KEY} 
+                           AND updated < "{cutoff_date}" 
+                           AND status not in (Done, Closed)
+                           ORDER BY updated ASC'''
+                  
+                  issues = jira.search_issues(jql, maxResults=200)
+                  print(f"Found {len(issues)} old tickets")
+                  
+                  for issue in issues:
+                      try:
+                          # Analyze ticket
+                          age_days = (datetime.now() - datetime.strptime(
+                              issue.fields.updated.split('T')[0], '%Y-%m-%d'
+                          )).days
+                          
+                          # Determine action based on age and status
+                          action = self.determine_action_for_old_ticket(issue, age_days)
+                          
+                          if DRY_RUN:
+                              print(f"DRY RUN: Would {action} for {issue.key} (age: {age_days} days)")
+                              self.processed.append({
+                                  'issue': issue.key,
+                                  'action': action,
+                                  'age_days': age_days,
+                                  'dry_run': True
+                              })
+                          else:
+                              self.execute_action(issue, action)
+                              self.processed.append({
+                                  'issue': issue.key,
+                                  'action': action,
+                                  'age_days': age_days
+                              })
+                              
+                      except Exception as e:
+                          self.errors.append(f"Error processing {issue.key}: {e}")
+                  
+                  return self.generate_report()
+              
+              def determine_action_for_old_ticket(self, issue, age_days):
+                  """Determine what action to take for old ticket"""
+                  status = issue.fields.status.name
+                  
+                  if age_days > 90 and status == 'To Do':
+                      return 'move_to_backlog'
+                  elif age_days > 60 and status == 'In Progress':
+                      return 'check_with_assignee'
+                  elif age_days > 45 and status == 'In Review':
+                      return 'escalate_review'
+                  elif age_days > 30:
+                      return 'add_stale_label'
+                  else:
+                      return 'update_priority'
+              
+              def execute_action(self, issue, action):
+                  """Execute the determined action"""
+                  if action == 'move_to_backlog':
+                      # Remove from current sprint
+                      issue.update(fields={'sprint': None})
+                      jira.add_comment(issue, 
+                          "🔄 Automatically moved to backlog due to inactivity (>90 days)")
+                      
+                  elif action == 'check_with_assignee':
+                      if issue.fields.assignee:
+                          jira.add_comment(issue,
+                              f"👋 @{issue.fields.assignee.displayName} - This ticket has been in progress for >60 days. Please provide an update or move to blocked if needed.")
+                      
+                  elif action == 'escalate_review':
+                      jira.add_comment(issue,
+                          "⚠️ This ticket has been in review for >45 days. Escalating for priority review.")
+                      # Update priority
+                      issue.update(fields={'priority': {'name': 'High'}})
+                      
+                  elif action == 'add_stale_label':
+                      current_labels = issue.fields.labels or []
+                      if 'stale' not in current_labels:
+                          current_labels.append('stale')
+                          issue.update(fields={'labels': current_labels})
+                      
+                  elif action == 'update_priority':
+                      # Lower priority for old untouched tickets
+                      issue.update(fields={'priority': {'name': 'Low'}})
+              
+              def close_stale_tickets(self):
+                  """Close tickets that have been stale for too long"""
+                  print(f"🔄 Closing stale tickets...")
+                  
+                  cutoff_date = (datetime.now() - timedelta(days=DAYS_OLD * 3)).strftime('%Y-%m-%d')
+                  
+                  jql = f'''project = {JIRA_PROJECT_KEY} 
+                           AND labels = stale 
+                           AND updated < "{cutoff_date}"
+                           AND status not in (Done, Closed)'''
+                  
+                  issues = jira.search_issues(jql, maxResults=100)
+                  print(f"Found {len(issues)} stale tickets to close")
+                  
+                  for issue in issues:
+                      try:
+                          if DRY_RUN:
+                              print(f"DRY RUN: Would close {issue.key}")
+                          else:
+                              # Transition to Closed
+                              transitions = jira.transitions(issue)
+                              for t in transitions:
+                                  if t['name'] in ['Close', 'Done', 'Closed']:
+                                      jira.transition_issue(issue, t['id'])
+                                      jira.add_comment(issue,
+                                          "🔒 Automatically closed due to extended inactivity. Please reopen if still needed.")
+                                      break
+                          
+                          self.processed.append({'issue': issue.key, 'action': 'closed'})
+                          
+                      except Exception as e:
+                          self.errors.append(f"Error closing {issue.key}: {e}")
+                  
+                  return self.generate_report()
+              
+              def reassign_unassigned(self):
+                  """Reassign unassigned tickets based on components"""
+                  print("🔄 Reassigning unassigned tickets...")
+                  
+                  jql = f'project = {JIRA_PROJECT_KEY} AND assignee is EMPTY AND status != Done'
+                  issues = jira.search_issues(jql, maxResults=200)
+                  
+                  print(f"Found {len(issues)} unassigned tickets")
+                  
+                  # Assignment rules
+                  assignment_rules = {
+                      'Backend': 'backend.dev@aurigraph.io',
+                      'Frontend': 'frontend.dev@aurigraph.io',
+                      'Mobile': 'mobile.dev@aurigraph.io',
+                      'DevOps': 'devops@aurigraph.io',
+                      'Security': 'security@aurigraph.io',
+                      'Documentation': 'docs@aurigraph.io'
+                  }
+                  
+                  for issue in issues:
+                      try:
+                          assignee = None
+                          
+                          # Check components
+                          if issue.fields.components:
+                              for component in issue.fields.components:
+                                  if component.name in assignment_rules:
+                                      assignee = assignment_rules[component.name]
+                                      break
+                          
+                          # Check labels
+                          if not assignee and issue.fields.labels:
+                              for label in issue.fields.labels:
+                                  for key in assignment_rules:
+                                      if key.lower() in label.lower():
+                                          assignee = assignment_rules[key]
+                                          break
+                          
+                          # Default assignment
+                          if not assignee:
+                              assignee = 'team.lead@aurigraph.io'
+                          
+                          if DRY_RUN:
+                              print(f"DRY RUN: Would assign {issue.key} to {assignee}")
+                          else:
+                              # Note: This requires user to exist in JIRA
+                              try:
+                                  issue.update(fields={'assignee': {'name': assignee}})
+                                  jira.add_comment(issue, f"🤖 Auto-assigned to {assignee}")
+                              except:
+                                  # If user doesn't exist, add comment
+                                  jira.add_comment(issue, 
+                                      f"📋 Suggested assignment: {assignee} (auto-assignment failed)")
+                          
+                          self.processed.append({
+                              'issue': issue.key,
+                              'assignee': assignee
+                          })
+                          
+                      except Exception as e:
+                          self.errors.append(f"Error assigning {issue.key}: {e}")
+                  
+                  return self.generate_report()
+              
+              def update_priorities(self):
+                  """Update priorities based on various factors"""
+                  print("🔄 Updating ticket priorities...")
+                  
+                  jql = f'project = {JIRA_PROJECT_KEY} AND status != Done'
+                  issues = jira.search_issues(jql, maxResults=500)
+                  
+                  for issue in issues:
+                      try:
+                          new_priority = self.calculate_priority(issue)
+                          current_priority = issue.fields.priority.name if issue.fields.priority else 'Medium'
+                          
+                          if new_priority != current_priority:
+                              if DRY_RUN:
+                                  print(f"DRY RUN: Would change {issue.key} priority from {current_priority} to {new_priority}")
+                              else:
+                                  issue.update(fields={'priority': {'name': new_priority}})
+                              
+                              self.processed.append({
+                                  'issue': issue.key,
+                                  'old_priority': current_priority,
+                                  'new_priority': new_priority
+                              })
+                              
+                      except Exception as e:
+                          self.errors.append(f"Error updating priority for {issue.key}: {e}")
+                  
+                  return self.generate_report()
+              
+              def calculate_priority(self, issue):
+                  """Calculate priority based on various factors"""
+                  score = 0
+                  
+                  # Age factor
+                  created_date = datetime.strptime(issue.fields.created.split('T')[0], '%Y-%m-%d')
+                  age_days = (datetime.now() - created_date).days
+                  if age_days > 30:
+                      score += 1
+                  if age_days > 60:
+                      score += 1
+                  
+                  # Labels factor
+                  if issue.fields.labels:
+                      if 'security' in issue.fields.labels:
+                          score += 3
+                      if 'production' in issue.fields.labels:
+                          score += 2
+                      if 'customer' in issue.fields.labels:
+                          score += 2
+                  
+                  # Type factor
+                  if issue.fields.issuetype.name == 'Bug':
+                      score += 1
+                  
+                  # Status factor
+                  if issue.fields.status.name == 'Blocked':
+                      score += 2
+                  
+                  # Map score to priority
+                  if score >= 5:
+                      return 'Critical'
+                  elif score >= 3:
+                      return 'High'
+                  elif score >= 1:
+                      return 'Medium'
+                  else:
+                      return 'Low'
+              
+              def add_missing_labels(self):
+                  """Add labels based on issue content"""
+                  print("🔄 Adding missing labels...")
+                  
+                  jql = f'project = {JIRA_PROJECT_KEY} AND labels is EMPTY'
+                  issues = jira.search_issues(jql, maxResults=200)
+                  
+                  label_patterns = {
+                      'mobile': ['android', 'ios', 'mobile', 'app'],
+                      'backend': ['api', 'server', 'database', 'backend'],
+                      'frontend': ['ui', 'ux', 'frontend', 'react', 'vue'],
+                      'security': ['security', 'vulnerability', 'auth', 'encryption'],
+                      'performance': ['performance', 'optimization', 'speed', 'latency'],
+                      'bug': ['bug', 'error', 'fix', 'issue'],
+                      'feature': ['feature', 'enhancement', 'new', 'add']
+                  }
+                  
+                  for issue in issues:
+                      try:
+                          labels = []
+                          text = (issue.fields.summary + ' ' + (issue.fields.description or '')).lower()
+                          
+                          for label, patterns in label_patterns.items():
+                              if any(pattern in text for pattern in patterns):
+                                  labels.append(label)
+                          
+                          if labels:
+                              if DRY_RUN:
+                                  print(f"DRY RUN: Would add labels {labels} to {issue.key}")
+                              else:
+                                  issue.update(fields={'labels': labels})
+                              
+                              self.processed.append({
+                                  'issue': issue.key,
+                                  'labels': labels
+                              })
+                              
+                      except Exception as e:
+                          self.errors.append(f"Error adding labels to {issue.key}: {e}")
+                  
+                  return self.generate_report()
+              
+              def fix_sprint_assignments(self):
+                  """Fix sprint assignments for tickets"""
+                  print("🔄 Fixing sprint assignments...")
+                  
+                  # Get active sprint
+                  sprints = jira.sprints(789, state='active')
+                  if not sprints:
+                      print("No active sprint found")
+                      return self.generate_report()
+                  
+                  active_sprint = sprints[0]
+                  
+                  # Find tickets that should be in sprint
+                  jql = f'''project = {JIRA_PROJECT_KEY} 
+                           AND status in ("In Progress", "In Review") 
+                           AND sprint is EMPTY'''
+                  
+                  issues = jira.search_issues(jql, maxResults=100)
+                  
+                  for issue in issues:
+                      try:
+                          if DRY_RUN:
+                              print(f"DRY RUN: Would add {issue.key} to sprint {active_sprint.name}")
+                          else:
+                              jira.add_issues_to_sprint(active_sprint.id, [issue.key])
+                          
+                          self.processed.append({
+                              'issue': issue.key,
+                              'sprint': active_sprint.name
+                          })
+                          
+                      except Exception as e:
+                          self.errors.append(f"Error adding {issue.key} to sprint: {e}")
+                  
+                  return self.generate_report()
+              
+              def update_story_points(self):
+                  """Estimate and update story points"""
+                  print("🔄 Updating story points...")
+                  
+                  jql = f'project = {JIRA_PROJECT_KEY} AND "Story Points" is EMPTY AND type = Story'
+                  issues = jira.search_issues(jql, maxResults=200)
+                  
+                  for issue in issues:
+                      try:
+                          # Estimate based on various factors
+                          points = self.estimate_story_points(issue)
+                          
+                          if DRY_RUN:
+                              print(f"DRY RUN: Would set {issue.key} to {points} story points")
+                          else:
+                              # Update story points (custom field ID may vary)
+                              issue.update(fields={'customfield_10016': points})
+                          
+                          self.processed.append({
+                              'issue': issue.key,
+                              'story_points': points
+                          })
+                          
+                      except Exception as e:
+                          self.errors.append(f"Error updating story points for {issue.key}: {e}")
+                  
+                  return self.generate_report()
+              
+              def estimate_story_points(self, issue):
+                  """Estimate story points based on issue characteristics"""
+                  points = 3  # Default
+                  
+                  # Check description length
+                  if issue.fields.description:
+                      desc_length = len(issue.fields.description)
+                      if desc_length > 1000:
+                          points += 2
+                      elif desc_length > 500:
+                          points += 1
+                  
+                  # Check subtasks
+                  if hasattr(issue.fields, 'subtasks') and issue.fields.subtasks:
+                      points += len(issue.fields.subtasks)
+                  
+                  # Check components
+                  if issue.fields.components:
+                      points += len(issue.fields.components) - 1
+                  
+                  # Cap at reasonable maximum
+                  return min(points, 13)
+              
+              def link_related_issues(self):
+                  """Link related issues based on content analysis"""
+                  print("🔄 Linking related issues...")
+                  
+                  jql = f'project = {JIRA_PROJECT_KEY} AND updated >= -7d'
+                  recent_issues = jira.search_issues(jql, maxResults=100)
+                  
+                  # Simple keyword-based linking
+                  for i, issue1 in enumerate(recent_issues):
+                      keywords1 = set(issue1.fields.summary.lower().split())
+                      
+                      for issue2 in recent_issues[i+1:]:
+                          keywords2 = set(issue2.fields.summary.lower().split())
+                          
+                          # If significant overlap in keywords
+                          common = keywords1 & keywords2
+                          if len(common) > 3:
+                              try:
+                                  if DRY_RUN:
+                                      print(f"DRY RUN: Would link {issue1.key} and {issue2.key}")
+                                  else:
+                                      jira.create_issue_link(
+                                          type="Relates",
+                                          inwardIssue=issue1.key,
+                                          outwardIssue=issue2.key
+                                      )
+                                  
+                                  self.processed.append({
+                                      'issue1': issue1.key,
+                                      'issue2': issue2.key,
+                                      'link_type': 'relates'
+                                  })
+                                  
+                              except Exception as e:
+                                  # Link might already exist
+                                  pass
+                  
+                  return self.generate_report()
+              
+              def generate_report(self):
+                  """Generate operation report"""
+                  report = {
+                      'operation': OPERATION,
+                      'dry_run': DRY_RUN,
+                      'processed': self.processed,
+                      'errors': self.errors,
+                      'summary': {
+                          'total_processed': len(self.processed),
+                          'total_errors': len(self.errors)
+                      }
+                  }
+                  
+                  print("\n" + "="*50)
+                  print(f"📊 {OPERATION.upper()} REPORT")
+                  print("="*50)
+                  print(f"✅ Processed: {report['summary']['total_processed']} items")
+                  print(f"❌ Errors: {report['summary']['total_errors']}")
+                  
+                  if DRY_RUN:
+                      print("\n⚠️ DRY RUN - No actual changes made")
+                  
+                  # Save report
+                  with open('bulk_operation_report.json', 'w') as f:
+                      json.dump(report, f, indent=2, default=str)
+                  
+                  return report
+          
+          # Main execution
+          operator = BulkOperator()
+          
+          # Set environment variables
+          os.environ['OPERATION'] = '${{ github.event.inputs.operation }}'
+          os.environ['DAYS_OLD'] = '${{ github.event.inputs.days_old }}'
+          os.environ['TARGET_STATUS'] = '${{ github.event.inputs.target_status }}'
+          os.environ['DRY_RUN'] = '${{ github.event.inputs.dry_run }}'
+          
+          # Execute operation
+          if OPERATION == 'update_old_tickets':
+              operator.update_old_tickets()
+          elif OPERATION == 'close_stale_tickets':
+              operator.close_stale_tickets()
+          elif OPERATION == 'reassign_unassigned':
+              operator.reassign_unassigned()
+          elif OPERATION == 'update_priorities':
+              operator.update_priorities()
+          elif OPERATION == 'add_missing_labels':
+              operator.add_missing_labels()
+          elif OPERATION == 'fix_sprint_assignments':
+              operator.fix_sprint_assignments()
+          elif OPERATION == 'update_story_points':
+              operator.update_story_points()
+          elif OPERATION == 'link_related_issues':
+              operator.link_related_issues()
+          else:
+              print(f"Unknown operation: {OPERATION}")
+          EOF
+          
+          python bulk_operations.py
+          
+      - name: Upload Operation Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bulk-operation-report
+          path: bulk_operation_report.json

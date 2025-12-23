@@ -13,7 +13,7 @@ import java.util.Map;
  * REST API endpoints for compliance reporting
  * Provides endpoints to generate and retrieve regulatory compliance reports
  */
-@Path("/api/v12/compliance/reports")
+@Path("/api/v11/compliance/reports")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ReportingResource {
@@ -23,7 +23,7 @@ public class ReportingResource {
 
     /**
      * Generate comprehensive compliance report for a token
-     * GET /api/v12/compliance/reports/token/{tokenId}?startDate=2025-01-01&endDate=2025-01-31
+     * GET /api/v11/compliance/reports/token/{tokenId}?startDate=2025-01-01&endDate=2025-01-31
      */
     @GET
     @Path("/token/{tokenId}")
@@ -73,7 +73,7 @@ public class ReportingResource {
 
     /**
      * Generate transfer compliance report
-     * GET /api/v12/compliance/reports/transfers/{tokenId}
+     * GET /api/v11/compliance/reports/transfers/{tokenId}
      */
     @GET
     @Path("/transfers/{tokenId}")
@@ -102,7 +102,7 @@ public class ReportingResource {
 
     /**
      * Generate KYC/AML report
-     * GET /api/v12/compliance/reports/kyc-aml
+     * GET /api/v11/compliance/reports/kyc-aml
      */
     @GET
     @Path("/kyc-aml")
@@ -130,7 +130,7 @@ public class ReportingResource {
 
     /**
      * Generate audit trail report
-     * GET /api/v12/compliance/reports/audit-trail/{tokenId}?limit=100
+     * GET /api/v11/compliance/reports/audit-trail/{tokenId}?limit=100
      */
     @GET
     @Path("/audit-trail/{tokenId}")
@@ -166,7 +166,7 @@ public class ReportingResource {
 
     /**
      * Export compliance report in CSV format
-     * GET /api/v12/compliance/reports/export/token/{tokenId}?format=csv
+     * GET /api/v11/compliance/reports/export/token/{tokenId}?format=csv
      */
     @GET
     @Path("/export/token/{tokenId}")
@@ -206,7 +206,7 @@ public class ReportingResource {
 
     /**
      * Get list of available reports
-     * GET /api/v12/compliance/reports/available
+     * GET /api/v11/compliance/reports/available
      */
     @GET
     @Path("/available")

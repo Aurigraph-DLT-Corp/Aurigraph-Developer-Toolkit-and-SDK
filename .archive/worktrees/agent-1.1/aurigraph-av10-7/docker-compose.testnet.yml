@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # Validator Nodes Container (5 validators)
+  validators:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: aurigraph-validators
+    environment:
+      - NODE_ENV=production
+      - CHANNEL_NAME=TEST
+      - VALIDATOR_COUNT=5
+      - CONSENSUS_TYPE=HyperRAFT++
+      - QUANTUM_SECURITY_LEVEL=6
+      - TPS_TARGET=1000000
+      - NETWORK_ID=aurigraph-testnet
+    ports:
+      - "8081-8085:8081-8085"  # Validator API ports
+      - "30001-30005:30001-30005"  # P2P ports
+    volumes:
+      - validator-data:/data
+      - ./config:/config:ro
+    networks:
+      - aurigraph-test
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+
+  # Basic Nodes Container (20 nodes)
+  basic-nodes:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: aurigraph-basic-nodes
+    environment:
+      - NODE_ENV=production
+      - CHANNEL_NAME=TEST
+      - NODE_COUNT=20
+      - NODE_TYPES=FULL,LIGHT,ARCHIVE,BRIDGE
+      - CONNECT_TO_VALIDATORS=validators:8081,validators:8082,validators:8083,validators:8084,validators:8085
+      - NETWORK_ID=aurigraph-testnet
+    ports:
+      - "8101-8120:8101-8120"  # Node API ports
+      - "30101-30120:30101-30120"  # P2P ports
+    volumes:
+      - node-data:/data
+      - ./config:/config:ro
+    networks:
+      - aurigraph-test
+    depends_on:
+      - validators
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # Vizor Dashboard
+  vizor-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.vizor
+    container_name: aurigraph-vizor
+    environment:
+      - NODE_ENV=production
+      - VALIDATORS_URL=http://validators:8081
+      - NODES_URL=http://basic-nodes:8101
+      - CHANNEL_NAME=TEST
+      - WEBSOCKET_PORT=3039
+    ports:
+      - "3038:3038"  # Dashboard HTTP
+      - "3039:3039"  # Dashboard WebSocket
+    networks:
+      - aurigraph-test
+    depends_on:
+      - validators
+      - basic-nodes
+    restart: unless-stopped
+
+  # Channel Manager
+  channel-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.channel
+    container_name: aurigraph-channel-manager
+    environment:
+      - CHANNEL_NAME=TEST
+      - CHANNEL_TYPE=ENCRYPTED
+      - MAX_NODES=100
+      - CONSENSUS_VALIDATORS=5
+      - QUANTUM_ENCRYPTION=true
+    ports:
+      - "8090:8090"
+    networks:
+      - aurigraph-test
+    restart: unless-stopped
+
+  # Monitoring Stack Integration
+  prometheus-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.metrics
+    container_name: aurigraph-metrics
+    ports:
+      - "9090:9090"
+    networks:
+      - aurigraph-test
+    depends_on:
+      - validators
+      - basic-nodes
+    restart: unless-stopped
+
+networks:
+  aurigraph-test:
+    driver: bridge
+    name: aurigraph-test-network
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  validator-data:
+    name: aurigraph-validator-data
+  node-data:
+    name: aurigraph-node-data

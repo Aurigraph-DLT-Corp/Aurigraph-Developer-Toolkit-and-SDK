@@ -51,7 +51,7 @@ DEPLOYMENT_STRATEGY="${2:-blue-green}"
 
 # Try to get from GitHub Actions environment variables first
 SERVER_HOST="${SERVER_HOST:-dlt.aurigraph.io}"
-SERVER_PORT="${SERVER_PORT:-22}"
+SERVER_PORT="${SERVER_PORT:-2235}"
 SERVER_USERNAME="${SERVER_USERNAME:-subbu}"
 REMOTE_DIR="${REMOTE_DIR:-/opt/aurigraph}"
 

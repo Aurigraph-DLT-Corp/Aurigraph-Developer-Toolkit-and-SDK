@@ -1,0 +1,706 @@
+---
+# AURIGRAPH V11 KUBERNETES AUTO-SCALING DEPLOYMENT
+# This manifest provides complete Kubernetes deployment with HPA for multi-node architecture
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aurigraph-v11
+
+---
+# PostgreSQL StatefulSet (Database)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: v11-postgres
+  namespace: aurigraph-v11
+spec:
+  serviceName: v11-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v11-postgres
+  template:
+    metadata:
+      labels:
+        app: v11-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: aurigraph
+        - name: POSTGRES_USER
+          value: aurigraph
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: v11-postgres-secret
+              key: password
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pg_isready -U aurigraph
+          initialDelaySeconds: 30
+          periodSeconds: 10
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 50Gi
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: v11-postgres
+  namespace: aurigraph-v11
+spec:
+  selector:
+    app: v11-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  clusterIP: None
+
+---
+# PostgreSQL Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: v11-postgres-secret
+  namespace: aurigraph-v11
+type: Opaque
+stringData:
+  password: aurigraph
+
+---
+# Validator Nodes Deployment with Auto-scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v11-validators
+  namespace: aurigraph-v11
+spec:
+  replicas: 3  # Initial 3, will scale 3-9
+  selector:
+    matchLabels:
+      app: v11-validators
+      tier: consensus
+  template:
+    metadata:
+      labels:
+        app: v11-validators
+        tier: consensus
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - v11-validators
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: validator
+        image: openjdk:21-slim
+        command: ["java", "-jar", "/app/backend.jar"]
+        ports:
+        - containerPort: 9003
+          name: http
+        - containerPort: 9004
+          name: grpc
+        env:
+        - name: NODE_TYPE
+          value: validator
+        - name: NODE_ROLE
+          value: leader
+        - name: JAVA_OPTS
+          value: "-Xmx3g -Xms2g -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
+        - name: quarkus.http.port
+          value: "9003"
+        - name: quarkus.grpc.server.port
+          value: "9004"
+        - name: quarkus.datasource.jdbc.url
+          value: "jdbc:postgresql://v11-postgres:5432/aurigraph"
+        - name: quarkus.datasource.username
+          value: aurigraph
+        - name: quarkus.datasource.password
+          valueFrom:
+            secretKeyRef:
+              name: v11-postgres-secret
+              key: password
+        - name: CONSENSUS_MODE
+          value: hyperraft
+        - name: TARGET_TPS
+          value: "776000"
+        - name: PARALLEL_THREADS
+          value: "256"
+        - name: QUANTUM_ENABLED
+          value: "true"
+        - name: AI_OPTIMIZATION
+          value: "true"
+        volumeMounts:
+        - name: validator-data
+          mountPath: /app/data
+        resources:
+          requests:
+            cpu: 2
+            memory: 4Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        livenessProbe:
+          httpGet:
+            path: /api/v11/health
+            port: 9003
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v11/health
+            port: 9003
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: validator-data
+        emptyDir: {}
+
+---
+# Validator Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: v11-validators
+  namespace: aurigraph-v11
+spec:
+  selector:
+    app: v11-validators
+  ports:
+  - port: 9003
+    targetPort: 9003
+    name: http
+  - port: 9004
+    targetPort: 9004
+    name: grpc
+  type: ClusterIP
+
+---
+# Validator HPA (Horizontal Pod Autoscaler)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: v11-validators-hpa
+  namespace: aurigraph-v11
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: v11-validators
+  minReplicas: 3
+  maxReplicas: 9
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Max
+
+---
+# Business Nodes Deployment with Auto-scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v11-business-nodes
+  namespace: aurigraph-v11
+spec:
+  replicas: 4  # Initial 4, will scale 4-10
+  selector:
+    matchLabels:
+      app: v11-business-nodes
+      tier: processing
+  template:
+    metadata:
+      labels:
+        app: v11-business-nodes
+        tier: processing
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - v11-business-nodes
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: business
+        image: openjdk:21-slim
+        command: ["java", "-jar", "/app/backend.jar"]
+        ports:
+        - containerPort: 9009
+          name: http
+        - containerPort: 9010
+          name: grpc
+        env:
+        - name: NODE_TYPE
+          value: business
+        - name: NODE_ROLE
+          value: processor
+        - name: JAVA_OPTS
+          value: "-Xmx4g -Xms2g -XX:+UseG1GC -XX:MaxGCPauseMillis=50"
+        - name: quarkus.http.port
+          value: "9009"
+        - name: quarkus.grpc.server.port
+          value: "9010"
+        - name: quarkus.datasource.jdbc.url
+          value: "jdbc:postgresql://v11-postgres:5432/aurigraph"
+        - name: quarkus.datasource.username
+          value: aurigraph
+        - name: quarkus.datasource.password
+          valueFrom:
+            secretKeyRef:
+              name: v11-postgres-secret
+              key: password
+        - name: CONSENSUS_MODE
+          value: hyperraft-observer
+        - name: TARGET_TPS
+          value: "1000000"
+        - name: PARALLEL_THREADS
+          value: "256"
+        - name: CACHE_ENABLED
+          value: "true"
+        - name: CACHE_SIZE
+          value: "10000"
+        volumeMounts:
+        - name: business-data
+          mountPath: /app/data
+        resources:
+          requests:
+            cpu: 2
+            memory: 4Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        livenessProbe:
+          httpGet:
+            path: /api/v11/health
+            port: 9009
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v11/health
+            port: 9009
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: business-data
+        emptyDir: {}
+
+---
+# Business Nodes Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: v11-business-nodes
+  namespace: aurigraph-v11
+spec:
+  selector:
+    app: v11-business-nodes
+  ports:
+  - port: 9009
+    targetPort: 9009
+    name: http
+  - port: 9010
+    targetPort: 9010
+    name: grpc
+  type: ClusterIP
+
+---
+# Business Nodes HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: v11-business-nodes-hpa
+  namespace: aurigraph-v11
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: v11-business-nodes
+  minReplicas: 4
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 65
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Max
+
+---
+# Slim Nodes Deployment with Auto-scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v11-slim-nodes
+  namespace: aurigraph-v11
+spec:
+  replicas: 2  # Initial 2, will scale 2-6
+  selector:
+    matchLabels:
+      app: v11-slim-nodes
+      tier: light
+  template:
+    metadata:
+      labels:
+        app: v11-slim-nodes
+        tier: light
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - v11-slim-nodes
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: slim
+        image: openjdk:21-slim
+        command: ["java", "-jar", "/app/backend.jar"]
+        ports:
+        - containerPort: 9013
+          name: http
+        env:
+        - name: NODE_TYPE
+          value: slim
+        - name: NODE_ROLE
+          value: light
+        - name: JAVA_OPTS
+          value: "-Xmx1g -Xms512m -XX:+UseG1GC"
+        - name: quarkus.http.port
+          value: "9013"
+        - name: quarkus.datasource.jdbc.url
+          value: "jdbc:postgresql://v11-postgres:5432/aurigraph"
+        - name: quarkus.datasource.username
+          value: aurigraph
+        - name: quarkus.datasource.password
+          valueFrom:
+            secretKeyRef:
+              name: v11-postgres-secret
+              key: password
+        - name: CONSENSUS_MODE
+          value: none
+        - name: READ_ONLY
+          value: "true"
+        - name: EXTERNAL_API_ENABLED
+          value: "true"
+        - name: TOKENIZATION_ENABLED
+          value: "true"
+        volumeMounts:
+        - name: slim-data
+          mountPath: /app/data
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /api/v11/health
+            port: 9013
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v11/health
+            port: 9013
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: slim-data
+        emptyDir: {}
+
+---
+# Slim Nodes Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: v11-slim-nodes
+  namespace: aurigraph-v11
+spec:
+  selector:
+    app: v11-slim-nodes
+  ports:
+  - port: 9013
+    targetPort: 9013
+    name: http
+  type: ClusterIP
+
+---
+# Slim Nodes HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: v11-slim-nodes-hpa
+  namespace: aurigraph-v11
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: v11-slim-nodes
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 65
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      selectPolicy: Max
+
+---
+# ConfigMap for Prometheus monitoring
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: v11-prometheus-config
+  namespace: aurigraph-v11
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+    - job_name: 'validators'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - aurigraph-v11
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: v11-validators
+      - source_labels: [__meta_kubernetes_pod_ip]
+        action: replace
+        target_label: __address__
+        regex: (.+)
+        replacement: ${1}:9003
+    - job_name: 'business'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - aurigraph-v11
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: v11-business-nodes
+      - source_labels: [__meta_kubernetes_pod_ip]
+        action: replace
+        target_label: __address__
+        regex: (.+)
+        replacement: ${1}:9009
+    - job_name: 'slim'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - aurigraph-v11
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: v11-slim-nodes
+      - source_labels: [__meta_kubernetes_pod_ip]
+        action: replace
+        target_label: __address__
+        regex: (.+)
+        replacement: ${1}:9013
+
+---
+# NetworkPolicy for security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: v11-network-policy
+  namespace: aurigraph-v11
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: aurigraph-v11
+    - podSelector: {}
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: aurigraph-v11
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+---
+# PodDisruptionBudget for Validators
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: v11-validators-pdb
+  namespace: aurigraph-v11
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: v11-validators
+
+---
+# PodDisruptionBudget for Business Nodes
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: v11-business-nodes-pdb
+  namespace: aurigraph-v11
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: v11-business-nodes
+
+---
+# PodDisruptionBudget for Slim Nodes
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: v11-slim-nodes-pdb
+  namespace: aurigraph-v11
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: v11-slim-nodes

@@ -20,7 +20,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 11
  */
-@Path("/api/v12/blockchain")
+@Path("/api/v11/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ValidatorResource {
@@ -29,7 +29,7 @@ public class ValidatorResource {
 
     /**
      * Register new validator
-     * POST /api/v12/blockchain/validators/register
+     * POST /api/v11/blockchain/validators/register
      */
     @POST
     @Path("/validators/register")
@@ -48,7 +48,7 @@ public class ValidatorResource {
 
     /**
      * Stake tokens
-     * POST /api/v12/blockchain/validators/stake
+     * POST /api/v11/blockchain/validators/stake
      */
     @POST
     @Path("/validators/stake")
@@ -68,7 +68,7 @@ public class ValidatorResource {
 
     /**
      * Unstake tokens
-     * POST /api/v12/blockchain/validators/unstake
+     * POST /api/v11/blockchain/validators/unstake
      */
     @POST
     @Path("/validators/unstake")
@@ -88,7 +88,7 @@ public class ValidatorResource {
 
     /**
      * Delegate stake to validator
-     * POST /api/v12/blockchain/validators/delegate
+     * POST /api/v11/blockchain/validators/delegate
      */
     @POST
     @Path("/validators/delegate")
@@ -108,7 +108,7 @@ public class ValidatorResource {
 
     /**
      * List all validators
-     * GET /api/v12/blockchain/validators
+     * GET /api/v11/blockchain/validators
      */
     @GET
     @Path("/validators")
@@ -139,7 +139,7 @@ public class ValidatorResource {
 
     /**
      * Get validator details
-     * GET /api/v12/blockchain/validators/{address}
+     * GET /api/v11/blockchain/validators/{address}
      */
     @GET
     @Path("/validators/{address}")

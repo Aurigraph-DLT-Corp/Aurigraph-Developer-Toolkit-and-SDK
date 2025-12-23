@@ -3,7 +3,7 @@ package io.aurigraph.v11.analytics;
 import io.aurigraph.v11.TransactionService;
 import io.aurigraph.v11.consensus.HyperRAFTConsensusService;
 import io.aurigraph.v11.bridge.CrossChainBridgeService;
-import io.aurigraph.v11.grpc.RealTimeGrpcService;
+import io.aurigraph.v11.websocket.WebSocketService;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -58,7 +58,7 @@ public class RealTimeAnalyticsService {
     CrossChainBridgeService bridgeService;
 
     @Inject
-    RealTimeGrpcService grpcService;
+    WebSocketService webSocketService;
 
     // Real-time metrics storage
     private final Map<String, RealTimeMetrics> metricsHistory = new ConcurrentHashMap<>();
@@ -147,23 +147,37 @@ public class RealTimeAnalyticsService {
     }
 
     /**
-     * Broadcast metrics to gRPC stream subscribers
+     * Broadcast metrics to WebSocket subscribers
      *
      * @param metrics Real-time metrics
      */
     private void broadcastMetrics(RealTimeMetrics metrics) {
         try {
-            // Broadcast via gRPC streaming
-            grpcService.broadcastMetrics(
-                (long) metrics.currentTPS,
-                metrics.resources.cpuUsage,
-                (long) metrics.resources.memoryUsage,
-                metrics.activeValidators,
-                0.0  // error rate
+            // Prepare message data
+            Map<String, Object> data = Map.of(
+                "timestamp", metrics.timestamp.toString(),
+                "tps", metrics.currentTPS,
+                "validators", metrics.activeValidators,
+                "pendingTransactions", metrics.pendingTransactions,
+                "blockHeight", metrics.currentBlockHeight,
+                "networkHealth", metrics.networkHealth,
+                "bridge", Map.of(
+                    "totalTransfers", metrics.bridgeMetrics.totalTransfers,
+                    "pendingTransfers", metrics.bridgeMetrics.pendingTransfers,
+                    "activeChains", metrics.bridgeMetrics.activeChains
+                ),
+                "resources", Map.of(
+                    "cpuUsage", metrics.resources.cpuUsage,
+                    "memoryUsage", metrics.resources.memoryUsage,
+                    "diskUsage", metrics.resources.diskUsage
+                )
             );
 
+            // Broadcast to "analytics" channel
+            webSocketService.broadcastToChannel("analytics", data);
+
         } catch (Exception e) {
-            LOG.errorf(e, "Error broadcasting metrics to gRPC stream");
+            LOG.errorf(e, "Error broadcasting metrics to WebSocket");
         }
     }
 

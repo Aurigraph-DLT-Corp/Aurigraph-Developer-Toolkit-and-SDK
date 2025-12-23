@@ -1,7 +1,6 @@
 package io.aurigraph.v11.api;
 
 import io.smallrye.mutiny.Uni;
-import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -21,16 +20,13 @@ import java.util.*;
  * - Member management
  * - Channel metrics and analytics
  *
- * Security: @PermitAll to allow public access for demo purposes
- *
  * @version 11.0.0 (Priority #3 - Backend Development Agent)
  * @author Aurigraph V11 Development Team
  */
-@Path("/api")
+@Path("/api/v11/channels")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Channel Management", description = "Real-time communication channel operations")
-@PermitAll
 public class ChannelResource {
 
     private static final Logger LOG = Logger.getLogger(ChannelResource.class);
@@ -40,63 +36,13 @@ public class ChannelResource {
     private static final Map<String, List<Map<String, Object>>> CHANNEL_MESSAGES = new java.util.concurrent.ConcurrentHashMap<>();
     private static final Map<String, List<Map<String, Object>>> CHANNEL_MEMBERS = new java.util.concurrent.ConcurrentHashMap<>();
 
-    // Static default channels for v11 API (frontend compatibility)
-    private static final Map<String, NetworkChannel> NETWORK_CHANNELS = new java.util.concurrent.ConcurrentHashMap<>();
-
-    static {
-        initializeNetworkChannels();
-    }
-
-    private static void initializeNetworkChannels() {
-        // Main Network
-        NetworkChannel main = new NetworkChannel();
-        main.id = "main";
-        main.name = "Main Network";
-        main.type = "public";
-        main.status = "active";
-        main.config = new NetworkChannelConfig("hyperraft", 10000, 2, 500, 1.0, 100, 2000000, "public", "ANY",
-                new NetworkCryptoConfig("CRYSTALS-Dilithium", 256, true));
-        main.metrics = new NetworkChannelMetrics(776000, 15234567, 98765, 12, 850000, 25, 42, 524288000);
-        main.createdAt = "2024-01-01T00:00:00.000Z";
-        main.updatedAt = Instant.now().toString();
-        NETWORK_CHANNELS.put(main.id, main);
-
-        // Enterprise Private
-        NetworkChannel priv = new NetworkChannel();
-        priv.id = "private-1";
-        priv.name = "Enterprise Private";
-        priv.type = "private";
-        priv.status = "active";
-        priv.config = new NetworkChannelConfig("pbft", 5000, 1, 100, 0.5, 10, 100000, "confidential", "MAJORITY",
-                new NetworkCryptoConfig("CRYSTALS-Kyber", 512, true));
-        priv.metrics = new NetworkChannelMetrics(85000, 523456, 12345, 8, 95000, 7, 15, 104857600);
-        priv.createdAt = "2024-02-01T00:00:00.000Z";
-        priv.updatedAt = Instant.now().toString();
-        NETWORK_CHANNELS.put(priv.id, priv);
-
-        // Supply Chain Consortium
-        NetworkChannel cons = new NetworkChannel();
-        cons.id = "consortium-1";
-        cons.name = "Supply Chain Consortium";
-        cons.type = "consortium";
-        cons.status = "active";
-        cons.config = new NetworkChannelConfig("raft", 2000, 3, 200, 2.0, 50, 50000, "private", "AND(Org1.member, Org2.member)",
-                new NetworkCryptoConfig("Ed25519", 256, false));
-        cons.metrics = new NetworkChannelMetrics(35000, 234567, 8765, 15, 40000, 12, 8, 78643200);
-        cons.createdAt = "2024-03-01T00:00:00.000Z";
-        cons.updatedAt = Instant.now().toString();
-        NETWORK_CHANNELS.put(cons.id, cons);
-    }
-
-    // ==================== V12 CHANNEL OPERATIONS ====================
-    // NOTE: V11 endpoints removed (Dec 18, 2025) - all traffic migrated to V12
+    // ==================== CHANNEL OPERATIONS ====================
 
     /**
      * List all channels with pagination
-     * GET /api/v12/channels
+     * GET /api/v11/channels
      */
     @GET
-    @Path("/v12/channels")
     @Operation(summary = "List channels", description = "Retrieve list of channels with pagination")
     public Uni<Response> listChannels(
             @QueryParam("page") @DefaultValue("0") int page,
@@ -141,10 +87,10 @@ public class ChannelResource {
 
     /**
      * Get channel details
-     * GET /api/v12/channels/{id}
+     * GET /api/v11/channels/{id}
      */
     @GET
-    @Path("/v12/channels/{id}")
+    @Path("/{id}")
     @Operation(summary = "Get channel", description = "Get detailed information about a specific channel")
     public Uni<Response> getChannel(@PathParam("id") String channelId) {
         return Uni.createFrom().item(() -> {
@@ -168,10 +114,9 @@ public class ChannelResource {
 
     /**
      * Create new channel
-     * POST /api/v12/channels
+     * POST /api/v11/channels
      */
     @POST
-    @Path("/v12/channels")
     @Operation(summary = "Create channel", description = "Create a new communication channel")
     public Uni<Response> createChannel(ChannelCreateRequest request) {
         return Uni.createFrom().item(() -> {
@@ -216,10 +161,10 @@ public class ChannelResource {
 
     /**
      * Close a channel
-     * DELETE /api/v12/channels/{id}
+     * DELETE /api/v11/channels/{id}
      */
     @DELETE
-    @Path("/v12/channels/{id}")
+    @Path("/{id}")
     @Operation(summary = "Close channel", description = "Close or archive a channel")
     public Uni<Response> closeChannel(
             @PathParam("id") String channelId,
@@ -254,10 +199,10 @@ public class ChannelResource {
 
     /**
      * Send message to channel
-     * POST /api/v12/channels/{id}/messages
+     * POST /api/v11/channels/{id}/messages
      */
     @POST
-    @Path("/v12/channels/{id}/messages")
+    @Path("/{id}/messages")
     @Operation(summary = "Send message", description = "Send a message to a channel")
     public Uni<Response> sendMessage(
             @PathParam("id") String channelId,
@@ -297,10 +242,10 @@ public class ChannelResource {
 
     /**
      * Get messages from channel
-     * GET /api/v12/channels/{id}/messages
+     * GET /api/v11/channels/{id}/messages
      */
     @GET
-    @Path("/v12/channels/{id}/messages")
+    @Path("/{id}/messages")
     @Operation(summary = "Get messages", description = "Retrieve messages from a channel")
     public Uni<Response> getMessages(
             @PathParam("id") String channelId,
@@ -335,10 +280,10 @@ public class ChannelResource {
 
     /**
      * Get channel members
-     * GET /api/v12/channels/{id}/members
+     * GET /api/v11/channels/{id}/members
      */
     @GET
-    @Path("/v12/channels/{id}/members")
+    @Path("/{id}/members")
     @Operation(summary = "Get members", description = "Get list of channel members")
     public Uni<Response> getMembers(@PathParam("id") String channelId) {
         return Uni.createFrom().item(() -> {
@@ -366,10 +311,10 @@ public class ChannelResource {
 
     /**
      * Join channel
-     * POST /api/v12/channels/{id}/join
+     * POST /api/v11/channels/{id}/join
      */
     @POST
-    @Path("/v12/channels/{id}/join")
+    @Path("/{id}/join")
     @Operation(summary = "Join channel", description = "Join a public channel or accept invitation")
     public Uni<Response> joinChannel(
             @PathParam("id") String channelId,
@@ -414,10 +359,10 @@ public class ChannelResource {
 
     /**
      * Get channel metrics
-     * GET /api/v12/channels/{id}/metrics
+     * GET /api/v11/channels/{id}/metrics
      */
     @GET
-    @Path("/v12/channels/{id}/metrics")
+    @Path("/{id}/metrics")
     @Operation(summary = "Get channel metrics", description = "Get performance metrics and statistics for a channel")
     public Uni<Response> getChannelMetrics(@PathParam("id") String channelId) {
         return Uni.createFrom().item(() -> {
@@ -475,87 +420,5 @@ public class ChannelResource {
         public String messageType;
         public String threadId;
         public String replyToMessageId;
-    }
-
-    // ==================== V11 NETWORK CHANNEL DTOs ====================
-
-    public static class NetworkChannel {
-        public String id;
-        public String name;
-        public String type;
-        public String status;
-        public NetworkChannelConfig config;
-        public NetworkChannelMetrics metrics;
-        public String createdAt;
-        public String updatedAt;
-    }
-
-    public static class NetworkChannelConfig {
-        public String consensusType;
-        public int blockSize;
-        public int blockTimeout;
-        public int maxMessageCount;
-        public double batchTimeout;
-        public int maxChannels;
-        public int targetTps;
-        public String privacyLevel;
-        public String endorsementPolicy;
-        public NetworkCryptoConfig cryptoConfig;
-
-        public NetworkChannelConfig() {}
-
-        public NetworkChannelConfig(String consensusType, int blockSize, int blockTimeout, int maxMessageCount,
-                                    double batchTimeout, int maxChannels, int targetTps, String privacyLevel,
-                                    String endorsementPolicy, NetworkCryptoConfig cryptoConfig) {
-            this.consensusType = consensusType;
-            this.blockSize = blockSize;
-            this.blockTimeout = blockTimeout;
-            this.maxMessageCount = maxMessageCount;
-            this.batchTimeout = batchTimeout;
-            this.maxChannels = maxChannels;
-            this.targetTps = targetTps;
-            this.privacyLevel = privacyLevel;
-            this.endorsementPolicy = endorsementPolicy;
-            this.cryptoConfig = cryptoConfig;
-        }
-    }
-
-    public static class NetworkCryptoConfig {
-        public String algorithm;
-        public int keySize;
-        public boolean quantumResistant;
-
-        public NetworkCryptoConfig() {}
-
-        public NetworkCryptoConfig(String algorithm, int keySize, boolean quantumResistant) {
-            this.algorithm = algorithm;
-            this.keySize = keySize;
-            this.quantumResistant = quantumResistant;
-        }
-    }
-
-    public static class NetworkChannelMetrics {
-        public int tps;
-        public long totalTransactions;
-        public long blockHeight;
-        public int latency;
-        public int throughput;
-        public int nodeCount;
-        public int activeContracts;
-        public long storageUsed;
-
-        public NetworkChannelMetrics() {}
-
-        public NetworkChannelMetrics(int tps, long totalTransactions, long blockHeight, int latency,
-                                     int throughput, int nodeCount, int activeContracts, long storageUsed) {
-            this.tps = tps;
-            this.totalTransactions = totalTransactions;
-            this.blockHeight = blockHeight;
-            this.latency = latency;
-            this.throughput = throughput;
-            this.nodeCount = nodeCount;
-            this.activeContracts = activeContracts;
-            this.storageUsed = storageUsed;
-        }
     }
 }

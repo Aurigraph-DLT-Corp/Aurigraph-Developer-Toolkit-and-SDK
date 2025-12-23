@@ -1,0 +1,233 @@
+name: E2E Tests (Playwright)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'enterprise-portal/enterprise-portal/frontend/**'
+      - '.github/workflows/e2e-tests.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'enterprise-portal/enterprise-portal/frontend/**'
+
+env:
+  BASE_URL: http://localhost:3000
+  API_BASE_URL: http://localhost:9003
+  WS_URL: ws://localhost:9003
+  NODE_ENV: test
+
+jobs:
+  e2e-tests:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      # V11 Backend Service
+      backend:
+        image: openjdk:21-jdk
+        options: >-
+          --health-cmd="curl -f http://localhost:9003/q/health || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 9003:9003
+        env:
+          QUARKUS_HTTP_PORT: 9003
+
+    steps:
+      # 1. Check out repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'enterprise-portal/enterprise-portal/frontend/package-lock.json'
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: npm ci
+
+      # 4. Install Playwright browsers
+      - name: Install Playwright browsers
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: npx playwright install --with-deps
+
+      # 5. Build frontend
+      - name: Build frontend
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ env.API_BASE_URL }}
+          VITE_WS_URL: ${{ env.WS_URL }}
+
+      # 6. Start frontend dev server
+      - name: Start frontend server
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: npm run dev &
+        env:
+          VITE_API_BASE_URL: ${{ env.API_BASE_URL }}
+          VITE_WS_URL: ${{ env.WS_URL }}
+
+      # 7. Wait for services to be ready
+      - name: Wait for services
+        run: |
+          # Wait for frontend
+          timeout 60 bash -c 'until curl -f http://localhost:3000 2>/dev/null; do sleep 1; done'
+          echo "Frontend is ready"
+
+          # Wait for backend
+          timeout 60 bash -c 'until curl -f http://localhost:9003/q/health 2>/dev/null; do sleep 1; done'
+          echo "Backend is ready"
+
+      # 8. Run E2E tests
+      - name: Run E2E tests
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: npm run test:e2e
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          WS_URL: ${{ env.WS_URL }}
+
+      # 9. Generate HTML report
+      - name: Generate test report
+        if: always()
+        working-directory: enterprise-portal/enterprise-portal/frontend
+        run: |
+          if [ -d "playwright-report" ]; then
+            echo "Test report generated successfully"
+          else
+            echo "No test report found"
+          fi
+
+      # 10. Upload test results as artifact
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: enterprise-portal/enterprise-portal/frontend/playwright-report
+          retention-days: 30
+
+      # 11. Upload JUnit XML results
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: junit-results
+          path: enterprise-portal/enterprise-portal/frontend/junit-results.xml
+          retention-days: 30
+
+      # 12. Upload JSON test results
+      - name: Upload JSON results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-json
+          path: enterprise-portal/enterprise-portal/frontend/test-results.json
+          retention-days: 30
+
+      # 13. Upload screenshots on failure
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: failure-screenshots
+          path: enterprise-portal/enterprise-portal/frontend/test-results/
+          retention-days: 30
+
+      # 14. Upload videos on failure
+      - name: Upload videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: failure-videos
+          path: enterprise-portal/enterprise-portal/frontend/test-results/
+          retention-days: 30
+
+      # 15. Report test results
+      - name: Report test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: E2E Test Results
+          path: 'enterprise-portal/enterprise-portal/frontend/junit-results.xml'
+          reporter: 'java-junit'
+          fail-on-error: false
+
+      # 16. Comment PR with test results
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'enterprise-portal/enterprise-portal/frontend/test-results.json';
+
+            if (fs.existsSync(path)) {
+              const results = JSON.parse(fs.readFileSync(path, 'utf8'));
+              const comment = `
+            ## E2E Test Results
+            - **Total Tests**: ${results.stats?.expected || 0}
+            - **Passed**: ${results.stats?.expected - results.stats?.unexpected || 0}
+            - **Failed**: ${results.stats?.unexpected || 0}
+            - **Skipped**: ${results.stats?.skipped || 0}
+
+            [View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              `;
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  test-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: always()
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: '**/junit-results.xml'
+          check_name: E2E Test Results
+          comment_mode: always
+
+  status-check:
+    name: Test Status Check
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: always()
+
+    steps:
+      - name: Check test status
+        run: |
+          if [ "${{ needs.e2e-tests.result }}" == "success" ]; then
+            echo "✅ All E2E tests passed"
+            exit 0
+          else
+            echo "❌ E2E tests failed"
+            exit 1
+          fi

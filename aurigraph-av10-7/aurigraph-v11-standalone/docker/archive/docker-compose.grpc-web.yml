@@ -1,0 +1,94 @@
+# Aurigraph V12 gRPC-Web Stack
+# Enables browser clients to consume gRPC streaming services
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.grpc-web.yml up -d
+#
+# Services:
+#   - envoy-grpc-web: gRPC-Web proxy (ports 8080/8443)
+#
+# gRPC Streaming Endpoints (via Envoy):
+#   - MetricsStreamService.StreamMetrics
+#   - ConsensusStreamService.StreamConsensusEvents
+#   - NetworkStreamService.StreamNetworkEvents
+#   - ValidatorStreamService.StreamValidatorEvents
+#   - ChannelStreamService.StreamChannelEvents
+#   - AnalyticsStreamService.StreamAnalytics
+
+version: '3.8'
+
+services:
+  # ================================
+  # Envoy gRPC-Web Proxy
+  # ================================
+  envoy-grpc-web:
+    image: envoyproxy/envoy:v1.29.1
+    container_name: aurigraph-envoy-grpc-web
+    restart: unless-stopped
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '2.0'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+
+    # Port mapping
+    ports:
+      - "8080:8080"   # gRPC-Web HTTP (development)
+      - "8443:8443"   # gRPC-Web HTTPS (production)
+      - "9901:9901"   # Envoy admin interface
+
+    # Volume mounts
+    volumes:
+      - ./config/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./config/ssl:/etc/envoy/certs:ro
+
+    # Command
+    command: >
+      /usr/local/bin/envoy
+      -c /etc/envoy/envoy.yaml
+      --log-level info
+      --component-log-level upstream:debug,connection:debug
+
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9901/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    # Network configuration
+    networks:
+      - aurigraph-frontend
+      - aurigraph-backend
+
+    # Dependencies
+    depends_on:
+      aurigraph-v11-native:
+        condition: service_healthy
+
+    # Logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Labels for service discovery
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grpc-web.rule=Host(`grpc.dlt.aurigraph.io`)"
+      - "traefik.http.routers.grpc-web.entrypoints=websecure"
+      - "traefik.http.routers.grpc-web.tls=true"
+      - "traefik.http.services.grpc-web.loadbalancer.server.port=8080"
+
+networks:
+  aurigraph-frontend:
+    external: true
+  aurigraph-backend:
+    external: true

@@ -1,0 +1,9 @@
+# Traefik v2.10 Static Configuration for HTTPS/TLS
+# This file handles certificate configuration which is not compatible with CLI flags
+
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/server.crt
+      keyFile: /etc/traefik/certs/server.key
+  stores:
+    default: {}

@@ -1,0 +1,40 @@
+{
+  "nodeType": "CHANNEL",
+  "nodeId": "channel-node-001",
+  "version": "11.0.0",
+  "maxChannels": 10000,
+  "maxParticipantsPerChannel": 1000,
+  "messageQueueSize": 100000,
+  "enableOffChainData": true,
+  "persistenceBackend": "leveldb",
+  "cacheSize": "2GB",
+  "routingStrategy": "direct",
+  "enableSnapshots": true,
+  "snapshotIntervalSeconds": 300,
+  "network": {
+    "networkId": "aurigraph-mainnet",
+    "bootstrapNodes": [
+      "node1.aurigraph.io:9000",
+      "node2.aurigraph.io:9000"
+    ],
+    "maxPeers": 100,
+    "enableDiscovery": true
+  },
+  "performance": {
+    "threadPoolSize": 256,
+    "queueSize": 100000,
+    "batchSize": 1000
+  },
+  "security": {
+    "enableTLS": true,
+    "tlsCertPath": "/etc/aurigraph/tls/cert.pem",
+    "tlsKeyPath": "/etc/aurigraph/tls/key.pem",
+    "quantumResistant": true
+  },
+  "monitoring": {
+    "metricsEnabled": true,
+    "metricsPort": 9090,
+    "healthCheckPort": 9091,
+    "logLevel": "INFO"
+  }
+}

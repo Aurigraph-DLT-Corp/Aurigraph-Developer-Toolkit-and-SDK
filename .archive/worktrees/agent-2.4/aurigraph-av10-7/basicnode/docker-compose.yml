@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  aurigraph-basicnode:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aurigraph-basicnode
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_PROFILE=prod
+      - AURIGRAPH_PLATFORM_URL=http://host.docker.internal:3018
+      - AURIGRAPH_NODE_ID=basic-node-docker
+    volumes:
+      - basicnode_data:/work/data
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 2.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.aurigraph.service=basicnode"
+      - "com.aurigraph.version=10.19.0"
+      - "com.aurigraph.platform=av10-18"
+
+volumes:
+  basicnode_data:
+    driver: local
+
+networks:
+  aurigraph-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

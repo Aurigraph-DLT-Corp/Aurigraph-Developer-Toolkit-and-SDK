@@ -24,7 +24,7 @@ import java.util.List;
  * @version 11.0.0
  * @sprint Sprint 16 - Oracle Verification REST API (AV11-496)
  */
-@Path("/api/v12/oracle")
+@Path("/api/v11/oracle")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Oracle Verification", description = "Multi-oracle consensus verification for asset values")
@@ -38,7 +38,7 @@ public class OracleResource {
     /**
      * Verify asset value using multi-oracle consensus
      *
-     * POST /api/v12/oracle/verify
+     * POST /api/v11/oracle/verify
      */
     @POST
     @Path("/verify")
@@ -101,7 +101,7 @@ public class OracleResource {
     /**
      * Get verification result by ID
      *
-     * GET /api/v12/oracle/verify/{verificationId}
+     * GET /api/v11/oracle/verify/{verificationId}
      */
     @GET
     @Path("/verify/{verificationId}")
@@ -150,7 +150,7 @@ public class OracleResource {
     /**
      * Get verification history for an asset
      *
-     * GET /api/v12/oracle/history/{assetId}
+     * GET /api/v11/oracle/history/{assetId}
      */
     @GET
     @Path("/history/{assetId}")
@@ -202,7 +202,7 @@ public class OracleResource {
     /**
      * Health check endpoint for oracle service
      *
-     * GET /api/v12/oracle/health
+     * GET /api/v11/oracle/health
      */
     @GET
     @Path("/health")
@@ -221,52 +221,6 @@ public class OracleResource {
             Response.ok(new HealthResponse("HEALTHY", "Oracle verification service is operational"))
                 .build()
         );
-    }
-
-    /**
-     * Get oracle data feeds
-     *
-     * GET /api/v12/oracle/feeds
-     */
-    @GET
-    @Path("/feeds")
-    @Operation(
-        summary = "Get oracle data feeds",
-        description = "Returns all available oracle data feeds including price feeds and external data sources"
-    )
-    @APIResponses({
-        @APIResponse(
-            responseCode = "200",
-            description = "Oracle feeds retrieved successfully"
-        )
-    })
-    public Response getOracleFeeds() {
-        LOG.info("GET /api/v12/oracle/feeds - Retrieving oracle data feeds");
-
-        java.util.Map<String, Object> feeds = new java.util.LinkedHashMap<>();
-        feeds.put("totalFeeds", 156);
-        feeds.put("activeFeeds", 148);
-        feeds.put("priceFeeds", java.util.List.of(
-            java.util.Map.of("pair", "AUR/USD", "price", 2.45, "change24h", 3.2, "source", "Aggregated", "lastUpdate", java.time.Instant.now().minusSeconds(30).toString()),
-            java.util.Map.of("pair", "ETH/USD", "price", 2250.50, "change24h", -1.5, "source", "Chainlink", "lastUpdate", java.time.Instant.now().minusSeconds(45).toString()),
-            java.util.Map.of("pair", "BTC/USD", "price", 67500.00, "change24h", 2.1, "source", "Chainlink", "lastUpdate", java.time.Instant.now().minusSeconds(60).toString()),
-            java.util.Map.of("pair", "SOL/USD", "price", 185.25, "change24h", 5.8, "source", "Pyth", "lastUpdate", java.time.Instant.now().minusSeconds(15).toString())
-        ));
-        feeds.put("dataFeeds", java.util.List.of(
-            java.util.Map.of("name", "Weather Data", "provider", "OpenWeather", "status", "ACTIVE", "frequency", "5 min"),
-            java.util.Map.of("name", "Stock Indices", "provider", "Bloomberg", "status", "ACTIVE", "frequency", "1 min"),
-            java.util.Map.of("name", "Commodity Prices", "provider", "Reuters", "status", "ACTIVE", "frequency", "15 min")
-        ));
-        feeds.put("oracleNodes", java.util.Map.of(
-            "total", 25,
-            "active", 23,
-            "consensusThreshold", 16
-        ));
-        feeds.put("accuracy", 99.97);
-        feeds.put("avgLatency", "450ms");
-        feeds.put("timestamp", java.time.Instant.now().toString());
-
-        return Response.ok(feeds).build();
     }
 
     // ==================== Helper Classes ====================

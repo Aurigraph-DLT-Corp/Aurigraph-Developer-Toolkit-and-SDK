@@ -53,7 +53,7 @@ bash .github/setup-remote-deployment.sh
 
 ### 3. Verify Success (2 minutes)
 ```bash
-ssh -p 22 subbu@dlt.aurigraph.io "docker ps"
+ssh -p 2235 subbu@dlt.aurigraph.io "docker ps"
 curl https://dlt.aurigraph.io/api/v11/health
 ```
 
@@ -231,7 +231,7 @@ Phase 6: Notifications (Slack)
 
 ### View Remote Server Logs
 ```bash
-ssh -p 22 subbu@dlt.aurigraph.io
+ssh -p 2235 subbu@dlt.aurigraph.io
 
 # Container logs
 docker logs aurigraph-v11

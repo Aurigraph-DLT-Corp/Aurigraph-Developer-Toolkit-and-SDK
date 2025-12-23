@@ -14,25 +14,21 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 import io.aurigraph.v11.TransactionService;
-import io.aurigraph.v11.portal.services.BlockchainDataService;
-import io.aurigraph.v11.portal.models.TransactionDTO;
-import io.aurigraph.v11.portal.models.PortalResponse;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.List;
 
 /**
  * Blockchain Search and Transaction Submission API Resource
  *
  * Provides search and transaction operations:
- * - GET /api/v12/blockchain/blocks/search - Block search with filters
- * - POST /api/v12/blockchain/transactions/submit - Submit new transaction
+ * - GET /api/v11/blockchain/blocks/search - Block search with filters
+ * - POST /api/v11/blockchain/transactions/submit - Submit new transaction
  *
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/blockchain")
+@Path("/api/v11/blockchain")
 @ApplicationScoped
 @Tag(name = "Blockchain Search API", description = "Block search and transaction submission")
 @Produces(MediaType.APPLICATION_JSON)
@@ -44,149 +40,10 @@ public class BlockchainSearchApiResource {
     @Inject
     TransactionService transactionService;
 
-    @Inject
-    BlockchainDataService blockchainDataService;
-
-    // ==================== ROOT ENDPOINT: Get Blockchain Overview ====================
-
-    /**
-     * GET /api/v12/blockchain
-     * Returns blockchain overview/summary
-     */
-    @GET
-    @Operation(summary = "Get blockchain overview", description = "Returns blockchain overview and summary")
-    @APIResponse(responseCode = "200", description = "Blockchain overview retrieved successfully")
-    public Uni<PortalResponse<Map<String, Object>>> getBlockchainOverview() {
-        LOG.info("GET /api/v12/blockchain - Blockchain overview requested");
-
-        return blockchainDataService.getBlockchainMetrics()
-            .map(metrics -> {
-                Map<String, Object> overview = new LinkedHashMap<>();
-                overview.put("chainId", "aurigraph-mainnet");
-                overview.put("networkName", "Aurigraph DLT V12");
-                overview.put("status", "operational");
-                overview.put("currentBlock", metrics.getBlockHeight());
-                overview.put("tps", metrics.getTps());
-                overview.put("totalTransactions", metrics.getTotalTransactions());
-                overview.put("pendingTransactions", metrics.getPendingTransactions());
-                overview.put("activeValidators", metrics.getActiveValidators());
-                overview.put("totalValidators", metrics.getActiveNodes() != null ? metrics.getActiveNodes() : 21);
-                overview.put("consensusProtocol", "HyperRAFT++");
-                overview.put("timestamp", System.currentTimeMillis());
-                return PortalResponse.success(overview, "Blockchain overview retrieved");
-            })
-            .onFailure()
-            .recoverWithItem(throwable -> {
-                LOG.errorf(throwable, "Failed to get blockchain overview: %s", throwable.getMessage());
-                // Return fallback data on error
-                Map<String, Object> fallback = new LinkedHashMap<>();
-                fallback.put("chainId", "aurigraph-mainnet");
-                fallback.put("networkName", "Aurigraph DLT V12");
-                fallback.put("status", "operational");
-                fallback.put("currentBlock", 15847L);
-                fallback.put("tps", 776000.0);
-                fallback.put("totalTransactions", 2345678L);
-                fallback.put("pendingTransactions", 1234L);
-                fallback.put("activeValidators", 16);
-                fallback.put("totalValidators", 21);
-                fallback.put("consensusProtocol", "HyperRAFT++");
-                fallback.put("timestamp", System.currentTimeMillis());
-                return PortalResponse.success(fallback, "Blockchain overview retrieved (fallback)");
-            });
-    }
-
-    // ==================== ENDPOINT 0: Get Blockchain Stats ====================
-
-    /**
-     * GET /api/v12/blockchain/stats
-     * Returns detailed blockchain statistics
-     */
-    @GET
-    @Path("/stats")
-    @Operation(summary = "Get blockchain stats", description = "Returns detailed blockchain statistics")
-    @APIResponse(responseCode = "200", description = "Blockchain statistics retrieved successfully")
-    public Uni<PortalResponse<Map<String, Object>>> getBlockchainStats() {
-        LOG.info("GET /api/v12/blockchain/stats - Blockchain stats requested");
-
-        return blockchainDataService.getBlockchainStats()
-            .map(stats -> {
-                Map<String, Object> statsMap = new LinkedHashMap<>();
-                statsMap.put("totalBlocks", stats.getTotalBlocks());
-                statsMap.put("totalTransactions", stats.getTotalTransactions());
-                statsMap.put("totalValidators", stats.getTotalValidators());
-                statsMap.put("activeValidators", stats.getActiveValidators());
-                statsMap.put("totalStaked", stats.getTotalStaked());
-                statsMap.put("medianBlockTime", stats.getMedianBlockTime());
-                statsMap.put("minBlockTime", stats.getMinBlockTime());
-                statsMap.put("maxBlockTime", stats.getMaxBlockTime());
-                statsMap.put("avgTransactionSize", stats.getAvgTransactionSize());
-                statsMap.put("totalContractDeployments", stats.getTotalContractDeployments());
-                statsMap.put("activeSmartContracts", stats.getActiveSmartContracts());
-                statsMap.put("totalAssetTokens", stats.getTotalAssetTokens());
-                statsMap.put("totalRWATokens", stats.getTotalRWATokens());
-                statsMap.put("networkUptime", stats.getNetworkUptime());
-                statsMap.put("consensusEfficiency", stats.getConsensusEfficiency());
-                statsMap.put("forkCount", stats.getForkCount());
-                statsMap.put("timestamp", System.currentTimeMillis());
-                return PortalResponse.success(statsMap, "Blockchain statistics retrieved");
-            })
-            .onFailure()
-            .recoverWithItem(throwable -> {
-                LOG.errorf(throwable, "Failed to get blockchain stats: %s", throwable.getMessage());
-                return PortalResponse.error(500, "Failed to retrieve blockchain statistics");
-            });
-    }
-
-    // ==================== ENDPOINT 1: Get Transactions ====================
-
-    /**
-     * GET /api/v12/blockchain/transactions
-     * Returns list of recent transactions for the blockchain explorer
-     * Routes to BlockchainDataService for mock/real data
-     */
-    @GET
-    @Path("/transactions")
-    @Operation(summary = "Get blockchain transactions", description = "Returns list of recent blockchain transactions")
-    @APIResponse(responseCode = "200", description = "Transactions retrieved successfully")
-    public Uni<PortalResponse<List<TransactionDTO>>> getTransactions(
-            @QueryParam("limit") @DefaultValue("20") int limit) {
-        LOG.infof("Blockchain transactions requested (limit: %d) via BlockchainSearchApiResource", limit);
-
-        return blockchainDataService.getTransactions(Math.min(limit, 100))
-            .map(transactions -> {
-                LOG.infof("Retrieved %d transactions successfully", transactions.size());
-                return PortalResponse.success(transactions, "Blockchain transactions retrieved");
-            })
-            .onFailure()
-            .recoverWithItem(throwable -> {
-                LOG.errorf(throwable, "Failed to get blockchain transactions: %s", throwable.getMessage());
-                return PortalResponse.error(500, "Failed to retrieve blockchain transactions: " + throwable.getMessage());
-            });
-    }
-
     // ==================== ENDPOINT 2: Block Search ====================
 
     /**
-     * GET /api/v12/blockchain/search
-     * Alias for block search (frontend compatibility)
-     */
-    @GET
-    @Path("/search")
-    @Operation(summary = "Search blockchain (alias)", description = "Alias for /blocks/search - Search blocks with various filters")
-    @APIResponse(responseCode = "200", description = "Search completed successfully")
-    public Uni<BlockSearchResponse> searchBlocksAlias(
-        @QueryParam("query") String query,
-        @QueryParam("fromBlock") Long fromBlock,
-        @QueryParam("toBlock") Long toBlock,
-        @QueryParam("validator") String validator,
-        @QueryParam("minTransactions") Integer minTransactions,
-        @QueryParam("limit") @DefaultValue("20") int limit) {
-        // Delegate to the main search method
-        return searchBlocks(query, fromBlock, toBlock, validator, minTransactions, limit);
-    }
-
-    /**
-     * GET /api/v12/blockchain/blocks/search
+     * GET /api/v11/blockchain/blocks/search
      * Search blocks with filters
      */
     @GET
@@ -255,7 +112,7 @@ public class BlockchainSearchApiResource {
     // ==================== ENDPOINT 3: Submit Transaction ====================
 
     /**
-     * POST /api/v12/blockchain/transactions/submit
+     * POST /api/v11/blockchain/transactions/submit
      * Submit a new transaction to the network
      */
     @POST

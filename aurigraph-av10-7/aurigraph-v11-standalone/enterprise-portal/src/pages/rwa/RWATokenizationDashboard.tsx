@@ -317,7 +317,7 @@ const useAssetRegistry = () => {
 
     const result = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/rwa/assets')
+        const response = await fetch('/api/v11/rwa/assets')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -369,7 +369,7 @@ const useFractionalOwnership = (tokenId: string | null) => {
 
     const result = await safeApiCall(
       async () => {
-        const response = await fetch(`/api/v12/rwa/tokens/${tokenId}/ownerships`)
+        const response = await fetch(`/api/v11/rwa/tokens/${tokenId}/ownerships`)
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -421,7 +421,7 @@ const useAssetPerformance = (assetId: string | null) => {
 
     const valuationResult = await safeApiCall(
       async () => {
-        const response = await fetch(`/api/v12/rwa/assets/${assetId}/valuation-history`)
+        const response = await fetch(`/api/v11/rwa/assets/${assetId}/valuation-history`)
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -430,7 +430,7 @@ const useAssetPerformance = (assetId: string | null) => {
 
     const dividendResult = await safeApiCall(
       async () => {
-        const response = await fetch(`/api/v12/rwa/assets/${assetId}/dividends`)
+        const response = await fetch(`/api/v11/rwa/assets/${assetId}/dividends`)
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -439,7 +439,7 @@ const useAssetPerformance = (assetId: string | null) => {
 
     const volumeResult = await safeApiCall(
       async () => {
-        const response = await fetch(`/api/v12/rwa/assets/${assetId}/trading-volume`)
+        const response = await fetch(`/api/v11/rwa/assets/${assetId}/trading-volume`)
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },

@@ -1,0 +1,123 @@
+import { EventEmitter } from 'events';
+import { AIOptimizer } from '../ai/AIOptimizer';
+import { QuantumCryptoManager } from '../crypto/QuantumCryptoManager';
+export interface ComplianceConfig {
+    jurisdictions: string[];
+    kycLevel: 'basic' | 'enhanced' | 'institutional';
+    amlThreshold: number;
+    reportingFrequency: 'realtime' | 'daily' | 'weekly';
+    sanctionListUpdate: 'automatic' | 'manual';
+    auditTrailRetention: number;
+    riskTolerance: 'low' | 'medium' | 'high';
+    regulatoryFrameworks: string[];
+}
+export interface ComplianceRule {
+    id: string;
+    name: string;
+    jurisdiction: string;
+    type: 'kyc' | 'aml' | 'tax' | 'data-protection' | 'financial';
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    automated: boolean;
+    aiEnabled: boolean;
+    quantumSecure: boolean;
+}
+export interface ComplianceEvent {
+    id: string;
+    type: 'violation' | 'warning' | 'compliance' | 'audit';
+    severity: number;
+    description: string;
+    userId?: string;
+    transactionId?: string;
+    timestamp: Date;
+    resolved: boolean;
+    autoResolved: boolean;
+    aiConfidence?: number;
+}
+export interface RiskAssessment {
+    userId: string;
+    riskScore: number;
+    riskLevel: 'low' | 'medium' | 'high' | 'critical';
+    factors: string[];
+    recommendations: string[];
+    automated: boolean;
+    aiGenerated: boolean;
+    timestamp: Date;
+}
+export declare class AutonomousComplianceEngine extends EventEmitter {
+    private logger;
+    private config;
+    private aiOptimizer;
+    private quantumCrypto;
+    private complianceRules;
+    private complianceEvents;
+    private riskAssessments;
+    private auditTrail;
+    private sanctionLists;
+    private monitoringActive;
+    private complianceScore;
+    private violationCount;
+    private autoResolutionRate;
+    private predictiveCompliance;
+    private autonomousReporting;
+    private intelligentRiskScoring;
+    private adaptivePolicyEnforcement;
+    private metrics;
+    private startTime;
+    constructor(config: ComplianceConfig, aiOptimizer: AIOptimizer, quantumCrypto: QuantumCryptoManager);
+    initialize(): Promise<void>;
+    private loadComplianceRules;
+    private loadJurisdictionRules;
+    private initializeSanctionLists;
+    private initializeAICompliance;
+    private initializePredictiveCompliance;
+    private getHistoricalViolations;
+    private getRecentRegulatoryUpdates;
+    private getKnownRiskPatterns;
+    private startRealTimeMonitoring;
+    private performRealTimeComplianceCheck;
+    private getCurrentTransactions;
+    private checkTransactionCompliance;
+    private performKYCCheck;
+    private performAMLCheck;
+    private performSanctionCheck;
+    private performRiskAssessment;
+    private getUserHistory;
+    private getUserTransactionPattern;
+    private getNetworkAnalysis;
+    private getUserRiskProfile;
+    private getCurrentMarketConditions;
+    private getNetworkRiskIndicators;
+    private handleComplianceViolation;
+    private calculateViolationSeverity;
+    private generateViolationDescription;
+    private attemptAutonomousResolution;
+    private executeResolutionAction;
+    private performEnhancedVerification;
+    private performTransactionReview;
+    private applyRiskMitigation;
+    private generateAutomatedReport;
+    private getRiskThresholds;
+    private verifyResolution;
+    private getResolutionOutcomeMetrics;
+    private recordSuccessfulResolution;
+    private escalateViolation;
+    private logComplianceSuccess;
+    private updateComplianceScore;
+    private startAutonomousReporting;
+    private generateDailyComplianceReport;
+    private generateCriticalEventReport;
+    private getImmediateActions;
+    private getTotalTransactionsToday;
+    private getViolationCountToday;
+    private getRiskAssessmentsToday;
+    private getAuditTrailCountToday;
+    start(): Promise<void>;
+    stop(): Promise<void>;
+    private generateFinalComplianceReport;
+    getComplianceStatus(): any;
+    getComplianceMetrics(): any;
+    generateComplianceReport(timeframe: 'daily' | 'weekly' | 'monthly'): Promise<any>;
+    private generateComplianceRecommendations;
+    private getRegulatoryTrends;
+}
+//# sourceMappingURL=AutonomousComplianceEngine.d.ts.map

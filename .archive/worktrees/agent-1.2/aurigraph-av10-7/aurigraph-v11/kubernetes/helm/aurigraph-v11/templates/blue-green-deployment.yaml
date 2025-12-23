@@ -1,0 +1,510 @@
+{{/*
+Blue-Green Deployment Strategy for Aurigraph V11
+Zero-downtime deployments with traffic switching and rollback capabilities
+*/}}
+
+{{/*
+Blue Environment Deployment
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-blue
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    deployment-strategy: blue-green
+    environment: blue
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicas.platformService }}
+  strategy:
+    type: Recreate  # Blue-green uses recreate strategy
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+      app.kubernetes.io/component: platform-service
+      environment: blue
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.app.name }}
+        app.kubernetes.io/component: platform-service
+        app.kubernetes.io/version: {{ .Values.app.version }}
+        environment: blue
+        sidecar.istio.io/inject: "{{ .Values.istio.injection }}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ .Values.app.name }}
+      containers:
+      - name: platform-service
+        image: "{{ .Values.images.platformService.repository }}:{{ .Values.images.platformService.tag }}"
+        imagePullPolicy: {{ .Values.images.platformService.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.security.securityContext | nindent 10 }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.ports.http }}
+          protocol: TCP
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc }}
+          protocol: TCP
+        - name: p2p
+          containerPort: {{ .Values.service.ports.p2p }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.service.ports.metrics }}
+          protocol: TCP
+        env:
+        - name: DEPLOYMENT_ENVIRONMENT
+          value: "blue"
+        - name: BLUE_GREEN_MODE
+          value: "true"
+        - name: QUARKUS_PROFILE
+          value: "{{ .Values.app.environment }}"
+        - name: BLOCKCHAIN_NETWORK_ID
+          value: "{{ .Values.config.blockchain.networkId }}"
+        - name: TARGET_TPS
+          value: "{{ .Values.config.blockchain.targetTPS }}"
+        resources:
+          {{- toYaml .Values.resources.platformService | nindent 10 }}
+        livenessProbe:
+          {{- toYaml .Values.health.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.health.readinessProbe | nindent 10 }}
+        startupProbe:
+          {{- toYaml .Values.health.startupProbe | nindent 10 }}
+        volumeMounts:
+        - name: blockchain-data
+          mountPath: /data/blockchain
+          readOnly: true  # Blue accesses data read-only during deployment
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: blockchain-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-blockchain-data
+      - name: config
+        configMap:
+          name: {{ .Values.app.name }}-config
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: environment
+                operator: In
+                values:
+                - green
+            topologyKey: kubernetes.io/hostname
+
+---
+{{/*
+Green Environment Deployment
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-green
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    deployment-strategy: blue-green
+    environment: green
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: 0  # Initially scaled to 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+      app.kubernetes.io/component: platform-service
+      environment: green
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.app.name }}
+        app.kubernetes.io/component: platform-service
+        app.kubernetes.io/version: {{ .Values.app.version }}
+        environment: green
+        sidecar.istio.io/inject: "{{ .Values.istio.injection }}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ .Values.app.name }}
+      containers:
+      - name: platform-service
+        image: "{{ .Values.images.platformService.repository }}:{{ .Values.images.platformService.tag }}"
+        imagePullPolicy: {{ .Values.images.platformService.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.security.securityContext | nindent 10 }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.ports.http }}
+          protocol: TCP
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc }}
+          protocol: TCP
+        - name: p2p
+          containerPort: {{ .Values.service.ports.p2p }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.service.ports.metrics }}
+          protocol: TCP
+        env:
+        - name: DEPLOYMENT_ENVIRONMENT
+          value: "green"
+        - name: BLUE_GREEN_MODE
+          value: "true"
+        - name: QUARKUS_PROFILE
+          value: "{{ .Values.app.environment }}"
+        - name: BLOCKCHAIN_NETWORK_ID
+          value: "{{ .Values.config.blockchain.networkId }}"
+        - name: TARGET_TPS
+          value: "{{ .Values.config.blockchain.targetTPS }}"
+        resources:
+          {{- toYaml .Values.resources.platformService | nindent 10 }}
+        livenessProbe:
+          {{- toYaml .Values.health.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.health.readinessProbe | nindent 10 }}
+        startupProbe:
+          {{- toYaml .Values.health.startupProbe | nindent 10 }}
+        volumeMounts:
+        - name: blockchain-data
+          mountPath: /data/blockchain
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: blockchain-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-blockchain-data
+      - name: config
+        configMap:
+          name: {{ .Values.app.name }}-config
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: environment
+                operator: In
+                values:
+                - blue
+            topologyKey: kubernetes.io/hostname
+
+---
+{{/*
+Blue Service - Currently Active
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-blue-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    environment: blue
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.ports.http }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+    name: grpc
+  - port: {{ .Values.service.ports.p2p }}
+    targetPort: p2p
+    protocol: TCP
+    name: p2p
+  - port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    environment: blue
+
+---
+{{/*
+Green Service - Standby
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-green-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    environment: green
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.ports.http }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+    name: grpc
+  - port: {{ .Values.service.ports.p2p }}
+    targetPort: p2p
+    protocol: TCP
+    name: p2p
+  - port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    environment: green
+
+---
+{{/*
+Active Service - Points to current active environment
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-active-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    active-environment: blue  # Initially points to blue
+  annotations:
+    service.beta.kubernetes.io/load-balancer-source-ranges: "0.0.0.0/0"
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.ports.http }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+    name: grpc
+  - port: {{ .Values.service.ports.p2p }}
+    targetPort: p2p
+    protocol: TCP
+    name: p2p
+  - port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    environment: blue  # Initially routes to blue
+
+---
+{{/*
+Blue-Green Deployment Job
+Handles the deployment switching logic
+*/}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app.name }}-bg-deploy-{{ now | date "20060102-150405" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: deployment-controller
+    app.kubernetes.io/version: {{ .Values.app.version }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.app.name }}
+        app.kubernetes.io/component: deployment-controller
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      serviceAccountName: {{ .Values.app.name }}-deployer
+      restartPolicy: Never
+      containers:
+      - name: blue-green-controller
+        image: bitnami/kubectl:1.28
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "=== Aurigraph V11 Blue-Green Deployment Controller ==="
+          
+          # Get current active environment
+          CURRENT_ENV=$(kubectl get service {{ .Values.app.name }}-active-service -n {{ .Release.Namespace }} -o jsonpath='{.spec.selector.environment}' || echo "blue")
+          echo "Current active environment: $CURRENT_ENV"
+          
+          # Determine target environment
+          if [ "$CURRENT_ENV" = "blue" ]; then
+            TARGET_ENV="green"
+            STANDBY_ENV="blue"
+          else
+            TARGET_ENV="blue"
+            STANDBY_ENV="green"
+          fi
+          
+          echo "Target environment: $TARGET_ENV"
+          echo "Standby environment: $STANDBY_ENV"
+          
+          # Scale up target environment
+          echo "Scaling up $TARGET_ENV environment..."
+          kubectl scale deployment {{ .Values.app.name }}-$TARGET_ENV --replicas={{ .Values.replicas.platformService }} -n {{ .Release.Namespace }}
+          
+          # Wait for target environment to be ready
+          echo "Waiting for $TARGET_ENV pods to be ready..."
+          kubectl rollout status deployment/{{ .Values.app.name }}-$TARGET_ENV -n {{ .Release.Namespace }} --timeout=600s
+          
+          # Health check target environment
+          echo "Performing health checks on $TARGET_ENV environment..."
+          for i in {1..30}; do
+            if kubectl exec deployment/{{ .Values.app.name }}-$TARGET_ENV -n {{ .Release.Namespace }} -- curl -f http://localhost:{{ .Values.service.ports.http }}/health/ready; then
+              echo "Health check passed for $TARGET_ENV"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+          
+          # Switch traffic to target environment
+          echo "Switching traffic to $TARGET_ENV environment..."
+          kubectl patch service {{ .Values.app.name }}-active-service -n {{ .Release.Namespace }} -p '{"spec":{"selector":{"environment":"'$TARGET_ENV'"}}}'
+          kubectl label service {{ .Values.app.name }}-active-service -n {{ .Release.Namespace }} active-environment=$TARGET_ENV --overwrite
+          
+          # Verify traffic switch
+          sleep 30
+          echo "Verifying traffic switch..."
+          kubectl get service {{ .Values.app.name }}-active-service -n {{ .Release.Namespace }} -o jsonpath='{.spec.selector.environment}'
+          
+          # Scale down standby environment after successful switch
+          echo "Scaling down $STANDBY_ENV environment..."
+          kubectl scale deployment {{ .Values.app.name }}-$STANDBY_ENV --replicas=1 -n {{ .Release.Namespace }}
+          
+          echo "=== Blue-Green deployment completed successfully ==="
+          echo "Active environment: $TARGET_ENV"
+          echo "Standby environment: $STANDBY_ENV"
+        env:
+        - name: KUBECTL_VERSION
+          value: "1.28"
+        volumeMounts:
+        - name: kube-config
+          mountPath: /root/.kube
+          readOnly: true
+      volumes:
+      - name: kube-config
+        secret:
+          secretName: deployer-kubeconfig
+          optional: true
+
+---
+{{/*
+Service Account for Blue-Green Deployment Controller
+*/}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.app.name }}-deployer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: deployment-controller
+    app.kubernetes.io/version: {{ .Values.app.version }}
+
+---
+{{/*
+Role for Blue-Green Deployment Operations
+*/}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.app.name }}-deployer-role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: deployment-controller
+    app.kubernetes.io/version: {{ .Values.app.version }}
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments", "deployments/scale"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "update", "patch"]
+- apiGroups: [""]
+  resources: ["pods", "pods/exec"]
+  verbs: ["get", "list", "create"]
+
+---
+{{/*
+RoleBinding for Blue-Green Deployment Controller
+*/}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.app.name }}-deployer-binding
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: deployment-controller
+    app.kubernetes.io/version: {{ .Values.app.version }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.app.name }}-deployer-role
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.app.name }}-deployer
+  namespace: {{ .Release.Namespace }}

@@ -1,0 +1,352 @@
+{{/*
+Aurigraph V11 Platform Service Deployment
+High-performance blockchain platform deployment with auto-scaling
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-platform
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicas.platformService }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+      app.kubernetes.io/component: platform-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.app.name }}
+        app.kubernetes.io/component: platform-service
+        app.kubernetes.io/version: {{ .Values.app.version }}
+        sidecar.istio.io/inject: "{{ .Values.istio.injection }}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ .Values.app.name }}
+      automountServiceAccountToken: true
+      containers:
+      - name: platform-service
+        image: "{{ .Values.images.platformService.repository }}:{{ .Values.images.platformService.tag }}"
+        imagePullPolicy: {{ .Values.images.platformService.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.security.securityContext | nindent 10 }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.ports.http }}
+          protocol: TCP
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc }}
+          protocol: TCP
+        - name: p2p
+          containerPort: {{ .Values.service.ports.p2p }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.service.ports.metrics }}
+          protocol: TCP
+        env:
+        - name: QUARKUS_PROFILE
+          value: "{{ .Values.app.environment }}"
+        - name: BLOCKCHAIN_NETWORK_ID
+          value: "{{ .Values.config.blockchain.networkId }}"
+        - name: CONSENSUS_ALGORITHM
+          value: "{{ .Values.config.blockchain.consensusAlgorithm }}"
+        - name: TARGET_TPS
+          value: "{{ .Values.config.blockchain.targetTPS }}"
+        - name: NATIVE_IMAGE_ENABLED
+          value: "{{ .Values.config.performance.nativeImageEnabled }}"
+        - name: ASYNC_PROCESSING
+          value: "{{ .Values.config.performance.asyncProcessing }}"
+        - name: THREAD_POOL_SIZE
+          value: "{{ .Values.config.performance.threadPoolSize }}"
+        - name: BATCH_SIZE
+          value: "{{ .Values.config.performance.batchSize }}"
+        - name: CRYPTO_ALGORITHM
+          value: "{{ .Values.config.cryptography.algorithm }}"
+        - name: HASH_ALGORITHM
+          value: "{{ .Values.config.cryptography.hashAlgorithm }}"
+        - name: SIGNATURE_SCHEME
+          value: "{{ .Values.config.cryptography.signatureScheme }}"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          {{- toYaml .Values.resources.platformService | nindent 10 }}
+        livenessProbe:
+          {{- toYaml .Values.health.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.health.readinessProbe | nindent 10 }}
+        startupProbe:
+          {{- toYaml .Values.health.startupProbe | nindent 10 }}
+        volumeMounts:
+        - name: blockchain-data
+          mountPath: /data/blockchain
+        - name: transaction-logs
+          mountPath: /data/logs
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: blockchain-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-blockchain-data
+      - name: transaction-logs
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-logs
+      - name: config
+        configMap:
+          name: {{ .Values.app.name }}-config
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                  - platform-service
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: node-type
+                operator: In
+                values:
+                - compute-optimized
+      tolerations:
+      - key: "high-performance"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+---
+{{/*
+Consensus Service Deployment
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-consensus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: consensus-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicas.consensusService }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+      app.kubernetes.io/component: consensus-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.app.name }}
+        app.kubernetes.io/component: consensus-service
+        app.kubernetes.io/version: {{ .Values.app.version }}
+        sidecar.istio.io/inject: "{{ .Values.istio.injection }}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ .Values.app.name }}
+      containers:
+      - name: consensus-service
+        image: "{{ .Values.images.consensusService.repository }}:{{ .Values.images.consensusService.tag }}"
+        imagePullPolicy: {{ .Values.images.consensusService.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.security.securityContext | nindent 10 }}
+        ports:
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc }}
+          protocol: TCP
+        - name: p2p
+          containerPort: {{ .Values.service.ports.p2p }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.service.ports.metrics }}
+          protocol: TCP
+        env:
+        - name: CONSENSUS_MODE
+          value: "hyperraft"
+        - name: CLUSTER_SIZE
+          value: "{{ .Values.replicas.consensusService }}"
+        - name: BLOCK_TIME
+          value: "{{ .Values.config.blockchain.blockTime }}"
+        - name: MAX_TXN_PER_BLOCK
+          value: "{{ .Values.config.blockchain.maxTransactionsPerBlock }}"
+        resources:
+          {{- toYaml .Values.resources.consensusService | nindent 10 }}
+        livenessProbe:
+          grpc:
+            port: {{ .Values.service.ports.grpc }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          grpc:
+            port: {{ .Values.service.ports.grpc }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: consensus-data
+          mountPath: /data/consensus
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: consensus-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-consensus-data
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                - consensus-service
+            topologyKey: kubernetes.io/hostname
+
+---
+{{/*
+Network Service Deployment
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-network
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: network-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicas.networkService }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+      app.kubernetes.io/component: network-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.app.name }}
+        app.kubernetes.io/component: network-service
+        app.kubernetes.io/version: {{ .Values.app.version }}
+        sidecar.istio.io/inject: "{{ .Values.istio.injection }}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ .Values.app.name }}
+      containers:
+      - name: network-service
+        image: "{{ .Values.images.networkService.repository }}:{{ .Values.images.networkService.tag }}"
+        imagePullPolicy: {{ .Values.images.networkService.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.security.securityContext | nindent 10 }}
+        ports:
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc }}
+          protocol: TCP
+        - name: p2p
+          containerPort: {{ .Values.service.ports.p2p }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.service.ports.metrics }}
+          protocol: TCP
+        env:
+        - name: P2P_PORT
+          value: "{{ .Values.service.ports.p2p }}"
+        - name: GRPC_PORT
+          value: "{{ .Values.service.ports.grpc }}"
+        - name: NETWORK_ID
+          value: "{{ .Values.config.blockchain.networkId }}"
+        resources:
+          {{- toYaml .Values.resources.networkService | nindent 10 }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.service.ports.p2p }}
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.service.ports.grpc }}
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        volumeMounts:
+        - name: network-data
+          mountPath: /data/network
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: network-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-network-data
+      - name: tmp
+        emptyDir: {}

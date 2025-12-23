@@ -1,0 +1,64 @@
+# Filebeat Configuration for Aurigraph V11
+# Collects logs from files and Docker containers
+
+filebeat.inputs:
+  # Application logs
+  - type: log
+    enabled: true
+    paths:
+      - /logs/*.log
+      - /var/log/aurigraph/*.log
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      service: aurigraph-v11
+      type: application
+    fields_under_root: true
+
+  # Docker container logs
+  - type: docker
+    enabled: true
+    containers.ids:
+      - "*"
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+
+  # System logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/messages
+    fields:
+      type: system
+    fields_under_root: true
+
+# Output to Logstash
+output.logstash:
+  hosts: ["logstash:5044"]
+  loadbalance: true
+  compression_level: 3
+
+# Elasticsearch output (alternative - comment out if using Logstash)
+# output.elasticsearch:
+#   hosts: ["elasticsearch:9200"]
+#   index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+# Kibana dashboard loading
+setup.kibana:
+  host: "kibana:5601"
+
+# Logging
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# Monitoring
+monitoring.enabled: true
+monitoring.elasticsearch:
+  hosts: ["elasticsearch:9200"]

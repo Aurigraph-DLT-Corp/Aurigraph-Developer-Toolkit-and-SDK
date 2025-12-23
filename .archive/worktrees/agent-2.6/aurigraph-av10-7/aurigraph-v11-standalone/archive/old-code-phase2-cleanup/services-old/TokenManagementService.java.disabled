@@ -1,0 +1,641 @@
+package io.aurigraph.v11.services;
+
+import io.aurigraph.v11.models.*;
+import io.aurigraph.v11.contracts.rwa.RWATokenizer;
+import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import org.jboss.logging.Logger;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Token Management Service
+ *
+ * Comprehensive token lifecycle management for ERC20, ERC721, and ERC1155 tokens.
+ * Integrates with RWA tokenization for real-world asset backing.
+ *
+ * Features:
+ * - Token creation with template support
+ * - Minting and burning operations
+ * - Token verification and compliance
+ * - RWA integration
+ * - IPFS metadata management
+ * - Statistics and analytics
+ *
+ * Part of Sprint 12 - Token Management APIs (AV11-058)
+ *
+ * @author Backend Development Agent (BDA-3)
+ * @version 11.0.0
+ * @since Sprint 12
+ */
+@ApplicationScoped
+public class TokenManagementService {
+
+    private static final Logger LOG = Logger.getLogger(TokenManagementService.class);
+
+    @Inject
+    RWATokenizer rwaTokenizer;
+
+    // In-memory storage (replace with repository in production)
+    private final Map<String, TokenRegistry> tokenRegistryMap = new ConcurrentHashMap<>();
+    private final Map<String, TokenMetadata> tokenMetadataMap = new ConcurrentHashMap<>();
+    private final Map<String, TokenTemplate> tokenTemplates = new ConcurrentHashMap<>();
+
+    /**
+     * Initialize service with default templates
+     */
+    public void init() {
+        // Create default token templates
+        createDefaultTemplates();
+        LOG.info("TokenManagementService initialized with " + tokenTemplates.size() + " templates");
+    }
+
+    /**
+     * Create default token templates (ERC20, ERC721, ERC1155)
+     */
+    private void createDefaultTemplates() {
+        // ERC20 Standard Template
+        TokenTemplate erc20Template = new TokenTemplate();
+        erc20Template.setTemplateId("ERC20_STANDARD");
+        erc20Template.setName("Standard Fungible Token (ERC20)");
+        erc20Template.setDescription("Standard fungible token following ERC20 specification");
+        erc20Template.setTokenType(TokenType.ERC20);
+        erc20Template.setDecimals(18);
+        erc20Template.setMintable(true);
+        erc20Template.setBurnable(true);
+        erc20Template.setPausable(false);
+        tokenTemplates.put("ERC20_STANDARD", erc20Template);
+
+        // ERC721 NFT Template
+        TokenTemplate erc721Template = new TokenTemplate();
+        erc721Template.setTemplateId("ERC721_NFT");
+        erc721Template.setName("Non-Fungible Token (ERC721)");
+        erc721Template.setDescription("Unique non-fungible token following ERC721 specification");
+        erc721Template.setTokenType(TokenType.ERC721);
+        erc721Template.setDecimals(0);
+        erc721Template.setMintable(true);
+        erc721Template.setBurnable(true);
+        erc721Template.setPausable(false);
+        tokenTemplates.put("ERC721_NFT", erc721Template);
+
+        // ERC1155 Multi-Token Template
+        TokenTemplate erc1155Template = new TokenTemplate();
+        erc1155Template.setTemplateId("ERC1155_MULTI");
+        erc1155Template.setName("Multi-Token Standard (ERC1155)");
+        erc1155Template.setDescription("Hybrid token supporting fungible and non-fungible in single contract");
+        erc1155Template.setTokenType(TokenType.ERC1155);
+        erc1155Template.setDecimals(0);
+        erc1155Template.setMintable(true);
+        erc1155Template.setBurnable(true);
+        erc1155Template.setPausable(false);
+        tokenTemplates.put("ERC1155_MULTI", erc1155Template);
+
+        // RWA Carbon Credit Template
+        TokenTemplate rwaCarbon = new TokenTemplate();
+        rwaCarbon.setTemplateId("RWA_CARBON_CREDIT");
+        rwaCarbon.setName("Carbon Credit Token (RWA)");
+        rwaCarbon.setDescription("Real-world asset token representing carbon credits");
+        rwaCarbon.setTokenType(TokenType.ERC20);
+        rwaCarbon.setDecimals(6);
+        rwaCarbon.setMintable(true);
+        rwaCarbon.setBurnable(true);
+        rwaCarbon.setPausable(true);
+        rwaCarbon.setRwaEnabled(true);
+        tokenTemplates.put("RWA_CARBON_CREDIT", rwaCarbon);
+
+        // RWA Real Estate Template
+        TokenTemplate rwaRealEstate = new TokenTemplate();
+        rwaRealEstate.setTemplateId("RWA_REAL_ESTATE");
+        rwaRealEstate.setName("Real Estate Token (RWA)");
+        rwaRealEstate.setDescription("Real-world asset token representing real estate fractional ownership");
+        rwaRealEstate.setTokenType(TokenType.ERC1155);
+        rwaRealEstate.setDecimals(4);
+        rwaRealEstate.setMintable(false);
+        rwaRealEstate.setBurnable(false);
+        rwaRealEstate.setPausable(true);
+        rwaRealEstate.setRwaEnabled(true);
+        tokenTemplates.put("RWA_REAL_ESTATE", rwaRealEstate);
+    }
+
+    /**
+     * Get all tokens with pagination
+     */
+    public Uni<List<TokenRegistry>> getAllTokens(int page, int size) {
+        return Uni.createFrom().item(() -> {
+            List<TokenRegistry> allTokens = new ArrayList<>(tokenRegistryMap.values());
+            int fromIndex = page * size;
+            int toIndex = Math.min(fromIndex + size, allTokens.size());
+
+            if (fromIndex >= allTokens.size()) {
+                return Collections.emptyList();
+            }
+
+            return allTokens.subList(fromIndex, toIndex);
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Get token by ID
+     */
+    public Uni<TokenRegistry> getTokenById(String tokenAddress) {
+        return Uni.createFrom().item(() -> {
+            TokenRegistry token = tokenRegistryMap.get(tokenAddress);
+            if (token == null) {
+                throw new TokenNotFoundException("Token not found: " + tokenAddress);
+            }
+            return token;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Get all token templates
+     */
+    public Uni<List<TokenTemplate>> getTokenTemplates() {
+        return Uni.createFrom().item(() -> new ArrayList<>(tokenTemplates.values()))
+            .runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Create new token
+     */
+    @Transactional
+    public Uni<TokenRegistry> createToken(TokenCreationRequest request) {
+        return Uni.createFrom().item(() -> {
+            long startTime = System.nanoTime();
+            LOG.infof("Creating token: %s (%s) of type %s", request.getName(), request.getSymbol(), request.getTokenType());
+
+            // Validate request
+            validateTokenCreationRequest(request);
+
+            // Apply template if specified
+            if (request.getTemplateId() != null) {
+                TokenTemplate template = tokenTemplates.get(request.getTemplateId());
+                if (template != null) {
+                    applyTemplate(request, template);
+                }
+            }
+
+            // Create token registry entry
+            TokenRegistry token = new TokenRegistry();
+            token.setName(request.getName());
+            token.setSymbol(request.getSymbol());
+            token.setTokenType(request.getTokenType());
+            token.setDecimals(request.getDecimals() != null ? request.getDecimals() : 18);
+            token.setCreatorAddress(request.getCreatorAddress());
+            token.setOwnerAddress(request.getCreatorAddress());
+            token.setIsMintable(request.isMintable());
+            token.setIsBurnable(request.isBurnable());
+            token.setIsPausable(request.isPausable());
+            token.setIsRWA(request.isRwaEnabled());
+            token.setMetadata(request.getMetadata());
+            token.setIpfsHash(request.getIpfsHash());
+            token.setCategories(request.getCategories());
+
+            // Initialize supply
+            if (request.getInitialSupply() != null && request.getInitialSupply().compareTo(BigDecimal.ZERO) > 0) {
+                token.setTotalSupply(request.getInitialSupply());
+                token.setCirculatingSupply(request.getInitialSupply());
+            }
+
+            // Generate token address
+            String tokenAddress = generateTokenAddress(token);
+            token.setTokenAddress(tokenAddress);
+
+            // Store token
+            tokenRegistryMap.put(tokenAddress, token);
+
+            long endTime = System.nanoTime();
+            LOG.infof("Token %s created successfully in %d ns", tokenAddress, endTime - startTime);
+
+            return token;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Mint tokens (increase supply)
+     */
+    @Transactional
+    public Uni<TokenMintResult> mintToken(String tokenAddress, BigDecimal amount, String recipientAddress) {
+        return Uni.createFrom().item(() -> {
+            long startTime = System.nanoTime();
+            LOG.infof("Minting %s tokens to %s for token %s", amount, recipientAddress, tokenAddress);
+
+            TokenRegistry token = tokenRegistryMap.get(tokenAddress);
+            if (token == null) {
+                throw new TokenNotFoundException("Token not found: " + tokenAddress);
+            }
+
+            if (!token.getIsMintable()) {
+                throw new IllegalStateException("Token is not mintable: " + tokenAddress);
+            }
+
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Mint amount must be positive");
+            }
+
+            // Mint tokens
+            token.mint(amount);
+
+            long endTime = System.nanoTime();
+            TokenMintResult result = new TokenMintResult(
+                tokenAddress, amount, recipientAddress,
+                token.getTotalSupply(), true, endTime - startTime
+            );
+
+            LOG.infof("Minted %s tokens successfully in %d ns. New total supply: %s",
+                amount, endTime - startTime, token.getTotalSupply());
+
+            return result;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Burn tokens (decrease supply)
+     */
+    @Transactional
+    public Uni<TokenBurnResult> burnToken(String tokenAddress, BigDecimal amount, String ownerAddress) {
+        return Uni.createFrom().item(() -> {
+            long startTime = System.nanoTime();
+            LOG.infof("Burning %s tokens from %s for token %s", amount, ownerAddress, tokenAddress);
+
+            TokenRegistry token = tokenRegistryMap.get(tokenAddress);
+            if (token == null) {
+                throw new TokenNotFoundException("Token not found: " + tokenAddress);
+            }
+
+            if (!token.getIsBurnable()) {
+                throw new IllegalStateException("Token is not burnable: " + tokenAddress);
+            }
+
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Burn amount must be positive");
+            }
+
+            // Burn tokens
+            token.burn(amount);
+
+            long endTime = System.nanoTime();
+            TokenBurnResult result = new TokenBurnResult(
+                tokenAddress, amount, ownerAddress,
+                token.getTotalSupply(), true, endTime - startTime
+            );
+
+            LOG.infof("Burned %s tokens successfully in %d ns. New total supply: %s",
+                amount, endTime - startTime, token.getTotalSupply());
+
+            return result;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Verify token (compliance check)
+     */
+    @Transactional
+    public Uni<TokenVerificationResult> verifyToken(String tokenAddress, String verifierAddress) {
+        return Uni.createFrom().item(() -> {
+            long startTime = System.nanoTime();
+            LOG.infof("Verifying token %s by %s", tokenAddress, verifierAddress);
+
+            TokenRegistry token = tokenRegistryMap.get(tokenAddress);
+            if (token == null) {
+                throw new TokenNotFoundException("Token not found: " + tokenAddress);
+            }
+
+            // Perform verification checks
+            boolean isValid = performTokenVerification(token);
+
+            if (isValid) {
+                token.verify();
+            }
+
+            long endTime = System.nanoTime();
+            TokenVerificationResult result = new TokenVerificationResult(
+                tokenAddress, isValid, verifierAddress,
+                "Token verification completed", endTime - startTime
+            );
+
+            LOG.infof("Token verification completed in %d ns. Result: %s", endTime - startTime, isValid);
+
+            return result;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Get token statistics
+     */
+    public Uni<TokenStatistics> getTokenStatistics() {
+        return Uni.createFrom().item(() -> {
+            TokenStatistics stats = new TokenStatistics();
+            stats.setTotalTokens(tokenRegistryMap.size());
+
+            long erc20Count = tokenRegistryMap.values().stream()
+                .filter(t -> t.getTokenType() == TokenType.ERC20).count();
+            long erc721Count = tokenRegistryMap.values().stream()
+                .filter(t -> t.getTokenType() == TokenType.ERC721).count();
+            long erc1155Count = tokenRegistryMap.values().stream()
+                .filter(t -> t.getTokenType() == TokenType.ERC1155).count();
+            long rwaCount = tokenRegistryMap.values().stream()
+                .filter(TokenRegistry::isRealWorldAsset).count();
+
+            stats.setErc20Count(erc20Count);
+            stats.setErc721Count(erc721Count);
+            stats.setErc1155Count(erc1155Count);
+            stats.setRwaCount(rwaCount);
+
+            BigDecimal totalMarketCap = tokenRegistryMap.values().stream()
+                .map(t -> t.getMarketCap() != null ? t.getMarketCap() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            stats.setTotalMarketCap(totalMarketCap);
+
+            return stats;
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    /**
+     * Get RWA tokens
+     */
+    public Uni<List<TokenRegistry>> getRWATokens() {
+        return Uni.createFrom().item(() -> {
+            return tokenRegistryMap.values().stream()
+                .filter(TokenRegistry::isRealWorldAsset)
+                .toList();
+        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
+    }
+
+    // Private helper methods
+
+    private void validateTokenCreationRequest(TokenCreationRequest request) {
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Token name is required");
+        }
+        if (request.getSymbol() == null || request.getSymbol().trim().isEmpty()) {
+            throw new IllegalArgumentException("Token symbol is required");
+        }
+        if (request.getTokenType() == null) {
+            throw new IllegalArgumentException("Token type is required");
+        }
+        if (request.getCreatorAddress() == null || request.getCreatorAddress().trim().isEmpty()) {
+            throw new IllegalArgumentException("Creator address is required");
+        }
+    }
+
+    private void applyTemplate(TokenCreationRequest request, TokenTemplate template) {
+        if (request.getTokenType() == null) {
+            request.setTokenType(template.getTokenType());
+        }
+        if (request.getDecimals() == null) {
+            request.setDecimals(template.getDecimals());
+        }
+        request.setMintable(template.isMintable());
+        request.setBurnable(template.isBurnable());
+        request.setPausable(template.isPausable());
+        request.setRwaEnabled(template.isRwaEnabled());
+    }
+
+    private String generateTokenAddress(TokenRegistry token) {
+        return "0x" + UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private boolean performTokenVerification(TokenRegistry token) {
+        // Simple verification logic - enhance with actual compliance checks
+        return token.getName() != null &&
+               token.getSymbol() != null &&
+               token.getCreatorAddress() != null;
+    }
+
+    // Exception classes
+    public static class TokenNotFoundException extends RuntimeException {
+        public TokenNotFoundException(String message) {
+            super(message);
+        }
+    }
+}
+
+/**
+ * Token Creation Request DTO
+ */
+class TokenCreationRequest {
+    private String name;
+    private String symbol;
+    private TokenType tokenType;
+    private Integer decimals;
+    private String creatorAddress;
+    private BigDecimal initialSupply;
+    private boolean mintable;
+    private boolean burnable;
+    private boolean pausable;
+    private boolean rwaEnabled;
+    private String metadata;
+    private String ipfsHash;
+    private String categories;
+    private String templateId;
+
+    // Getters and setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getSymbol() { return symbol; }
+    public void setSymbol(String symbol) { this.symbol = symbol; }
+
+    public TokenType getTokenType() { return tokenType; }
+    public void setTokenType(TokenType tokenType) { this.tokenType = tokenType; }
+
+    public Integer getDecimals() { return decimals; }
+    public void setDecimals(Integer decimals) { this.decimals = decimals; }
+
+    public String getCreatorAddress() { return creatorAddress; }
+    public void setCreatorAddress(String creatorAddress) { this.creatorAddress = creatorAddress; }
+
+    public BigDecimal getInitialSupply() { return initialSupply; }
+    public void setInitialSupply(BigDecimal initialSupply) { this.initialSupply = initialSupply; }
+
+    public boolean isMintable() { return mintable; }
+    public void setMintable(boolean mintable) { this.mintable = mintable; }
+
+    public boolean isBurnable() { return burnable; }
+    public void setBurnable(boolean burnable) { this.burnable = burnable; }
+
+    public boolean isPausable() { return pausable; }
+    public void setPausable(boolean pausable) { this.pausable = pausable; }
+
+    public boolean isRwaEnabled() { return rwaEnabled; }
+    public void setRwaEnabled(boolean rwaEnabled) { this.rwaEnabled = rwaEnabled; }
+
+    public String getMetadata() { return metadata; }
+    public void setMetadata(String metadata) { this.metadata = metadata; }
+
+    public String getIpfsHash() { return ipfsHash; }
+    public void setIpfsHash(String ipfsHash) { this.ipfsHash = ipfsHash; }
+
+    public String getCategories() { return categories; }
+    public void setCategories(String categories) { this.categories = categories; }
+
+    public String getTemplateId() { return templateId; }
+    public void setTemplateId(String templateId) { this.templateId = templateId; }
+}
+
+/**
+ * Token Template Entity
+ */
+class TokenTemplate {
+    private String templateId;
+    private String name;
+    private String description;
+    private TokenType tokenType;
+    private Integer decimals;
+    private boolean mintable;
+    private boolean burnable;
+    private boolean pausable;
+    private boolean rwaEnabled;
+
+    // Getters and setters
+    public String getTemplateId() { return templateId; }
+    public void setTemplateId(String templateId) { this.templateId = templateId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public TokenType getTokenType() { return tokenType; }
+    public void setTokenType(TokenType tokenType) { this.tokenType = tokenType; }
+
+    public Integer getDecimals() { return decimals; }
+    public void setDecimals(Integer decimals) { this.decimals = decimals; }
+
+    public boolean isMintable() { return mintable; }
+    public void setMintable(boolean mintable) { this.mintable = mintable; }
+
+    public boolean isBurnable() { return burnable; }
+    public void setBurnable(boolean burnable) { this.burnable = burnable; }
+
+    public boolean isPausable() { return pausable; }
+    public void setPausable(boolean pausable) { this.pausable = pausable; }
+
+    public boolean isRwaEnabled() { return rwaEnabled; }
+    public void setRwaEnabled(boolean rwaEnabled) { this.rwaEnabled = rwaEnabled; }
+}
+
+/**
+ * Token Mint Result DTO
+ */
+class TokenMintResult {
+    private final String tokenAddress;
+    private final BigDecimal amount;
+    private final String recipientAddress;
+    private final BigDecimal newTotalSupply;
+    private final boolean success;
+    private final long processingTime;
+
+    public TokenMintResult(String tokenAddress, BigDecimal amount, String recipientAddress,
+                          BigDecimal newTotalSupply, boolean success, long processingTime) {
+        this.tokenAddress = tokenAddress;
+        this.amount = amount;
+        this.recipientAddress = recipientAddress;
+        this.newTotalSupply = newTotalSupply;
+        this.success = success;
+        this.processingTime = processingTime;
+    }
+
+    // Getters
+    public String getTokenAddress() { return tokenAddress; }
+    public BigDecimal getAmount() { return amount; }
+    public String getRecipientAddress() { return recipientAddress; }
+    public BigDecimal getNewTotalSupply() { return newTotalSupply; }
+    public boolean isSuccess() { return success; }
+    public long getProcessingTime() { return processingTime; }
+}
+
+/**
+ * Token Burn Result DTO
+ */
+class TokenBurnResult {
+    private final String tokenAddress;
+    private final BigDecimal amount;
+    private final String ownerAddress;
+    private final BigDecimal newTotalSupply;
+    private final boolean success;
+    private final long processingTime;
+
+    public TokenBurnResult(String tokenAddress, BigDecimal amount, String ownerAddress,
+                          BigDecimal newTotalSupply, boolean success, long processingTime) {
+        this.tokenAddress = tokenAddress;
+        this.amount = amount;
+        this.ownerAddress = ownerAddress;
+        this.newTotalSupply = newTotalSupply;
+        this.success = success;
+        this.processingTime = processingTime;
+    }
+
+    // Getters
+    public String getTokenAddress() { return tokenAddress; }
+    public BigDecimal getAmount() { return amount; }
+    public String getOwnerAddress() { return ownerAddress; }
+    public BigDecimal getNewTotalSupply() { return newTotalSupply; }
+    public boolean isSuccess() { return success; }
+    public long getProcessingTime() { return processingTime; }
+}
+
+/**
+ * Token Verification Result DTO
+ */
+class TokenVerificationResult {
+    private final String tokenAddress;
+    private final boolean isValid;
+    private final String verifierAddress;
+    private final String message;
+    private final long processingTime;
+
+    public TokenVerificationResult(String tokenAddress, boolean isValid, String verifierAddress,
+                                  String message, long processingTime) {
+        this.tokenAddress = tokenAddress;
+        this.isValid = isValid;
+        this.verifierAddress = verifierAddress;
+        this.message = message;
+        this.processingTime = processingTime;
+    }
+
+    // Getters
+    public String getTokenAddress() { return tokenAddress; }
+    public boolean isValid() { return isValid; }
+    public String getVerifierAddress() { return verifierAddress; }
+    public String getMessage() { return message; }
+    public long getProcessingTime() { return processingTime; }
+}
+
+/**
+ * Token Statistics DTO
+ */
+class TokenStatistics {
+    private long totalTokens;
+    private long erc20Count;
+    private long erc721Count;
+    private long erc1155Count;
+    private long rwaCount;
+    private BigDecimal totalMarketCap;
+
+    // Getters and setters
+    public long getTotalTokens() { return totalTokens; }
+    public void setTotalTokens(long totalTokens) { this.totalTokens = totalTokens; }
+
+    public long getErc20Count() { return erc20Count; }
+    public void setErc20Count(long erc20Count) { this.erc20Count = erc20Count; }
+
+    public long getErc721Count() { return erc721Count; }
+    public void setErc721Count(long erc721Count) { this.erc721Count = erc721Count; }
+
+    public long getErc1155Count() { return erc1155Count; }
+    public void setErc1155Count(long erc1155Count) { this.erc1155Count = erc1155Count; }
+
+    public long getRwaCount() { return rwaCount; }
+    public void setRwaCount(long rwaCount) { this.rwaCount = rwaCount; }
+
+    public BigDecimal getTotalMarketCap() { return totalMarketCap; }
+    public void setTotalMarketCap(BigDecimal totalMarketCap) { this.totalMarketCap = totalMarketCap; }
+}

@@ -1,0 +1,61 @@
+# Aurigraph Enterprise Portal v4.0.0 - Terraform Variables Example
+# Copy this file to terraform.tfvars and fill in your values
+
+# ============================================================================
+# REMOTE SERVER CONFIGURATION
+# ============================================================================
+
+remote_host     = "dlt.aurigraph.io"
+remote_user     = "subbu"
+remote_port     = 22
+# remote_password = "your-password-here"  # Or set via: export TF_VAR_remote_password="password"
+
+# ============================================================================
+# DOMAIN AND SSL CONFIGURATION
+# ============================================================================
+
+domain_name              = "dlt.aurigraph.io"
+ssl_certificate_path     = "/etc/letsencrypt/live/dlt.aurigraph.io-0001/fullchain.pem"
+ssl_certificate_key_path = "/etc/letsencrypt/live/dlt.aurigraph.io-0001/privkey.pem"
+
+# Auto-setup SSL certificate if not exists (requires certbot)
+auto_setup_ssl = false
+certbot_email  = "subbu@aurigraph.io"
+
+# ============================================================================
+# BACKEND CONFIGURATION
+# ============================================================================
+
+backend_port = 8443  # Aurigraph V11 backend HTTPS port
+
+# ============================================================================
+# DEPLOYMENT CONFIGURATION
+# ============================================================================
+
+environment     = "production"  # Options: dev, staging, production
+enable_backup   = true
+retention_days  = 7
+
+# ============================================================================
+# MONITORING CONFIGURATION
+# ============================================================================
+
+enable_monitoring       = true
+health_check_interval   = 30
+
+# ============================================================================
+# SECURITY CONFIGURATION
+# ============================================================================
+
+# allowed_ips = ["1.2.3.4/32", "5.6.7.8/32"]  # Optional: restrict SSH access
+enable_fail2ban = true
+
+# ============================================================================
+# NGINX ADVANCED CONFIGURATION
+# ============================================================================
+
+nginx_worker_processes  = 16
+nginx_worker_connections = 2048
+enable_http2            = true
+enable_gzip             = true
+gzip_compression_level  = 6

@@ -27,7 +27,7 @@ export interface DemoInstance {
   }>;
   validators: number;
   businessNodes: number;
-  eiNodes: number;
+  slimNodes: number;
   createdAt: Date;
   lastActivity: Date;
   transactionCount: number;
@@ -66,7 +66,7 @@ export const DemoListView: React.FC<Props> = ({ demos, onStart, onStop, onView, 
   };
 
   const runningDemos = demos.filter(d => d.status === 'RUNNING').length;
-  const totalNodes = demos.reduce((sum, d) => sum + d.validators + d.businessNodes + d.eiNodes, 0);
+  const totalNodes = demos.reduce((sum, d) => sum + d.validators + d.businessNodes + d.slimNodes, 0);
   const totalTransactions = demos.reduce((sum, d) => sum + d.transactionCount, 0);
 
   return (
@@ -193,9 +193,9 @@ export const DemoListView: React.FC<Props> = ({ demos, onStart, onStop, onView, 
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Tooltip title={`${demo.validators} Validators, ${demo.businessNodes} Business, ${demo.eiNodes} Slim`}>
+                    <Tooltip title={`${demo.validators} Validators, ${demo.businessNodes} Business, ${demo.slimNodes} Slim`}>
                       <Typography variant="body2">
-                        {demo.validators + demo.businessNodes + demo.eiNodes} nodes
+                        {demo.validators + demo.businessNodes + demo.slimNodes} nodes
                       </Typography>
                     </Tooltip>
                   </TableCell>
@@ -309,8 +309,8 @@ export const DemoListView: React.FC<Props> = ({ demos, onStart, onStop, onView, 
                     </Grid>
                     <Grid item xs={4}>
                       <Paper sx={{ p: 2, textAlign: 'center' }}>
-                        <Typography variant="h4" color="success.main">{selectedDemo.eiNodes}</Typography>
-                        <Typography color="textSecondary">External Integration (EI) Nodes</Typography>
+                        <Typography variant="h4" color="success.main">{selectedDemo.slimNodes}</Typography>
+                        <Typography color="textSecondary">Slim Nodes</Typography>
                       </Paper>
                     </Grid>
                   </Grid>

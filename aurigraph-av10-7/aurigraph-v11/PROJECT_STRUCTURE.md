@@ -1,14 +1,7 @@
-# Aurigraph V12 Project Structure & Organization
+# Aurigraph V11 Project Structure & Organization
 
 ## 🏗️ Project Overview
-**Aurigraph V12** - Enterprise-grade RWA tokenization platform built with Java 21, Quarkus 3.29.0, and GraalVM for native compilation, achieving 2.56M+ TPS with sub-second startup times.
-
-### Key V12 Features (December 2025)
-- **Asset Registry**: 12 asset categories with full lifecycle management
-- **File Attachments**: MinIO CDN with SHA256 integrity verification
-- **External Verification**: Land Registry, KYC, VVB, Manual adapters
-- **Smart Contract Library**: 7 contract templates
-- **Referral System**: Tracking and rewards
+**Aurigraph V11** - Enterprise-grade blockchain platform built with Java 21, Quarkus 3.26.2, and GraalVM for native compilation, achieving 2M+ TPS with sub-second startup times.
 
 ## 📁 Project Structure
 
@@ -268,6 +261,6 @@ kubectl apply -f deployment/kubernetes/
 
 ---
 
-**Version**: 12.0.0
-**Last Updated**: 2025-12-12
+**Version**: 11.0.0  
+**Last Updated**: 2025-09-09  
 **Maintained By**: Aurigraph Development Team

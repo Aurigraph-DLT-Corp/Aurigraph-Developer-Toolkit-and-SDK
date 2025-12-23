@@ -66,43 +66,6 @@ public class NodeHealth {
     }
 
     /**
-     * Direct constructor for creating NodeHealth instances.
-     *
-     * @param status the node status
-     * @param healthy whether the node is healthy
-     * @param uptimeSeconds the node uptime in seconds
-     * @param components map of component health details
-     */
-    public NodeHealth(NodeStatus status, boolean healthy, long uptimeSeconds, Map<String, Object> components) {
-        this.status = status;
-        this.healthy = healthy;
-        this.uptimeSeconds = uptimeSeconds;
-        this.lastCheckTime = Instant.now();
-        this.componentChecks = new HashMap<>();
-        this.errorMessage = null;
-
-        // Convert component map to HealthCheck entries
-        if (components != null) {
-            for (Map.Entry<String, Object> entry : components.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                if (value instanceof Boolean) {
-                    this.componentChecks.put(key, new HealthCheck((Boolean) value, key + " check"));
-                } else if (value instanceof Map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> details = (Map<String, Object>) value;
-                    boolean componentHealthy = details.containsKey("healthy")
-                        ? Boolean.TRUE.equals(details.get("healthy"))
-                        : true;
-                    this.componentChecks.put(key, new HealthCheck(componentHealthy, details.toString()));
-                } else {
-                    this.componentChecks.put(key, new HealthCheck(true, String.valueOf(value)));
-                }
-            }
-        }
-    }
-
-    /**
      * Creates a new builder for NodeHealth.
      *
      * @return a new Builder instance

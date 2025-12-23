@@ -1,0 +1,46 @@
+{
+  "nodeType": "VALIDATOR",
+  "nodeId": "validator-node-001",
+  "version": "11.0.0",
+  "consensusAlgorithm": "HyperRAFT++",
+  "minValidators": 4,
+  "quorumPercentage": 67,
+  "blockTime": 500,
+  "blockSize": 10000,
+  "enableAIOptimization": true,
+  "quantumResistant": true,
+  "stakingAmount": "1000000",
+  "maxMempoolSize": 1000000,
+  "validationTimeout": 100,
+  "enablePruning": true,
+  "pruningThreshold": 100000,
+  "enableStateSnapshots": true,
+  "snapshotInterval": 10000,
+  "network": {
+    "networkId": "aurigraph-mainnet",
+    "bootstrapNodes": [
+      "validator1.aurigraph.io:9000",
+      "validator2.aurigraph.io:9000",
+      "validator3.aurigraph.io:9000"
+    ],
+    "maxPeers": 100,
+    "enableDiscovery": true
+  },
+  "performance": {
+    "threadPoolSize": 256,
+    "queueSize": 100000,
+    "batchSize": 1000
+  },
+  "security": {
+    "enableTLS": true,
+    "tlsCertPath": "/etc/aurigraph/tls/cert.pem",
+    "tlsKeyPath": "/etc/aurigraph/tls/key.pem",
+    "quantumResistant": true
+  },
+  "monitoring": {
+    "metricsEnabled": true,
+    "metricsPort": 9090,
+    "healthCheckPort": 9091,
+    "logLevel": "INFO"
+  }
+}

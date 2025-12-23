@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph RBAC UI Components</title>
+    <style>
+        /* ========================================
+           RBAC UI Styles
+           ======================================== */
+
+        .rbac-user-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: transform 0.2s;
+        }
+
+        .rbac-user-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        .rbac-user-badge .user-icon {
+            font-size: 20px;
+        }
+
+        .rbac-user-badge .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rbac-user-badge .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .rbac-user-badge .user-role {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        .rbac-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 20000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .rbac-modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .rbac-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .rbac-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .rbac-modal-header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 24px;
+        }
+
+        .rbac-close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .rbac-close-btn:hover {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .rbac-form-group {
+            margin-bottom: 20px;
+        }
+
+        .rbac-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .rbac-form-group label.required::after {
+            content: '*';
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        .rbac-form-group input,
+        .rbac-form-group select,
+        .rbac-form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .rbac-form-group input:focus,
+        .rbac-form-group select:focus,
+        .rbac-form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .rbac-form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .rbac-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .rbac-checkbox input[type="checkbox"] {
+            width: auto;
+            margin-top: 4px;
+        }
+
+        .rbac-checkbox label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .rbac-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .rbac-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .rbac-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .rbac-btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .rbac-btn-secondary:hover {
+            background: #bdc3c7;
+        }
+
+        .rbac-btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .rbac-btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .rbac-btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .rbac-btn-group .rbac-btn {
+            flex: 1;
+        }
+
+        .rbac-alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .rbac-alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .rbac-alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .rbac-alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .rbac-demo-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .rbac-demo-banner.active {
+            display: block;
+            animation: slideUp 0.5s;
+        }
+
+        .rbac-access-denied {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .rbac-access-denied-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .rbac-access-denied h3 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+        }
+
+        .rbac-access-denied p {
+            margin: 0 0 24px 0;
+        }
+
+        /* Admin Panel Styles */
+        .rbac-admin-panel {
+            padding: 20px;
+        }
+
+        .rbac-user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .rbac-user-table th,
+        .rbac-user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .rbac-user-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .rbac-user-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rbac-role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .rbac-role-badge.guest {
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        .rbac-role-badge.user {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .rbac-role-badge.admin {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .rbac-role-badge.superadmin {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .rbac-action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rbac-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rbac-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .rbac-stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .rbac-stat-card h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .rbac-stat-card .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .rbac-modal-content {
+                padding: 24px;
+                width: 95%;
+            }
+
+            .rbac-user-badge {
+                top: 10px;
+                right: 10px;
+                font-size: 12px;
+                padding: 10px 16px;
+            }
+
+            .rbac-user-table {
+                font-size: 12px;
+            }
+
+            .rbac-user-table th,
+            .rbac-user-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- User Badge (Always visible) -->
+<div id="rbacUserBadge" class="rbac-user-badge" onclick="rbacUI.showUserMenu()">
+    <span class="user-icon">👤</span>
+    <div class="user-info">
+        <span class="user-name">Guest</span>
+        <span class="user-role">Not logged in</span>
+    </div>
+</div>
+
+<!-- Demo Mode Banner -->
+<div id="rbacDemoBanner" class="rbac-demo-banner">
+    🎯 Demo Mode Active - <span id="demoLimitsText"></span>
+</div>
+
+<!-- Guest Registration Modal -->
+<div id="rbacGuestModal" class="rbac-modal">
+    <div class="rbac-modal-content">
+        <div class="rbac-modal-header">
+            <h2>🚀 Start Your Demo</h2>
+            <button class="rbac-close-btn" onclick="rbacUI.closeModal('rbacGuestModal')">&times;</button>
+        </div>
+
+        <div class="rbac-alert rbac-alert-info">
+            Register to access the Aurigraph DLT demo. All fields are required for follow-up.
+        </div>
+
+        <div id="guestFormError"></div>
+
+        <form id="rbacGuestForm" onsubmit="rbacUI.submitGuestRegistration(event)">
+            <div class="rbac-form-group">
+                <label class="required">Full Name</label>
+                <input type="text" name="fullName" placeholder="John Doe" required>
+            </div>
+
+            <div class="rbac-form-group">
+                <label class="required">Email Address</label>
+                <input type="email" name="email" placeholder="john@company.com" required>
+            </div>
+
+            <div class="rbac-form-group">
+                <label class="required">Phone Number</label>
+                <input type="tel" name="phone" placeholder="+1 (555) 123-4567" required>
+            </div>
+
+            <div class="rbac-form-group">
+                <label class="required">Company Name</label>
+                <input type="text" name="company" placeholder="Acme Corporation" required>
+            </div>
+
+            <div class="rbac-form-group">
+                <label>Job Title</label>
+                <input type="text" name="jobTitle" placeholder="Software Engineer">
+            </div>
+
+            <div class="rbac-form-group">
+                <label class="required">Country</label>
+                <select name="country" required>
+                    <option value="">Select your country</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="JP">Japan</option>
+                    <option value="CN">China</option>
+                    <option value="IN">India</option>
+                    <option value="AU">Australia</option>
+                    <option value="BR">Brazil</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="rbac-form-group">
+                <label>What's your use case?</label>
+                <textarea name="useCase" placeholder="I'm interested in using Aurigraph for..."></textarea>
+            </div>
+
+            <div class="rbac-form-group">
+                <label>How did you hear about us?</label>
+                <select name="referralSource">
+                    <option value="">Select an option</option>
+                    <option value="search">Search Engine</option>
+                    <option value="social">Social Media</option>
+                    <option value="referral">Referral</option>
+                    <option value="conference">Conference/Event</option>
+                    <option value="article">Blog/Article</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="rbac-form-group">
+                <div class="rbac-checkbox">
+                    <input type="checkbox" id="newsletterOptIn" name="newsletterOptIn">
+                    <label for="newsletterOptIn">Send me updates about Aurigraph DLT, new features, and blockchain news</label>
+                </div>
+            </div>
+
+            <div class="rbac-btn-group">
+                <button type="button" class="rbac-btn rbac-btn-secondary" onclick="rbacUI.closeModal('rbacGuestModal')">Cancel</button>
+                <button type="submit" class="rbac-btn rbac-btn-primary">Start Demo →</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div id="rbacLoginModal" class="rbac-modal">
+    <div class="rbac-modal-content">
+        <div class="rbac-modal-header">
+            <h2>🔐 Login</h2>
+            <button class="rbac-close-btn" onclick="rbacUI.closeModal('rbacLoginModal')">&times;</button>
+        </div>
+
+        <div id="loginFormError"></div>
+
+        <form id="rbacLoginForm" onsubmit="rbacUI.submitLogin(event)">
+            <div class="rbac-form-group">
+                <label class="required">Email Address</label>
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
+
+            <div class="rbac-form-group">
+                <label class="required">Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <div class="rbac-btn-group">
+                <button type="button" class="rbac-btn rbac-btn-secondary" onclick="rbacUI.closeModal('rbacLoginModal')">Cancel</button>
+                <button type="submit" class="rbac-btn rbac-btn-primary">Login</button>
+            </div>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px; color: #7f8c8d; font-size: 14px;">
+            Don't have an account? <a href="#" onclick="rbacUI.showGuestModal(); return false;" style="color: #667eea;">Register as Guest</a>
+        </div>
+    </div>
+</div>
+
+<!-- User Menu Modal -->
+<div id="rbacUserMenuModal" class="rbac-modal">
+    <div class="rbac-modal-content">
+        <div class="rbac-modal-header">
+            <h2>👤 User Profile</h2>
+            <button class="rbac-close-btn" onclick="rbacUI.closeModal('rbacUserMenuModal')">&times;</button>
+        </div>
+
+        <div id="userMenuContent"></div>
+    </div>
+</div>
+
+<!-- Admin Panel Modal -->
+<div id="rbacAdminModal" class="rbac-modal">
+    <div class="rbac-modal-content" style="max-width: 900px;">
+        <div class="rbac-modal-header">
+            <h2>👨‍💻 Admin Panel</h2>
+            <button class="rbac-close-btn" onclick="rbacUI.closeModal('rbacAdminModal')">&times;</button>
+        </div>
+
+        <div id="adminPanelContent"></div>
+    </div>
+</div>
+
+<!-- Access Denied Modal -->
+<div id="rbacAccessDeniedModal" class="rbac-modal">
+    <div class="rbac-modal-content" style="max-width: 400px;">
+        <div class="rbac-modal-header">
+            <h2>⛔ Access Denied</h2>
+            <button class="rbac-close-btn" onclick="rbacUI.closeModal('rbacAccessDeniedModal')">&times;</button>
+        </div>
+
+        <div class="rbac-access-denied">
+            <div class="rbac-access-denied-icon">🔒</div>
+            <h3>Permission Required</h3>
+            <p id="accessDeniedMessage">You don't have permission to access this feature.</p>
+            <button class="rbac-btn rbac-btn-primary" onclick="rbacUI.showUpgradeOptions()">Upgrade Account</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========================================
+// RBAC UI Controller
+// ========================================
+
+class RBACUIController {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this.updateUserBadge();
+        this.checkAutoLogin();
+
+        // Check if guest registration is needed
+        const user = window.rbacManager?.getCurrentUser();
+        if (!user) {
+            setTimeout(() => this.showGuestModal(), 1000);
+        }
+    }
+
+    checkAutoLogin() {
+        const sessionId = localStorage.getItem('aurigraph_current_session');
+        if (sessionId && window.rbacManager?.validateSession(sessionId)) {
+            this.updateUserBadge();
+            this.showDemoBanner();
+        }
+    }
+
+    updateUserBadge() {
+        const badge = document.getElementById('rbacUserBadge');
+        const user = window.rbacManager?.getCurrentUser();
+
+        if (user) {
+            const roleConfig = window.RBAC_CONFIG.roles[user.role.toUpperCase()];
+            badge.innerHTML = `
+                <span class="user-icon">${roleConfig.icon}</span>
+                <div class="user-info">
+                    <span class="user-name">${user.fullName || user.email}</span>
+                    <span class="user-role">${roleConfig.name}</span>
+                </div>
+            `;
+            badge.style.background = `linear-gradient(135deg, ${roleConfig.color} 0%, ${this.adjustColor(roleConfig.color, -20)} 100%)`;
+        } else {
+            badge.innerHTML = `
+                <span class="user-icon">👤</span>
+                <div class="user-info">
+                    <span class="user-name">Guest</span>
+                    <span class="user-role">Not logged in</span>
+                </div>
+            `;
+        }
+    }
+
+    adjustColor(color, amount) {
+        return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+    }
+
+    showDemoBanner() {
+        const user = window.rbacManager?.getCurrentUser();
+        if (!user || user.role !== 'guest') return;
+
+        const banner = document.getElementById('rbacDemoBanner');
+        const limits = window.rbacManager.getDemoLimits();
+
+        document.getElementById('demoLimitsText').textContent =
+            `Max ${limits.maxBusinessNodes} nodes, ${limits.maxActiveContracts} contracts, ${limits.maxSlimAgents} agents`;
+
+        banner.classList.add('active');
+    }
+
+    // Modal Management
+    showModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+    }
+
+    closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    showGuestModal() {
+        this.showModal('rbacGuestModal');
+    }
+
+    showLoginModal() {
+        this.closeModal('rbacUserMenuModal');
+        this.showModal('rbacLoginModal');
+    }
+
+    showUserMenu() {
+        const user = window.rbacManager?.getCurrentUser();
+
+        if (!user) {
+            this.showGuestModal();
+            return;
+        }
+
+        const content = document.getElementById('userMenuContent');
+        const roleConfig = window.RBAC_CONFIG.roles[user.role.toUpperCase()];
+
+        content.innerHTML = `
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">${roleConfig.icon}</div>
+                <h3 style="margin: 0 0 8px 0;">${user.fullName}</h3>
+                <span class="rbac-role-badge ${user.role}">${roleConfig.name}</span>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0 0 8px 0;"><strong>Email:</strong> ${user.email}</p>
+                ${user.company ? `<p style="margin: 0 0 8px 0;"><strong>Company:</strong> ${user.company}</p>` : ''}
+                ${user.jobTitle ? `<p style="margin: 0 0 8px 0;"><strong>Title:</strong> ${user.jobTitle}</p>` : ''}
+                <p style="margin: 0;"><strong>Member Since:</strong> ${new Date(user.createdAt).toLocaleDateString()}</p>
+            </div>
+
+            ${window.rbacManager.isAdmin() ? `
+                <button class="rbac-btn rbac-btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="rbacUI.showAdminPanel()">
+                    👨‍💻 Open Admin Panel
+                </button>
+            ` : ''}
+
+            <button class="rbac-btn rbac-btn-secondary" style="width: 100%; margin-bottom: 12px;" onclick="rbacUI.logout()">
+                🚪 Logout
+            </button>
+        `;
+
+        this.showModal('rbacUserMenuModal');
+    }
+
+    showAdminPanel() {
+        if (!window.rbacManager?.isAdmin()) {
+            this.showAccessDenied('Admin access required');
+            return;
+        }
+
+        this.closeModal('rbacUserMenuModal');
+
+        const users = window.rbacManager.getAllUsers();
+        const guestLogs = window.rbacManager.getGuestLogs();
+
+        const totalUsers = users.length;
+        const guestUsers = users.filter(u => u.role === 'guest').length;
+        const registeredUsers = users.filter(u => u.role === 'user').length;
+        const pendingFollowups = guestLogs.filter(l => l.status === 'pending_followup').length;
+
+        const content = document.getElementById('adminPanelContent');
+        content.innerHTML = `
+            <div class="rbac-admin-panel">
+                <div class="rbac-stats-grid">
+                    <div class="rbac-stat-card">
+                        <h4>Total Users</h4>
+                        <p class="stat-value">${totalUsers}</p>
+                    </div>
+                    <div class="rbac-stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <h4>Guest Users</h4>
+                        <p class="stat-value">${guestUsers}</p>
+                    </div>
+                    <div class="rbac-stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <h4>Registered Users</h4>
+                        <p class="stat-value">${registeredUsers}</p>
+                    </div>
+                    <div class="rbac-stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <h4>Pending Follow-ups</h4>
+                        <p class="stat-value">${pendingFollowups}</p>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <button class="rbac-btn rbac-btn-primary" onclick="rbacUI.exportGuestData()">
+                        📥 Export Guest Data (CSV)
+                    </button>
+                </div>
+
+                <h3>User Management</h3>
+                <table class="rbac-user-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Company</th>
+                            <th>Role</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                <td>${user.fullName}</td>
+                                <td>${user.email}</td>
+                                <td>${user.company || '-'}</td>
+                                <td><span class="rbac-role-badge ${user.role}">${user.role}</span></td>
+                                <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                    <div class="rbac-action-btns">
+                                        ${user.role === 'guest' ? `
+                                            <button class="rbac-action-btn" style="background: #43e97b; color: white;" onclick="rbacUI.approveUser('${user.id}')">
+                                                ✓ Approve
+                                            </button>
+                                        ` : ''}
+                                        ${user.role !== 'superadmin' ? `
+                                            <button class="rbac-action-btn" style="background: #e74c3c; color: white;" onclick="rbacUI.deleteUser('${user.id}')">
+                                                ✗ Delete
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        this.showModal('rbacAdminModal');
+    }
+
+    showAccessDenied(message) {
+        document.getElementById('accessDeniedMessage').textContent = message;
+        this.showModal('rbacAccessDeniedModal');
+    }
+
+    showUpgradeOptions() {
+        this.closeModal('rbacAccessDeniedModal');
+        alert('Contact admin@aurigraph.io to upgrade your account.');
+    }
+
+    // Form Submissions
+    submitGuestRegistration(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const data = {
+            fullName: formData.get('fullName'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            company: formData.get('company'),
+            jobTitle: formData.get('jobTitle'),
+            country: formData.get('country'),
+            useCase: formData.get('useCase'),
+            referralSource: formData.get('referralSource'),
+            newsletterOptIn: formData.get('newsletterOptIn') === 'on'
+        };
+
+        try {
+            const guest = window.rbacManager.registerGuest(data);
+            window.rbacManager.login(guest.email);
+
+            this.closeModal('rbacGuestModal');
+            this.updateUserBadge();
+            this.showDemoBanner();
+
+            this.showSuccess('Welcome! Your demo session has started. 🎉');
+        } catch (error) {
+            this.showError('guestFormError', error.message);
+        }
+    }
+
+    submitLogin(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const email = formData.get('email');
+        const password = formData.get('password');
+
+        try {
+            window.rbacManager.login(email, password);
+
+            this.closeModal('rbacLoginModal');
+            this.updateUserBadge();
+
+            this.showSuccess('Login successful! Welcome back. 🎉');
+        } catch (error) {
+            this.showError('loginFormError', error.message);
+        }
+    }
+
+    logout() {
+        window.rbacManager.logout();
+        this.closeModal('rbacUserMenuModal');
+        this.updateUserBadge();
+
+        document.getElementById('rbacDemoBanner').classList.remove('active');
+
+        this.showSuccess('Logged out successfully.');
+
+        setTimeout(() => this.showGuestModal(), 1000);
+    }
+
+    // Admin Actions
+    approveUser(userId) {
+        if (confirm('Approve this user and upgrade to full access?')) {
+            try {
+                window.rbacManager.approveUser(userId);
+                this.showAdminPanel(); // Refresh
+                this.showSuccess('User approved successfully!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    }
+
+    deleteUser(userId) {
+        if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+            try {
+                window.rbacManager.deleteUser(userId);
+                this.showAdminPanel(); // Refresh
+                this.showSuccess('User deleted successfully.');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    }
+
+    exportGuestData() {
+        try {
+            window.rbacManager.exportGuestData();
+            this.showSuccess('Guest data exported successfully!');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // Utility Methods
+    showError(elementId, message) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = `<div class="rbac-alert rbac-alert-error">${message}</div>`;
+        setTimeout(() => el.innerHTML = '', 5000);
+    }
+
+    showSuccess(message) {
+        // You can implement a toast notification here
+        console.log('Success:', message);
+        alert(message);
+    }
+
+    // Access Control Check
+    checkAccess(feature, action = 'view') {
+        if (!window.rbacManager?.hasAccess(feature, action)) {
+            this.showAccessDenied(`You need ${action} permission for ${feature}.`);
+            return false;
+        }
+        return true;
+    }
+}
+
+// Initialize
+window.rbacUI = new RBACUIController();
+console.log('✅ Aurigraph RBAC UI loaded');
+</script>
+
+</body>
+</html>

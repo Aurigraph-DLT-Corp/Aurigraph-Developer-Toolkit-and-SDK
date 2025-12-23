@@ -23,7 +23,7 @@ import java.time.Instant;
  * Bridge Status & Query Controller
  * REST API endpoints for querying bridge transactions, transfers, and swaps
  *
- * Endpoint: /api/v12/bridge/query/*
+ * Endpoint: /api/v11/bridge/query/*
  *
  * Features:
  * - Paginated transaction history
@@ -36,7 +36,7 @@ import java.time.Instant;
  * @version 1.0
  * @since AV11-637
  */
-@Path("/api/v12/bridge/query")
+@Path("/api/v11/bridge/query")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Bridge Status & Query", description = "Query and filter bridge transactions, transfers, and swaps")

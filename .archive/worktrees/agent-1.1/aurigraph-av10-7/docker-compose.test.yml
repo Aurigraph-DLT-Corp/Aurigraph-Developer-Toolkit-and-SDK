@@ -1,0 +1,86 @@
+services:
+  # Single Validator Node
+  validator-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator.v2
+    container_name: aurigraph-validator-01
+    environment:
+      - NODE_ID=VAL-001
+      - NODE_TYPE=VALIDATOR
+      - API_PORT=8081
+      - CHANNEL_NAME=TEST
+      - NETWORK_ID=aurigraph-test
+    ports:
+      - "8181:8081"
+      - "30201:30001"
+    networks:
+      - aurigraph-test
+    restart: unless-stopped
+
+  # Basic Node 1
+  basic-node-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.node.v2
+    container_name: aurigraph-node-01
+    environment:
+      - NODE_ID=NODE-001
+      - NODE_TYPE=FULL
+      - API_PORT=8101
+      - CHANNEL_NAME=TEST
+      - NETWORK_ID=aurigraph-test
+    ports:
+      - "8201:8101"
+      - "30301:30101"
+    networks:
+      - aurigraph-test
+    depends_on:
+      - validator-01
+    restart: unless-stopped
+
+  # Basic Node 2
+  basic-node-02:
+    build:
+      context: .
+      dockerfile: Dockerfile.node.v2
+    container_name: aurigraph-node-02
+    environment:
+      - NODE_ID=NODE-002
+      - NODE_TYPE=LIGHT
+      - API_PORT=8102
+      - CHANNEL_NAME=TEST
+      - NETWORK_ID=aurigraph-test
+    ports:
+      - "8202:8102"
+      - "30302:30102"
+    networks:
+      - aurigraph-test
+    depends_on:
+      - validator-01
+    restart: unless-stopped
+
+  # Management Dashboard
+  management-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.management
+    container_name: aurigraph-management
+    environment:
+      - NODE_ENV=production
+      - API_PORT=3040
+      - CHANNEL_NAME=TEST
+    ports:
+      - "3140:3040"
+    networks:
+      - aurigraph-test
+    depends_on:
+      - validator-01
+      - basic-node-01
+      - basic-node-02
+    restart: unless-stopped
+
+networks:
+  aurigraph-test:
+    driver: bridge
+    name: aurigraph-test-network

@@ -4,16 +4,7 @@
  * Includes error handling, retries, and request/response transformations
  */
 
-// Use environment variable for API URL - ensures HTTPS in production
-const getBaseUrl = (): string => {
-  const env = (import.meta as any).env || {};
-  if (env.VITE_API_URL) return env.VITE_API_URL;
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return window.location.origin;
-  }
-  return 'http://localhost:9003';
-};
-const API_BASE = `${getBaseUrl()}/api/v12/traceability`;
+const API_BASE = 'http://localhost:9003/api/v11/traceability';
 
 // API Response Types
 export interface ApiResponse<T> {
@@ -358,7 +349,7 @@ class TokenTraceabilityApiClient {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${getBaseUrl()}/q/health`, {
+      const response = await fetch(`http://localhost:9003/q/health`, {
         method: 'GET',
       });
       return response.ok;
@@ -372,7 +363,7 @@ class TokenTraceabilityApiClient {
    */
   async getApiMetrics(): Promise<Record<string, unknown>> {
     try {
-      return await this.fetchWithRetry(`${getBaseUrl()}/q/metrics`);
+      return await this.fetchWithRetry(`http://localhost:9003/q/metrics`);
     } catch (error) {
       return { error: 'Failed to fetch metrics' };
     }

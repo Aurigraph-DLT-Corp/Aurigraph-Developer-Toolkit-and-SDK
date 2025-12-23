@@ -1,0 +1,198 @@
+# Alertmanager Configuration for Aurigraph V11
+# Handles alert routing, grouping, and notifications
+
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+  smtp_smarthost: '${SMTP_HOST}:${SMTP_PORT}'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+  smtp_from: 'alerts@dlt.aurigraph.io'
+
+# Templates for alert notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Root route with all parameters
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical'
+      group_wait: 0s
+      group_interval: 5m
+      repeat_interval: 1h
+      continue: true
+
+    # V11 Backend specific routes
+    - match:
+        service: 'v11-api'
+      receiver: 'v11-team'
+      group_wait: 5s
+      group_interval: 10m
+      repeat_interval: 4h
+      continue: false
+
+    # Database alerts
+    - match:
+        component: 'database'
+      receiver: 'database-team'
+      group_wait: 10s
+      group_interval: 15m
+      repeat_interval: 6h
+      continue: false
+
+    # Blockchain/Consensus alerts
+    - match:
+        component: 'blockchain'
+      receiver: 'blockchain-team'
+      group_wait: 30s
+      group_interval: 10m
+      repeat_interval: 4h
+      continue: false
+
+    # Performance/System alerts
+    - match:
+        component: 'system'
+      receiver: 'ops-team'
+      group_wait: 1m
+      group_interval: 30m
+      repeat_interval: 12h
+      continue: false
+
+    # Network alerts
+    - match:
+        component: 'network'
+      receiver: 'network-team'
+      group_wait: 30s
+      group_interval: 15m
+      repeat_interval: 6h
+      continue: false
+
+    # Infrastructure/Monitoring alerts
+    - match:
+        service: 'monitoring'
+      receiver: 'monitoring-team'
+      group_wait: 30s
+      group_interval: 20m
+      repeat_interval: 8h
+      continue: false
+
+# Notification receivers
+receivers:
+  - name: 'default'
+    slack_configs:
+      - channel: '#alerts-general'
+        title: 'Aurigraph Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+        actions:
+          - type: button
+            text: 'Runbook'
+            url: 'https://wiki.dlt.aurigraph.io/runbooks/{{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'oncall@dlt.aurigraph.io'
+        headers:
+          Subject: '[ALERT] {{ .GroupLabels.alertname }}'
+
+  - name: 'critical'
+    slack_configs:
+      - channel: '#alerts-critical'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts.Firing }}{{ .Annotations.description }}\nImpact: {{ .Annotations.impact }}\nAction: {{ .Annotations.action }}\n\n{{ end }}'
+        color: 'danger'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .GroupLabels.alertname }}: {{ range .Alerts.Firing }}{{ .Annotations.summary }}{{ end }}'
+        details:
+          firing: '{{ template "pagerduty.default.instances" .Alerts.Firing }}'
+    email_configs:
+      - to: 'critical-alerts@dlt.aurigraph.io'
+        headers:
+          Subject: '🚨 CRITICAL ALERT: {{ .GroupLabels.alertname }}'
+
+  - name: 'v11-team'
+    slack_configs:
+      - channel: '#v11-alerts'
+        title: 'V11 Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+    email_configs:
+      - to: 'v11-team@dlt.aurigraph.io'
+
+  - name: 'database-team'
+    slack_configs:
+      - channel: '#database-alerts'
+        title: 'Database Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+    email_configs:
+      - to: 'database-team@dlt.aurigraph.io'
+
+  - name: 'blockchain-team'
+    slack_configs:
+      - channel: '#blockchain-alerts'
+        title: 'Blockchain Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+    email_configs:
+      - to: 'blockchain-team@dlt.aurigraph.io'
+
+  - name: 'ops-team'
+    slack_configs:
+      - channel: '#ops-alerts'
+        title: 'Operations Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+    email_configs:
+      - to: 'ops-team@dlt.aurigraph.io'
+
+  - name: 'network-team'
+    slack_configs:
+      - channel: '#network-alerts'
+        title: 'Network Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+    email_configs:
+      - to: 'network-team@dlt.aurigraph.io'
+
+  - name: 'monitoring-team'
+    slack_configs:
+      - channel: '#monitoring-alerts'
+        title: 'Monitoring Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+    email_configs:
+      - to: 'monitoring-team@dlt.aurigraph.io'
+
+# Inhibition rules (suppress alerts under certain conditions)
+inhibit_rules:
+  # Don't alert about high API response time if the service is down
+  - source_match:
+      alertname: 'V11ServiceDown'
+    target_match:
+      alertname: 'HighAPIResponseTime'
+    equal: ['instance']
+
+  # Don't alert about database issues if PostgreSQL is down
+  - source_match:
+      alertname: 'PostgreSQLDown'
+    target_match_re:
+      alertname: 'PostgreSQL.*'
+    equal: ['instance']
+
+  # Don't alert about blockchain issues if V11 service is down
+  - source_match:
+      alertname: 'V11ServiceDown'
+    target_match_re:
+      alertname: 'Blockchain.*|Consensus.*'
+    equal: ['instance']
+
+  # Don't alert about network issues if entire server is down
+  - source_match:
+      alertname: 'NodeDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['instance']

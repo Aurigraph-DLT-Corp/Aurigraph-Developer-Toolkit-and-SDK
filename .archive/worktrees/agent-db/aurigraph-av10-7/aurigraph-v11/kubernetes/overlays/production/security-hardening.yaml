@@ -1,0 +1,651 @@
+# Security Hardening and Network Segmentation for Aurigraph V11
+# Implements defense-in-depth security architecture with zero-trust principles
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aurigraph-system
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    name: aurigraph-system
+  annotations:
+    aurigraph.io/security-tier: "critical"
+    aurigraph.io/network-policy: "strict"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aurigraph-v11-default-deny-all
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  # Default deny all - must explicitly allow traffic
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aurigraph-v11-platform-ingress
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: aurigraph-v11
+      component: dlt-platform
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow Istio sidecar traffic
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15090  # Envoy admin
+        - protocol: TCP
+          port: 15021  # Istio health checks
+    
+    # Allow monitoring from prometheus
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 9003  # Metrics endpoint
+    
+    # Allow API traffic through Istio gateway
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: istio-system
+        - podSelector:
+            matchLabels:
+              app: istio-gateway
+      ports:
+        - protocol: TCP
+          port: 9003  # HTTP API
+        - protocol: TCP
+          port: 9004  # gRPC API
+    
+    # Allow inter-pod communication within namespace
+    - from:
+        - podSelector:
+            matchLabels:
+              app: aurigraph-v11
+      ports:
+        - protocol: TCP
+          port: 9003
+        - protocol: TCP
+          port: 9004
+        - protocol: TCP
+          port: 7000  # P2P consensus
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aurigraph-v11-platform-egress
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: aurigraph-v11
+      component: dlt-platform
+  policyTypes:
+    - Egress
+  egress:
+    # DNS resolution
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    
+    # HTTPS to external APIs
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+    
+    # Database access
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    
+    # Redis access
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    
+    # Inter-service communication
+    - to:
+        - podSelector:
+            matchLabels:
+              app: aurigraph-v11
+      ports:
+        - protocol: TCP
+          port: 9003
+        - protocol: TCP
+          port: 9004
+        - protocol: TCP
+          port: 7000
+    
+    # Kubernetes API server
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              component: kube-apiserver
+      ports:
+        - protocol: TCP
+          port: 6443
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aurigraph-v11-consensus-isolation
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: aurigraph-v11
+      component: consensus
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Only allow consensus traffic from other consensus nodes
+    - from:
+        - podSelector:
+            matchLabels:
+              app: aurigraph-v11
+              component: consensus
+      ports:
+        - protocol: TCP
+          port: 7000
+    
+    # Allow platform services to query consensus
+    - from:
+        - podSelector:
+            matchLabels:
+              app: aurigraph-v11
+              component: dlt-platform
+      ports:
+        - protocol: TCP
+          port: 9003
+    
+    # Monitoring
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9003
+  
+  egress:
+    # DNS
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+    
+    # Consensus communication
+    - to:
+        - podSelector:
+            matchLabels:
+              app: aurigraph-v11
+              component: consensus
+      ports:
+        - protocol: TCP
+          port: 7000
+    
+    # Database for consensus state
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aurigraph-v11-tls-certificates
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+type: kubernetes.io/tls
+data:
+  # These should be replaced with actual certificates in production
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t...  # Base64 encoded certificate
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0t...   # Base64 encoded private key
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t...    # Base64 encoded CA certificate
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: aurigraph-v11-mtls-strict
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  selector:
+    matchLabels:
+      app: aurigraph-v11
+  mtls:
+    mode: STRICT
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: aurigraph-v11-service-authorization
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  selector:
+    matchLabels:
+      app: aurigraph-v11
+  rules:
+    # Health checks from Kubernetes
+    - to:
+        - operation:
+            paths: ["/q/health/*"]
+      when:
+        - key: source.namespace
+          values: ["kube-system", "aurigraph-system"]
+    
+    # Metrics collection from monitoring
+    - to:
+        - operation:
+            paths: ["/q/metrics"]
+            methods: ["GET"]
+      when:
+        - key: source.namespace
+          values: ["monitoring"]
+        - key: source.principal
+          values: ["cluster.local/ns/monitoring/sa/prometheus"]
+    
+    # API access through Istio gateway
+    - to:
+        - operation:
+            paths: ["/api/v11/*"]
+            methods: ["GET", "POST"]
+      when:
+        - key: source.namespace
+          values: ["istio-system"]
+    
+    # Inter-service communication
+    - to:
+        - operation:
+            methods: ["GET", "POST"]
+      when:
+        - key: source.principal
+          values: ["cluster.local/ns/aurigraph-system/sa/aurigraph-v11"]
+    
+    # Consensus communication (highly restricted)
+    - to:
+        - operation:
+            paths: ["/consensus/*"]
+            methods: ["POST"]
+      when:
+        - key: source.principal
+          values: ["cluster.local/ns/aurigraph-system/sa/aurigraph-v11-consensus"]
+        - key: custom.consensus_node_id
+          values: ["node-*"]
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aurigraph-v11
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT-ID:role/AurigraphV11ServiceRole
+automountServiceAccountToken: false  # Disable automatic mounting for security
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aurigraph-v11-consensus
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: consensus-security
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT-ID:role/AurigraphV11ConsensusRole
+automountServiceAccountToken: false
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: aurigraph-v11-minimal
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+rules:
+  # Minimal permissions - only what's absolutely necessary
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+    resourceNames: ["aurigraph-v11-config", "aurigraph-v11-production-config"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+    resourceNames: ["aurigraph-v11-secrets"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+    resourceNames: []  # Can list pods for health checks
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: aurigraph-v11-minimal
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+subjects:
+  - kind: ServiceAccount
+    name: aurigraph-v11
+    namespace: aurigraph-system
+roleRef:
+  kind: Role
+  name: aurigraph-v11-minimal
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aurigraph-v11-quantum-keys
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+  annotations:
+    aurigraph.io/encryption-level: "NIST-5"
+    aurigraph.io/key-rotation: "monthly"
+type: Opaque
+data:
+  # Quantum-resistant encryption keys (base64 encoded)
+  kyber-public-key: ...
+  kyber-private-key: ...
+  dilithium-public-key: ...
+  dilithium-private-key: ...
+  sphincs-public-key: ...
+  sphincs-private-key: ...
+
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: aurigraph-v11-restricted
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: true
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  hostPorts:
+    - min: 0
+      max: 0
+
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: aurigraph-v11-security-policies
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  validationFailureAction: enforce
+  background: true
+  rules:
+    # Require security context
+    - name: require-security-context
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - aurigraph-system
+      validate:
+        message: "Security context is required"
+        pattern:
+          spec:
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: ">0"
+    
+    # Require read-only root filesystem
+    - name: require-readonly-rootfs
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - aurigraph-system
+      validate:
+        message: "Read-only root filesystem is required"
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  readOnlyRootFilesystem: true
+    
+    # Disallow privileged containers
+    - name: disallow-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - aurigraph-system
+      validate:
+        message: "Privileged containers are not allowed"
+        pattern:
+          spec:
+            =(securityContext):
+              =(privileged): "false"
+            containers:
+              - =(securityContext):
+                  =(privileged): "false"
+    
+    # Require resource limits
+    - name: require-resource-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - aurigraph-system
+      validate:
+        message: "Resource limits are required"
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aurigraph-v11-hsm-config
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+  annotations:
+    aurigraph.io/hsm-provider: "aws-cloudhsm"
+type: Opaque
+data:
+  hsm-cluster-id: ...
+  hsm-client-cert: ...
+  hsm-client-key: ...
+  hsm-ca-cert: ...
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: aurigraph-v11-security-alerts
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: security
+spec:
+  groups:
+    - name: security.rules
+      interval: 30s
+      rules:
+        - alert: UnauthorizedAPIAccess
+          expr: |
+            (
+              sum(rate(istio_requests_total{response_code=~"401|403",destination_service_name="aurigraph-v11-service"}[5m]))
+              > 10
+            )
+          for: 1m
+          labels:
+            severity: warning
+            component: security
+          annotations:
+            summary: "High number of unauthorized API access attempts"
+            description: "{{ $value }} unauthorized requests per second to Aurigraph V11"
+        
+        - alert: TLSCertificateExpiring
+          expr: |
+            (
+              (probe_ssl_earliest_cert_expiry{job="aurigraph-v11-tls-monitor"} - time()) / 86400
+              < 30
+            )
+          for: 1h
+          labels:
+            severity: warning
+            component: security
+          annotations:
+            summary: "TLS certificate expiring within 30 days"
+            description: "Certificate {{ $labels.instance }} expires in {{ $value }} days"
+        
+        - alert: NetworkPolicyViolation
+          expr: |
+            (
+              increase(network_policy_violations_total[5m]) > 0
+            )
+          for: 1m
+          labels:
+            severity: critical
+            component: security
+          annotations:
+            summary: "Network policy violation detected"
+            description: "{{ $value }} network policy violations in the last 5 minutes"
+        
+        - alert: PrivilegedPodDetected
+          expr: |
+            (
+              kube_pod_container_status_running{container="privileged"} > 0
+            )
+          for: 1m
+          labels:
+            severity: critical
+            component: security
+          annotations:
+            summary: "Privileged container detected"
+            description: "Privileged container {{ $labels.container }} in pod {{ $labels.pod }}"
+        
+        - alert: ServiceAccountTokenMounted
+          expr: |
+            (
+              kube_pod_spec_volumes_persistentvolumeclaim_readonly{volume="kube-api-access"} == 0
+            )
+          for: 5m
+          labels:
+            severity: warning
+            component: security
+          annotations:
+            summary: "Service account token automatically mounted"
+            description: "Pod {{ $labels.pod }} has service account token automatically mounted"

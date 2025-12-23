@@ -1,0 +1,126 @@
+@startuml Aurigraph_DLT_Authentication_State
+title Aurigraph DLT - State Diagram: Authentication Lifecycle
+
+[*] --> Unauthenticated
+
+state Unauthenticated {
+    [*] --> NoToken: Clear localStorage
+    NoToken --> InvalidCredentials: Login attempt fails
+    InvalidCredentials --> NoToken: Retry
+    NoToken --> TokenRequest: Valid credentials\nsubmitted
+}
+
+TokenRequest --> ValidatingToken: POST /authenticate\nreceives JWT\n+ refresh_token
+
+ValidatingToken --> TokenStored: Verify signature\nCheck expiry\nStore in localStorage
+
+TokenStored --> Authenticated: Update Redux\nisAuthenticated=true
+
+state Authenticated {
+    [*] --> TokenValid: JWT active\nnot expired
+
+    TokenValid --> UsingToken: API request\ninclude Authorization header
+    UsingToken --> TokenValid: Success (200-399)
+
+    TokenValid --> TokenExpiring: Approaching\nexpiration\n(< 5 min remaining)
+    TokenExpiring --> RefreshingToken: Call /refresh\nwith refresh_token
+    RefreshingToken --> NewTokenStored: Receive new JWT\n+ new refresh_token
+    NewTokenStored --> TokenValid: Update localStorage\nReset expiry timer
+
+    TokenValid --> TokenExpired: Expiration time\nreached
+    TokenExpired --> RefreshingToken: Auto-refresh\nattempt
+
+    UsingToken --> TokenInvalid: 401 Unauthorized\nInvalid token
+    TokenInvalid --> ClearingAuth: Invalid token\ndetected
+
+    TokenExpiring --> ManualRefresh: User action\nRefresh token\nmanually
+    ManualRefresh --> RefreshingToken
+}
+
+RefreshingToken --> RefreshFailed: Network error\nor refresh expired
+RefreshFailed --> ClearingAuth: Refresh failed\nReset auth
+
+ClearingAuth --> Unauthenticated: Clear localStorage\nClear Redux state\nlogout endpoint called
+
+Authenticated --> Unauthenticated: logout() called\nOR token invalid
+
+state TokenRefresh <<fork>>
+    TokenValid --> TokenRefresh: Token expiring/expired
+    TokenRefresh --> RefreshingToken: Use refresh_token
+    TokenRefresh --> AutoLogout: Refresh expired\n(no valid refresh)
+
+AutoLogout --> Unauthenticated: Both tokens invalid\nClear session
+
+' Timeout scenarios
+Authenticated --> IdleTimeout: No activity\n> 30 minutes
+IdleTimeout --> WarningPrompt: Show warning\n"Session expiring"\nfor 2 minutes
+WarningPrompt --> SessionExtended: User clicks\n"Stay logged in"
+SessionExtended --> TokenValid: Refresh token\nReset idle timer
+
+WarningPrompt --> IdleLogout: No response\nafter 2 minutes
+IdleLogout --> ClearingAuth: Auto logout\ndue to inactivity
+
+' Error states
+Unauthenticated --> NetworkError: Network\nconnection lost
+NetworkError --> Unauthenticated: Retry\nconnection
+
+Authenticated --> NetworkError: Network\nconnection lost
+NetworkError --> OfflineMode: Queue requests\nLocalStorage valid
+OfflineMode --> SyncPending: Network\nrestored
+SyncPending --> Authenticated: Pending requests\nsynced
+
+' Sessions from other tabs
+Unauthenticated --> StorageEvent: Another tab\nlogs in
+StorageEvent --> Authenticated: localStorage changed\nEvent detected
+
+Authenticated --> StorageEvent: Another tab\nlogs out
+StorageEvent --> Unauthenticated: localStorage cleared\nEvent detected
+
+note right of TokenRequest
+  JWT Creation
+  - Signature verified
+  - Claims extracted
+  - Expiry: 15 minutes
+  - Refresh: 7 days
+end note
+
+note right of TokenValid
+  Active session
+  - Token valid
+  - Auto-refresh
+  - Send with requests
+end note
+
+note right of RefreshingToken
+  Token Refresh
+  - Use refresh_token
+  - No user interaction
+  - Silent refresh
+  - Endpoint: /refresh
+end note
+
+note right of ClearingAuth
+  Session Clear
+  - Remove JWT
+  - Remove refresh_token
+  - Remove user data
+  - Notify all tabs
+end note
+
+note right of IdleTimeout
+  Inactivity Check
+  - Reset on activity
+  - Show warning
+  - Allow extension
+  - Auto logout if no response
+end note
+
+note right of OfflineMode
+  Offline Support
+  - Queue requests
+  - Use cached auth
+  - Retry on reconnect
+  - Preserve session
+end note
+
+@enduml

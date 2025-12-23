@@ -30,7 +30,7 @@ import java.util.Map;
  * @version 3.7.3
  * @author Aurigraph V11 Team
  */
-@Path("/api/v12/consensus")
+@Path("/api/v11/consensus")
 @ApplicationScoped
 @Tag(name = "Consensus API", description = "HyperRAFT++ consensus algorithm operations")
 public class ConsensusApiResource {

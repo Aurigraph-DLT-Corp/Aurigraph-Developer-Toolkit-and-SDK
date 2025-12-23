@@ -1,0 +1,398 @@
+{
+  "exportConfig": {
+    "version": "1.0",
+    "description": "Configuration for Aurigraph Patent Document Export System",
+    "lastUpdated": "2025-01-13"
+  },
+  "documentPatterns": {
+    "patentFiles": {
+      "namePatterns": [
+        "patent",
+        "intellectual.property",
+        "invention",
+        "disclosure",
+        "prior.art",
+        "novelty",
+        "claims"
+      ],
+      "directoryPatterns": [
+        "patents",
+        "ip",
+        "intellectual-property",
+        "inventions",
+        "disclosures",
+        "prior-art"
+      ],
+      "contentKeywords": [
+        "patent application",
+        "invention disclosure",
+        "prior art search",
+        "novelty assessment",
+        "patent claims",
+        "technical specification",
+        "embodiment",
+        "implementation details"
+      ]
+    },
+    "technicalDocuments": {
+      "namePatterns": [
+        "specification",
+        "technical",
+        "architecture",
+        "design",
+        "whitepaper",
+        "research",
+        "algorithm",
+        "protocol"
+      ],
+      "directoryPatterns": [
+        "docs",
+        "documentation",
+        "specs",
+        "specifications",
+        "technical",
+        "research",
+        "whitepapers"
+      ],
+      "contentKeywords": [
+        "technical specification",
+        "system architecture",
+        "algorithm design",
+        "implementation method",
+        "protocol definition",
+        "technical innovation",
+        "system design"
+      ]
+    },
+    "legalDocuments": {
+      "namePatterns": [
+        "legal",
+        "license",
+        "copyright",
+        "trademark",
+        "agreement",
+        "contract",
+        "terms"
+      ],
+      "directoryPatterns": [
+        "legal",
+        "licenses",
+        "agreements",
+        "contracts",
+        "terms"
+      ],
+      "contentKeywords": [
+        "intellectual property rights",
+        "patent license",
+        "copyright notice",
+        "trademark",
+        "legal agreement",
+        "licensing terms"
+      ]
+    }
+  },
+  "technologyClassification": {
+    "quantum": {
+      "keywords": [
+        "quantum computing",
+        "quantum cryptography",
+        "quantum key distribution",
+        "quantum entanglement",
+        "quantum superposition",
+        "qubit",
+        "quantum algorithm",
+        "quantum resistance",
+        "post-quantum cryptography"
+      ],
+      "description": "Quantum computing and cryptography technologies"
+    },
+    "consensus": {
+      "keywords": [
+        "consensus algorithm",
+        "raft consensus",
+        "pbft",
+        "proof of stake",
+        "proof of work",
+        "byzantine fault tolerance",
+        "leader election",
+        "distributed consensus",
+        "hyperraft"
+      ],
+      "description": "Blockchain consensus mechanisms and algorithms"
+    },
+    "crossChain": {
+      "keywords": [
+        "cross-chain",
+        "interoperability",
+        "bridge protocol",
+        "multi-chain",
+        "chain bridge",
+        "atomic swap",
+        "cross-chain communication",
+        "blockchain bridge"
+      ],
+      "description": "Cross-chain and interoperability technologies"
+    },
+    "ai": {
+      "keywords": [
+        "artificial intelligence",
+        "machine learning",
+        "neural network",
+        "deep learning",
+        "ai optimization",
+        "predictive analytics",
+        "anomaly detection",
+        "ml algorithm"
+      ],
+      "description": "AI and machine learning technologies"
+    },
+    "security": {
+      "keywords": [
+        "cryptography",
+        "encryption",
+        "digital signature",
+        "hash function",
+        "security protocol",
+        "cryptographic primitive",
+        "zero-knowledge proof",
+        "homomorphic encryption"
+      ],
+      "description": "Security and cryptographic technologies"
+    },
+    "blockchain": {
+      "keywords": [
+        "blockchain",
+        "distributed ledger",
+        "smart contract",
+        "transaction processing",
+        "block validation",
+        "merkle tree",
+        "blockchain protocol",
+        "decentralized system"
+      ],
+      "description": "Core blockchain and DLT technologies"
+    }
+  },
+  "folderStructures": {
+    "byCategory": {
+      "name": "Organization by Document Category",
+      "folders": {
+        "Technical Patents": {
+          "description": "Core technical patent applications and granted patents",
+          "categories": ["patent"],
+          "priority": 1
+        },
+        "Business Method Patents": {
+          "description": "Business method and process patents",
+          "categories": ["patent"],
+          "keywords": ["business method", "process", "workflow"],
+          "priority": 2
+        },
+        "Invention Disclosures": {
+          "description": "Internal invention disclosures and innovation records",
+          "categories": ["invention"],
+          "priority": 3
+        },
+        "Prior Art Research": {
+          "description": "Prior art searches and competitive analysis",
+          "categories": ["prior-art", "research"],
+          "priority": 4
+        },
+        "Legal Documents": {
+          "description": "Patent-related legal documents and agreements",
+          "categories": ["legal"],
+          "priority": 5
+        },
+        "Technical Specifications": {
+          "description": "Detailed technical specifications and documentation",
+          "categories": ["technical"],
+          "priority": 6
+        }
+      }
+    },
+    "byTechnology": {
+      "name": "Organization by Technology Area",
+      "folders": {
+        "Quantum Technology": {
+          "description": "Quantum computing and cryptography patents",
+          "technologies": ["quantum"],
+          "priority": 1
+        },
+        "Consensus Algorithms": {
+          "description": "Blockchain consensus and distributed systems",
+          "technologies": ["consensus"],
+          "priority": 2
+        },
+        "Cross-Chain Technology": {
+          "description": "Interoperability and bridge technologies",
+          "technologies": ["crossChain"],
+          "priority": 3
+        },
+        "AI & Machine Learning": {
+          "description": "AI-driven blockchain optimization",
+          "technologies": ["ai"],
+          "priority": 4
+        },
+        "Security & Cryptography": {
+          "description": "Security protocols and cryptographic methods",
+          "technologies": ["security"],
+          "priority": 5
+        },
+        "Blockchain Core": {
+          "description": "Core blockchain and DLT technologies",
+          "technologies": ["blockchain"],
+          "priority": 6
+        }
+      }
+    },
+    "byDate": {
+      "name": "Organization by Creation Date",
+      "folders": {
+        "2024": {
+          "description": "Documents created in 2024",
+          "dateRange": "2024",
+          "priority": 1
+        },
+        "2023": {
+          "description": "Documents created in 2023",
+          "dateRange": "2023",
+          "priority": 2
+        },
+        "2022": {
+          "description": "Documents created in 2022",
+          "dateRange": "2022",
+          "priority": 3
+        },
+        "Archive": {
+          "description": "Older documents and historical records",
+          "dateRange": "before-2022",
+          "priority": 4
+        }
+      }
+    },
+    "flatStructure": {
+      "name": "Flat Structure with Prefixes",
+      "folders": {
+        "All Documents": {
+          "description": "All patent documents in a single folder with categorized naming",
+          "namingConvention": "[CATEGORY]-[TECHNOLOGY]-[FILENAME]",
+          "priority": 1
+        }
+      }
+    }
+  },
+  "fileTypeHandling": {
+    "supportedExtensions": [
+      ".md", ".txt", ".pdf", ".doc", ".docx", ".rtf",
+      ".tex", ".rst", ".adoc", ".html", ".xml",
+      ".json", ".yaml", ".yml"
+    ],
+    "maxFileSize": "10MB",
+    "excludePatterns": [
+      "node_modules",
+      ".git",
+      "target",
+      "build",
+      "dist",
+      ".class",
+      ".jar",
+      ".log",
+      ".tmp"
+    ],
+    "specialHandling": {
+      ".pdf": {
+        "description": "PDF documents - uploaded as-is",
+        "contentAnalysis": false
+      },
+      ".md": {
+        "description": "Markdown documents - full content analysis",
+        "contentAnalysis": true
+      },
+      ".doc": {
+        "description": "Word documents - metadata extraction only",
+        "contentAnalysis": false
+      },
+      ".json": {
+        "description": "JSON configuration files - structure analysis",
+        "contentAnalysis": true
+      }
+    }
+  },
+  "exportSettings": {
+    "defaultMode": "incremental-update",
+    "defaultTypes": "all",
+    "defaultOrganization": "by-category",
+    "includeMetadata": true,
+    "generateArchive": true,
+    "verifyUploads": true,
+    "rateLimitDelay": 100,
+    "maxRetries": 3,
+    "chunkSize": 50
+  },
+  "metadataFields": {
+    "document": [
+      "fileName",
+      "relativePath",
+      "size",
+      "lastModified",
+      "category",
+      "technology",
+      "keywords",
+      "contentScore"
+    ],
+    "export": [
+      "exportId",
+      "timestamp",
+      "repository",
+      "branch",
+      "commit",
+      "exportMode",
+      "documentTypes",
+      "folderOrganization"
+    ],
+    "googleDrive": [
+      "driveId",
+      "driveLink",
+      "parentFolder",
+      "uploadTimestamp",
+      "fileSize"
+    ]
+  },
+  "aurigraphSpecific": {
+    "projectAreas": [
+      "V11 Java/Quarkus Platform",
+      "Quantum Cryptography",
+      "HyperRAFT++ Consensus",
+      "Cross-Chain Bridges",
+      "AI-Driven Optimization",
+      "HMS Healthcare Integration",
+      "Mobile SDK Development",
+      "Performance Testing",
+      "Production Deployment"
+    ],
+    "patentPriorities": [
+      "Quantum-resistant cryptography algorithms",
+      "High-performance consensus mechanisms",
+      "Cross-chain interoperability protocols",
+      "AI-driven blockchain optimization",
+      "Healthcare data tokenization",
+      "Mobile blockchain integration",
+      "Performance optimization techniques"
+    ],
+    "competitiveAnalysis": {
+      "trackCompetitors": [
+        "Ethereum",
+        "Polkadot",
+        "Cosmos",
+        "Avalanche",
+        "Solana"
+      ],
+      "focusAreas": [
+        "consensus algorithms",
+        "cross-chain technology",
+        "quantum resistance",
+        "performance optimization"
+      ]
+    }
+  }
+}

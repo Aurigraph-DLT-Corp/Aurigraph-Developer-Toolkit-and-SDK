@@ -48,7 +48,7 @@ interface AuditEntry {
 /**
  * AuditTrail Component
  * Phase 2: Displays comprehensive audit trail for all registry modifications
- * Endpoint: GET /api/v12/registry/rwat/audit
+ * Endpoint: GET /api/v11/registry/rwat/audit
  */
 const AuditTrail: React.FC = () => {
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
@@ -218,7 +218,7 @@ const AuditTrail: React.FC = () => {
 
         {error && (
           <Alert severity="warning" sx={{ mb: 3 }} onClose={() => setError(null)}>
-            {error} - Displaying simulated audit data. Audit endpoint /api/v12/registry/rwat/audit
+            {error} - Displaying simulated audit data. Audit endpoint /api/v11/registry/rwat/audit
             not yet implemented.
           </Alert>
         )}

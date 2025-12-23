@@ -119,7 +119,7 @@ message PeerInfo {
   string peer_id = 1;                      // Unique peer identifier
   string ip_address = 2;                   // Peer IP address
   int32 port = 3;                          // Peer port number
-  string node_type = 4;                    // Node type: VALIDATOR, BUSINESS, EXTERNAL_INTEGRATION
+  string node_type = 4;                    // Node type: VALIDATOR, BUSINESS, SLIM
 
   // Connection status
   PeerConnectionStatus connection_status = 5;

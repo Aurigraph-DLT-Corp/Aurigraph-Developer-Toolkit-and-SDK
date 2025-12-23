@@ -1,0 +1,114 @@
+# Prometheus Alert Rules for Aurigraph V11
+
+groups:
+  - name: aurigraph_v11_alerts
+    interval: 30s
+    rules:
+      # High-level service health
+      - alert: AurigraphV11Down
+        expr: up{job="aurigraph-v11"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Aurigraph V11 service is down"
+          description: "Aurigraph V11 service has been down for more than 1 minute"
+
+      # Performance alerts
+      - alert: AurigraphV11LowTPS
+        expr: rate(aurigraph_transactions_processed_total[1m]) < 1000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Aurigraph V11 TPS below 1M"
+          description: "Transaction processing rate is {{ $value | humanize }} TPS (target: 2M+ TPS)"
+
+      - alert: AurigraphV11HighLatency
+        expr: histogram_quantile(0.99, rate(http_server_requests_seconds_bucket{job="aurigraph-v11"}[5m])) > 0.050
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Aurigraph V11 high P99 latency"
+          description: "P99 latency is {{ $value | humanize }}s (threshold: 50ms)"
+
+      # Resource alerts
+      - alert: AurigraphV11HighMemory
+        expr: process_resident_memory_bytes{job="aurigraph-v11"} > 256000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Aurigraph V11 memory usage high"
+          description: "Memory usage is {{ $value | humanizeBytes }} (target: <256MB)"
+
+      - alert: AurigraphV11HighCPU
+        expr: rate(process_cpu_seconds_total{job="aurigraph-v11"}[5m]) > 0.95
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Aurigraph V11 high CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} for more than 10 minutes"
+
+      # Connection alerts
+      - alert: AurigraphV11HighConnectionCount
+        expr: http_server_connections_active{job="aurigraph-v11"} > 10000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Aurigraph V11 high connection count"
+          description: "Active connections: {{ $value }} (monitoring for capacity issues)"
+
+      # Error rate alerts
+      - alert: AurigraphV11HighErrorRate
+        expr: rate(http_server_requests_seconds_count{job="aurigraph-v11",status=~"5.."}[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Aurigraph V11 high error rate"
+          description: "HTTP 5xx error rate is {{ $value | humanize }} req/s"
+
+      # GC alerts (for JVM mode)
+      - alert: AurigraphV11FrequentGC
+        expr: rate(jvm_gc_pause_seconds_count{job="aurigraph-v11"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Aurigraph V11 frequent garbage collection"
+          description: "GC frequency is {{ $value | humanize }} collections/s"
+
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # System resource alerts
+      - alert: HighSystemCPU
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High system CPU usage"
+          description: "System CPU usage is {{ $value | humanizePercentage }}"
+
+      - alert: HighSystemMemory
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High system memory usage"
+          description: "System memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.mountpoint }}"

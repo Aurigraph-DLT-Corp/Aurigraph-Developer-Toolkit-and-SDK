@@ -1,9 +1,8 @@
 package io.aurigraph.v11.demo.api;
 
-import io.aurigraph.v11.demo.model.DemoDTO;
-import io.aurigraph.v11.demo.service.RedisDemoService;
-import jakarta.annotation.security.PermitAll;
-import jakarta.inject.Inject;
+import io.aurigraph.v11.demo.model.Demo;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
@@ -13,44 +12,37 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Demo Management REST API
- *
- * Unified endpoint for demo CRUD operations using Redis-backed persistence.
- * Demos persist for 24 hours automatically with configurable TTL.
- *
- * @version 2.0.0 (Dec 18, 2025)
- * @author Aurigraph DLT Development Team
+ * Provides CRUD operations and timeout management for demos
  */
-@Path("/api/v12/demos")
-@Tag(name = "Demo Management", description = "Manage live demos with 24-hour Redis persistence")
+@Path("/api/v11/demos")
+@Tag(name = "Demo Management", description = "Manage live demos with persistence and timeout")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@PermitAll
 public class DemoResource {
 
     private static final Logger LOG = Logger.getLogger(DemoResource.class);
-    private static final int DEFAULT_DURATION_MINUTES = 1440; // 24 hours
-    private static final int MAX_ADMIN_DURATION_MINUTES = 10080; // 7 days
-
-    @Inject
-    RedisDemoService demoService;
+    private static final int DEFAULT_DURATION_MINUTES = 10;
+    private static final int MAX_ADMIN_DURATION_MINUTES = 1440; // 24 hours
 
     @GET
     @Operation(summary = "Get all demos", description = "Returns all demos ordered by creation date")
-    public List<DemoDTO> getAllDemos() {
+    public List<Demo> getAllDemos() {
         LOG.info("Fetching all demos");
-        return demoService.findAll();
+        return Demo.listAll();
     }
 
     @GET
     @Path("/active")
     @Operation(summary = "Get active demos", description = "Returns non-expired demos")
-    public List<DemoDTO> getActiveDemos() {
+    public List<Demo> getActiveDemos() {
         LOG.info("Fetching active demos");
-        return demoService.findAllActive();
+        return Demo.findAllActive();
     }
 
     @GET
@@ -58,14 +50,23 @@ public class DemoResource {
     @Operation(summary = "Get demo by ID", description = "Returns a specific demo")
     public Response getDemo(@PathParam("id") String id) {
         LOG.infof("Fetching demo: %s", id);
-        return demoService.findById(id)
-                .map(demo -> Response.ok(demo).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                        .entity(new ErrorResponse("Demo not found: " + id))
-                        .build());
+        Demo demo = Demo.findById(id);
+        if (demo == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Demo not found: " + id))
+                    .build();
+        }
+
+        // Check if expired and update status
+        if (demo.isExpired() && demo.status != Demo.DemoStatus.EXPIRED) {
+            expireDemo(demo);
+        }
+
+        return Response.ok(demo).build();
     }
 
     @POST
+    @Transactional
     @Operation(summary = "Create demo", description = "Register a new demo with optional custom duration")
     public Response createDemo(
             @Valid @NotNull DemoRequest request,
@@ -74,21 +75,8 @@ public class DemoResource {
     ) {
         LOG.infof("Creating demo: %s", request.demoName);
 
-        // Create DTO from request
-        DemoDTO demo = new DemoDTO();
-        demo.demoName = request.demoName;
-        demo.userEmail = request.userEmail;
-        demo.userName = request.userName;
-        demo.description = request.description;
-        demo.channelsJson = request.channelsJson;
-        demo.validatorsJson = request.validatorsJson;
-        demo.businessNodesJson = request.businessNodesJson;
-        demo.eiNodesJson = request.eiNodesJson;
-        demo.merkleRoot = request.merkleRoot != null ? request.merkleRoot : "";
-        demo.tokenizationMode = request.tokenizationMode != null ? request.tokenizationMode : "live-feed";
-        demo.selectedDataFeedsJson = request.selectedDataFeedsJson;
-        demo.tokenizationConfigJson = request.tokenizationConfigJson;
-        demo.isAdminDemo = isAdmin;
+        // Generate unique ID
+        String id = "demo_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 9);
 
         // Validate and set duration
         int finalDuration = durationMinutes != null ? durationMinutes : DEFAULT_DURATION_MINUTES;
@@ -98,78 +86,110 @@ public class DemoResource {
         if (isAdmin && finalDuration > MAX_ADMIN_DURATION_MINUTES) {
             finalDuration = MAX_ADMIN_DURATION_MINUTES;
         }
+
+        // Create demo
+        Demo demo = new Demo();
+        demo.id = id;
+        demo.demoName = request.demoName;
+        demo.userEmail = request.userEmail;
+        demo.userName = request.userName;
+        demo.description = request.description;
+        demo.status = Demo.DemoStatus.PENDING;
+        demo.createdAt = LocalDateTime.now();
+        demo.lastActivity = LocalDateTime.now();
         demo.durationMinutes = finalDuration;
+        demo.expiresAt = LocalDateTime.now().plusMinutes(finalDuration);
+        demo.isAdminDemo = isAdmin;
+        demo.channelsJson = request.channelsJson;
+        demo.validatorsJson = request.validatorsJson;
+        demo.businessNodesJson = request.businessNodesJson;
+        demo.slimNodesJson = request.slimNodesJson;
+        demo.merkleRoot = request.merkleRoot != null ? request.merkleRoot : "";
+        demo.transactionCount = 0;
 
-        // Create demo via service
-        DemoDTO created = demoService.createDemo(demo);
+        demo.persist();
 
-        return Response.status(Response.Status.CREATED).entity(created).build();
+        LOG.infof("✅ Demo created: %s (ID: %s, Duration: %d min, Expires: %s)",
+                demo.demoName, demo.id, finalDuration, demo.expiresAt);
+
+        return Response.status(Response.Status.CREATED).entity(demo).build();
     }
 
     @PUT
     @Path("/{id}")
+    @Transactional
     @Operation(summary = "Update demo", description = "Update demo properties")
     public Response updateDemo(@PathParam("id") String id, @Valid @NotNull DemoUpdateRequest request) {
         LOG.infof("Updating demo: %s", id);
+        Demo demo = Demo.findById(id);
+        if (demo == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Demo not found: " + id))
+                    .build();
+        }
 
-        return demoService.findById(id)
-                .map(demo -> {
-                    if (request.status != null) {
-                        demo.status = request.status;
-                    }
-                    if (request.transactionCount != null) {
-                        demo.transactionCount = request.transactionCount;
-                    }
-                    if (request.merkleRoot != null) {
-                        demo.merkleRoot = request.merkleRoot;
-                    }
-                    if (request.tokenizationMode != null) {
-                        demo.tokenizationMode = request.tokenizationMode;
-                    }
-                    if (request.selectedDataFeedsJson != null) {
-                        demo.selectedDataFeedsJson = request.selectedDataFeedsJson;
-                    }
-                    if (request.tokenizationConfigJson != null) {
-                        demo.tokenizationConfigJson = request.tokenizationConfigJson;
-                    }
+        if (request.status != null) {
+            demo.status = Demo.DemoStatus.valueOf(request.status);
+        }
+        if (request.transactionCount != null) {
+            demo.transactionCount = request.transactionCount;
+        }
+        if (request.merkleRoot != null) {
+            demo.merkleRoot = request.merkleRoot;
+        }
 
-                    DemoDTO updated = demoService.updateDemo(demo);
-                    LOG.infof("Demo updated: %s", demo.demoName);
-                    return Response.ok(updated).build();
-                })
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                        .entity(new ErrorResponse("Demo not found: " + id))
-                        .build());
+        demo.lastActivity = LocalDateTime.now();
+        demo.persist();
+
+        LOG.infof("▶️ Demo updated: %s", demo.demoName);
+        return Response.ok(demo).build();
     }
 
     @POST
     @Path("/{id}/start")
+    @Transactional
     @Operation(summary = "Start demo", description = "Change demo status to RUNNING")
     public Response startDemo(@PathParam("id") String id) {
         LOG.infof("Starting demo: %s", id);
+        Demo demo = Demo.findById(id);
+        if (demo == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Demo not found: " + id))
+                    .build();
+        }
 
-        return demoService.startDemo(id)
-                .map(demo -> Response.ok(demo).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                        .entity(new ErrorResponse("Demo not found: " + id))
-                        .build());
+        demo.status = Demo.DemoStatus.RUNNING;
+        demo.lastActivity = LocalDateTime.now();
+        demo.persist();
+
+        LOG.infof("▶️ Demo started: %s", demo.demoName);
+        return Response.ok(demo).build();
     }
 
     @POST
     @Path("/{id}/stop")
+    @Transactional
     @Operation(summary = "Stop demo", description = "Change demo status to STOPPED")
     public Response stopDemo(@PathParam("id") String id) {
         LOG.infof("Stopping demo: %s", id);
+        Demo demo = Demo.findById(id);
+        if (demo == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Demo not found: " + id))
+                    .build();
+        }
 
-        return demoService.stopDemo(id)
-                .map(demo -> Response.ok(demo).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                        .entity(new ErrorResponse("Demo not found: " + id))
-                        .build());
+        demo.status = Demo.DemoStatus.STOPPED;
+        demo.lastActivity = LocalDateTime.now();
+        demo.persist();
+
+        LOG.infof("⏸️ Demo stopped: %s", demo.demoName);
+        return Response.ok(demo).build();
     }
 
     @POST
     @Path("/{id}/extend")
+    @Transactional
     @Operation(summary = "Extend demo duration", description = "Add time to demo expiration (admin only)")
     public Response extendDemo(
             @PathParam("id") String id,
@@ -184,51 +204,105 @@ public class DemoResource {
                     .build();
         }
 
-        return demoService.extendDemo(id, additionalMinutes)
-                .map(demo -> Response.ok(demo).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                        .entity(new ErrorResponse("Demo not found: " + id))
-                        .build());
+        Demo demo = Demo.findById(id);
+        if (demo == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Demo not found: " + id))
+                    .build();
+        }
+
+        demo.extend(additionalMinutes);
+        demo.persist();
+
+        LOG.infof("⏱️ Demo extended: %s - now expires at %s", demo.demoName, demo.expiresAt);
+        return Response.ok(demo).build();
     }
 
     @POST
     @Path("/{id}/transactions")
+    @Transactional
     @Operation(summary = "Add transactions", description = "Increment transaction count and update Merkle root")
     public Response addTransactions(
             @PathParam("id") String id,
             @QueryParam("count") @DefaultValue("1") long count,
             @QueryParam("merkleRoot") String merkleRoot
     ) {
-        return demoService.addTransactions(id, count, merkleRoot)
-                .map(demo -> Response.ok(demo).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                        .entity(new ErrorResponse("Demo not found: " + id))
-                        .build());
+        Demo demo = Demo.findById(id);
+        if (demo == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Demo not found: " + id))
+                    .build();
+        }
+
+        demo.addTransactions(count);
+        if (merkleRoot != null) {
+            demo.merkleRoot = merkleRoot;
+        }
+        demo.persist();
+
+        return Response.ok(demo).build();
     }
 
     @DELETE
     @Path("/{id}")
-    @Operation(summary = "Delete demo", description = "Remove demo from storage")
+    @Transactional
+    @Operation(summary = "Delete demo", description = "Remove demo from database")
     public Response deleteDemo(@PathParam("id") String id) {
         LOG.infof("Deleting demo: %s", id);
-
-        if (demoService.deleteDemo(id)) {
-            return Response.noContent().build();
+        Demo demo = Demo.findById(id);
+        if (demo == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Demo not found: " + id))
+                    .build();
         }
-        return Response.status(Response.Status.NOT_FOUND)
-                .entity(new ErrorResponse("Demo not found: " + id))
-                .build();
+
+        String demoName = demo.demoName;
+        demo.delete();
+
+        LOG.infof("🗑️ Demo deleted: %s", demoName);
+        return Response.noContent().build();
     }
 
-    @GET
-    @Path("/stats")
-    @Operation(summary = "Get demo statistics", description = "Returns counts of demos")
-    public Response getStats() {
-        return Response.ok(new DemoStats(
-                demoService.count(),
-                demoService.countActive(),
-                demoService.findRunning().size()
-        )).build();
+    /**
+     * Auto-expire demos every minute
+     */
+    @Scheduled(every = "60s")
+    @Transactional
+    void checkExpiredDemos() {
+        List<Demo> expiredDemos = Demo.findExpired();
+        if (!expiredDemos.isEmpty()) {
+            LOG.infof("⏰ Found %d expired demos, marking as EXPIRED", expiredDemos.size());
+            for (Demo demo : expiredDemos) {
+                expireDemo(demo);
+            }
+        }
+    }
+
+    /**
+     * Auto-generate transactions for RUNNING demos every 5 seconds
+     */
+    @Scheduled(every = "5s")
+    @Transactional
+    void autoGenerateTransactions() {
+        List<Demo> runningDemos = Demo.list("status = ?1 AND expiresAt > ?2",
+            Demo.DemoStatus.RUNNING,
+            java.time.LocalDateTime.now());
+
+        if (!runningDemos.isEmpty()) {
+            for (Demo demo : runningDemos) {
+                // Generate 1-5 random transactions per demo
+                int txCount = (int) (Math.random() * 5) + 1;
+                demo.addTransactions(txCount);
+                demo.persist();
+            }
+            LOG.debugf("📊 Auto-generated transactions for %d running demos", runningDemos.size());
+        }
+    }
+
+    private void expireDemo(Demo demo) {
+        demo.expire();
+        demo.persist();
+        LOG.infof("⏰ Demo expired: %s (ID: %s)", demo.demoName, demo.id);
     }
 
     // Request/Response DTOs
@@ -240,32 +314,14 @@ public class DemoResource {
         public String channelsJson;
         public String validatorsJson;
         public String businessNodesJson;
-        public String eiNodesJson;
+        public String slimNodesJson;
         public String merkleRoot;
-        public String tokenizationMode;
-        public String selectedDataFeedsJson;
-        public String tokenizationConfigJson;
     }
 
     public static class DemoUpdateRequest {
         public String status;
         public Long transactionCount;
         public String merkleRoot;
-        public String tokenizationMode;
-        public String selectedDataFeedsJson;
-        public String tokenizationConfigJson;
-    }
-
-    public static class DemoStats {
-        public long total;
-        public long active;
-        public long running;
-
-        public DemoStats(long total, long active, long running) {
-            this.total = total;
-            this.active = active;
-            this.running = running;
-        }
     }
 
     public static class ErrorResponse {

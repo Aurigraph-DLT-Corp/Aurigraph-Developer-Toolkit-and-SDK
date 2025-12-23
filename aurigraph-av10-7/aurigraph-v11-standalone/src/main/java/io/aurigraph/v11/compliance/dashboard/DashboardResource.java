@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * REST API endpoints for Compliance Monitoring Dashboard
  * Provides real-time compliance metrics, alerts, and risk assessment
  */
-@Path("/api/v12/compliance/dashboard")
+@Path("/api/v11/compliance/dashboard")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DashboardResource {
@@ -23,7 +23,7 @@ public class DashboardResource {
 
     /**
      * Get comprehensive dashboard metrics
-     * GET /api/v12/compliance/dashboard/metrics
+     * GET /api/v11/compliance/dashboard/metrics
      */
     @GET
     @Path("/metrics")
@@ -77,7 +77,7 @@ public class DashboardResource {
 
     /**
      * Get alert summary
-     * GET /api/v12/compliance/dashboard/alerts
+     * GET /api/v11/compliance/dashboard/alerts
      */
     @GET
     @Path("/alerts")
@@ -111,7 +111,7 @@ public class DashboardResource {
 
     /**
      * Get compliance status overview
-     * GET /api/v12/compliance/dashboard/status
+     * GET /api/v11/compliance/dashboard/status
      */
     @GET
     @Path("/status")
@@ -143,7 +143,7 @@ public class DashboardResource {
 
     /**
      * Get top compliance risks
-     * GET /api/v12/compliance/dashboard/risks?limit=10
+     * GET /api/v11/compliance/dashboard/risks?limit=10
      */
     @GET
     @Path("/risks")
@@ -175,7 +175,7 @@ public class DashboardResource {
 
     /**
      * Get system health
-     * GET /api/v12/compliance/dashboard/health
+     * GET /api/v11/compliance/dashboard/health
      */
     @GET
     @Path("/health")
@@ -205,7 +205,7 @@ public class DashboardResource {
 
     /**
      * Get dashboard summary (quick overview)
-     * GET /api/v12/compliance/dashboard/summary
+     * GET /api/v11/compliance/dashboard/summary
      */
     @GET
     @Path("/summary")

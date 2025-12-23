@@ -1,0 +1,251 @@
+################################################################################
+# docker-compose-native-cluster.yml
+# High-Performance Native Quarkus/GraalVM Aurigraph Node Cluster
+# Achieves 2M+ TPS with multiple native nodes
+################################################################################
+
+version: '3.9'
+
+x-common-variables: &common-variables
+  AURIGRAPH_CLUSTER_ENABLED: "true"
+  AURIGRAPH_TARGET_TPS: "2000000"
+  AURIGRAPH_CONSENSUS_TYPE: "hyperraft-plus"
+  AURIGRAPH_CRYPTO_MODE: "quantum-resistant"
+  AURIGRAPH_AI_OPTIMIZATION: "enabled"
+  AURIGRAPH_METRICS_ENABLED: "true"
+  AURIGRAPH_LOG_LEVEL: "INFO"
+
+x-resource-limits: &resource-limits
+  deploy:
+    resources:
+      limits:
+        cpus: '4'
+        memory: 512M
+      reservations:
+        cpus: '2'
+        memory: 256M
+
+x-healthcheck: &healthcheck
+  healthcheck:
+    test: ["CMD", "wget", "-q", "--spider", "http://localhost:9003/q/health/ready"]
+    interval: 10s
+    timeout: 3s
+    retries: 5
+    start_period: 10s
+
+services:
+  # Primary Node (Leader)
+  aurigraph-node-1:
+    image: aurigraph/v11-native:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+      args:
+        BUILD_PROFILE: native-ultra
+    container_name: aurigraph-node-1
+    hostname: aurigraph-node-1
+    environment:
+      <<: *common-variables
+      AURIGRAPH_NODE_ID: "node-1"
+      AURIGRAPH_NODE_ROLE: "leader"
+      AURIGRAPH_HTTP_PORT: "9003"
+      AURIGRAPH_GRPC_PORT: "9004"
+      AURIGRAPH_CLUSTER_SEEDS: "aurigraph-node-2:9004,aurigraph-node-3:9004"
+      AURIGRAPH_GENESIS_NODE: "true"
+    ports:
+      - "9003:9003"  # HTTP API
+      - "9004:9004"  # gRPC
+      - "9005:9005"  # Metrics
+    volumes:
+      - node1-data:/app/data
+      - node1-logs:/app/logs
+      - ./config/node1:/app/config:ro
+    networks:
+      - aurigraph-network
+    <<: *resource-limits
+    <<: *healthcheck
+    restart: unless-stopped
+
+  # Secondary Node (Follower)
+  aurigraph-node-2:
+    image: aurigraph/v11-native:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+      args:
+        BUILD_PROFILE: native-ultra
+    container_name: aurigraph-node-2
+    hostname: aurigraph-node-2
+    environment:
+      <<: *common-variables
+      AURIGRAPH_NODE_ID: "node-2"
+      AURIGRAPH_NODE_ROLE: "follower"
+      AURIGRAPH_HTTP_PORT: "9003"
+      AURIGRAPH_GRPC_PORT: "9004"
+      AURIGRAPH_CLUSTER_SEEDS: "aurigraph-node-1:9004,aurigraph-node-3:9004"
+      AURIGRAPH_GENESIS_NODE: "false"
+    ports:
+      - "9013:9003"  # HTTP API
+      - "9014:9004"  # gRPC
+      - "9015:9005"  # Metrics
+    volumes:
+      - node2-data:/app/data
+      - node2-logs:/app/logs
+      - ./config/node2:/app/config:ro
+    networks:
+      - aurigraph-network
+    <<: *resource-limits
+    <<: *healthcheck
+    restart: unless-stopped
+    depends_on:
+      - aurigraph-node-1
+
+  # Tertiary Node (Follower)
+  aurigraph-node-3:
+    image: aurigraph/v11-native:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+      args:
+        BUILD_PROFILE: native-ultra
+    container_name: aurigraph-node-3
+    hostname: aurigraph-node-3
+    environment:
+      <<: *common-variables
+      AURIGRAPH_NODE_ID: "node-3"
+      AURIGRAPH_NODE_ROLE: "follower"
+      AURIGRAPH_HTTP_PORT: "9003"
+      AURIGRAPH_GRPC_PORT: "9004"
+      AURIGRAPH_CLUSTER_SEEDS: "aurigraph-node-1:9004,aurigraph-node-2:9004"
+      AURIGRAPH_GENESIS_NODE: "false"
+    ports:
+      - "9023:9003"  # HTTP API
+      - "9024:9004"  # gRPC
+      - "9025:9005"  # Metrics
+    volumes:
+      - node3-data:/app/data
+      - node3-logs:/app/logs
+      - ./config/node3:/app/config:ro
+    networks:
+      - aurigraph-network
+    <<: *resource-limits
+    <<: *healthcheck
+    restart: unless-stopped
+    depends_on:
+      - aurigraph-node-1
+
+  # Load Balancer (HAProxy)
+  load-balancer:
+    image: haproxy:2.9-alpine
+    container_name: aurigraph-lb
+    volumes:
+      - ./config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "8080:8080"  # Load balanced HTTP API
+      - "8081:8081"  # Load balanced gRPC
+      - "8082:8082"  # HAProxy stats
+    networks:
+      - aurigraph-network
+    depends_on:
+      - aurigraph-node-1
+      - aurigraph-node-2
+      - aurigraph-node-3
+    restart: unless-stopped
+
+  # Prometheus for Metrics
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: aurigraph-prometheus
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: aurigraph-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - aurigraph-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Redis for Caching (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: aurigraph-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  # PostgreSQL for Persistent Storage (Optional)
+  postgres:
+    image: postgres:16-alpine
+    container_name: aurigraph-postgres
+    environment:
+      POSTGRES_DB: aurigraph
+      POSTGRES_USER: aurigraph
+      POSTGRES_PASSWORD: aurigraph-secure-password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+networks:
+  aurigraph-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  node1-data:
+    driver: local
+  node1-logs:
+    driver: local
+  node2-data:
+    driver: local
+  node2-logs:
+    driver: local
+  node3-data:
+    driver: local
+  node3-logs:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local

@@ -407,12 +407,10 @@ export const DEFAULT_DEMO_APP_STATE: DemoAppState = {
   selectedNodeId: null,
   networkConfig: {
     channels: 1,
-    validators: 3, // Odd number for BFT consensus
+    validators: 4,
     businessNodes: 2,
-    slimNodes: 5, // Multiple slim nodes for external API streaming
+    slimNodes: 3,
     dataSources: [],
-    slimNodeMappings: [],
-    demoSession: null,
   },
   systemMetrics: {
     performance: null,
@@ -476,12 +474,7 @@ export const DEFAULT_SETTINGS_STATE: SettingsState = {
       updateInterval: 30000,
     },
   },
-  // Use production URLs when on production domain
-  apiBaseUrl: typeof window !== 'undefined' && (window.location.protocol === 'https:' || window.location.hostname === 'dlt.aurigraph.io')
-    ? 'https://dlt.aurigraph.io'
-    : 'http://localhost:9003',
-  wsUrl: typeof window !== 'undefined' && (window.location.protocol === 'https:' || window.location.hostname === 'dlt.aurigraph.io')
-    ? 'wss://dlt.aurigraph.io'
-    : 'ws://localhost:9003',
+  apiBaseUrl: 'http://localhost:9003',
+  wsUrl: 'ws://localhost:9003',
   demoMode: true,
 };

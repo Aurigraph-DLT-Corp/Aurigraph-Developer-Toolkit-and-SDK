@@ -316,31 +316,21 @@ public class VerifierRegistry extends MerkleTreeRegistry<ThirdPartyVerifier> {
 
     private void initializeDefaultVerifiers() {
         // Initialize some default verifiers for testing
-        // Using async initialization to avoid blocking the event loop thread
         List<ThirdPartyVerifier> defaultVerifiers = Arrays.asList(
-            new ThirdPartyVerifier("ACME Appraisals", VerifierTier.TIER_1, "Real Estate",
+            new ThirdPartyVerifier("ACME Appraisals", VerifierTier.TIER_1, "Real Estate", 
                                  "Licensed real estate appraisers", "contact@acme-appraisals.com"),
-            new ThirdPartyVerifier("Global Certification Corp", VerifierTier.TIER_2, "Multi-Asset",
+            new ThirdPartyVerifier("Global Certification Corp", VerifierTier.TIER_2, "Multi-Asset", 
                                  "Regional certification specialists", "info@globalcert.com"),
-            new ThirdPartyVerifier("Platinum Valuations", VerifierTier.TIER_3, "High-Value Assets",
+            new ThirdPartyVerifier("Platinum Valuations", VerifierTier.TIER_3, "High-Value Assets", 
                                  "National certification firm", "contact@platinumval.com"),
-            new ThirdPartyVerifier("Big Four Consulting", VerifierTier.TIER_4, "Institutional",
+            new ThirdPartyVerifier("Big Four Consulting", VerifierTier.TIER_4, "Institutional", 
                                  "Major institutional verification services", "enterprise@bigfour.com")
         );
 
-        // Use virtual threads to avoid blocking Vert.x event loop
-        Thread.startVirtualThread(() -> {
-            for (ThirdPartyVerifier verifier : defaultVerifiers) {
-                try {
-                    registerVerifier(verifier).await().indefinitely();
-                    approveVerifier(verifier.getVerifierId()).await().indefinitely();
-                } catch (Exception e) {
-                    LOGGER.warn("Failed to initialize default verifier: {} - {}",
-                        verifier.getName(), e.getMessage());
-                }
-            }
-            LOGGER.info("Default verifiers initialized successfully");
-        });
+        for (ThirdPartyVerifier verifier : defaultVerifiers) {
+            registerVerifier(verifier).await().indefinitely();
+            approveVerifier(verifier.getVerifierId()).await().indefinitely();
+        }
     }
 
     private String generateVerifierId(ThirdPartyVerifier verifier) {

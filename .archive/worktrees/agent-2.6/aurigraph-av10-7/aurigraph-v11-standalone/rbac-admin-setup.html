@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBAC Admin Setup - Aurigraph DLT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #00c851;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .user-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .role-admin {
+            background: #764ba2;
+            color: white;
+        }
+
+        .role-superadmin {
+            background: #ff4444;
+            color: white;
+        }
+
+        .role-user {
+            background: #00c851;
+            color: white;
+        }
+
+        .role-guest {
+            background: #ff9800;
+            color: white;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #e83e8c;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        #message {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 RBAC Admin Setup</h1>
+        <p class="subtitle">Create and manage admin users for Aurigraph DLT</p>
+
+        <div id="message"></div>
+
+        <!-- Current Users Section -->
+        <div class="section">
+            <h2>📊 Current Users</h2>
+            <div class="stats" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="adminUsers">0</div>
+                    <div class="stat-label">Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="guestUsers">0</div>
+                    <div class="stat-label">Guests</div>
+                </div>
+            </div>
+
+            <div class="user-list" id="userList"></div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="refreshUsers()">🔄 Refresh</button>
+                <button class="btn btn-danger" onclick="clearAllUsers()">🗑️ Clear All Users</button>
+            </div>
+        </div>
+
+        <!-- Create Admin Section -->
+        <div class="section">
+            <h2>➕ Create Admin User</h2>
+
+            <div class="alert alert-info">
+                <strong>Note:</strong> Admin users can manage other users, approve guests, and access the admin panel.
+            </div>
+
+            <form id="adminForm" onsubmit="createAdmin(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="adminName" placeholder="John Admin" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" id="adminEmail" placeholder="admin@aurigraph.io" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="adminPhone" placeholder="+1 (555) 123-4567" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" id="adminPassword" placeholder="Enter secure password" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Role *</label>
+                    <select id="adminRole" required>
+                        <option value="admin">Admin - Can manage users</option>
+                        <option value="superadmin">SuperAdmin - Full system access</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" id="adminCompany" placeholder="Aurigraph DLT Corp" value="Aurigraph DLT Corp">
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">✅ Create Admin User</button>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('adminForm').reset()">Clear Form</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="section">
+            <h2>⚡ Quick Actions</h2>
+
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="createDefaultAdmin()">🚀 Create Default Admin</button>
+                <button class="btn btn-secondary" onclick="exportUsers()">📤 Export Users</button>
+            </div>
+
+            <div class="alert alert-warning" style="margin-top: 15px;">
+                <strong>Default Admin Credentials:</strong><br>
+                Email: <code>admin@aurigraph.io</code><br>
+                Password: <code>admin123</code><br>
+                Role: <code>Admin</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load RBAC System V2 -->
+    <script src="aurigraph-rbac-system-v2.js"></script>
+
+    <script>
+        // Display message
+        function showMessage(text, type = 'success') {
+            const messageEl = document.getElementById('message');
+            messageEl.className = `alert alert-${type}`;
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Load and display users
+        function refreshUsers() {
+            try {
+                const users = JSON.parse(localStorage.getItem('rbac_users') || '[]');
+
+                // Update stats
+                document.getElementById('totalUsers').textContent = users.length;
+                document.getElementById('adminUsers').textContent = users.filter(u => ['admin', 'superadmin'].includes(u.role)).length;
+                document.getElementById('guestUsers').textContent = users.filter(u => u.role === 'guest').length;
+
+                // Display user list
+                const userListEl = document.getElementById('userList');
+                if (users.length === 0) {
+                    userListEl.innerHTML = '<div style="text-align: center; color: #7f8c8d; padding: 20px;">No users found. Create an admin user to get started.</div>';
+                } else {
+                    userListEl.innerHTML = users.map(user => `
+                        <div class="user-item">
+                            <div class="user-info">
+                                <div class="user-name">${user.fullName || 'Unknown'}</div>
+                                <div class="user-email">${user.email}</div>
+                            </div>
+                            <span class="role-badge role-${user.role}">${user.role.toUpperCase()}</span>
+                            <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="deleteUser('${user.id}')">Delete</button>
+                        </div>
+                    `).join('');
+                }
+
+                showMessage('Users refreshed successfully', 'success');
+            } catch (error) {
+                showMessage('Error loading users: ' + error.message, 'danger');
+            }
+        }
+
+        // Create admin user
+        function createAdmin(event) {
+            event.preventDefault();
+
+            try {
+                const adminData = {
+                    fullName: document.getElementById('adminName').value,
+                    email: document.getElementById('adminEmail').value,
+                    phone: document.getElementById('adminPhone').value,
+                    password: document.getElementById('adminPassword').value,
+                    company: document.getElementById('adminCompany').value || 'Aurigraph DLT Corp',
+                    jobTitle: 'Administrator',
+                    country: 'US',
+                    useCase: 'System Administration',
+                    referralSource: 'Internal',
+                    newsletterOptIn: false
+                };
+
+                const role = document.getElementById('adminRole').value;
+
+                // Create user with RBAC manager
+                const user = window.rbacManager.registerGuest(adminData);
+
+                // Update role to admin/superadmin
+                const users = JSON.parse(localStorage.getItem('rbac_users') || '[]');
+                const userIndex = users.findIndex(u => u.id === user.id);
+                if (userIndex !== -1) {
+                    users[userIndex].role = role;
+                    users[userIndex].verified = true;
+                    localStorage.setItem('rbac_users', JSON.stringify(users));
+                }
+
+                showMessage(`✅ ${role === 'superadmin' ? 'SuperAdmin' : 'Admin'} user created successfully! Email: ${adminData.email}`, 'success');
+
+                document.getElementById('adminForm').reset();
+                refreshUsers();
+            } catch (error) {
+                showMessage('Error creating admin: ' + error.message, 'danger');
+            }
+        }
+
+        // Create default admin
+        function createDefaultAdmin() {
+            try {
+                // Check if default admin already exists
+                const users = JSON.parse(localStorage.getItem('rbac_users') || '[]');
+                const existingAdmin = users.find(u => u.email === 'admin@aurigraph.io');
+
+                if (existingAdmin) {
+                    showMessage('Default admin already exists!', 'warning');
+                    refreshUsers();
+                    return;
+                }
+
+                const adminData = {
+                    fullName: 'Aurigraph Admin',
+                    email: 'admin@aurigraph.io',
+                    phone: '+1 (555) 000-0000',
+                    password: 'admin123',
+                    company: 'Aurigraph DLT Corp',
+                    jobTitle: 'System Administrator',
+                    country: 'US',
+                    useCase: 'System Administration',
+                    referralSource: 'Internal',
+                    newsletterOptIn: false
+                };
+
+                const user = window.rbacManager.registerGuest(adminData);
+
+                // Update role to admin
+                const allUsers = JSON.parse(localStorage.getItem('rbac_users') || '[]');
+                const userIndex = allUsers.findIndex(u => u.id === user.id);
+                if (userIndex !== -1) {
+                    allUsers[userIndex].role = 'admin';
+                    allUsers[userIndex].verified = true;
+                    localStorage.setItem('rbac_users', JSON.stringify(allUsers));
+                }
+
+                showMessage('✅ Default admin created! You can now login with admin@aurigraph.io / admin123', 'success');
+                refreshUsers();
+            } catch (error) {
+                showMessage('Error creating default admin: ' + error.message, 'danger');
+            }
+        }
+
+        // Delete user
+        function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+
+            try {
+                window.rbacManager.deleteUser(userId);
+                showMessage('User deleted successfully', 'success');
+                refreshUsers();
+            } catch (error) {
+                showMessage('Error deleting user: ' + error.message, 'danger');
+            }
+        }
+
+        // Clear all users
+        function clearAllUsers() {
+            if (!confirm('⚠️ WARNING: This will delete ALL users including admins. Are you sure?')) return;
+            if (!confirm('This action cannot be undone. Continue?')) return;
+
+            try {
+                localStorage.removeItem('rbac_users');
+                localStorage.removeItem('rbac_current_user');
+                localStorage.removeItem('rbac_sessions');
+                localStorage.removeItem('rbac_guest_logs');
+                showMessage('All users deleted successfully', 'success');
+                refreshUsers();
+            } catch (error) {
+                showMessage('Error clearing users: ' + error.message, 'danger');
+            }
+        }
+
+        // Export users to CSV
+        function exportUsers() {
+            try {
+                const users = JSON.parse(localStorage.getItem('rbac_users') || '[]');
+
+                if (users.length === 0) {
+                    showMessage('No users to export', 'warning');
+                    return;
+                }
+
+                const csv = window.rbacManager.convertToCSV(users);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `rbac_users_${Date.now()}.csv`;
+                a.click();
+
+                URL.revokeObjectURL(url);
+                showMessage('Users exported successfully', 'success');
+            } catch (error) {
+                showMessage('Error exporting users: ' + error.message, 'danger');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshUsers();
+        });
+    </script>
+</body>
+</html>

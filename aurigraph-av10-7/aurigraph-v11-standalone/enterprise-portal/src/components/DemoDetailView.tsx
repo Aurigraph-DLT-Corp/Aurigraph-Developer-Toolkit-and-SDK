@@ -189,8 +189,8 @@ export const DemoDetailView: React.FC<DemoDetailViewProps> = ({ currentTPS = 0 }
               <Typography variant="body1">{cachedDemo?.businessNodes?.length || 0}</Typography>
             </Box>
             <Box>
-              <Typography variant="caption" color="text.secondary">External Integration (EI) Nodes</Typography>
-              <Typography variant="body1">{cachedDemo?.eiNodes?.length || 0}</Typography>
+              <Typography variant="caption" color="text.secondary">Slim Nodes</Typography>
+              <Typography variant="body1">{cachedDemo?.slimNodes?.length || 0}</Typography>
             </Box>
           </Box>
         </CardContent>
@@ -246,7 +246,7 @@ export const DemoDetailView: React.FC<DemoDetailViewProps> = ({ currentTPS = 0 }
             <NetworkHealthViz
               validators={cachedDemo?.validators || []}
               businessNodes={cachedDemo?.businessNodes || []}
-              eiNodes={cachedDemo?.eiNodes || []}
+              slimNodes={cachedDemo?.slimNodes || []}
             />
           </Box>
 
@@ -258,7 +258,7 @@ export const DemoDetailView: React.FC<DemoDetailViewProps> = ({ currentTPS = 0 }
             <NodeVisualization
               validators={cachedDemo?.validators || []}
               businessNodes={cachedDemo?.businessNodes || []}
-              eiNodes={cachedDemo?.eiNodes || []}
+              slimNodes={cachedDemo?.slimNodes || []}
               channels={demo.channels}
             />
           </Box>

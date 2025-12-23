@@ -1,0 +1,79 @@
+####
+# Aurigraph V11 Production Native Image Dockerfile
+# Multi-stage build for optimized native executable
+####
+
+####
+# Stage 1: Build native executable with GraalVM
+####
+FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:24.0-java21 AS builder
+
+# Set working directory
+WORKDIR /build
+
+# Copy Maven wrapper and POM
+COPY mvnw mvnw.cmd pom.xml ./
+COPY .mvn .mvn
+
+# Download dependencies (cached layer)
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
+
+# Build native executable with ultra-optimized profile
+# Note: This uses container build, so -march=native becomes -march=x86-64-v3
+RUN ./mvnw package -Pnative-ultra -DskipTests=true -Dquarkus.native.container-build=false
+
+####
+# Stage 2: Create minimal runtime image
+####
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5
+
+# Install required runtime libraries
+RUN microdnf install -y \
+    ca-certificates \
+    && microdnf clean all \
+    && rm -rf /var/cache/yum
+
+# Create non-root user
+RUN adduser -u 1001 -r -g 0 -s /bin/sh aurigraph \
+    && mkdir -p /opt/aurigraph/logs /opt/aurigraph/data \
+    && chown -R 1001:0 /opt/aurigraph \
+    && chmod -R g=u /opt/aurigraph
+
+# Set working directory
+WORKDIR /opt/aurigraph
+
+# Copy native executable from builder
+COPY --from=builder --chown=1001:0 /build/target/*-runner /opt/aurigraph/application
+
+# Copy application properties
+COPY --from=builder --chown=1001:0 /build/src/main/resources/application.properties /opt/aurigraph/config/
+
+# Switch to non-root user
+USER 1001
+
+# Expose ports
+EXPOSE 9003 9004
+
+# Environment variables
+ENV LANGUAGE='en_US:en'
+ENV JAVA_OPTS=""
+ENV QUARKUS_HTTP_PORT=9003
+ENV QUARKUS_GRPC_SERVER_PORT=9004
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:9003/q/health/live || exit 1
+
+# Run the native executable
+ENTRYPOINT ["./application"]
+CMD ["-Dquarkus.http.host=0.0.0.0", "-Dquarkus.http.port=9003"]
+
+# Labels
+LABEL org.opencontainers.image.title="Aurigraph V11 Native"
+LABEL org.opencontainers.image.description="Aurigraph V11 Blockchain Platform - Native Executable"
+LABEL org.opencontainers.image.version="11.4.3"
+LABEL org.opencontainers.image.vendor="Aurigraph DLT Corp"
+LABEL org.opencontainers.image.authors="Aurigraph Team"

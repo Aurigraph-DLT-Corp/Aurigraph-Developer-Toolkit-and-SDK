@@ -105,7 +105,7 @@ The Settings component demonstrates comprehensive test coverage:
 - Twitter integration (OAuth tokens)
 - Weather API configuration
 - NewsAPI settings
-- Streaming configuration (External Integration (EI) Nodes)
+- Streaming configuration (Slim Nodes)
 - Oracle service settings
 - Enable/disable toggles
 - Rate limit configuration

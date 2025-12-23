@@ -1,0 +1,462 @@
+{
+  "dashboard": {
+    "title": "JWT Token Storage & Lifecycle Management",
+    "description": "Real-time monitoring of JWT token creation, validation, revocation, and cleanup",
+    "tags": ["authentication", "tokens", "security"],
+    "timezone": "browser",
+    "schemaVersion": 18,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Tokens (Last 24h)",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT COUNT(*) FROM auth_tokens WHERE status = 'ACTIVE' AND is_revoked = FALSE",
+            "datasource": "PostgreSQL",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "legendFormat": "Active Tokens"
+      },
+      {
+        "id": 2,
+        "title": "Token Types Distribution",
+        "type": "piechart",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT token_type, COUNT(*) FROM auth_tokens WHERE status = 'ACTIVE' GROUP BY token_type",
+            "datasource": "PostgreSQL",
+            "format": "table",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Token Revocations (Per Hour)",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 8,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT date_trunc('hour', revoked_at) as hour, COUNT(*) FROM auth_tokens WHERE is_revoked = TRUE AND revoked_at > NOW() - INTERVAL '24 hours' GROUP BY hour ORDER BY hour DESC",
+            "datasource": "PostgreSQL",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "legendFormat": "Revocations"
+      },
+      {
+        "id": 4,
+        "title": "Token Expirations (Per Hour)",
+        "type": "graph",
+        "gridPos": {
+          "x": 12,
+          "y": 8,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT date_trunc('hour', expires_at) as hour, COUNT(*) FROM auth_tokens WHERE status = 'EXPIRED' AND expires_at > NOW() - INTERVAL '24 hours' GROUP BY hour ORDER BY hour DESC",
+            "datasource": "PostgreSQL",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "legendFormat": "Expirations"
+      },
+      {
+        "id": 5,
+        "title": "Users with Most Active Tokens",
+        "type": "table",
+        "gridPos": {
+          "x": 0,
+          "y": 16,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT user_email, COUNT(*) as active_tokens FROM auth_tokens WHERE status = 'ACTIVE' AND is_revoked = FALSE GROUP BY user_email ORDER BY active_tokens DESC LIMIT 10",
+            "datasource": "PostgreSQL",
+            "format": "table",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Tokens per User (Average)",
+        "type": "stat",
+        "gridPos": {
+          "x": 12,
+          "y": 16,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT AVG(token_count) FROM (SELECT user_id, COUNT(*) as token_count FROM auth_tokens WHERE status = 'ACTIVE' GROUP BY user_id) subquery",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Max Tokens per User",
+        "type": "stat",
+        "gridPos": {
+          "x": 18,
+          "y": 16,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT MAX(token_count) FROM (SELECT user_id, COUNT(*) as token_count FROM auth_tokens WHERE status = 'ACTIVE' GROUP BY user_id) subquery",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Unique IP Addresses (Last 24h)",
+        "type": "stat",
+        "gridPos": {
+          "x": 12,
+          "y": 20,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT COUNT(DISTINCT client_ip) FROM auth_tokens WHERE created_at > NOW() - INTERVAL '24 hours'",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Token Validation Success Rate",
+        "type": "gauge",
+        "gridPos": {
+          "x": 18,
+          "y": 20,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT (SELECT COUNT(*) FROM auth_tokens WHERE last_used_at IS NOT NULL) * 100.0 / COUNT(*) FROM auth_tokens",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Top Revocation Reasons",
+        "type": "table",
+        "gridPos": {
+          "x": 0,
+          "y": 24,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT revocation_reason, COUNT(*) as count FROM auth_tokens WHERE is_revoked = TRUE GROUP BY revocation_reason ORDER BY count DESC",
+            "datasource": "PostgreSQL",
+            "format": "table",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Database Size (auth_tokens table)",
+        "type": "stat",
+        "gridPos": {
+          "x": 12,
+          "y": 24,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT pg_size_pretty(pg_total_relation_size('auth_tokens'))",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Audit Log Entry Count",
+        "type": "stat",
+        "gridPos": {
+          "x": 18,
+          "y": 24,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT COUNT(*) FROM auth_token_audit",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Token Status Distribution",
+        "type": "piechart",
+        "gridPos": {
+          "x": 0,
+          "y": 32,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT status, COUNT(*) FROM auth_tokens GROUP BY status",
+            "datasource": "PostgreSQL",
+            "format": "table",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Tokens Created (Last 7 Days)",
+        "type": "graph",
+        "gridPos": {
+          "x": 12,
+          "y": 32,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "SELECT date(created_at) as date, COUNT(*) FROM auth_tokens WHERE created_at > NOW() - INTERVAL '7 days' GROUP BY date ORDER BY date ASC",
+            "datasource": "PostgreSQL",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "legendFormat": "Tokens Created"
+      },
+      {
+        "id": 15,
+        "title": "Token Refresh Activity",
+        "type": "stat",
+        "gridPos": {
+          "x": 0,
+          "y": 40,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT COUNT(*) FROM auth_tokens WHERE is_refreshed = TRUE",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Cleanup Job Status",
+        "type": "stat",
+        "gridPos": {
+          "x": 6,
+          "y": 40,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "SELECT COUNT(*) FROM auth_tokens WHERE status = 'EXPIRED' AND expires_at < NOW()",
+            "datasource": "PostgreSQL",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "title": "API Endpoint Response Times (ms)",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 44,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, http_request_duration_seconds_bucket{endpoint=~\"/api/v11/tokens.*\"})",
+            "datasource": "Prometheus",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "legendFormat": "{{endpoint}}"
+      },
+      {
+        "id": 18,
+        "title": "API Error Rate (%)",
+        "type": "gauge",
+        "gridPos": {
+          "x": 12,
+          "y": 44,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\",endpoint=~\"/api/v11/tokens.*\"}[5m]) / rate(http_requests_total{endpoint=~\"/api/v11/tokens.*\"}[5m]) * 100",
+            "datasource": "Prometheus",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "title": "WebSocket Connections",
+        "type": "stat",
+        "gridPos": {
+          "x": 18,
+          "y": 44,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "websocket_connections{endpoint=\"/ws/tokens\"}",
+            "datasource": "Prometheus",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "title": "Database Connection Pool",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 52,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "db_connection_pool_size{pool=\"auth\"}",
+            "datasource": "Prometheus",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Memory Usage (MB)",
+        "type": "graph",
+        "gridPos": {
+          "x": 12,
+          "y": 52,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{area=\"heap\"} / 1024 / 1024",
+            "datasource": "Prometheus",
+            "refId": "A"
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "1h",
+            "value": "1h"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "label": "Time Range",
+          "multi": false,
+          "name": "timerange",
+          "options": [
+            {
+              "text": "1h",
+              "value": "1h"
+            },
+            {
+              "text": "6h",
+              "value": "6h"
+            },
+            {
+              "text": "24h",
+              "value": "24h"
+            },
+            {
+              "text": "7d",
+              "value": "7d"
+            }
+          ],
+          "query": "1h, 6h, 24h, 7d",
+          "queryValue": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "type": "custom"
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "datasource": "Prometheus",
+          "enable": true,
+          "expr": "ALERTS{alertname=~\"TokenStorageAlert.*\"}",
+          "iconColor": "red",
+          "name": "Token Alerts",
+          "tagKeys": "alertname",
+          "textFormat": "{{ alertname }}"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    }
+  },
+  "overwrite": true,
+  "uid": "token-storage-dashboard"
+}

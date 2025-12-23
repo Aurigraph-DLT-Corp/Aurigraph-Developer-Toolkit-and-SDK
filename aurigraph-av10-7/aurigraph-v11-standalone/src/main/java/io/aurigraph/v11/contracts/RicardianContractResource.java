@@ -34,7 +34,7 @@ import java.util.*;
  * @version 1.0.0 (Oct 10, 2025)
  * @author Aurigraph V11 Development Team
  */
-@Path("/api/v12/contracts/ricardian")
+@Path("/api/v11/contracts/ricardian")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RicardianContractResource {
@@ -59,7 +59,7 @@ public class RicardianContractResource {
     /**
      * Upload document and convert to Ricardian contract
      *
-     * POST /api/v12/contracts/ricardian/upload
+     * POST /api/v11/contracts/ricardian/upload
      *
      * AV11-289: Enhanced validation for contract upload
      * Updated to use Jakarta EE 10 multipart handling (removed deprecated @MultipartForm)
@@ -193,7 +193,7 @@ public class RicardianContractResource {
     /**
      * List all contracts with pagination
      *
-     * GET /api/v12/contracts/ricardian
+     * GET /api/v11/contracts/ricardian
      *
      * Query params:
      * - page: page number (default: 0)
@@ -249,7 +249,7 @@ public class RicardianContractResource {
     /**
      * Get contract by ID
      *
-     * GET /api/v12/contracts/ricardian/{contractId}
+     * GET /api/v11/contracts/ricardian/{contractId}
      */
     @GET
     @Path("/{contractId}")
@@ -269,7 +269,7 @@ public class RicardianContractResource {
     /**
      * Add party to contract
      *
-     * POST /api/v12/contracts/ricardian/{contractId}/parties
+     * POST /api/v11/contracts/ricardian/{contractId}/parties
      */
     @POST
     @Path("/{contractId}/parties")
@@ -343,7 +343,7 @@ public class RicardianContractResource {
     /**
      * Submit signature for contract
      *
-     * POST /api/v12/contracts/ricardian/{contractId}/sign
+     * POST /api/v11/contracts/ricardian/{contractId}/sign
      */
     @POST
     @Path("/{contractId}/sign")
@@ -420,7 +420,7 @@ public class RicardianContractResource {
     /**
      * Activate contract
      *
-     * POST /api/v12/contracts/ricardian/{contractId}/activate
+     * POST /api/v11/contracts/ricardian/{contractId}/activate
      */
     @POST
     @Path("/{contractId}/activate")
@@ -490,7 +490,7 @@ public class RicardianContractResource {
     /**
      * Get contract audit trail
      *
-     * GET /api/v12/contracts/ricardian/{contractId}/audit
+     * GET /api/v11/contracts/ricardian/{contractId}/audit
      */
     @GET
     @Path("/{contractId}/audit")
@@ -508,7 +508,7 @@ public class RicardianContractResource {
     /**
      * Get compliance report
      *
-     * GET /api/v12/contracts/ricardian/{contractId}/compliance/{framework}
+     * GET /api/v11/contracts/ricardian/{contractId}/compliance/{framework}
      */
     @GET
     @Path("/{contractId}/compliance/{framework}")
@@ -525,7 +525,7 @@ public class RicardianContractResource {
     /**
      * Get gas fee rates
      *
-     * GET /api/v12/contracts/ricardian/gas-fees
+     * GET /api/v11/contracts/ricardian/gas-fees
      */
     @GET
     @Path("/gas-fees")

@@ -3,61 +3,77 @@ import { Box, AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Button, C
 import { Dashboard, Receipt, Speed, Hub, Analytics, Settings, Logout, PlayCircleOutline,
   AccountTree, Code, Token, Gavel, SwapHoriz, Inventory, AccountBalance, ShowChart,
   VerifiedUser, Assessment, TrendingUp, HealthAndSafety, Storage, Schema, Api,
-  Security, DeveloperBoard, Description, Insights, ArrowDropDown, Home } from '@mui/icons-material'
+  Security, DeveloperBoard, Description, Insights, ArrowDropDown } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../hooks'
 import { logout } from '../store/authSlice'
 import { useState } from 'react'
 
-// Simplified navigation - RWAT focused with Admin menu for technical pages
 const navigationMenus = [
   {
-    title: 'Assets',
+    title: 'Main',
     items: [
-      { text: 'Asset Registry', path: '/rwa/registry-navigation' },
-      { text: 'Tokenize Asset', path: '/rwa/tokenize' },
-      { text: 'My Portfolio', path: '/rwa/portfolio' },
-      { text: 'Marketplace', path: '/marketplace' },
+      { text: 'Dashboard', path: '/' },
     ]
   },
   {
-    title: 'Finance',
+    title: 'Core',
     items: [
-      { text: 'Asset Valuation', path: '/rwa/valuation' },
-      { text: 'Dividends & Yields', path: '/rwa/dividends' },
       { text: 'Transactions', path: '/transactions' },
+      { text: 'Performance', path: '/performance' },
+      { text: 'ML Performance', path: '/ml-performance', badge: 'NEW' },
+      { text: 'Nodes', path: '/nodes' },
+      { text: 'Analytics', path: '/analytics' },
     ]
   },
   {
-    title: 'Compliance',
+    title: 'Channels',
+    badge: 'NEW',
     items: [
-      { text: 'KYC/AML Status', path: '/rwa/compliance' },
-      { text: 'Audit Trail', path: '/dashboards/security-audit' },
-      { text: 'Smart Contracts', path: '/active-contracts' },
+      { text: 'Multi-Channel', path: '/channels', badge: 'NEW' },
+      { text: 'Smart Contracts', path: '/contracts', badge: 'NEW' },
+      { text: 'Active Contracts', path: '/active-contracts' },
     ]
   },
   {
-    title: 'Admin',
+    title: 'Tokenization',
+    items: [
+      { text: 'Token Registry', path: '/tokens', badge: '3.1' },
+      { text: 'Tokenization', path: '/tokenization' },
+      { text: 'Merkle Tree Registry', path: '/merkle-tree', badge: 'NEW' },
+    ]
+  },
+  {
+    title: 'RWA',
+    badge: 'NEW',
+    items: [
+      { text: 'Tokenize Asset', path: '/rwa/tokenize', badge: 'NEW' },
+      { text: 'My Portfolio', path: '/rwa/portfolio' },
+      { text: 'Asset Valuation', path: '/rwa/valuation' },
+      { text: 'Dividends', path: '/rwa/dividends' },
+      { text: 'Compliance', path: '/rwa/compliance' },
+    ]
+  },
+  {
+    title: 'Dashboards',
+    badge: 'NEW',
     items: [
       { text: 'System Health', path: '/dashboards/system-health' },
-      { text: 'Nodes & Network', path: '/nodes' },
-      { text: 'Performance', path: '/performance' },
-      { text: 'ML Optimization', path: '/ml-performance', badge: 'AI' },
       { text: 'Blockchain Ops', path: '/dashboards/blockchain-operations' },
-      { text: 'Consensus Monitor', path: '/dashboards/consensus-monitoring' },
-      { text: 'Oracle Services', path: '/dashboards/oracle-service' },
-      { text: 'Channels', path: '/channels' },
-      { text: 'Developer Tools', path: '/dashboards/developer' },
-      { text: 'Settings', path: '/settings' },
+      { text: 'Consensus', path: '/dashboards/consensus-monitoring' },
+      { text: 'External APIs', path: '/dashboards/external-api' },
+      { text: 'Oracles', path: '/dashboards/oracle-service' },
+      { text: 'Performance', path: '/dashboards/performance-metrics' },
+      { text: 'Security', path: '/dashboards/security-audit' },
+      { text: 'Developer', path: '/dashboards/developer' },
+      { text: 'Ricardian', path: '/dashboards/ricardian-contracts' },
     ]
   },
   {
-    title: 'Analytics',
+    title: 'Settings',
     items: [
-      { text: 'Streaming Data', path: '/dashboards/streaming-data', badge: 'LIVE' },
-      { text: 'Business Metrics', path: '/dashboards/business-metrics', badge: 'NEW' },
-      { text: 'Network Topology', path: '/dashboards/network-topology' },
-      { text: 'Cost Optimization', path: '/dashboards/cost-optimization', badge: 'NEW' },
+      { text: 'Channel Config', path: '/channel-management' },
+      { text: 'Settings', path: '/settings' },
     ]
   },
 ]
@@ -89,125 +105,51 @@ export default function Layout() {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="fixed" sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        bgcolor: '#0F172A',
-        boxShadow: '0 4px 20px rgba(37, 99, 235, 0.15)',
-        borderBottom: '1px solid rgba(37, 99, 235, 0.2)'
+        bgcolor: '#1A1F3A',
+        boxShadow: '0 4px 20px rgba(0, 255, 163, 0.1)',
+        borderBottom: '1px solid rgba(0, 255, 163, 0.1)'
       }}>
         <Toolbar sx={{ gap: 3, py: 1.5 }}>
-          {/* Logo and Title - Clickable to go Home */}
-          <Box
-            onClick={() => navigate('/')}
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
               mr: 2,
-              cursor: 'pointer',
-              '&:hover': { opacity: 0.85 }
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #00FFA3, #0A84FF)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              minWidth: 'fit-content'
             }}
           >
-            <img
-              src="/logo.svg"
-              alt="Aurigraph Logo"
-              style={{ height: 36, width: 36 }}
-            />
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #2563EB, #60A5FA)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                minWidth: 'fit-content'
-              }}
-            >
-              Aurigraph Enterprise Portal
-            </Typography>
-          </Box>
+            Aurigraph V11 Enterprise Portal - v4.8.0
+          </Typography>
 
           {/* Top Navigation Menus */}
           <Box sx={{ flexGrow: 1, display: 'flex', gap: 0.5, alignItems: 'center' }}>
-            {/* Home Button */}
+            {/* Demo Tab - Direct Access */}
             <Button
               color="inherit"
-              onClick={() => navigate('/')}
-              startIcon={<Home />}
+              onClick={() => navigate('/demo')}
+              startIcon={<PlayCircleOutline />}
               sx={{
                 textTransform: 'none',
-                bgcolor: 'rgba(37, 99, 235, 0.1)',
-                '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.2)' },
+                bgcolor: 'rgba(0, 191, 165, 0.15)',
+                '&:hover': { bgcolor: 'rgba(0, 191, 165, 0.25)' },
                 borderRadius: 1,
                 px: 2,
               }}
             >
-              Home
+              Demo
+              <Chip
+                label="LIVE"
+                size="small"
+                color="success"
+                sx={{ ml: 1, height: 18, fontSize: '0.65rem', fontWeight: 'bold' }}
+              />
             </Button>
-
-            {/* Demo Tab - With Dropdown Menu */}
-            <Box>
-              <Button
-                color="inherit"
-                onClick={(e) => handleMenuOpen('Demo', e)}
-                startIcon={<PlayCircleOutline />}
-                endIcon={<ArrowDropDown />}
-                sx={{
-                  textTransform: 'none',
-                  bgcolor: 'rgba(37, 99, 235, 0.15)',
-                  '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.25)' },
-                  borderRadius: 1,
-                  px: 2,
-                }}
-              >
-                Demo
-                <Chip
-                  label="LIVE"
-                  size="small"
-                  color="success"
-                  sx={{ ml: 1, height: 18, fontSize: '0.65rem', fontWeight: 'bold' }}
-                />
-              </Button>
-              <Menu
-                anchorEl={anchorEls['Demo']}
-                open={Boolean(anchorEls['Demo'])}
-                onClose={() => handleMenuClose('Demo')}
-                PaperProps={{
-                  sx: {
-                    bgcolor: '#0F172A',
-                    color: 'white',
-                    minWidth: 220,
-                    border: '1px solid rgba(37, 99, 235, 0.2)',
-                  }
-                }}
-              >
-                <MenuItem
-                  onClick={() => handleNavigate('/demo', 'Demo')}
-                  sx={{ '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' } }}
-                >
-                  Demo Dashboard
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleNavigate('/demo/token-experience', 'Demo')}
-                  sx={{ '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' } }}
-                >
-                  Token Experience
-                  <Chip
-                    label="NEW"
-                    size="small"
-                    color="primary"
-                    sx={{ ml: 'auto', height: 18, fontSize: '0.65rem' }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleNavigate('/demo/high-throughput', 'Demo')}
-                  sx={{ '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' } }}
-                >
-                  High Throughput Demo
-                </MenuItem>
-              </Menu>
-            </Box>
 
             {navigationMenus.map((menu) => (
               <Box key={menu.title}>
@@ -224,11 +166,11 @@ export default function Layout() {
                     transition: 'all 0.2s ease',
                     borderRadius: 1,
                     '&:hover': {
-                      bgcolor: 'rgba(37, 99, 235, 0.15)',
+                      bgcolor: 'rgba(0, 255, 163, 0.15)',
                       transform: 'translateY(-2px)',
                     },
                     '&:active': {
-                      bgcolor: 'rgba(37, 99, 235, 0.25)',
+                      bgcolor: 'rgba(0, 255, 163, 0.25)',
                     }
                   }}
                 >
@@ -248,10 +190,9 @@ export default function Layout() {
                   onClose={() => handleMenuClose(menu.title)}
                   PaperProps={{
                     sx: {
-                      bgcolor: '#0F172A',
+                      bgcolor: '#1A1F3A',
                       color: 'white',
                       minWidth: 200,
-                      border: '1px solid rgba(37, 99, 235, 0.2)',
                     }
                   }}
                 >
@@ -260,7 +201,7 @@ export default function Layout() {
                       key={item.path}
                       onClick={() => handleNavigate(item.path, menu.title)}
                       sx={{
-                        '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.15)' }
+                        '&:hover': { bgcolor: 'rgba(0, 191, 165, 0.1)' }
                       }}
                     >
                       {item.text}

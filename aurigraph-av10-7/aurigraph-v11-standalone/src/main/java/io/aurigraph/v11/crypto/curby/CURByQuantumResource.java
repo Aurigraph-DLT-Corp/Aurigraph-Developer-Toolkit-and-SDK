@@ -30,17 +30,17 @@ import java.util.Map;
  * - Performance metrics
  *
  * Endpoints:
- * - POST /api/v12/curby/keypair - Generate quantum key pair
- * - POST /api/v12/curby/sign - Generate quantum signature
- * - POST /api/v12/curby/verify - Verify quantum signature
- * - GET /api/v12/curby/health - Service health status
- * - GET /api/v12/curby/metrics - Performance metrics
- * - GET /api/v12/curby/algorithms - Supported algorithms
+ * - POST /api/v11/curby/keypair - Generate quantum key pair
+ * - POST /api/v11/curby/sign - Generate quantum signature
+ * - POST /api/v11/curby/verify - Verify quantum signature
+ * - GET /api/v11/curby/health - Service health status
+ * - GET /api/v11/curby/metrics - Performance metrics
+ * - GET /api/v11/curby/algorithms - Supported algorithms
  *
  * @author Aurigraph V11
  * @version 11.0.0
  */
-@Path("/api/v12/curby")
+@Path("/api/v11/curby")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "CURBy Quantum Service", description = "Quantum-resistant cryptography operations via CURBy service")
@@ -54,7 +54,7 @@ public class CURByQuantumResource {
     /**
      * Generate quantum key pair
      *
-     * POST /api/v12/curby/keypair
+     * POST /api/v11/curby/keypair
      * Body: { "algorithm": "CRYSTALS-Dilithium", "securityLevel": 5 }
      */
     @POST
@@ -121,7 +121,7 @@ public class CURByQuantumResource {
     /**
      * Generate quantum signature
      *
-     * POST /api/v12/curby/sign
+     * POST /api/v11/curby/sign
      * Body: { "data": "Hello World", "privateKey": "...", "algorithm": "CRYSTALS-Dilithium" }
      */
     @POST
@@ -194,7 +194,7 @@ public class CURByQuantumResource {
     /**
      * Verify quantum signature
      *
-     * POST /api/v12/curby/verify
+     * POST /api/v11/curby/verify
      * Body: { "data": "Hello World", "signature": "...", "publicKey": "...", "algorithm": "CRYSTALS-Dilithium" }
      */
     @POST
@@ -274,7 +274,7 @@ public class CURByQuantumResource {
     /**
      * Get CURBy service health status
      *
-     * GET /api/v12/curby/health
+     * GET /api/v11/curby/health
      */
     @GET
     @Path("/health")
@@ -313,7 +313,7 @@ public class CURByQuantumResource {
     /**
      * Get CURBy service metrics
      *
-     * GET /api/v12/curby/metrics
+     * GET /api/v11/curby/metrics
      */
     @GET
     @Path("/metrics")
@@ -354,7 +354,7 @@ public class CURByQuantumResource {
     /**
      * Get supported quantum algorithms
      *
-     * GET /api/v12/curby/algorithms
+     * GET /api/v11/curby/algorithms
      */
     @GET
     @Path("/algorithms")
@@ -411,7 +411,7 @@ public class CURByQuantumResource {
     /**
      * Batch key generation endpoint
      *
-     * POST /api/v12/curby/keypair/batch
+     * POST /api/v11/curby/keypair/batch
      * Body: { "algorithm": "CRYSTALS-Dilithium", "count": 10 }
      */
     @POST

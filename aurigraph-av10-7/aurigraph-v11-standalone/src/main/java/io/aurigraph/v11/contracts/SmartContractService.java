@@ -999,9 +999,7 @@ public class SmartContractService {
     // Helper methods for new functionality
 
     private String generateContractAddress() {
-        String uuid1 = UUID.randomUUID().toString().replace("-", "");
-        String uuid2 = UUID.randomUUID().toString().replace("-", "");
-        return "0x" + (uuid1 + uuid2).substring(0, 40);
+        return "0x" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 40);
     }
 
     private String generateTransactionHash() {

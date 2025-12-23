@@ -20,13 +20,13 @@ import java.util.*;
  * Validator Management API Resource
  *
  * Provides validator operations:
- * - GET /api/v12/validators/{id}/performance - Validator performance metrics
- * - POST /api/v12/validators/{id}/slash - Slash validator stake
+ * - GET /api/v11/validators/{id}/performance - Validator performance metrics
+ * - POST /api/v11/validators/{id}/slash - Slash validator stake
  *
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/validators")
+@Path("/api/v11/validators")
 @ApplicationScoped
 @Tag(name = "Validator Management API", description = "Validator performance and management operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +38,7 @@ public class ValidatorManagementApiResource {
     // ==================== ENDPOINT 4: Validator Performance ====================
 
     /**
-     * GET /api/v12/validators/{id}/performance
+     * GET /api/v11/validators/{id}/performance
      * Get validator performance metrics
      */
     @GET
@@ -117,7 +117,7 @@ public class ValidatorManagementApiResource {
     // ==================== ENDPOINT 5: Slash Validator ====================
 
     /**
-     * POST /api/v12/validators/{id}/slash
+     * POST /api/v11/validators/{id}/slash
      * Slash validator stake for misbehavior
      */
     @POST

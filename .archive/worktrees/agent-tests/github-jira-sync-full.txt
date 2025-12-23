@@ -1,0 +1,257 @@
+================================================
+  GitHub to JIRA Sync - AV11 Project
+  Complete Ticket Synchronization
+================================================
+Project: AV11
+Email: subbu@aurigraph.io
+
+🔗 Testing JIRA connection...
+✅ Connected to JIRA successfully!
+
+
+🔍 Fetching all AV11 tickets from JIRA...
+
+Response received with 0 total tickets
+✅ Fetched 207 tickets from N/A to N/A
+
+
+📊 Analyzing GitHub repository status...
+
+✅ Repository analysis complete
+
+📊 GitHub Repository Summary:
+   Total Commits: 53
+   Java Files: 749
+   JavaScript Files: 470
+   TypeScript Files: 449
+
+🔧 Component Status:
+   ✅ V11 Backend
+   ✅ Demo Application
+   ✅ gRPC Services
+   ✅ Consensus Engine
+   ✅ Quantum Cryptography
+   ✅ Cross-Chain Bridge
+   ✅ AI Optimization
+   ✅ HMS Integration
+
+🔄 Updating JIRA tickets based on GitHub status...
+
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+❌ Failed to update undefined: Failed: 404
+
+================================================
+  Sync Summary
+================================================
+✅ Successfully updated: 0
+❌ Failed to update: 207
+⏭️  Skipped (no change): 0
+📊 Total tickets processed: 207
+
+📊 View JIRA Board: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
+

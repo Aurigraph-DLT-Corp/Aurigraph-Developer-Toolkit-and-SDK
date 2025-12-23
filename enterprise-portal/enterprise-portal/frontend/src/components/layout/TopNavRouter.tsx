@@ -87,14 +87,11 @@ const buildMenuItemsFromRoutes = (): MenuProps['items'] => {
 
   // Convert to menu structure with categories as submenus
   const categoryLabels: Record<string, string> = {
-    demo: 'Live Demo',
     blockchain: 'Blockchain',
     contracts: 'Smart Contracts',
     tokenization: 'Tokenization',
-    rwat: 'RWAT Assets',
-    banking: 'Banking & Trade Finance',
-    compliance: 'Compliance & Security',
-    registries: 'Registries & Traceability',
+    compliance: 'Compliance',
+    registries: 'Registries',
     ai: 'AI & Optimization',
     integration: 'Integration',
     admin: 'Administration',
@@ -145,7 +142,7 @@ export const TopNavRouter = ({
         label: 'Profile',
       },
       {
-        key: '/admin/settings',
+        key: 'settings',
         icon: <SettingOutlined />,
         label: 'Settings',
       },

@@ -25,14 +25,14 @@ import java.util.stream.Collectors;
  * AV11-287: Implement HSM Status API
  *
  * Endpoints:
- * - GET /api/v12/security/hsm/status - Get HSM status
- * - GET /api/v12/security/hsm/modules - Get HSM modules
- * - GET /api/v12/security/hsm/operations - Get operation statistics
+ * - GET /api/v11/security/hsm/status - Get HSM status
+ * - GET /api/v11/security/hsm/modules - Get HSM modules
+ * - GET /api/v11/security/hsm/operations - Get operation statistics
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v12/security/hsm")
+@Path("/api/v11/security/hsm")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "HSM Status", description = "Hardware Security Module health monitoring")
@@ -59,7 +59,7 @@ public class HSMStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getHSMStatus() {
-        LOG.info("GET /api/v12/security/hsm/status - Fetching HSM status");
+        LOG.info("GET /api/v11/security/hsm/status - Fetching HSM status");
 
         return hsmStatusService.getHSMStatus()
                 .map(status -> {
@@ -94,7 +94,7 @@ public class HSMStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getHSMModules() {
-        LOG.debug("GET /api/v12/security/hsm/modules - Fetching HSM modules");
+        LOG.debug("GET /api/v11/security/hsm/modules - Fetching HSM modules");
 
         return hsmStatusService.getHSMStatus()
                 .map(status -> {
@@ -131,7 +131,7 @@ public class HSMStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getOperationStats() {
-        LOG.debug("GET /api/v12/security/hsm/operations - Fetching operation stats");
+        LOG.debug("GET /api/v11/security/hsm/operations - Fetching operation stats");
 
         return hsmStatusService.getHSMStatus()
                 .map(status -> {
@@ -171,7 +171,7 @@ public class HSMStatusResource {
                          description = "Internal server error")
     })
     public Uni<Response> getKeyStorage() {
-        LOG.debug("GET /api/v12/security/hsm/storage - Fetching key storage info");
+        LOG.debug("GET /api/v11/security/hsm/storage - Fetching key storage info");
 
         return hsmStatusService.getHSMStatus()
                 .map(status -> {

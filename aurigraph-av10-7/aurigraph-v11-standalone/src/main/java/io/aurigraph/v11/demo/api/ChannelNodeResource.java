@@ -28,17 +28,17 @@ import java.util.Map;
  *
  * <p><b>API Endpoints:</b>
  * <pre>
- * POST   /api/v12/demo/channel-nodes/channels              - Create a new channel
- * GET    /api/v12/demo/channel-nodes/channels              - Get all channels
- * GET    /api/v12/demo/channel-nodes/channels/{id}         - Get channel by ID
- * PUT    /api/v12/demo/channel-nodes/channels/{id}/activate - Activate a channel
- * PUT    /api/v12/demo/channel-nodes/channels/{id}/close   - Close a channel
- * GET    /api/v12/demo/channel-nodes/channels/{id}/state   - Get channel state
- * POST   /api/v12/demo/channel-nodes/channels/{id}/participants - Add participant
- * POST   /api/v12/demo/channel-nodes/channels/{id}/messages - Route a message
- * GET    /api/v12/demo/channel-nodes/health                - Health check
- * GET    /api/v12/demo/channel-nodes/metrics               - Performance metrics
- * GET    /api/v12/demo/channel-nodes/info                  - Node information
+ * POST   /api/v11/demo/channel-nodes/channels              - Create a new channel
+ * GET    /api/v11/demo/channel-nodes/channels              - Get all channels
+ * GET    /api/v11/demo/channel-nodes/channels/{id}         - Get channel by ID
+ * PUT    /api/v11/demo/channel-nodes/channels/{id}/activate - Activate a channel
+ * PUT    /api/v11/demo/channel-nodes/channels/{id}/close   - Close a channel
+ * GET    /api/v11/demo/channel-nodes/channels/{id}/state   - Get channel state
+ * POST   /api/v11/demo/channel-nodes/channels/{id}/participants - Add participant
+ * POST   /api/v11/demo/channel-nodes/channels/{id}/messages - Route a message
+ * GET    /api/v11/demo/channel-nodes/health                - Health check
+ * GET    /api/v11/demo/channel-nodes/metrics               - Performance metrics
+ * GET    /api/v11/demo/channel-nodes/info                  - Node information
  * </pre>
  * </p>
  *
@@ -46,7 +46,7 @@ import java.util.Map;
  * @version 11.0.0
  * @since 2025-10-11
  */
-@Path("/api/v12/demo/channel-nodes")
+@Path("/api/v11/demo/channel-nodes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ChannelNodeResource {

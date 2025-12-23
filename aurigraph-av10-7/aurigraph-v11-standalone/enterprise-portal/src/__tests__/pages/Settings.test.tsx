@@ -50,7 +50,7 @@ const mockAPISettings = {
     rateLimit: 100
   },
   streaming: {
-    enableEINodes: true,
+    enableSlimNodes: true,
     maxConcurrentConnections: 1000,
     dataBufferSize: '10MB',
     streamingInterval: 1000,
@@ -634,7 +634,7 @@ describe('Settings Component', () => {
       await user.click(apiTab);
 
       await waitFor(() => {
-        expect(screen.getByText(/Streaming Data via External Integration (EI) Nodes/i)).toBeInTheDocument();
+        expect(screen.getByText(/Streaming Data via Slim Nodes/i)).toBeInTheDocument();
       });
     });
 

@@ -12,7 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  * Network Monitoring API Resource - AV11-275
  * Provides real-time network health and peer status endpoints
  */
-@Path("/api/v12/network/monitoring")
+@Path("/api/v11/network/monitoring")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Network Monitoring", description = "Network health and peer monitoring APIs")

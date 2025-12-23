@@ -1,0 +1,234 @@
+groups:
+  - name: aurigraph_v11_alerts
+    interval: 30s
+    rules:
+      # =========================================
+      # CRITICAL ALERTS (P0)
+      # =========================================
+      - alert: V11ServiceDown
+        expr: up{job="aurigraph-v11-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          priority: P0
+          component: backend
+        annotations:
+          summary: "Aurigraph V11 service is down"
+          description: "V11 backend service has been down for more than 1 minute on {{ $labels.instance }}"
+          runbook: "https://docs.aurigraph.io/runbooks/v11-service-down"
+
+      - alert: TPSBelowTarget
+        expr: rate(aurigraph_transactions_processed_total[1m]) < 2000000
+        for: 5m
+        labels:
+          severity: critical
+          priority: P0
+          component: performance
+        annotations:
+          summary: "TPS below 2M target"
+          description: "Current TPS is {{ $value | humanize }} (target: 2M+). Check system resources and consensus."
+          runbook: "https://docs.aurigraph.io/runbooks/tps-degradation"
+
+      - alert: HighErrorRate
+        expr: rate(aurigraph_errors_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: critical
+          priority: P0
+          component: reliability
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanize }}/sec (threshold: 100/sec)"
+          runbook: "https://docs.aurigraph.io/runbooks/high-error-rate"
+
+      - alert: ConsensusFailure
+        expr: aurigraph_consensus_status{status="failed"} > 0
+        for: 1m
+        labels:
+          severity: critical
+          priority: P0
+          component: consensus
+        annotations:
+          summary: "Consensus failure detected"
+          description: "HyperRAFT++ consensus has failed on {{ $labels.instance }}"
+          runbook: "https://docs.aurigraph.io/runbooks/consensus-failure"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          priority: P0
+          component: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Connection pool usage is {{ $value | humanizePercentage }}"
+          runbook: "https://docs.aurigraph.io/runbooks/db-pool-exhaustion"
+
+      # =========================================
+      # HIGH PRIORITY ALERTS (P1)
+      # =========================================
+      - alert: HighCPUUsage
+        expr: process_cpu_usage > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          priority: P1
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook: "https://docs.aurigraph.io/runbooks/high-cpu"
+
+      - alert: HighMemoryUsage
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.90
+        for: 10m
+        labels:
+          severity: warning
+          priority: P1
+          component: system
+        annotations:
+          summary: "High heap memory usage"
+          description: "Heap usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook: "https://docs.aurigraph.io/runbooks/high-memory"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          component: performance
+        annotations:
+          summary: "Slow API response time (p95)"
+          description: "95th percentile response time is {{ $value }}s (threshold: 1s)"
+          runbook: "https://docs.aurigraph.io/runbooks/slow-response"
+
+      - alert: HighGCTime
+        expr: rate(jvm_gc_pause_seconds_sum[5m]) / rate(jvm_gc_pause_seconds_count[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          component: jvm
+        annotations:
+          summary: "High garbage collection time"
+          description: "Average GC pause time is {{ $value }}s (threshold: 0.5s)"
+          runbook: "https://docs.aurigraph.io/runbooks/high-gc"
+
+      - alert: ConsensusLatencyHigh
+        expr: aurigraph_consensus_latency_seconds > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          component: consensus
+        annotations:
+          summary: "Consensus latency above target"
+          description: "Consensus latency is {{ $value }}s (target: <100ms)"
+          runbook: "https://docs.aurigraph.io/runbooks/consensus-latency"
+
+      # =========================================
+      # MEDIUM PRIORITY ALERTS (P2)
+      # =========================================
+      - alert: HighDiskUsage
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.15
+        for: 15m
+        labels:
+          severity: info
+          priority: P2
+          component: system
+        annotations:
+          summary: "Low disk space"
+          description: "Available disk space is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook: "https://docs.aurigraph.io/runbooks/disk-space"
+
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) > 100000000
+        for: 10m
+        labels:
+          severity: info
+          priority: P2
+          component: network
+        annotations:
+          summary: "High network traffic detected"
+          description: "Network receive rate is {{ $value | humanize }}B/s"
+          runbook: "https://docs.aurigraph.io/runbooks/network-traffic"
+
+      - alert: ValidatorNodeDown
+        expr: aurigraph_validator_status{status="offline"} > 0
+        for: 5m
+        labels:
+          severity: warning
+          priority: P2
+          component: validators
+        annotations:
+          summary: "Validator node offline"
+          description: "Validator {{ $labels.validator_id }} is offline"
+          runbook: "https://docs.aurigraph.io/runbooks/validator-down"
+
+      - alert: TransactionPoolFull
+        expr: aurigraph_transaction_pool_size / aurigraph_transaction_pool_max > 0.90
+        for: 5m
+        labels:
+          severity: warning
+          priority: P2
+          component: transactions
+        annotations:
+          summary: "Transaction pool near capacity"
+          description: "Transaction pool is {{ $value | humanizePercentage }} full"
+          runbook: "https://docs.aurigraph.io/runbooks/tx-pool-full"
+
+      # =========================================
+      # SECURITY ALERTS
+      # =========================================
+      - alert: UnauthorizedAccessAttempt
+        expr: rate(aurigraph_auth_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          component: security
+        annotations:
+          summary: "High rate of authentication failures"
+          description: "{{ $value | humanize }} auth failures/sec detected"
+          runbook: "https://docs.aurigraph.io/runbooks/auth-failures"
+
+      - alert: AnomalyDetected
+        expr: aurigraph_ai_anomaly_score > 0.8
+        for: 2m
+        labels:
+          severity: warning
+          priority: P1
+          component: security
+        annotations:
+          summary: "AI anomaly detection triggered"
+          description: "Anomaly score is {{ $value }} (threshold: 0.8)"
+          runbook: "https://docs.aurigraph.io/runbooks/anomaly-detected"
+
+      # =========================================
+      # BUSINESS METRICS ALERTS
+      # =========================================
+      - alert: LowTransactionVolume
+        expr: rate(aurigraph_transactions_processed_total[1h]) < 100000
+        for: 30m
+        labels:
+          severity: info
+          priority: P2
+          component: business
+        annotations:
+          summary: "Low transaction volume"
+          description: "Transaction rate is {{ $value | humanize }}/sec (expected: >100K/sec)"
+          runbook: "https://docs.aurigraph.io/runbooks/low-tx-volume"
+
+      - alert: HighTransactionFailureRate
+        expr: rate(aurigraph_transactions_failed_total[5m]) / rate(aurigraph_transactions_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          component: business
+        annotations:
+          summary: "High transaction failure rate"
+          description: "Failure rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook: "https://docs.aurigraph.io/runbooks/tx-failure-rate"

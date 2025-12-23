@@ -1,0 +1,46 @@
+{
+  "nodeType": "BUSINESS",
+  "nodeId": "business-node-001",
+  "version": "11.0.0",
+  "maxConcurrentTransactions": 10000,
+  "contractExecutionTimeout": 5000,
+  "workflowEngine": "Camunda",
+  "enableRicardianContracts": true,
+  "complianceMode": "strict",
+  "auditLogging": true,
+  "maxGasLimit": 10000000,
+  "enableSandboxing": true,
+  "stateDatabase": "leveldb",
+  "enableStateCache": true,
+  "stateCacheSize": 1024,
+  "enableMetrics": true,
+  "metricsIntervalSeconds": 60,
+  "enableEnterpriseIntegration": true,
+  "enterpriseProtocols": "REST,gRPC",
+  "network": {
+    "networkId": "aurigraph-mainnet",
+    "bootstrapNodes": [
+      "business1.aurigraph.io:9000",
+      "business2.aurigraph.io:9000"
+    ],
+    "maxPeers": 100,
+    "enableDiscovery": true
+  },
+  "performance": {
+    "threadPoolSize": 256,
+    "queueSize": 100000,
+    "batchSize": 1000
+  },
+  "security": {
+    "enableTLS": true,
+    "tlsCertPath": "/etc/aurigraph/tls/cert.pem",
+    "tlsKeyPath": "/etc/aurigraph/tls/key.pem",
+    "quantumResistant": true
+  },
+  "monitoring": {
+    "metricsEnabled": true,
+    "metricsPort": 9090,
+    "healthCheckPort": 9091,
+    "logLevel": "INFO"
+  }
+}

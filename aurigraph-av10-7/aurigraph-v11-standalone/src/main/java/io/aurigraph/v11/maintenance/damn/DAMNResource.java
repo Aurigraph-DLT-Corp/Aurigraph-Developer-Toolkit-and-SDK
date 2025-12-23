@@ -14,9 +14,9 @@ import java.util.Map;
  *
  * Exposes autonomous maintenance and health monitoring endpoints
  *
- * Base Path: /api/v12/maintenance/damn
+ * Base Path: /api/v11/maintenance/damn
  */
-@Path("/api/v12/maintenance/damn")
+@Path("/api/v11/maintenance/damn")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DAMNResource {

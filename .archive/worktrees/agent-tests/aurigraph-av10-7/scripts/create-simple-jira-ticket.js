@@ -1,0 +1,274 @@
+#!/usr/bin/env node
+
+/**
+ * Create simple JIRA ticket for optimal node density
+ */
+
+const https = require('https');
+
+const JIRA_BASE_URL = 'https://aurigraphdlt.atlassian.net';
+const JIRA_API_KEY = 'ATATT3xFfGF0lM8vRlqVHtgMi3GIxEBJYTuEA5xv0R_wMrc2wMquvtNmMmzjPuF0Jr0GDMGeBcOBfea9gbxG41jJEeV9QaFaLwKHYXZOqeSVttRjisilfp-8Dy0DcGQZreM7BwSkw5flTBwBI5DwSLaCJNRgKsjRPQuFS2HseulYEcEYF2qsO6w=2E35545C';
+const JIRA_USER_EMAIL = 'subbu@aurigraph.io';
+
+// Simple ticket data
+const ticketData = {
+  fields: {
+    project: {
+      key: "AV11"
+    },
+    summary: "Optimal Node Density in Docker Containers - Resource-Based Auto-Scaling",
+    description: {
+      type: "doc",
+      version: 1,
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Implement optimal node density calculation for Docker containers to run maximum number of Aurigraph nodes based on available system resources."
+            }
+          ]
+        },
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [
+            {
+              type: "text",
+              text: "Core Requirements"
+            }
+          ]
+        },
+        {
+          type: "bulletList",
+          content: [
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Automatic system resource detection (memory, CPU, network)"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Optimal node count calculation based on available resources"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Dynamic node spawning and termination"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Real-time resource monitoring and auto-scaling"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [
+            {
+              type: "text",
+              text: "Performance Targets"
+            }
+          ]
+        },
+        {
+          type: "bulletList",
+          content: [
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Memory per node: 128MB minimum, 256MB optimal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "CPU per node: 0.5-1.0 cores optimal allocation"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Support 10-50 nodes per container depending on resources"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Utilize 80-90% of available container resources optimally"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Timeline: 4 weeks | Dependencies: AV11-19 basic node implementation"
+            }
+          ]
+        }
+      ]
+    },
+    issuetype: {
+      name: "Task"
+    },
+    labels: ["docker", "optimization", "auto-scaling", "resource-management"]
+  }
+};
+
+async function createTicket() {
+  return new Promise((resolve, reject) => {
+    const auth = Buffer.from(`${JIRA_USER_EMAIL}:${JIRA_API_KEY}`).toString('base64');
+    
+    const requestData = JSON.stringify(ticketData);
+
+    const options = {
+      hostname: JIRA_BASE_URL.replace('https://', ''),
+      port: 443,
+      path: '/rest/api/3/issue',
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Content-Length': requestData.length
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode === 201) {
+          const result = JSON.parse(data);
+          console.log('✅ JIRA ticket created successfully!');
+          console.log(`🎯 Ticket Key: ${result.key}`);
+          console.log(`📋 Ticket ID: ${result.id}`);
+          console.log(`🔗 URL: ${JIRA_BASE_URL}/browse/${result.key}`);
+          resolve(result);
+        } else {
+          console.log(`❌ Failed to create ticket: ${res.statusCode}`);
+          try {
+            const errorResponse = JSON.parse(data);
+            console.log('Error details:', JSON.stringify(errorResponse, null, 2));
+          } catch (e) {
+            console.log('Raw response:', data);
+          }
+          reject(new Error(`Failed: ${res.statusCode}`));
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      console.error('❌ Request error:', error.message);
+      reject(error);
+    });
+
+    req.write(requestData);
+    req.end();
+  });
+}
+
+async function main() {
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('🎫 Creating JIRA Ticket for Optimal Node Density');
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('📋 Project: AV11');
+  console.log('📌 Summary: Optimal Node Density in Docker Containers');
+  console.log('🎯 Type: Task');
+  console.log('🔧 Focus: Resource-based auto-scaling');
+  console.log('═══════════════════════════════════════════════════════\n');
+
+  try {
+    const result = await createTicket();
+    
+    console.log('\n═══════════════════════════════════════════════════════');
+    console.log('🎉 JIRA Ticket Creation Successful!');
+    console.log('═══════════════════════════════════════════════════════');
+    console.log(`📝 New Ticket: ${result.key}`);
+    console.log(`🎯 Objective: Run optimal number of nodes per Docker container`);
+    console.log(`📊 Target: 80-90% resource utilization with auto-scaling`);
+    console.log(`⏱️ Timeline: 4 weeks development`);
+    console.log(`🔗 Link: ${JIRA_BASE_URL}/browse/${result.key}`);
+    console.log('═══════════════════════════════════════════════════════');
+    
+  } catch (error) {
+    console.error('\nFailed to create JIRA ticket:', error.message);
+  }
+}
+
+main().catch(console.error);

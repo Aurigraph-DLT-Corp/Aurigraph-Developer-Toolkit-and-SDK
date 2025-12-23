@@ -19,15 +19,15 @@ import java.util.*;
  * This replaces dummy data in the frontend with actual backend-provided live data.
  *
  * Endpoints:
- * - GET /api/v12/live/channels - Get all channels with live metrics
- * - GET /api/v12/live/channels/{id} - Get specific channel with live data
- * - GET /api/v12/live/channels/{id}/participants - Get channel participants/nodes
- * - GET /api/v12/live/channels/stats - Get overall statistics
+ * - GET /api/v11/live/channels - Get all channels with live metrics
+ * - GET /api/v11/live/channels/{id} - Get specific channel with live data
+ * - GET /api/v11/live/channels/{id}/participants - Get channel participants/nodes
+ * - GET /api/v11/live/channels/stats - Get overall statistics
  *
  * @version 11.0.0
  * @author Aurigraph V11 Development Team
  */
-@Path("/api/v12/live/channels")
+@Path("/api/v11/live/channels")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Live Channel Data", description = "Real-time channel and participant node data")
@@ -40,7 +40,7 @@ public class LiveChannelApiResource {
 
     /**
      * Get all channels with live metrics
-     * GET /api/v12/live/channels
+     * GET /api/v11/live/channels
      */
     @GET
     @Operation(summary = "Get all channels", description = "Retrieve all channels with real-time metrics")
@@ -61,7 +61,7 @@ public class LiveChannelApiResource {
 
     /**
      * Get specific channel with live data
-     * GET /api/v12/live/channels/{id}
+     * GET /api/v11/live/channels/{id}
      */
     @GET
     @Path("/{id}")
@@ -96,7 +96,7 @@ public class LiveChannelApiResource {
 
     /**
      * Get channel participants/nodes
-     * GET /api/v12/live/channels/{id}/participants
+     * GET /api/v11/live/channels/{id}/participants
      */
     @GET
     @Path("/{id}/participants")
@@ -143,7 +143,7 @@ public class LiveChannelApiResource {
 
     /**
      * Get channel with participants in one call
-     * GET /api/v12/live/channels/{id}/full
+     * GET /api/v11/live/channels/{id}/full
      */
     @GET
     @Path("/{id}/full")
@@ -166,7 +166,7 @@ public class LiveChannelApiResource {
 
     /**
      * Get overall channel statistics
-     * GET /api/v12/live/channels/stats
+     * GET /api/v11/live/channels/stats
      */
     @GET
     @Path("/stats")
@@ -183,7 +183,7 @@ public class LiveChannelApiResource {
 
     /**
      * Get all channels with their participants
-     * GET /api/v12/live/channels/all-with-participants
+     * GET /api/v11/live/channels/all-with-participants
      */
     @GET
     @Path("/all-with-participants")

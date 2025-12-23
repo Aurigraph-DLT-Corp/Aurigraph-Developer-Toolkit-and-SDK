@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 17
  */
-@Path("/api/v12/blockchain")
+@Path("/api/v11/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class QuantumSecurityResource {
@@ -28,7 +28,7 @@ public class QuantumSecurityResource {
 
     /**
      * Get quantum cryptography status
-     * GET /api/v12/blockchain/quantum/status
+     * GET /api/v11/blockchain/quantum/status
      */
     @GET
     @Path("/quantum/status")
@@ -52,7 +52,7 @@ public class QuantumSecurityResource {
 
     /**
      * Rotate quantum keys
-     * POST /api/v12/blockchain/quantum/rotate-keys
+     * POST /api/v11/blockchain/quantum/rotate-keys
      */
     @POST
     @Path("/quantum/rotate-keys")
@@ -71,7 +71,7 @@ public class QuantumSecurityResource {
 
     /**
      * Get security compliance dashboard
-     * GET /api/v12/blockchain/quantum/compliance
+     * GET /api/v11/blockchain/quantum/compliance
      */
     @GET
     @Path("/quantum/compliance")

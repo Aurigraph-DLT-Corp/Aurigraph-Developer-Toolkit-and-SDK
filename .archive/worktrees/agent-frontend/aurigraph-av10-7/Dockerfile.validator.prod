@@ -1,0 +1,77 @@
+# Production Aurigraph AV10-7 Validator Node
+# Optimized for 1M+ TPS performance on dev4 server environment
+# Multi-stage build for minimal attack surface
+
+FROM node:18-alpine AS builder
+
+# Build arguments
+ARG OPTIMIZATION_LEVEL=MAXIMUM
+ARG TARGET_TPS=1000000
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies with production optimizations
+RUN npm ci --only=production --no-audit --no-fund && \
+    npm cache clean --force
+
+# Copy source code
+COPY src/ ./src/
+
+# Build TypeScript with optimizations
+RUN npm run build:prod || npm run build
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Security: Create non-root user
+RUN addgroup -g 1001 -S aurigraph && \
+    adduser -S aurigraph -u 1001 -G aurigraph
+
+# Install production dependencies and security tools
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    netcat-openbsd \
+    openssl \
+    ca-certificates && \
+    apk upgrade
+
+# Set working directory
+WORKDIR /app
+
+# Copy built application
+COPY --from=builder --chown=aurigraph:aurigraph /app/dist ./dist
+COPY --from=builder --chown=aurigraph:aurigraph /app/node_modules ./node_modules
+COPY --from=builder --chown=aurigraph:aurigraph /app/package*.json ./
+
+# Create required directories
+RUN mkdir -p data logs config && \
+    chown -R aurigraph:aurigraph /app
+
+# Environment variables for production
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=8192 --enable-source-maps" \
+    UV_THREADPOOL_SIZE=128 \
+    OPTIMIZATION_LEVEL=${OPTIMIZATION_LEVEL} \
+    TARGET_TPS=${TARGET_TPS}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8180/health || exit 1
+
+# Expose ports
+EXPOSE 8180 30180 9090
+
+# Switch to non-root user
+USER aurigraph
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start validator with production optimizations
+CMD ["node", "--enable-source-maps", "--max-old-space-size=8192", "dist/consensus/ValidatorNode.js"]

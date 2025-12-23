@@ -1,0 +1,52 @@
+# Aurigraph V10 - Quantum Computing Version
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package.quantum.json package.json
+COPY package-lock.json .
+COPY tsconfig.quantum.json .
+COPY tsconfig.json .
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY src/ src/
+
+# Build quantum version
+RUN npm run compile:quantum
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install quantum simulation libraries
+RUN apk add --no-cache python3 py3-pip && \
+    pip3 install qiskit qiskit-aer numpy
+
+# Copy package files
+COPY package.quantum.json package.json
+COPY package-lock.json .
+
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Copy built application
+COPY --from=builder /app/dist-quantum ./dist-quantum
+
+# Environment variables
+ENV NODE_ENV=production
+ENV QUANTUM_HARDWARE=false
+ENV QUANTUM_CORES=16
+ENV PORT=3100
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3100/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"
+
+EXPOSE 3100
+
+CMD ["node", "dist-quantum/index-quantum.js"]

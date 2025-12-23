@@ -21,7 +21,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 34
  */
-@Path("/api/v12/enterprise")
+@Path("/api/v11/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ReportingResource {
@@ -30,7 +30,7 @@ public class ReportingResource {
 
     /**
      * Generate custom report
-     * POST /api/v12/enterprise/reports/generate
+     * POST /api/v11/enterprise/reports/generate
      */
     @POST
     @Path("/reports/generate")
@@ -53,7 +53,7 @@ public class ReportingResource {
 
     /**
      * Get report templates
-     * GET /api/v12/enterprise/reports/templates
+     * GET /api/v11/enterprise/reports/templates
      */
     @GET
     @Path("/reports/templates")
@@ -91,7 +91,7 @@ public class ReportingResource {
 
     /**
      * Get generated reports
-     * GET /api/v12/enterprise/reports
+     * GET /api/v11/enterprise/reports
      */
     @GET
     @Path("/reports")

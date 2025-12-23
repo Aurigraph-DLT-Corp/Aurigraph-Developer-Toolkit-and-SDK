@@ -1,0 +1,207 @@
+syntax = "proto3";
+
+package aurigraph.v11;
+
+// Core transaction message
+message Transaction {
+  string id = 1;
+  string from_address = 2;
+  string to_address = 3;
+  double amount = 4;
+  int64 timestamp = 5;
+  bytes signature = 6;
+  string type = 7;
+  map<string, string> metadata = 8;
+  int64 nonce = 9;
+  double gas_price = 10;
+  double gas_limit = 11;
+}
+
+// Block structure
+message Block {
+  int64 height = 1;
+  string hash = 2;
+  string previous_hash = 3;
+  int64 timestamp = 4;
+  repeated Transaction transactions = 5;
+  string validator = 6;
+  bytes signature = 7;
+  ConsensusData consensus_data = 8;
+}
+
+// Consensus data
+message ConsensusData {
+  string algorithm = 1;  // HyperRAFT++
+  int32 round = 2;
+  repeated string validators = 3;
+  map<string, bool> votes = 4;
+  double confidence_score = 5;
+}
+
+// Node information
+message NodeInfo {
+  string node_id = 1;
+  string address = 2;
+  int32 port = 3;
+  string type = 4;  // validator, full_node, light_node
+  int64 stake = 5;
+  double performance_score = 6;
+  bool is_active = 7;
+}
+
+// Performance metrics
+message PerformanceMetrics {
+  double tps = 1;
+  double finality_time_ms = 2;
+  int64 total_transactions = 3;
+  int64 total_blocks = 4;
+  double network_latency_ms = 5;
+  double cpu_usage = 6;
+  double memory_usage = 7;
+  int64 timestamp = 8;
+}
+
+// Quantum cryptography data
+message QuantumSignature {
+  string algorithm = 1;  // CRYSTALS-Dilithium, CRYSTALS-Kyber
+  bytes public_key = 2;
+  bytes signature = 3;
+  int32 security_level = 4;  // NIST Level 1-5
+}
+
+// AI optimization parameters
+message AIOptimizationParams {
+  bool enabled = 1;
+  string model_type = 2;
+  double learning_rate = 3;
+  int32 batch_size = 4;
+  map<string, double> hyperparameters = 5;
+}
+
+// Service definitions
+service TransactionService {
+  rpc SubmitTransaction(Transaction) returns (TransactionResponse);
+  rpc GetTransaction(TransactionRequest) returns (Transaction);
+  rpc BatchSubmitTransactions(BatchTransactionRequest) returns (BatchTransactionResponse);
+  rpc StreamTransactions(StreamRequest) returns (stream Transaction);
+}
+
+service ConsensusService {
+  rpc ProposeBlock(Block) returns (ConsensusResponse);
+  rpc VoteOnBlock(VoteRequest) returns (VoteResponse);
+  rpc GetConsensusStatus(Empty) returns (ConsensusStatus);
+  rpc StreamConsensusEvents(Empty) returns (stream ConsensusEvent);
+}
+
+service NodeService {
+  rpc RegisterNode(NodeInfo) returns (RegistrationResponse);
+  rpc GetNodeInfo(NodeRequest) returns (NodeInfo);
+  rpc ListNodes(Empty) returns (NodeList);
+  rpc UpdateNodeStatus(NodeStatusUpdate) returns (UpdateResponse);
+}
+
+service MonitoringService {
+  rpc GetMetrics(Empty) returns (PerformanceMetrics);
+  rpc StreamMetrics(MetricsStreamRequest) returns (stream PerformanceMetrics);
+  rpc GetHealthStatus(Empty) returns (HealthStatus);
+}
+
+// Request/Response messages
+message TransactionRequest {
+  string transaction_id = 1;
+}
+
+message TransactionResponse {
+  bool success = 1;
+  string transaction_id = 2;
+  string message = 3;
+  string block_hash = 4;
+}
+
+message BatchTransactionRequest {
+  repeated Transaction transactions = 1;
+}
+
+message BatchTransactionResponse {
+  bool success = 1;
+  int32 accepted_count = 2;
+  int32 rejected_count = 3;
+  repeated string transaction_ids = 4;
+}
+
+message StreamRequest {
+  int64 from_block = 1;
+  int64 to_block = 2;
+  string filter = 3;
+}
+
+message VoteRequest {
+  string block_hash = 1;
+  bool approve = 2;
+  string voter_id = 3;
+  bytes signature = 4;
+}
+
+message VoteResponse {
+  bool accepted = 1;
+  string message = 2;
+}
+
+message ConsensusResponse {
+  bool accepted = 1;
+  string block_hash = 2;
+  string message = 3;
+}
+
+message ConsensusStatus {
+  string current_round = 1;
+  string leader = 2;
+  int32 active_validators = 3;
+  double consensus_health = 4;
+}
+
+message ConsensusEvent {
+  string type = 1;  // block_proposed, block_accepted, leader_change
+  int64 timestamp = 2;
+  map<string, string> data = 3;
+}
+
+message NodeRequest {
+  string node_id = 1;
+}
+
+message NodeList {
+  repeated NodeInfo nodes = 1;
+  int32 total_count = 2;
+}
+
+message NodeStatusUpdate {
+  string node_id = 1;
+  bool is_active = 2;
+  double performance_score = 3;
+}
+
+message RegistrationResponse {
+  bool success = 1;
+  string node_id = 2;
+  string message = 3;
+}
+
+message UpdateResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message MetricsStreamRequest {
+  int32 interval_seconds = 1;
+  repeated string metrics = 2;
+}
+
+message HealthStatus {
+  bool healthy = 1;
+  map<string, bool> services = 2;
+  int64 uptime_seconds = 3;
+  string version = 4;
+}
+
+message Empty {}

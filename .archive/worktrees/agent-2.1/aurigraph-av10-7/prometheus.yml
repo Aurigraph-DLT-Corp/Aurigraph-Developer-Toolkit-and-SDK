@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'aurigraph-v11'
+
+scrape_configs:
+  - job_name: 'validators'
+    static_configs:
+      - targets: ['localhost:9003', 'localhost:9103', 'localhost:9203']
+    metrics_path: '/q/metrics'
+
+  - job_name: 'business'
+    static_configs:
+      - targets: ['localhost:9009', 'localhost:9109']
+    metrics_path: '/q/metrics'
+
+  - job_name: 'slim'
+    static_configs:
+      - targets: ['localhost:9013']
+    metrics_path: '/q/metrics'
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['localhost:80']
+    metrics_path: '/nginx_status'

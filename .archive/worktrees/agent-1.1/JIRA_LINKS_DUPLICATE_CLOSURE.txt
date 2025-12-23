@@ -1,0 +1,84 @@
+JIRA LINKS - DUPLICATE TICKETS CLOSURE
+=======================================
+
+CLOSED DUPLICATE TICKETS (5)
+-----------------------------
+
+1. AV11-382 (Duplicate of AV11-408)
+   https://aurigraphdlt.atlassian.net/browse/AV11-382
+
+2. AV11-381 (Duplicate of AV11-403)
+   https://aurigraphdlt.atlassian.net/browse/AV11-381
+
+3. AV11-380 (Duplicate of AV11-397)
+   https://aurigraphdlt.atlassian.net/browse/AV11-380
+
+4. AV11-379 (Duplicate of AV11-390)
+   https://aurigraphdlt.atlassian.net/browse/AV11-379
+
+5. AV11-378 (Duplicate of AV11-383)
+   https://aurigraphdlt.atlassian.net/browse/AV11-378
+
+
+MAIN TICKETS (CONSOLIDATED) (5)
+--------------------------------
+
+1. AV11-408 (Absorbed AV11-382)
+   https://aurigraphdlt.atlassian.net/browse/AV11-408
+
+2. AV11-403 (Absorbed AV11-381)
+   https://aurigraphdlt.atlassian.net/browse/AV11-403
+
+3. AV11-397 (Absorbed AV11-380)
+   https://aurigraphdlt.atlassian.net/browse/AV11-397
+
+4. AV11-390 (Absorbed AV11-379)
+   https://aurigraphdlt.atlassian.net/browse/AV11-390
+
+5. AV11-383 (Absorbed AV11-378)
+   https://aurigraphdlt.atlassian.net/browse/AV11-383
+
+
+JIRA FILTERS
+------------
+
+All Closed Duplicates:
+https://aurigraphdlt.atlassian.net/issues/?jql=project%3DAV11%20AND%20label%3Dduplicate-resolved%20AND%20status%3DDone
+
+Clean Backlog (Excluding Duplicates):
+https://aurigraphdlt.atlassian.net/issues/?jql=project%3DAV11%20AND%20status%21%3DDone%20AND%20label%21%3Dduplicate-resolved
+
+All AV11 Tickets:
+https://aurigraphdlt.atlassian.net/issues/?jql=project%3DAV11
+
+
+JIRA PROJECT
+------------
+
+AV11 Project Board:
+https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
+
+AV11 Backlog:
+https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789/backlog
+
+
+JQL QUERIES (Copy-Paste)
+------------------------
+
+View all closed duplicates:
+project = AV11 AND label = duplicate-resolved AND status = Done
+
+View clean backlog:
+project = AV11 AND status != Done AND label != duplicate-resolved
+
+View all AV11 tickets:
+project = AV11
+
+View duplicate-resolved tickets:
+project = AV11 AND label = duplicate-resolved
+
+
+STATUS
+------
+All 5 tickets successfully closed on October 29, 2025
+100% verification complete via JIRA REST API

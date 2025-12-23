@@ -25,11 +25,11 @@ import java.util.Map;
  * Standard Demo Configuration:
  * - Validator Nodes: 5
  * - Business Nodes: 10
- * - External Integration (EI) Nodes: 5 (one per external API data feed)
+ * - Slim Nodes: 5 (one per external API data feed)
  *
  * @version 1.0.0
  */
-@Path("/api/v12/demo/registry")
+@Path("/api/v11/demo/registry")
 @ApplicationScoped
 @Tag(name = "Merkle Registry", description = "Real-time Merkle tree registry and data feed tokenization")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class MerkleRegistryResource {
 
     /**
      * Start a new demo channel simulation with Merkle tree registry
-     * POST /api/v12/demo/registry/start
+     * POST /api/v11/demo/registry/start
      */
     @POST
     @Path("/start")
@@ -63,7 +63,7 @@ public class MerkleRegistryResource {
                             "config", Map.of(
                                 "validators", simulation.validatorNodes,
                                 "businessNodes", simulation.businessNodes,
-                                "eiNodes", simulation.eiNodes,
+                                "slimNodes", simulation.slimNodes,
                                 "apiFeeds", 5
                             ),
                             "status", "running"
@@ -76,7 +76,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get simulation status with real-time Merkle registry data
-     * GET /api/v12/demo/registry/simulation/{channelId}
+     * GET /api/v11/demo/registry/simulation/{channelId}
      */
     @GET
     @Path("/simulation/{channelId}")
@@ -95,7 +95,7 @@ public class MerkleRegistryResource {
                 Map<String, Object> config = new HashMap<>();
                 config.put("validatorNodes", simulation.validatorNodes);
                 config.put("businessNodes", simulation.businessNodes);
-                config.put("eiNodes", simulation.eiNodes);
+                config.put("slimNodes", simulation.slimNodes);
                 response.put("config", config);
 
                 // Real-time metrics
@@ -136,7 +136,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get Merkle tree registry statistics
-     * GET /api/v12/demo/registry/stats
+     * GET /api/v11/demo/registry/stats
      */
     @GET
     @Path("/stats")
@@ -168,7 +168,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get all external API data feeds
-     * GET /api/v12/demo/registry/feeds
+     * GET /api/v11/demo/registry/feeds
      */
     @GET
     @Path("/feeds")
@@ -193,7 +193,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get data feed tokens for specific API
-     * GET /api/v12/demo/registry/feeds/{apiId}/tokens
+     * GET /api/v11/demo/registry/feeds/{apiId}/tokens
      */
     @GET
     @Path("/feeds/{apiId}/tokens")
@@ -218,7 +218,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get specific feed status
-     * GET /api/v12/demo/registry/feeds/{apiId}/status
+     * GET /api/v11/demo/registry/feeds/{apiId}/status
      */
     @GET
     @Path("/feeds/{apiId}/status")
@@ -248,7 +248,7 @@ public class MerkleRegistryResource {
 
     /**
      * Get all active simulations
-     * GET /api/v12/demo/registry/simulations
+     * GET /api/v11/demo/registry/simulations
      */
     @GET
     @Path("/simulations")
@@ -270,7 +270,7 @@ public class MerkleRegistryResource {
 
     /**
      * Stop a simulation
-     * POST /api/v12/demo/registry/simulation/{channelId}/stop
+     * POST /api/v11/demo/registry/simulation/{channelId}/stop
      */
     @POST
     @Path("/simulation/{channelId}/stop")

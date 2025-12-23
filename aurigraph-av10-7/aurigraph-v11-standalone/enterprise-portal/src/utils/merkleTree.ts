@@ -180,7 +180,7 @@ export async function hashDemoConfig(demo: {
   channels: any[];
   validators: any[];
   businessNodes: any[];
-  eiNodes: any[];
+  slimNodes: any[];
 }): Promise<string> {
   const configString = JSON.stringify({
     userName: demo.userName,
@@ -190,7 +190,7 @@ export async function hashDemoConfig(demo: {
     channelCount: demo.channels.length,
     validatorCount: demo.validators.length,
     businessNodeCount: demo.businessNodes.length,
-    eiNodeCount: demo.eiNodes.length,
+    slimNodeCount: demo.slimNodes.length,
   });
 
   return sha256(configString);
@@ -245,7 +245,7 @@ export async function createDemoMerkleTree(demo: {
   channels: Array<{ id: string; name: string; type: string }>;
   validators: Array<{ id: string; name: string; type: string; endpoint: string; channelId: string }>;
   businessNodes: Array<{ id: string; name: string; type: string; endpoint: string; channelId: string }>;
-  eiNodes: Array<{ id: string; name: string; type: string; endpoint: string; channelId: string }>;
+  slimNodes: Array<{ id: string; name: string; type: string; endpoint: string; channelId: string }>;
   createdAt: Date;
 }): Promise<{ tree: MerkleTree; root: string; leaves: string[] }> {
   const leaves: string[] = [];
@@ -268,7 +268,7 @@ export async function createDemoMerkleTree(demo: {
   }
 
   // Hash all nodes
-  const allNodes = [...demo.validators, ...demo.businessNodes, ...demo.eiNodes];
+  const allNodes = [...demo.validators, ...demo.businessNodes, ...demo.slimNodes];
   for (const node of allNodes) {
     const nodeHash = await hashNode(node);
     leaves.push(nodeHash);

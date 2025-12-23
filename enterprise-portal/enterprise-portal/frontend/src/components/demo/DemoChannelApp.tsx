@@ -47,17 +47,10 @@ import {
   NodeIndexOutlined,
   SettingOutlined,
   UserAddOutlined,
-  AuditOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  SyncOutlined,
 } from '@ant-design/icons';
 import { XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import type { ColumnsType } from 'antd/es/table';
 import DemoUserRegistration from './DemoUserRegistration';
-import { aurigraphAPI } from '../../services/AurigraphAPIService';
-import { v11BackendService } from '../../services/V11BackendService';
-import { SimulationWarning } from './SimulationWarning';
 
 // ==================== TYPES ====================
 
@@ -104,21 +97,6 @@ interface NodeMetric {
   errorsCount: number;
 }
 
-interface AuditTrailEntry {
-  id: string;
-  timestamp: number;
-  txHash: string;
-  fromAddress: string;
-  toAddress: string;
-  amount: string;
-  txType: 'transfer' | 'stake' | 'contract' | 'bridge' | 'swap';
-  status: 'success' | 'pending' | 'failed';
-  nodeId: string;
-  blockNumber: number;
-  gasUsed: number;
-  latency: number;
-}
-
 interface DemoState {
   isRunning: boolean;
   currentChannel: ChannelConfig | null;
@@ -127,45 +105,6 @@ interface DemoState {
   totalTransactions: number;
   peakTPS: number;
   avgLatency: number;
-  auditTrail: AuditTrailEntry[];
-  currentBlockNumber: number;
-}
-
-// Consensus Settings Interface - Sprint 15 Optimized
-interface ConsensusSettings {
-  threadPoolSize: number;
-  queueSize: string;
-  consensusBatchSize: string;
-  pipelineDepth: number;
-  parallelThreads: number;
-  electionTimeout: string;
-  heartbeatInterval: string;
-  transactionBatch: string;
-  validationThreads: number;
-}
-
-// Default Consensus Settings (Sprint 15 Optimized - Dec 2025)
-const CONSENSUS_SETTINGS: ConsensusSettings = {
-  threadPoolSize: 512,
-  queueSize: '1M',
-  consensusBatchSize: '250K',
-  pipelineDepth: 64,
-  parallelThreads: 1024,
-  electionTimeout: '500ms',
-  heartbeatInterval: '50ms',
-  transactionBatch: '25K',
-  validationThreads: 32,
-};
-
-// Consensus Status for channels
-interface ConsensusStatus {
-  channelId: string;
-  status: 'active' | 'syncing' | 'idle' | 'error';
-  currentTerm: number;
-  leaderNode: string;
-  lastApplied: number;
-  commitIndex: number;
-  activeValidators: number;
 }
 
 // ==================== COMPONENT ====================
@@ -174,16 +113,11 @@ const DemoChannelApp: React.FC = () => {
   const [form] = Form.useForm();
   const metricsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('3'); // Default to Channels tab to show instrumentation
+  const [activeTab, setActiveTab] = useState('0');
   const [configDrawerOpen, setConfigDrawerOpen] = useState(false);
 
   // Registration Modal State
   const [registrationModalVisible, setRegistrationModalVisible] = useState(false);
-
-  // API Connection State
-  const [isLiveMode, setIsLiveMode] = useState(true); // Start in live mode, fallback to simulation if API fails
-  const [apiConnected, setApiConnected] = useState(false);
-  const [, setApiError] = useState<string | null>(null);
 
   // Demo State
   const [demoState, setDemoState] = useState<DemoState>({
@@ -194,23 +128,10 @@ const DemoChannelApp: React.FC = () => {
     totalTransactions: 0,
     peakTPS: 0,
     avgLatency: 0,
-    auditTrail: [],
-    currentBlockNumber: 1000000,
   });
 
   const [channels, setChannels] = useState<ChannelConfig[]>([]);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
-
-  // Consensus Status State
-  const [consensusStatus, setConsensusStatus] = useState<ConsensusStatus>({
-    channelId: '',
-    status: 'idle',
-    currentTerm: 1,
-    leaderNode: 'validator-node-1',
-    lastApplied: 0,
-    commitIndex: 0,
-    activeValidators: 0,
-  });
 
   // Configuration UI State
   const [validatorNodeCount, setValidatorNodeCount] = useState(4);
@@ -224,44 +145,12 @@ const DemoChannelApp: React.FC = () => {
 
   useEffect(() => {
     initializeDemoChannels();
-    checkAPIConnection();
     return () => {
       if (metricsIntervalRef.current) {
         clearInterval(metricsIntervalRef.current);
       }
     };
   }, []);
-
-  /**
-   * Check API connection and switch to simulation mode if unavailable
-   */
-  const checkAPIConnection = async () => {
-    try {
-      const health = await v11BackendService.getHealth();
-      if (health.status === 'UP') {
-        setApiConnected(true);
-        setIsLiveMode(true);
-        setApiError(null);
-        console.log('Connected to V11 backend API');
-      } else {
-        throw new Error('Backend health check failed');
-      }
-    } catch (error) {
-      console.warn('Failed to connect to V11 backend, falling back to simulation mode:', error);
-      setApiConnected(false);
-      setIsLiveMode(false);
-      setApiError(error instanceof Error ? error.message : 'Unknown error');
-      message.warning('Could not connect to backend API. Demo running in simulation mode.');
-    }
-  };
-
-  /**
-   * Attempt to switch to live mode
-   */
-  const tryLiveMode = async () => {
-    message.loading('Attempting to connect to V11 backend...', 2);
-    await checkAPIConnection();
-  };
 
   const initializeDemoChannels = () => {
     const defaultChannel: ChannelConfig = {
@@ -352,123 +241,36 @@ const DemoChannelApp: React.FC = () => {
 
   const startMetricsCollection = () => {
     let txCount = 0;
-    let blockCounter = 0;
-    let termCounter = 1;
 
-    metricsIntervalRef.current = setInterval(async () => {
-      if (isLiveMode && apiConnected) {
-        // LIVE MODE: Fetch real data from V11 backend API
-        try {
-          const [stats, _consensusData] = await Promise.all([
-            v11BackendService.getStats(),
-            aurigraphAPI.getConsensusStatus().catch(() => null), // Fallback if endpoint doesn't exist
-          ]);
-          void _consensusData; // Suppress unused warning
+    metricsIntervalRef.current = setInterval(() => {
+      // Simulate transaction generation with target TPS
+      const txsPerSecond = Math.floor(targetTPS / 10); // Update every 100ms
+      txCount += txsPerSecond;
 
-          const performance = stats.performance;
-          const consensus = stats.consensus;
+      const newMetric: TransactionMetric = {
+        timestamp: Date.now(),
+        tps: targetTPS + (Math.random() - 0.5) * 50000, // Add small variance
+        avgLatency: 45 + Math.random() * 30,
+        successRate: 99.5 + Math.random() * 0.5,
+        cpuUsage: 40 + Math.random() * 30,
+        memoryUsage: 55 + Math.random() * 20,
+      };
 
-          const newMetric: TransactionMetric = {
-            timestamp: Date.now(),
-            tps: performance.tps,
-            avgLatency: performance.avgLatencyMs,
-            successRate: performance.totalTransactions > 0
-              ? (performance.confirmedTransactions / performance.totalTransactions) * 100
-              : 99.5,
-            cpuUsage: performance.cpuUsagePercent,
-            memoryUsage: (performance.memoryUsageMb / 1024) * 100, // Convert to percentage
-          };
+      setDemoState((prev) => {
+        const newHistory = [...prev.metricsHistory, newMetric].slice(-60); // Keep last 60 data points
+        const newPeakTPS = Math.max(prev.peakTPS, newMetric.tps);
+        const newNodeMetrics = generateNodeMetrics(prev.currentChannel);
 
-          // Update consensus status with real data
-          if (consensus) {
-            setConsensusStatus({
-              channelId: selectedChannelId || '',
-              status: consensus.consensusState === 'IDLE' ? 'idle' : 'active',
-              currentTerm: consensus.currentTerm,
-              leaderNode: consensus.leaderNodeId || 'unknown',
-              lastApplied: consensus.lastApplied,
-              commitIndex: consensus.commitIndex,
-              activeValidators: consensus.activeValidators,
-            });
-          }
-
-          setDemoState((prev) => {
-            const newHistory = [...prev.metricsHistory, newMetric].slice(-60);
-            const newPeakTPS = Math.max(prev.peakTPS, newMetric.tps);
-
-            // In live mode, we don't have per-node metrics yet, use placeholder
-            const newNodeMetrics = generateNodeMetrics(prev.currentChannel);
-
-            // Generate audit entries from real transaction data (simulated for now until we have transaction stream)
-            const newAuditEntries = generateAuditTrailEntries(20, consensus?.blockHeight || prev.currentBlockNumber, prev.currentChannel);
-            const combinedAudit = [...newAuditEntries, ...prev.auditTrail].slice(0, 500);
-
-            return {
-              ...prev,
-              metricsHistory: newHistory,
-              nodeMetrics: newNodeMetrics,
-              totalTransactions: performance.totalTransactions,
-              peakTPS: newPeakTPS,
-              avgLatency: newMetric.avgLatency,
-              auditTrail: combinedAudit,
-              currentBlockNumber: consensus?.blockHeight || prev.currentBlockNumber,
-            };
-          });
-        } catch (error) {
-          console.error('Failed to fetch live metrics, falling back to simulation:', error);
-          setIsLiveMode(false);
-          setApiConnected(false);
-          message.warning('Lost connection to backend. Switching to simulation mode.');
-        }
-      } else {
-        // SIMULATION MODE: Generate mock data
-        const txsPerSecond = Math.floor(targetTPS / 10);
-        txCount += txsPerSecond;
-        blockCounter++;
-
-        const newMetric: TransactionMetric = {
-          timestamp: Date.now(),
-          tps: targetTPS + (Math.random() - 0.5) * 50000,
-          avgLatency: 45 + Math.random() * 30,
-          successRate: 99.5 + Math.random() * 0.5,
-          cpuUsage: 40 + Math.random() * 30,
-          memoryUsage: 55 + Math.random() * 20,
-        };
-
-        if (blockCounter % 50 === 0) {
-          termCounter++;
-        }
-        setConsensusStatus(prev => ({
+        return {
           ...prev,
-          channelId: selectedChannelId || '',
-          status: 'active',
-          currentTerm: termCounter,
-          leaderNode: `validator-node-${(Math.floor(blockCounter / 100) % 4) + 1}`,
-          lastApplied: prev.lastApplied + Math.floor(txsPerSecond / 10),
-          commitIndex: prev.commitIndex + Math.floor(txsPerSecond / 10),
-          activeValidators: demoState.currentChannel?.validatorNodes.length || 4,
-        }));
-
-        setDemoState((prev) => {
-          const newHistory = [...prev.metricsHistory, newMetric].slice(-60);
-          const newPeakTPS = Math.max(prev.peakTPS, newMetric.tps);
-          const newNodeMetrics = generateNodeMetrics(prev.currentChannel);
-          const newAuditEntries = generateAuditTrailEntries(20, prev.currentBlockNumber + blockCounter, prev.currentChannel);
-          const combinedAudit = [...newAuditEntries, ...prev.auditTrail].slice(0, 500);
-
-          return {
-            ...prev,
-            metricsHistory: newHistory,
-            nodeMetrics: newNodeMetrics,
-            totalTransactions: prev.totalTransactions + txsPerSecond,
-            peakTPS: newPeakTPS,
-            avgLatency: newMetric.avgLatency,
-            auditTrail: combinedAudit,
-            currentBlockNumber: prev.currentBlockNumber + (blockCounter % 10 === 0 ? 1 : 0),
-          };
-        });
-      }
-    }, 1000); // Update every 1 second for live data (was 100ms for simulation)
+          metricsHistory: newHistory,
+          nodeMetrics: newNodeMetrics,
+          totalTransactions: prev.totalTransactions + txsPerSecond,
+          peakTPS: newPeakTPS,
+          avgLatency: newMetric.avgLatency,
+        };
+      });
+    }, 100);
   };
 
   const generateNodeMetrics = (channel: ChannelConfig | null): NodeMetric[] => {
@@ -487,42 +289,6 @@ const DemoChannelApp: React.FC = () => {
       transactionsProcessed: Math.floor(Math.random() * 1000000),
       errorsCount: Math.floor(Math.random() * 10),
     }));
-  };
-
-  // Generate realistic audit trail entries
-  const generateAuditTrailEntries = (count: number, blockNumber: number, channel: ChannelConfig | null): AuditTrailEntry[] => {
-    const txTypes: AuditTrailEntry['txType'][] = ['transfer', 'stake', 'contract', 'bridge', 'swap'];
-    const allNodes = channel
-      ? [...channel.validatorNodes, ...channel.businessNodes, ...channel.slimNodes]
-      : [];
-
-    const entries: AuditTrailEntry[] = [];
-    const now = Date.now();
-
-    for (let i = 0; i < count; i++) {
-      const isSuccess = Math.random() > 0.002; // 99.8% success rate
-      const txType = txTypes[Math.floor(Math.random() * txTypes.length)] ?? 'transfer';
-      const nodeId = allNodes.length > 0
-        ? allNodes[Math.floor(Math.random() * allNodes.length)]?.nodeId ?? 'validator-node-1'
-        : 'validator-node-1';
-
-      entries.push({
-        id: `tx-${now}-${i}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: now - (count - i) * 10, // Spread timestamps
-        txHash: `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        fromAddress: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        toAddress: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        amount: (Math.random() * 1000).toFixed(4),
-        txType,
-        status: isSuccess ? 'success' : (Math.random() > 0.5 ? 'pending' : 'failed'),
-        nodeId,
-        blockNumber: blockNumber + Math.floor(i / 100),
-        gasUsed: Math.floor(21000 + Math.random() * 100000),
-        latency: 20 + Math.random() * 60,
-      });
-    }
-
-    return entries;
   };
 
   // ==================== CHANNEL MANAGEMENT ====================
@@ -630,110 +396,6 @@ const DemoChannelApp: React.FC = () => {
     return <Table columns={columns} dataSource={demoState.nodeMetrics} rowKey="nodeId" pagination={false} />;
   };
 
-  // Render Consensus Settings Table
-  const renderConsensusSettingsTable = () => {
-    const settingsData = [
-      { key: '1', setting: 'Thread Pool Size', value: CONSENSUS_SETTINGS.threadPoolSize.toLocaleString(), unit: 'threads' },
-      { key: '2', setting: 'Queue Size', value: CONSENSUS_SETTINGS.queueSize, unit: 'transactions' },
-      { key: '3', setting: 'Consensus Batch Size', value: CONSENSUS_SETTINGS.consensusBatchSize, unit: 'transactions' },
-      { key: '4', setting: 'Pipeline Depth', value: CONSENSUS_SETTINGS.pipelineDepth.toString(), unit: 'stages' },
-      { key: '5', setting: 'Parallel Threads', value: CONSENSUS_SETTINGS.parallelThreads.toLocaleString(), unit: 'threads' },
-      { key: '6', setting: 'Election Timeout', value: CONSENSUS_SETTINGS.electionTimeout, unit: '' },
-      { key: '7', setting: 'Heartbeat Interval', value: CONSENSUS_SETTINGS.heartbeatInterval, unit: '' },
-      { key: '8', setting: 'Transaction Batch', value: CONSENSUS_SETTINGS.transactionBatch, unit: 'transactions' },
-      { key: '9', setting: 'Validation Threads', value: CONSENSUS_SETTINGS.validationThreads.toString(), unit: 'threads' },
-    ];
-
-    const columns = [
-      { title: 'Setting', dataIndex: 'setting', key: 'setting', width: 180 },
-      { title: 'Value', dataIndex: 'value', key: 'value', width: 100, render: (v: string) => <Tag color="blue">{v}</Tag> },
-      { title: 'Unit', dataIndex: 'unit', key: 'unit', width: 100 },
-    ];
-
-    return (
-      <Table
-        columns={columns}
-        dataSource={settingsData}
-        pagination={false}
-        size="small"
-        bordered
-      />
-    );
-  };
-
-  // Render Consensus Status Card (per channel)
-  const renderConsensusStatusCard = () => {
-    const statusColor = {
-      active: '#52c41a',
-      syncing: '#faad14',
-      idle: '#1890ff',
-      error: '#ff4d4f',
-    };
-
-    return (
-      <Card
-        title={
-          <Space>
-            <SafetyOutlined />
-            <span>HyperRAFT++ Consensus Status</span>
-            <Badge
-              status={consensusStatus.status === 'active' ? 'success' : consensusStatus.status === 'syncing' ? 'processing' : 'default'}
-              text={consensusStatus.status.toUpperCase()}
-            />
-          </Space>
-        }
-        size="small"
-        style={{ marginBottom: '16px' }}
-      >
-        <Row gutter={[16, 16]}>
-          <Col xs={12} sm={8} lg={4}>
-            <Statistic
-              title="Current Term"
-              value={consensusStatus.currentTerm}
-              valueStyle={{ color: statusColor[consensusStatus.status], fontSize: '18px' }}
-            />
-          </Col>
-          <Col xs={12} sm={8} lg={4}>
-            <Statistic
-              title="Leader Node"
-              value={consensusStatus.leaderNode}
-              valueStyle={{ fontSize: '14px' }}
-            />
-          </Col>
-          <Col xs={12} sm={8} lg={4}>
-            <Statistic
-              title="Last Applied"
-              value={consensusStatus.lastApplied}
-              valueStyle={{ fontSize: '18px' }}
-            />
-          </Col>
-          <Col xs={12} sm={8} lg={4}>
-            <Statistic
-              title="Commit Index"
-              value={consensusStatus.commitIndex}
-              valueStyle={{ fontSize: '18px' }}
-            />
-          </Col>
-          <Col xs={12} sm={8} lg={4}>
-            <Statistic
-              title="Active Validators"
-              value={consensusStatus.activeValidators}
-              suffix={`/ ${demoState.currentChannel?.validatorNodes.length || 4}`}
-              valueStyle={{ color: '#52c41a', fontSize: '18px' }}
-            />
-          </Col>
-          <Col xs={12} sm={8} lg={4}>
-            <Statistic
-              title="Consensus State"
-              value={demoState.isRunning ? 'RUNNING' : 'IDLE'}
-              valueStyle={{ color: demoState.isRunning ? '#52c41a' : '#666', fontSize: '14px' }}
-            />
-          </Col>
-        </Row>
-      </Card>
-    );
-  };
-
   const renderConfigurationPanel = () => {
     const currentChannel = demoState.currentChannel;
     if (!currentChannel) return <Alert message="No channel selected" type="warning" />;
@@ -821,301 +483,6 @@ const DemoChannelApp: React.FC = () => {
             </div>
           </Space>
         </Card>
-
-        {/* Consensus Settings Card - Sprint 15 Optimized */}
-        <Card
-          title={
-            <Space>
-              <SettingOutlined />
-              <span>HyperRAFT++ Consensus Settings</span>
-              <Tag color="green">Sprint 15 Optimized</Tag>
-            </Space>
-          }
-          extra={
-            <Space>
-              <Tag color="blue">Target: 3.5M TPS</Tag>
-            </Space>
-          }
-        >
-          <Alert
-            message="Consensus Configuration"
-            description="These settings are optimized for maximum throughput with HyperRAFT++ consensus. Demonstrating real-time consensus across all channels."
-            type="info"
-            showIcon
-            style={{ marginBottom: '16px' }}
-          />
-          {renderConsensusSettingsTable()}
-        </Card>
-      </Space>
-    );
-  };
-
-  const renderAuditTrailTab = () => {
-    const auditColumns: ColumnsType<AuditTrailEntry> = [
-      {
-        title: 'Time',
-        dataIndex: 'timestamp',
-        key: 'timestamp',
-        width: 100,
-        render: (ts: number) => new Date(ts).toLocaleTimeString(),
-      },
-      {
-        title: 'Tx Hash',
-        dataIndex: 'txHash',
-        key: 'txHash',
-        width: 180,
-        render: (hash: string) => (
-          <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
-            {hash.slice(0, 10)}...{hash.slice(-8)}
-          </span>
-        ),
-      },
-      {
-        title: 'Type',
-        dataIndex: 'txType',
-        key: 'txType',
-        width: 90,
-        render: (type: string) => {
-          const colors: Record<string, string> = {
-            transfer: 'blue',
-            stake: 'purple',
-            contract: 'cyan',
-            bridge: 'orange',
-            swap: 'green',
-          };
-          return <Tag color={colors[type] || 'default'}>{type.toUpperCase()}</Tag>;
-        },
-      },
-      {
-        title: 'From',
-        dataIndex: 'fromAddress',
-        key: 'from',
-        width: 140,
-        render: (addr: string) => (
-          <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
-            {addr.slice(0, 6)}...{addr.slice(-4)}
-          </span>
-        ),
-      },
-      {
-        title: 'To',
-        dataIndex: 'toAddress',
-        key: 'to',
-        width: 140,
-        render: (addr: string) => (
-          <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
-            {addr.slice(0, 6)}...{addr.slice(-4)}
-          </span>
-        ),
-      },
-      {
-        title: 'Amount',
-        dataIndex: 'amount',
-        key: 'amount',
-        width: 100,
-        align: 'right',
-        render: (amt: string) => `${parseFloat(amt).toFixed(2)} AUR`,
-      },
-      {
-        title: 'Block',
-        dataIndex: 'blockNumber',
-        key: 'block',
-        width: 90,
-        render: (block: number) => `#${block.toLocaleString()}`,
-      },
-      {
-        title: 'Gas',
-        dataIndex: 'gasUsed',
-        key: 'gas',
-        width: 80,
-        render: (gas: number) => gas.toLocaleString(),
-      },
-      {
-        title: 'Latency',
-        dataIndex: 'latency',
-        key: 'latency',
-        width: 80,
-        render: (lat: number) => `${lat.toFixed(1)}ms`,
-      },
-      {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        width: 90,
-        fixed: 'right',
-        render: (status: string) => {
-          if (status === 'success') {
-            return <Tag icon={<CheckCircleOutlined />} color="success">Success</Tag>;
-          } else if (status === 'pending') {
-            return <Tag icon={<SyncOutlined spin />} color="processing">Pending</Tag>;
-          } else {
-            return <Tag icon={<CloseCircleOutlined />} color="error">Failed</Tag>;
-          }
-        },
-      },
-      {
-        title: 'Node',
-        dataIndex: 'nodeId',
-        key: 'node',
-        width: 120,
-        render: (nodeId: string) => (
-          <span style={{ fontSize: '11px' }}>{nodeId}</span>
-        ),
-      },
-    ];
-
-    // Calculate stats
-    const successCount = demoState.auditTrail.filter(tx => tx.status === 'success').length;
-    const failedCount = demoState.auditTrail.filter(tx => tx.status === 'failed').length;
-    const pendingCount = demoState.auditTrail.filter(tx => tx.status === 'pending').length;
-    const trailAvgLatency = demoState.auditTrail.length > 0
-      ? demoState.auditTrail.reduce((sum, tx) => sum + tx.latency, 0) / demoState.auditTrail.length
-      : 0;
-
-    return (
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
-        {/* Audit Trail Stats */}
-        <Row gutter={[16, 16]}>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Statistic
-                title="Audit Entries"
-                value={demoState.auditTrail.length}
-                prefix={<AuditOutlined />}
-                valueStyle={{ color: '#1890ff' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Statistic
-                title="Successful"
-                value={successCount}
-                prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#52c41a' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Statistic
-                title="Failed"
-                value={failedCount}
-                prefix={<CloseCircleOutlined />}
-                valueStyle={{ color: '#ff4d4f' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Statistic
-                title="Current Block"
-                value={demoState.currentBlockNumber}
-                prefix={<DatabaseOutlined />}
-                valueStyle={{ color: '#722ed1' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={6}>
-            <Card size="small">
-              <Statistic
-                title="Avg Latency (Trail)"
-                value={trailAvgLatency}
-                precision={1}
-                suffix="ms"
-                valueStyle={{ color: '#fa8c16' }}
-              />
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Live indicator */}
-        {demoState.isRunning && (
-          <Alert
-            message={
-              <Space>
-                <SyncOutlined spin />
-                <span>Live Transaction Feed - Transactions are being processed in real-time</span>
-                <Tag color="green">LIVE</Tag>
-              </Space>
-            }
-            type="success"
-            showIcon={false}
-          />
-        )}
-
-        {/* Audit Trail Table */}
-        <Card
-          title={
-            <Space>
-              <AuditOutlined />
-              <span>Transaction Audit Trail</span>
-              {demoState.isRunning && <Badge status="processing" text="Live" />}
-            </Space>
-          }
-          extra={
-            <Space>
-              <span style={{ color: '#666', fontSize: '12px' }}>
-                Showing {demoState.auditTrail.length} of {demoState.totalTransactions.toLocaleString()} total transactions
-              </span>
-              <Button size="small" icon={<DownloadOutlined />}>
-                Export CSV
-              </Button>
-            </Space>
-          }
-        >
-          {demoState.auditTrail.length > 0 ? (
-            <Table
-              columns={auditColumns}
-              dataSource={demoState.auditTrail}
-              rowKey="id"
-              pagination={{
-                pageSize: 20,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total) => `${total} transactions`,
-              }}
-              scroll={{ x: 1400 }}
-              size="small"
-              rowClassName={(record) =>
-                record.status === 'failed' ? 'audit-row-failed' : ''
-              }
-            />
-          ) : (
-            <Alert
-              message="No transactions yet"
-              description="Start the demo to see real-time transaction audit trail"
-              type="info"
-              showIcon
-            />
-          )}
-        </Card>
-
-        {/* Success Rate Progress */}
-        <Card title="Transaction Success Rate">
-          <Row gutter={16} align="middle">
-            <Col span={18}>
-              <Progress
-                percent={demoState.auditTrail.length > 0
-                  ? parseFloat(((successCount / demoState.auditTrail.length) * 100).toFixed(2))
-                  : 0
-                }
-                status="active"
-                strokeColor={{
-                  '0%': '#108ee9',
-                  '100%': '#87d068',
-                }}
-              />
-            </Col>
-            <Col span={6} style={{ textAlign: 'right' }}>
-              <Space direction="vertical" size={0}>
-                <span style={{ color: '#52c41a' }}>✓ {successCount} success</span>
-                <span style={{ color: '#faad14' }}>○ {pendingCount} pending</span>
-                <span style={{ color: '#ff4d4f' }}>✗ {failedCount} failed</span>
-              </Space>
-            </Col>
-          </Row>
-        </Card>
       </Space>
     );
   };
@@ -1150,14 +517,6 @@ const DemoChannelApp: React.FC = () => {
           </Space>
         </Col>
       </Row>
-
-      {/* API Connection Warning */}
-      <SimulationWarning
-        isRunning={demoState.isRunning}
-        isLiveMode={isLiveMode && apiConnected}
-        onTryLiveMode={tryLiveMode}
-        compact={false}
-      />
 
       {/* Control Panel */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
@@ -1222,9 +581,6 @@ const DemoChannelApp: React.FC = () => {
               icon: <LineChartOutlined />,
               children: (
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
-                  {/* Consensus Status Card - Shows per channel */}
-                  {renderConsensusStatusCard()}
-
                   <div>
                     <h3>Real-time Performance Metrics</h3>
                     {demoState.isRunning ? (
@@ -1243,167 +599,12 @@ const DemoChannelApp: React.FC = () => {
             },
             {
               key: '1',
-              label: (
-                <span>
-                  Audit Trail
-                  {demoState.isRunning && <Badge status="processing" style={{ marginLeft: 8 }} />}
-                </span>
-              ),
-              icon: <AuditOutlined />,
-              children: renderAuditTrailTab(),
-            },
-            {
-              key: '2',
               label: 'Configuration',
               icon: <SettingOutlined />,
               children: renderConfigurationPanel(),
             },
             {
-              key: '3',
-              label: 'Consensus',
-              icon: <SafetyOutlined />,
-              children: (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
-                  {/* Live Consensus Status */}
-                  {renderConsensusStatusCard()}
-
-                  {/* Consensus Settings Table */}
-                  <Card
-                    title={
-                      <Space>
-                        <SettingOutlined />
-                        <span>HyperRAFT++ Consensus Configuration</span>
-                        <Tag color="green">Sprint 15 Optimized - Dec 2025</Tag>
-                      </Space>
-                    }
-                    extra={<Tag color="blue">Target: 3.5M TPS</Tag>}
-                  >
-                    <Alert
-                      message="Consensus is Working!"
-                      description={
-                        demoState.isRunning
-                          ? `HyperRAFT++ consensus is actively processing transactions at ${(demoState.metricsHistory[demoState.metricsHistory.length - 1]?.tps || 0).toLocaleString()} TPS across ${demoState.currentChannel?.validatorNodes.length || 0} validators.`
-                          : "Start the demo to see real-time HyperRAFT++ consensus in action."
-                      }
-                      type={demoState.isRunning ? "success" : "info"}
-                      showIcon
-                      style={{ marginBottom: '16px' }}
-                    />
-                    {renderConsensusSettingsTable()}
-                  </Card>
-
-                  {/* Per-Channel Consensus Info with Instrumentation */}
-                  <Card title="Channel Consensus Instrumentation">
-                    <Row gutter={[16, 16]}>
-                      {channels.map((channel) => (
-                        <Col xs={24} key={channel.channelId}>
-                          <Card
-                            title={
-                              <Space>
-                                <Badge status={channel.enabled ? "success" : "default"} />
-                                <span style={{ fontWeight: 'bold' }}>{channel.name}</span>
-                                {channel.channelId === selectedChannelId && demoState.isRunning && (
-                                  <Tag color="green" icon={<SyncOutlined spin />}>CONSENSUS ACTIVE</Tag>
-                                )}
-                              </Space>
-                            }
-                            extra={
-                              <Space>
-                                {channel.channelId === selectedChannelId
-                                  ? <Tag color="blue">ACTIVE CHANNEL</Tag>
-                                  : <Tag>STANDBY</Tag>
-                                }
-                                <Tag color="purple">HyperRAFT++</Tag>
-                              </Space>
-                            }
-                            style={{ marginBottom: '16px' }}
-                          >
-                            {/* Node Summary */}
-                            <Row gutter={16} style={{ marginBottom: '16px' }}>
-                              <Col xs={8} sm={6} md={4}>
-                                <Statistic
-                                  title="Validators"
-                                  value={channel.validatorNodes.length}
-                                  valueStyle={{ fontSize: '20px', color: '#ff4d4f' }}
-                                  prefix={<NodeIndexOutlined />}
-                                />
-                              </Col>
-                              <Col xs={8} sm={6} md={4}>
-                                <Statistic
-                                  title="Business"
-                                  value={channel.businessNodes.length}
-                                  valueStyle={{ fontSize: '20px', color: '#1890ff' }}
-                                  prefix={<CloudOutlined />}
-                                />
-                              </Col>
-                              <Col xs={8} sm={6} md={4}>
-                                <Statistic
-                                  title="Slim"
-                                  value={channel.slimNodes.length}
-                                  valueStyle={{ fontSize: '20px', color: '#52c41a' }}
-                                  prefix={<DatabaseOutlined />}
-                                />
-                              </Col>
-                              <Col xs={24} sm={6} md={12}>
-                                <Progress
-                                  percent={channel.channelId === selectedChannelId && demoState.isRunning ? 100 : 0}
-                                  status={channel.channelId === selectedChannelId && demoState.isRunning ? "active" : "normal"}
-                                  strokeColor={{
-                                    '0%': '#108ee9',
-                                    '100%': '#87d068',
-                                  }}
-                                  format={() => channel.channelId === selectedChannelId && demoState.isRunning
-                                    ? `${(demoState.metricsHistory[demoState.metricsHistory.length - 1]?.tps || 0).toLocaleString()} TPS`
-                                    : "IDLE"
-                                  }
-                                />
-                              </Col>
-                            </Row>
-
-                            {/* Consensus Instrumentation Table */}
-                            <Card
-                              size="small"
-                              title={
-                                <Space>
-                                  <SettingOutlined />
-                                  <span>Consensus Instrumentation</span>
-                                  <Tag color="green">Sprint 15</Tag>
-                                </Space>
-                              }
-                              type="inner"
-                            >
-                              <Table
-                                size="small"
-                                pagination={false}
-                                bordered
-                                columns={[
-                                  { title: 'Setting', dataIndex: 'setting', key: 'setting', width: '45%' },
-                                  { title: 'Value', dataIndex: 'value', key: 'value', width: '30%', render: (v: string) => <Tag color="blue">{v}</Tag> },
-                                  { title: 'Unit', dataIndex: 'unit', key: 'unit', width: '25%' },
-                                ]}
-                                dataSource={[
-                                  { key: '1', setting: 'Thread Pool Size', value: '512', unit: 'threads' },
-                                  { key: '2', setting: 'Queue Size', value: '1M', unit: 'transactions' },
-                                  { key: '3', setting: 'Consensus Batch Size', value: '250K', unit: 'transactions' },
-                                  { key: '4', setting: 'Pipeline Depth', value: '64', unit: 'stages' },
-                                  { key: '5', setting: 'Parallel Threads', value: '1,024', unit: 'threads' },
-                                  { key: '6', setting: 'Election Timeout', value: '500ms', unit: '-' },
-                                  { key: '7', setting: 'Heartbeat Interval', value: '50ms', unit: '-' },
-                                  { key: '8', setting: 'Transaction Batch', value: '25K', unit: 'transactions' },
-                                  { key: '9', setting: 'Validation Threads', value: '32', unit: 'threads' },
-                                ]}
-                              />
-                            </Card>
-                          </Card>
-                        </Col>
-                      ))}
-                    </Row>
-                  </Card>
-                </Space>
-              ),
-            },
-            {
-              key: '4',
+              key: '2',
               label: 'AI Optimization',
               icon: <RobotOutlined />,
               children: (
@@ -1417,7 +618,7 @@ const DemoChannelApp: React.FC = () => {
               ),
             },
             {
-              key: '5',
+              key: '3',
               label: 'Security',
               icon: <SafetyOutlined />,
               children: (

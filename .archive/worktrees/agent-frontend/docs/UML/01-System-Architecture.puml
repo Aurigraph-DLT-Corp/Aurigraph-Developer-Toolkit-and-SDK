@@ -1,0 +1,150 @@
+@startuml Aurigraph_DLT_System_Architecture
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+!include AWSPUML/AmazonEC2.puml
+!include AWSPUML/ApplicationELB.puml
+!include AWSPUML/RDS.puml
+
+title Aurigraph DLT - System Architecture (C4 Context Model)
+
+skinparam linetype ortho
+skinparam nodesep 100
+skinparam ranksep 100
+
+package "Client Layer" {
+    [Enterprise Portal UI] as WebUI
+    [Mobile App] as MobileApp
+    [CLI Tool] as CLI
+}
+
+package "API Gateway Layer" {
+    [NGINX Load Balancer] as LB
+    [TLS/SSL Termination] as TLS
+}
+
+package "V11 Backend Services (Java/Quarkus)" {
+    [REST API Server] as API
+    [WebSocket Server] as WS
+    [Authentication Service] as AuthSvc
+    [Transaction Service] as TxnSvc
+    [Consensus Service] as ConsensusSvc
+    [Cryptography Service] as CryptoSvc
+    [Smart Contract Service] as SmartContractSvc
+    [Cross-Chain Bridge] as BridgeSvc
+    [RWAT Registry] as RWATSvc
+}
+
+package "Data Layer" {
+    [PostgreSQL 16] as DB
+    [RocksDB (State)] as StateDB
+    [Redis Cache] as Cache
+}
+
+package "Message Queue" {
+    [RabbitMQ 3] as Queue
+}
+
+package "Monitoring & Observability" {
+    [Prometheus] as Metrics
+    [Grafana] as Dashboards
+    [ELK Stack] as Logs
+}
+
+package "Consensus Network" {
+    [Validator Node 1] as V1
+    [Validator Node 2] as V2
+    [Validator Node 3] as V3
+    [Business Node] as BN
+}
+
+package "Security" {
+    [Keycloak IAM] as IAM
+    [HSM (Hardware Security Module)] as HSM
+}
+
+' Client connections
+WebUI --> LB
+MobileApp --> LB
+CLI --> LB
+
+' Load balancer to backend
+LB --> TLS
+TLS --> API
+TLS --> WS
+
+' API connections
+API --> AuthSvc
+API --> TxnSvc
+API --> ConsensusSvc
+API --> CryptoSvc
+API --> SmartContractSvc
+API --> BridgeSvc
+API --> RWATSvc
+
+WS --> TxnSvc
+WS --> ConsensusSvc
+
+' Data layer
+TxnSvc --> DB
+TxnSvc --> StateDB
+TxnSvc --> Cache
+ConsensusSvc --> DB
+ConsensusSvc --> StateDB
+AuthSvc --> DB
+SmartContractSvc --> StateDB
+
+' Message Queue
+TxnSvc --> Queue
+ConsensusSvc --> Queue
+BridgeSvc --> Queue
+
+' Consensus Network
+TxnSvc --> V1
+TxnSvc --> V2
+TxnSvc --> V3
+TxnSvc --> BN
+
+V1 --> DB
+V2 --> DB
+V3 --> DB
+BN --> DB
+
+' Monitoring
+API -.-> Metrics
+TxnSvc -.-> Metrics
+ConsensusSvc -.-> Metrics
+DB -.-> Metrics
+
+Metrics --> Dashboards
+API -.-> Logs
+TxnSvc -.-> Logs
+
+' Security
+API --> IAM
+AuthSvc --> IAM
+CryptoSvc --> HSM
+
+note right of API
+  Port: 9003
+  HTTP/2 + WebSocket
+  Quarkus/Java 21
+end note
+
+note right of LB
+  Ports: 80, 443
+  TLS 1.3
+  NGINX Alpine
+end note
+
+note right of DB
+  PostgreSQL 16
+  Multi-node replication
+  Read replicas
+end note
+
+note right of ConsensusSvc
+  HyperRAFT++
+  AI Optimization
+  Byzantine Fault Tolerant
+end note
+
+@enduml

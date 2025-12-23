@@ -116,26 +116,25 @@ public class TransactionService {
     int maxCacheSize;
 
     // AI Optimization Services (enabled for ML-based optimization)
-    // Made optional using Instance<> to prevent cascading failures during startup
     @Inject
-    jakarta.enterprise.inject.Instance<io.aurigraph.v11.ai.MLLoadBalancer> mlLoadBalancerInstance;
+    io.aurigraph.v11.ai.MLLoadBalancer mlLoadBalancer;
 
     @Inject
-    jakarta.enterprise.inject.Instance<io.aurigraph.v11.ai.PredictiveTransactionOrdering> predictiveOrderingInstance;
+    io.aurigraph.v11.ai.PredictiveTransactionOrdering predictiveOrdering;
 
     @Inject
-    jakarta.enterprise.inject.Instance<io.aurigraph.v11.ai.MLMetricsService> mlMetricsServiceInstance;
+    io.aurigraph.v11.ai.MLMetricsService mlMetricsService;
 
     // Online Learning Service (Sprint 6, Phase 1: Real-time model updates)
     @Inject
-    jakarta.enterprise.inject.Instance<io.aurigraph.v11.ai.OnlineLearningService> onlineLearningServiceInstance;
+    io.aurigraph.v11.ai.OnlineLearningService onlineLearningService;
 
     // Performance Optimization Services (Sprint 5-6: 10M+ TPS)
     @Inject
-    jakarta.enterprise.inject.Instance<io.aurigraph.v11.performance.XXHashService> xxHashServiceInstance;
+    io.aurigraph.v11.performance.XXHashService xxHashService;
 
     @Inject
-    jakarta.enterprise.inject.Instance<io.aurigraph.v11.performance.LockFreeTransactionQueue> lockFreeQueueInstance;
+    io.aurigraph.v11.performance.LockFreeTransactionQueue lockFreeQueue;
 
     // ML optimization enabled flag
     @ConfigProperty(name = "ai.optimization.enabled", defaultValue = "true")
@@ -193,15 +192,12 @@ public class TransactionService {
      * @return Optimal shard ID
      */
     private int getOptimalShardML(String txId, double amount) {
-        // Check if ML services are available before using them
-        if (!aiOptimizationEnabled || !mlLoadBalancerInstance.isResolvable()) {
+        if (!aiOptimizationEnabled) {
             return fastHashOptimized(txId) % shardCount;  // Fixed: use fastHashOptimized
         }
 
         long startNanos = System.nanoTime();
         try {
-            io.aurigraph.v11.ai.MLLoadBalancer mlLoadBalancer = mlLoadBalancerInstance.get();
-
             // Create ML transaction context
             io.aurigraph.v11.ai.MLLoadBalancer.TransactionContext context =
                 new io.aurigraph.v11.ai.MLLoadBalancer.TransactionContext(
@@ -220,9 +216,7 @@ public class TransactionService {
                     .await().atMost(java.time.Duration.ofMillis(30)); // 30ms timeout (was 50ms)
 
             long latencyNanos = System.nanoTime() - startNanos;
-            if (mlMetricsServiceInstance.isResolvable()) {
-                mlMetricsServiceInstance.get().recordShardSelection(assignment.getConfidence(), latencyNanos, false);
-            }
+            mlMetricsService.recordShardSelection(assignment.getConfidence(), latencyNanos, false);
 
             LOG.debugf("ML shard selection: tx=%s, shard=%d, confidence=%.2f",
                       txId.substring(0, Math.min(8, txId.length())), assignment.getShardId(), assignment.getConfidence());
@@ -232,9 +226,7 @@ public class TransactionService {
         } catch (Exception e) {
             // Fallback to hash-based sharding on any error
             long latencyNanos = System.nanoTime() - startNanos;
-            if (mlMetricsServiceInstance.isResolvable()) {
-                mlMetricsServiceInstance.get().recordShardSelection(0.0, latencyNanos, true);
-            }
+            mlMetricsService.recordShardSelection(0.0, latencyNanos, true);
 
             LOG.debugf("ML shard selection failed for %s, using hash fallback: %s",
                       txId.substring(0, Math.min(8, txId.length())), e.getMessage());
@@ -245,10 +237,9 @@ public class TransactionService {
     /**
      * Inject TransactionScoringModel for ML-based transaction ordering
      * PHASE 4A: Provides 150-250K TPS improvement through intelligent ordering
-     * Made optional using Instance<> to prevent cascading failures
      */
     @Inject
-    jakarta.enterprise.inject.Instance<TransactionScoringModel> transactionScoringModelInstance;
+    TransactionScoringModel transactionScoringModel;
 
     /**
      * Order transactions using ML-based optimization with fallback
@@ -259,15 +250,12 @@ public class TransactionService {
     private List<TransactionRequest> orderTransactionsML(List<TransactionRequest> requests) {
         // OPTIMIZED (Nov 29, 2025 - V12 Priority 5): Lowered threshold from 50 to 10 for maximum ML optimization
         // Expected improvement: +50-100K TPS due to earlier ML engagement
-        // Check if TransactionScoringModel is available
-        if (!aiOptimizationEnabled || requests.size() < 10 || !transactionScoringModelInstance.isResolvable()) {
+        if (!aiOptimizationEnabled || requests.size() < 10) {
             return requests; // Skip ML for very small batches only (threshold: 10, was 50)
         }
 
         long startNanos = System.nanoTime();
         try {
-            TransactionScoringModel transactionScoringModel = transactionScoringModelInstance.get();
-
             // Convert TransactionRequest to TransactionScoringModel.TransactionData
             List<TransactionScoringModel.TransactionData> txnData =
                 requests.stream()
@@ -521,10 +509,10 @@ public class TransactionService {
             // Sprint 6, Phase 1: Online Learning - Update ML models every 1000 blocks (~5 seconds)
             // This enables +150K TPS improvement through continuous model optimization
             long currentBlockNumber = batchProcessedCount.incrementAndGet();
-            if (onlineLearningServiceInstance.isResolvable() && currentBlockNumber % 1000 == 0) {
+            if (onlineLearningService != null && currentBlockNumber % 1000 == 0) {
                 try {
                     // Non-blocking model update: ~200ms, includes A/B testing and adaptive learning
-                    onlineLearningServiceInstance.get().updateModelsIncrementally(
+                    onlineLearningService.updateModelsIncrementally(
                         currentBlockNumber,
                         new ArrayList<>(orderedRequests.stream()
                             .map(r -> (Object)r)
@@ -693,9 +681,9 @@ public class TransactionService {
      * Falls back to SHA-256 for compatibility
      */
     private String calculateHashOptimized(String id, double amount, long nanoTime) {
-        if (xxHashOptimizationEnabled && xxHashServiceInstance.isResolvable()) {
+        if (xxHashOptimizationEnabled && xxHashService != null) {
             // xxHash optimization (Sprint 5-6): 10x+ faster
-            return xxHashServiceInstance.get().hashTransactionToHex(id, amount, nanoTime);
+            return xxHashService.hashTransactionToHex(id, amount, nanoTime);
         }
 
         // Fallback to SHA-256 for compatibility
@@ -1053,9 +1041,8 @@ public class TransactionService {
      * Uses xxHash when enabled (Sprint 5-6: 10M+ TPS optimization)
      */
     private int fastHash(String key) {
-        if (xxHashOptimizationEnabled && xxHashServiceInstance.isResolvable()) {
+        if (xxHashOptimizationEnabled && xxHashService != null) {
             // xxHash optimization: superior distribution and speed
-            io.aurigraph.v11.performance.XXHashService xxHashService = xxHashServiceInstance.get();
             long hash = xxHashService.hashString(key);
             return xxHashService.computeShardIndex(hash, shardCount);
         }
@@ -1166,9 +1153,8 @@ public class TransactionService {
      * Uses xxHash when enabled (Sprint 5-6: 10M+ TPS optimization)
      */
     private int fastHashOptimized(String key) {
-        if (xxHashOptimizationEnabled && xxHashServiceInstance.isResolvable()) {
+        if (xxHashOptimizationEnabled && xxHashService != null) {
             // xxHash optimization: best-in-class distribution
-            io.aurigraph.v11.performance.XXHashService xxHashService = xxHashServiceInstance.get();
             long hash = xxHashService.hashString(key);
             return xxHashService.computeShardIndex(hash, shardCount);
         }
@@ -1180,15 +1166,15 @@ public class TransactionService {
         }
         return hash & 0x7FFFFFFF;
     }
-
+    
     /**
      * Ultra-fast hash calculation with minimal allocations
      * Uses xxHash when enabled (Sprint 5-6: 10M+ TPS optimization)
      */
     private String calculateHashUltraFast(String id, double amount, long nanoTime) {
-        if (xxHashOptimizationEnabled && xxHashServiceInstance.isResolvable()) {
+        if (xxHashOptimizationEnabled && xxHashService != null) {
             // xxHash optimization: 10x+ faster than SHA-256
-            return xxHashServiceInstance.get().hashTransactionToHex(id, amount, nanoTime);
+            return xxHashService.hashTransactionToHex(id, amount, nanoTime);
         }
 
         // Fallback to SHA-256

@@ -2,9 +2,6 @@ package io.aurigraph.v11.bridge;
 
 import io.aurigraph.v11.bridge.models.BridgeStats;
 import io.aurigraph.v11.bridge.adapters.*;
-import io.aurigraph.v11.bridge.security.BridgeCircuitBreaker;
-import io.aurigraph.v11.bridge.security.BridgeRateLimiter;
-import io.aurigraph.v11.bridge.security.FlashLoanDetector;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,11 +30,6 @@ import io.quarkus.logging.Log;
  * - Dynamic fee calculation based on network conditions
  * - Multi-chain adapter support (Ethereum, Solana, Polkadot, Cosmos)
  *
- * Security Features (Sprint 1 Security Hardening):
- * - Circuit breaker: Auto-halt on 3+ failed validations in 5 minutes
- * - Rate limiting: Max 10 transfers/minute per address
- * - Flash loan detection: Block same-block round-trip transfers
- *
  * Performance Targets:
  * - Bridge transaction time: <5 seconds
  * - Multi-signature verification: <500ms
@@ -45,7 +37,7 @@ import io.quarkus.logging.Log;
  * - Throughput: >1000 bridges/minute
  *
  * @author Aurigraph V11 Bridge Team
- * @version 12.0.0
+ * @version 11.0.0
  * @since 2025-01-23
  */
 @ApplicationScoped
@@ -61,16 +53,6 @@ public class CrossChainBridgeService {
     @Inject
     PolkadotAdapter polkadotAdapter;
 
-    // Security components (Sprint 1 Security Hardening)
-    @Inject
-    BridgeCircuitBreaker circuitBreaker;
-
-    @Inject
-    BridgeRateLimiter rateLimiter;
-
-    @Inject
-    FlashLoanDetector flashLoanDetector;
-
     // Performance metrics
     private final AtomicLong totalBridgeOperations = new AtomicLong(0);
     private final AtomicLong successfulBridges = new AtomicLong(0);
@@ -78,9 +60,6 @@ public class CrossChainBridgeService {
     private final AtomicLong failedBridges = new AtomicLong(0);
     private final AtomicLong atomicSwapCount = new AtomicLong(0);
     private final AtomicLong multiSigValidationCount = new AtomicLong(0);
-    private final AtomicLong rateLimitedTransfers = new AtomicLong(0);
-    private final AtomicLong circuitBreakerRejections = new AtomicLong(0);
-    private final AtomicLong flashLoanBlockedTransfers = new AtomicLong(0);
 
     // Bridge transaction storage and state management
     private final Map<String, BridgeTransaction> bridgeTransactions = new ConcurrentHashMap<>();
@@ -149,82 +128,22 @@ public class CrossChainBridgeService {
     }
 
     /**
-     * Initiate a cross-chain bridge transaction with security checks
+     * Initiate a cross-chain bridge transaction
      */
     public Uni<String> initiateBridge(BridgeRequest request) {
         return Uni.createFrom().item(() -> {
-            // Generate transaction ID early for tracking
-            String transactionId = generateTransactionId();
-
-            // SECURITY CHECK 1: Circuit Breaker
-            if (circuitBreaker != null && !circuitBreaker.allowTransfer()) {
-                circuitBreakerRejections.incrementAndGet();
-                BridgeCircuitBreaker.CircuitBreakerStatus status = circuitBreaker.getStatus();
-                throw new BridgeSecurityException(
-                    String.format("Bridge circuit breaker is %s. Remaining time: %ds. Please try again later.",
-                        status.state(), status.remainingOpenTimeSeconds()),
-                    BridgeSecurityException.SecurityReason.CIRCUIT_BREAKER_OPEN
-                );
-            }
-
-            // SECURITY CHECK 2: Rate Limiting
-            if (rateLimiter != null) {
-                BridgeRateLimiter.RateLimitResult rateLimitResult =
-                    rateLimiter.checkRateLimit(request.getSourceAddress(), request.getSourceChain());
-
-                if (!rateLimitResult.allowed()) {
-                    rateLimitedTransfers.incrementAndGet();
-                    throw new BridgeSecurityException(
-                        String.format("Rate limit exceeded: %s. Retry after %d seconds.",
-                            rateLimitResult.message(), rateLimitResult.retryAfterSeconds()),
-                        BridgeSecurityException.SecurityReason.RATE_LIMIT_EXCEEDED,
-                        rateLimitResult.toHeaders()
-                    );
-                }
-            }
-
-            // SECURITY CHECK 3: Flash Loan Detection
-            if (flashLoanDetector != null) {
-                FlashLoanDetector.TransferAnalysisRequest analysisRequest =
-                    new FlashLoanDetector.TransferAnalysisRequest(
-                        transactionId,
-                        request.getSourceAddress(),
-                        request.getTargetAddress(),
-                        request.getAmount(),
-                        FlashLoanDetector.TransferType.BRIDGE,
-                        null, // Block number - would come from chain adapter in production
-                        request.getSourceChain(),
-                        request.getTargetChain()
-                    );
-
-                FlashLoanDetector.DetectionResult flashLoanResult =
-                    flashLoanDetector.analyzeTransfer(analysisRequest);
-
-                if (flashLoanResult.blocked()) {
-                    flashLoanBlockedTransfers.incrementAndGet();
-
-                    // Record the failure in circuit breaker
-                    if (circuitBreaker != null) {
-                        circuitBreaker.recordFailure(transactionId, "Flash loan attack detected");
-                    }
-
-                    throw new BridgeSecurityException(
-                        String.format("Transfer blocked: %s. Flags: %s",
-                            flashLoanResult.message(), String.join(", ", flashLoanResult.flags())),
-                        BridgeSecurityException.SecurityReason.FLASH_LOAN_DETECTED
-                    );
-                }
-            }
-
-            // Validate request (existing validation)
+            // Validate request
             validateBridgeRequest(request);
-
+            
+            // Generate transaction ID
+            String transactionId = generateTransactionId();
+            
             // Calculate fees
             BigDecimal bridgeFee = request.getAmount().multiply(
                 new BigDecimal(BRIDGE_FEE_PERCENTAGE).divide(new BigDecimal(100))
             );
             BigDecimal totalAmount = request.getAmount().add(bridgeFee);
-
+            
             // Create bridge transaction
             BridgeTransaction transaction = new BridgeTransaction(
                 transactionId,
@@ -240,24 +159,19 @@ public class CrossChainBridgeService {
                 BridgeTransactionType.BRIDGE,
                 Instant.now()
             );
-
+            
             // Store transaction
             bridgeTransactions.put(transactionId, transaction);
             totalBridgeOperations.incrementAndGet();
             pendingBridges.incrementAndGet();
-
-            // Record transfer for rate limiting
-            if (rateLimiter != null) {
-                rateLimiter.recordTransfer(request.getSourceAddress(), request.getSourceChain());
-            }
-
+            
             // Start bridge processing asynchronously
             processBridgeTransaction(transaction);
-
-            Log.infof("Initiated bridge transaction %s from %s to %s for %s %s",
-                transactionId, request.getSourceChain(), request.getTargetChain(),
+            
+            Log.infof("Initiated bridge transaction %s from %s to %s for %s %s", 
+                transactionId, request.getSourceChain(), request.getTargetChain(), 
                 request.getAmount(), request.getTokenSymbol());
-
+            
             return transactionId;
         });
     }
@@ -419,35 +333,25 @@ public class CrossChainBridgeService {
                 // Simulate processing time (configurable for testing)
                 long delay = processingDelayMin + (long) (Math.random() * (processingDelayMax - processingDelayMin));
                 Thread.sleep(delay);
-
+                
                 // Update transaction status
                 BridgeTransaction updatedTx = transaction.withStatus(BridgeTransactionStatus.COMPLETED);
                 bridgeTransactions.put(transaction.getTransactionId(), updatedTx);
-
+                
                 // Update metrics
                 pendingBridges.decrementAndGet();
                 successfulBridges.incrementAndGet();
-
-                // Record success with circuit breaker
-                if (circuitBreaker != null) {
-                    circuitBreaker.recordSuccess(transaction.getTransactionId());
-                }
-
+                
                 Log.infof("Bridge transaction %s completed successfully", transaction.getTransactionId());
-
+                
             } catch (Exception e) {
                 // Handle failure
                 BridgeTransaction failedTx = transaction.withStatus(BridgeTransactionStatus.FAILED);
                 bridgeTransactions.put(transaction.getTransactionId(), failedTx);
-
+                
                 pendingBridges.decrementAndGet();
                 failedBridges.incrementAndGet();
-
-                // Record failure with circuit breaker (may trigger circuit open)
-                if (circuitBreaker != null) {
-                    circuitBreaker.recordFailure(transaction.getTransactionId(), e.getMessage());
-                }
-
+                
                 Log.errorf("Bridge transaction %s failed: %s", transaction.getTransactionId(), e.getMessage());
             }
         }, Runnable::run);
@@ -486,36 +390,6 @@ public class CrossChainBridgeService {
     }
 
     /**
-     * Security exception for bridge operations
-     */
-    public static class BridgeSecurityException extends RuntimeException {
-        private final SecurityReason reason;
-        private final Map<String, String> headers;
-
-        public enum SecurityReason {
-            CIRCUIT_BREAKER_OPEN,
-            RATE_LIMIT_EXCEEDED,
-            FLASH_LOAN_DETECTED,
-            VALIDATION_FAILED
-        }
-
-        public BridgeSecurityException(String message, SecurityReason reason) {
-            super(message);
-            this.reason = reason;
-            this.headers = Map.of();
-        }
-
-        public BridgeSecurityException(String message, SecurityReason reason, Map<String, String> headers) {
-            super(message);
-            this.reason = reason;
-            this.headers = headers != null ? headers : Map.of();
-        }
-
-        public SecurityReason getReason() { return reason; }
-        public Map<String, String> getHeaders() { return headers; }
-    }
-
-    /**
      * Get total bridge transfers (for real-time analytics)
      *
      * @return Total bridge transfer count
@@ -540,95 +414,5 @@ public class CrossChainBridgeService {
      */
     public int getActiveChainsCount() {
         return supportedChains.size();
-    }
-
-    /**
-     * Get security status for the bridge
-     *
-     * @return SecurityStatus with all security component statuses
-     */
-    public Uni<BridgeSecurityStatus> getSecurityStatus() {
-        return Uni.createFrom().item(() -> {
-            BridgeCircuitBreaker.CircuitBreakerStatus cbStatus = circuitBreaker != null
-                ? circuitBreaker.getStatus()
-                : null;
-
-            BridgeRateLimiter.RateLimiterStats rlStats = rateLimiter != null
-                ? rateLimiter.getStats()
-                : null;
-
-            FlashLoanDetector.DetectorStats flStats = flashLoanDetector != null
-                ? flashLoanDetector.getStats()
-                : null;
-
-            return new BridgeSecurityStatus(
-                cbStatus,
-                rlStats,
-                flStats,
-                rateLimitedTransfers.get(),
-                circuitBreakerRejections.get(),
-                flashLoanBlockedTransfers.get(),
-                Instant.now()
-            );
-        });
-    }
-
-    /**
-     * Get rate limit status for a specific address
-     *
-     * @param address The address to check
-     * @return Rate limit status
-     */
-    public BridgeRateLimiter.RateLimitStatus getRateLimitStatus(String address) {
-        if (rateLimiter == null) {
-            return new BridgeRateLimiter.RateLimitStatus(address, 0, 10, 10, 0, false);
-        }
-        return rateLimiter.getStatus(address);
-    }
-
-    /**
-     * Get circuit breaker status
-     *
-     * @return Circuit breaker status
-     */
-    public BridgeCircuitBreaker.CircuitBreakerStatus getCircuitBreakerStatus() {
-        if (circuitBreaker == null) {
-            return null;
-        }
-        return circuitBreaker.getStatus();
-    }
-
-    /**
-     * Manually reset circuit breaker (admin operation)
-     *
-     * @param adminId Admin ID performing the reset
-     * @param reason Reason for reset
-     * @return true if reset was successful
-     */
-    public boolean resetCircuitBreaker(String adminId, String reason) {
-        if (circuitBreaker == null) {
-            return false;
-        }
-        return circuitBreaker.manualReset(adminId, reason);
-    }
-
-    /**
-     * Security status record for bridge
-     */
-    public record BridgeSecurityStatus(
-        BridgeCircuitBreaker.CircuitBreakerStatus circuitBreakerStatus,
-        BridgeRateLimiter.RateLimiterStats rateLimiterStats,
-        FlashLoanDetector.DetectorStats flashLoanDetectorStats,
-        long rateLimitedTransfers,
-        long circuitBreakerRejections,
-        long flashLoanBlockedTransfers,
-        Instant timestamp
-    ) {
-        public boolean isSecurityActive() {
-            return circuitBreakerStatus != null
-                && circuitBreakerStatus.isAllowingTransfers()
-                && (rateLimiterStats == null || rateLimiterStats.enabled())
-                && (flashLoanDetectorStats == null || flashLoanDetectorStats.enabled());
-        }
     }
 }

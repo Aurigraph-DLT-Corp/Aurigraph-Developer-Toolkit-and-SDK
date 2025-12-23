@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 37
  */
-@Path("/api/v12/enterprise")
+@Path("/api/v11/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PerformanceTuningResource {
@@ -28,7 +28,7 @@ public class PerformanceTuningResource {
 
     /**
      * Get performance metrics
-     * GET /api/v12/enterprise/performance/metrics
+     * GET /api/v11/enterprise/performance/metrics
      */
     @GET
     @Path("/performance/metrics")
@@ -56,7 +56,7 @@ public class PerformanceTuningResource {
 
     /**
      * Get optimization recommendations
-     * GET /api/v12/enterprise/performance/recommendations
+     * GET /api/v11/enterprise/performance/recommendations
      */
     @GET
     @Path("/performance/recommendations")
@@ -102,7 +102,7 @@ public class PerformanceTuningResource {
 
     /**
      * Apply optimization
-     * POST /api/v12/enterprise/performance/optimize
+     * POST /api/v11/enterprise/performance/optimize
      */
     @POST
     @Path("/performance/optimize")

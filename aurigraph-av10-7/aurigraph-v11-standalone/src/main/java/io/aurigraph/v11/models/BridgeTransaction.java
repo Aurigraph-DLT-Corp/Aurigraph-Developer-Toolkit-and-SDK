@@ -8,7 +8,7 @@ import java.util.List;
  * Bridge Transaction Model
  * Represents cross-chain transfer transaction details
  *
- * Used by /api/v12/bridge/history endpoint
+ * Used by /api/v11/bridge/history endpoint
  *
  * @author Aurigraph V11
  * @version 11.3.0

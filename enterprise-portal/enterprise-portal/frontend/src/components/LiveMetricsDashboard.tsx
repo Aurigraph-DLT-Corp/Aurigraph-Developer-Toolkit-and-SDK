@@ -1,17 +1,14 @@
 /**
  * Live Metrics Dashboard Component
  *
- * Displays real-time performance metrics via gRPC streaming
+ * Displays real-time performance metrics from WebSocket
  * - TPS (Transactions Per Second)
  * - Network latency
  * - Memory usage
  * - CPU usage
  * - Connection status
- *
- * Migrated from WebSocket to gRPC streaming (V12)
  */
 
-import { useEffect } from 'react';
 import {
   Card,
   Row,
@@ -28,7 +25,7 @@ import {
   ThunderboltOutlined,
 } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
-import { useMetricsStream } from '../hooks/useGrpcStream';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { updatePerformanceMetrics, setError } from '../store/liveDataSlice';
 import type { RootState } from '../types/state';
 
@@ -38,47 +35,45 @@ const LiveMetricsDashboard = () => {
     (state: RootState) => state.liveData
   );
 
-  // Use gRPC streaming instead of WebSocket
-  const { data: metrics, status, error, isConnected } = useMetricsStream({
-    autoConnect: true,
-    updateIntervalMs: 1000,
+  const { isConnected, isConnecting, error } = useWebSocket('metrics', {
+    onMessage: (event) => {
+      try {
+        const data = event.data as any;
+        if (data.tps !== undefined) {
+          dispatch(
+            updatePerformanceMetrics({
+              tps: data.tps,
+              avgTps: data.avgTps || data.tps,
+              peakTps: data.peakTps || data.tps,
+              totalTransactions: data.totalTransactions || 0,
+              activeTransactions: data.activeTransactions || 0,
+              pendingTransactions: data.pendingTransactions || 0,
+              avgLatencyMs: data.avgLatencyMs || 0,
+              p95LatencyMs: data.p95LatencyMs || 0,
+              p99LatencyMs: data.p99LatencyMs || 0,
+              memoryUsageMb: data.memoryUsageMb || 0,
+              cpuUsagePercent: data.cpuUsagePercent || 0,
+              timestamp: data.timestamp || new Date().toISOString(),
+            })
+          );
+        }
+      } catch (err: any) {
+        console.error('Error processing metrics message:', err);
+        dispatch(setError({ channel: 'metrics', error: err.message }));
+      }
+    },
+    onConnect: () => {
+      // Connection state is handled by useWebSocket hook
+    },
+    onDisconnect: () => {
+      // Disconnection state is handled by useWebSocket hook
+    },
+    onError: (err) => {
+      dispatch(setError({ channel: 'metrics', error: err.message }));
+    },
   });
 
-  const isConnecting = status === 'connecting';
-
-  // Update Redux store when gRPC stream data arrives
-  useEffect(() => {
-    if (metrics) {
-      dispatch(
-        updatePerformanceMetrics({
-          tps: metrics.value || 0,
-          avgTps: metrics.statistics?.avg || metrics.value || 0,
-          peakTps: metrics.statistics?.max || metrics.value || 0,
-          totalTransactions: metrics.statistics?.sampleCount || 0,
-          activeTransactions: 0,
-          pendingTransactions: 0,
-          avgLatencyMs: 0,
-          p95LatencyMs: metrics.statistics?.p95 || 0,
-          p99LatencyMs: metrics.statistics?.p99 || 0,
-          memoryUsageMb: 0,
-          cpuUsagePercent: 0,
-          timestamp: new Date().toISOString(),
-        })
-      );
-    }
-  }, [metrics, dispatch]);
-
-  // Handle errors
-  useEffect(() => {
-    if (error) {
-      dispatch(setError({ channel: 'metrics', error: error.message }));
-    }
-  }, [error, dispatch]);
-
-  const displayMetrics = performanceMetrics;
-
-  // Alias for backward compatibility with template
-  const metricsData = displayMetrics;
+  const metrics = performanceMetrics;
 
   // Format TPS for display
   const formatTps = (tps: number) => {

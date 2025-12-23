@@ -251,7 +251,7 @@ const useConsensusState = () => {
 
     const result = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/status')
+        const response = await fetch('/api/v11/consensus/status')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -279,7 +279,7 @@ const useLeaderInfo = () => {
 
     const result = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/leader')
+        const response = await fetch('/api/v11/consensus/leader')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -305,7 +305,7 @@ const useValidatorVotingPower = () => {
 
     const result = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/validators/voting-power')
+        const response = await fetch('/api/v11/consensus/validators/voting-power')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -331,7 +331,7 @@ const useLeadershipHistory = () => {
 
     const result = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/leadership/history')
+        const response = await fetch('/api/v11/consensus/leadership/history')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -358,7 +358,7 @@ const useBlockFinality = () => {
 
     const metricsResult = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/finality/metrics')
+        const response = await fetch('/api/v11/consensus/finality/metrics')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -367,7 +367,7 @@ const useBlockFinality = () => {
 
     const trendsResult = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/finality/trends')
+        const response = await fetch('/api/v11/consensus/finality/trends')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -398,7 +398,7 @@ const useConsensusMetrics = () => {
 
     const metricsResult = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/metrics')
+        const response = await fetch('/api/v11/consensus/metrics')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -407,7 +407,7 @@ const useConsensusMetrics = () => {
 
     const latencyResult = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/latency/distribution')
+        const response = await fetch('/api/v11/consensus/latency/distribution')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -438,7 +438,7 @@ const useForkManagement = () => {
 
     const forksResult = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/forks/active')
+        const response = await fetch('/api/v11/consensus/forks/active')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },
@@ -447,7 +447,7 @@ const useForkManagement = () => {
 
     const historyResult = await safeApiCall(
       async () => {
-        const response = await fetch('/api/v12/consensus/forks/history')
+        const response = await fetch('/api/v11/consensus/forks/history')
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       },

@@ -1,0 +1,173 @@
+# Prometheus Configuration for Aurigraph V11
+# Scrapes metrics from V11 backend, Enterprise Portal, and system metrics
+
+global:
+  scrape_interval: 15s      # Scrape targets every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  external_labels:
+    cluster: 'aurigraph-v11-production'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - 'alerts/v11_alerts.yml'
+  - 'alerts/system_alerts.yml'
+  - 'alerts/blockchain_alerts.yml'
+  - 'alerts/security_alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # ==============================================
+  # V11 Backend Application Metrics
+  # ==============================================
+  - job_name: 'aurigraph-v11-backend'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:9003'        # Main instance
+          - 'dlt.aurigraph.io:9003' # Production
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__address__]
+        regex: '.*:([0-9]+)'
+        target_label: port
+
+  # ==============================================
+  # Quarkus Application Metrics
+  # ==============================================
+  - job_name: 'quarkus-application'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:9003'
+    scrape_interval: 5s
+    metric_relabel_configs:
+      # Rename Micrometer metrics to Prometheus format
+      - source_labels: [__name__]
+        regex: 'application_(.+)'
+        target_label: __name__
+        replacement: 'aurigraph_${1}'
+
+  # ==============================================
+  # JVM Metrics (Heap, GC, Threads)
+  # ==============================================
+  - job_name: 'jvm-metrics'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:9003'
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'jvm_(.+)'
+        target_label: __name__
+        replacement: 'aurigraph_jvm_${1}'
+
+  # ==============================================
+  # System Metrics (Node Exporter)
+  # ==============================================
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets:
+          - 'localhost:9100'
+        labels:
+          service: 'aurigraph-v11'
+          environment: 'production'
+
+  # ==============================================
+  # PostgreSQL Database Metrics
+  # ==============================================
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets:
+          - 'localhost:9187'
+        labels:
+          database: 'aurigraph_v11'
+          environment: 'production'
+
+  # ==============================================
+  # Redis Cache Metrics
+  # ==============================================
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets:
+          - 'localhost:9121'
+        labels:
+          cache: 'aurigraph-redis'
+          environment: 'production'
+
+  # ==============================================
+  # NGINX Metrics (Enterprise Portal Proxy)
+  # ==============================================
+  - job_name: 'nginx-exporter'
+    static_configs:
+      - targets:
+          - 'localhost:9113'
+        labels:
+          service: 'enterprise-portal'
+          environment: 'production'
+
+  # ==============================================
+  # Custom Blockchain Metrics
+  # ==============================================
+  - job_name: 'blockchain-metrics'
+    metrics_path: '/api/v11/metrics/prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:9003'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'blockchain_(.+)'
+        target_label: __name__
+        replacement: 'aurigraph_blockchain_${1}'
+
+  # ==============================================
+  # Consensus Metrics (HyperRAFT++)
+  # ==============================================
+  - job_name: 'consensus-metrics'
+    metrics_path: '/api/v11/consensus/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:9003'
+    scrape_interval: 5s
+
+  # ==============================================
+  # Security & Crypto Metrics
+  # ==============================================
+  - job_name: 'security-metrics'
+    metrics_path: '/api/v11/security/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:9003'
+    scrape_interval: 30s
+
+  # ==============================================
+  # AI/ML Optimization Metrics
+  # ==============================================
+  - job_name: 'ai-metrics'
+    metrics_path: '/api/v11/ai/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:9003'
+    scrape_interval: 60s
+
+  # ==============================================
+  # Prometheus Self-Monitoring
+  # ==============================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:9090'
+
+# Storage configuration handled by command-line flags in docker-compose
+# --storage.tsdb.path=/prometheus
+# --storage.tsdb.retention.time=15d
+# --storage.tsdb.retention.size=50GB

@@ -1,0 +1,392 @@
+# Multi-Region Production Setup for Aurigraph V11
+# Implements multi-region deployment with cross-region replication
+# and disaster recovery capabilities
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aurigraph-v11-multi-region-config
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: multi-region
+data:
+  regions.yaml: |
+    regions:
+      primary:
+        name: us-east-1
+        zone: us-east-1a,us-east-1b,us-east-1c
+        weight: 40
+        priority: 1
+        consensus_nodes: 5
+        platform_replicas: 5
+        backup_enabled: true
+        disaster_recovery: primary
+      
+      secondary:
+        name: us-west-2
+        zone: us-west-2a,us-west-2b,us-west-2c
+        weight: 35
+        priority: 2
+        consensus_nodes: 5
+        platform_replicas: 5
+        backup_enabled: true
+        disaster_recovery: secondary
+      
+      tertiary:
+        name: eu-west-1
+        zone: eu-west-1a,eu-west-1b,eu-west-1c
+        weight: 25
+        priority: 3
+        consensus_nodes: 5
+        platform_replicas: 5
+        backup_enabled: true
+        disaster_recovery: tertiary
+    
+    cross_region_replication:
+      enabled: true
+      sync_interval: 30s
+      batch_size: 10000
+      compression: true
+      encryption: true
+    
+    failover:
+      automatic: true
+      detection_interval: 10s
+      recovery_timeout: 300s
+      split_brain_protection: true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aurigraph-v11-global-lb
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: global-load-balancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    external-dns.alpha.kubernetes.io/hostname: api.aurigraph.io
+spec:
+  type: LoadBalancer
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 86400  # 24 hours
+  ports:
+    - name: https
+      port: 443
+      targetPort: 9003
+      protocol: TCP
+    - name: grpc
+      port: 9004
+      targetPort: 9004
+      protocol: TCP
+  selector:
+    app: aurigraph-v11
+    deployment-type: production
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: aurigraph-v11-multi-region-dr
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: multi-region
+spec:
+  host: aurigraph-v11-service.aurigraph-system.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      localityLbSetting:
+        enabled: true
+        distribute:
+          - from: "region1/zone1/*"
+            to:
+              "region1/zone1/*": 80
+              "region1/zone2/*": 20
+          - from: "region2/zone1/*"
+            to:
+              "region2/zone1/*": 80
+              "region2/zone2/*": 20
+          - from: "region3/zone1/*"
+            to:
+              "region3/zone1/*": 80
+              "region3/zone2/*": 20
+        failover:
+          - from: region1
+            to: region2
+          - from: region2
+            to: region3
+          - from: region3
+            to: region1
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+        connectTimeout: 10s
+        keepAlive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 200
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+        idleTimeout: 90s
+        h2UpgradePolicy: UPGRADE
+    outlierDetection:
+      consecutiveErrors: 3
+      consecutiveGatewayErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 50
+      splitExternalLocalOriginErrors: true
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: aurigraph-v11-multi-region-vs
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: multi-region
+spec:
+  hosts:
+    - api.aurigraph.io
+    - aurigraph-v11-service.aurigraph-system.svc.cluster.local
+  http:
+    # Health checks bypass region routing
+    - match:
+        - uri:
+            prefix: /q/health
+      route:
+        - destination:
+            host: aurigraph-v11-service.aurigraph-system.svc.cluster.local
+            port:
+              number: 9003
+      timeout: 5s
+    
+    # High-priority consensus traffic (region-aware)
+    - match:
+        - uri:
+            prefix: /api/v11/consensus
+      route:
+        - destination:
+            host: aurigraph-v11-consensus-headless.aurigraph-system.svc.cluster.local
+            port:
+              number: 9003
+          weight: 100
+      timeout: 10s
+      retries:
+        attempts: 2
+        perTryTimeout: 5s
+        retryOn: connect-failure,refused-stream
+      headers:
+        request:
+          add:
+            x-region-priority: "high"
+    
+    # Transaction processing with region failover
+    - match:
+        - uri:
+            prefix: /api/v11/transactions
+      route:
+        - destination:
+            host: aurigraph-v11-service.aurigraph-system.svc.cluster.local
+            port:
+              number: 9003
+          weight: 100
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: 5xx,reset,connect-failure,refused-stream
+      fault:
+        delay:
+          percentage:
+            value: 0.01  # 0.01% for chaos engineering
+          fixedDelay: 100ms
+      headers:
+        request:
+          add:
+            x-region-routing: "enabled"
+            x-failover-enabled: "true"
+    
+    # Default routing
+    - route:
+        - destination:
+            host: aurigraph-v11-service.aurigraph-system.svc.cluster.local
+            port:
+              number: 9003
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: aurigraph-v11-region-monitor
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: region-monitor
+spec:
+  selector:
+    matchLabels:
+      app: aurigraph-v11
+      component: region-monitor
+  template:
+    metadata:
+      labels:
+        app: aurigraph-v11
+        component: region-monitor
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: aurigraph-v11-monitor
+      hostNetwork: true
+      hostPID: true
+      containers:
+        - name: region-monitor
+          image: aurigraph/region-monitor:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: metrics
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: REGION_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['topology.kubernetes.io/region']
+            - name: ZONE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['topology.kubernetes.io/zone']
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          securityContext:
+            privileged: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+      tolerations:
+        - operator: "Exists"
+          effect: "NoSchedule"
+        - operator: "Exists"
+          effect: "NoExecute"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aurigraph-v11-monitor
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: region-monitor
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aurigraph-v11-monitor
+  labels:
+    app: aurigraph-v11
+    component: region-monitor
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: aurigraph-v11-monitor
+  labels:
+    app: aurigraph-v11
+    component: region-monitor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: aurigraph-v11-monitor
+subjects:
+  - kind: ServiceAccount
+    name: aurigraph-v11-monitor
+    namespace: aurigraph-system
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: aurigraph-v11-region-monitor
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: region-monitor
+spec:
+  selector:
+    matchLabels:
+      app: aurigraph-v11
+      component: region-monitor
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      honorLabels: true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aurigraph-v11-region-monitor
+  namespace: aurigraph-system
+  labels:
+    app: aurigraph-v11
+    component: region-monitor
+spec:
+  clusterIP: None
+  selector:
+    app: aurigraph-v11
+    component: region-monitor
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

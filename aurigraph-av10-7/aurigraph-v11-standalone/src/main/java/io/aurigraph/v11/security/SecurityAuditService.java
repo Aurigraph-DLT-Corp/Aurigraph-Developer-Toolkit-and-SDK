@@ -61,7 +61,7 @@ import jakarta.annotation.PreDestroy;
  * - Data protection compliance validation
  */
 @ApplicationScoped
-@Path("/api/v12/security/audit")
+@Path("/api/v11/security/audit")
 public class SecurityAuditService {
 
     private static final Logger LOG = Logger.getLogger(SecurityAuditService.class);

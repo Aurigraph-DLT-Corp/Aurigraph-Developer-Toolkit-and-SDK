@@ -1,8 +1,8 @@
 package io.aurigraph.v11.portal;
 
-import io.aurigraph.v11.grpc.RealTimeGrpcService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import jakarta.websocket.*;
+import jakarta.websocket.server.ServerEndpoint;
 import org.jboss.logging.Logger;
 
 import java.util.*;
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Sprint 18 - Workstream 1: Advanced Features
  *
  * Provides real-time dashboard with:
- * - gRPC streaming-based live updates (migrated from WebSocket)
+ * - WebSocket-based live updates
  * - Advanced analytics and reporting
  * - User management with RBAC
  * - Configuration management UI
@@ -25,38 +25,81 @@ import java.util.concurrent.atomic.AtomicLong;
  * - Transaction flow visualization
  * - Validator status tracking
  * - Alert management
- *
- * Note: WebSocket support has been removed in favor of gRPC streaming.
- * Clients should use the gRPC StreamingService for real-time updates.
  */
 @ApplicationScoped
+@ServerEndpoint("/api/v11/portal/websocket")
 public class EnterprisePortalService {
 
     private static final Logger LOG = Logger.getLogger(EnterprisePortalService.class);
 
-    @Inject
-    RealTimeGrpcService grpcService;
-
+    private final Map<String, Session> activeSessions;
     private final DashboardMetrics metrics;
     private final UserManagement userManagement;
     private final ConfigurationManager configManager;
     private final AlertManager alertManager;
 
     public EnterprisePortalService() {
+        this.activeSessions = new ConcurrentHashMap<>();
         this.metrics = new DashboardMetrics();
         this.userManagement = new UserManagement();
         this.configManager = new ConfigurationManager();
         this.alertManager = new AlertManager();
 
-        LOG.info("Enterprise Portal Service initialized (gRPC streaming mode)");
+        LOG.info("Enterprise Portal Service initialized");
+
+        // Start metrics broadcasting
+        startMetricsBroadcast();
     }
 
     /**
-     * Get initial dashboard data for REST API
-     * Clients can fetch this once, then subscribe to gRPC streams for updates
+     * WebSocket connection opened
      */
-    public DashboardData getInitialData() {
-        return new DashboardData(
+    @OnOpen
+    public void onOpen(Session session) {
+        String sessionId = session.getId();
+        activeSessions.put(sessionId, session);
+
+        LOG.infof("WebSocket connection opened: %s", sessionId);
+
+        // Send initial dashboard data
+        sendInitialData(session);
+    }
+
+    /**
+     * WebSocket connection closed
+     */
+    @OnClose
+    public void onClose(Session session) {
+        String sessionId = session.getId();
+        activeSessions.remove(sessionId);
+
+        LOG.infof("WebSocket connection closed: %s", sessionId);
+    }
+
+    /**
+     * Handle incoming WebSocket messages
+     */
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        LOG.debugf("Received message from %s: %s", session.getId(), message);
+
+        try {
+            PortalRequest request = parseRequest(message);
+            PortalResponse response = handleRequest(request);
+
+            session.getAsyncRemote().sendText(response.toJson());
+
+        } catch (Exception e) {
+            LOG.error("Failed to handle portal message", e);
+            sendError(session, "Failed to process request");
+        }
+    }
+
+    /**
+     * Send initial dashboard data
+     */
+    private void sendInitialData(Session session) {
+        DashboardData data = new DashboardData(
             metrics.getCurrentTPS(),
             metrics.getTotalTransactions(),
             metrics.getActiveValidators(),
@@ -64,24 +107,69 @@ public class EnterprisePortalService {
             metrics.getAverageBlockTime(),
             metrics.getNetworkHealth()
         );
+
+        sendToSession(session, new PortalResponse("initial_data", data));
     }
 
     /**
-     * Broadcast metrics via gRPC streaming
-     * Called by scheduled tasks to push updates to all gRPC stream subscribers
+     * Start periodic metrics broadcast
      */
-    public void broadcastMetricsUpdate() {
-        try {
-            grpcService.broadcastMetrics(
-                (long) metrics.getCurrentTPS(),
-                metrics.getCPUUsage(),
-                (long) metrics.getMemoryUsage(),
-                metrics.getActiveValidators(),
-                0.0  // error rate
-            );
-        } catch (Exception e) {
-            LOG.errorf(e, "Failed to broadcast metrics via gRPC");
+    private void startMetricsBroadcast() {
+        Thread broadcastThread = Thread.startVirtualThread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(1000); // Broadcast every second
+
+                    // Collect latest metrics
+                    RealtimeMetrics realtimeMetrics = new RealtimeMetrics(
+                        metrics.getCurrentTPS(),
+                        metrics.getTransactionsLastSecond(),
+                        metrics.getMemoryUsage(),
+                        metrics.getCPUUsage(),
+                        System.currentTimeMillis()
+                    );
+
+                    // Broadcast to all connected sessions
+                    broadcastToAll(new PortalResponse("realtime_metrics", realtimeMetrics));
+
+                } catch (InterruptedException e) {
+                    break;
+                } catch (Exception e) {
+                    LOG.error("Metrics broadcast failed", e);
+                }
+            }
+        });
+
+        broadcastThread.setName("metrics-broadcast");
+    }
+
+    /**
+     * Broadcast message to all connected sessions
+     */
+    private void broadcastToAll(PortalResponse response) {
+        String json = response.toJson();
+
+        activeSessions.values().forEach(session -> {
+            if (session.isOpen()) {
+                session.getAsyncRemote().sendText(json);
+            }
+        });
+    }
+
+    /**
+     * Send message to specific session
+     */
+    private void sendToSession(Session session, PortalResponse response) {
+        if (session.isOpen()) {
+            session.getAsyncRemote().sendText(response.toJson());
         }
+    }
+
+    /**
+     * Send error message
+     */
+    private void sendError(Session session, String errorMessage) {
+        sendToSession(session, new PortalResponse("error", Map.of("message", errorMessage)));
     }
 
     /**

@@ -19,13 +19,13 @@ import java.util.UUID;
  * Validator API Resource - LIVE DATA
  *
  * Provides validator management endpoints for the Validator Dashboard UI with REAL-TIME data.
- * This resource exposes validators at /api/v12/validators to match frontend expectations.
+ * This resource exposes validators at /api/v11/validators to match frontend expectations.
  *
  * @author Backend Development Agent (BDA)
  * @version 5.0.0 - LIVE DATA
  * @since BUG-002 Fix
  */
-@Path("/api/v12/validators")
+@Path("/api/v11/validators")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Validator API - LIVE", description = "Validator management with real-time live data")
@@ -38,7 +38,7 @@ public class ValidatorResource {
 
     /**
      * Get all validators - LIVE DATA
-     * GET /api/v12/validators
+     * GET /api/v11/validators
      */
     @GET
     @Operation(summary = "List all validators (LIVE)", description = "Retrieve list of all validator nodes with REAL-TIME staking information")
@@ -54,7 +54,7 @@ public class ValidatorResource {
 
     /**
      * Get specific validator details - LIVE DATA
-     * GET /api/v12/validators/{id}
+     * GET /api/v11/validators/{id}
      */
     @GET
     @Path("/{id}")
@@ -77,7 +77,7 @@ public class ValidatorResource {
 
     /**
      * Stake tokens with a validator
-     * POST /api/v12/validators/{id}/stake
+     * POST /api/v11/validators/{id}/stake
      */
     @POST
     @Path("/{id}/stake")
@@ -98,7 +98,7 @@ public class ValidatorResource {
 
     /**
      * Unstake tokens from a validator
-     * POST /api/v12/validators/{id}/unstake
+     * POST /api/v11/validators/{id}/unstake
      */
     @POST
     @Path("/{id}/unstake")

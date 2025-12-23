@@ -24,14 +24,14 @@ import java.util.Map;
  * AV11-290: Implement System Information API
  *
  * Endpoints:
- * - GET /api/v12/info - Get comprehensive system information
- * - GET /api/v12/info/version - Get version information only
- * - GET /api/v12/info/health - Get quick health status
+ * - GET /api/v11/info - Get comprehensive system information
+ * - GET /api/v11/info/version - Get version information only
+ * - GET /api/v11/info/health - Get quick health status
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v12/info")
+@Path("/api/v11/info")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "System Information", description = "Platform version and configuration details")
@@ -66,7 +66,7 @@ public class SystemInfoResource {
                          description = "Internal server error")
     })
     public Uni<Response> getSystemInfo() {
-        LOG.info("GET /api/v12/info - Fetching system information");
+        LOG.info("GET /api/v11/info - Fetching system information");
 
         return systemInfoService.getSystemInfo()
                 .map(info -> {
@@ -105,7 +105,7 @@ public class SystemInfoResource {
                          description = "Internal server error")
     })
     public Uni<Response> getVersionInfo() {
-        LOG.debug("GET /api/v12/info/version - Fetching version information");
+        LOG.debug("GET /api/v11/info/version - Fetching version information");
 
         return systemInfoService.getSystemInfo()
                 .map(info -> {
@@ -148,7 +148,7 @@ public class SystemInfoResource {
                          description = "Internal server error")
     })
     public Uni<Response> getHealthStatus() {
-        LOG.debug("GET /api/v12/info/health - Fetching health status");
+        LOG.debug("GET /api/v11/info/health - Fetching health status");
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> health = Map.of(

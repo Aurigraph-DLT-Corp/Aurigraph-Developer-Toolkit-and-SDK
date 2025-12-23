@@ -28,7 +28,7 @@ import java.util.*;
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/security")
+@Path("/api/v11/security")
 @ApplicationScoped
 @Tag(name = "Security API", description = "Quantum security and cryptography operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -44,7 +44,7 @@ public class SecurityApiResource {
 
     /**
      * Get security status
-     * GET /api/v12/security/status
+     * GET /api/v11/security/status
      */
     @GET
     @Path("/status")
@@ -107,7 +107,7 @@ public class SecurityApiResource {
 
     /**
      * List cryptographic keys
-     * GET /api/v12/security/keys
+     * GET /api/v11/security/keys
      */
     @GET
     @Path("/keys")
@@ -149,7 +149,7 @@ public class SecurityApiResource {
 
     /**
      * Get key details
-     * GET /api/v12/security/keys/{keyId}
+     * GET /api/v11/security/keys/{keyId}
      */
     @GET
     @Path("/keys/{keyId}")
@@ -199,7 +199,7 @@ public class SecurityApiResource {
 
     /**
      * Rotate cryptographic keys
-     * POST /api/v12/security/keys/rotate
+     * POST /api/v11/security/keys/rotate
      */
     @POST
     @Path("/keys/rotate")
@@ -225,7 +225,7 @@ public class SecurityApiResource {
 
     /**
      * Generate new cryptographic key
-     * POST /api/v12/security/keys/generate
+     * POST /api/v11/security/keys/generate
      */
     @POST
     @Path("/keys/generate")
@@ -256,7 +256,7 @@ public class SecurityApiResource {
 
     /**
      * Get security metrics
-     * GET /api/v12/security/metrics
+     * GET /api/v11/security/metrics
      */
     @GET
     @Path("/metrics")
@@ -309,7 +309,7 @@ public class SecurityApiResource {
 
     /**
      * Get security audit log
-     * GET /api/v12/security/audit
+     * GET /api/v11/security/audit
      */
     @GET
     @Path("/audit")

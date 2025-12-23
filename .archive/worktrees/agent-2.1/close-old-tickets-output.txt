@@ -1,0 +1,79 @@
+================================================
+  Close Old JIRA Tickets
+  Closing AV11-99 to AV11-105 (moved to AV11-208-214)
+================================================
+
+🔗 Testing JIRA connection...
+✅ Connected to JIRA successfully!
+
+============================================================
+💬 Adding final comment to AV11-99...
+✅ Final comment added to AV11-99
+
+🔄 Closing AV11-99 (moved to AV11-208)...
+   Available transitions: To Do, In Progress, Done
+✅ AV11-99 transitioned to "Done"
+============================================================
+💬 Adding final comment to AV11-100...
+✅ Final comment added to AV11-100
+
+🔄 Closing AV11-100 (moved to AV11-209)...
+   Available transitions: To Do, In Progress, Done
+✅ AV11-100 transitioned to "Done"
+============================================================
+💬 Adding final comment to AV11-101...
+✅ Final comment added to AV11-101
+
+🔄 Closing AV11-101 (moved to AV11-210)...
+   Available transitions: To Do, In Progress, Done
+✅ AV11-101 transitioned to "Done"
+============================================================
+💬 Adding final comment to AV11-102...
+✅ Final comment added to AV11-102
+
+🔄 Closing AV11-102 (moved to AV11-211)...
+   Available transitions: To Do, In Progress, Done
+✅ AV11-102 transitioned to "Done"
+============================================================
+💬 Adding final comment to AV11-103...
+✅ Final comment added to AV11-103
+
+🔄 Closing AV11-103 (moved to AV11-212)...
+   Available transitions: To Do, In Progress, Done
+✅ AV11-103 transitioned to "Done"
+============================================================
+💬 Adding final comment to AV11-104...
+✅ Final comment added to AV11-104
+
+🔄 Closing AV11-104 (moved to AV11-213)...
+   Available transitions: To Do, In Progress, Done
+✅ AV11-104 transitioned to "Done"
+============================================================
+💬 Adding final comment to AV11-105...
+✅ Final comment added to AV11-105
+
+🔄 Closing AV11-105 (moved to AV11-214)...
+   Available transitions: To Do, In Progress, Done
+✅ AV11-105 transitioned to "Done"
+
+
+================================================
+  Closure Summary
+================================================
+
+✅ Successfully closed 7 ticket(s):
+
+  AV11-99 → Closed (moved to AV11-208)
+  AV11-100 → Closed (moved to AV11-209)
+  AV11-101 → Closed (moved to AV11-210)
+  AV11-102 → Closed (moved to AV11-211)
+  AV11-103 → Closed (moved to AV11-212)
+  AV11-104 → Closed (moved to AV11-213)
+  AV11-105 → Closed (moved to AV11-214)
+
+📝 Summary:
+  Total Processed: 7
+  Successfully Closed: 7
+  Requires Manual Action: 0
+
+✅ Closure operation complete!

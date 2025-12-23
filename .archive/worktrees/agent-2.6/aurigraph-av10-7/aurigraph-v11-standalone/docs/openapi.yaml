@@ -1,0 +1,1545 @@
+openapi: 3.0.3
+info:
+  title: Aurigraph V11 Platform API
+  version: 11.0.0
+  description: |
+    **Aurigraph V11** is a high-performance blockchain platform built on Java/Quarkus/GraalVM,
+    designed to achieve 2M+ TPS with quantum-resistant cryptography and AI-driven optimization.
+
+    ## Key Features
+    - **HyperRAFT++ Consensus**: Advanced consensus algorithm with AI optimization
+    - **Quantum-Resistant Cryptography**: CRYSTALS-Dilithium/Kyber (NIST Level 5)
+    - **Cross-Chain Bridge**: Interoperability with Ethereum, Solana, and other chains
+    - **AI/ML Optimization**: Machine learning-driven performance tuning
+    - **Real-World Asset Tokenization**: Enterprise-grade asset digitization
+    - **Ultra-High Performance**: Target 2M+ TPS with <100ms finality
+
+    ## Authentication
+    All authenticated endpoints require a Bearer token:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+
+    ## Rate Limiting
+    - API endpoints: 100 requests/second
+    - Admin endpoints: 10 requests/second
+    - Auth endpoints: 5 requests/minute
+
+    ## Base URL
+    - Production: https://dlt.aurigraph.io
+    - Development: http://localhost:9003
+  contact:
+    name: Aurigraph DLT Team
+    email: support@aurigraph.io
+    url: https://aurigraph.io
+  license:
+    name: Proprietary
+    url: https://aurigraph.io/license
+
+servers:
+  - url: https://dlt.aurigraph.io
+    description: Production server
+  - url: http://localhost:9003
+    description: Local development server
+
+tags:
+  - name: Core Platform
+    description: Core blockchain platform operations
+  - name: Blockchain
+    description: Blockchain operations - transactions, blocks, validators
+  - name: Consensus
+    description: HyperRAFT++ consensus algorithm operations
+  - name: AI/ML
+    description: AI and Machine Learning optimization
+  - name: Cryptography
+    description: Quantum-resistant cryptography operations
+  - name: Cross-Chain Bridge
+    description: Cross-chain interoperability
+  - name: Real-World Assets
+    description: Asset tokenization and registry
+  - name: Security
+    description: Security audit and compliance
+  - name: Network
+    description: Network monitoring and statistics
+  - name: Enterprise
+    description: Enterprise management features
+  - name: Smart Contracts
+    description: Smart contract deployment and execution
+  - name: Analytics
+    description: Platform analytics and reporting
+
+paths:
+  # ==================== CORE PLATFORM ENDPOINTS ====================
+  /api/v11/health:
+    get:
+      tags:
+        - Core Platform
+      summary: Health check
+      description: Get platform health status and uptime metrics
+      operationId: getHealth
+      responses:
+        '200':
+          description: Platform is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: HEALTHY
+                version: 11.0.0-standalone
+                uptimeSeconds: 3456789
+                totalRequests: 125678543
+                platform: Java/Quarkus/GraalVM
+
+  /api/v11/info:
+    get:
+      tags:
+        - Core Platform
+      summary: System information
+      description: Get detailed system information
+      operationId: getSystemInfo
+      responses:
+        '200':
+          description: System information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemInfo'
+
+  /api/v11/performance:
+    get:
+      tags:
+        - Core Platform
+      summary: Performance test
+      description: Run performance benchmark test
+      operationId: performanceTest
+      parameters:
+        - name: iterations
+          in: query
+          description: Number of transactions to process
+          required: false
+          schema:
+            type: integer
+            default: 100000
+            maximum: 500000
+        - name: threads
+          in: query
+          description: Number of parallel threads
+          required: false
+          schema:
+            type: integer
+            default: 1
+            maximum: 64
+      responses:
+        '200':
+          description: Performance test completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceStats'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v11/stats:
+    get:
+      tags:
+        - Core Platform
+      summary: Transaction statistics
+      description: Get current transaction processing statistics
+      operationId: getTransactionStats
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnhancedProcessingStats'
+
+  /api/v11/system/status:
+    get:
+      tags:
+        - Core Platform
+      summary: Comprehensive system status
+      description: Get comprehensive system status for all V11 services
+      operationId: getSystemStatus
+      responses:
+        '200':
+          description: System status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+
+  # ==================== BLOCKCHAIN ENDPOINTS ====================
+  /api/v11/blockchain/transactions:
+    post:
+      tags:
+        - Blockchain
+      summary: Process transaction
+      description: Submit a transaction for processing
+      operationId: processTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+            example:
+              transactionId: tx_12345
+              amount: 100.50
+      responses:
+        '201':
+          description: Transaction processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Invalid transaction data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service temporarily unavailable
+
+    get:
+      tags:
+        - Blockchain
+      summary: Get transactions
+      description: Retrieve list of recent transactions
+      operationId: getTransactions
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of transactions to return
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - name: offset
+          in: query
+          description: Offset for pagination
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionList'
+
+  /api/v11/blockchain/transactions/batch:
+    post:
+      tags:
+        - Blockchain
+      summary: Process batch transactions
+      description: Submit multiple transactions for batch processing
+      operationId: processBatchTransactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchTransactionRequest'
+      responses:
+        '200':
+          description: Batch processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchTransactionResponse'
+        '400':
+          description: Invalid batch data
+
+  /api/v11/blockchain/blocks:
+    get:
+      tags:
+        - Blockchain
+      summary: Get blocks
+      description: Retrieve list of recent blocks
+      operationId: getBlocks
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Blocks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockList'
+
+  /api/v11/blockchain/blocks/{height}:
+    get:
+      tags:
+        - Blockchain
+      summary: Get block by height
+      description: Retrieve block details by block height
+      operationId: getBlockByHeight
+      parameters:
+        - name: height
+          in: path
+          required: true
+          description: Block height
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Block retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+        '404':
+          description: Block not found
+
+  /api/v11/blockchain/latest:
+    get:
+      tags:
+        - Blockchain
+      summary: Get latest block
+      description: Retrieve the most recent block in the blockchain
+      operationId: getLatestBlock
+      responses:
+        '200':
+          description: Latest block retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+
+  /api/v11/blockchain/stats:
+    get:
+      tags:
+        - Blockchain
+      summary: Get blockchain statistics
+      description: Retrieve comprehensive blockchain metrics and statistics
+      operationId: getBlockchainStats
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockchainStats'
+
+  /api/v11/blockchain/validators:
+    get:
+      tags:
+        - Blockchain
+      summary: Get validators
+      description: Retrieve list of active validators
+      operationId: getValidators
+      responses:
+        '200':
+          description: Validators retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidatorList'
+
+  /api/v11/blockchain/network/stats:
+    get:
+      tags:
+        - Network
+      summary: Get network statistics
+      description: Retrieve comprehensive network health and performance metrics
+      operationId: getNetworkStatistics
+      responses:
+        '200':
+          description: Network statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkStats'
+        '503':
+          description: Service temporarily unavailable
+
+  # ==================== CONSENSUS ENDPOINTS ====================
+  /api/v11/consensus/status:
+    get:
+      tags:
+        - Consensus
+      summary: Get consensus status
+      description: Returns HyperRAFT++ consensus algorithm status
+      operationId: getConsensusStatus
+      responses:
+        '200':
+          description: Consensus status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusStats'
+
+  /api/v11/consensus/metrics:
+    get:
+      tags:
+        - Consensus
+      summary: Get consensus metrics
+      description: Retrieve detailed HyperRAFT++ consensus performance metrics
+      operationId: getConsensusMetrics
+      responses:
+        '200':
+          description: Consensus metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusMetrics'
+        '503':
+          description: Consensus service unavailable
+
+  /api/v11/consensus/nodes:
+    get:
+      tags:
+        - Consensus
+      summary: Get consensus nodes
+      description: Retrieve real-time HyperRAFT++ consensus node information
+      operationId: getConsensusNodes
+      responses:
+        '200':
+          description: Consensus nodes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusNodes'
+        '503':
+          description: Consensus service unavailable
+
+  /api/v11/consensus/propose:
+    post:
+      tags:
+        - Consensus
+      summary: Propose consensus entry
+      description: Submit a proposal to the consensus algorithm
+      operationId: proposeConsensusEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsensusProposal'
+      responses:
+        '200':
+          description: Proposal submitted successfully
+        '400':
+          description: Invalid proposal data
+
+  # ==================== AI/ML ENDPOINTS ====================
+  /api/v11/ai/status:
+    get:
+      tags:
+        - AI/ML
+      summary: Get AI system status
+      description: Get comprehensive AI/ML system status
+      operationId: getAIStatus
+      responses:
+        '200':
+          description: AI status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIStatusResponse'
+
+  /api/v11/ai/models:
+    get:
+      tags:
+        - AI/ML
+      summary: List AI models
+      description: Get list of all AI/ML models in the system
+      operationId: listAIModels
+      responses:
+        '200':
+          description: Models retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIModelsResponse'
+
+  /api/v11/ai/models/{id}:
+    get:
+      tags:
+        - AI/ML
+      summary: Get model details
+      description: Get detailed information about a specific AI model
+      operationId: getModelDetails
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Model ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIModelDetails'
+        '404':
+          description: Model not found
+
+  /api/v11/ai/models/{id}/retrain:
+    post:
+      tags:
+        - AI/ML
+      summary: Retrain model
+      description: Initiate retraining of an AI model
+      operationId: retrainModel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetrainRequest'
+      responses:
+        '202':
+          description: Retraining initiated successfully
+        '404':
+          description: Model not found
+
+  /api/v11/ai/metrics:
+    get:
+      tags:
+        - AI/ML
+      summary: Get AI metrics
+      description: Get comprehensive AI system metrics
+      operationId: getAIMetrics
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIMetricsResponse'
+
+  /api/v11/ai/predictions:
+    get:
+      tags:
+        - AI/ML
+      summary: Get AI predictions
+      description: Get current AI predictions for network behavior
+      operationId: getAIPredictions
+      responses:
+        '200':
+          description: Predictions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIPredictionsResponse'
+
+  # ==================== CRYPTOGRAPHY ENDPOINTS ====================
+  /api/v11/crypto/status:
+    get:
+      tags:
+        - Cryptography
+      summary: Get cryptography status
+      description: Returns quantum-resistant cryptography status
+      operationId: getCryptoStatus
+      responses:
+        '200':
+          description: Crypto status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoStatus'
+
+  /api/v11/crypto/metrics:
+    get:
+      tags:
+        - Cryptography
+      summary: Get cryptography metrics
+      description: Retrieve detailed quantum cryptography performance metrics
+      operationId: getCryptoMetrics
+      responses:
+        '200':
+          description: Crypto metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoMetrics'
+
+  # ==================== CROSS-CHAIN BRIDGE ENDPOINTS ====================
+  /api/v11/bridge/supported-chains:
+    get:
+      tags:
+        - Cross-Chain Bridge
+      summary: Get supported chains
+      description: Retrieve list of supported blockchain chains for cross-chain bridge
+      operationId: getSupportedChains
+      responses:
+        '200':
+          description: Supported chains retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportedChains'
+
+  /api/v11/bridge/stats:
+    get:
+      tags:
+        - Cross-Chain Bridge
+      summary: Get bridge statistics
+      description: Retrieve cross-chain bridge statistics
+      operationId: getBridgeStats
+      responses:
+        '200':
+          description: Bridge statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BridgeStats'
+
+  # ==================== REAL-WORLD ASSETS ENDPOINTS ====================
+  /api/v11/rwa/status:
+    get:
+      tags:
+        - Real-World Assets
+      summary: Get RWA status
+      description: Get Real-World Asset tokenization status
+      operationId: getRWAStatus
+      responses:
+        '200':
+          description: RWA status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RWAStatus'
+
+  /api/v11/rwa/assets:
+    get:
+      tags:
+        - Real-World Assets
+      summary: List tokenized assets
+      description: Retrieve list of tokenized real-world assets
+      operationId: listRWAAssets
+      parameters:
+        - name: category
+          in: query
+          description: Asset category filter
+          schema:
+            type: string
+            enum: [REAL_ESTATE, COMMODITIES, ART, CARBON_CREDITS, BONDS, EQUITIES]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Assets retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RWAAssetList'
+
+  # ==================== SECURITY ENDPOINTS ====================
+  /api/v11/security/audit/logs:
+    get:
+      tags:
+        - Security
+      summary: Get audit logs
+      description: Retrieve security audit logs
+      operationId: getAuditLogs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: endTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 500
+      responses:
+        '200':
+          description: Audit logs retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogList'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  # ==================== SMART CONTRACTS ENDPOINTS ====================
+  /api/v11/contracts:
+    get:
+      tags:
+        - Smart Contracts
+      summary: List smart contracts
+      description: Retrieve list of deployed smart contracts
+      operationId: listContracts
+      responses:
+        '200':
+          description: Contracts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractList'
+
+    post:
+      tags:
+        - Smart Contracts
+      summary: Deploy smart contract
+      description: Deploy a new smart contract
+      operationId: deployContract
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractDeploymentRequest'
+      responses:
+        '201':
+          description: Contract deployed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDeploymentResponse'
+        '400':
+          description: Invalid contract data
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authenticated endpoints
+
+  schemas:
+    # ==================== CORE SCHEMAS ====================
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [HEALTHY, DEGRADED, UNHEALTHY]
+          example: HEALTHY
+        version:
+          type: string
+          example: 11.0.0-standalone
+        uptimeSeconds:
+          type: integer
+          format: int64
+          example: 3456789
+        totalRequests:
+          type: integer
+          format: int64
+          example: 125678543
+        platform:
+          type: string
+          example: Java/Quarkus/GraalVM
+
+    SystemInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Aurigraph V11 Java Nexus
+        version:
+          type: string
+          example: 11.0.0
+        javaVersion:
+          type: string
+          example: Java 21.0.1
+        framework:
+          type: string
+          example: Quarkus Native Ready
+        osName:
+          type: string
+          example: Linux
+        osArch:
+          type: string
+          example: amd64
+
+    PerformanceStats:
+      type: object
+      properties:
+        iterations:
+          type: integer
+          example: 100000
+        durationMs:
+          type: number
+          format: double
+          example: 54.32
+        transactionsPerSecond:
+          type: number
+          format: double
+          example: 1840000.0
+        nsPerTransaction:
+          type: number
+          format: double
+          example: 543.2
+        optimizations:
+          type: string
+          example: Java/Quarkus + Virtual Threads
+        threadCount:
+          type: integer
+          example: 8
+        targetTPS:
+          type: integer
+          format: int64
+          example: 2000000
+        targetAchieved:
+          type: boolean
+          example: false
+
+    EnhancedProcessingStats:
+      type: object
+      properties:
+        totalTransactions:
+          type: integer
+          format: int64
+        processedTransactions:
+          type: integer
+          format: int64
+        failedTransactions:
+          type: integer
+          format: int64
+        currentThroughputMeasurement:
+          type: number
+          format: double
+        adaptiveBatchSizeMultiplier:
+          type: number
+          format: double
+        throughputEfficiency:
+          type: number
+          format: double
+
+    SystemStatus:
+      type: object
+      properties:
+        platformName:
+          type: string
+        version:
+          type: string
+        uptimeMs:
+          type: integer
+          format: int64
+        healthy:
+          type: boolean
+        transactionStats:
+          $ref: '#/components/schemas/EnhancedProcessingStats'
+        consensusStatus:
+          $ref: '#/components/schemas/ConsensusStats'
+        cryptoStatus:
+          $ref: '#/components/schemas/CryptoStatus'
+        bridgeStats:
+          $ref: '#/components/schemas/BridgeStats'
+        timestamp:
+          type: integer
+          format: int64
+
+    # ==================== BLOCKCHAIN SCHEMAS ====================
+    TransactionRequest:
+      type: object
+      required:
+        - transactionId
+        - amount
+      properties:
+        transactionId:
+          type: string
+          example: tx_12345
+        amount:
+          type: number
+          format: double
+          example: 100.50
+
+    TransactionResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        status:
+          type: string
+          enum: [PROCESSED, PENDING, FAILED]
+        amount:
+          type: number
+          format: double
+        timestamp:
+          type: integer
+          format: int64
+        message:
+          type: string
+
+    BatchTransactionRequest:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionRequest'
+
+    BatchTransactionResponse:
+      type: object
+      properties:
+        requestedCount:
+          type: integer
+        processedCount:
+          type: integer
+        durationMs:
+          type: number
+          format: double
+        transactionsPerSecond:
+          type: number
+          format: double
+        status:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    TransactionList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              hash:
+                type: string
+              from:
+                type: string
+              to:
+                type: string
+              value:
+                type: string
+              fee:
+                type: string
+              status:
+                type: string
+              timestamp:
+                type: integer
+                format: int64
+              blockHeight:
+                type: integer
+                format: int64
+        total:
+          type: integer
+          format: int64
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    Block:
+      type: object
+      properties:
+        height:
+          type: integer
+          format: int64
+        hash:
+          type: string
+        parentHash:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        transactions:
+          type: integer
+        validator:
+          type: string
+        size:
+          type: integer
+        gasUsed:
+          type: integer
+          format: int64
+        gasLimit:
+          type: integer
+          format: int64
+        difficulty:
+          type: string
+        totalDifficulty:
+          type: string
+
+    BlockList:
+      type: object
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Block'
+        total:
+          type: integer
+          format: int64
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    BlockchainStats:
+      type: object
+      properties:
+        currentHeight:
+          type: integer
+          format: int64
+        totalBlocks:
+          type: integer
+          format: int64
+        totalTransactions:
+          type: integer
+          format: int64
+        averageBlockTime:
+          type: number
+          format: double
+        currentTPS:
+          type: integer
+          format: int64
+        peakTPS:
+          type: integer
+          format: int64
+        averageLatency:
+          type: number
+          format: double
+        finalizationTime:
+          type: integer
+        quantumResistant:
+          type: boolean
+        aiOptimizationEnabled:
+          type: boolean
+        timestamp:
+          type: integer
+          format: int64
+
+    ValidatorList:
+      type: object
+      properties:
+        validators:
+          type: array
+          items:
+            type: object
+            properties:
+              address:
+                type: string
+              name:
+                type: string
+              stake:
+                type: string
+              commission:
+                type: string
+              uptime:
+                type: string
+              blocksProduced:
+                type: integer
+              status:
+                type: string
+              votingPower:
+                type: integer
+        totalValidators:
+          type: integer
+        activeValidators:
+          type: integer
+        totalStake:
+          type: string
+
+    NetworkStats:
+      type: object
+      properties:
+        totalNodes:
+          type: integer
+        activeValidators:
+          type: integer
+        currentTPS:
+          type: integer
+          format: int64
+        peakTPS:
+          type: integer
+          format: int64
+        averageBlockTime:
+          type: number
+          format: double
+        networkLatency:
+          type: number
+          format: double
+        networkStatus:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    # ==================== CONSENSUS SCHEMAS ====================
+    ConsensusStats:
+      type: object
+      properties:
+        algorithm:
+          type: string
+          example: HyperRAFT++
+        nodeState:
+          type: string
+        currentTerm:
+          type: integer
+          format: int64
+        commitIndex:
+          type: integer
+          format: int64
+        lastApplied:
+          type: integer
+          format: int64
+        leaderNode:
+          type: string
+        consensusHealth:
+          type: string
+
+    ConsensusMetrics:
+      type: object
+      properties:
+        algorithm:
+          type: string
+        version:
+          type: string
+        status:
+          type: string
+        throughput:
+          type: object
+        latency:
+          type: object
+        voting:
+          type: object
+        leader:
+          type: object
+        cluster:
+          type: object
+        performance:
+          type: object
+        timestamp:
+          type: integer
+          format: int64
+
+    ConsensusNodes:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+        totalNodes:
+          type: integer
+        leaderNode:
+          type: string
+        consensusHealth:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ConsensusProposal:
+      type: object
+      required:
+        - proposalId
+        - data
+      properties:
+        proposalId:
+          type: string
+        data:
+          type: string
+
+    # ==================== AI/ML SCHEMAS ====================
+    AIStatusResponse:
+      type: object
+      properties:
+        systemStatus:
+          type: string
+        aiEnabled:
+          type: boolean
+        mlOptimizationEnabled:
+          type: boolean
+        version:
+          type: string
+        totalModels:
+          type: integer
+        activeModels:
+          type: integer
+        modelsInTraining:
+          type: integer
+        averageModelAccuracy:
+          type: number
+          format: double
+        performanceImpact:
+          type: object
+        resourceUsage:
+          type: object
+        healthIndicators:
+          type: object
+        timestamp:
+          type: integer
+          format: int64
+
+    AIModelsResponse:
+      type: object
+      properties:
+        totalModels:
+          type: integer
+        activeModels:
+          type: integer
+        models:
+          type: array
+          items:
+            type: object
+            properties:
+              modelId:
+                type: string
+              name:
+                type: string
+              type:
+                type: string
+              status:
+                type: string
+              accuracy:
+                type: number
+                format: double
+              version:
+                type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    AIModelDetails:
+      type: object
+      properties:
+        modelId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        accuracy:
+          type: number
+          format: double
+        version:
+          type: string
+        description:
+          type: string
+        performance:
+          type: object
+        trainingInfo:
+          type: object
+        timestamp:
+          type: integer
+          format: int64
+
+    RetrainRequest:
+      type: object
+      properties:
+        epochs:
+          type: integer
+        trainingDataSource:
+          type: string
+
+    AIMetricsResponse:
+      type: object
+      properties:
+        systemStatus:
+          type: string
+        totalModels:
+          type: integer
+        activeModels:
+          type: integer
+        averageAccuracy:
+          type: number
+          format: double
+        predictionsToday:
+          type: integer
+          format: int64
+        timestamp:
+          type: integer
+          format: int64
+
+    AIPredictionsResponse:
+      type: object
+      properties:
+        nextBlock:
+          type: object
+        networkForecast:
+          type: object
+        anomalyDetection:
+          type: object
+        consensusForecast:
+          type: object
+        timestamp:
+          type: integer
+          format: int64
+
+    # ==================== CRYPTOGRAPHY SCHEMAS ====================
+    CryptoStatus:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        algorithm:
+          type: string
+          example: CRYSTALS-Dilithium
+        securityLevel:
+          type: integer
+          example: 5
+        operationsPerSecond:
+          type: integer
+          format: int64
+
+    CryptoMetrics:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        algorithm:
+          type: string
+        securityLevel:
+          type: integer
+        encryptionCount:
+          type: integer
+          format: int64
+        decryptionCount:
+          type: integer
+          format: int64
+        signatureCount:
+          type: integer
+          format: int64
+        verificationCount:
+          type: integer
+          format: int64
+        timestamp:
+          type: integer
+          format: int64
+
+    # ==================== CROSS-CHAIN BRIDGE SCHEMAS ====================
+    SupportedChains:
+      type: object
+      properties:
+        totalChains:
+          type: integer
+        chains:
+          type: array
+          items:
+            type: object
+            properties:
+              chainId:
+                type: string
+              name:
+                type: string
+              network:
+                type: string
+              active:
+                type: boolean
+              blockHeight:
+                type: integer
+                format: int64
+              bridgeContract:
+                type: string
+        bridgeVersion:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    BridgeStats:
+      type: object
+      properties:
+        totalTransfers:
+          type: integer
+          format: int64
+        successfulTransfers:
+          type: integer
+          format: int64
+        failedTransfers:
+          type: integer
+          format: int64
+        totalValueLocked:
+          type: string
+        activeChains:
+          type: integer
+
+    # ==================== RWA SCHEMAS ====================
+    RWAStatus:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        hmsIntegrationActive:
+          type: boolean
+        totalAssetsTokenized:
+          type: integer
+          format: int64
+        totalValueLocked:
+          type: string
+        activeAssetTypes:
+          type: integer
+        supportedAssetCategories:
+          type: array
+          items:
+            type: string
+        complianceLevel:
+          type: string
+        status:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    RWAAssetList:
+      type: object
+      properties:
+        assets:
+          type: array
+          items:
+            type: object
+            properties:
+              assetId:
+                type: string
+              name:
+                type: string
+              category:
+                type: string
+              value:
+                type: string
+              tokenized:
+                type: boolean
+              timestamp:
+                type: integer
+                format: int64
+        total:
+          type: integer
+        limit:
+          type: integer
+
+    # ==================== SECURITY SCHEMAS ====================
+    AuditLogList:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            type: object
+            properties:
+              eventId:
+                type: string
+              eventType:
+                type: string
+              severity:
+                type: string
+              userId:
+                type: string
+              action:
+                type: string
+              resource:
+                type: string
+              outcome:
+                type: string
+              timestamp:
+                type: integer
+                format: int64
+        total:
+          type: integer
+        limit:
+          type: integer
+
+    # ==================== SMART CONTRACT SCHEMAS ====================
+    ContractList:
+      type: object
+      properties:
+        contracts:
+          type: array
+          items:
+            type: object
+            properties:
+              contractId:
+                type: string
+              name:
+                type: string
+              address:
+                type: string
+              owner:
+                type: string
+              status:
+                type: string
+              deployedAt:
+                type: integer
+                format: int64
+        total:
+          type: integer
+
+    ContractDeploymentRequest:
+      type: object
+      required:
+        - contractCode
+        - contractName
+      properties:
+        contractCode:
+          type: string
+        contractName:
+          type: string
+        parameters:
+          type: object
+
+    ContractDeploymentResponse:
+      type: object
+      properties:
+        contractId:
+          type: string
+        address:
+          type: string
+        status:
+          type: string
+        transactionHash:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    # ==================== ERROR SCHEMA ====================
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid request
+        message:
+          type: string
+          example: Detailed error message
+        code:
+          type: integer
+          example: 400
+        timestamp:
+          type: integer
+          format: int64

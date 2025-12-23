@@ -4,4 +4,9 @@ import type { RootState, AppDispatch } from '../store'
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
-// HTTP-based data fetching - No WebSockets
+// WebSocket Hooks
+export { useMetricsWebSocket } from './useMetricsWebSocket'
+export { useTransactionStream } from './useTransactionStream'
+export { useValidatorStream } from './useValidatorStream'
+export { useConsensusStream } from './useConsensusStream'
+export { useNetworkStream } from './useNetworkStream'

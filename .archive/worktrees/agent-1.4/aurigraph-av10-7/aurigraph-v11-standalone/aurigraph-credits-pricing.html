@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph Credits & Pricing - Global Tokenization Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+        }
+        
+        .competitive-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #2c3e50;
+        }
+        
+        .nav-tab.active {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .nav-tab:hover:not(.active) {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .tab-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .pricing-card.featured {
+            border: 2px solid #3498db;
+            transform: scale(1.05);
+        }
+        
+        .pricing-card.featured::before {
+            content: "MOST POPULAR";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .pricing-card {
+            position: relative;
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+        
+        .plan-credits {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+        
+        .plan-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+        
+        .plan-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .plan-features li::before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-enterprise {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .comparison-table th {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .comparison-table tr:hover {
+            background: #e3f2fd;
+        }
+        
+        .credit-balance {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .credit-balance h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .credit-balance .balance {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .credit-usage {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .usage-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .usage-card h4 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .usage-card .cost {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #e67e22;
+            margin-bottom: 0.5rem;
+        }
+        
+        .usage-card .savings {
+            background: #d4edda;
+            color: #155724;
+            padding: 0.3rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .global-comparison {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .competitor-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .competitor-row:last-child {
+            border-bottom: none;
+        }
+        
+        .competitor-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .competitor-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .aurigraph-price {
+            color: #27ae60;
+        }
+        
+        .competitor-price:not(.aurigraph-price) {
+            color: #e74c3c;
+        }
+        
+        .savings-badge {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .purchase-section {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .purchase-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+            align-items: end;
+        }
+        
+        .purchase-form select,
+        .purchase-form input {
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .volume-discount {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        
+        .volume-discount h4 {
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .close-modal {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .purchase-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🪙 Aurigraph Credits & Pricing</h1>
+            <p>Global Leader in Tokenization & Smart Contract Solutions</p>
+            <span class="competitive-badge">⚡ Up to 60% Lower Than Competitors</span>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('pricing')">Credit Packages</button>
+            <button class="nav-tab" onclick="showTab('comparison')">Global Comparison</button>
+            <button class="nav-tab" onclick="showTab('usage')">Credit Usage</button>
+            <button class="nav-tab" onclick="showTab('enterprise')">Enterprise</button>
+            <button class="nav-tab" onclick="showTab('calculator')">Cost Calculator</button>
+        </div>
+        
+        <div class="tab-content">
+            <!-- Pricing Tab -->
+            <div id="pricing" class="tab-panel active">
+                <h2>💳 Credit Packages - Globally Competitive Pricing</h2>
+                <p>Pay only for what you use with our flexible credit system. No hidden fees, transparent pricing.</p>
+                
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <div class="plan-name">Starter</div>
+                        <div class="plan-price">$99</div>
+                        <div class="plan-credits">1,000 Credits</div>
+                        <ul class="plan-features">
+                            <li>Basic tokenization (100 credits/token)</li>
+                            <li>Simple smart contracts (50 credits)</li>
+                            <li>Standard verification</li>
+                            <li>Email support</li>
+                            <li>30-day credit validity</li>
+                            <li>API access included</li>
+                        </ul>
+                        <button class="btn" onclick="purchaseCredits('starter')">Get Started</button>
+                    </div>
+                    
+                    <div class="pricing-card featured">
+                        <div class="plan-name">Pro</div>
+                        <div class="plan-price">$449</div>
+                        <div class="plan-credits">5,000 Credits</div>
+                        <ul class="plan-features">
+                            <li>Advanced tokenization (80 credits/token)</li>
+                            <li>Complex smart contracts (40 credits)</li>
+                            <li>DMRV verification included</li>
+                            <li>Priority support</li>
+                            <li>90-day credit validity</li>
+                            <li>Webhook integration</li>
+                            <li>20% volume discount</li>
+                        </ul>
+                        <button class="btn" onclick="purchaseCredits('professional')">Most Popular</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="plan-name">Business</div>
+                        <div class="plan-price">$1,999</div>
+                        <div class="plan-credits">25,000 Credits</div>
+                        <ul class="plan-features">
+                            <li>Premium tokenization (60 credits/token)</li>
+                            <li>Custom smart contracts (30 credits)</li>
+                            <li>Full DMRV + compliance</li>
+                            <li>Dedicated support</li>
+                            <li>180-day credit validity</li>
+                            <li>White-label options</li>
+                            <li>40% volume discount</li>
+                            <li>Custom integrations</li>
+                        </ul>
+                        <button class="btn" onclick="purchaseCredits('business')">Scale Up</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="plan-name">Enterprise</div>
+                        <div class="plan-price">Custom</div>
+                        <div class="plan-credits">100,000+ Credits</div>
+                        <ul class="plan-features">
+                            <li>Enterprise tokenization (40 credits/token)</li>
+                            <li>Unlimited smart contracts (20 credits)</li>
+                            <li>White-glove DMRV service</li>
+                            <li>24/7 dedicated support</li>
+                            <li>1-year credit validity</li>
+                            <li>Private blockchain option</li>
+                            <li>60% volume discount</li>
+                            <li>SLA guarantees</li>
+                            <li>Custom development</li>
+                        </ul>
+                        <button class="btn btn-enterprise" onclick="contactEnterprise()">Contact Sales</button>
+                    </div>
+                </div>
+                
+                <div class="volume-discount">
+                    <h4>🎯 Volume Discounts Available</h4>
+                    <p><strong>10,000+ Credits:</strong> 20% discount | <strong>50,000+ Credits:</strong> 40% discount | <strong>100,000+ Credits:</strong> 60% discount</p>
+                </div>
+            </div>
+            
+            <!-- Global Comparison Tab -->
+            <div id="comparison" class="tab-panel">
+                <h2>🌍 Global Price Comparison</h2>
+                <p>See how Aurigraph's pricing compares to major competitors worldwide</p>
+                
+                <div class="global-comparison">
+                    <h3>Asset Tokenization (per token)</h3>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇺🇸 Polymath (US)</span>
+                        <div>
+                            <span class="competitor-price">$2,500</span>
+                            <span class="savings-badge">You save $1,900</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇨🇭 Securitize (Switzerland)</span>
+                        <div>
+                            <span class="competitor-price">$3,200</span>
+                            <span class="savings-badge">You save $2,600</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇸🇬 iSTOX (Singapore)</span>
+                        <div>
+                            <span class="competitor-price">$1,800</span>
+                            <span class="savings-badge">You save $1,200</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇬🇧 Archax (UK)</span>
+                        <div>
+                            <span class="competitor-price">$2,100</span>
+                            <span class="savings-badge">You save $1,500</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🟢 Aurigraph (Global)</span>
+                        <span class="competitor-price aurigraph-price">$600</span>
+                    </div>
+                </div>
+                
+                <div class="global-comparison">
+                    <h3>Smart Contract Deployment (complex contracts)</h3>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇺🇸 ConsenSys (US)</span>
+                        <div>
+                            <span class="competitor-price">$5,000</span>
+                            <span class="savings-badge">You save $4,200</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇩🇪 Ethereum Foundation (Germany)</span>
+                        <div>
+                            <span class="competitor-price">$3,500</span>
+                            <span class="savings-badge">You save $2,700</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇫🇷 Blockchain Partner (France)</span>
+                        <div>
+                            <span class="competitor-price">$4,200</span>
+                            <span class="savings-badge">You save $3,400</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🟢 Aurigraph (Global)</span>
+                        <span class="competitor-price aurigraph-price">$800</span>
+                    </div>
+                </div>
+                
+                <div class="global-comparison">
+                    <h3>DMRV Verification (per asset)</h3>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇺🇸 Ernst & Young Direct</span>
+                        <div>
+                            <span class="competitor-price">$8,500</span>
+                            <span class="savings-badge">You save $6,000</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇬🇧 Deloitte UK</span>
+                        <div>
+                            <span class="competitor-price">$7,200</span>
+                            <span class="savings-badge">You save $4,700</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🇨🇭 KPMG Switzerland</span>
+                        <div>
+                            <span class="competitor-price">$9,100</span>
+                            <span class="savings-badge">You save $6,600</span>
+                        </div>
+                    </div>
+                    <div class="competitor-row">
+                        <span class="competitor-name">🟢 Aurigraph DMRV</span>
+                        <span class="competitor-price aurigraph-price">$2,500</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Credit Usage Tab -->
+            <div id="usage" class="tab-panel">
+                <div class="credit-balance">
+                    <h3>Your Current Balance</h3>
+                    <div class="balance" id="currentBalance">2,450</div>
+                    <p>Credits Available • Expires: March 15, 2026</p>
+                </div>
+                
+                <h2>💰 Credit Usage & Costs</h2>
+                <p>Transparent pricing for all services. Credits are consumed only when services are used.</p>
+                
+                <div class="credit-usage">
+                    <div class="usage-card">
+                        <h4>🏢 Real Estate Tokenization</h4>
+                        <div class="cost">60 Credits</div>
+                        <p>Includes legal verification, valuation, and compliance</p>
+                        <span class="savings">Save $1,900 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>🥇 Commodities Tokenization</h4>
+                        <div class="cost">50 Credits</div>
+                        <p>Physical asset verification and custody setup</p>
+                        <span class="savings">Save $1,200 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>🎨 Art & Collectibles</h4>
+                        <div class="cost">70 Credits</div>
+                        <p>Provenance verification and authentication</p>
+                        <span class="savings">Save $2,100 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>📜 Wills & Estate Planning</h4>
+                        <div class="cost">45 Credits</div>
+                        <p>Legal will tokenization with succession planning</p>
+                        <span class="savings">Save $1,500 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>🏠 Property Deeds</h4>
+                        <div class="cost">55 Credits</div>
+                        <p>Real estate deed tokenization with title verification</p>
+                        <span class="savings">Save $1,800 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>📄 ERC-20 Smart Contract</h4>
+                        <div class="cost">20 Credits</div>
+                        <p>Standard fungible token contract</p>
+                        <span class="savings">Save $800 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>🖼️ ERC-721 NFT Contract</h4>
+                        <div class="cost">30 Credits</div>
+                        <p>Non-fungible token with metadata</p>
+                        <span class="savings">Save $1,200 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>🔄 ERC-1155 Multi-Token</h4>
+                        <div class="cost">40 Credits</div>
+                        <p>Hybrid fungible/non-fungible contract</p>
+                        <span class="savings">Save $1,600 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>🔍 DMRV Verification</h4>
+                        <div class="cost">125 Credits</div>
+                        <p>Full digital monitoring and verification</p>
+                        <span class="savings">Save $6,000 vs competitors</span>
+                    </div>
+                    
+                    <div class="usage-card">
+                        <h4>⚖️ Legal Compliance Check</h4>
+                        <div class="cost">35 Credits</div>
+                        <p>KYC/AML and regulatory compliance</p>
+                        <span class="savings">Save $900 vs competitors</span>
+                    </div>
+                </div>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Credits Required</th>
+                            <th>USD Equivalent</th>
+                            <th>Competitor Average</th>
+                            <th>Your Savings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Real Estate Tokenization</td>
+                            <td>60 credits</td>
+                            <td>$600</td>
+                            <td>$2,500</td>
+                            <td style="color: #27ae60; font-weight: bold;">$1,900</td>
+                        </tr>
+                        <tr>
+                            <td>Complex Smart Contract</td>
+                            <td>40 credits</td>
+                            <td>$400</td>
+                            <td>$1,800</td>
+                            <td style="color: #27ae60; font-weight: bold;">$1,400</td>
+                        </tr>
+                        <tr>
+                            <td>DMRV Full Verification</td>
+                            <td>125 credits</td>
+                            <td>$1,250</td>
+                            <td>$7,500</td>
+                            <td style="color: #27ae60; font-weight: bold;">$6,250</td>
+                        </tr>
+                        <tr>
+                            <td>Art Tokenization</td>
+                            <td>70 credits</td>
+                            <td>$700</td>
+                            <td>$3,200</td>
+                            <td style="color: #27ae60; font-weight: bold;">$2,500</td>
+                        </tr>
+                        <tr>
+                            <td>Compliance Package</td>
+                            <td>35 credits</td>
+                            <td>$350</td>
+                            <td>$1,500</td>
+                            <td style="color: #27ae60; font-weight: bold;">$1,150</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Enterprise Tab -->
+            <div id="enterprise" class="tab-panel">
+                <h2>🏢 Enterprise Solutions</h2>
+                <p>Tailored packages for large-scale tokenization and institutional clients</p>
+                
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <div class="plan-name">Enterprise Starter</div>
+                        <div class="plan-price">$9,999</div>
+                        <div class="plan-credits">100,000 Credits</div>
+                        <ul class="plan-features">
+                            <li>40 credits per tokenization</li>
+                            <li>20 credits per smart contract</li>
+                            <li>Dedicated account manager</li>
+                            <li>SLA: 99.9% uptime</li>
+                            <li>24/7 priority support</li>
+                            <li>Custom API integrations</li>
+                            <li>50% volume discount</li>
+                        </ul>
+                        <button class="btn btn-enterprise" onclick="contactEnterprise()">Contact Sales</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="plan-name">Enterprise Pro</div>
+                        <div class="plan-price">$39,999</div>
+                        <div class="plan-credits">500,000 Credits</div>
+                        <ul class="plan-features">
+                            <li>30 credits per tokenization</li>
+                            <li>15 credits per smart contract</li>
+                            <li>White-label solution</li>
+                            <li>SLA: 99.95% uptime</li>
+                            <li>Dedicated support team</li>
+                            <li>Custom blockchain deployment</li>
+                            <li>60% volume discount</li>
+                            <li>Regulatory consulting</li>
+                        </ul>
+                        <button class="btn btn-enterprise" onclick="contactEnterprise()">Contact Sales</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="plan-name">Enterprise Ultimate</div>
+                        <div class="plan-price">$149,999</div>
+                        <div class="plan-credits">2,000,000 Credits</div>
+                        <ul class="plan-features">
+                            <li>20 credits per tokenization</li>
+                            <li>10 credits per smart contract</li>
+                            <li>Private blockchain instance</li>
+                            <li>SLA: 99.99% uptime</li>
+                            <li>On-site support team</li>
+                            <li>Custom development</li>
+                            <li>70% volume discount</li>
+                            <li>Legal & compliance team</li>
+                            <li>Global regulatory coverage</li>
+                        </ul>
+                        <button class="btn btn-enterprise" onclick="contactEnterprise()">Contact Sales</button>
+                    </div>
+                </div>
+                
+                <div class="global-comparison">
+                    <h3>🌟 Enterprise Benefits</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
+                        <div class="usage-card">
+                            <h4>🚀 Performance</h4>
+                            <p>Dedicated infrastructure with guaranteed 99.99% uptime and sub-100ms response times</p>
+                        </div>
+                        <div class="usage-card">
+                            <h4>🔒 Security</h4>
+                            <p>Private blockchain deployment, HSM key management, and SOC 2 Type II compliance</p>
+                        </div>
+                        <div class="usage-card">
+                            <h4>🎯 Customization</h4>
+                            <p>White-label solutions, custom integrations, and bespoke smart contract development</p>
+                        </div>
+                        <div class="usage-card">
+                            <h4>🌍 Global Support</h4>
+                            <p>24/7 support in multiple languages, regulatory compliance in 50+ jurisdictions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Calculator Tab -->
+            <div id="calculator" class="tab-panel">
+                <h2>🧮 Cost Calculator</h2>
+                <p>Calculate your exact costs and compare savings vs competitors</p>
+                
+                <div class="purchase-section">
+                    <h3>💡 Project Cost Calculator</h3>
+                    <div class="purchase-form">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem;">Tokenization Type</label>
+                            <select id="tokenType" onchange="updateCalculator()">
+                                <option value="real_estate">Real Estate (60 credits)</option>
+                                <option value="commodities">Commodities (50 credits)</option>
+                                <option value="art">Art & Collectibles (70 credits)</option>
+                                <option value="securities">Securities (55 credits)</option>
+                                <option value="ip">Intellectual Property (65 credits)</option>
+                                <option value="wills">Wills & Estate Planning (45 credits)</option>
+                                <option value="deeds">Property Deeds (55 credits)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem;">Smart Contract Type</label>
+                            <select id="contractType" onchange="updateCalculator()">
+                                <option value="erc20">ERC-20 (20 credits)</option>
+                                <option value="erc721">ERC-721 (30 credits)</option>
+                                <option value="erc1155">ERC-1155 (40 credits)</option>
+                                <option value="custom">Custom Contract (60 credits)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem;">Number of Assets</label>
+                            <input type="number" id="assetCount" value="1" min="1" onchange="updateCalculator()">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem;">DMRV Required</label>
+                            <select id="dmrvType" onchange="updateCalculator()">
+                                <option value="none">No DMRV (0 credits)</option>
+                                <option value="basic">Basic Verification (75 credits)</option>
+                                <option value="full">Full DMRV (125 credits)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="calculatorResults" style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                        <h4>💰 Cost Breakdown</h4>
+                        <div id="costBreakdown"></div>
+                    </div>
+                    
+                    <button class="btn" onclick="purchaseCalculatedCredits()">Purchase Required Credits</button>
+                </div>
+                
+                <div class="global-comparison" style="margin-top: 2rem;">
+                    <h3>📊 Competitor Comparison for Your Project</h3>
+                    <div id="competitorComparison"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Purchase Modal -->
+    <div id="purchaseModal" class="modal">
+        <div class="modal-content">
+            <h3>🛒 Purchase Credits</h3>
+            <p id="purchaseDetails"></p>
+            <div style="margin: 1rem 0;">
+                <strong>Payment Methods:</strong><br>
+                💳 Credit Card | 🏦 Bank Transfer | ₿ Cryptocurrency | 💰 Wire Transfer
+            </div>
+            <button class="btn" onclick="processPurchase()">Proceed to Payment</button>
+            <button class="close-modal" onclick="closePurchaseModal()">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <h3>✅ Purchase Successful!</h3>
+            <p id="successMessage"></p>
+            <button class="btn" onclick="closeSuccessModal()">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        class CreditsPricingSystem {
+            constructor() {
+                this.creditPackages = {
+                    starter: { price: 99, credits: 1000, perCredit: 0.099 },
+                    professional: { price: 449, credits: 5000, perCredit: 0.0898 },
+                    business: { price: 1999, credits: 25000, perCredit: 0.07996 },
+                    enterprise: { price: 9999, credits: 100000, perCredit: 0.09999 }
+                };
+                
+                this.serviceCosts = {
+                    real_estate: 60,
+                    commodities: 50,
+                    art: 70,
+                    securities: 55,
+                    ip: 65,
+                    wills: 45,
+                    deeds: 55,
+                    erc20: 20,
+                    erc721: 30,
+                    erc1155: 40,
+                    custom: 60,
+                    none: 0,
+                    basic: 75,
+                    full: 125
+                };
+                
+                this.competitorPrices = {
+                    real_estate: 2500,
+                    commodities: 1800,
+                    art: 3200,
+                    securities: 2100,
+                    ip: 2800,
+                    wills: 2200,
+                    deeds: 2400,
+                    erc20: 800,
+                    erc721: 1200,
+                    erc1155: 1600,
+                    custom: 2500,
+                    basic: 4000,
+                    full: 7500
+                };
+                
+                this.currentBalance = 2450;
+                this.updateCalculator();
+            }
+            
+            updateCalculator() {
+                const tokenType = document.getElementById('tokenType').value;
+                const contractType = document.getElementById('contractType').value;
+                const assetCount = parseInt(document.getElementById('assetCount').value);
+                const dmrvType = document.getElementById('dmrvType').value;
+                
+                const tokenCredits = this.serviceCosts[tokenType] * assetCount;
+                const contractCredits = this.serviceCosts[contractType] * assetCount;
+                const dmrvCredits = this.serviceCosts[dmrvType] * assetCount;
+                
+                const totalCredits = tokenCredits + contractCredits + dmrvCredits;
+                const totalCost = totalCredits * 10; // Assuming $10 per credit for calculation
+                
+                // Competitor costs
+                const competitorTokenCost = this.competitorPrices[tokenType] * assetCount;
+                const competitorContractCost = this.competitorPrices[contractType] * assetCount;
+                const competitorDmrvCost = this.competitorPrices[dmrvType] * assetCount;
+                const totalCompetitorCost = competitorTokenCost + competitorContractCost + competitorDmrvCost;
+                
+                const savings = totalCompetitorCost - totalCost;
+                const savingsPercentage = ((savings / totalCompetitorCost) * 100).toFixed(1);
+                
+                document.getElementById('costBreakdown').innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div>
+                            <strong>Tokenization:</strong><br>
+                            ${tokenCredits} credits × ${assetCount} = ${tokenCredits} credits
+                        </div>
+                        <div>
+                            <strong>Smart Contracts:</strong><br>
+                            ${contractCredits} credits × ${assetCount} = ${contractCredits} credits
+                        </div>
+                        <div>
+                            <strong>DMRV:</strong><br>
+                            ${dmrvCredits} credits × ${assetCount} = ${dmrvCredits} credits
+                        </div>
+                    </div>
+                    <hr style="margin: 1rem 0; border: 1px solid rgba(255,255,255,0.3);">
+                    <div style="font-size: 1.2rem;">
+                        <strong>Total Required: ${totalCredits} credits</strong><br>
+                        <strong>Estimated Cost: $${totalCost.toLocaleString()}</strong>
+                    </div>
+                `;
+                
+                document.getElementById('competitorComparison').innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <div style="background: white; padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: #27ae60;">🟢 Aurigraph Total</h4>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #27ae60;">$${totalCost.toLocaleString()}</div>
+                        </div>
+                        <div style="background: white; padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: #e74c3c;">🔴 Competitor Average</h4>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #e74c3c;">$${totalCompetitorCost.toLocaleString()}</div>
+                        </div>
+                        <div style="background: white; padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: #f39c12;">💰 Your Savings</h4>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #f39c12;">$${savings.toLocaleString()}</div>
+                            <div style="color: #27ae60; font-weight: 600;">${savingsPercentage}% less</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            purchaseCredits(packageType) {
+                const package = this.creditPackages[packageType];
+                if (package) {
+                    document.getElementById('purchaseDetails').innerHTML = `
+                        <strong>${packageType.charAt(0).toUpperCase() + packageType.slice(1)} Package</strong><br>
+                        ${package.credits.toLocaleString()} credits for $${package.price}<br>
+                        Rate: $${package.perCredit.toFixed(4)} per credit
+                    `;
+                    document.getElementById('purchaseModal').classList.add('show');
+                }
+            }
+            
+            purchaseCalculatedCredits() {
+                const tokenType = document.getElementById('tokenType').value;
+                const contractType = document.getElementById('contractType').value;
+                const assetCount = parseInt(document.getElementById('assetCount').value);
+                const dmrvType = document.getElementById('dmrvType').value;
+                
+                const totalCredits = (this.serviceCosts[tokenType] + this.serviceCosts[contractType] + this.serviceCosts[dmrvType]) * assetCount;
+                const estimatedCost = totalCredits * 0.08; // Average cost per credit
+                
+                document.getElementById('purchaseDetails').innerHTML = `
+                    <strong>Custom Package</strong><br>
+                    ${totalCredits.toLocaleString()} credits for $${estimatedCost.toFixed(2)}<br>
+                    Perfect for your project requirements
+                `;
+                document.getElementById('purchaseModal').classList.add('show');
+            }
+            
+            processPurchase() {
+                // Simulate purchase process
+                document.getElementById('purchaseModal').classList.remove('show');
+                
+                setTimeout(() => {
+                    document.getElementById('successMessage').innerHTML = `
+                        Credits have been added to your account!<br>
+                        Payment processed successfully via secure payment gateway.<br>
+                        <strong>New Balance: ${(this.currentBalance + 5000).toLocaleString()} credits</strong>
+                    `;
+                    document.getElementById('successModal').classList.add('show');
+                    
+                    // Update balance
+                    this.currentBalance += 5000;
+                    document.getElementById('currentBalance').textContent = this.currentBalance.toLocaleString();
+                }, 1000);
+            }
+            
+            contactEnterprise() {
+                alert('Enterprise sales team will contact you within 24 hours.\n\nFor immediate assistance:\n📧 enterprise@aurigraph.io\n📞 +1-800-AURIGRAPH\n💬 Live chat available 24/7');
+            }
+            
+            closePurchaseModal() {
+                document.getElementById('purchaseModal').classList.remove('show');
+            }
+            
+            closeSuccessModal() {
+                document.getElementById('successModal').classList.remove('show');
+            }
+        }
+        
+        // Global functions
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function updateCalculator() {
+            if (window.pricingSystem) {
+                window.pricingSystem.updateCalculator();
+            }
+        }
+        
+        function purchaseCredits(packageType) {
+            window.pricingSystem.purchaseCredits(packageType);
+        }
+        
+        function purchaseCalculatedCredits() {
+            window.pricingSystem.purchaseCalculatedCredits();
+        }
+        
+        function contactEnterprise() {
+            window.pricingSystem.contactEnterprise();
+        }
+        
+        function processPurchase() {
+            window.pricingSystem.processPurchase();
+        }
+        
+        function closePurchaseModal() {
+            window.pricingSystem.closePurchaseModal();
+        }
+        
+        function closeSuccessModal() {
+            window.pricingSystem.closeSuccessModal();
+        }
+        
+        // Initialize the pricing system
+        document.addEventListener('DOMContentLoaded', () => {
+            window.pricingSystem = new CreditsPricingSystem();
+        });
+    </script>
+</body>
+</html>

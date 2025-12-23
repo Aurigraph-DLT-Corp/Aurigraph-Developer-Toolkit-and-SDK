@@ -24,14 +24,14 @@ import java.util.Map;
  * AV11-284: Implement Price Feed Display API
  *
  * Endpoints:
- * - GET /api/v12/datafeeds/prices - Get all asset prices
- * - GET /api/v12/datafeeds/prices/{symbol} - Get specific asset price
- * - GET /api/v12/datafeeds/sources - Get price source status
+ * - GET /api/v11/datafeeds/prices - Get all asset prices
+ * - GET /api/v11/datafeeds/prices/{symbol} - Get specific asset price
+ * - GET /api/v11/datafeeds/sources - Get price source status
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v12/datafeeds")
+@Path("/api/v11/datafeeds")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Price Feeds", description = "Real-time price aggregation from multiple oracle sources")
@@ -60,7 +60,7 @@ public class PriceFeedResource {
                          description = "Internal server error")
     })
     public Uni<Response> getAllPrices() {
-        LOG.info("GET /api/v12/datafeeds/prices - Fetching all asset prices");
+        LOG.info("GET /api/v11/datafeeds/prices - Fetching all asset prices");
 
         return priceFeedService.getPriceFeed()
                 .map(feed -> {
@@ -99,7 +99,7 @@ public class PriceFeedResource {
                          description = "Internal server error")
     })
     public Uni<Response> getAssetPrice(@PathParam("symbol") String symbol) {
-        LOG.debugf("GET /api/v12/datafeeds/prices/%s - Fetching asset price", symbol);
+        LOG.debugf("GET /api/v11/datafeeds/prices/%s - Fetching asset price", symbol);
 
         return priceFeedService.getAssetPrice(symbol)
                 .map(price -> {
@@ -145,7 +145,7 @@ public class PriceFeedResource {
                          description = "Internal server error")
     })
     public Uni<Response> getPriceSources() {
-        LOG.debug("GET /api/v12/datafeeds/sources - Fetching price sources");
+        LOG.debug("GET /api/v11/datafeeds/sources - Fetching price sources");
 
         return priceFeedService.getPriceFeed()
                 .map(feed -> {

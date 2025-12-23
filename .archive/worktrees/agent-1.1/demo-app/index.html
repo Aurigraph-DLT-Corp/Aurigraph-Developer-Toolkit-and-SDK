@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph DLT - Real-Time Node Visualization Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #0b7dda;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .metric-card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .nodes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .node-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            color: #333;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .node-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .node-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-channel {
+            background: #2196F3;
+            color: white;
+        }
+
+        .badge-validator {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .badge-business {
+            background: #FF9800;
+            color: white;
+        }
+
+        .badge-api-integration {
+            background: #00BCD4;
+            color: white;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-idle { background: #9E9E9E; }
+        .status-connected { background: #4CAF50; }
+        .status-routing { background: #2196F3; }
+        .status-follower { background: #FFC107; }
+        .status-candidate { background: #FF9800; }
+        .status-leader { background: #4CAF50; }
+        .status-processing { background: #2196F3; }
+        .status-disconnected { background: #9E9E9E; }
+        .status-connecting { background: #FF9800; }
+        .status-active { background: #4CAF50; }
+        .status-streaming { background: #00BCD4; }
+
+        .node-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .metric-item {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .metric-item-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .metric-item-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .log-container {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-container h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            padding: 8px;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .log-timestamp {
+            color: #4CAF50;
+            margin-right: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.8;
+        }
+
+        .graphs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .graph-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: 350px;
+        }
+
+        .graph-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .graph-card canvas {
+            max-height: 280px;
+        }
+
+        /* Enhanced Panel UI Components Styles */
+        .enhanced-node-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 250, 250, 0.98) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            color: #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(200, 200, 200, 0.3);
+        }
+
+        .enhanced-node-panel:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .panel-header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .node-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .node-icon-channel {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .node-icon-validator {
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+        }
+
+        .node-icon-business {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+
+        .node-icon-api-integration {
+            background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .panel-subtitle {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .panel-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 10px;
+        }
+
+        .status-indicator-enhanced {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            opacity: 0.6;
+        }
+
+        .status-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: inherit;
+            z-index: 1;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+        }
+
+        .status-text {
+            flex: 1;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .status-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .panel-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card-enhanced {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card-enhanced:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-label-enhanced {
+            font-size: 0.7rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .metric-value-enhanced {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .metric-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .metric-progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        .metric-sparkline {
+            margin-top: 8px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sparkline-svg {
+            width: 100%;
+            height: 30px;
+        }
+
+        .panel-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .panel-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .panel-btn-details {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .panel-btn-details:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .panel-btn-pause {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-btn-pause:hover {
+            background: rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-icon {
+            font-size: 1rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #ff6b6b;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-control option {
+            background: #1e3c72;
+            color: white;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Scalability Controls Styles */
+        .scalability-controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .scalability-controls h3 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .btn-mode {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            color: white;
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .btn-mode:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-mode.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* WebSocket Controls Styles */
+        .websocket-controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .websocket-controls h3 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .ws-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .ws-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .ws-status-dot.connected {
+            background: #4CAF50;
+        }
+
+        .ws-status-dot.disconnected {
+            background: #f44336;
+            animation: none;
+        }
+
+        .ws-status-dot.connecting {
+            background: #FF9800;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .ws-metrics {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .ws-metric {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .ws-metric strong {
+            color: #4CAF50;
+        }
+
+        .btn-ws {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(56, 142, 60, 0.3) 100%);
+            color: white;
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .btn-ws:hover {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-ws.disconnect {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.3) 0%, rgba(211, 47, 47, 0.3) 100%);
+            border: 2px solid rgba(244, 67, 54, 0.5);
+        }
+
+        .btn-ws.disconnect:hover {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            border-color: #f44336;
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Aurigraph DLT Real-Time Node Visualization</h1>
+        <p>Epic AV11-192 - Scalable Node Demonstration (1K-2M+ TPS)</p>
+    </div>
+
+    <div class="controls">
+        <button id="btnStart" class="btn btn-primary">▶ Start Demo</button>
+        <button id="btnStop" class="btn btn-danger" disabled>⏹ Stop Demo</button>
+        <button id="btnReset" class="btn btn-secondary">🔄 Reset</button>
+        <button id="btnLoadSmall" class="btn btn-secondary">📋 Load Small-Scale Preset</button>
+        <button id="btnLoadUltra" class="btn btn-secondary">🚀 Load Ultra-Scale Preset (with APIs)</button>
+    </div>
+
+    <div class="controls">
+        <button id="btnAddNode" class="btn btn-primary">➕ Add Node</button>
+        <button id="btnSaveConfig" class="btn btn-secondary">💾 Save Config</button>
+        <button id="btnLoadConfig" class="btn btn-secondary">📂 Load Config</button>
+        <button id="btnExportConfig" class="btn btn-secondary">📤 Export JSON</button>
+        <button id="btnImportConfig" class="btn btn-secondary">📥 Import JSON</button>
+        <input type="file" id="fileImportConfig" accept=".json" style="display: none;">
+    </div>
+
+    <div class="scalability-controls">
+        <h3 style="margin-bottom: 15px;">⚡ Scalability Modes</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+            <button id="btnModeEducational" class="btn btn-mode">📚 Educational (1K-5K TPS)</button>
+            <button id="btnModeDevelopment" class="btn btn-mode">💻 Development (10K-50K TPS)</button>
+            <button id="btnModeStaging" class="btn btn-mode">🔬 Staging (100K-500K TPS)</button>
+            <button id="btnModeProduction" class="btn btn-mode">🚀 Production (2M+ TPS)</button>
+            <div id="currentModeIndicator" style="margin-left: auto; padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 8px; display: none;">
+                <strong>Current:</strong> <span id="currentModeName">None</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebSocket Controls -->
+    <div class="websocket-controls">
+        <h3>🔌 WebSocket Connection</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
+            <button id="btnWsConnect" class="btn btn-ws">🔗 Connect</button>
+            <button id="btnWsDisconnect" class="btn btn-ws disconnect" style="display: none;">🔌 Disconnect</button>
+            <button id="btnWsSubscribe" class="btn btn-ws" disabled>📡 Subscribe to Updates</button>
+            <div class="ws-status">
+                <div id="wsStatusDot" class="ws-status-dot disconnected"></div>
+                <span id="wsStatusText">Disconnected</span>
+            </div>
+        </div>
+        <div class="ws-metrics" id="wsMetrics" style="display: none;">
+            <div class="ws-metric">
+                <strong id="wsMessagesSent">0</strong> messages sent
+            </div>
+            <div class="ws-metric">
+                <strong id="wsMessagesReceived">0</strong> messages received
+            </div>
+            <div class="ws-metric">
+                <strong id="wsLatency">0</strong> ms latency
+            </div>
+            <div class="ws-metric">
+                <strong id="wsQueueSize">0</strong> queued
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="metric-card">
+            <h3>System TPS</h3>
+            <div class="metric-value" id="systemTPS">0</div>
+            <div class="metric-label">Transactions Per Second</div>
+        </div>
+        <div class="metric-card">
+            <h3>Active Nodes</h3>
+            <div class="metric-value" id="activeNodes">0</div>
+            <div class="metric-label">Total Running Nodes</div>
+        </div>
+        <div class="metric-card">
+            <h3>Messages Routed</h3>
+            <div class="metric-value" id="messagesRouted">0</div>
+            <div class="metric-label">Total Messages Sent</div>
+        </div>
+        <div class="metric-card">
+            <h3>Blocks Validated</h3>
+            <div class="metric-value" id="blocksValidated">0</div>
+            <div class="metric-label">Consensus Confirmations</div>
+        </div>
+    </div>
+
+    <div id="graphsContainer">
+        <!-- Real-time graphs will be rendered here -->
+    </div>
+
+    <div class="nodes-container" id="nodesContainer">
+        <!-- Node panels will be dynamically inserted here -->
+    </div>
+
+    <div class="log-container">
+        <h3>📊 System Event Log</h3>
+        <div id="eventLog"></div>
+    </div>
+
+    <!-- Add Node Modal -->
+    <div id="addNodeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Node</h2>
+                <span class="modal-close" onclick="closeAddNodeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="nodeType">Node Type:</label>
+                    <select id="nodeType" class="form-control">
+                        <option value="channel">Channel Node</option>
+                        <option value="validator">Validator Node</option>
+                        <option value="business">Business Node</option>
+                        <option value="api-integration">API Integration Node</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="nodeName">Node Name:</label>
+                    <input type="text" id="nodeName" class="form-control" placeholder="Enter node name">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeAddNodeModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="addNewNode()" class="btn btn-primary">Add Node</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Aurigraph DLT V11 | Epic AV11-192 | Node Visualization Demo</p>
+        <p>Powered by HyperRAFT++ Consensus & Quantum-Resistant Cryptography</p>
+    </div>
+
+    <!-- Load Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Load node implementations -->
+    <script src="src/frontend/channel-node.js"></script>
+    <script src="src/frontend/validator-node.js"></script>
+    <script src="src/frontend/business-node.js"></script>
+    <script src="src/frontend/api-integration-node.js"></script>
+    <script src="src/frontend/graph-visualizer.js"></script>
+    <script src="src/frontend/panel-ui-components.js"></script>
+    <script src="src/frontend/configuration-manager.js"></script>
+    <script src="src/frontend/scalability-modes.js"></script>
+    <script src="src/frontend/websocket-manager.js"></script>
+    <script src="src/frontend/v11-backend-client.js"></script>
+
+    <script>
+        // Demo application state
+        const demoApp = {
+            nodes: new Map(),
+            running: false,
+            updateInterval: null,
+            transactionInterval: null,
+            logEntries: [],
+            graphVisualizer: null,
+            panelUI: null,
+            configManager: null,
+            scalabilityManager: null,
+            currentScalabilityMode: null
+        };
+
+        // Initialize demo with small-scale preset
+        async function loadSmallScalePreset() {
+            const response = await fetch('config/demo-presets.json');
+            const presets = await response.json();
+            const smallScale = presets.presets['small-scale'];
+
+            // Clear existing nodes
+            demoApp.nodes.clear();
+
+            // Create nodes from preset
+            smallScale.nodes.forEach(nodeConfig => {
+                let node;
+                switch(nodeConfig.type) {
+                    case 'channel':
+                        node = new ChannelNode(nodeConfig);
+                        break;
+                    case 'validator':
+                        node = new ValidatorNode(nodeConfig);
+                        break;
+                    case 'business':
+                        node = new BusinessNode(nodeConfig);
+                        break;
+                    case 'api-integration':
+                        node = new APIIntegrationNode(nodeConfig);
+                        break;
+                }
+
+                if (node) {
+                    // Setup event listeners
+                    node.on('state-change', (data) => logEvent(`${nodeConfig.name}: State → ${data.state}`));
+                    node.on('consensus-state-change', (data) => logEvent(`${nodeConfig.name}: Consensus → ${data.state}`));
+                    node.on('block-validated', (data) => logEvent(`${nodeConfig.name}: Block validated #${data.blockNumber}`));
+                    node.on('message-sent', (data) => logEvent(`${nodeConfig.name}: Message routed to ${data.to}`));
+                    node.on('data-received', (data) => logEvent(`${nodeConfig.name}: API data received (${data.dataType})`));
+                    node.on('connection-established', (data) => logEvent(`${nodeConfig.name}: Connected to ${data.provider}`));
+
+                    demoApp.nodes.set(nodeConfig.id, node);
+                }
+            });
+
+            logEvent(`Loaded ${smallScale.name} with ${demoApp.nodes.size} nodes`);
+            renderNodes();
+        }
+
+        // Start the demo
+        async function startDemo() {
+            if (demoApp.running) return;
+
+            demoApp.running = true;
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
+
+            logEvent('🚀 Demo started');
+
+            // Start graph visualizer
+            if (demoApp.graphVisualizer) {
+                demoApp.graphVisualizer.startAutoUpdate(demoApp.nodes);
+            }
+
+            // Initialize all nodes
+            for (const [id, node] of demoApp.nodes) {
+                if (node.initialize) await node.initialize();
+                if (node.start) await node.start();
+            }
+
+            // Setup connections between channel and validator nodes
+            const channelNodes = Array.from(demoApp.nodes.values()).filter(n => n.type === 'channel');
+            const validatorNodes = Array.from(demoApp.nodes.values()).filter(n => n.type === 'validator');
+            const businessNodes = Array.from(demoApp.nodes.values()).filter(n => n.type === 'business');
+
+            channelNodes.forEach(channel => {
+                validatorNodes.forEach(validator => {
+                    channel.addConnection(validator.id, 'validator');
+                });
+                businessNodes.forEach(business => {
+                    channel.addConnection(business.id, 'business');
+                });
+            });
+
+            // Start transaction simulation
+            demoApp.transactionInterval = setInterval(() => {
+                // Send transactions through channels to validators
+                channelNodes.forEach(channel => {
+                    for (let i = 0; i < 10; i++) {
+                        channel.routeMessage({
+                            id: `tx-${Date.now()}-${i}`,
+                            targetType: 'validator',
+                            data: { amount: Math.random() * 1000 }
+                        });
+                    }
+                });
+
+                // Simulate block validation
+                validatorNodes.forEach(validator => {
+                    if (validator.consensusState === 'LEADER') {
+                        validator.validateBlock({
+                            hash: `block-${Date.now()}`,
+                            number: Math.floor(Math.random() * 100000),
+                            transactions: Array(100).fill({})
+                        });
+                    }
+                });
+
+                // Submit transactions to business nodes
+                businessNodes.forEach(business => {
+                    for (let i = 0; i < 5; i++) {
+                        business.submitTransaction({
+                            id: `business-tx-${Date.now()}-${i}`,
+                            amount: Math.random() * 500
+                        });
+                    }
+                    business.processTransactions();
+                });
+            }, 100);
+
+            // Update UI
+            demoApp.updateInterval = setInterval(updateDashboard, 1000);
+            renderNodes();
+        }
+
+        // Stop the demo
+        function stopDemo() {
+            if (!demoApp.running) return;
+
+            demoApp.running = false;
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+
+            if (demoApp.transactionInterval) clearInterval(demoApp.transactionInterval);
+            if (demoApp.updateInterval) clearInterval(demoApp.updateInterval);
+
+            // Stop graph visualizer
+            if (demoApp.graphVisualizer) {
+                demoApp.graphVisualizer.stopAutoUpdate();
+            }
+
+            demoApp.nodes.forEach(node => {
+                if (node.stop) node.stop();
+            });
+
+            logEvent('⏹ Demo stopped');
+        }
+
+        // Reset the demo
+        function resetDemo() {
+            stopDemo();
+            demoApp.nodes.clear();
+            demoApp.logEntries = [];
+            document.getElementById('nodesContainer').innerHTML = '';
+            document.getElementById('eventLog').innerHTML = '';
+
+            // Clear graphs
+            if (demoApp.graphVisualizer) {
+                demoApp.graphVisualizer.clear();
+            }
+
+            // Clear sparkline data
+            if (demoApp.panelUI) {
+                demoApp.panelUI.clearSparklines();
+            }
+
+            updateDashboard();
+            logEvent('🔄 Demo reset');
+        }
+
+        // Update dashboard metrics
+        function updateDashboard() {
+            let totalTPS = 0;
+            let totalMessages = 0;
+            let totalBlocks = 0;
+
+            demoApp.nodes.forEach(node => {
+                const metrics = node.getMetrics ? node.getMetrics() : node.metrics;
+                if (metrics) {
+                    if (metrics.throughput) totalTPS += metrics.throughput;
+                    if (metrics.totalMessagesSent) totalMessages += metrics.totalMessagesSent;
+                    if (metrics.blocksValidated) totalBlocks += metrics.blocksValidated;
+                }
+            });
+
+            document.getElementById('systemTPS').textContent = totalTPS.toLocaleString();
+            document.getElementById('activeNodes').textContent = demoApp.nodes.size;
+            document.getElementById('messagesRouted').textContent = totalMessages.toLocaleString();
+            document.getElementById('blocksValidated').textContent = totalBlocks.toLocaleString();
+
+            renderNodes();
+        }
+
+        // Render node panels with enhanced UI
+        function renderNodes() {
+            const container = document.getElementById('nodesContainer');
+            container.innerHTML = '';
+
+            // Initialize PanelUI if not already created
+            if (!demoApp.panelUI) {
+                demoApp.panelUI = new PanelUIComponents();
+            }
+
+            // Render each node using enhanced panel components
+            demoApp.nodes.forEach(node => {
+                demoApp.panelUI.renderEnhancedPanel(node, container);
+            });
+        }
+
+        // Log event
+        function logEvent(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            demoApp.logEntries.unshift({ timestamp, message });
+
+            // Keep only last 50 entries
+            if (demoApp.logEntries.length > 50) {
+                demoApp.logEntries = demoApp.logEntries.slice(0, 50);
+            }
+
+            const logContainer = document.getElementById('eventLog');
+            logContainer.innerHTML = demoApp.logEntries.map(entry => `
+                <div class="log-entry">
+                    <span class="log-timestamp">[${entry.timestamp}]</span>
+                    ${entry.message}
+                </div>
+            `).join('');
+        }
+
+        // Load ultra-scale preset with API integration
+        async function loadUltraScalePreset() {
+            const response = await fetch('config/demo-presets.json');
+            const presets = await response.json();
+            const ultraScale = presets.presets['ultra-scale'];
+
+            // Clear existing nodes
+            demoApp.nodes.clear();
+
+            // Create nodes from preset
+            ultraScale.nodes.forEach(nodeConfig => {
+                let node;
+                switch(nodeConfig.type) {
+                    case 'channel':
+                        node = new ChannelNode(nodeConfig);
+                        break;
+                    case 'validator':
+                        node = new ValidatorNode(nodeConfig);
+                        break;
+                    case 'business':
+                        node = new BusinessNode(nodeConfig);
+                        break;
+                    case 'api-integration':
+                        node = new APIIntegrationNode(nodeConfig);
+                        break;
+                }
+
+                if (node) {
+                    // Setup event listeners
+                    node.on('state-change', (data) => logEvent(`${nodeConfig.name}: State → ${data.state}`));
+                    node.on('consensus-state-change', (data) => logEvent(`${nodeConfig.name}: Consensus → ${data.state}`));
+                    node.on('block-validated', (data) => logEvent(`${nodeConfig.name}: Block validated #${data.blockNumber}`));
+                    node.on('message-sent', (data) => logEvent(`${nodeConfig.name}: Message routed to ${data.to}`));
+                    node.on('data-received', (data) => logEvent(`${nodeConfig.name}: API data received (${data.dataType})`));
+                    node.on('connection-established', (data) => logEvent(`${nodeConfig.name}: Connected to ${data.provider}`));
+
+                    demoApp.nodes.set(nodeConfig.id, node);
+                }
+            });
+
+            logEvent(`Loaded ${ultraScale.name} with ${demoApp.nodes.size} nodes (includes API feeds)`);
+            renderNodes();
+        }
+
+        // Configuration Management Functions
+        function openAddNodeModal() {
+            document.getElementById('addNodeModal').style.display = 'block';
+        }
+
+        function closeAddNodeModal() {
+            document.getElementById('addNodeModal').style.display = 'none';
+            document.getElementById('nodeName').value = '';
+        }
+
+        function addNewNode() {
+            const type = document.getElementById('nodeType').value;
+            const customName = document.getElementById('nodeName').value.trim();
+
+            const template = demoApp.configManager.createNodeTemplate(type);
+
+            if (customName) {
+                template.name = customName;
+            }
+
+            let node;
+            switch(type) {
+                case 'channel':
+                    node = new ChannelNode(template);
+                    break;
+                case 'validator':
+                    node = new ValidatorNode(template);
+                    break;
+                case 'business':
+                    node = new BusinessNode(template);
+                    break;
+                case 'api-integration':
+                    node = new APIIntegrationNode(template);
+                    break;
+            }
+
+            if (node) {
+                // Setup event listeners
+                node.on('state-change', (data) => logEvent(`${template.name}: State → ${data.state}`));
+                node.on('consensus-state-change', (data) => logEvent(`${template.name}: Consensus → ${data.state}`));
+                node.on('block-validated', (data) => logEvent(`${template.name}: Block validated #${data.blockNumber}`));
+                node.on('message-sent', (data) => logEvent(`${template.name}: Message routed to ${data.to}`));
+                node.on('data-received', (data) => logEvent(`${template.name}: API data received (${data.dataType})`));
+                node.on('connection-established', (data) => logEvent(`${template.name}: Connected to ${data.provider}`));
+
+                demoApp.nodes.set(template.id, node);
+                renderNodes();
+                updateDashboard();
+                logEvent(`✅ Added new ${type} node: ${template.name}`);
+            }
+
+            closeAddNodeModal();
+        }
+
+        function saveConfig() {
+            const result = demoApp.configManager.saveConfiguration(demoApp.nodes);
+            if (result.success) {
+                logEvent('💾 Configuration saved to browser storage');
+                alert('Configuration saved successfully!');
+            } else {
+                logEvent(`❌ Save failed: ${result.message}`);
+                alert(`Failed to save: ${result.message}`);
+            }
+        }
+
+        function loadConfig() {
+            const result = demoApp.configManager.loadConfiguration();
+            if (result.success) {
+                // Stop current demo if running
+                if (demoApp.running) {
+                    stopDemo();
+                }
+
+                // Clear current nodes
+                demoApp.nodes.clear();
+
+                // Apply loaded configuration
+                const nodeClasses = { ChannelNode, ValidatorNode, BusinessNode, APIIntegrationNode };
+                demoApp.nodes = demoApp.configManager.applyConfiguration(result.config, nodeClasses);
+
+                // Setup event listeners for loaded nodes
+                demoApp.nodes.forEach(node => {
+                    const state = node.getState();
+                    node.on('state-change', (data) => logEvent(`${state.name}: State → ${data.state}`));
+                    node.on('consensus-state-change', (data) => logEvent(`${state.name}: Consensus → ${data.state}`));
+                    node.on('block-validated', (data) => logEvent(`${state.name}: Block validated #${data.blockNumber}`));
+                    node.on('message-sent', (data) => logEvent(`${state.name}: Message routed to ${data.to}`));
+                    node.on('data-received', (data) => logEvent(`${state.name}: API data received (${data.dataType})`));
+                    node.on('connection-established', (data) => logEvent(`${state.name}: Connected to ${data.provider}`));
+                });
+
+                renderNodes();
+                updateDashboard();
+                logEvent(`📂 Configuration loaded (${demoApp.nodes.size} nodes)`);
+                alert('Configuration loaded successfully!');
+            } else {
+                logEvent(`❌ Load failed: ${result.message}`);
+                alert(result.message);
+            }
+        }
+
+        function exportConfig() {
+            const result = demoApp.configManager.exportConfiguration(demoApp.nodes);
+            if (result.success) {
+                logEvent('📤 Configuration exported as JSON file');
+            } else {
+                logEvent(`❌ Export failed: ${result.message}`);
+                alert(`Failed to export: ${result.message}`);
+            }
+        }
+
+        async function importConfig() {
+            document.getElementById('fileImportConfig').click();
+        }
+
+        async function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const result = await demoApp.configManager.importConfiguration(file);
+                if (result.success) {
+                    // Stop current demo if running
+                    if (demoApp.running) {
+                        stopDemo();
+                    }
+
+                    // Clear current nodes
+                    demoApp.nodes.clear();
+
+                    // Apply imported configuration
+                    const nodeClasses = { ChannelNode, ValidatorNode, BusinessNode, APIIntegrationNode };
+                    demoApp.nodes = demoApp.configManager.applyConfiguration(result.config, nodeClasses);
+
+                    // Setup event listeners
+                    demoApp.nodes.forEach(node => {
+                        const state = node.getState();
+                        node.on('state-change', (data) => logEvent(`${state.name}: State → ${data.state}`));
+                        node.on('consensus-state-change', (data) => logEvent(`${state.name}: Consensus → ${data.state}`));
+                        node.on('block-validated', (data) => logEvent(`${state.name}: Block validated #${data.blockNumber}`));
+                        node.on('message-sent', (data) => logEvent(`${state.name}: Message routed to ${data.to}`));
+                        node.on('data-received', (data) => logEvent(`${state.name}: API data received (${data.dataType})`));
+                        node.on('connection-established', (data) => logEvent(`${state.name}: Connected to ${data.provider}`));
+                    });
+
+                    renderNodes();
+                    updateDashboard();
+                    logEvent(`📥 Configuration imported (${demoApp.nodes.size} nodes)`);
+                    alert('Configuration imported successfully!');
+                }
+            } catch (error) {
+                logEvent(`❌ Import failed: ${error.message}`);
+                alert(`Failed to import: ${error.message}`);
+            }
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        // ===========================
+        // Scalability Mode Management
+        // ===========================
+
+        function switchScalabilityMode(modeName) {
+            if (!demoApp.scalabilityManager) {
+                alert('Scalability manager not initialized');
+                return;
+            }
+
+            try {
+                // Switch to new mode
+                const result = demoApp.scalabilityManager.switchMode(modeName);
+
+                // Update UI to show active mode
+                updateModeIndicator(modeName, result.config);
+
+                // Update button states
+                updateModeButtonStates(modeName);
+
+                // Log the mode switch
+                logEvent(`⚡ ${result.message} (Target: ${result.config.targetTPS.toLocaleString()} TPS)`);
+
+                // If demo is running, restart with new parameters
+                if (demoApp.running) {
+                    stopDemo();
+                    setTimeout(() => {
+                        applyScalabilityMode(result.config);
+                        startDemo();
+                        logEvent(`🔄 Demo restarted with ${result.config.name}`);
+                    }, 500);
+                } else {
+                    applyScalabilityMode(result.config);
+                }
+
+            } catch (error) {
+                alert(`Failed to switch mode: ${error.message}`);
+                logEvent(`❌ Mode switch failed: ${error.message}`);
+            }
+        }
+
+        function applyScalabilityMode(modeConfig) {
+            // Generate scaled configuration
+            const scaledConfig = demoApp.scalabilityManager.generateScaledConfiguration();
+
+            // Stop demo if running
+            if (demoApp.running) {
+                stopDemo();
+            }
+
+            // Clear current nodes
+            demoApp.nodes.clear();
+
+            // Apply scaled configuration
+            const nodeClasses = { ChannelNode, ValidatorNode, BusinessNode, APIIntegrationNode };
+            demoApp.nodes = demoApp.configManager.applyConfiguration(scaledConfig, nodeClasses);
+
+            // Setup event listeners for all nodes
+            demoApp.nodes.forEach(node => {
+                const state = node.getState();
+                node.on('state-change', (data) => logEvent(`${state.name}: State → ${data.state}`));
+                node.on('consensus-state-change', (data) => logEvent(`${state.name}: Consensus → ${data.state}`));
+                node.on('block-validated', (data) => logEvent(`${state.name}: Block validated #${data.blockNumber}`));
+                node.on('message-sent', (data) => logEvent(`${state.name}: Message routed to ${data.to}`));
+            });
+
+            // Store mode parameters for simulation
+            demoApp.currentModeParams = {
+                batchSize: modeConfig.transactionBatchSize,
+                updateInterval: modeConfig.updateInterval,
+                targetTPS: modeConfig.targetTPS
+            };
+
+            // Render and update
+            renderNodes();
+            updateDashboard();
+
+            logEvent(`📊 Loaded ${demoApp.nodes.size} nodes for ${modeConfig.name}`);
+        }
+
+        function updateModeIndicator(modeName, modeConfig) {
+            const indicator = document.getElementById('currentModeName');
+            if (indicator) {
+                indicator.textContent = modeConfig.name;
+                indicator.style.color = getModeColor(modeName);
+            }
+        }
+
+        function updateModeButtonStates(activeMode) {
+            // Remove active class from all mode buttons
+            document.querySelectorAll('.btn-mode').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Add active class to selected mode button
+            const buttonIds = {
+                'educational': 'btnModeEducational',
+                'development': 'btnModeDevelopment',
+                'staging': 'btnModeStaging',
+                'production': 'btnModeProduction'
+            };
+
+            const activeButton = document.getElementById(buttonIds[activeMode]);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        function getModeColor(modeName) {
+            const colors = {
+                'educational': '#2196F3',
+                'development': '#4CAF50',
+                'staging': '#FF9800',
+                'production': '#9C27B0'
+            };
+            return colors[modeName] || '#2196F3';
+        }
+
+        function generateLoadTest() {
+            if (!demoApp.scalabilityManager || !demoApp.scalabilityManager.currentMode) {
+                alert('Please select a scalability mode first');
+                return;
+            }
+
+            const duration = 60; // 60 seconds
+            const scenario = demoApp.scalabilityManager.generateLoadTestScenario(duration);
+
+            console.log('Load Test Scenario:', scenario);
+            logEvent(`🧪 Load test generated: ${scenario.expectedTotal.toLocaleString()} transactions over ${duration}s`);
+
+            alert(`Load Test Scenario Generated:\n\n` +
+                  `Mode: ${scenario.mode}\n` +
+                  `Duration: ${scenario.duration}s\n` +
+                  `Target TPS: ${scenario.targetTPS.toLocaleString()}\n` +
+                  `Total Steps: ${scenario.totalSteps}\n` +
+                  `Transactions per Step: ${scenario.transactionsPerStep}\n` +
+                  `Expected Total: ${scenario.expectedTotal.toLocaleString()}`);
+        }
+
+        function exportModeConfig() {
+            if (!demoApp.scalabilityManager) {
+                alert('Scalability manager not initialized');
+                return;
+            }
+
+            const config = demoApp.scalabilityManager.exportModeConfig();
+            const dataStr = JSON.stringify(config, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `scalability-mode-${config.currentMode}-${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            logEvent(`📤 Mode configuration exported: ${config.currentMode}`);
+        }
+
+        // ===========================
+        // WebSocket Management
+        // ===========================
+
+        function connectWebSocket() {
+            if (!demoApp.wsManager) {
+                // Initialize WebSocket manager
+                demoApp.wsManager = new WebSocketManager({
+                    url: 'ws://localhost:9003/ws',
+                    autoConnect: false
+                });
+
+                // Setup event listeners
+                demoApp.wsManager.addEventListener('connected', (e) => {
+                    updateWSStatus('connected', 'Connected');
+                    logEvent('🔌 WebSocket connected');
+
+                    // Enable subscribe button
+                    document.getElementById('btnWsSubscribe').disabled = false;
+
+                    // Show disconnect button, hide connect button
+                    document.getElementById('btnWsConnect').style.display = 'none';
+                    document.getElementById('btnWsDisconnect').style.display = 'inline-block';
+                });
+
+                demoApp.wsManager.addEventListener('disconnected', (e) => {
+                    updateWSStatus('disconnected', 'Disconnected');
+                    logEvent('🔌 WebSocket disconnected');
+
+                    // Disable subscribe button
+                    document.getElementById('btnWsSubscribe').disabled = true;
+
+                    // Show connect button, hide disconnect button
+                    document.getElementById('btnWsConnect').style.display = 'inline-block';
+                    document.getElementById('btnWsDisconnect').style.display = 'none';
+                });
+
+                demoApp.wsManager.addEventListener('reconnecting', (e) => {
+                    updateWSStatus('connecting', `Reconnecting (${e.detail.attempt})`);
+                    logEvent(`🔄 Reconnecting... attempt ${e.detail.attempt}`);
+                });
+
+                demoApp.wsManager.addEventListener('message', (e) => {
+                    handleWebSocketMessage(e.detail.message);
+                });
+
+                demoApp.wsManager.addEventListener('error', (e) => {
+                    logEvent('❌ WebSocket error');
+                });
+
+                // Start metrics update interval
+                demoApp.wsMetricsInterval = setInterval(updateWSMetrics, 1000);
+            }
+
+            // Connect
+            demoApp.wsManager.connect();
+            updateWSStatus('connecting', 'Connecting...');
+        }
+
+        function disconnectWebSocket() {
+            if (demoApp.wsManager) {
+                demoApp.wsManager.disconnect();
+            }
+        }
+
+        function subscribeToUpdates() {
+            if (!demoApp.wsManager) {
+                alert('WebSocket not connected');
+                return;
+            }
+
+            // Subscribe to system metrics
+            demoApp.wsManager.subscribeToMetrics();
+            logEvent('📡 Subscribed to system metrics');
+
+            // Subscribe to each node
+            demoApp.nodes.forEach(node => {
+                const state = node.getState();
+                demoApp.wsManager.subscribeToNodeUpdates(state.id);
+            });
+
+            logEvent(`📡 Subscribed to ${demoApp.nodes.size} node updates`);
+            alert(`Subscribed to system metrics and ${demoApp.nodes.size} nodes`);
+        }
+
+        function updateWSStatus(status, text) {
+            const statusDot = document.getElementById('wsStatusDot');
+            const statusText = document.getElementById('wsStatusText');
+            const wsMetrics = document.getElementById('wsMetrics');
+
+            // Remove all status classes
+            statusDot.classList.remove('connected', 'disconnected', 'connecting');
+
+            // Add new status class
+            statusDot.classList.add(status);
+
+            // Update text
+            statusText.textContent = text;
+
+            // Show/hide metrics
+            if (status === 'connected') {
+                wsMetrics.style.display = 'flex';
+            } else {
+                wsMetrics.style.display = 'none';
+            }
+        }
+
+        function updateWSMetrics() {
+            if (!demoApp.wsManager) return;
+
+            const metrics = demoApp.wsManager.getMetrics();
+
+            document.getElementById('wsMessagesSent').textContent = metrics.messagesSent;
+            document.getElementById('wsMessagesReceived').textContent = metrics.messagesReceived;
+            document.getElementById('wsLatency').textContent = Math.round(metrics.averageLatency);
+            document.getElementById('wsQueueSize').textContent = metrics.queuedMessages;
+        }
+
+        function handleWebSocketMessage(message) {
+            // Handle different message types
+            switch (message.type) {
+                case 'node-update':
+                    handleNodeUpdate(message.data);
+                    break;
+                case 'system-metrics':
+                    handleSystemMetrics(message.data);
+                    break;
+                case 'transaction-broadcast':
+                    handleTransactionBroadcast(message.data);
+                    break;
+                case 'system-health':
+                    handleSystemHealth(message.data);
+                    break;
+                default:
+                    console.log('Unknown message type:', message.type, message.data);
+            }
+        }
+
+        function handleNodeUpdate(data) {
+            logEvent(`🔄 Node update: ${data.nodeId}`);
+
+            // Update node state if it exists
+            const node = demoApp.nodes.get(data.nodeId);
+            if (node && data.state) {
+                // Update node with new data from server
+                console.log('Updating node with server data:', data);
+            }
+        }
+
+        function handleSystemMetrics(data) {
+            // Update dashboard with real-time metrics from server
+            if (data.tps !== undefined) {
+                document.getElementById('systemTPS').textContent = Math.round(data.tps).toLocaleString();
+            }
+            if (data.activeNodes !== undefined) {
+                document.getElementById('activeNodes').textContent = data.activeNodes;
+            }
+        }
+
+        function handleTransactionBroadcast(data) {
+            logEvent(`📤 Transaction broadcast: ${data.transactionId}`);
+        }
+
+        function handleSystemHealth(data) {
+            logEvent(`💚 System health: ${data.status}`);
+        }
+
+        // Event listeners
+        document.getElementById('btnStart').addEventListener('click', startDemo);
+        document.getElementById('btnStop').addEventListener('click', stopDemo);
+        document.getElementById('btnReset').addEventListener('click', resetDemo);
+        document.getElementById('btnLoadSmall').addEventListener('click', loadSmallScalePreset);
+        document.getElementById('btnLoadUltra').addEventListener('click', loadUltraScalePreset);
+
+        // Configuration event listeners
+        document.getElementById('btnAddNode').addEventListener('click', openAddNodeModal);
+        document.getElementById('btnSaveConfig').addEventListener('click', saveConfig);
+        document.getElementById('btnLoadConfig').addEventListener('click', loadConfig);
+        document.getElementById('btnExportConfig').addEventListener('click', exportConfig);
+        document.getElementById('btnImportConfig').addEventListener('click', importConfig);
+        document.getElementById('fileImportConfig').addEventListener('change', handleFileImport);
+
+        // Scalability mode event listeners
+        document.getElementById('btnModeEducational').addEventListener('click', () => switchScalabilityMode('educational'));
+        document.getElementById('btnModeDevelopment').addEventListener('click', () => switchScalabilityMode('development'));
+        document.getElementById('btnModeStaging').addEventListener('click', () => switchScalabilityMode('staging'));
+        document.getElementById('btnModeProduction').addEventListener('click', () => switchScalabilityMode('production'));
+
+        // WebSocket event listeners
+        document.getElementById('btnWsConnect').addEventListener('click', connectWebSocket);
+        document.getElementById('btnWsDisconnect').addEventListener('click', disconnectWebSocket);
+        document.getElementById('btnWsSubscribe').addEventListener('click', subscribeToUpdates);
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            logEvent('🎯 Demo application loaded');
+
+            // Initialize graph visualizer
+            demoApp.graphVisualizer = new GraphVisualizer('graphsContainer');
+            demoApp.graphVisualizer.initialize();
+            logEvent('📊 Real-time graphs initialized');
+
+            // Initialize panel UI components
+            demoApp.panelUI = new PanelUIComponents();
+            logEvent('🎨 Enhanced panel UI components initialized');
+
+            // Initialize configuration manager
+            demoApp.configManager = new ConfigurationManager();
+            logEvent('⚙️ Configuration manager initialized');
+
+            // Initialize scalability modes manager
+            demoApp.scalabilityManager = new ScalabilityModesManager();
+            logEvent('⚡ Scalability modes manager initialized');
+
+            // Initialize V11 backend client
+            demoApp.v11Client = new V11BackendClient({
+                baseUrl: 'http://localhost:9003'
+            });
+            logEvent('🔗 V11 Backend client initialized');
+
+            // Check V11 backend availability
+            demoApp.v11Client.isAvailable().then(available => {
+                if (available) {
+                    logEvent('✅ V11 Backend is available');
+                } else {
+                    logEvent('⚠️ V11 Backend is not available (running in demo mode)');
+                }
+            });
+
+            loadSmallScalePreset();
+        });
+    </script>
+</body>
+</html>

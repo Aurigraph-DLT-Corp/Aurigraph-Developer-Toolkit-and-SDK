@@ -34,9 +34,9 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
     private static final Logger LOG = Logger.getLogger(RateLimitingFilter.class);
 
-    // Rate limit configurations - increased for development/demo use
-    private static final int LOGIN_ATTEMPTS_PER_HOUR = 10000;
-    // API_CALLS_PER_HOUR = 10000 (planned for per-user limiting in future enhancement)
+    // Rate limit configurations
+    private static final int LOGIN_ATTEMPTS_PER_HOUR = 100;
+    // API_CALLS_PER_HOUR = 1000 (planned for per-user limiting in future enhancement)
     private static final long CLEANUP_INTERVAL_MS = TimeUnit.HOURS.toMillis(1);
     private static final long RATE_LIMIT_WINDOW_MS = TimeUnit.HOURS.toMillis(1);
 
@@ -55,9 +55,9 @@ public class RateLimitingFilter implements ContainerRequestFilter {
         String path = requestContext.getUriInfo().getPath();
 
         // Only apply rate limiting to auth endpoints
-        if (path.equals("/api/v12/login/authenticate")) {
+        if (path.equals("/api/v11/login/authenticate")) {
             enforceIPRateLimit(requestContext);
-        } else if (path.startsWith("/api/v12/auth/tokens") || path.startsWith("/api/v12/")) {
+        } else if (path.startsWith("/api/v11/auth/tokens") || path.startsWith("/api/v11/")) {
             // Apply per-user rate limiting to API endpoints
             // This requires JWT to be already validated by auth filter
             // For now, use IP-based rate limiting

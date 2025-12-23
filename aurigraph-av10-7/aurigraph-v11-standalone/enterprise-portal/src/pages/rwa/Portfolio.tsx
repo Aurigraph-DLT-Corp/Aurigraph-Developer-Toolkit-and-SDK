@@ -9,7 +9,6 @@ import {
   LinearProgress,
   IconButton,
   Tooltip,
-  Alert,
 } from '@mui/material'
 import {
   AccountBalance,
@@ -22,8 +21,7 @@ import {
   Visibility,
   AccountBalanceWallet,
 } from '@mui/icons-material'
-import { useState, useEffect } from 'react'
-import { apiService, safeApiCall } from '../../services/api'
+import { useState } from 'react'
 
 const CARD_STYLE = {
   background: 'linear-gradient(135deg, #1A1F3A 0%, #2A3050 100%)',
@@ -96,54 +94,15 @@ const SAMPLE_ASSETS: Asset[] = [
 ]
 
 export default function Portfolio() {
-  const [assets, setAssets] = useState<Asset[]>(SAMPLE_ASSETS)
+  const [assets] = useState<Asset[]>(SAMPLE_ASSETS)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [walletConnected] = useState(true) // TODO: Connect to wallet provider
 
-  const fetchPortfolio = async () => {
-    setLoading(true)
-    setError(null)
-
-    const result = await safeApiCall(
-      () => apiService.getRWAPortfolio(),
-      { tokens: [], totalValue: '0' }
-    )
-
-    if (result.success && result.data.tokens && result.data.tokens.length > 0) {
-      // Transform API data to Asset format
-      const transformedAssets: Asset[] = result.data.tokens.map((token: any) => ({
-        id: token.id || token.tokenId || '',
-        name: token.name || token.assetName || 'Unknown Asset',
-        type: token.type || token.assetType || 'Other',
-        icon: <AccountBalance />,
-        value: parseFloat(token.currentValue || token.value || '0'),
-        tokensOwned: parseInt(token.tokensOwned || '0'),
-        totalTokens: parseInt(token.totalTokens || '1000'),
-        purchasePrice: parseFloat(token.purchasePrice || token.value || '0'),
-        currentPrice: parseFloat(token.currentPrice || token.value || '0'),
-        change: parseFloat(token.change || '0'),
-        changePercent: parseFloat(token.changePercent || '0'),
-      }))
-      setAssets(transformedAssets)
-    } else if (!result.success) {
-      setError(result.error?.message || 'Failed to load portfolio data')
-      // Keep sample data on error
-      setAssets(SAMPLE_ASSETS)
-    }
-
-    setLoading(false)
-  }
-
   const handleRefresh = () => {
-    fetchPortfolio()
+    setLoading(true)
+    // TODO: Fetch from API
+    setTimeout(() => setLoading(false), 1000)
   }
-
-  useEffect(() => {
-    if (walletConnected) {
-      fetchPortfolio()
-    }
-  }, [walletConnected])
 
   const totalPortfolioValue = assets.reduce((sum, asset) => sum + asset.value, 0)
   const totalGainLoss = assets.reduce((sum, asset) => sum + asset.change, 0)
@@ -263,12 +222,6 @@ export default function Portfolio() {
       </Grid>
 
       {loading && <LinearProgress sx={{ mb: 2 }} />}
-
-      {error && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          {error} - Displaying sample data
-        </Alert>
-      )}
 
       {/* Asset Cards */}
       <Grid container spacing={3}>

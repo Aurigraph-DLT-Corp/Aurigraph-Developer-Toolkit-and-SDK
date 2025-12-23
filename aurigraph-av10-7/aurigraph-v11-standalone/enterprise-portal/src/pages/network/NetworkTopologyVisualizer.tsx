@@ -249,7 +249,7 @@ const NetworkTopologyVisualizer: React.FC = () => {
 
   const fetchNetworkTopology = useCallback(async () => {
     try {
-      const response = await axios.get('/api/v12/network/topology');
+      const response = await axios.get('/api/v11/network/topology');
       setTopology(response.data);
       setError(null);
     } catch (err) {
@@ -260,7 +260,7 @@ const NetworkTopologyVisualizer: React.FC = () => {
 
   const fetchNetworkHealth = useCallback(async () => {
     try {
-      const response = await axios.get('/api/v12/network/health');
+      const response = await axios.get('/api/v11/network/health');
       setHealth(response.data);
     } catch (err) {
       console.error('Failed to fetch network health:', err);
@@ -269,7 +269,7 @@ const NetworkTopologyVisualizer: React.FC = () => {
 
   const fetchNetworkEvents = useCallback(async () => {
     try {
-      const response = await axios.get('/api/v12/network/events?limit=50');
+      const response = await axios.get('/api/v11/network/events?limit=50');
       setEvents(response.data.events || []);
     } catch (err) {
       console.error('Failed to fetch network events:', err);
@@ -278,7 +278,7 @@ const NetworkTopologyVisualizer: React.FC = () => {
 
   const fetchLiveMetrics = useCallback(async () => {
     try {
-      const response = await axios.get('/api/v12/live/network');
+      const response = await axios.get('/api/v11/live/network');
       const newMetric: NetworkMetrics = {
         timestamp: new Date().toISOString(),
         connectedPeers: response.data.connectedPeers || 0,

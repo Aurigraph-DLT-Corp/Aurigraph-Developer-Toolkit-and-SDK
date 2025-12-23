@@ -1,0 +1,43 @@
+# Logstash Configuration for Aurigraph V11
+
+# Node settings
+node.name: aurigraph-logstash
+
+# Path settings
+path.data: /usr/share/logstash/data
+path.logs: /usr/share/logstash/logs
+
+# Pipeline settings
+pipeline.workers: 4
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+# Pipeline configuration
+path.config: /usr/share/logstash/pipeline
+
+# Enable pipeline reloading
+config.reload.automatic: true
+config.reload.interval: 3s
+
+# HTTP API settings
+http.host: "0.0.0.0"
+http.port: 9600
+
+# Log settings
+log.level: info
+log.format: json
+
+# Monitoring settings
+monitoring.enabled: true
+monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# X-Pack settings
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# Dead letter queue settings
+dead_letter_queue.enable: true
+dead_letter_queue.max_bytes: 1gb
+
+# Performance tuning
+pipeline.ecs_compatibility: v8

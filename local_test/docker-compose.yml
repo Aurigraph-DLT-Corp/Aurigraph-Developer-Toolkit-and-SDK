@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  aurex-portal:
+    container_name: aurex-v3-portal
+    image: nginx:alpine
+    ports:
+      - "8300:80"
+    volumes:
+      - ./enterprise-portal/standalone_portal.html:/usr/share/nginx/html/index.html:ro
+      - ./nginx-simple.conf:/etc/nginx/nginx.conf:ro
+    restart: always
+
+  gnn-api:
+    container_name: aurex-v3-gnn
+    image: python:3.11-slim
+    ports:
+      - "8301:8000"
+    working_dir: /app
+    volumes:
+      - ./api:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: |
+      sh -c "pip install fastapi uvicorn python-multipart pydantic &&
+             python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    restart: always
+
+  portal-backend:
+    container_name: aurex-v3-backend
+    image: python:3.11-slim
+    ports:
+      - "8302:8001"
+    working_dir: /app
+    volumes:
+      - ./enterprise-portal/backend:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: |
+      sh -c "pip install fastapi uvicorn python-multipart pydantic &&
+             python server.py"
+    restart: always

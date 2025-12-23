@@ -21,7 +21,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 33
  */
-@Path("/api/v12/enterprise")
+@Path("/api/v11/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TenantResource {
@@ -30,7 +30,7 @@ public class TenantResource {
 
     /**
      * Create tenant
-     * POST /api/v12/enterprise/tenants
+     * POST /api/v11/enterprise/tenants
      */
     @POST
     @Path("/tenants")
@@ -55,7 +55,7 @@ public class TenantResource {
 
     /**
      * Get all tenants
-     * GET /api/v12/enterprise/tenants
+     * GET /api/v11/enterprise/tenants
      */
     @GET
     @Path("/tenants")
@@ -94,7 +94,7 @@ public class TenantResource {
 
     /**
      * Get tenant usage
-     * GET /api/v12/enterprise/tenants/{tenantId}/usage
+     * GET /api/v11/enterprise/tenants/{tenantId}/usage
      */
     @GET
     @Path("/tenants/{tenantId}/usage")

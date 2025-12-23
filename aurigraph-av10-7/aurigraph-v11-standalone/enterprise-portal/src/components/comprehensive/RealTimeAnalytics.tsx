@@ -1,7 +1,6 @@
 /**
  * RealTimeAnalytics.tsx
  * Sprint 16 - Real-Time Analytics Dashboard (AV11-485)
- * Updated: V12 - Migrated to HTTP/2 polling (gRPC architecture)
  *
  * Comprehensive real-time analytics dashboard with:
  * - 6 KPI Cards (Current TPS, Avg TPS, Peak TPS, Avg Latency, Active Tx, Pending Tx)
@@ -11,8 +10,8 @@
  * - Node Performance Grid (4x4)
  * - Anomaly Alerts Panel
  *
- * Data Source: HTTP polling every 1 second via GET /api/v12/stats
- * Architecture: gRPC/Protobuf/HTTP2 (WebSocket removed in V12)
+ * WebSocket: Updates every 1 second via /ws/dashboard
+ * API: GET /api/v11/dashboard
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
@@ -53,6 +52,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts'
+import { useMetricsWebSocket } from '../../hooks/useMetricsWebSocket'
 import axios from 'axios'
 
 // ============================================================================
@@ -120,9 +120,8 @@ interface DashboardData {
 // ============================================================================
 
 export const RealTimeAnalytics: React.FC = () => {
-  // HTTP polling state for real-time metrics (replaces WebSocket)
-  const [pollingMetrics, setPollingMetrics] = useState<{ currentTPS: number } | null>(null)
-  const [connectionStatus, setConnectionStatus] = useState({ connected: false })
+  // WebSocket for real-time metrics
+  const { metrics: wsMetrics, status: wsStatus } = useMetricsWebSocket()
 
   // State
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
@@ -161,10 +160,9 @@ export const RealTimeAnalytics: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Use window.location.origin for correct protocol detection (http vs https)
-        const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-          ? `${window.location.origin}/api/v12`
-          : 'http://localhost:9003/api/v12'
+        const API_BASE_URL = (import.meta as any).env?.PROD
+          ? 'https://dlt.aurigraph.io/api/v11'
+          : 'http://localhost:9003/api/v11'
 
         const response = await axios.get<DashboardData>(`${API_BASE_URL}/dashboard`)
         const data = response.data
@@ -223,36 +221,11 @@ export const RealTimeAnalytics: React.FC = () => {
   }, [])
 
   // ============================================================================
-  // HTTP POLLING INTEGRATION (replaces WebSocket)
+  // WEBSOCKET INTEGRATION
   // ============================================================================
 
   useEffect(() => {
-    // Poll for metrics every second
-    const pollMetrics = async () => {
-      try {
-        const response = await axios.get('/api/v12/stats')
-        if (response.data) {
-          setPollingMetrics({ currentTPS: response.data.currentTPS || response.data.tps || 776000 })
-          setConnectionStatus({ connected: true })
-        }
-      } catch (error) {
-        console.warn('[RealTimeAnalytics] Polling error:', error)
-        setConnectionStatus({ connected: false })
-      }
-    }
-
-    // Initial poll
-    pollMetrics()
-
-    // Set up interval for polling
-    const pollInterval = setInterval(pollMetrics, 1000)
-
-    return () => clearInterval(pollInterval)
-  }, [])
-
-  // Process polled metrics
-  useEffect(() => {
-    if (pollingMetrics) {
+    if (wsMetrics) {
       const now = new Date()
       const timestamp = now.toLocaleTimeString()
 
@@ -260,7 +233,7 @@ export const RealTimeAnalytics: React.FC = () => {
       setTpsHistory(prev => {
         const newHistory = [...prev, {
           timestamp,
-          tps: pollingMetrics.currentTPS
+          tps: wsMetrics.currentTPS
         }]
         return newHistory.slice(-60) // Keep last 60 seconds
       })
@@ -270,7 +243,7 @@ export const RealTimeAnalytics: React.FC = () => {
         const updated = [...prev]
         const currentTPSCard = updated[0]
         const oldValue = currentTPSCard.value
-        const newValue = pollingMetrics.currentTPS
+        const newValue = wsMetrics.currentTPS
         const change = oldValue > 0 ? ((newValue - oldValue) / oldValue) * 100 : 0
 
         updated[0] = {
@@ -295,7 +268,7 @@ export const RealTimeAnalytics: React.FC = () => {
         return newHistory.slice(-60)
       })
     }
-  }, [pollingMetrics])
+  }, [wsMetrics])
 
   // ============================================================================
   // MOCK DATA INITIALIZATION
@@ -417,18 +390,10 @@ export const RealTimeAnalytics: React.FC = () => {
     }
   }
 
-  const formatNumber = (num: number | undefined | null): string => {
-    const safeNum = num ?? 0
-    if (typeof safeNum !== 'number' || isNaN(safeNum)) return '0'
-    if (safeNum >= 1000000) return `${(safeNum / 1000000).toFixed(2)}M`
-    if (safeNum >= 1000) return `${(safeNum / 1000).toFixed(2)}K`
-    return safeNum.toFixed(0)
-  }
-
-  // Safe number helper
-  const safeNumber = (val: number | undefined | null, fallback: number = 0): number => {
-    if (val === undefined || val === null || isNaN(val) || !isFinite(val)) return fallback
-    return val
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`
+    if (num >= 1000) return `${(num / 1000).toFixed(2)}K`
+    return num.toFixed(0)
   }
 
   // ============================================================================
@@ -455,12 +420,12 @@ export const RealTimeAnalytics: React.FC = () => {
         </Alert>
       )}
 
-      {/* Connection Status */}
+      {/* WebSocket Status */}
       <Box sx={{ mb: 2 }}>
         <Chip
-          icon={connectionStatus.connected ? <HealthyIcon /> : <ErrorIcon />}
-          label={connectionStatus.connected ? 'Live' : 'Disconnected'}
-          color={connectionStatus.connected ? 'success' : 'error'}
+          icon={wsStatus.connected ? <HealthyIcon /> : <ErrorIcon />}
+          label={wsStatus.connected ? 'Live' : 'Disconnected'}
+          color={wsStatus.connected ? 'success' : 'error'}
           size="small"
         />
       </Box>
@@ -486,7 +451,7 @@ export const RealTimeAnalytics: React.FC = () => {
                   <Box textAlign="right">
                     {getTrendIcon(kpi.trend)}
                     <Typography variant="caption" display="block">
-                      {safeNumber(kpi.change, 0).toFixed(1)}%
+                      {kpi.change.toFixed(1)}%
                     </Typography>
                   </Box>
                 </Box>
@@ -602,32 +567,32 @@ export const RealTimeAnalytics: React.FC = () => {
                       </Typography>
                       <Box sx={{ mb: 1 }}>
                         <Typography variant="caption" display="block">
-                          CPU: {safeNumber(node.cpu, 0).toFixed(1)}%
+                          CPU: {node.cpu.toFixed(1)}%
                         </Typography>
                         <LinearProgress
                           variant="determinate"
-                          value={safeNumber(node.cpu, 0)}
-                          color={safeNumber(node.cpu, 0) > 80 ? 'error' : safeNumber(node.cpu, 0) > 60 ? 'warning' : 'success'}
+                          value={node.cpu}
+                          color={node.cpu > 80 ? 'error' : node.cpu > 60 ? 'warning' : 'success'}
                         />
                       </Box>
                       <Box sx={{ mb: 1 }}>
                         <Typography variant="caption" display="block">
-                          Memory: {safeNumber(node.memory, 0).toFixed(1)}%
+                          Memory: {node.memory.toFixed(1)}%
                         </Typography>
                         <LinearProgress
                           variant="determinate"
-                          value={safeNumber(node.memory, 0)}
-                          color={safeNumber(node.memory, 0) > 80 ? 'error' : safeNumber(node.memory, 0) > 60 ? 'warning' : 'success'}
+                          value={node.memory}
+                          color={node.memory > 80 ? 'error' : node.memory > 60 ? 'warning' : 'success'}
                         />
                       </Box>
                       <Box>
                         <Typography variant="caption" display="block">
-                          Network: {safeNumber(node.network, 0).toFixed(1)}%
+                          Network: {node.network.toFixed(1)}%
                         </Typography>
                         <LinearProgress
                           variant="determinate"
-                          value={safeNumber(node.network, 0)}
-                          color={safeNumber(node.network, 0) > 80 ? 'error' : safeNumber(node.network, 0) > 60 ? 'warning' : 'success'}
+                          value={node.network}
+                          color={node.network > 80 ? 'error' : node.network > 60 ? 'warning' : 'success'}
                         />
                       </Box>
                     </CardContent>

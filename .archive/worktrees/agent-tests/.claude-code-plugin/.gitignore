@@ -1,0 +1,38 @@
+# Environment variables and credentials
+.env
+.env.local
+.env.*.local
+
+# MCP Server
+mcp-server/node_modules/
+mcp-server/package-lock.json
+mcp-server/.npm
+mcp-server/npm-debug.log*
+mcp-server/yarn-debug.log*
+mcp-server/yarn-error.log*
+
+# Logs
+*.log
+logs/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backups
+*.backup
+*.bak
+
+# Generated documentation
+docs/generated/

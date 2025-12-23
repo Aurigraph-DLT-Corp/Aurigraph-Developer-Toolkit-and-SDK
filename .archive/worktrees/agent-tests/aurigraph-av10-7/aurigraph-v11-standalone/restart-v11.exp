@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+# Simple restart script
+set timeout 60
+set password "subbuFuture@2025"
+
+# Kill all aurigraph-v11 processes and restart
+spawn ssh -p 22 subbu@dlt.aurigraph.io {echo '=== Stopping all V11 processes ===' && pkill -9 -f 'aurigraph-v11-standalone.*jar' || echo 'No processes found' && sleep 3 && echo '=== Starting V11 ===' && cd ~/aurigraph-v11 && ./start-v11.sh && sleep 10 && echo '=== Checking status ===' && ps aux | grep aurigraph-v11-standalone | grep -v grep && echo '=== Testing health endpoint ===' && curl -f http://localhost:9003/q/health && echo '' && echo '=== SUCCESS ===' || (echo '=== FAILED - Checking logs ===' && tail -30 logs/console.log)}
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "Are you sure you want to continue connecting" {
+        send "yes\r"
+        exp_continue
+    }
+    eof
+}
+
+wait

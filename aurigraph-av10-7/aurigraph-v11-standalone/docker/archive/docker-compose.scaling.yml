@@ -1,0 +1,259 @@
+# Aurigraph V11 - Horizontal Scaling Module
+# Description: Load balancing, auto-scaling, service replication
+version: '3.8'
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  scaling:
+    driver: bridge
+
+services:
+  # ================================
+  # Load Balancer - HAProxy
+  # ================================
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: aurigraph-haproxy
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8404:8404"  # Stats page
+
+    volumes:
+      - ./config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./03-secrets/certificates:/etc/ssl/certs:ro
+
+    healthcheck:
+      test: ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    networks:
+      - frontend
+      - scaling
+
+    labels:
+      - "com.aurigraph.service=scaling"
+      - "com.aurigraph.component=haproxy"
+
+  # ================================
+  # Business Node (Scalable)
+  # ================================
+  business-node:
+    image: aurigraph/v11-business:latest
+    restart: unless-stopped
+    profiles: ["scaling"]
+
+    environment:
+      - NODE_TYPE=BUSINESS
+      - CONSENSUS_ROLE=OBSERVER
+      - TRANSACTION_PROCESSING=ENABLED
+      - PUBLIC_API=ENABLED
+      - NODE_ID=business-node-${REPLICA_ID:-1}
+
+    deploy:
+      replicas: ${BUSINESS_NODE_REPLICAS:-3}
+      resources:
+        limits:
+          cpus: '8.0'
+          memory: 4G
+        reservations:
+          cpus: '2.0'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+    ports:
+      - "9013-9023:9013"  # Dynamic port mapping
+
+    volumes:
+      - ./data/business:/data
+      - ./logs/business:/logs
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9013/q/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    networks:
+      - backend
+      - scaling
+
+    labels:
+      - "com.aurigraph.service=scaling"
+      - "com.aurigraph.component=business-node"
+      - "com.aurigraph.scalable=true"
+
+  # ================================
+  # EI Node (Highly Scalable)
+  # ================================
+  ei-node:
+    image: aurigraph/v11-ei:latest
+    restart: unless-stopped
+    profiles: ["scaling"]
+
+    environment:
+      - NODE_TYPE=EI
+      - CONSENSUS_ROLE=NONE
+      - READ_ONLY=true
+      - PUBLIC_API=ENABLED
+      - NODE_ID=ei-node-${REPLICA_ID:-1}
+
+    deploy:
+      replicas: ${EI_NODE_REPLICAS:-5}
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+    ports:
+      - "9023-9053:9023"  # Dynamic port mapping
+
+    volumes:
+      - ./data/ei:/data:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9023/q/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    networks:
+      - backend
+      - scaling
+
+    labels:
+      - "com.aurigraph.service=scaling"
+      - "com.aurigraph.component=ei-node"
+      - "com.aurigraph.scalable=true"
+
+  # ================================
+  # Redis Cache (Cluster Mode)
+  # ================================
+  redis-cluster:
+    image: redis:7.2.4-alpine
+    restart: unless-stopped
+    profiles: ["scaling", "cache"]
+
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+
+    deploy:
+      replicas: ${REDIS_REPLICAS:-3}
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+    ports:
+      - "6379-6381:6379"
+
+    volumes:
+      - ./data/redis-cluster:/data
+
+    networks:
+      - backend
+      - scaling
+
+    labels:
+      - "com.aurigraph.service=scaling"
+      - "com.aurigraph.component=redis-cluster"
+
+  # ================================
+  # Auto-Scaler (Docker Swarm/K8s)
+  # ================================
+  autoscaler:
+    image: alpine:latest
+    container_name: aurigraph-autoscaler
+    restart: unless-stopped
+    profiles: ["autoscaling"]
+
+    environment:
+      - SCALE_UP_THRESHOLD=80
+      - SCALE_DOWN_THRESHOLD=20
+      - MIN_REPLICAS=2
+      - MAX_REPLICAS=10
+      - CHECK_INTERVAL=60
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./scripts/autoscaler.sh:/autoscaler.sh:ro
+
+    command: >
+      sh -c "
+      apk add --no-cache docker-cli curl;
+      while true; do
+        /autoscaler.sh;
+        sleep $${CHECK_INTERVAL};
+      done
+      "
+
+    networks:
+      - scaling
+
+    labels:
+      - "com.aurigraph.service=scaling"
+      - "com.aurigraph.component=autoscaler"
+
+  # ================================
+  # Service Discovery - Consul
+  # ================================
+  consul:
+    image: hashicorp/consul:1.17.1
+    container_name: aurigraph-consul-scaling
+    restart: unless-stopped
+
+    command: >
+      agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+      -bind=0.0.0.0 -data-dir=/consul/data
+
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - CONSUL_CLIENT_INTERFACE=eth0
+
+    ports:
+      - "8500:8500"  # HTTP API
+      - "8600:8600/udp"  # DNS
+
+    volumes:
+      - ./data/consul:/consul/data
+      - ./config/consul:/consul/config:ro
+
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    networks:
+      - scaling
+      - backend
+
+    labels:
+      - "com.aurigraph.service=scaling"
+      - "com.aurigraph.component=consul"

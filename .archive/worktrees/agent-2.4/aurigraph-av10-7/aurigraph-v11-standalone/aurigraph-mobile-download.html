@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Aurigraph Mobile App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            animation: fadeInDown 1s;
+        }
+
+        .header p {
+            font-size: 1.5em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .signup-section {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .signup-section h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-section {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .download-section h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 30px auto;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            color: white;
+        }
+
+        .app-badges {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .app-badge {
+            height: 60px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .app-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .success-message {
+            display: none;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2e7d32;
+        }
+
+        .success-message.active {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        .error-message {
+            display: none;
+            background: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #c62828;
+        }
+
+        .error-message.active {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 30px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .device-preview {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .device-preview img {
+            max-width: 300px;
+            height: auto;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            color: #666;
+        }
+
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .benefits-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #555;
+        }
+
+        .benefits-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #38ef7d;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="aurigraph-landing-page.html" class="back-link">← Back to Home</a>
+
+        <div class="header">
+            <h1>📱 Download Aurigraph Mobile App</h1>
+            <p>Trade, manage, and tokenize assets on the go</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Sign Up Section -->
+            <div class="signup-section">
+                <h2>🚀 Get Early Access</h2>
+
+                <div id="successMessage" class="success-message">
+                    <strong>Success!</strong> Your account has been created. Check your email for download instructions.
+                </div>
+
+                <div id="errorMessage" class="error-message">
+                    <strong>Error!</strong> <span id="errorText">Something went wrong. Please try again.</span>
+                </div>
+
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number (Optional)</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="+1234567890">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deviceType">Device Type *</label>
+                        <select id="deviceType" name="deviceType" required>
+                            <option value="">Select your device</option>
+                            <option value="IOS">iPhone (iOS)</option>
+                            <option value="ANDROID">Android</option>
+                            <option value="WEB">Web App</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="appVersion">App Version</label>
+                        <input type="text" id="appVersion" name="appVersion" value="1.0.0" readonly>
+                    </div>
+
+                    <button type="submit" class="btn-signup">Sign Up Now</button>
+                </form>
+
+                <div class="stats-row" style="margin-top: 30px;">
+                    <div class="stat-item">
+                        <h3 id="userCount">10K+</h3>
+                        <p>Active Users</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>4.8★</h3>
+                        <p>App Rating</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Section -->
+            <div class="download-section">
+                <h2>📲 Download Now</h2>
+                <p style="color: #666; margin-bottom: 20px;">Available on iOS, Android, and Web</p>
+
+                <div class="qr-code">
+                    📱
+                </div>
+                <p style="color: #666; margin-bottom: 30px;">Scan QR code to download</p>
+
+                <div class="app-badges">
+                    <a href="#" onclick="trackDownload('ios')">
+                        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
+                             alt="Download on App Store" class="app-badge">
+                    </a>
+                    <a href="#" onclick="trackDownload('android')">
+                        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                             alt="Get it on Google Play" class="app-badge" style="height: 80px;">
+                    </a>
+                </div>
+
+                <h3 style="color: #667eea; margin: 40px 0 20px 0;">Key Features</h3>
+                <ul class="benefits-list">
+                    <li>Instant asset tokenization</li>
+                    <li>Real-time portfolio tracking</li>
+                    <li>Secure quantum-safe transactions</li>
+                    <li>Multi-currency support</li>
+                    <li>Cross-chain asset transfers</li>
+                    <li>AI-powered trading insights</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Bank-Level Security</h3>
+                <p>Your assets are protected with quantum-resistant encryption and multi-factor authentication</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Lightning Fast</h3>
+                <p>Process transactions in under 100ms with our high-performance blockchain infrastructure</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <h3>Global Access</h3>
+                <p>Trade and manage assets from anywhere in the world, 24/7</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💼</div>
+                <h3>Professional Tools</h3>
+                <p>Advanced analytics, charting, and portfolio management tools</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🤝</div>
+                <h3>KYC Verified</h3>
+                <p>Complete KYC verification directly in the app for premium features</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Real-Time Insights</h3>
+                <p>Get AI-powered market insights and trading recommendations</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:9003/api/v11/mobile';
+
+        // Load user statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const stats = await response.json();
+
+                if (stats.totalUsers) {
+                    document.getElementById('userCount').textContent =
+                        stats.totalUsers >= 1000 ? `${(stats.totalUsers/1000).toFixed(1)}K+` : `${stats.totalUsers}+`;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Handle signup form submission
+        async function handleSignup(event) {
+            event.preventDefault();
+
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phoneNumber: document.getElementById('phoneNumber').value || null,
+                deviceType: document.getElementById('deviceType').value,
+                appVersion: document.getElementById('appVersion').value,
+                platform: getPlatformInfo()
+            };
+
+            // Hide previous messages
+            document.getElementById('successMessage').classList.remove('active');
+            document.getElementById('errorMessage').classList.remove('active');
+
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+
+                    // Show success message
+                    document.getElementById('successMessage').classList.add('active');
+
+                    // Clear form
+                    document.getElementById('signupForm').reset();
+
+                    // Update stats
+                    loadStats();
+
+                    // Scroll to success message
+                    document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+
+                    // Auto-download based on device type
+                    setTimeout(() => {
+                        if (formData.deviceType === 'IOS') {
+                            trackDownload('ios');
+                        } else if (formData.deviceType === 'ANDROID') {
+                            trackDownload('android');
+                        }
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    showError(error.error || 'Registration failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Signup failed:', error);
+                showError('Network error. Please check your connection and try again.');
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.add('active');
+            document.getElementById('errorMessage').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Get platform information
+        function getPlatformInfo() {
+            const userAgent = navigator.userAgent;
+            if (/iPhone|iPad|iPod/.test(userAgent)) {
+                return 'iOS ' + (navigator.userAgent.match(/OS (\d+)_/) || [])[1];
+            } else if (/Android/.test(userAgent)) {
+                return 'Android ' + (navigator.userAgent.match(/Android (\d+\.\d+)/) || [])[1];
+            } else {
+                return 'Web';
+            }
+        }
+
+        // Track download
+        function trackDownload(platform) {
+            console.log(`Download tracked: ${platform}`);
+
+            // In production, these would link to actual app stores
+            const links = {
+                ios: 'https://apps.apple.com/app/aurigraph-dlt',
+                android: 'https://play.google.com/store/apps/details?id=io.aurigraph.mobile'
+            };
+
+            // Show alert for demo
+            alert(`Redirecting to ${platform.toUpperCase()} app store...\n\nIn production, this would open:\n${links[platform] || 'the web app'}`);
+        }
+
+        // Pre-fill device type based on user agent
+        document.addEventListener('DOMContentLoaded', () => {
+            const userAgent = navigator.userAgent;
+            const deviceSelect = document.getElementById('deviceType');
+
+            if (/iPhone|iPad|iPod/.test(userAgent)) {
+                deviceSelect.value = 'IOS';
+            } else if (/Android/.test(userAgent)) {
+                deviceSelect.value = 'ANDROID';
+            } else {
+                deviceSelect.value = 'WEB';
+            }
+
+            // Load stats
+            loadStats();
+        });
+
+        // Refresh stats every 60 seconds
+        setInterval(loadStats, 60000);
+    </script>
+</body>
+</html>

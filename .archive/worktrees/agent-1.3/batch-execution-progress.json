@@ -1,0 +1,74 @@
+{
+  "totalSprints": 122,
+  "sprintsCompleted": 122,
+  "sprintsFailed": 0,
+  "totalTickets": 978,
+  "ticketsCompleted": 978,
+  "ticketsFailed": 0,
+  "startTime": "2025-10-04T12:45:26.570Z",
+  "endTime": "2025-10-04T12:51:59.196Z",
+  "agentStats": {
+    "PMA": {
+      "tickets": 261,
+      "succeeded": 261,
+      "failed": 0,
+      "totalDuration": 353579
+    },
+    "DDA": {
+      "tickets": 69,
+      "succeeded": 69,
+      "failed": 0,
+      "totalDuration": 93439
+    },
+    "FDA": {
+      "tickets": 180,
+      "succeeded": 180,
+      "failed": 0,
+      "totalDuration": 243099
+    },
+    "BDA": {
+      "tickets": 90,
+      "succeeded": 90,
+      "failed": 0,
+      "totalDuration": 119634
+    },
+    "ADA": {
+      "tickets": 86,
+      "succeeded": 86,
+      "failed": 0,
+      "totalDuration": 113510
+    },
+    "QAA": {
+      "tickets": 90,
+      "succeeded": 90,
+      "failed": 0,
+      "totalDuration": 119170
+    },
+    "SCA": {
+      "tickets": 30,
+      "succeeded": 30,
+      "failed": 0,
+      "totalDuration": 39996
+    },
+    "IBA": {
+      "tickets": 90,
+      "succeeded": 90,
+      "failed": 0,
+      "totalDuration": 121187
+    },
+    "CAA": {
+      "tickets": 60,
+      "succeeded": 60,
+      "failed": 0,
+      "totalDuration": 79702
+    },
+    "DOA": {
+      "tickets": 22,
+      "succeeded": 22,
+      "failed": 0,
+      "totalDuration": 29065
+    }
+  },
+  "errors": [],
+  "lastUpdated": "2025-10-04T12:51:59.204Z"
+}

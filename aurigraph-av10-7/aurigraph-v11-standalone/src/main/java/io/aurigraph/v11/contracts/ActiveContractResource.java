@@ -26,7 +26,7 @@ import java.util.Map;
  * @version 11.3.0
  * @since 2025-10-13
  */
-@Path("/api/v12/activecontracts")
+@Path("/api/v11/activecontracts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ActiveContractResource {
@@ -39,7 +39,7 @@ public class ActiveContractResource {
     /**
      * Deploy a new ActiveContract
      *
-     * POST /api/v12/activecontracts/deploy
+     * POST /api/v11/activecontracts/deploy
      *
      * @param contract Contract to deploy
      * @return Deployed contract with ID
@@ -62,7 +62,7 @@ public class ActiveContractResource {
     /**
      * Activate a deployed contract (after all signatures collected)
      *
-     * POST /api/v12/activecontracts/{id}/activate
+     * POST /api/v11/activecontracts/{id}/activate
      *
      * @param contractId Contract ID
      * @return Activated contract
@@ -85,7 +85,7 @@ public class ActiveContractResource {
     /**
      * Execute a contract method
      *
-     * POST /api/v12/activecontracts/{id}/execute
+     * POST /api/v11/activecontracts/{id}/execute
      *
      * Request body:
      * {
@@ -136,7 +136,7 @@ public class ActiveContractResource {
     /**
      * Sign a contract (multi-party contracts)
      *
-     * POST /api/v12/activecontracts/{id}/sign
+     * POST /api/v11/activecontracts/{id}/sign
      *
      * @param contractId Contract ID
      * @param signature Contract signature
@@ -163,7 +163,7 @@ public class ActiveContractResource {
     /**
      * Get contract by ID
      *
-     * GET /api/v12/activecontracts/{id}
+     * GET /api/v11/activecontracts/{id}
      *
      * @param contractId Contract ID
      * @return Contract details
@@ -186,7 +186,7 @@ public class ActiveContractResource {
     /**
      * List contracts
      *
-     * GET /api/v12/activecontracts?owner=xxx&type=yyy
+     * GET /api/v11/activecontracts?owner=xxx&type=yyy
      *
      * @param owner Filter by owner (optional)
      * @param type Filter by contract type (optional)
@@ -199,44 +199,30 @@ public class ActiveContractResource {
     ) {
         LOGGER.info("REST: List contracts - owner: {}, type: {}", owner, type);
 
-        try {
-            Uni<List<ActiveContract>> contractsUni;
+        Uni<List<ActiveContract>> contractsUni;
 
-            if (owner != null && !owner.isEmpty()) {
-                contractsUni = contractService.listContractsByOwner(owner);
-            } else if (type != null && !type.isEmpty()) {
-                contractsUni = contractService.listContractsByType(type);
-            } else {
-                contractsUni = contractService.listContracts();
-            }
-
-            return contractsUni
-                .map(contracts -> Response.ok(Map.of(
-                    "contracts", contracts,
-                    "count", contracts.size()
-                )).build())
-                .onFailure().recoverWithItem(error -> {
-                    LOGGER.warn("List contracts failed, returning empty list: {}", error.getMessage());
-                    return Response.ok(Map.of(
-                        "contracts", List.of(),
-                        "count", 0,
-                        "warning", "Service temporarily unavailable"
-                    )).build();
-                });
-        } catch (Exception e) {
-            LOGGER.warn("Error in listContracts: {}", e.getMessage());
-            return Uni.createFrom().item(Response.ok(Map.of(
-                "contracts", List.of(),
-                "count", 0,
-                "warning", "Service initializing"
-            )).build());
+        if (owner != null && !owner.isEmpty()) {
+            contractsUni = contractService.listContractsByOwner(owner);
+        } else if (type != null && !type.isEmpty()) {
+            contractsUni = contractService.listContractsByType(type);
+        } else {
+            contractsUni = contractService.listContracts();
         }
+
+        return contractsUni
+            .map(contracts -> Response.ok(contracts).build())
+            .onFailure().recoverWithItem(error -> {
+                LOGGER.error("List contracts failed: {}", error.getMessage());
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", error.getMessage()))
+                    .build();
+            });
     }
 
     /**
      * Get execution history for a contract
      *
-     * GET /api/v12/activecontracts/{id}/executions
+     * GET /api/v11/activecontracts/{id}/executions
      *
      * @param contractId Contract ID
      * @return List of executions
@@ -259,7 +245,7 @@ public class ActiveContractResource {
     /**
      * Get contract signatures
      *
-     * GET /api/v12/activecontracts/{id}/signatures
+     * GET /api/v11/activecontracts/{id}/signatures
      *
      * @param contractId Contract ID
      * @return List of signatures
@@ -282,7 +268,7 @@ public class ActiveContractResource {
     /**
      * Check if contract is fully signed
      *
-     * GET /api/v12/activecontracts/{id}/fully-signed
+     * GET /api/v11/activecontracts/{id}/fully-signed
      *
      * @param contractId Contract ID
      * @return {fullySigned: boolean}
@@ -305,7 +291,7 @@ public class ActiveContractResource {
     /**
      * Get contract state
      *
-     * GET /api/v12/activecontracts/{id}/state
+     * GET /api/v11/activecontracts/{id}/state
      *
      * @param contractId Contract ID
      * @return Contract state
@@ -328,7 +314,7 @@ public class ActiveContractResource {
     /**
      * Update contract state
      *
-     * PUT /api/v12/activecontracts/{id}/state
+     * PUT /api/v11/activecontracts/{id}/state
      *
      * @param contractId Contract ID
      * @param newState New state values
@@ -355,7 +341,7 @@ public class ActiveContractResource {
     /**
      * Pause a contract
      *
-     * POST /api/v12/activecontracts/{id}/pause
+     * POST /api/v11/activecontracts/{id}/pause
      *
      * @param contractId Contract ID
      * @return Paused contract
@@ -378,7 +364,7 @@ public class ActiveContractResource {
     /**
      * Resume a paused contract
      *
-     * POST /api/v12/activecontracts/{id}/resume
+     * POST /api/v11/activecontracts/{id}/resume
      *
      * @param contractId Contract ID
      * @return Resumed contract
@@ -401,7 +387,7 @@ public class ActiveContractResource {
     /**
      * Tokenize an asset (RWA feature)
      *
-     * POST /api/v12/activecontracts/{id}/tokenize
+     * POST /api/v11/activecontracts/{id}/tokenize
      *
      * @param contractId Contract ID
      * @param request Tokenization request
@@ -428,7 +414,7 @@ public class ActiveContractResource {
     /**
      * Get platform metrics
      *
-     * GET /api/v12/activecontracts/metrics
+     * GET /api/v11/activecontracts/metrics
      *
      * @return Platform metrics
      */
@@ -437,23 +423,14 @@ public class ActiveContractResource {
     public Response getMetrics() {
         LOGGER.info("REST: Get platform metrics");
 
-        try {
-            Map<String, Long> metrics = contractService.getMetrics();
-            return Response.ok(metrics).build();
-        } catch (Exception e) {
-            LOGGER.warn("Error getting metrics: {}", e.getMessage());
-            return Response.ok(Map.of(
-                "totalContracts", 0L,
-                "activeContracts", 0L,
-                "warning", "Metrics temporarily unavailable"
-            )).build();
-        }
+        Map<String, Long> metrics = contractService.getMetrics();
+        return Response.ok(metrics).build();
     }
 
     /**
      * Get SDK/API information
      *
-     * GET /api/v12/activecontracts/sdk/info
+     * GET /api/v11/activecontracts/sdk/info
      *
      * @return SDK information
      */
@@ -476,13 +453,13 @@ public class ActiveContractResource {
         ));
         sdkInfo.put("supportedLanguages", List.of("SOLIDITY", "JAVA", "JAVASCRIPT", "WASM", "PYTHON", "CUSTOM"));
         sdkInfo.put("endpoints", List.of(
-            "POST /api/v12/activecontracts/deploy - Deploy contract",
-            "POST /api/v12/activecontracts/{id}/execute - Execute method",
-            "POST /api/v12/activecontracts/{id}/sign - Sign contract",
-            "GET /api/v12/activecontracts/{id} - Get contract",
-            "GET /api/v12/activecontracts - List contracts",
-            "GET /api/v12/activecontracts/{id}/executions - Execution history",
-            "POST /api/v12/activecontracts/{id}/tokenize - Tokenize asset"
+            "POST /api/v11/activecontracts/deploy - Deploy contract",
+            "POST /api/v11/activecontracts/{id}/execute - Execute method",
+            "POST /api/v11/activecontracts/{id}/sign - Sign contract",
+            "GET /api/v11/activecontracts/{id} - Get contract",
+            "GET /api/v11/activecontracts - List contracts",
+            "GET /api/v11/activecontracts/{id}/executions - Execution history",
+            "POST /api/v11/activecontracts/{id}/tokenize - Tokenize asset"
         ));
 
         return Response.ok(sdkInfo).build();
@@ -491,7 +468,7 @@ public class ActiveContractResource {
     /**
      * Health check endpoint
      *
-     * GET /api/v12/activecontracts/health
+     * GET /api/v11/activecontracts/health
      *
      * @return Health status
      */

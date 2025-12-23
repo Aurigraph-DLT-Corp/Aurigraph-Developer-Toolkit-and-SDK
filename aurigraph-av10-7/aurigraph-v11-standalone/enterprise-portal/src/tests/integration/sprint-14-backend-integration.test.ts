@@ -11,7 +11,7 @@ import axios, { AxiosInstance } from 'axios'
 // TEST CONFIGURATION
 // ============================================================================
 
-const API_BASE_URL = 'http://localhost:9003/api/v12'
+const API_BASE_URL = 'http://localhost:9003/api/v11'
 const TIMEOUT = 5000
 
 let apiClient: AxiosInstance

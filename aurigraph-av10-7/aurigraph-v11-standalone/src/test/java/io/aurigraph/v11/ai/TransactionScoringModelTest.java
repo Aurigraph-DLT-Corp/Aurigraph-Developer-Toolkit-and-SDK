@@ -1,5 +1,6 @@
 package io.aurigraph.v11.ai;
 
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -12,10 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for TransactionScoringModel
  * Tests ML-based transaction scoring and ordering
- *
- * Note: This is a plain JUnit test - no Quarkus container needed
- * since TransactionScoringModel has no CDI dependencies
  */
+@QuarkusTest
 @DisplayName("Transaction Scoring Model Tests")
 public class TransactionScoringModelTest {
 

@@ -12,7 +12,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.30.1</quarkus.platform.version>
+        <quarkus.platform.version>3.29.0</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
         <!-- ULTRA-FAST BUILD OPTIMIZATION (Nov 4, 2025) -->
@@ -40,12 +40,6 @@
                 <artifactId>groovy-xml</artifactId>
                 <version>4.0.22</version>
             </dependency>
-            <!-- BouncyCastle Management -->
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk18on</artifactId>
-                <version>1.78</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -55,7 +49,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-grpc</artifactId>
         </dependency>
-        <!-- gRPC-Web Support is enabled via quarkus.grpc.server.enable-reflection and quarkus.grpc.web configuration -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-reactive-streams-operators</artifactId>
@@ -82,10 +75,10 @@
         </dependency>
         <!-- Caching Infrastructure (requires additional configuration for Caffeine backend) -->
         <!-- Dependency to be added when Quarkus caching extension is available -->
-        <dependency>
+        <!-- <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-cache</artifactId>
-        </dependency>
+        </dependency> -->
         <!-- MicroProfile Metrics removed - conflicts with Micrometer -->
         <!-- <dependency>
             <groupId>io.quarkus</groupId>
@@ -95,13 +88,6 @@
         <dependency>
             <groupId>org.jboss.slf4j</groupId>
             <artifactId>slf4j-jboss-logmanager</artifactId>
-        </dependency>
-        <!-- Exclude commons-logging by providing it (prevents it from being bundled) -->
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.2</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- JSON Logging for ELK Stack Integration -->
@@ -212,6 +198,7 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.mweirauch</groupId>
@@ -226,14 +213,11 @@
             <scope>test</scope>
         </dependency>
         <!-- Post-Quantum Cryptography -->
-        <!-- bcprov-jdk18on is included in bcprov-ext-jdk18on, so we exclude this to avoid duplicates -->
-        <!--
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.78</version>
         </dependency>
-        -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
@@ -448,8 +432,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-flyway</artifactId>
         </dependency>
-        <!-- Quarkus JSONB support - using native Quarkus/Hibernate JSON mapping -->
-        <!-- Removed hypersistence-utils-hibernate-63 due to Hibernate 7.x incompatibility -->
 
         <!-- Test Coverage and Reporting -->
         <dependency>
@@ -632,13 +614,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-redis-client</artifactId>
-        </dependency>
-
-        <!-- MinIO S3-compatible Object Storage -->
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.5.13</version>
         </dependency>
         
         <!-- OpenAPI / Swagger Documentation -->
@@ -1004,40 +979,78 @@
             <properties>
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
-                <!-- Optimized Native Image Settings - Updated Nov 2025 for Mandrel 24 + GraalVM 25 -->
+                <!-- Optimized Native Image Settings for <1s startup, <100MB binary -->
                 <quarkus.native.container-build>true</quarkus.native.container-build>
-                <!-- Mandrel 24 based on GraalVM 25 for JDK 21 -->
-                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21</quarkus.native.builder-image>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
                 <quarkus.native.container-runtime>docker</quarkus.native.container-runtime>
-
-                <!-- Performance Optimization Flags - GraalVM 25 / Mandrel 24 Compatible -->
+                
+                <!-- Performance Optimization Flags -->
                 <quarkus.native.additional-build-args>
-                    <!-- Optimization Level -->
-                    -O2,
-
+                    <!-- Memory and GC Optimizations (serial GC for GraalVM native) -->
+                    -H:+UnlockExperimentalVMOptions,
+                    <!-- NOTE: G1GC not supported in native image, using serial GC -->
+                    -H:+UseStringDeduplication,
+                    -H:+OptimizeStringConcat,
+                    
+                    <!-- Startup Time Optimizations -->
+                    -H:+ReportExceptionStackTraces,
+                    -H:+AllowVMInspection,
+                    -H:-SpawnIsolates,
+                    -H:+StaticExecutableWithDynamicLibC,
+                    
+                    <!-- Binary Size Optimizations -->
+                    -H:+RemoveSaturatedTypeFlows,
+                    -H:+ReportUnsupportedElementsAtRuntime,
+                    -H:+AllowIncompleteClasspath,
+                    -H:-UseServiceLoaderFeature,
+                    -H:+PrintClassInitialization,
+                    
                     <!-- Runtime Initialization for Network Libraries -->
-                    --initialize-at-run-time=io.netty,
-                    --initialize-at-run-time=io.grpc,
+                    --initialize-at-run-time=io.netty.channel.unix.Socket,
+                    --initialize-at-run-time=io.netty.channel.unix.IovArray,
+                    --initialize-at-run-time=io.netty.channel.unix.Limits,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.channel.unix.Socket,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.channel.unix.IovArray,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.channel.unix.Limits,
+                    
+                    <!-- gRPC Optimizations -->
+                    --initialize-at-run-time=io.grpc.internal.DnsNameResolver,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.codec.http2.Http2CodecUtil,
+                    --initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.codec.http2.DefaultHttp2FrameWriter,
+
+                    <!-- ForkJoinPool Initialization for Parallel Processing -->
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinWorkerThread,
 
                     <!-- Crypto and Security -->
                     --initialize-at-run-time=org.bouncycastle,
-                    --initialize-at-run-time=java.security,
-
-                    <!-- Build-time JVM Memory -->
-                    -J-Xmx12g,
-                    -J-Xms4g
+                    --initialize-at-run-time=java.security.SecureRandom,
+                    
+                    <!-- AI/ML Libraries -->
+                    --initialize-at-run-time=org.deeplearning4j,
+                    --initialize-at-run-time=org.nd4j,
+                    --initialize-at-run-time=com.github.haifengl.smile,
+                    
+                    <!-- Performance Profiling -->
+                    -H:+PrintAnalysisCallTree,
+                    -H:+PrintFeatures,
+                    -H:+VerboseGC,
+                    
+                    <!-- Native Image Heap Settings -->
+                    -H:NativeImageHeapSize=8g,
+                    -H:MaxJavaStackTraceDepth=20
                 </quarkus.native.additional-build-args>
-
+                
                 <!-- Resource Configuration -->
                 <quarkus.native.resources.includes>*.proto,application*.properties,META-INF/resources/**,META-INF/native-image/**</quarkus.native.resources.includes>
-
+                
                 <!-- Compression and Optimization -->
                 <quarkus.native.compression.level>10</quarkus.native.compression.level>
                 <quarkus.native.compression.additional-args>--strip-debug</quarkus.native.compression.additional-args>
             </properties>
         </profile>
         
-        <!-- Fast Native Profile for Development - Updated Nov 2025 for Mandrel 24 + GraalVM 25 -->
+        <!-- Fast Native Profile for Development -->
         <profile>
             <id>native-fast</id>
             <activation>
@@ -1049,17 +1062,33 @@
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
-                <!-- Mandrel 24 based on GraalVM 25 for JDK 21 -->
-                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21</quarkus.native.builder-image>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
                 <quarkus.native.additional-build-args>
                     -O1,
                     --initialize-at-run-time=io.netty,
-                    --initialize-at-run-time=io.grpc
+                    --initialize-at-run-time=io.grpc,
+
+                    <!-- ForkJoinPool Runtime Initialization - CRITICAL -->
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool$Submitter,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinPool$WorkQueue,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinWorkerThread,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinWorkerThread$InnocuousForkJoinWorkerThread,
+                    --initialize-at-run-time=java.util.concurrent.ForkJoinTask,
+                    --initialize-at-run-time=java.util.concurrent.RecursiveTask,
+                    --initialize-at-run-time=java.util.concurrent.RecursiveAction,
+                    --initialize-at-run-time=sun.misc.Unsafe,
+
+                    <!-- GraalVM Options -->
+                    -H:-SpawnIsolates,
+                    -H:+ReportUnsupportedElementsAtRuntime,
+                    -H:+UseSerialGC,
+                    -H:NativeImageHeapSize=8g
                 </quarkus.native.additional-build-args>
             </properties>
         </profile>
         
-        <!-- Ultra-Optimized Production Profile - Updated Nov 2025 for Mandrel 24 + GraalVM 25 -->
+        <!-- Ultra-Optimized Production Profile - SPARC Week 1 Enhanced -->
         <profile>
             <id>native-ultra</id>
             <activation>
@@ -1071,20 +1100,39 @@
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
-                <!-- Mandrel 24 based on GraalVM 25 for JDK 21 -->
-                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21</quarkus.native.builder-image>
+                <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-mandrel:24-java21</quarkus.native.builder-image>
                 <quarkus.native.additional-build-args>
-                    <!-- GraalVM 25 / Mandrel 24 Ultra-Optimized Configuration -->
-                    <!-- Updated Nov 30, 2025 - For Quarkus 3.30.1 + Mandrel 24.2 -->
+                    <!-- GraalVM 23.1 Compatible Ultra-Optimized Configuration -->
+                    <!-- Updated Nov 10, 2025 - Fixed for GraalVM 23.1 Compatibility -->
 
                     <!-- CPU Architecture: Use compatibility for portability -->
                     -march=compatibility,
                     -O3,
+                    -H:+UnlockExperimentalVMOptions,
+
+                    <!-- GC: Use default serial GC (optimal for native-image) -->
+                    <!-- G1GC only available on Oracle GraalVM Linux builds -->
+                    -H:+UseStringDeduplication,
+
+                    <!-- Memory Optimizations (GraalVM 23.1 Compatible) -->
+                    -H:+OptimizeStringConcat,
+                    -H:+UseCompressedOops,
+                    -H:+UseCompressedClassPointers,
+
+                    <!-- Startup & Memory Optimizations -->
+                    -H:-SpawnIsolates,
+                    -H:+StaticExecutableWithDynamicLibC,
+                    -H:+AllowIncompleteClasspath,
+                    -H:+RemoveSaturatedTypeFlows,
+                    -H:+ReportUnsupportedElementsAtRuntime,
 
                     <!-- Runtime Initializations (Network, Crypto, AI/ML) -->
                     --initialize-at-run-time=io.netty,
                     --initialize-at-run-time=io.grpc,
                     --initialize-at-run-time=org.bouncycastle,
+                    --initialize-at-run-time=org.deeplearning4j,
+                    --initialize-at-run-time=org.nd4j,
+                    --initialize-at-run-time=com.github.haifengl.smile,
                     --initialize-at-run-time=java.security,
 
                     <!-- Build-time JVM Memory Settings (for compilation process) -->

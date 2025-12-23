@@ -1,0 +1,79 @@
+{
+  "name": "Global GitHub MCP Template",
+  "version": "1.0.0",
+  "description": "Template for setting up GitHub MCP across all projects",
+  "author": "SUBBUAURIGRAPH",
+  "github_user": "SUBBUAURIGRAPH",
+  "github_token": "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",
+  "default_org": "Aurigraph-DLT-Corp",
+  "mcp_servers": {
+    "github": {
+      "command": "node",
+      "args": ["./node_modules/@modelcontextprotocol/server-github/dist/index.js"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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",
+        "GITHUB_API_URL": "https://api.github.com"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    },
+    "git": {
+      "command": "npx", 
+      "args": ["-y", "@modelcontextprotocol/server-git", "--repository", "."]
+    }
+  },
+  "package_scripts": {
+    "mcp:github": "node ./node_modules/@modelcontextprotocol/server-github/dist/index.js",
+    "mcp:test": "node scripts/test-github-mcp.js",
+    "mcp:setup": "./scripts/setup-github-mcp.sh",
+    "mcp:install": "npm install @modelcontextprotocol/server-github"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server-github": "^2025.4.8"
+  },
+  "gitignore_entries": [
+    "node_modules/",
+    ".env.mcp.local",
+    ".mcp/secrets/",
+    ".mcp/tokens/",
+    "*.log",
+    ".DS_Store"
+  ],
+  "project_types": {
+    "blockchain": {
+      "additional_servers": ["web3", "ethereum"],
+      "keywords": ["blockchain", "dlt", "smart-contracts"]
+    },
+    "web": {
+      "additional_servers": ["browser", "dom"],
+      "keywords": ["web", "frontend", "backend"]
+    },
+    "ai": {
+      "additional_servers": ["python", "tensorflow"],
+      "keywords": ["ai", "ml", "data-science"]
+    },
+    "mobile": {
+      "additional_servers": ["react-native", "expo"],
+      "keywords": ["mobile", "ios", "android"]
+    }
+  },
+  "setup_instructions": [
+    "1. Run: ./scripts/setup-global-mcp.sh",
+    "2. Install dependencies: npm install",
+    "3. Test setup: npm run mcp:test",
+    "4. Configure Claude with .mcp/config.json",
+    "5. Start using GitHub operations through MCP"
+  ],
+  "capabilities": [
+    "Repository management",
+    "Issue tracking",
+    "Pull request operations", 
+    "File operations",
+    "Branch management",
+    "Code search",
+    "Commit history",
+    "Team collaboration"
+  ]
+}

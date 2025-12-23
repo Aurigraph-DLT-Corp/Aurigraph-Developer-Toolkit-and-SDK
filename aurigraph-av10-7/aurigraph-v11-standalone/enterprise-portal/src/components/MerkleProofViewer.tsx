@@ -58,11 +58,7 @@ interface Props {
   tokenTrace?: TokenTrace;
 }
 
-// Use window.location.origin for correct protocol detection (http vs https)
-const getBaseUrl = () => typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-  ? window.location.origin
-  : 'http://localhost:9003';
-const API_BASE = `${getBaseUrl()}/api/v12/traceability`;
+const API_BASE = 'http://localhost:9003/api/v11/traceability';
 
 const MerkleProofViewer: React.FC<Props> = ({ tokenId, tokenTrace }) => {
   const [trace, setTrace] = useState<TokenTrace | null>(tokenTrace || null);

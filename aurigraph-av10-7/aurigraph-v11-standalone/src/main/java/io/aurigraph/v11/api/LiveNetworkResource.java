@@ -24,12 +24,12 @@ import java.util.Map;
  * AV11-275: Implement Live Network Monitor API
  *
  * Endpoints:
- * - GET /api/v12/live/network - Get real-time network metrics
+ * - GET /api/v11/live/network - Get real-time network metrics
  *
  * @author Aurigraph V11
  * @version 11.3.0
  */
-@Path("/api/v12/live/network")
+@Path("/api/v11/live/network")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Live Network Monitor", description = "Real-time network monitoring and metrics")
@@ -65,7 +65,7 @@ public class LiveNetworkResource {
                          description = "Internal server error")
     })
     public Uni<Response> getNetworkMetrics() {
-        LOG.info("GET /api/v12/live/network - Fetching real-time network metrics");
+        LOG.info("GET /api/v11/live/network - Fetching real-time network metrics");
 
         return liveNetworkService.getNetworkMetrics()
                 .map(metrics -> {
@@ -107,7 +107,7 @@ public class LiveNetworkResource {
                          description = "Internal server error")
     })
     public Uni<Response> getNetworkHealth() {
-        LOG.debug("GET /api/v12/live/network/health - Fetching network health summary");
+        LOG.debug("GET /api/v11/live/network/health - Fetching network health summary");
 
         return liveNetworkService.getNetworkMetrics()
                 .map(metrics -> {
@@ -157,7 +157,7 @@ public class LiveNetworkResource {
     public Uni<Response> getNetworkEvents(
             @QueryParam("limit") @DefaultValue("20") int limit) {
 
-        LOG.debugf("GET /api/v12/live/network/events?limit=%d", limit);
+        LOG.debugf("GET /api/v11/live/network/events?limit=%d", limit);
 
         if (limit < 1 || limit > 100) {
             return Uni.createFrom().item(

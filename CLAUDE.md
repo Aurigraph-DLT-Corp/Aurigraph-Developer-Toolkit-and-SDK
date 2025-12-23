@@ -1,410 +1,474 @@
-# CLAUDE.md - Aurigraph V12 Development Guide
+# CLAUDE.md
 
-This file provides guidance to Claude Code when working with the Aurigraph DLT V12 codebase.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🎯 SESSION START PROTOCOL - #memorize
+## Project Overview
 
-**CRITICAL**: At the start of EVERY session:
-1. **FIRST**: Read `AurigraphDLTVersionHistory.md` (in repo root)
-   - Understand what was done last session
-   - Check current version numbers
-   - Review sprint progress and pending tasks
-   - Note any blockers or decisions
+**Aurigraph DLT** is a high-performance blockchain platform transitioning from TypeScript/Node.js (V10) to Java/Quarkus/GraalVM (V11) architecture. The platform delivers 1M+ TPS currently with a target of 2M+ TPS, featuring quantum-resistant cryptography, HyperRAFT++ consensus, AI optimization, and real-world asset tokenization.
 
-2. **THEN**: Load critical planning documents:
-   - `aurigraph-av10-7/aurigraph-v11-standalone/TODO.md`
-   - Sprint documents and completion reports
+**Current Status (November 2025)**:
+- V10 (TypeScript): Production-ready, 1M+ TPS capability
+- V11 (Java/Quarkus): 42% migrated, 776K TPS baseline achieved
+- Enterprise Portal: v4.5.0 live at https://dlt.aurigraph.io
+- Both versions coexist during migration period
 
----
-
-## 📊 CURRENT STATUS (December 22, 2025)
-
-### Versions
-- **V11 Core**: v11.4.4 (3.0M TPS, 150% of target)
-- **Enterprise Portal**: v4.6.0 (Production ready)
-- **Framework**: J4C v1.0 (Active)
-
-### Build Status
-- ✅ JAR compiled: `target/aurigraph-v12-standalone-12.0.0-runner.jar`
-- ⚠️ Build warnings: Quarkus config keys, Hibernate ORM persistence units
-- 📋 Pending: Fix dependency conflicts, configure extensions
-
----
-
-## 🏗️ PROJECT STRUCTURE
+## Repository Structure
 
 ```
-aurigraph-av10-7/
-├── src/                          # V10 TypeScript (legacy)
-├── aurigraph-v11-standalone/     # V12 Java/Quarkus (active)
-│   ├── src/main/java/io/aurigraph/v11/
-│   │   ├── api/                  # REST endpoints
-│   │   ├── grpc/                 # gRPC services (in progress)
-│   │   ├── crypto/               # Cryptography services
-│   │   ├── contracts/            # Smart contracts
-│   │   ├── portal/               # Portal resources
-│   │   └── ...                   # Other services
-│   ├── src/test/java/            # Test suite
-│   ├── src/main/resources/       # Configuration & UI
-│   └── pom.xml                   # Maven build configuration
-└── docs/                         # Documentation
+AurigraphDLT/
+├── aurigraph-av10-7/              # Main V11 development (Java/Quarkus)
+│   ├── aurigraph-v11/             # Multi-module V11 architecture
+│   │   ├── aurigraph-core/        # Core blockchain components
+│   │   ├── aurigraph-proto/       # Protocol Buffer definitions
+│   │   ├── aurigraph-platform-service/  # Main platform service
+│   │   └── crosschain-bridge/     # Cross-chain bridge module
+│   ├── aurigraph-v11-standalone/  # Standalone V11 service
+│   │   └── pom.xml                # Maven config (Quarkus 3.26.2, Java 21)
+│   └── docs/                      # Documentation
+│       ├── project-av11/          # V11 planning and migration docs
+│       ├── architecture/          # System design documents
+│       └── development/           # Development guides
+├── enterprise-portal/             # React/TypeScript frontend (v4.5.0)
+│   └── enterprise-portal/frontend/  # Main portal application
+├── deployment/                    # Production deployment configs
+│   └── docker-compose.yml         # Multi-service deployment
+├── aurigraph-v9/                  # Legacy V9 implementation
+├── package.json                   # Root package (Next.js, React)
+├── ARCHITECTURE.md                # Comprehensive architecture doc
+├── DEVELOPMENT.md                 # Development setup guide
+└── start-v11.sh                   # V11 quick start script
 ```
 
----
+## Build & Development Commands
 
-## 🛠️ BUILD & DEVELOPMENT COMMANDS
+### V11 (Java/Quarkus) - Primary Development Target
 
-### V12 Java/Quarkus
 ```bash
+# Quick start V11
+npm run start:v11              # JVM mode with hot reload
+npm run start:v11:dev          # Development mode
+npm run start:v11:native       # Native compilation mode
+
+# Direct Maven commands (from aurigraph-av10-7/aurigraph-v11-standalone/)
+cd aurigraph-av10-7/aurigraph-v11-standalone
+./mvnw quarkus:dev             # Dev mode with hot reload (port 9003)
+./mvnw clean package           # Build JAR
+./mvnw test                    # Run all tests
+./mvnw package -Pnative-fast   # Fast native build (~2 min)
+./mvnw package -Pnative        # Standard native build (~15 min)
+./mvnw package -Pnative-ultra  # Ultra-optimized build (~30 min)
+
+# Run the built artifact
+java -jar target/quarkus-app/quarkus-run.jar
+./target/aurigraph-v11-standalone-11.0.0-runner  # Native executable
+```
+
+### Enterprise Portal (React/TypeScript)
+
+```bash
+# From enterprise-portal/enterprise-portal/frontend/
+cd enterprise-portal/enterprise-portal/frontend
+npm install
+npm run dev                    # Development server (port 3000)
+npm run build                  # Production build
+npm start                      # Production server
+```
+
+### Docker Deployment
+
+```bash
+# Production deployment
+docker-compose -f docker-compose.production.yml up -d
+
+# Development deployment
+docker-compose -f deployment/docker-compose.yml up -d
+
+# V11 testnet
+cd aurigraph-av10-7
+docker-compose -f docker-compose.testnet.yml up -d
+```
+
+## Common Development Tasks
+
+### Running Tests
+
+```bash
+# V11 Java tests
+cd aurigraph-av10-7/aurigraph-v11-standalone
+./mvnw test                              # All tests
+./mvnw test -Dtest=AurigraphResourceTest # Specific test class
+./mvnw test -Dtest=TransactionServiceTest#testHighThroughput  # Specific test method
+
+# Test coverage
+./mvnw verify                            # Run tests with coverage report
+# Coverage reports available at: target/site/jacoco/index.html
+```
+
+### Debugging
+
+```bash
+# V11 with remote debugging
+./mvnw quarkus:dev -Ddebug=5005
+
+# Check service health
+curl http://localhost:9003/q/health
+curl http://localhost:9003/q/metrics
+
+# View logs
+docker-compose -f docker-compose.production.yml logs -f nginx-gateway
+docker-compose -f docker-compose.production.yml logs -f enterprise-portal
+```
+
+### Building Native Images
+
+```bash
+# Native compilation requires Docker
 cd aurigraph-av10-7/aurigraph-v11-standalone
 
-# Build
-./mvnw clean package              # Full build (JAR)
-./mvnw compile                    # Compile only
-./mvnw verify                     # Compile + run tests
+# Fast build (development)
+./mvnw package -Pnative-fast -Dquarkus.native.container-build=true
 
-# Development
-./mvnw quarkus:dev               # Dev mode with hot reload (port 9003)
-
-# Testing
-./mvnw test                      # Run all tests
-./mvnw test -Dtest=ClassName    # Run specific test
-
-# Native compilation
-./mvnw package -Pnative          # Build native executable
+# Production build (optimized)
 ./mvnw package -Pnative -Dquarkus.native.container-build=true
+
+# Run native executable
+./target/aurigraph-v11-standalone-11.0.0-runner
 ```
 
-### Service Endpoints
-- REST API: http://localhost:9003/api/v11/
-- Health: http://localhost:9003/q/health
-- Metrics: http://localhost:9003/q/metrics
-- gRPC: localhost:9004 (planned)
+## Architecture
 
----
+### Technology Stack
 
-## ⚙️ KEY CONFIGURATION
+**V11 (Java/Quarkus) - Target Architecture**:
+- **Runtime**: Java 21 with Virtual Threads
+- **Framework**: Quarkus 3.26.2 (reactive, GraalVM-optimized)
+- **Build Tool**: Maven 3.9+
+- **Communication**: gRPC + Protocol Buffers (planned), REST API (current)
+- **Database**: PostgreSQL with Panache, RocksDB for state
+- **Reactive**: Mutiny for reactive streams
+- **Native**: GraalVM for native compilation
+- **Ports**: 9003 (HTTP/2), 9004 (gRPC planned)
 
-### application.properties
-- **Port**: 9003 (REST)
-- **Database**: PostgreSQL (Quarkus datasource)
-- **Cache**: Redis support
-- **gRPC**: Port 9004 (configuration pending)
+**Enterprise Portal**:
+- **Frontend**: React 18 + TypeScript + Material-UI
+- **API Client**: Axios with auto-refresh (5-second intervals)
+- **Charts**: Recharts for data visualization
+- **State**: Redux/React hooks
+- **Deployment**: Docker + NGINX
 
-### Environment Variables (macOS)
-```bash
-export JAVA_HOME=/opt/homebrew/opt/openjdk@21
-export QUARKUS_HTTP_PORT=9003
-export QUARKUS_DATASOURCE_DB_KIND=postgresql
+**Infrastructure**:
+- **API Gateway**: NGINX with TLS 1.3
+- **Database**: PostgreSQL 16
+- **Cache**: Redis 7
+- **Monitoring**: Prometheus + Grafana
+- **IAM**: Keycloak 24.0+ (port 8180, https://iam2.aurigraph.io)
+
+### Key Components
+
+**V11 Core Services** (`aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/`):
+- `AurigraphResource.java` - Main REST API endpoints
+- `TransactionService.java` - Transaction processing and validation
+- `ai/AIOptimizationService.java` - ML-based optimization (3.0M TPS benchmarks)
+- `consensus/HyperRAFTConsensusService.java` - HyperRAFT++ consensus
+- `crypto/QuantumCryptoService.java` - NIST Level 5 quantum cryptography
+- `bridge/CrossChainBridgeService.java` - Cross-chain interoperability
+- `registry/RWATRegistryService.java` - Real-world asset tokenization
+
+**V11 API Endpoints** (Base: https://dlt.aurigraph.io/api/v11):
+- `GET /health` - Health check
+- `GET /info` - System information
+- `GET /stats` - Transaction statistics
+- `GET /analytics/dashboard` - Dashboard analytics
+- `GET /blockchain/transactions` - Transaction list (paginated)
+- `GET /nodes` - Node list
+- `GET /consensus/status` - Consensus state
+- `POST /contracts/deploy` - Deploy smart contract
+- `POST /rwa/tokenize` - Tokenize real-world asset
+
+### HyperRAFT++ Consensus
+
+The platform uses an enhanced RAFT consensus algorithm with:
+- Parallel log replication for higher throughput
+- AI-driven optimization for transaction ordering
+- Byzantine fault tolerance (f < n/3)
+- Leader election timeout: 150-300ms
+- Heartbeat interval: 50ms
+- Strong consistency guarantees
+
+### Multi-Cloud Deployment
+
+**Production Architecture** (planned):
+- **AWS** (us-east-1): 4 validator nodes, 6 business nodes, 12 slim nodes
+- **Azure** (eastus): 4 validator nodes, 6 business nodes, 12 slim nodes
+- **GCP** (us-central1): 4 validator nodes, 6 business nodes, 12 slim nodes
+- **VPN Mesh**: WireGuard for secure inter-cloud communication
+- **Service Discovery**: Consul with cross-cloud federation
+- **Load Balancing**: GeoDNS with geoproximity routing
+
+## Performance Benchmarks
+
+### V11 Current Performance (November 2025)
+- **TPS Baseline**: 776K (production-verified)
+- **TPS with ML Optimization**: 3.0M (Sprint 5 benchmarks, not sustained)
+- **Target**: 2M+ sustained TPS
+- **Startup**: <1s (native), ~3s (JVM)
+- **Memory**: <256MB (native), ~512MB (JVM)
+- **Finality**: <500ms current, <100ms target
+- **Carbon Footprint**: 0.022 gCO₂/tx (target: <0.17 gCO₂/tx)
+
+### Testing Requirements
+- **Unit Test Coverage**: ≥80% mandatory
+- **Integration Test Coverage**: ≥70% critical paths
+- **E2E Tests**: 100% user flow coverage
+- **Performance Tests**: Every release with TPS validation
+- **Load Testing**: 24-hour sustained at 150% expected load
+
+## Migration Status
+
+The project is transitioning from TypeScript (V10) to Java/Quarkus (V11):
+
+**Phase 1 - Foundation** ✅ (100% Complete):
+- Quarkus project structure
+- REST API endpoints
+- Basic transaction service
+- Health check endpoints
+- Native compilation setup
+- JWT authentication
+
+**Phase 2 - Core Services** 🚧 (50% Complete):
+- HyperRAFT++ consensus (70% - AI optimization pending)
+- AI optimization services (90% - online learning pending)
+- RWAT registry with Merkle tree (80% - oracle integration partial)
+- Native build optimization (complete)
+- Enterprise Portal v4.5.0 (complete)
+- Quantum crypto (95% - SPHINCS+ integration pending)
+- gRPC service layer (Sprint 7 target)
+- WebSocket support (in progress)
+
+**Phase 3 - Full Production** 📋 (0% Complete):
+- Complete gRPC implementation (Sprint 7-8)
+- 2M+ TPS achievement
+- Multi-cloud deployment (Azure, GCP)
+- Full test suite (95% coverage target)
+- Carbon offset integration (Sprint 16-18)
+- V10 deprecation timeline
+
+## Configuration
+
+### Environment Variables
+
+**V11 Configuration** (aurigraph-av10-7/aurigraph-v11-standalone/src/main/resources/application.properties):
+```properties
+quarkus.http.port=9003
+quarkus.http.http2=true
+quarkus.native.container-build=true
+quarkus.native.builder-image=graalvm
 ```
 
----
+**Enterprise Portal**:
+```env
+API_BASE_URL=https://dlt.aurigraph.io/api/v11
+DOMAIN=dlt.aurigraph.io
+NODE_ENV=production
+```
 
-## 📋 CRITICAL PLANNING DOCUMENTS
+**IAM Configuration**:
+- Server: https://iam2.aurigraph.io/
+- Admin User: Awdadmin (development only)
+- Realms: AWD (primary), AurCarbonTrace, AurHydroPulse
+- Auth: OAuth 2.0 / OpenID Connect
 
-**Always load at session start**:
-1. `AurigraphDLTVersionHistory.md` - Version tracking
-2. `aurigraph-av10-7/aurigraph-v11-standalone/TODO.md` - Current tasks
-3. `aurigraph-av10-7/aurigraph-v11-standalone/SPRINT-*.md` - Sprint reports
-4. `aurigraph-av10-7/aurigraph-v11-standalone/COMPREHENSIVE-TEST-PLAN-V12.md` - Test strategy
-5. `aurigraph-av10-7/aurigraph-v11-standalone/J4C-EPIC-EXECUTION-PLAN.md` - Epic planning
+## Security & Cryptography
 
----
+**Quantum-Resistant Cryptography**:
+- **CRYSTALS-Dilithium**: Digital signatures (NIST Level 5)
+  - Key Size: 2,592 bytes (public), 4,896 bytes (private)
+  - Signature Size: 3,309 bytes
+- **CRYSTALS-Kyber**: Encryption (Module-LWE)
+  - Key Size: 1,568 bytes (public), 3,168 bytes (private)
+  - Ciphertext Size: 1,568 bytes
+- **Transport**: TLS 1.3 with HTTP/2 ALPN
+- **API**: OAuth 2.0 + JWT with role-based access control
 
-## 🧪 TESTING STRATEGY
+**Security Guardrails**:
+- Rate limiting: 1000 req/min per authenticated user
+- Certificate pinning for cross-chain communication
+- Hardware security modules (HSM) for production keys
+- Key rotation: Every 90 days for production
 
-### Test Framework
-- **Unit Tests**: JUnit 5 + Mockito
-- **Integration Tests**: REST Assured + QuarkusTest
-- **Performance Tests**: Custom benchmarking
-- **E2E Tests**: Playwright (frontend) + Pytest (backend)
+## Troubleshooting
 
-### Coverage Targets
-- Overall: 95%+
-- Critical modules: 98%+
-- Target: Pass all tests before deployment
+### Common Issues
 
-### Test Locations
-- Unit: `src/test/java/io/aurigraph/v11/*/`
-- Integration: Same directory with `*IntegrationTest.java`
-- Performance: `*PerformanceTest.java`
-
----
-
-## 🎯 CURRENT PRIORITIES
-
-### Known Issues (To Fix)
-1. **Quarkus Configuration**:
-   - Missing extensions for gRPC, OpenTelemetry
-   - Configure required dependencies in pom.xml
-
-2. **Hibernate ORM**:
-   - 6 entity classes need persistence unit configuration
-   - Configure JPA/Panache properly
-
-3. **Dependency Conflicts**:
-   - BouncyCastle versions (1.78 vs 1.68)
-   - Logging duplicates (commons-logging, slf4j)
-   - Resolve by version alignment in pom.xml
-
-4. **Deleted Files** (Recently Removed):
-   - VVBApiResource.java (deprecated)
-   - DemoControlResource.java (deprecated)
-   - comprehensive_aurigraph_prd.md (archived)
-
-### Next Steps
-- [ ] Fix Quarkus extension configurations
-- [ ] Resolve Hibernate ORM persistence issues
-- [ ] Clean up dependency conflicts
-- [ ] Run full test suite
-- [ ] Commit and push working state
-- [ ] Deploy to production (dlt.aurigraph.io)
-
----
-
-## 🚀 DEPLOYMENT
-
-### Production Server
-- **URL**: dlt.aurigraph.io
-- **Port**: 9003 (main service)
-- **SSH**: subbu@dlt.aurigraph.io (port 2235)
-- **Deployment Method**: GitHub Actions workflow
-
-### Pre-Deployment Checklist
-- [x] Build successful (JAR created)
-- [ ] All tests passing
-- [ ] No TypeScript/Java errors
-- [ ] Configuration validated
-- [ ] Dependency conflicts resolved
-- [ ] E2E tests pass
-- [ ] JIRA tickets updated
-- [ ] Documentation updated
-
----
-
-## 📚 RELATED DOCUMENTATION
-
-- `AurigraphDLTVersionHistory.md` - Complete version history
-- `aurigraph-av10-7/CLAUDE.md` - Detailed V11 standalone guide
-- `aurigraph-av10-7/aurigraph-v11-standalone/COMPREHENSIVE-TEST-PLAN-V12.md` - Testing strategy
-- `aurigraph-av10-7/aurigraph-v11-standalone/J4C-EPIC-EXECUTION-PLAN.md` - Epic plans
-- `aurigraph-av10-7/aurigraph-v11-standalone/GRPC-IMPLEMENTATION-PLAN.md` - gRPC roadmap
-
----
-
-## 🔧 QUICK DEBUGGING
-
-### Check Java version
+**Port Conflicts**:
 ```bash
+# Check what's using port 9003 (V11)
+lsof -i :9003
+kill -9 <PID>
+
+# Check port 3000 (Portal)
+lsof -i :3000
+```
+
+**Java Version Issues**:
+```bash
+# V11 requires Java 21
 java --version
+# Should show: openjdk version "21" or higher
+
+# Set JAVA_HOME (macOS with Homebrew)
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21
+export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-### View Quarkus logs
+**Maven Build Failures**:
 ```bash
-./mvnw quarkus:dev 2>&1 | grep -i error
-```
-
-### Check port conflicts
-```bash
-lsof -i :9003  # REST API
-lsof -i :9004  # gRPC
-lsof -i :5432  # PostgreSQL
-```
-
-### Build troubleshooting
-```bash
-./mvnw clean package -X 2>&1 | tail -100  # Verbose build
-./mvnw dependency:tree | grep -i conflicting  # Check conflicts
-```
-
----
-
-## 💡 DEVELOPMENT BEST PRACTICES
-
-1. **Branch Strategy**: feature/AV11-XXX for V12 work
-2. **Commits**: Descriptive messages with JIRA ticket numbers
-3. **Testing**: Write tests before/during implementation
-4. **Documentation**: Update as code changes
-5. **Security**: Never commit credentials (use environment variables)
-6. **Performance**: Monitor TPS, latency, and resource usage
-
----
-
-## 📞 SUPPORT & RESOURCES
-
-- **JIRA Board**: https://aurigraphdlt.atlassian.net/jira/software/projects/AV11/boards/789
-- **GitHub Repo**: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT
-- **Production Portal**: https://dlt.aurigraph.io
-- **Backend Health**: http://localhost:9003/q/health
-
----
-
-**Last Updated**: December 23, 2025
-**Status**: ✅ Production Ready (pending fixes)
-**Next Review**: After build issue resolution
-
----
-
-## #infinitecontext - Compacted Session Archive (#MEMORIZED)
-
-### Session: December 23, 2025 - AV11-601-03 Secondary Token Implementation Complete
-
-#### Last 5 Completed Sprints/Stories:
-1. **AV11-601-02** (Sprint 1, Story 2) - Primary Token Registry & Merkle Trees ✅
-   - PrimaryTokenMerkleService (649 LOC, extended)
-   - PrimaryTokenRegistry (630 LOC, extended)
-   - 150 comprehensive tests (60+60+30)
-   - Performance: <100ms registry, <5ms lookup, <50ms proofs
-
-2. **AV11-601-03** (Sprint 1, Story 3) - Secondary Token Types & Registry ✅ **TODAY**
-   - SecondaryTokenMerkleService (300 LOC) - hierarchical proofs
-   - SecondaryTokenRegistry (350 LOC) - 5 indexes with parent tracking
-   - SecondaryTokenService (350 LOC) - transactional orchestration
-   - SecondaryTokenResource (400 LOC) - REST API at /api/v12/secondary-tokens
-   - Total: 1,400 LOC implementation + 1,600 LOC tests (in progress)
-
-3. **Sprint 3-4 Implementation** - Composite Token Assembly (COMPLETED)
-4. **Sprint 5-7 Implementation** - Active Contract System (COMPLETED)
-5. **Sprint 8-9 Implementation** - Registry Infrastructure (COMPLETED)
-
-#### Current Sprint Status (December 23, 2025):
-- **Sprint 1**: 40% Complete (22 SP of 55 SP)
-- **Story 2 Status**: ✅ COMPLETE (5 SP)
-  - 3 service files + 150 tests = production ready
-  - All tests discoverable, performance validated
-
-- **Story 3 Status**: ✅ IMPLEMENTATION COMPLETE (5 SP core)
-  - 4 service files (1,400 LOC): MerkleService, Registry, Service, Resource
-  - ✅ All files compiled successfully
-  - 📋 Tests pending (200 tests = 1,600 LOC)
-  - 🎯 Hierarchical Merkle proof chaining verified
-  - 🎯 5-index parent validation system ready
-
-#### Architecture Innovations:
-```
-Secondary Token Foundation (1,400 LOC completed):
-├── SecondaryTokenMerkleService.java (300 LOC)
-│   ├── Hierarchical proof chaining: secondary→primary→composite
-│   ├── CompositeMerkleProof inner class for full lineage
-│   └── Performance: <100ms tree, <50ms proofs, <10ms verify
-│
-├── SecondaryTokenRegistry.java (350 LOC) ⭐ KEY INNOVATION
-│   ├── 5 ConcurrentHashMap indexes:
-│   │   • tokenId (primary lookup)
-│   │   • parentTokenId (NEW - cascade validation)
-│   │   • owner (transfer tracking)
-│   │   • tokenType (filtering)
-│   │   • status (lifecycle)
-│   ├── countActiveByParent() - prevents retirement of primary with active children
-│   ├── getChildrenByType() - filters for composite assembly
-│   └── Performance: <5ms all lookups
-│
-├── SecondaryTokenService.java (350 LOC) ⭐ INTEGRATION HUB
-│   ├── CDI Events for revenue hooks:
-│   │   • TokenActivatedEvent → revenue stream setup
-│   │   • TokenRedeemedEvent → settlement processing
-│   │   • TokenTransferredEvent → audit logging
-│   ├── Lifecycle: create, activate, redeem, expire, transfer
-│   ├── Bulk operations with partial failure tolerance
-│   └── Parent validation with transaction boundaries
-│
-└── SecondaryTokenResource.java (400 LOC) ⭐ API LAYER
-    ├── Path: /api/v12/secondary-tokens (separate namespace)
-    ├── CRUD endpoints for 3 token types
-    ├── Lifecycle operations (activate, redeem, transfer, expire)
-    ├── Bulk creation with error collection
-    └── Request/response DTOs with OpenAPI
-```
-
-#### Completed Implementation Checklist:
-- ✅ SecondaryTokenMerkleService - hash, tree, proofs, composite chains
-- ✅ SecondaryTokenRegistry - 5 indexes, parent queries, metrics
-- ✅ SecondaryTokenService - transactions, CDI events, lifecycle
-- ✅ SecondaryTokenResource - REST API, DTOs, bulk operations
-- ✅ Full compilation verified (zero errors)
-- 📋 Tests pending (200 total: 60+70+40+30)
-- 📋 Performance validation pending
-- 📋 Javadoc and final commit pending
-
-#### Immediate Next Steps:
-**Option A** (Recommended): Write 200-test comprehensive suite (Day 7-8)
-- SecondaryTokenMerkleServiceTest.java (60 tests)
-- SecondaryTokenRegistryTest.java (70 tests)
-- SecondaryTokenServiceTest.java (40 tests)
-- SecondaryTokenResourceTest.java (30 tests)
-
-**Option B**: Create progress commit (current state is production-ready)
-- Commit implementation without tests
-- Deploy core functionality
-- Tests in follow-up sprint
-
-**Option C**: Hybrid approach - write critical tests, commit, continue
-
-#### Key Design Decisions (User-Approved):
-- ✅ API Path: `/api/v12/secondary-tokens` (separate namespace from TokenController)
-- ✅ Cascade Policy: Registry prevents primary retirement if active secondary tokens exist
-- ✅ Revenue Hooks: CDI events (TokenActivatedEvent, TokenRedeemedEvent, TokenTransferredEvent)
-- ✅ Merkle Strategy: Hierarchical chains for full lineage verification
-
-#### Build & Deployment Status:
-- **Version**: v12.0.0-runner
-- **Build Status**: ✅ Full compilation with zero errors
-- **New Classes**: 4 implementation files (1,400 LOC)
-- **All Tests**: Pending compilation (200 tests designed)
-- **Production Ready**: Core code yes, requires test suite
-
-#### Critical Files Changed (This Session):
-```
-NEW FILES CREATED:
-src/main/java/io/aurigraph/v11/token/secondary/
-├── SecondaryTokenMerkleService.java (300 LOC)
-├── SecondaryTokenRegistry.java (350 LOC)
-└── SecondaryTokenService.java (350 LOC)
-
-src/main/java/io/aurigraph/v11/api/
-└── SecondaryTokenResource.java (400 LOC)
-
-Total: 1,400 LOC added (✅ compiled, zero errors)
-```
-
-#### Quick Context for Next Session:
-```bash
-# Verify compilation
+# Clean and rebuild
 cd aurigraph-av10-7/aurigraph-v11-standalone
-./mvnw clean compile -q
+./mvnw clean
+./mvnw clean compile
 
-# Check what was added
-git status
-
-# View recent commits
-git log -5 --oneline
-
-# Next: Write tests or commit current state
+# Skip tests if needed for quick iteration
+./mvnw clean package -DskipTests
 ```
 
-#### Pending Tasks (Prioritized):
-1. **Write 200-test suite** (7-8 hours)
-   - Merkle service: 60 tests (hash, trees, proofs, chains)
-   - Registry: 70 tests (5 indexes, parent relationships)
-   - Service: 40 tests (creation, lifecycle, bulk ops)
-   - Resource: 30 tests (REST API, DTOs, validation)
+**Docker Native Build Issues**:
+```bash
+# Ensure Docker is running
+docker ps
 
-2. **Performance validation** (1-2 hours)
-   - Confirm <100ms registry, <5ms lookup, <50ms proofs, <10ms verify
-   - Load test with 1,000 tokens
-   - Optimize if targets not met
+# Build with container
+./mvnw package -Pnative-fast -Dquarkus.native.container-build=true
 
-3. **Code review & polish** (1-2 hours)
-   - Add Javadoc to public methods
-   - Review error handling
-   - Check logging coverage
+# Check Docker resources (native builds need 8GB+ RAM)
+docker info | grep Memory
+```
 
-4. **Final commit** (30 min)
-   - Commit message with story reference
-   - Update sprint documentation
+**Enterprise Portal Connection Issues**:
+```bash
+# Check API connectivity
+curl https://dlt.aurigraph.io/api/v11/health
 
-#### To Resume Next Session:
-1. **Decide**: Write tests (Option A) or commit current state (Option B)?
-2. **If tests**: Copy pattern from PrimaryTokenMerkleServiceTest.java (897 LOC)
-3. **If commit**: Use commit template with AV11-601-03 story reference
-4. **Files ready**: All 4 service files compiled and ready for integration
+# Check CORS configuration in NGINX
+docker-compose logs nginx-gateway | grep CORS
+```
+
+## Important Files
+
+**Essential Documentation**:
+- `/ARCHITECTURE.md` - Comprehensive system architecture (1377 lines)
+- `/DEVELOPMENT.md` - Development setup guide
+- `/aurigraph-av10-7/CLAUDE.md` - V11-specific development guidance
+- `/aurigraph-av10-7/docs/project-av11/` - V11 migration planning
+- `/AurigraphDLTVersionHistory.md` - Version history and sprint progress
+
+**Configuration Files**:
+- `/package.json` - Root package configuration
+- `/aurigraph-av10-7/aurigraph-v11-standalone/pom.xml` - V11 Maven config
+- `/start-v11.sh` - V11 quick start script
+- `/deployment/docker-compose.yml` - Production deployment
+- `/docker-compose.production.yml` - Multi-service production stack
+
+**Enterprise Portal**:
+- `/enterprise-portal/enterprise-portal/frontend/package.json` - Portal dependencies
+- `/enterprise-portal/enterprise-portal/frontend/src/` - React components
+
+## Development Workflow
+
+### Making Changes to V11
+
+1. **Navigate to V11 directory**:
+   ```bash
+   cd aurigraph-av10-7/aurigraph-v11-standalone
+   ```
+
+2. **Start dev mode** (hot reload enabled):
+   ```bash
+   ./mvnw quarkus:dev
+   ```
+
+3. **Make changes** to Java files in `src/main/java/io/aurigraph/v11/`
+
+4. **Test changes** (automatically reloaded in dev mode):
+   ```bash
+   curl http://localhost:9003/api/v11/health
+   ```
+
+5. **Run tests**:
+   ```bash
+   ./mvnw test
+   ```
+
+6. **Build native image** (for production):
+   ```bash
+   ./mvnw package -Pnative -Dquarkus.native.container-build=true
+   ```
+
+### Making Changes to Enterprise Portal
+
+1. **Navigate to portal directory**:
+   ```bash
+   cd enterprise-portal/enterprise-portal/frontend
+   ```
+
+2. **Start dev server**:
+   ```bash
+   npm run dev
+   # Portal available at http://localhost:3000
+   ```
+
+3. **Make changes** to React components in `src/`
+
+4. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+### Deployment
+
+```bash
+# Production deployment (from root)
+docker-compose -f docker-compose.production.yml up -d
+
+# Check service status
+docker-compose -f docker-compose.production.yml ps
+
+# View logs
+docker-compose -f docker-compose.production.yml logs -f
+
+# Scale validators (if needed)
+docker-compose -f docker-compose.production.yml up -d --scale api-node-1=3
+```
+
+## Key Architectural Decisions
+
+**Why Java 21 for V11?**
+- Virtual threads enable massive concurrency (millions of lightweight threads)
+- Strong typing and mature tooling reduce bugs
+- GraalVM native compilation for <1s startup and <256MB memory
+- Enterprise-grade ecosystem with battle-tested libraries
+- Superior performance for high-TPS workloads (2M+ target)
+
+**Why Quarkus?**
+- Kubernetes-native framework designed for cloud deployments
+- Sub-second startup time with native compilation
+- Low memory footprint (<256MB vs 512MB+ for traditional Java)
+- Reactive programming support with Mutiny
+- Excellent GraalVM integration and developer experience
+
+**Why HyperRAFT++?**
+- Proven consensus algorithm (RAFT) with deterministic finality
+- Enhanced with parallel log replication for higher throughput
+- AI-driven optimization for intelligent transaction ordering
+- Byzantine fault tolerance (f < n/3 faulty nodes tolerated)
+- <500ms finality with <100ms target
+
+## Related Documentation
+
+- `/ARCHITECTURE.md` - Complete architecture overview with diagrams
+- `/DEVELOPMENT.md` - Detailed development setup guide
+- `/aurigraph-av10-7/CLAUDE.md` - V11-specific development guidance
+- `/aurigraph-av10-7/docs/architecture/` - System design documents
+- `/aurigraph-av10-7/docs/development/guides/Agent_Team.md` - Agent framework
+- `/enterprise-portal/enterprise-portal/frontend/*.md` - Portal documentation
+- https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT - GitHub repository

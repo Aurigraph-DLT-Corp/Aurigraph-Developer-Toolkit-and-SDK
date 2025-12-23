@@ -29,24 +29,12 @@ const categoryIcons: Record<AssetCategory, React.ReactElement> = {
   real_estate: <AccountBalance />,
   commodities: <TrendingUp />,
   art: <Palette />,
-  digital_art: <Palette />,
   carbon_credits: <EmojiNature />,
   bonds: <Assessment />,
   equities: <Share />,
   precious_metals: <Diamond />,
   collectibles: <Gavel />,
   intellectual_property: <Description />,
-  patent: <Description />,
-  trademark: <VerifiedUser />,
-  copyright: <Description />,
-  nft: <Palette />,
-  // Banking & Trade Finance
-  trade_finance: <AccountBalance />,
-  deposits: <Diamond />,
-  loans: <Assessment />,
-  invoice_factoring: <Description />,
-  supply_chain_finance: <TrendingUp />,
-  treasury: <AttachMoney />,
   other: <Info />
 };
 
@@ -135,37 +123,25 @@ const mockAssets: RealWorldAsset[] = [
 ];
 
 const mockStats: RWATStats = {
-  totalAssets: 195,
-  totalValueLocked: 1250000000,
-  totalValueLockedUSD: 1250000000,
+  totalAssets: 127,
+  totalValueLocked: 523000000,
+  totalValueLockedUSD: 523000000,
   assetsByCategory: {
     real_estate: 45,
     commodities: 23,
     art: 12,
-    digital_art: 8,
     carbon_credits: 8,
     bonds: 15,
     equities: 10,
     precious_metals: 7,
     collectibles: 4,
-    intellectual_property: 5,
-    patent: 3,
-    trademark: 2,
-    copyright: 1,
-    nft: 3,
-    // Banking & Trade Finance
-    trade_finance: 18,
-    deposits: 12,
-    loans: 9,
-    invoice_factoring: 5,
-    supply_chain_finance: 3,
-    treasury: 2,
+    intellectual_property: 2,
     other: 1
   },
-  totalHolders: 18253,
-  totalTransfers: 5856,
-  verifiedAssets: 172,
-  avgAssetValue: 6410256
+  totalHolders: 12453,
+  totalTransfers: 3456,
+  verifiedAssets: 112,
+  avgAssetValue: 4118110
 };
 
 export const RWATRegistry: React.FC = () => {
@@ -364,12 +340,6 @@ export const RWATRegistry: React.FC = () => {
               <MenuItem value="precious_metals">Precious Metals</MenuItem>
               <MenuItem value="collectibles">Collectibles</MenuItem>
               <MenuItem value="intellectual_property">Intellectual Property</MenuItem>
-              <MenuItem value="trade_finance">Trade Finance</MenuItem>
-              <MenuItem value="deposits">Deposits & CDs</MenuItem>
-              <MenuItem value="loans">Loans</MenuItem>
-              <MenuItem value="invoice_factoring">Invoice Factoring</MenuItem>
-              <MenuItem value="supply_chain_finance">Supply Chain Finance</MenuItem>
-              <MenuItem value="treasury">Treasury</MenuItem>
               <MenuItem value="other">Other</MenuItem>
             </Select>
           </FormControl>
@@ -520,12 +490,6 @@ export const RWATRegistry: React.FC = () => {
                   <MenuItem value="precious_metals">Precious Metals</MenuItem>
                   <MenuItem value="collectibles">Collectibles</MenuItem>
                   <MenuItem value="intellectual_property">Intellectual Property</MenuItem>
-                  <MenuItem value="trade_finance">Trade Finance</MenuItem>
-                  <MenuItem value="deposits">Deposits & CDs</MenuItem>
-                  <MenuItem value="loans">Loans</MenuItem>
-                  <MenuItem value="invoice_factoring">Invoice Factoring</MenuItem>
-                  <MenuItem value="supply_chain_finance">Supply Chain Finance</MenuItem>
-                  <MenuItem value="treasury">Treasury</MenuItem>
                   <MenuItem value="other">Other</MenuItem>
                 </Select>
               </FormControl>

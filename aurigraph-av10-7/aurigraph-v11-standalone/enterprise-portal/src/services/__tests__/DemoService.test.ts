@@ -3,7 +3,7 @@
  *
  * Tests for the Demo Service API endpoint fix
  *
- * Bug Fixed: Frontend was calling /api/demos instead of /api/v12/demos
+ * Bug Fixed: Frontend was calling /api/demos instead of /api/v11/demos
  * This test suite verifies the correct endpoint is being used
  */
 
@@ -21,10 +21,10 @@ describe('DemoService - API Endpoint Fix', () => {
   });
 
   describe('API Endpoint Configuration', () => {
-    it('should use correct API endpoint /api/v12/demos', () => {
+    it('should use correct API endpoint /api/v11/demos', () => {
       // This test verifies the fix for the 405 error
       // Previously was calling /api/demos which returned 405 Method Not Allowed
-      // Now should call /api/v12/demos which is the correct backend endpoint
+      // Now should call /api/v11/demos which is the correct backend endpoint
 
       // Verify the service instance exists and is a singleton
       expect(DemoService).toBeDefined();
@@ -64,7 +64,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          eiNodesJson: '[]',
+          slimNodesJson: '[]',
         }
       });
 
@@ -78,7 +78,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        eiNodes: []
+        slimNodes: []
       };
 
       await DemoService.registerDemo(demoRequest);
@@ -86,9 +86,9 @@ describe('DemoService - API Endpoint Fix', () => {
       // Verify axios.post was called
       expect(mockPost).toHaveBeenCalled();
 
-      // Verify the endpoint contains /api/v12/demos (not /api/demos)
+      // Verify the endpoint contains /api/v11/demos (not /api/demos)
       const callArgs = mockPost.mock.calls[0][0];
-      expect(callArgs).toContain('/api/v12/demos');
+      expect(callArgs).toContain('/api/v11/demos');
       expect(callArgs).not.toContain('/api/demos');
     });
 
@@ -110,7 +110,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channelsJson: '[]',
         validatorsJson: '[]',
         businessNodesJson: '[]',
-        eiNodesJson: '[]',
+        slimNodesJson: '[]',
       };
 
       (axios.post as any) = vi.fn().mockResolvedValue({
@@ -126,7 +126,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        eiNodes: []
+        slimNodes: []
       });
 
       expect(result.demoName).toBe('Supply Chain Demo');
@@ -147,7 +147,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        eiNodes: []
+        slimNodes: []
       };
 
       try {
@@ -179,7 +179,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          eiNodesJson: '[]',
+          slimNodesJson: '[]',
         }
       });
 
@@ -193,7 +193,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        eiNodes: []
+        slimNodes: []
       };
 
       await DemoService.registerDemo(demoRequest, 20, false);
@@ -206,7 +206,7 @@ describe('DemoService - API Endpoint Fix', () => {
   });
 
   describe('getAllDemos', () => {
-    it('should fetch demos from correct /api/v12/demos endpoint', async () => {
+    it('should fetch demos from correct /api/v11/demos endpoint', async () => {
       const mockGet = vi.fn().mockResolvedValue({
         data: [
           {
@@ -226,7 +226,7 @@ describe('DemoService - API Endpoint Fix', () => {
             channelsJson: '[]',
             validatorsJson: '[]',
             businessNodesJson: '[]',
-            eiNodesJson: '[]',
+            slimNodesJson: '[]',
           },
           {
             id: 'demo-2',
@@ -245,7 +245,7 @@ describe('DemoService - API Endpoint Fix', () => {
             channelsJson: '[]',
             validatorsJson: '[]',
             businessNodesJson: '[]',
-            eiNodesJson: '[]',
+            slimNodesJson: '[]',
           }
         ]
       });
@@ -256,7 +256,7 @@ describe('DemoService - API Endpoint Fix', () => {
 
       // Verify endpoint is correct
       const callUrl = mockGet.mock.calls[0][0];
-      expect(callUrl).toContain('/api/v12/demos');
+      expect(callUrl).toContain('/api/v11/demos');
       expect(callUrl).not.toContain('/api/demos');
     });
   });
@@ -271,9 +271,9 @@ describe('DemoService - API Endpoint Fix', () => {
 
       await DemoService.getActiveDemos();
 
-      // Verify endpoint includes /api/v12/demos/active
+      // Verify endpoint includes /api/v11/demos/active
       const callUrl = mockGet.mock.calls[0][0];
-      expect(callUrl).toContain('/api/v12/demos');
+      expect(callUrl).toContain('/api/v11/demos');
     });
   });
 
@@ -297,7 +297,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          eiNodesJson: '[]',
+          slimNodesJson: '[]',
         }
       });
 
@@ -307,7 +307,7 @@ describe('DemoService - API Endpoint Fix', () => {
 
       // Verify endpoint is correct
       const callUrl = mockPost.mock.calls[0][0];
-      expect(callUrl).toContain('/api/v12/demos/demo-123/start');
+      expect(callUrl).toContain('/api/v11/demos/demo-123/start');
     });
   });
 
@@ -331,7 +331,7 @@ describe('DemoService - API Endpoint Fix', () => {
           channelsJson: '[]',
           validatorsJson: '[]',
           businessNodesJson: '[]',
-          eiNodesJson: '[]',
+          slimNodesJson: '[]',
         }
       });
 
@@ -341,7 +341,7 @@ describe('DemoService - API Endpoint Fix', () => {
 
       // Verify endpoint is correct
       const callUrl = mockPost.mock.calls[0][0];
-      expect(callUrl).toContain('/api/v12/demos/demo-123/stop');
+      expect(callUrl).toContain('/api/v11/demos/demo-123/stop');
     });
   });
 
@@ -355,7 +355,7 @@ describe('DemoService - API Endpoint Fix', () => {
 
       // Verify endpoint is correct
       const callUrl = mockDelete.mock.calls[0][0];
-      expect(callUrl).toContain('/api/v12/demos/demo-123');
+      expect(callUrl).toContain('/api/v11/demos/demo-123');
     });
   });
 
@@ -372,7 +372,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        eiNodes: []
+        slimNodes: []
       };
 
       try {
@@ -400,7 +400,7 @@ describe('DemoService - API Endpoint Fix', () => {
         channels: [],
         validators: [],
         businessNodes: [],
-        eiNodes: []
+        slimNodes: []
       };
 
       try {
@@ -420,7 +420,7 @@ describe('DemoService - API Endpoint Fix', () => {
  *
  * These tests verify that the DemoService fix is working correctly:
  *
- * ✅ API endpoint is /api/v12/demos (not /api/demos)
+ * ✅ API endpoint is /api/v11/demos (not /api/demos)
  * ✅ registerDemo calls correct endpoint
  * ✅ getAllDemos calls correct endpoint
  * ✅ getActiveDemos calls correct endpoint

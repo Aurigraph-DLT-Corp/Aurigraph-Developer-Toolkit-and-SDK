@@ -1,0 +1,631 @@
+name: JIRA Historical Sync & Bulk Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      sync_type:
+        description: 'Type of sync to perform'
+        required: true
+        type: choice
+        options:
+          - all_tickets
+          - specific_sprint
+          - date_range
+          - commit_history
+          - pr_history
+          - release_notes
+      sprint_id:
+        description: 'Sprint ID (for specific_sprint)'
+        required: false
+        type: string
+      date_from:
+        description: 'Start date (YYYY-MM-DD)'
+        required: false
+        type: string
+      date_to:
+        description: 'End date (YYYY-MM-DD)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (no actual updates)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+  JIRA_USER_EMAIL: admin@aurigraph.io
+
+jobs:
+  sync-historical-data:
+    name: Sync Historical Data to JIRA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get all history
+          
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install jira gitpython pytz python-dateutil requests
+          
+      - name: Historical Sync Script
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > historical_sync.py << 'EOF'
+          import os
+          import re
+          import json
+          import subprocess
+          from datetime import datetime, timedelta
+          from collections import defaultdict
+          import git
+          from jira import JIRA
+          import requests
+          import pytz
+          
+          # Configuration
+          JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
+          JIRA_PROJECT_KEY = os.environ['JIRA_PROJECT_KEY']
+          JIRA_USER_EMAIL = os.environ['JIRA_USER_EMAIL']
+          JIRA_API_TOKEN = os.environ['JIRA_API_TOKEN']
+          GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
+          
+          SYNC_TYPE = os.environ.get('SYNC_TYPE', 'all_tickets')
+          SPRINT_ID = os.environ.get('SPRINT_ID', '')
+          DATE_FROM = os.environ.get('DATE_FROM', '')
+          DATE_TO = os.environ.get('DATE_TO', '')
+          DRY_RUN = os.environ.get('DRY_RUN', 'false').lower() == 'true'
+          
+          # Initialize JIRA client
+          jira = JIRA(
+              server=JIRA_BASE_URL,
+              basic_auth=(JIRA_USER_EMAIL, JIRA_API_TOKEN)
+          )
+          
+          # Initialize Git repo
+          repo = git.Repo('.')
+          
+          class HistoricalSyncer:
+              def __init__(self):
+                  self.updates = []
+                  self.errors = []
+                  self.jira_key_pattern = re.compile(r'([Aa][Vv]11-\d+)')
+                  
+              def extract_jira_keys(self, text):
+                  """Extract all JIRA keys from text"""
+                  if not text:
+                      return []
+                  matches = self.jira_key_pattern.findall(text)
+                  return [match.upper() for match in matches]
+              
+              def sync_all_tickets(self):
+                  """Update all AV11 tickets with git history"""
+                  print("🔄 Syncing all AV11 tickets...")
+                  
+                  # Get all issues in project
+                  jql = f'project = {JIRA_PROJECT_KEY} ORDER BY created DESC'
+                  issues = jira.search_issues(jql, maxResults=1000)
+                  
+                  print(f"Found {len(issues)} issues to process")
+                  
+                  for issue in issues:
+                      self.update_issue_from_git_history(issue.key)
+                  
+                  return self.generate_report()
+              
+              def update_issue_from_git_history(self, issue_key):
+                  """Update a single issue with all related git history"""
+                  print(f"📝 Processing {issue_key}...")
+                  
+                  try:
+                      issue = jira.issue(issue_key)
+                      
+                      # Collect all related commits
+                      commits = self.find_commits_for_issue(issue_key)
+                      
+                      # Collect all related PRs
+                      prs = self.find_prs_for_issue(issue_key)
+                      
+                      # Collect all related branches
+                      branches = self.find_branches_for_issue(issue_key)
+                      
+                      # Build comprehensive update
+                      update_data = {
+                          'commits': commits,
+                          'pull_requests': prs,
+                          'branches': branches,
+                          'last_activity': self.get_last_activity(commits, prs)
+                      }
+                      
+                      # Update issue
+                      self.update_jira_issue(issue, update_data)
+                      
+                  except Exception as e:
+                      self.errors.append(f"Error processing {issue_key}: {str(e)}")
+                      print(f"❌ Error: {str(e)}")
+              
+              def find_commits_for_issue(self, issue_key):
+                  """Find all commits mentioning this issue"""
+                  commits = []
+                  
+                  # Search through all commits
+                  for commit in repo.iter_commits():
+                      if issue_key in commit.message.upper():
+                          commits.append({
+                              'sha': commit.hexsha[:7],
+                              'message': commit.message.split('\n')[0],
+                              'author': str(commit.author),
+                              'date': datetime.fromtimestamp(commit.committed_date).isoformat(),
+                              'files_changed': len(commit.stats.files),
+                              'insertions': commit.stats.total['insertions'],
+                              'deletions': commit.stats.total['deletions']
+                          })
+                  
+                  return commits
+              
+              def find_prs_for_issue(self, issue_key):
+                  """Find all PRs related to this issue"""
+                  prs = []
+                  
+                  # Use GitHub API to find PRs
+                  owner, repo_name = subprocess.check_output(
+                      ['git', 'remote', 'get-url', 'origin'],
+                      text=True
+                  ).strip().split('/')[-2:]
+                  repo_name = repo_name.replace('.git', '')
+                  
+                  headers = {
+                      'Authorization': f'token {GITHUB_TOKEN}',
+                      'Accept': 'application/vnd.github.v3+json'
+                  }
+                  
+                  # Search PRs
+                  url = f'https://api.github.com/repos/{owner}/{repo_name}/pulls'
+                  params = {'state': 'all', 'per_page': 100}
+                  
+                  response = requests.get(url, headers=headers, params=params)
+                  if response.status_code == 200:
+                      for pr in response.json():
+                          if issue_key in (pr.get('title', '') + pr.get('body', '')).upper():
+                              prs.append({
+                                  'number': pr['number'],
+                                  'title': pr['title'],
+                                  'state': pr['state'],
+                                  'merged': pr.get('merged_at') is not None,
+                                  'created_at': pr['created_at'],
+                                  'closed_at': pr.get('closed_at'),
+                                  'html_url': pr['html_url'],
+                                  'author': pr['user']['login']
+                              })
+                  
+                  return prs
+              
+              def find_branches_for_issue(self, issue_key):
+                  """Find all branches related to this issue"""
+                  branches = []
+                  
+                  for branch in repo.branches:
+                      if issue_key in branch.name.upper():
+                          branches.append({
+                              'name': branch.name,
+                              'commit': branch.commit.hexsha[:7],
+                              'last_commit_date': datetime.fromtimestamp(
+                                  branch.commit.committed_date
+                              ).isoformat()
+                          })
+                  
+                  # Check remote branches too
+                  for remote in repo.remotes:
+                      for ref in remote.refs:
+                          if issue_key in ref.name.upper():
+                              branches.append({
+                                  'name': ref.name,
+                                  'remote': remote.name,
+                                  'commit': ref.commit.hexsha[:7]
+                              })
+                  
+                  return branches
+              
+              def get_last_activity(self, commits, prs):
+                  """Determine last activity date"""
+                  dates = []
+                  
+                  for commit in commits:
+                      dates.append(datetime.fromisoformat(commit['date']))
+                  
+                  for pr in prs:
+                      if pr.get('closed_at'):
+                          dates.append(datetime.fromisoformat(pr['closed_at'].replace('Z', '+00:00')))
+                  
+                  return max(dates).isoformat() if dates else None
+              
+              def update_jira_issue(self, issue, data):
+                  """Update JIRA issue with collected data"""
+                  
+                  if DRY_RUN:
+                      print(f"🔍 DRY RUN: Would update {issue.key} with:")
+                      print(f"  - {len(data['commits'])} commits")
+                      print(f"  - {len(data['pull_requests'])} PRs")
+                      print(f"  - {len(data['branches'])} branches")
+                      self.updates.append({
+                          'issue': issue.key,
+                          'dry_run': True,
+                          'data': data
+                      })
+                      return
+                  
+                  # Build comment with all historical data
+                  comment = self.build_historical_comment(data)
+                  
+                  # Add comment to issue
+                  jira.add_comment(issue, comment)
+                  
+                  # Update custom fields if available
+                  update_fields = {}
+                  
+                  # Update last GitHub activity
+                  if data['last_activity']:
+                      # Check if custom field exists
+                      try:
+                          # You may need to adjust field IDs based on your JIRA setup
+                          update_fields['customfield_10100'] = data['last_activity']
+                      except:
+                          pass
+                  
+                  # Count total commits
+                  if data['commits']:
+                      try:
+                          update_fields['customfield_10101'] = len(data['commits'])
+                      except:
+                          pass
+                  
+                  if update_fields:
+                      issue.update(fields=update_fields)
+                  
+                  # Update status based on PR state
+                  self.update_issue_status(issue, data)
+                  
+                  self.updates.append({
+                      'issue': issue.key,
+                      'commits': len(data['commits']),
+                      'prs': len(data['pull_requests']),
+                      'branches': len(data['branches'])
+                  })
+                  
+                  print(f"✅ Updated {issue.key}")
+              
+              def build_historical_comment(self, data):
+                  """Build formatted comment with historical data"""
+                  comment = "📚 **Historical GitHub Data Sync**\n\n"
+                  comment += f"_Generated on {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}_\n\n"
+                  
+                  # Commits section
+                  if data['commits']:
+                      comment += f"### 💻 Commits ({len(data['commits'])})\n\n"
+                      for commit in data['commits'][:10]:  # Show first 10
+                          comment += f"- `{commit['sha']}` - {commit['message'][:60]}\n"
+                          comment += f"  - Author: {commit['author']}\n"
+                          comment += f"  - Date: {commit['date']}\n"
+                          comment += f"  - Changes: +{commit['insertions']}/-{commit['deletions']} in {commit['files_changed']} files\n\n"
+                      
+                      if len(data['commits']) > 10:
+                          comment += f"_... and {len(data['commits']) - 10} more commits_\n\n"
+                  
+                  # PRs section
+                  if data['pull_requests']:
+                      comment += f"### 🔀 Pull Requests ({len(data['pull_requests'])})\n\n"
+                      for pr in data['pull_requests']:
+                          status_icon = "✅" if pr['merged'] else ("❌" if pr['state'] == 'closed' else "🔄")
+                          comment += f"- {status_icon} PR #{pr['number']}: [{pr['title']}]({pr['html_url']})\n"
+                          comment += f"  - Author: {pr['author']}\n"
+                          comment += f"  - Created: {pr['created_at']}\n"
+                          if pr['closed_at']:
+                              comment += f"  - Closed: {pr['closed_at']}\n"
+                          comment += "\n"
+                  
+                  # Branches section
+                  if data['branches']:
+                      comment += f"### 🌿 Branches ({len(data['branches'])})\n\n"
+                      for branch in data['branches']:
+                          comment += f"- `{branch['name']}` (commit: {branch['commit']})\n"
+                          if 'last_commit_date' in branch:
+                              comment += f"  - Last commit: {branch['last_commit_date']}\n"
+                      comment += "\n"
+                  
+                  # Summary
+                  comment += "### 📊 Summary\n\n"
+                  comment += f"- Total Commits: {len(data['commits'])}\n"
+                  comment += f"- Total PRs: {len(data['pull_requests'])}\n"
+                  comment += f"- Active Branches: {len(data['branches'])}\n"
+                  if data['last_activity']:
+                      comment += f"- Last Activity: {data['last_activity']}\n"
+                  
+                  return comment
+              
+              def update_issue_status(self, issue, data):
+                  """Update issue status based on git data"""
+                  current_status = issue.fields.status.name
+                  
+                  # Determine new status
+                  new_status = None
+                  
+                  # If has merged PRs, should be Done
+                  merged_prs = [pr for pr in data['pull_requests'] if pr['merged']]
+                  if merged_prs and current_status not in ['Done', 'Closed']:
+                      new_status = 'Done'
+                  
+                  # If has open PRs, should be In Review
+                  open_prs = [pr for pr in data['pull_requests'] if pr['state'] == 'open']
+                  if open_prs and current_status in ['To Do', 'In Progress']:
+                      new_status = 'In Review'
+                  
+                  # If has recent commits but no PRs, should be In Progress
+                  if data['commits'] and not data['pull_requests'] and current_status == 'To Do':
+                      new_status = 'In Progress'
+                  
+                  # Transition if needed
+                  if new_status and not DRY_RUN:
+                      try:
+                          transitions = jira.transitions(issue)
+                          for t in transitions:
+                              if t['name'] == new_status:
+                                  jira.transition_issue(issue, t['id'])
+                                  print(f"  📋 Transitioned {issue.key} to {new_status}")
+                                  break
+                      except Exception as e:
+                          print(f"  ⚠️ Could not transition status: {e}")
+              
+              def sync_specific_sprint(self):
+                  """Sync tickets from a specific sprint"""
+                  print(f"🔄 Syncing Sprint {SPRINT_ID}...")
+                  
+                  # Get issues in sprint
+                  jql = f'sprint = {SPRINT_ID}'
+                  issues = jira.search_issues(jql, maxResults=200)
+                  
+                  print(f"Found {len(issues)} issues in sprint")
+                  
+                  for issue in issues:
+                      self.update_issue_from_git_history(issue.key)
+                  
+                  return self.generate_report()
+              
+              def sync_date_range(self):
+                  """Sync tickets updated in date range"""
+                  print(f"🔄 Syncing tickets from {DATE_FROM} to {DATE_TO}...")
+                  
+                  # Get issues updated in date range
+                  jql = f'project = {JIRA_PROJECT_KEY} AND updated >= "{DATE_FROM}" AND updated <= "{DATE_TO}"'
+                  issues = jira.search_issues(jql, maxResults=500)
+                  
+                  print(f"Found {len(issues)} issues in date range")
+                  
+                  for issue in issues:
+                      self.update_issue_from_git_history(issue.key)
+                  
+                  return self.generate_report()
+              
+              def sync_commit_history(self):
+                  """Analyze all commits and update related tickets"""
+                  print("🔄 Analyzing commit history...")
+                  
+                  # Group commits by JIRA key
+                  commits_by_issue = defaultdict(list)
+                  
+                  for commit in repo.iter_commits():
+                      keys = self.extract_jira_keys(commit.message)
+                      for key in keys:
+                          commits_by_issue[key].append(commit)
+                  
+                  print(f"Found {len(commits_by_issue)} issues referenced in commits")
+                  
+                  # Update each issue
+                  for issue_key, commits in commits_by_issue.items():
+                      try:
+                          issue = jira.issue(issue_key)
+                          
+                          commit_data = []
+                          for commit in commits[:50]:  # Limit to recent 50
+                              commit_data.append({
+                                  'sha': commit.hexsha[:7],
+                                  'message': commit.message.split('\n')[0],
+                                  'author': str(commit.author),
+                                  'date': datetime.fromtimestamp(commit.committed_date).isoformat(),
+                                  'files_changed': len(commit.stats.files),
+                                  'insertions': commit.stats.total['insertions'],
+                                  'deletions': commit.stats.total['deletions']
+                              })
+                          
+                          self.update_jira_issue(issue, {
+                              'commits': commit_data,
+                              'pull_requests': [],
+                              'branches': [],
+                              'last_activity': commit_data[0]['date'] if commit_data else None
+                          })
+                          
+                      except Exception as e:
+                          self.errors.append(f"Could not find issue {issue_key}: {e}")
+                  
+                  return self.generate_report()
+              
+              def sync_release_notes(self):
+                  """Generate and update release notes in JIRA"""
+                  print("🔄 Generating release notes...")
+                  
+                  # Get all tags
+                  tags = sorted(repo.tags, key=lambda t: t.commit.committed_date, reverse=True)
+                  
+                  for tag in tags[:10]:  # Process last 10 releases
+                      print(f"📦 Processing release {tag.name}...")
+                      
+                      # Get commits since previous tag
+                      prev_tag = None
+                      tag_index = tags.index(tag)
+                      if tag_index < len(tags) - 1:
+                          prev_tag = tags[tag_index + 1]
+                      
+                      if prev_tag:
+                          commits = list(repo.iter_commits(f'{prev_tag.name}..{tag.name}'))
+                      else:
+                          commits = list(repo.iter_commits(tag.name))
+                      
+                      # Extract all JIRA keys from commits
+                      affected_issues = set()
+                      for commit in commits:
+                          keys = self.extract_jira_keys(commit.message)
+                          affected_issues.update(keys)
+                      
+                      # Build release notes
+                      release_notes = f"📦 **Release {tag.name}**\n\n"
+                      release_notes += f"Released on: {datetime.fromtimestamp(tag.commit.committed_date).strftime('%Y-%m-%d')}\n\n"
+                      release_notes += f"**Changes:**\n"
+                      
+                      for commit in commits[:20]:
+                          release_notes += f"- {commit.hexsha[:7]}: {commit.message.split(chr(10))[0]}\n"
+                      
+                      if len(commits) > 20:
+                          release_notes += f"\n_... and {len(commits) - 20} more commits_\n"
+                      
+                      # Update affected issues
+                      for issue_key in affected_issues:
+                          try:
+                              issue = jira.issue(issue_key)
+                              
+                              if not DRY_RUN:
+                                  jira.add_comment(issue, release_notes)
+                                  
+                                  # Update fix version if field exists
+                                  try:
+                                      versions = jira.project_versions(JIRA_PROJECT_KEY)
+                                      version_name = tag.name.replace('v', '')
+                                      
+                                      # Find or create version
+                                      version = None
+                                      for v in versions:
+                                          if v.name == version_name:
+                                              version = v
+                                              break
+                                      
+                                      if not version:
+                                          version = jira.create_version(
+                                              name=version_name,
+                                              project=JIRA_PROJECT_KEY,
+                                              releaseDate=datetime.fromtimestamp(tag.commit.committed_date).strftime('%Y-%m-%d')
+                                          )
+                                      
+                                      issue.update(fields={'fixVersions': [{'name': version.name}]})
+                                  except:
+                                      pass
+                              
+                              self.updates.append({
+                                  'issue': issue_key,
+                                  'release': tag.name
+                              })
+                              
+                          except Exception as e:
+                              self.errors.append(f"Error updating {issue_key} for release {tag.name}: {e}")
+                  
+                  return self.generate_report()
+              
+              def generate_report(self):
+                  """Generate sync report"""
+                  report = {
+                      'success': len(self.errors) == 0,
+                      'updates': self.updates,
+                      'errors': self.errors,
+                      'summary': {
+                          'total_updated': len(self.updates),
+                          'total_errors': len(self.errors),
+                          'dry_run': DRY_RUN
+                      }
+                  }
+                  
+                  print("\n" + "="*50)
+                  print("📊 SYNC REPORT")
+                  print("="*50)
+                  print(f"✅ Updated: {report['summary']['total_updated']} issues")
+                  print(f"❌ Errors: {report['summary']['total_errors']}")
+                  
+                  if DRY_RUN:
+                      print("\n⚠️ This was a DRY RUN - no actual updates were made")
+                  
+                  if self.errors:
+                      print("\n❌ Errors encountered:")
+                      for error in self.errors[:10]:
+                          print(f"  - {error}")
+                  
+                  # Save report to file
+                  with open('sync_report.json', 'w') as f:
+                      json.dump(report, f, indent=2, default=str)
+                  
+                  return report
+          
+          # Main execution
+          syncer = HistoricalSyncer()
+          
+          # Set environment variables for script
+          os.environ['SYNC_TYPE'] = '${{ github.event.inputs.sync_type }}'
+          os.environ['SPRINT_ID'] = '${{ github.event.inputs.sprint_id }}'
+          os.environ['DATE_FROM'] = '${{ github.event.inputs.date_from }}'
+          os.environ['DATE_TO'] = '${{ github.event.inputs.date_to }}'
+          os.environ['DRY_RUN'] = '${{ github.event.inputs.dry_run }}'
+          
+          # Execute based on sync type
+          if SYNC_TYPE == 'all_tickets':
+              syncer.sync_all_tickets()
+          elif SYNC_TYPE == 'specific_sprint':
+              syncer.sync_specific_sprint()
+          elif SYNC_TYPE == 'date_range':
+              syncer.sync_date_range()
+          elif SYNC_TYPE == 'commit_history':
+              syncer.sync_commit_history()
+          elif SYNC_TYPE == 'release_notes':
+              syncer.sync_release_notes()
+          else:
+              print(f"Unknown sync type: {SYNC_TYPE}")
+          EOF
+          
+          python historical_sync.py
+          
+      - name: Upload Sync Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-report
+          path: sync_report.json
+          
+      - name: Comment on Latest Commit
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('sync_report.json', 'utf8'));
+            
+            const comment = `## 📊 JIRA Historical Sync Complete
+            
+            **Sync Type:** ${{ github.event.inputs.sync_type }}
+            **Dry Run:** ${{ github.event.inputs.dry_run }}
+            
+            ### Results:
+            - ✅ Updated: ${report.summary.total_updated} issues
+            - ❌ Errors: ${report.summary.total_errors}
+            
+            [View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+            
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: comment
+            });

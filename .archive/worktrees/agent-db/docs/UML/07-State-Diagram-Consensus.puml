@@ -1,0 +1,167 @@
+@startuml Aurigraph_DLT_Consensus_State
+title Aurigraph DLT - State Diagram: HyperRAFT++ Consensus
+
+[*] --> Initialization
+
+Initialization --> Follower: Start node\nNo leader elected\nTerm = 0
+
+state Follower {
+    [*] --> FollowerIdle: Waiting for\nLeader heartbeat
+
+    FollowerIdle --> FollowerReceivingHeartbeat: Heartbeat from\nCurrent leader
+    FollowerReceivingHeartbeat --> FollowerIdle: Update term\nReset timeout\nAppend entries
+
+    FollowerIdle --> FollowerTimeout: Heartbeat timeout\n(150-300ms)
+    FollowerTimeout --> Candidate: Start election
+}
+
+Follower --> Candidate: Election timeout\nNO heartbeat
+
+state Candidate {
+    [*] --> RequestingVotes: Increment term\nRequest votes
+
+    RequestingVotes --> ReceivedMajority: Received votes\nfrom majority\n(> n/2 validators)
+    ReceivedMajority --> Leader: Became leader\nterm updated
+
+    RequestingVotes --> ReceivedHigherTerm: Received higher\nterm message
+    ReceivedHigherTerm --> Follower: Revert to follower\nAccept new term
+
+    RequestingVotes --> ElectionTimeout: Election timeout\nNo consensus
+    ElectionTimeout --> RequestingVotes: Start new\nelection round
+}
+
+state Leader {
+    [*] --> LeaderInitialize: Replicate empty\nentries to all
+
+    LeaderInitialize --> ReplicatingLog: Start sending\nheartbeats
+
+    ReplicatingLog --> BatchingTransactions: Received TXs\nfrom mempool
+    BatchingTransactions --> AIOptimization: Group TXs\ninto batch
+
+    AIOptimization --> ProposingBlock: AI optimizes\nTX ordering\nCreate block
+    ProposingBlock --> WaitingForCommit: Broadcast block\nto followers
+
+    WaitingForCommit --> FollowerAck: Followers\nacknowledge
+    FollowerAck --> CommittingBlock: Majority ack'd\n(> n/2)
+    CommittingBlock --> BlockFinalized: Apply block\nto state machine
+
+    BlockFinalized --> ReplicatingLog: Continue\nreplicating
+
+    ReplicatingLog --> LogReplicationFailure: Network error\nReplica offline
+    LogReplicationFailure --> RetryReplication: Retry\nwith backoff
+    RetryReplication --> ReplicatingLog: Replicated
+
+    WaitingForCommit --> ElectionTimeout: Heartbeat timeout\nNo follower ack
+    ElectionTimeout --> FollowerDemotion: Lost majority\nQuorum lost
+}
+
+Leader --> Follower: Received higher\nterm from peer
+
+Follower --> Candidate: Election timeout\nNo heartbeat received
+
+Candidate --> Follower: Received heartbeat\nfrom valid leader\nwith higher/equal term
+
+' Byzantine Fault Tolerance
+state ByzantineFaultDetection {
+    [*] --> ValidatingSignatures: Verify block\nsignatures
+
+    ValidatingSignatures --> CheckingStateRoot: All sigs valid\nCheck merkle root
+    CheckingStateRoot --> StateValid: State transition\nvalid
+    StateValid --> [*]: Accept block
+
+    ValidatingSignatures --> InvalidSignature: Invalid\nsignature
+    InvalidSignature --> DiscardingBlock: Reject block\nBlacklist peer
+    DiscardingBlock --> [*]: Continue consensus
+
+    CheckingStateRoot --> InvalidStateRoot: Merkle root\nmismatch
+    InvalidStateRoot --> DiscardingBlock: Reject block\ncheck other peers
+}
+
+ReplicatingLog --> ByzantineFaultDetection: New block\nreceived
+WaitingForCommit --> ByzantineFaultDetection: Follower\nvalidation
+
+' Network Partition Handling
+state PartitionHandling {
+    [*] --> DetectingPartition: Network split\ndetected
+
+    DetectingPartition --> QuorumPresent: Partition has\nmajority nodes
+    QuorumPresent --> ContinuingConsensus: Continue\nwith quorum
+
+    DetectingPartition --> NoQuorum: Partition has\nminority nodes
+    NoQuorum --> HaltingProgress: Cannot commit\nblocks
+    HaltingProgress --> WaitingForHealing: Wait for\nnetwork repair
+}
+
+ReplicatingLog --> PartitionHandling: Network\npartition detected
+WaitingForCommit --> PartitionHandling: Quorum\nloss detected
+
+ContinuingConsensus --> ReplicatingLog: Network\nhealed
+
+' Snapshotting for optimization
+state SnapshotMechanism {
+    [*] --> SnapshotCheck: Check if\nlog too large
+
+    SnapshotCheck --> CreateSnapshot: Log exceeds\nthreshold
+    CreateSnapshot --> CompressingLog: Save state\nto snapshot
+    CompressingLog --> PruningLog: Discard old\nlog entries
+    PruningLog --> [*]: Continue
+
+    SnapshotCheck --> ContinuingNormally: Log small\nenough
+    ContinuingNormally --> [*]: No action
+}
+
+ReplicatingLog --> SnapshotMechanism: Periodic check\n(every 10k blocks)
+
+note right of FollowerIdle
+  Follower State
+  - Append entries from leader
+  - Reset timeout on heartbeat
+  - Vote in elections
+  - Timeout: 150-300ms (random)
+end note
+
+note right of RequestingVotes
+  Election Process
+  - Increment current term
+  - Request votes from all nodes
+  - Wait for majority (> n/2)
+  - Vote for self
+  - If timeout → new election
+end note
+
+note right of ReplicatingLog
+  Leader Duties
+  - Send periodic heartbeats (50ms)
+  - Replicate new entries
+  - Commit when majority ack'd
+  - Apply to state machine
+  - AI optimize TX ordering
+end note
+
+note right of BlockFinalized
+  Block Finality
+  - Applied to state machine
+  - Merkle root computed
+  - Events emitted
+  - WebSocket broadcast
+  - Transactions confirmed
+end note
+
+note right of ByzantineFaultDetection
+  Byzantine Fault Tolerance
+  - Verify all signatures
+  - Check merkle root
+  - Validate state transition
+  - f < n/3 faulty nodes tolerated
+  - Blacklist invalid peers
+end note
+
+note right of ContinuingConsensus
+  Partition Tolerance
+  - Quorum maintains progress
+  - Minority halts (safety)
+  - Eventual consistency on heal
+  - No split-brain
+end note
+
+@enduml

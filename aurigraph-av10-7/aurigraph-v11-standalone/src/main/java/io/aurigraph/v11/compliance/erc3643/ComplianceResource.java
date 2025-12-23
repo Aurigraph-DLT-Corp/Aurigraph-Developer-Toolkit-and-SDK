@@ -14,7 +14,7 @@ import java.util.*;
  * REST API endpoints for ERC-3643 compliance management
  * Provides endpoints for identity verification, transfer approval, and compliance reporting
  */
-@Path("/api/v12/compliance/erc3643")
+@Path("/api/v11/compliance/erc3643")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ComplianceResource {

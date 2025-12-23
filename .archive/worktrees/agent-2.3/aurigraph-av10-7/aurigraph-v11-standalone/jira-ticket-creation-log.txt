@@ -1,0 +1,447 @@
+=========================================
+JIRA Ticket Creation - Sprints 15-18
+=========================================
+
+[1;33m=== SPRINT 15: Core Node Implementation ===[0m
+[1;33mCreating Story: AV11-209 - Complete Channel Node Service Implementation[0m
+[0;31m✗ Failed: AV11-209 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-210 - Complete Validator Node Service Implementation[0m
+[0;31m✗ Failed: AV11-210 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-211 - Complete Business Node Service Implementation[0m
+[0;31m✗ Failed: AV11-211 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-212 - Complete API Integration Node - Alpaca Markets[0m
+[0;31m✗ Failed: AV11-212 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-213 - Complete API Integration Node - Weather Service[0m
+[0;31m✗ Failed: AV11-213 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-214 - Implement Base Node Interface and Abstract Class[0m
+[0;31m✗ Failed: AV11-214 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-215 - Implement Node Configuration Management System[0m
+[0;31m✗ Failed: AV11-215 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-216 - Implement Node State Management and Persistence[0m
+[0;31m✗ Failed: AV11-216 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-217 - Implement Node Metrics and Monitoring[0m
+[0;31m✗ Failed: AV11-217 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+
+[1;33m=== SPRINT 16: Real-Time Infrastructure & Visualization ===[0m
+[1;33mCreating Story: AV11-219 - Implement WebSocket Server Infrastructure[0m
+[0;31m✗ Failed: AV11-219 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-220 - Implement Real-Time Event System[0m
+[0;31m✗ Failed: AV11-220 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-221 - Create Vizro Graph Visualization Component[0m
+[0;31m✗ Failed: AV11-221 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-222 - Create Node Panel UI Components[0m
+[0;31m✗ Failed: AV11-222 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-223 - Implement Node Configuration UI[0m
+[0;31m✗ Failed: AV11-223 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-224 - Implement Real-Time Data Streaming to UI[0m
+[0;31m✗ Failed: AV11-224 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-225 - Create Scalability Demo Mode[0m
+[0;31m✗ Failed: AV11-225 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-226 - Implement Performance Dashboard[0m
+[0;31m✗ Failed: AV11-226 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-227 - Create Node Health Monitoring UI[0m
+[0;31m✗ Failed: AV11-227 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+
+[1;33m=== SPRINT 17: Advanced Features & Integration ===[0m
+[1;33mCreating Story: AV11-229 - Integrate Nodes with V11 Transaction Service[0m
+[0;31m✗ Failed: AV11-229 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-230 - Integrate Nodes with HyperRAFT++ Consensus[0m
+[0;31m✗ Failed: AV11-230 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-231 - Implement Inter-Node gRPC Communication[0m
+[0;31m✗ Failed: AV11-231 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-232 - Implement Node Discovery and Service Registry[0m
+[0;31m✗ Failed: AV11-232 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-233 - Implement Cross-Chain Bridge Integration for Nodes[0m
+[0;31m✗ Failed: AV11-233 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-234 - Implement Node Security and Access Control[0m
+[0;31m✗ Failed: AV11-234 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-235 - Implement Node Backup and Recovery[0m
+[0;31m✗ Failed: AV11-235 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-236 - Implement Node Logging and Diagnostics[0m
+[0;31m✗ Failed: AV11-236 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-237 - Implement Node Resource Management[0m
+[0;31m✗ Failed: AV11-237 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+
+[1;33m=== SPRINT 18: Testing, Documentation & Deployment ===[0m
+[1;33mCreating Story: AV11-239 - Create Comprehensive Unit Test Suite[0m
+[0;31m✗ Failed: AV11-239 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-240 - Create Integration Test Suite[0m
+[0;31m✗ Failed: AV11-240 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-241 - Create Performance Test Suite[0m
+[0;31m✗ Failed: AV11-241 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-242 - Create API Documentation (OpenAPI/Swagger)[0m
+[0;31m✗ Failed: AV11-242 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-243 - Create User Guide and Tutorials[0m
+[0;31m✗ Failed: AV11-243 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-244 - Create Architecture Documentation[0m
+[0;31m✗ Failed: AV11-244 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-245 - Create Docker Images and Compose Files[0m
+[0;31m✗ Failed: AV11-245 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-246 - Create Kubernetes Manifests and Helm Charts[0m
+[0;31m✗ Failed: AV11-246 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+[1;33mCreating Story: AV11-247 - Deploy to Production and Create CI/CD Pipeline[0m
+[0;31m✗ Failed: AV11-247 (HTTP 400)[0m
+{"errorMessages":["There was an error parsing JSON. Check that your request body is valid."]}
+FAILED
+
+=========================================
+TICKET CREATION SUMMARY
+=========================================
+[0;32mSuccessfully created: 0 tickets[0m
+[0;31mFailed to create: 36 tickets[0m
+=========================================
+
+Next steps:
+1. Verify tickets in JIRA: https://aurigraphdlt.atlassian.net/browse/AV11
+2. Assign tickets to team members
+3. Set sprint dates and start sprints
+4. Update story points via JIRA UI if needed
+
+/Users/subbujois/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+======================================================================
+JIRA Ticket Creation - Sprints 15-18
+======================================================================
+
+
+### SPRINT 15: Core Node Implementation ###
+
+
+============================================================
+Creating Epic: Sprint 15: Core Node Implementation
+============================================================
+✓ Created: AV11-277
+
+============================================================
+Creating Story: Complete Channel Node Service Implementation
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Complete Validator Node Service Implementation
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Complete Business Node Service Implementation
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Complete API Integration Node - Alpaca Markets
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Complete API Integration Node - Weather Service
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Base Node Interface and Abstract Class
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Configuration Management System
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node State Management and Persistence
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Metrics and Monitoring
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+
+### SPRINT 16: Real-Time Infrastructure & Visualization ###
+
+
+============================================================
+Creating Epic: Sprint 16: Real-Time Infrastructure & Visualization
+============================================================
+✓ Created: AV11-278
+
+============================================================
+Creating Story: Implement WebSocket Server Infrastructure
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Real-Time Event System
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Vizro Graph Visualization Component
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Node Panel UI Components
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Configuration UI
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Real-Time Data Streaming to UI
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Scalability Demo Mode
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Performance Dashboard
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Node Health Monitoring UI
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+
+### SPRINT 17: Advanced Features & Integration ###
+
+
+============================================================
+Creating Epic: Sprint 17: Advanced Features & Integration
+============================================================
+✓ Created: AV11-279
+
+============================================================
+Creating Story: Integrate Nodes with V11 Transaction Service
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Integrate Nodes with HyperRAFT++ Consensus
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Inter-Node gRPC Communication
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Discovery and Service Registry
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Cross-Chain Bridge Integration for Nodes
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Security and Access Control
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Backup and Recovery
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Logging and Diagnostics
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Implement Node Resource Management
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+
+### SPRINT 18: Testing, Documentation & Deployment ###
+
+
+============================================================
+Creating Epic: Sprint 18: Testing, Documentation & Deployment
+============================================================
+✓ Created: AV11-280
+
+============================================================
+Creating Story: Create Comprehensive Unit Test Suite
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Integration Test Suite
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Performance Test Suite
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create API Documentation (OpenAPI/Swagger)
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create User Guide and Tutorials
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Architecture Documentation
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Docker Images and Compose Files
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Create Kubernetes Manifests and Helm Charts
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+============================================================
+Creating Story: Deploy to Production and Create CI/CD Pipeline
+============================================================
+✗ Failed (HTTP 400)
+  Error: {"errorMessages":[],"errors":{"issuetype":"Specify a valid issue type"}}
+
+
+======================================================================
+TICKET CREATION SUMMARY
+======================================================================
+✓ Successfully created: 4 tickets
+✗ Failed to create: 36 tickets
+======================================================================
+
+Created Tickets:
+  - AV11-277: Sprint 15: Core Node Implementation
+  - AV11-278: Sprint 16: Real-Time Infrastructure & Visualization
+  - AV11-279: Sprint 17: Advanced Features & Integration
+  - AV11-280: Sprint 18: Testing, Documentation & Deployment
+
+Next steps:
+1. Verify tickets in JIRA: https://aurigraphdlt.atlassian.net/browse/AV11
+2. Assign tickets to team members
+3. Set sprint dates and start sprints
+4. Update story points via JIRA UI
+

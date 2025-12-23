@@ -25,11 +25,11 @@ import java.util.List;
  * Live External Data API Resource
  *
  * Provides REST endpoints for accessing REAL external data:
- * - GET /api/v12/live/prices - Get all live cryptocurrency prices
- * - GET /api/v12/live/prices/{symbol} - Get specific price
- * - GET /api/v12/live/prices/stream/{symbol} - Stream price updates (SSE)
- * - GET /api/v12/live/market - Get aggregated market data
- * - POST /api/v12/live/tokenize/{symbol} - Tokenize live price data
+ * - GET /api/v11/live/prices - Get all live cryptocurrency prices
+ * - GET /api/v11/live/prices/{symbol} - Get specific price
+ * - GET /api/v11/live/prices/stream/{symbol} - Stream price updates (SSE)
+ * - GET /api/v11/live/market - Get aggregated market data
+ * - POST /api/v11/live/tokenize/{symbol} - Tokenize live price data
  *
  * All data comes from REAL external APIs (CoinGecko, Binance)
  * NO mock/cached data - refreshes every 30 seconds
@@ -37,7 +37,7 @@ import java.util.List;
  * @version 12.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/live")
+@Path("/api/v11/live")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -50,7 +50,7 @@ public class LiveExternalDataResource {
     LiveExternalDataService liveDataService;
 
     /**
-     * GET /api/v12/live/prices
+     * GET /api/v11/live/prices
      * Returns all live cryptocurrency prices from external APIs
      */
     @GET
@@ -65,7 +65,7 @@ public class LiveExternalDataResource {
         content = @Content(schema = @Schema(implementation = LivePriceData[].class))
     )
     public Uni<Response> getAllLivePrices() {
-        LOG.info("API Request: GET /api/v12/live/prices - Fetching REAL live prices");
+        LOG.info("API Request: GET /api/v11/live/prices - Fetching REAL live prices");
 
         return liveDataService.getAllLivePrices()
             .map(prices -> {
@@ -86,7 +86,7 @@ public class LiveExternalDataResource {
     }
 
     /**
-     * GET /api/v12/live/prices/{symbol}
+     * GET /api/v11/live/prices/{symbol}
      * Returns live price for a specific cryptocurrency
      */
     @GET
@@ -101,7 +101,7 @@ public class LiveExternalDataResource {
         @Parameter(description = "Cryptocurrency symbol (BTC, ETH, SOL, etc.)", required = true)
         @PathParam("symbol") String symbol
     ) {
-        LOG.infof("API Request: GET /api/v12/live/prices/%s - Fetching REAL price", symbol);
+        LOG.infof("API Request: GET /api/v11/live/prices/%s - Fetching REAL price", symbol);
 
         return liveDataService.getLivePrice(symbol)
             .map(priceData -> {
@@ -123,7 +123,7 @@ public class LiveExternalDataResource {
     }
 
     /**
-     * GET /api/v12/live/prices/stream/{symbol}
+     * GET /api/v11/live/prices/stream/{symbol}
      * Server-Sent Events stream of price updates
      */
     @GET
@@ -138,12 +138,12 @@ public class LiveExternalDataResource {
         @Parameter(description = "Cryptocurrency symbol", required = true)
         @PathParam("symbol") String symbol
     ) {
-        LOG.infof("API Request: GET /api/v12/live/prices/stream/%s - Starting SSE stream", symbol);
+        LOG.infof("API Request: GET /api/v11/live/prices/stream/%s - Starting SSE stream", symbol);
         return liveDataService.streamPriceUpdates(symbol);
     }
 
     /**
-     * GET /api/v12/live/market
+     * GET /api/v11/live/market
      * Returns aggregated market data
      */
     @GET
@@ -154,7 +154,7 @@ public class LiveExternalDataResource {
     )
     @APIResponse(responseCode = "200", description = "Market data retrieved successfully")
     public Uni<Response> getLiveMarketData() {
-        LOG.info("API Request: GET /api/v12/live/market - Fetching market data");
+        LOG.info("API Request: GET /api/v11/live/market - Fetching market data");
 
         return liveDataService.getLiveMarketData()
             .map(marketData -> {
@@ -171,7 +171,7 @@ public class LiveExternalDataResource {
     }
 
     /**
-     * POST /api/v12/live/tokenize/{symbol}
+     * POST /api/v11/live/tokenize/{symbol}
      * Tokenizes live price data and stores on blockchain
      */
     @POST
@@ -186,7 +186,7 @@ public class LiveExternalDataResource {
         @Parameter(description = "Cryptocurrency symbol to tokenize", required = true)
         @PathParam("symbol") String symbol
     ) {
-        LOG.infof("API Request: POST /api/v12/live/tokenize/%s - Tokenizing live data", symbol);
+        LOG.infof("API Request: POST /api/v11/live/tokenize/%s - Tokenizing live data", symbol);
 
         return liveDataService.tokenizeLivePrice(symbol)
             .map(tokenizedData -> {
@@ -205,7 +205,7 @@ public class LiveExternalDataResource {
     }
 
     /**
-     * GET /api/v12/live/status
+     * GET /api/v11/live/status
      * Returns service status and health
      */
     @GET

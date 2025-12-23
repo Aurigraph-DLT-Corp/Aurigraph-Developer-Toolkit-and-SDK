@@ -46,7 +46,7 @@ interface ExternalAPISource {
   enabled: boolean;
 }
 
-interface EINode {
+interface SlimNode {
   id: string;
   name: string;
   apiSources: ExternalAPISource[];
@@ -80,7 +80,7 @@ interface NodeConfigurationProps {
     channel: ChannelConfig;
     validatorNodes: ValidatorNode[];
     businessNodes: BusinessNode[];
-    eiNodes: EINode[];
+    slimNodes: SlimNode[];
   }) => void;
 }
 
@@ -114,7 +114,7 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
   ]);
 
   // Slim nodes state
-  const [eiNodes, setEINodes] = useState<EINode[]>([
+  const [slimNodes, setSlimNodes] = useState<SlimNode[]>([
     {
       id: 'slim-1',
       name: 'Trading Data Aggregator',
@@ -138,7 +138,7 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
       channel: channelConfig,
       validatorNodes,
       businessNodes,
-      eiNodes,
+      slimNodes,
     });
     onClose();
   };
@@ -163,13 +163,13 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
     setBusinessNodes([...businessNodes, newNode]);
   };
 
-  const addEINode = () => {
-    const newNode: EINode = {
-      id: `slim-${eiNodes.length + 1}`,
-      name: `External Integration (EI) Node ${eiNodes.length + 1}`,
+  const addSlimNode = () => {
+    const newNode: SlimNode = {
+      id: `slim-${slimNodes.length + 1}`,
+      name: `Slim Node ${slimNodes.length + 1}`,
       apiSources: [...defaultAPISources],
     };
-    setEINodes([...eiNodes, newNode]);
+    setSlimNodes([...slimNodes, newNode]);
   };
 
   const removeValidatorNode = (id: string) => {
@@ -180,13 +180,13 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
     setBusinessNodes(businessNodes.filter(node => node.id !== id));
   };
 
-  const removeEINode = (id: string) => {
-    setEINodes(eiNodes.filter(node => node.id !== id));
+  const removeSlimNode = (id: string) => {
+    setSlimNodes(slimNodes.filter(node => node.id !== id));
   };
 
-  const toggleAPISource = (eiNodeId: string, apiId: string) => {
-    setEINodes(eiNodes.map(node => {
-      if (node.id === eiNodeId) {
+  const toggleAPISource = (slimNodeId: string, apiId: string) => {
+    setSlimNodes(slimNodes.map(node => {
+      if (node.id === slimNodeId) {
         return {
           ...node,
           apiSources: node.apiSources.map(api =>
@@ -353,24 +353,24 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
             </AccordionDetails>
           </Accordion>
 
-          {/* External Integration (EI) Nodes with External API Sources */}
+          {/* Slim Nodes with External API Sources */}
           <Accordion defaultExpanded sx={{ bgcolor: '#1A1F3A', color: 'white' }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#00BFA5' }} />}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CloudQueueIcon sx={{ color: '#4FC3F7' }} />
-                <Typography variant="h6">External Integration (EI) Nodes (External APIs)</Typography>
-                <Chip label={eiNodes.length} size="small" color="info" />
+                <Typography variant="h6">Slim Nodes (External APIs)</Typography>
+                <Chip label={slimNodes.length} size="small" color="info" />
               </Box>
             </AccordionSummary>
             <AccordionDetails>
-              {eiNodes.map((eiNode) => (
-                <Card key={eiNode.id} sx={{ bgcolor: '#0A0E27', mb: 2 }}>
+              {slimNodes.map((slimNode) => (
+                <Card key={slimNode.id} sx={{ bgcolor: '#0A0E27', mb: 2 }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                       <Typography variant="h6" sx={{ color: 'white' }}>
-                        {eiNode.name}
+                        {slimNode.name}
                       </Typography>
-                      <IconButton onClick={() => removeEINode(eiNode.id)} sx={{ color: '#FF6B35' }}>
+                      <IconButton onClick={() => removeSlimNode(slimNode.id)} sx={{ color: '#FF6B35' }}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>
@@ -379,7 +379,7 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
                       External API Sources:
                     </Typography>
                     <List dense>
-                      {eiNode.apiSources.map((api) => (
+                      {slimNode.apiSources.map((api) => (
                         <ListItem key={api.id}>
                           <ApiIcon sx={{ mr: 1, color: api.enabled ? '#00BFA5' : '#666' }} />
                           <ListItemText
@@ -390,7 +390,7 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
                           <Switch
                             edge="end"
                             checked={api.enabled}
-                            onChange={() => toggleAPISource(eiNode.id, api.id)}
+                            onChange={() => toggleAPISource(slimNode.id, api.id)}
                             color="success"
                           />
                         </ListItem>
@@ -401,11 +401,11 @@ export const NodeConfiguration: React.FC<NodeConfigurationProps> = ({ open, onCl
               ))}
               <Button
                 startIcon={<AddIcon />}
-                onClick={addEINode}
+                onClick={addSlimNode}
                 variant="outlined"
                 sx={{ mt: 2, color: '#4FC3F7', borderColor: '#4FC3F7' }}
               >
-                Add External Integration (EI) Node
+                Add Slim Node
               </Button>
             </AccordionDetails>
           </Accordion>

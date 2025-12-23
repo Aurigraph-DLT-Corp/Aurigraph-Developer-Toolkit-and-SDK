@@ -6,33 +6,33 @@ on:
       - V12
       - main
     paths:
-      - "aurigraph-av10-7/aurigraph-v11-standalone/src/**"
-      - "aurigraph-av10-7/aurigraph-v11-standalone/pom.xml"
-      - ".github/workflows/v12-deploy-remote.yml"
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/src/**'
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/pom.xml'
+      - '.github/workflows/v12-deploy-remote.yml'
   workflow_dispatch:
     inputs:
       environment:
-        description: "Deployment environment"
+        description: 'Deployment environment'
         required: true
         type: choice
-        default: "production"
+        default: 'production'
         options:
           - production
           - staging
       skip_tests:
-        description: "Skip tests for faster deployment"
+        description: 'Skip tests for faster deployment'
         required: false
         type: boolean
         default: false
       force_deploy:
-        description: "Force deployment even if health checks fail"
+        description: 'Force deployment even if health checks fail'
         required: false
         type: boolean
         default: false
 
 env:
-  JAVA_VERSION: "21"
-  MAVEN_OPTS: "-Xmx4g"
+  JAVA_VERSION: '21'
+  MAVEN_OPTS: '-Xmx4g'
   # Remote server configuration
   REMOTE_HOST: dlt.aurigraph.io
   REMOTE_PORT: 22
@@ -43,11 +43,11 @@ env:
 
 jobs:
   # ============================================================
-  # BUILD AND DEPLOY (Combined to avoid GitHub artifact storage)
+  # PHASE 1: BUILD
   # ============================================================
-  build-and-deploy:
-    name: Build and Deploy V12
-    runs-on: [self-hosted, Linux, aurigraph-prod]
+  build:
+    name: Build V12 Application
+    runs-on: [self-hosted, linux, aurigraph]
     outputs:
       version: ${{ steps.version.outputs.version }}
       jar_name: ${{ steps.version.outputs.jar_name }}
@@ -62,8 +62,8 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
-          distribution: "temurin"
-          cache: "maven"
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Get version info
         id: version
@@ -97,61 +97,30 @@ jobs:
           ./mvnw test -B --fail-at-end || echo "⚠️ Some tests failed"
         continue-on-error: true
 
-      - name: Prepare artifact for deployment
-        id: prepare_artifact
-        run: |
-          echo "📦 Preparing artifact for direct deployment..."
-          mkdir -p ./artifact
-          cp aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar ./artifact/
-          ls -lh ./artifact/
-          echo "✅ Artifact ready for deployment (no GitHub storage needed)"
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: v12-jar
+          path: aurigraph-av10-7/aurigraph-v11-standalone/target/*-runner.jar
+          retention-days: 7
 
-      - name: Pre-deployment infrastructure fixes
-        id: infra_fixes
-        run: |
-          echo "🔧 Fixing infrastructure issues before deployment..."
+  # ============================================================
+  # PHASE 2: DEPLOY TO REMOTE SERVER
+  # ============================================================
+  deploy:
+    name: Deploy to Remote Server
+    runs-on: [self-hosted, linux, aurigraph]
+    needs: build
 
-          echo "=== Fix 1: PostgreSQL Container ==="
-          if docker ps | grep -q dlt-postgres; then
-            echo "✅ PostgreSQL already running"
-          elif docker ps -a | grep -q dlt-postgres; then
-            echo "⚠️  PostgreSQL container exists but not running, starting it..."
-            docker start dlt-postgres || echo "Failed to start PostgreSQL"
-            sleep 10
-          else
-            echo "⚠️  PostgreSQL container not found"
-            echo "Note: PostgreSQL will need to be started manually or via docker-compose"
-          fi
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          # Verify PostgreSQL health
-          if docker exec dlt-postgres pg_isready -U aurigraph > /dev/null 2>&1; then
-            echo "✅ PostgreSQL is healthy"
-          else
-            echo "⚠️  PostgreSQL not responding (may affect Login/Demo APIs)"
-            echo "Attempting to check if PostgreSQL is running on host..."
-            if systemctl is-active --quiet postgresql 2>/dev/null; then
-              echo "✅ PostgreSQL service is running on host"
-            fi
-          fi
-
-          echo ""
-          echo "=== Fix 2: LevelDB Directory ==="
-          if [ ! -d "/var/lib/aurigraph/leveldb" ]; then
-            echo "Creating LevelDB directory..."
-            sudo mkdir -p /var/lib/aurigraph/leveldb
-            sudo chown -R subbu:subbu /var/lib/aurigraph
-            sudo chmod -R 755 /var/lib/aurigraph
-            echo "✅ LevelDB directory created"
-          else
-            echo "✅ LevelDB directory exists"
-          fi
-
-          # Verify writable
-          if touch /var/lib/aurigraph/leveldb/test.txt 2>/dev/null && rm /var/lib/aurigraph/leveldb/test.txt 2>/dev/null; then
-            echo "✅ LevelDB directory is writable"
-          else
-            echo "⚠️  LevelDB directory not writable (may affect Token Creation API)"
-          fi
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: v12-jar
+          path: ./artifact
 
       - name: Pre-deployment health check
         id: pre_health
@@ -278,35 +247,6 @@ jobs:
             sudo journalctl -u aurigraph-v12 -n 50 --no-pager
             exit 1
           fi
-
-      - name: Sync JAR to Docker containers (symlink + restart)
-        run: |
-          echo "🐳 Ensuring Docker containers use the new JAR..."
-          cd /home/subbu
-
-          # Ensure directory exists
-          mkdir -p /home/subbu/aurigraph-v12
-
-          # Create/update symlink so Docker containers always read the latest JAR
-          # Docker mounts: /home/subbu/aurigraph-v12/ -> /app/
-          # Symlink: /home/subbu/aurigraph-v12/aurigraph-v12.jar -> /home/subbu/aurigraph-v12.jar
-          ln -sf /home/subbu/aurigraph-v12.jar /home/subbu/aurigraph-v12/aurigraph-v12.jar
-          echo "✅ Symlink ensures both paths point to same JAR"
-
-          # Verify symlink
-          ls -la /home/subbu/aurigraph-v12/aurigraph-v12.jar
-
-          # Restart Docker containers to reload the JAR (Java caches classes)
-          echo "🔄 Restarting Docker containers..."
-          docker restart aurigraph-validator-1 aurigraph-validator-2 aurigraph-validator-3 \
-                        aurigraph-validator-4 aurigraph-validator-5 \
-                        aurigraph-business-1 aurigraph-business-2 aurigraph-business-3 \
-                        aurigraph-ei-1 aurigraph-ei-2 aurigraph-ei-3 2>/dev/null || echo "⚠️ Some containers may not exist"
-
-          sleep 20
-          echo "📋 Container status:"
-          docker ps --format "table {{.Names}}\t{{.Status}}" | grep aurigraph || true
-          echo "✅ Docker containers restarted"
 
       - name: Health check
         id: health_check
@@ -492,12 +432,12 @@ jobs:
           fi
 
   # ============================================================
-  # PHASE 2: POST-DEPLOYMENT
+  # PHASE 3: POST-DEPLOYMENT
   # ============================================================
   post-deploy:
     name: Post-Deployment Tasks
-    runs-on: [self-hosted, Linux, aurigraph-prod]
-    needs: build-and-deploy
+    runs-on: [self-hosted, linux, aurigraph]
+    needs: [build, deploy]
     if: success()
 
     steps:
@@ -508,7 +448,7 @@ jobs:
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| **Environment** | ${{ inputs.environment || 'production' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Version** | ${{ needs.build-and-deploy.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ needs.build.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Actor** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
@@ -536,7 +476,7 @@ jobs:
                 {
                   "type": "section",
                   "fields": [
-                    {"type": "mrkdwn", "text": "*Version:*\n${{ needs.build-and-deploy.outputs.version }}"},
+                    {"type": "mrkdwn", "text": "*Version:*\n${{ needs.build.outputs.version }}"},
                     {"type": "mrkdwn", "text": "*Environment:*\n${{ inputs.environment || 'production' }}"},
                     {"type": "mrkdwn", "text": "*Branch:*\n${{ github.ref_name }}"},
                     {"type": "mrkdwn", "text": "*Actor:*\n${{ github.actor }}"}
@@ -565,8 +505,8 @@ jobs:
 
   notify-failure:
     name: Notify Failure
-    runs-on: [self-hosted, Linux, aurigraph-prod]
-    needs: build-and-deploy
+    runs-on: [self-hosted, linux, aurigraph]
+    needs: [build, deploy]
     if: failure()
 
     steps:

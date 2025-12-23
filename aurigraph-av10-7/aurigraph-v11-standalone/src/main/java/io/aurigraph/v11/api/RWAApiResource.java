@@ -26,7 +26,7 @@ import java.util.*;
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/rwa")
+@Path("/api/v11/rwa")
 @ApplicationScoped
 @Tag(name = "RWA API", description = "Real-World Asset tokenization operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -218,28 +218,11 @@ public class RWAApiResource {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    /**
-     * Get RWA statistics (alias for status endpoint)
-     * GET /api/v12/rwa/stats
-     * This is an alias endpoint for frontend compatibility
-     */
-    @GET
-    @Path("/stats")
-    @Operation(
-        summary = "Get RWA statistics",
-        description = "Retrieve RWA tokenization statistics (alias for /status)"
-    )
-    @APIResponse(responseCode = "200", description = "RWA statistics retrieved successfully")
-    public Uni<Response> getRWAStats() {
-        LOG.info("RWA stats requested");
-        return getRWAStatus();
-    }
-
     // ==================== ASSET TOKENIZATION ====================
 
     /**
      * Tokenize real-world asset
-     * POST /api/v12/rwa/tokenize
+     * POST /api/v11/rwa/tokenize
      */
     @POST
     @Path("/tokenize")
@@ -271,7 +254,7 @@ public class RWAApiResource {
 
     /**
      * List all tokenized assets
-     * GET /api/v12/rwa/tokens
+     * GET /api/v11/rwa/tokens
      */
     @GET
     @Path("/tokens")
@@ -313,7 +296,7 @@ public class RWAApiResource {
 
     /**
      * Get token details
-     * GET /api/v12/rwa/tokens/{tokenId}
+     * GET /api/v11/rwa/tokens/{tokenId}
      */
     @GET
     @Path("/tokens/{tokenId}")
@@ -375,60 +358,8 @@ public class RWAApiResource {
     // ==================== PORTFOLIO MANAGEMENT ====================
 
     /**
-     * Get portfolio overview
-     * GET /api/v12/rwa/portfolio
-     */
-    @GET
-    @Path("/portfolio")
-    @Operation(summary = "Get portfolio overview", description = "Get RWA token portfolio overview for the platform")
-    @APIResponse(responseCode = "200", description = "Portfolio overview retrieved successfully")
-    public Uni<Response> getPortfolioOverview() {
-        LOG.info("GET /api/v12/rwa/portfolio - Fetching portfolio overview");
-
-        return Uni.createFrom().item(() -> {
-            Map<String, Object> overview = new LinkedHashMap<>();
-            overview.put("totalValue", 4567890123.45);
-            overview.put("totalAssets", 1234);
-            overview.put("totalHolders", 12345);
-            overview.put("change24h", 2.35);
-            overview.put("change7d", 5.67);
-            overview.put("change30d", 12.45);
-
-            // Asset allocation
-            overview.put("allocation", Map.of(
-                "realEstate", Map.of("percentage", 45.2, "value", 2064926935.92, "count", 456),
-                "commodities", Map.of("percentage", 20.5, "value", 936417675.31, "count", 234),
-                "bonds", Map.of("percentage", 15.8, "value", 721726639.50, "count", 189),
-                "art", Map.of("percentage", 10.5, "value", 479628462.96, "count", 156),
-                "privateEquity", Map.of("percentage", 8.0, "value", 365431209.88, "count", 121)
-            ));
-
-            // Top performing assets
-            overview.put("topPerformers", List.of(
-                Map.of("tokenId", "RWA-00123", "name", "Manhattan Luxury Tower", "return", 15.6, "value", 25000000.00),
-                Map.of("tokenId", "RWA-00456", "name", "Gold Reserve Fund", "return", 12.3, "value", 18500000.00),
-                Map.of("tokenId", "RWA-00789", "name", "Corporate Bond Series A", "return", 8.9, "value", 12000000.00)
-            ));
-
-            // Risk metrics
-            overview.put("riskMetrics", Map.of(
-                "volatility", 4.5,
-                "sharpeRatio", 2.1,
-                "maxDrawdown", -8.2,
-                "beta", 0.65,
-                "correlationSP500", 0.35
-            ));
-
-            overview.put("lastUpdated", Instant.now().toString());
-            overview.put("timestamp", System.currentTimeMillis());
-
-            return Response.ok(overview).build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
      * Get user portfolio
-     * GET /api/v12/rwa/portfolio/{address}
+     * GET /api/v11/rwa/portfolio/{address}
      */
     @GET
     @Path("/portfolio/{address}")
@@ -486,7 +417,7 @@ public class RWAApiResource {
 
     /**
      * List oracle sources
-     * GET /api/v12/rwa/oracle/sources
+     * GET /api/v11/rwa/oracle/sources
      */
     @GET
     @Path("/oracle/sources")
@@ -528,7 +459,7 @@ public class RWAApiResource {
 
     /**
      * Get oracle price for asset
-     * GET /api/v12/rwa/oracle/price/{assetId}
+     * GET /api/v11/rwa/oracle/price/{assetId}
      */
     @GET
     @Path("/oracle/price/{assetId}")
@@ -561,157 +492,6 @@ public class RWAApiResource {
             price.timestamp = System.currentTimeMillis();
 
             return Response.ok(price).build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    // ==================== DIVIDENDS ====================
-
-    /**
-     * Get dividends overview
-     * GET /api/v12/rwa/dividends
-     */
-    @GET
-    @Path("/dividends")
-    @Operation(summary = "Get dividends overview", description = "Get RWA dividends distribution overview")
-    @APIResponse(responseCode = "200", description = "Dividends overview retrieved successfully")
-    public Uni<Response> getDividendsOverview() {
-        LOG.info("GET /api/v12/rwa/dividends - Fetching dividends overview");
-
-        return Uni.createFrom().item(() -> {
-            Map<String, Object> dividends = new LinkedHashMap<>();
-            dividends.put("totalDistributed", 125678900.45);
-            dividends.put("totalDistributedLast30Days", 12567890.00);
-            dividends.put("averageYield", 5.2);
-            dividends.put("totalDistributions", 456);
-            dividends.put("pendingDistributions", 23);
-            dividends.put("nextDistributionDate", Instant.now().plusSeconds(3 * 24 * 60 * 60).toString());
-
-            // Distribution history
-            dividends.put("recentDistributions", List.of(
-                Map.of(
-                    "id", "DIV-001",
-                    "assetName", "Manhattan Luxury Tower",
-                    "amount", 156789.00,
-                    "yieldPercentage", 5.5,
-                    "distributionDate", Instant.now().minusSeconds(7 * 24 * 60 * 60).toString(),
-                    "holders", 234
-                ),
-                Map.of(
-                    "id", "DIV-002",
-                    "assetName", "Corporate Bond Series A",
-                    "amount", 89500.00,
-                    "yieldPercentage", 4.8,
-                    "distributionDate", Instant.now().minusSeconds(14 * 24 * 60 * 60).toString(),
-                    "holders", 156
-                ),
-                Map.of(
-                    "id", "DIV-003",
-                    "assetName", "Gold Mining Rights",
-                    "amount", 67890.00,
-                    "yieldPercentage", 3.2,
-                    "distributionDate", Instant.now().minusSeconds(21 * 24 * 60 * 60).toString(),
-                    "holders", 89
-                )
-            ));
-
-            // Distribution by asset type
-            dividends.put("distributionsByType", Map.of(
-                "realEstate", Map.of("total", 45678900.00, "percentage", 36.3, "avgYield", 5.5),
-                "bonds", Map.of("total", 34567800.00, "percentage", 27.5, "avgYield", 4.8),
-                "commodities", Map.of("total", 23456700.00, "percentage", 18.7, "avgYield", 3.2),
-                "privateEquity", Map.of("total", 21975500.45, "percentage", 17.5, "avgYield", 8.2)
-            ));
-
-            // Upcoming distributions
-            dividends.put("upcomingDistributions", List.of(
-                Map.of(
-                    "assetName", "Tech Campus Office Complex",
-                    "expectedAmount", 234567.00,
-                    "expectedDate", Instant.now().plusSeconds(3 * 24 * 60 * 60).toString(),
-                    "eligibleHolders", 345
-                ),
-                Map.of(
-                    "assetName", "Healthcare REIT Fund",
-                    "expectedAmount", 178900.00,
-                    "expectedDate", Instant.now().plusSeconds(10 * 24 * 60 * 60).toString(),
-                    "eligibleHolders", 267
-                )
-            ));
-
-            dividends.put("lastUpdated", Instant.now().toString());
-            dividends.put("timestamp", System.currentTimeMillis());
-
-            return Response.ok(dividends).build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    // ==================== COMPLIANCE ====================
-
-    /**
-     * Get compliance overview
-     * GET /api/v12/rwa/compliance
-     */
-    @GET
-    @Path("/compliance")
-    @Operation(summary = "Get compliance overview", description = "Get RWA compliance and regulatory status overview")
-    @APIResponse(responseCode = "200", description = "Compliance overview retrieved successfully")
-    public Uni<Response> getComplianceOverview() {
-        LOG.info("GET /api/v12/rwa/compliance - Fetching compliance overview");
-
-        return Uni.createFrom().item(() -> {
-            Map<String, Object> compliance = new LinkedHashMap<>();
-            compliance.put("overallStatus", "COMPLIANT");
-            compliance.put("complianceScore", 98.5);
-            compliance.put("lastAuditDate", Instant.now().minusSeconds(15 * 24 * 60 * 60).toString());
-            compliance.put("nextAuditDate", Instant.now().plusSeconds(75 * 24 * 60 * 60).toString());
-
-            // KYC/AML stats
-            compliance.put("kyc", Map.of(
-                "verifiedInvestors", 12345,
-                "pendingVerification", 234,
-                "rejectedLast30Days", 12,
-                "verificationRate", 98.2,
-                "avgVerificationTime", "4.5 hours"
-            ));
-
-            // Asset compliance
-            compliance.put("assets", Map.of(
-                "totalAssets", 1234,
-                "fullyCompliant", 1189,
-                "pendingReview", 35,
-                "actionRequired", 10,
-                "complianceRate", 96.4
-            ));
-
-            // Regulatory jurisdictions
-            compliance.put("jurisdictions", List.of(
-                Map.of("name", "United States", "status", "COMPLIANT", "registrations", 456, "lastReview", Instant.now().minusSeconds(30 * 24 * 60 * 60).toString()),
-                Map.of("name", "European Union", "status", "COMPLIANT", "registrations", 234, "lastReview", Instant.now().minusSeconds(45 * 24 * 60 * 60).toString()),
-                Map.of("name", "United Kingdom", "status", "COMPLIANT", "registrations", 178, "lastReview", Instant.now().minusSeconds(20 * 24 * 60 * 60).toString()),
-                Map.of("name", "Singapore", "status", "COMPLIANT", "registrations", 145, "lastReview", Instant.now().minusSeconds(15 * 24 * 60 * 60).toString()),
-                Map.of("name", "Japan", "status", "PENDING_REVIEW", "registrations", 89, "lastReview", Instant.now().minusSeconds(60 * 24 * 60 * 60).toString())
-            ));
-
-            // Recent compliance actions
-            compliance.put("recentActions", List.of(
-                Map.of("type", "AUDIT_COMPLETED", "description", "Q3 2025 regulatory audit completed", "date", Instant.now().minusSeconds(15 * 24 * 60 * 60).toString(), "status", "PASSED"),
-                Map.of("type", "KYC_UPDATE", "description", "Enhanced KYC procedures implemented", "date", Instant.now().minusSeconds(30 * 24 * 60 * 60).toString(), "status", "IMPLEMENTED"),
-                Map.of("type", "REGISTRATION", "description", "SEC Form D filed for new offering", "date", Instant.now().minusSeconds(7 * 24 * 60 * 60).toString(), "status", "APPROVED")
-            ));
-
-            // Compliance metrics
-            compliance.put("metrics", Map.of(
-                "amlChecksLast30Days", 4567,
-                "sanctionsScreenings", 12345,
-                "flaggedTransactions", 23,
-                "resolvedFlags", 21,
-                "averageResolutionTime", "2.3 hours"
-            ));
-
-            compliance.put("lastUpdated", Instant.now().toString());
-            compliance.put("timestamp", System.currentTimeMillis());
-
-            return Response.ok(compliance).build();
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
@@ -920,293 +700,8 @@ public class RWAApiResource {
         public String timestamp;
     }
 
-    // ==================== REGISTRY ====================
-
     /**
-     * GET /api/v12/rwa/registry
-     * Returns complete RWA registry hierarchy with Merkle tree verification
-     * Hierarchy: Underlying Assets → Primary Assets → Secondary Assets → Tokens → Contracts → Executions
-     */
-    @GET
-    @Path("/registry")
-    @Operation(
-        summary = "Get RWA registry navigation",
-        description = "Returns complete RWA registry hierarchy with Merkle tree verification"
-    )
-    @APIResponse(responseCode = "200", description = "RWA registry retrieved successfully")
-    public Uni<Response> getRWARegistry() {
-        LOG.info("GET /api/v12/rwa/registry - Fetching RWA registry navigation");
-
-        return Uni.createFrom().item(() -> {
-            // Build comprehensive registry hierarchy with Merkle verification
-            List<Map<String, Object>> underlyingAssets = new ArrayList<>();
-
-            // Underlying Asset 1: Manhattan Commercial Tower
-            Map<String, Object> ua1 = new HashMap<>();
-            ua1.put("id", "UA-001");
-            ua1.put("name", "Manhattan Commercial Tower");
-            ua1.put("type", "real-estate");
-            ua1.put("value", 50000000.00);
-            ua1.put("location", "New York, USA");
-            ua1.put("status", "verified");
-            ua1.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            // Primary Asset under UA-001
-            Map<String, Object> pa1 = new HashMap<>();
-            pa1.put("id", "PA-001");
-            pa1.put("name", "Tower Equity Holdings");
-            pa1.put("underlyingAssetId", "UA-001");
-            pa1.put("ownership", 100);
-            pa1.put("value", 50000000.00);
-            pa1.put("status", "active");
-            pa1.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            // Secondary Assets
-            Map<String, Object> sa1 = new HashMap<>();
-            sa1.put("id", "SA-001");
-            sa1.put("name", "Class A Shares");
-            sa1.put("primaryAssetId", "PA-001");
-            sa1.put("fractionType", "equity");
-            sa1.put("value", 30000000.00);
-            sa1.put("status", "active");
-            sa1.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            Map<String, Object> sa2 = new HashMap<>();
-            sa2.put("id", "SA-002");
-            sa2.put("name", "Class B Debt Notes");
-            sa2.put("primaryAssetId", "PA-001");
-            sa2.put("fractionType", "debt");
-            sa2.put("value", 20000000.00);
-            sa2.put("status", "active");
-            sa2.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            // Tokens
-            Map<String, Object> tk1 = new HashMap<>();
-            tk1.put("id", "TK-001");
-            tk1.put("symbol", "MCT-A");
-            tk1.put("name", "Manhattan Commercial Token A");
-            tk1.put("secondaryAssetId", "SA-001");
-            tk1.put("tokenType", "primary");
-            tk1.put("totalSupply", 10000000);
-            tk1.put("circulatingSupply", 8500000);
-            tk1.put("price", 3.0);
-            tk1.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            Map<String, Object> tk2 = new HashMap<>();
-            tk2.put("id", "TK-002");
-            tk2.put("symbol", "MCT-B");
-            tk2.put("name", "Manhattan Commercial Token B");
-            tk2.put("secondaryAssetId", "SA-001");
-            tk2.put("tokenType", "secondary");
-            tk2.put("totalSupply", 5000000);
-            tk2.put("circulatingSupply", 4200000);
-            tk2.put("price", 2.5);
-            tk2.put("contracts", List.of());
-            tk2.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            Map<String, Object> tk3 = new HashMap<>();
-            tk3.put("id", "TK-003");
-            tk3.put("symbol", "MCT-COMP");
-            tk3.put("name", "Manhattan Composite Token");
-            tk3.put("secondaryAssetId", "SA-002");
-            tk3.put("tokenType", "composite");
-            tk3.put("totalSupply", 2000000);
-            tk3.put("circulatingSupply", 1800000);
-            tk3.put("price", 10.0);
-            tk3.put("contracts", List.of());
-            tk3.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            // Contracts
-            Map<String, Object> ct1 = new HashMap<>();
-            ct1.put("id", "CT-001");
-            ct1.put("name", "Distribution Agreement 2025");
-            ct1.put("type", "hybrid");
-            ct1.put("status", "active");
-            ct1.put("tokenId", "TK-001");
-            ct1.put("value", 5000000.00);
-            ct1.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            // Executions
-            Map<String, Object> ex1 = new HashMap<>();
-            ex1.put("id", "EX-001");
-            ex1.put("contractId", "CT-001");
-            ex1.put("timestamp", Instant.now().toString());
-            ex1.put("action", "Dividend Distribution");
-            ex1.put("result", "success");
-            ex1.put("txHash", "0xabc123def456789abc123def456789abc123def456789");
-            ex1.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a",
-                "verified", true,
-                "lastVerified", Instant.now().toString()
-            ));
-
-            Map<String, Object> ex2 = new HashMap<>();
-            ex2.put("id", "EX-002");
-            ex2.put("contractId", "CT-001");
-            ex2.put("timestamp", Instant.now().minusSeconds(86400).toString());
-            ex2.put("action", "Compliance Check");
-            ex2.put("result", "success");
-            ex2.put("txHash", "0xdef456abc789def456abc789def456abc789def456789");
-            ex2.put("merkle", Map.of(
-                "rootHash", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "leafHash", "0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b",
-                "verified", true,
-                "lastVerified", Instant.now().minusSeconds(86400).toString()
-            ));
-
-            // Build hierarchy
-            ct1.put("executions", List.of(ex1, ex2));
-            tk1.put("contracts", List.of(ct1));
-            sa1.put("tokens", List.of(tk1, tk2));
-            sa2.put("tokens", List.of(tk3));
-            pa1.put("secondaryAssets", List.of(sa1, sa2));
-            ua1.put("primaryAssets", List.of(pa1));
-
-            // Second underlying asset
-            Map<String, Object> ua2 = new HashMap<>();
-            ua2.put("id", "UA-002");
-            ua2.put("name", "Picasso Collection");
-            ua2.put("type", "art");
-            ua2.put("value", 15000000.00);
-            ua2.put("location", "London, UK");
-            ua2.put("status", "verified");
-            ua2.put("primaryAssets", List.of());
-            ua2.put("merkle", Map.of(
-                "rootHash", "0xabc123def456789abc123def456789abc123def4",
-                "leafHash", "0xdef456789abc123def456789abc123def456789a",
-                "verified", true,
-                "lastVerified", Instant.now().minusSeconds(3600).toString()
-            ));
-
-            // Third underlying asset with deeper hierarchy
-            Map<String, Object> ua3 = new HashMap<>();
-            ua3.put("id", "UA-003");
-            ua3.put("name", "Pacific Gold Reserves");
-            ua3.put("type", "commodities");
-            ua3.put("value", 25000000.00);
-            ua3.put("location", "Singapore");
-            ua3.put("status", "verified");
-            ua3.put("merkle", Map.of(
-                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
-                "leafHash", "0x321abc987654321abc987654321abc987654321a",
-                "verified", true,
-                "lastVerified", Instant.now().minusSeconds(7200).toString()
-            ));
-
-            Map<String, Object> pa3 = new HashMap<>();
-            pa3.put("id", "PA-003");
-            pa3.put("name", "Gold Bullion Trust");
-            pa3.put("underlyingAssetId", "UA-003");
-            pa3.put("ownership", 100);
-            pa3.put("value", 25000000.00);
-            pa3.put("status", "active");
-            pa3.put("merkle", Map.of(
-                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
-                "leafHash", "0x654321abc987654321abc987654321abc987654b",
-                "verified", true,
-                "lastVerified", Instant.now().minusSeconds(7200).toString()
-            ));
-
-            Map<String, Object> sa3 = new HashMap<>();
-            sa3.put("id", "SA-003");
-            sa3.put("name", "Gold Backed Securities");
-            sa3.put("primaryAssetId", "PA-003");
-            sa3.put("fractionType", "hybrid");
-            sa3.put("value", 25000000.00);
-            sa3.put("status", "active");
-            sa3.put("merkle", Map.of(
-                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
-                "leafHash", "0x987654321abc987654321abc987654321abc9876",
-                "verified", true,
-                "lastVerified", Instant.now().minusSeconds(7200).toString()
-            ));
-
-            Map<String, Object> tk4 = new HashMap<>();
-            tk4.put("id", "TK-004");
-            tk4.put("symbol", "GLD-T");
-            tk4.put("name", "Gold Trust Token");
-            tk4.put("secondaryAssetId", "SA-003");
-            tk4.put("tokenType", "primary");
-            tk4.put("totalSupply", 25000000);
-            tk4.put("circulatingSupply", 20000000);
-            tk4.put("price", 1.0);
-            tk4.put("contracts", List.of());
-            tk4.put("merkle", Map.of(
-                "rootHash", "0xfed987654321abc987654321abc987654321abc9",
-                "leafHash", "0xabc987654321abc987654321abc987654321abc9",
-                "verified", true,
-                "lastVerified", Instant.now().minusSeconds(7200).toString()
-            ));
-
-            sa3.put("tokens", List.of(tk4));
-            pa3.put("secondaryAssets", List.of(sa3));
-            ua3.put("primaryAssets", List.of(pa3));
-
-            underlyingAssets.add(ua1);
-            underlyingAssets.add(ua2);
-            underlyingAssets.add(ua3);
-
-            Map<String, Object> registry = new HashMap<>();
-            registry.put("assets", underlyingAssets);
-            registry.put("stats", Map.of(
-                "totalUnderlyingAssets", 3,
-                "totalPrimaryAssets", 2,
-                "totalSecondaryAssets", 3,
-                "totalTokens", 4,
-                "totalContracts", 1,
-                "totalExecutions", 2,
-                "totalValue", 90000000.00,
-                "merkleTreeRoot", "0x8f3a2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-                "lastUpdated", Instant.now().toString()
-            ));
-
-            return Response.ok(registry).build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * POST /api/v12/rwa/transfer
+     * POST /api/v11/rwa/transfer
      * Transfer RWA tokens between addresses
      */
     @POST
@@ -1233,140 +728,6 @@ public class RWAApiResource {
         }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
     }
 
-    // ==================== POOLS & FRACTIONAL ====================
-
-    /**
-     * GET /api/v12/rwa/pools
-     * Returns RWA liquidity pools
-     */
-    @GET
-    @Path("/pools")
-    @Operation(summary = "Get RWA pools", description = "Returns RWA liquidity and investment pools")
-    @APIResponse(responseCode = "200", description = "RWA pools retrieved successfully")
-    public Uni<Response> getRWAPools() {
-        LOG.info("GET /api/v12/rwa/pools - Fetching RWA pools");
-
-        return Uni.createFrom().item(() -> {
-            List<Map<String, Object>> pools = new ArrayList<>();
-
-            // Real Estate Pool - using LinkedHashMap because Map.of() max is 10 entries
-            Map<String, Object> realEstatePool = new LinkedHashMap<>();
-            realEstatePool.put("pool_id", "POOL-REAL-001");
-            realEstatePool.put("pool_name", "Premium Real Estate Pool");
-            realEstatePool.put("asset_class", "real-estate");
-            realEstatePool.put("total_value_locked", "$245,234,567");
-            realEstatePool.put("token_count", 456);
-            realEstatePool.put("lp_count", 34567);
-            realEstatePool.put("apy_percentage", 5.2);
-            realEstatePool.put("daily_volume", "$2,345,678");
-            realEstatePool.put("min_investment", "$1,000");
-            realEstatePool.put("lockup_period", "30 days");
-            realEstatePool.put("rebalance_frequency", "quarterly");
-            pools.add(realEstatePool);
-
-            // Carbon Credits Pool
-            Map<String, Object> carbonPool = new LinkedHashMap<>();
-            carbonPool.put("pool_id", "POOL-CARBON-001");
-            carbonPool.put("pool_name", "Global Carbon Pool");
-            carbonPool.put("asset_class", "carbon-credits");
-            carbonPool.put("total_value_locked", "$123,456,789");
-            carbonPool.put("token_count", 234);
-            carbonPool.put("lp_count", 56789);
-            carbonPool.put("apy_percentage", 3.8);
-            carbonPool.put("daily_volume", "$1,234,567");
-            carbonPool.put("min_investment", "$500");
-            carbonPool.put("lockup_period", "15 days");
-            carbonPool.put("rebalance_frequency", "monthly");
-            pools.add(carbonPool);
-
-            // Commodity Pool
-            Map<String, Object> commodityPool = new LinkedHashMap<>();
-            commodityPool.put("pool_id", "POOL-COMMODITY-001");
-            commodityPool.put("pool_name", "Precious Metals Pool");
-            commodityPool.put("asset_class", "commodity");
-            commodityPool.put("total_value_locked", "$89,567,234");
-            commodityPool.put("token_count", 345);
-            commodityPool.put("lp_count", 23456);
-            commodityPool.put("apy_percentage", 2.9);
-            commodityPool.put("daily_volume", "$890,234");
-            commodityPool.put("min_investment", "$2,000");
-            commodityPool.put("lockup_period", "60 days");
-            commodityPool.put("rebalance_frequency", "semi-annual");
-            pools.add(commodityPool);
-
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("status", 200);
-            response.put("message", "RWA pools retrieved");
-            response.put("data", pools);
-            response.put("timestamp", Instant.now().toString());
-
-            return Response.ok(response).build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
-    /**
-     * GET /api/v12/rwa/fractional
-     * Returns fractional RWA tokens
-     */
-    @GET
-    @Path("/fractional")
-    @Operation(summary = "Get fractional tokens", description = "Returns fractional RWA token information")
-    @APIResponse(responseCode = "200", description = "Fractional tokens retrieved successfully")
-    public Uni<Response> getFractionalTokens() {
-        LOG.info("GET /api/v12/rwa/fractional - Fetching fractional tokens");
-
-        return Uni.createFrom().item(() -> {
-            List<Map<String, Object>> fractionalTokens = new ArrayList<>();
-
-            // AURREAL fractional tokens
-            fractionalTokens.add(Map.of(
-                "fractional_id", "FRAC-REAL-001",
-                "original_token_id", "AURREAL",
-                "fraction_value", "$0.01",
-                "total_fractions", "57,029,250,000",
-                "circulating_fractions", "456,234,891",
-                "min_purchase_unit", 1,
-                "transferable", true,
-                "tradable_on", "DEX-AURIGRAPH",
-                "status", "active"
-            ));
-
-            // AURCARBONX fractional tokens
-            fractionalTokens.add(Map.of(
-                "fractional_id", "FRAC-CARBON-001",
-                "original_token_id", "AURCARBONX",
-                "fraction_value", "$0.001",
-                "total_fractions", "234567890000",
-                "circulating_fractions", "123456789012",
-                "min_purchase_unit", 10,
-                "transferable", true,
-                "tradable_on", "DEX-AURIGRAPH",
-                "status", "active"
-            ));
-
-            // AUROGOLD fractional tokens
-            fractionalTokens.add(Map.of(
-                "fractional_id", "FRAC-GOLD-001",
-                "original_token_id", "AUROGOLD",
-                "fraction_value", "$0.001",
-                "total_fractions", "145234567000",
-                "circulating_fractions", "123456789012",
-                "min_purchase_unit", 10,
-                "transferable", true,
-                "tradable_on", "DEX-AURIGRAPH",
-                "status", "active"
-            ));
-
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("status", 200);
-            response.put("message", "Fractional tokens retrieved");
-            response.put("data", fractionalTokens);
-            response.put("timestamp", Instant.now().toString());
-
-            return Response.ok(response).build();
-        }).runSubscriptionOn(r -> Thread.startVirtualThread(r));
-    }
-
     /**
      * RWA Transfer Request DTO
      */
@@ -1377,14 +738,4 @@ public class RWAApiResource {
         String tokenId,
         String metadata
     ) {}
-
-    // NOTE: V11 API endpoints removed (Dec 18, 2025) - all traffic migrated to V12
-    // The following V12 endpoints serve all RWA functionality:
-    // - GET /api/v12/rwa/assets
-    // - GET /api/v12/rwa/registry
-    // - GET /api/v12/rwa/tokens/{tokenId}/ownerships
-    // - GET /api/v12/rwa/assets/{assetId}/valuation-history
-    // - GET /api/v12/rwa/assets/{assetId}/dividends
-    // - GET /api/v12/rwa/assets/{assetId}/trading-volume
-
 }

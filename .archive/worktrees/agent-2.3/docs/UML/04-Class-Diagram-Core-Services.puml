@@ -1,0 +1,299 @@
+@startuml Aurigraph_DLT_Class_Diagram
+title Aurigraph DLT - Class Diagram (Core Services)
+
+skinparam linetype ortho
+
+package "Core Services" {
+    interface ITransactionService {
+        +submitTransaction(tx: Transaction): Promise<TransactionReceipt>
+        +getTransaction(txHash: String): Promise<Transaction>
+        +getTransactionStatus(txHash: String): Promise<TransactionStatus>
+        +validateTransaction(tx: Transaction): Promise<ValidationResult>
+        +mempool: TransactionMempool
+    }
+
+    class TransactionService implements ITransactionService {
+        -mempool: TransactionMempool
+        -stateStore: RocksDB
+        -database: PostgreSQL
+        -signer: CryptoService
+        --
+        +submitTransaction(tx: Transaction): Promise<TransactionReceipt>
+        +getTransaction(txHash: String): Promise<Transaction>
+        +getTransactionStatus(txHash: String): Promise<TransactionStatus>
+        +validateTransaction(tx: Transaction): Promise<ValidationResult>
+        -validateSignature(tx: Transaction): Boolean
+        -checkBalance(addr: String, amount: BigDecimal): Boolean
+        -calculateFee(tx: Transaction): BigDecimal
+        -broadcastToConsensus(tx: Transaction): void
+    }
+
+    interface IConsensusService {
+        +proposeBlock(txs: Transaction[]): Promise<Block>
+        +getConsensusState(): Promise<ConsensusState>
+        +getLeader(): Promise<ValidatorNode>
+        +getCommittedBlocks(): Promise<Block[]>
+    }
+
+    class HyperRAFTConsensus implements IConsensusService {
+        -currentTerm: Long
+        -currentLeader: ValidatorNode
+        -votedFor: ValidatorNode
+        -log: ReplicatedLog
+        -stateMachine: BlockStateMachine
+        -aiOptimizer: AIOptimizationService
+        --
+        +proposeBlock(txs: Transaction[]): Promise<Block>
+        +getConsensusState(): Promise<ConsensusState>
+        +getLeader(): Promise<ValidatorNode>
+        +getCommittedBlocks(): Promise<Block[]>
+        -leaderElection(): void
+        -replicateLog(entry: LogEntry): void
+        -applyCommittedEntries(): void
+        -computeAIOrdering(txs: Transaction[]): Transaction[]
+        -validateByzantine(): Boolean
+    }
+
+    interface ICryptoService {
+        +sign(data: ByteArray): Signature
+        +verify(data: ByteArray, sig: Signature): Boolean
+        +generateKeyPair(): KeyPair
+        +hashData(data: ByteArray): Hash
+    }
+
+    class QuantumCryptoService implements ICryptoService {
+        -privateKey: PrivateKey
+        -publicKey: PublicKey
+        -algorithm: CRYSTALSDilithium
+        --
+        +sign(data: ByteArray): Signature
+        +verify(data: ByteArray, sig: Signature): Boolean
+        +generateKeyPair(): KeyPair
+        +hashData(data: ByteArray): Hash
+        -encapsulate(publicKey: PublicKey): SharedSecret
+        -decapsulate(ciphertext: ByteArray): SharedSecret
+    }
+
+    interface ISmartContractService {
+        +deployContract(code: ByteArray): Promise<ContractAddress>
+        +executeContract(addr: ContractAddress, method: String, input: ByteArray): Promise<ExecutionResult>
+        +getContractState(addr: ContractAddress): Promise<StateRoot>
+    }
+
+    class SmartContractService implements ISmartContractService {
+        -wasmRuntime: WasmRuntime
+        -stateStore: RocksDB
+        -eventEmitter: EventEmitter
+        --
+        +deployContract(code: ByteArray): Promise<ContractAddress>
+        +executeContract(addr: ContractAddress, method: String, input: ByteArray): Promise<ExecutionResult>
+        +getContractState(addr: ContractAddress): Promise<StateRoot>
+        -validateWasm(code: ByteArray): Boolean
+        -executeWasm(instance: WasmInstance, method: String, input: ByteArray): ExecutionResult
+        -updateStateRoot(stateChanges: StateChange[]): StateRoot
+        -emitEvent(event: ContractEvent): void
+    }
+
+    interface IAuthenticationService {
+        +authenticate(username: String, password: String): Promise<AuthToken>
+        +verifyToken(token: AuthToken): Promise<Claims>
+        +refreshToken(refreshToken: String): Promise<AuthToken>
+        +logout(token: AuthToken): void
+    }
+
+    class JWTAuthenticationService implements IAuthenticationService {
+        -jwtSecret: String
+        -refreshSecret: String
+        -tokenTTL: Long
+        -database: PostgreSQL
+        --
+        +authenticate(username: String, password: String): Promise<AuthToken>
+        +verifyToken(token: AuthToken): Promise<Claims>
+        +refreshToken(refreshToken: String): Promise<AuthToken>
+        +logout(token: AuthToken): void
+        -hashPassword(password: String): String
+        -verifyPassword(password: String, hash: String): Boolean
+        -generateJWT(user: User): AuthToken
+        -validateClaims(claims: Claims): Boolean
+    }
+
+    interface ICrossChainBridge {
+        +lockAsset(asset: Asset, destination: Chain): Promise<BridgeTx>
+        +mintAsset(proof: BridgeProof): Promise<BridgeTx>
+        +redeemAsset(asset: Asset): Promise<BridgeTx>
+        +getBridgeStatus(txId: String): Promise<BridgeStatus>
+    }
+
+    class CrossChainBridgeService implements ICrossChainBridge {
+        -multisigWallet: MultiSigWallet
+        -oracleNetwork: OracleNetwork
+        -stateStore: RocksDB
+        --
+        +lockAsset(asset: Asset, destination: Chain): Promise<BridgeTx>
+        +mintAsset(proof: BridgeProof): Promise<BridgeTx>
+        +redeemAsset(asset: Asset): Promise<BridgeTx>
+        +getBridgeStatus(txId: String): Promise<BridgeStatus>
+        -validateLock(asset: Asset): Boolean
+        -gatherOracleSignatures(txId: String): Signature[]
+        -executeMultiSig(tx: BridgeTx, sigs: Signature[]): void
+    }
+
+    interface IRWATRegistry {
+        +tokenizeAsset(asset: RealWorldAsset): Promise<RWATToken>
+        +getTokenMetadata(tokenId: String): Promise<TokenMetadata>
+        +updateValuation(tokenId: String, newValue: BigDecimal): Promise<void>
+        +verifyOwnership(tokenId: String, owner: String): Promise<Boolean>
+    }
+
+    class RWATRegistryService implements IRWATRegistry {
+        -merkleTree: MerkleTree
+        -oracleNetwork: OracleNetwork
+        -smartContract: SmartContractService
+        --
+        +tokenizeAsset(asset: RealWorldAsset): Promise<RWATToken>
+        +getTokenMetadata(tokenId: String): Promise<TokenMetadata>
+        +updateValuation(tokenId: String, newValue: BigDecimal): Promise<void>
+        +verifyOwnership(tokenId: String, owner: String): Promise<Boolean>
+        -computeMerkleRoot(assets: RealWorldAsset[]): Hash
+        -getOracleAttestation(assetId: String): OracleAttestation
+        -deployTokenContract(asset: RealWorldAsset): ContractAddress
+    }
+
+    interface IAIOptimizationService {
+        +optimizeTransactionOrder(txs: Transaction[]): Transaction[]
+        +predictBlockFinality(block: Block): FinalizationTime
+        +optimizeConsensusParameters(): ConsensusParameters
+    }
+
+    class AIOptimizationService implements IAIOptimizationService {
+        -model: MLModel
+        -trainingData: DataStore
+        -learningRate: Double
+        --
+        +optimizeTransactionOrder(txs: Transaction[]): Transaction[]
+        +predictBlockFinality(block: Block): FinalizationTime
+        +optimizeConsensusParameters(): ConsensusParameters
+        -extractFeatures(tx: Transaction): FeatureVector
+        -rankByPriority(txs: Transaction[]): Transaction[]
+        -retrainModel(historicalData: HistoricalData): void
+        -evaluatePerformance(): PerformanceMetrics
+    }
+}
+
+package "Data Models" {
+    class Transaction {
+        +id: UUID
+        +hash: String
+        +from: Address
+        +to: Address
+        +amount: BigDecimal
+        +fee: BigDecimal
+        +nonce: Long
+        +data: ByteArray
+        +signature: Signature
+        +status: TransactionStatus
+        +createdAt: Timestamp
+        +confirmedAt: Timestamp
+    }
+
+    class Block {
+        +id: String
+        +height: Long
+        +parentHash: String
+        +merkleRoot: String
+        +timestamp: Timestamp
+        +proposer: ValidatorNode
+        +transactions: Transaction[]
+        +consensusRound: Long
+        +committed: Boolean
+    }
+
+    class ConsensusState {
+        +term: Long
+        +leader: ValidatorNode
+        +votedFor: ValidatorNode
+        +logIndex: Long
+        +commitIndex: Long
+        +lastApplied: Long
+        +activeValidators: Integer
+    }
+
+    enum TransactionStatus {
+        PENDING
+        CONFIRMED
+        FAILED
+        FINALIZED
+    }
+
+    class ValidatorNode {
+        +id: String
+        +address: Address
+        +stake: BigDecimal
+        +rewards: BigDecimal
+        +uptime: Double
+        +status: ValidatorStatus
+        +lastHeartbeat: Timestamp
+    }
+
+    class AuthToken {
+        +token: String
+        +refreshToken: String
+        +expiresIn: Long
+        +tokenType: String
+    }
+}
+
+package "Infrastructure" {
+    class PostgreSQL {
+        +connect(): Connection
+        +execute(query: String): ResultSet
+        +transaction(block: Lambda): void
+    }
+
+    class RocksDB {
+        +get(key: String): ByteArray
+        +put(key: String, value: ByteArray): void
+        +delete(key: String): void
+        +iterator(): Iterator
+    }
+
+    class RedisCache {
+        +get(key: String): Value
+        +set(key: String, value: Value, ttl: Long): void
+        +delete(key: String): void
+        +expire(key: String, ttl: Long): void
+    }
+
+    class RabbitMQ {
+        +publish(exchange: String, message: Message): void
+        +subscribe(queue: String, listener: MessageListener): void
+    }
+}
+
+' Relationships
+TransactionService --> TransactionMempool
+TransactionService --> RocksDB
+TransactionService --> PostgreSQL
+TransactionService --> QuantumCryptoService
+
+HyperRAFTConsensus --> ReplicatedLog
+HyperRAFTConsensus --> AIOptimizationService
+HyperRAFTConsensus --> BlockStateMachine
+
+SmartContractService --> WasmRuntime
+SmartContractService --> RocksDB
+SmartContractService --> EventEmitter
+
+CrossChainBridgeService --> MultiSigWallet
+CrossChainBridgeService --> OracleNetwork
+
+RWATRegistryService --> MerkleTree
+RWATRegistryService --> OracleNetwork
+RWATRegistryService --> SmartContractService
+
+AIOptimizationService --> MLModel
+AIOptimizationService --> DataStore
+
+JWTAuthenticationService --> PostgreSQL
+
+@enduml

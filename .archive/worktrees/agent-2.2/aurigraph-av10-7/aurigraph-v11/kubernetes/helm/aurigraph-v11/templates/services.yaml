@@ -1,0 +1,387 @@
+{{/*
+Service Definitions for Aurigraph V11
+Kubernetes Services for platform, consensus, network, and cross-chain components
+*/}}
+
+{{/*
+Platform Service - Main API Service
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-platform-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: {{ .Values.service.type }}
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 300
+  ports:
+  - name: http
+    port: {{ .Values.service.ports.http }}
+    targetPort: http
+    protocol: TCP
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+  - name: p2p
+    port: {{ .Values.service.ports.p2p }}
+    targetPort: p2p
+    protocol: TCP
+  - name: metrics
+    port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+
+---
+{{/*
+Consensus Service
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-consensus-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: consensus-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service for consensus cluster
+  ports:
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+  - name: p2p
+    port: {{ .Values.service.ports.p2p }}
+    targetPort: p2p
+    protocol: TCP
+  - name: metrics
+    port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+  - name: raft
+    port: 8300
+    targetPort: raft
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: consensus-service
+
+---
+{{/*
+Network Service
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-network-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: network-service
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+  - name: p2p
+    port: {{ .Values.service.ports.p2p }}
+    targetPort: p2p
+    protocol: TCP
+  - name: metrics
+    port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: network-service
+
+---
+{{/*
+Cross-Chain Bridge Service
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-crosschain-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: crosschain-bridge
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ .Values.service.ports.http }}
+    targetPort: http
+    protocol: TCP
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+  - name: metrics
+    port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: crosschain-bridge
+
+---
+{{/*
+AI Optimization Service
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-ai-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: ai-optimization
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ .Values.service.ports.http }}
+    targetPort: http
+    protocol: TCP
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    targetPort: grpc
+    protocol: TCP
+  - name: metrics
+    port: {{ .Values.service.ports.metrics }}
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: ai-optimization
+
+---
+{{/*
+External LoadBalancer Service for Public API
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-public-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: public-api
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https,grpc-tls"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:region:account:certificate/cert-id"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0
+  ports:
+  - name: https
+    port: 443
+    targetPort: http
+    protocol: TCP
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  - name: grpc-tls
+    port: 9443
+    targetPort: grpc
+    protocol: TCP
+  - name: grpc
+    port: 9090
+    targetPort: grpc
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: platform-service
+
+---
+{{/*
+Internal Service for Inter-Service Communication
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-internal
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: internal
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service
+  ports:
+  - name: http
+    port: {{ .Values.service.ports.http }}
+    protocol: TCP
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+
+---
+{{/*
+Service for Consensus Leader Election
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-consensus-leader
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: consensus-leader
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  type: ExternalName
+  externalName: {{ .Values.app.name }}-consensus-0.{{ .Values.app.name }}-consensus-service.{{ .Release.Namespace }}.svc.cluster.local
+  ports:
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    protocol: TCP
+
+---
+{{/*
+Service Monitor for Prometheus
+*/}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.app.name }}-service-monitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+  endpoints:
+  - port: metrics
+    interval: {{ .Values.monitoring.prometheus.scrapeInterval }}
+    path: {{ .Values.monitoring.prometheus.path }}
+    scheme: http
+    tlsConfig:
+      insecureSkipVerify: true
+  - port: http
+    interval: 30s
+    path: /health/metrics
+    scheme: http
+
+---
+{{/*
+Pod Monitor for Prometheus (Pod-level metrics)
+*/}}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ .Values.app.name }}-pod-monitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/version: {{ .Values.app.version }}
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.app.name }}
+  podMetricsEndpoints:
+  - port: metrics
+    interval: {{ .Values.monitoring.prometheus.scrapeInterval }}
+    path: {{ .Values.monitoring.prometheus.path }}
+    scheme: http
+  - port: http
+    interval: 60s
+    path: /health/live
+    scheme: http
+
+---
+{{/*
+Headless Service for StatefulSet (if needed for consensus)
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-consensus-headless
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: consensus-headless
+    app.kubernetes.io/version: {{ .Values.app.version }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+  - name: grpc
+    port: {{ .Values.service.ports.grpc }}
+    protocol: TCP
+  - name: raft
+    port: 8300
+    protocol: TCP
+  - name: p2p
+    port: {{ .Values.service.ports.p2p }}
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/component: consensus-service

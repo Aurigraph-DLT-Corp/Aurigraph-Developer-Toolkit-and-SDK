@@ -1,0 +1,36 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY tsconfig.json ./
+COPY src ./src
+
+RUN npm install -g typescript
+RUN tsc
+
+FROM node:20-alpine
+
+RUN apk add --no-cache \
+    openssl \
+    ca-certificates \
+    tzdata
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+
+RUN mkdir -p /app/data /app/logs /app/certs
+
+ENV NODE_ENV=production
+ENV NODE_TYPE=validator
+
+EXPOSE 8080 30303 30304 30305 9090
+
+USER node
+
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,40 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY src/ ./src/
+
+# Build the application
+RUN npm run build
+
+# Create Vizor startup script
+RUN echo '#!/bin/sh' > /app/start-vizor.sh && \
+    echo 'echo "🎨 Starting Aurigraph Vizor Real-time Dashboard..."' >> /app/start-vizor.sh && \
+    echo 'echo "Channel: $CHANNEL_NAME"' >> /app/start-vizor.sh && \
+    echo 'echo "Validators: $VALIDATORS_URL"' >> /app/start-vizor.sh && \
+    echo 'echo "Basic Nodes: $NODES_URL"' >> /app/start-vizor.sh && \
+    echo 'echo ""' >> /app/start-vizor.sh && \
+    echo '' >> /app/start-vizor.sh && \
+    echo 'node -e "' >> /app/start-vizor.sh && \
+    echo 'const { VizorRealtimeDashboard } = require(\"./dist/monitoring/VizorRealtimeDashboard\");' >> /app/start-vizor.sh && \
+    echo 'const dashboard = new VizorRealtimeDashboard();' >> /app/start-vizor.sh && \
+    echo 'dashboard.start(3038).then(() => {' >> /app/start-vizor.sh && \
+    echo '  console.log(\"🌟 Vizor Dashboard running!\");' >> /app/start-vizor.sh && \
+    echo '  console.log(\"📊 Dashboard: http://localhost:3038\");' >> /app/start-vizor.sh && \
+    echo '  console.log(\"🔌 WebSocket: ws://localhost:3039\");' >> /app/start-vizor.sh && \
+    echo '  console.log(\"📡 Monitoring TEST channel with 25 nodes\");' >> /app/start-vizor.sh && \
+    echo '});' >> /app/start-vizor.sh && \
+    echo '"' >> /app/start-vizor.sh && \
+    chmod +x /app/start-vizor.sh
+
+EXPOSE 3038 3039
+
+CMD ["/app/start-vizor.sh"]

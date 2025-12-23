@@ -57,7 +57,7 @@ describe('MLPerformanceDashboard - Error Handling', () => {
 
     // Mock failed response for ML Performance
     vi.mocked(apiService.getMLPerformance).mockRejectedValue(
-      new Error('Network error: Unable to connect to /api/v12/ai/performance')
+      new Error('Network error: Unable to connect to /api/v11/ai/performance')
     );
 
     render(<MLPerformanceDashboard />);

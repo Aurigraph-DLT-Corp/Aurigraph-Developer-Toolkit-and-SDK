@@ -6,7 +6,6 @@ import io.aurigraph.v11.portal.models.*;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.*;
@@ -15,21 +14,17 @@ import java.util.stream.Collectors;
 /**
  * BlockchainDataService provides real-time blockchain metrics and data
  * Bridges Portal frontend requests to V11 backend blockchain services
- *
- * NOTE: Service dependencies are made optional using Instance<> to prevent
- * cascading failures if dependent services fail to initialize.
  */
 @ApplicationScoped
 public class BlockchainDataService {
 
     private static final long STARTUP_TIME = System.currentTimeMillis();
 
-    // Made optional to prevent cascading failures
     @Inject
-    Instance<HyperRAFTConsensusService> consensusService;
+    HyperRAFTConsensusService consensusService;
 
     @Inject
-    Instance<NetworkStatsService> networkStatsService;
+    NetworkStatsService networkStatsService;
 
     /**
      * Get overall blockchain health status

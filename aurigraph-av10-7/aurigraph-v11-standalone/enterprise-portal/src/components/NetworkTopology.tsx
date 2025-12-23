@@ -98,10 +98,7 @@ export const NetworkTopology: React.FC = () => {
       } catch (err) {
         // Fallback: construct topology from health data
         console.warn('Network topology endpoint not available, using health data fallback')
-        const apiBase = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-          ? window.location.origin
-          : 'http://localhost:9003';
-        const healthResponse = await fetch(`${apiBase}/api/v12/health`).then(r => r.json())
+        const healthResponse = await fetch('http://localhost:9003/api/v11/health').then(r => r.json())
         const healthData = healthResponse.data || healthResponse
 
         // Create synthetic topology from health data

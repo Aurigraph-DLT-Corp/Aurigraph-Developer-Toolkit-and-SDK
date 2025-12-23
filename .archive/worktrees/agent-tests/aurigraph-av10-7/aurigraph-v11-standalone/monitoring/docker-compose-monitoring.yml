@@ -1,0 +1,319 @@
+version: '3.9'
+
+# Aurigraph V11 Monitoring Stack
+# Prometheus + Grafana + Alertmanager + Node Exporter + ELK Stack
+
+services:
+  # ================================================================
+  # PROMETHEUS - Metrics Collection & Storage
+  # ================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: aurigraph-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts:/etc/prometheus/alerts:ro
+      - prometheus-data:/prometheus
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "description=Prometheus metrics collection and storage"
+
+  # ================================================================
+  # GRAFANA - Visualization & Dashboards
+  # ================================================================
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: aurigraph-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-clock-panel
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "description=Grafana dashboards for metrics visualization"
+
+  # ================================================================
+  # ALERTMANAGER - Alert Handling & Routing
+  # ================================================================
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: aurigraph-alertmanager
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager/config.yml:/etc/alertmanager/config.yml:ro
+      - alertmanager-data:/alertmanager
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "description=Alertmanager for handling and routing alerts"
+
+  # ================================================================
+  # NODE EXPORTER - System Metrics
+  # ================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: aurigraph-node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitoring
+    labels:
+      - "description=Node exporter for system-level metrics"
+
+  # ================================================================
+  # POSTGRES EXPORTER - Database Metrics
+  # ================================================================
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: aurigraph-postgres-exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/aurigraph_v11?sslmode=disable
+    ports:
+      - "9187:9187"
+    networks:
+      - monitoring
+    depends_on:
+      - postgres
+    labels:
+      - "description=PostgreSQL database metrics exporter"
+
+  # ================================================================
+  # REDIS EXPORTER - Cache Metrics
+  # ================================================================
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: aurigraph-redis-exporter
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    ports:
+      - "9121:9121"
+    networks:
+      - monitoring
+    depends_on:
+      - redis
+    labels:
+      - "description=Redis cache metrics exporter"
+
+  # ================================================================
+  # NGINX EXPORTER - Web Server Metrics
+  # ================================================================
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.0.0
+    container_name: aurigraph-nginx-exporter
+    restart: unless-stopped
+    command:
+      - '-nginx.scrape-uri=http://nginx:8080/stub_status'
+    ports:
+      - "9113:9113"
+    networks:
+      - monitoring
+    labels:
+      - "description=NGINX metrics exporter"
+
+  # ================================================================
+  # ELASTICSEARCH - Log Storage & Search
+  # ================================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: aurigraph-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    labels:
+      - "description=Elasticsearch for log storage and search"
+
+  # ================================================================
+  # LOGSTASH - Log Processing & Enrichment
+  # ================================================================
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.1
+    container_name: aurigraph-logstash
+    restart: unless-stopped
+    environment:
+      - "LS_JAVA_OPTS=-Xmx1g -Xms1g"
+    ports:
+      - "5044:5044"  # Beats input
+      - "5000:5000"  # TCP input
+      - "9600:9600"  # Monitoring API
+    volumes:
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./monitoring/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    labels:
+      - "description=Logstash for log processing and enrichment"
+
+  # ================================================================
+  # KIBANA - Log Visualization & Analysis
+  # ================================================================
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: aurigraph-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=aurigraph-kibana
+      - SERVER_HOST=0.0.0.0
+    ports:
+      - "5601:5601"
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    labels:
+      - "description=Kibana for log visualization and analysis"
+
+  # ================================================================
+  # SUPPORTING SERVICES
+  # ================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: aurigraph-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=aurigraph_v11
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "description=PostgreSQL database for V11"
+
+  redis:
+    image: redis:7-alpine
+    container_name: aurigraph-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    labels:
+      - "description=Redis cache for V11"
+
+networks:
+  monitoring:
+    driver: bridge
+    name: aurigraph-monitoring
+
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+  elasticsearch-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local

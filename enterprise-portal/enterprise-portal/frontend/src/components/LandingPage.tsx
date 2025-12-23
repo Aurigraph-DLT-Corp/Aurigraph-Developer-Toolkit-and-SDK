@@ -21,12 +21,6 @@ import {
   ExperimentOutlined,
   NodeIndexOutlined,
   LineChartOutlined,
-  StockOutlined,
-  LockOutlined,
-  ApiOutlined,
-  AuditOutlined,
-  DatabaseOutlined,
-  CloudServerOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
@@ -71,97 +65,51 @@ const LandingPage: React.FC = () => {
       metrics: ['NIST Level 5', 'CRYSTALS-Kyber', 'Dilithium Signatures']
     },
     {
-      icon: <LockOutlined style={{ fontSize: '48px', color: '#fa541c' }} />,
-      title: 'Quantum-Encrypted Storage',
-      description: 'Per-node isolated LevelDB storage with Kyber key encapsulation and Dilithium signatures. Each node\'s data is encrypted and accessible only through secure authentication.',
-      metrics: ['Per-Node Encryption', 'Key Rotation', 'Isolated Storage']
-    },
-    {
       icon: <RobotOutlined style={{ fontSize: '48px', color: '#1890ff' }} />,
       title: 'AI-Powered Optimization',
       description: 'Machine learning algorithms continuously optimize consensus, transaction ordering, and resource allocation for peak performance.',
       metrics: ['ML Optimization', 'Predictive Ordering', 'Anomaly Detection']
     },
     {
-      icon: <StockOutlined style={{ fontSize: '48px', color: '#13c2c2' }} />,
-      title: 'Multi-Exchange Integration',
-      description: 'Real-time cryptocurrency market data from 6 major exchanges via gRPC/HTTP2. Stream tickers, trades, and order books with sub-second latency.',
-      metrics: ['6 Exchanges', 'gRPC Streaming', 'Real-Time Data']
-    },
-    {
       icon: <GlobalOutlined style={{ fontSize: '48px', color: '#722ed1' }} />,
       title: 'Cross-Chain Interoperability',
-      description: 'Seamlessly connect with Ethereum, Bitcoin, Solana, Cosmos, and Substrate chains through our advanced cross-chain bridge technology.',
+      description: 'Seamlessly connect with Ethereum, Bitcoin, Solana, and other major blockchains through our advanced cross-chain bridge technology.',
       metrics: ['Multi-Chain', 'Bridge Protocol', 'Asset Transfer']
     },
     {
-      icon: <AuditOutlined style={{ fontSize: '48px', color: '#eb2f96' }} />,
-      title: 'ERC-3643 T-REX Compliance',
-      description: 'Built-in security token compliance layer with identity registry, compliance rules engine, and on-chain transfer restrictions for regulated assets.',
-      metrics: ['T-REX Standard', 'Identity Registry', 'Transfer Rules']
-    },
-    {
-      icon: <BankOutlined style={{ fontSize: '48px', color: '#2f54eb' }} />,
+      icon: <BankOutlined style={{ fontSize: '48px', color: '#eb2f96' }} />,
       title: 'Real-World Asset Tokenization',
-      description: 'Tokenize physical assets, commodities, and securities with built-in compliance, KYC/AML integration, and VVB approval workflows.',
-      metrics: ['Asset Tokenization', 'KYC/AML', 'VVB Workflow']
+      description: 'Tokenize physical assets, commodities, and securities with built-in compliance, KYC/AML integration, and regulatory frameworks.',
+      metrics: ['Asset Tokenization', 'KYC/AML', 'Compliance']
     },
     {
-      icon: <RocketOutlined style={{ fontSize: '48px', color: '#52c41a' }} />,
+      icon: <RocketOutlined style={{ fontSize: '48px', color: '#13c2c2' }} />,
       title: 'Smart Contract Platform',
       description: 'Deploy and manage smart contracts with Ricardian contract support, formal verification, and enterprise-grade tooling.',
       metrics: ['Smart Contracts', 'Ricardian Contracts', 'Formal Verification']
-    },
-    {
-      icon: <ApiOutlined style={{ fontSize: '48px', color: '#faad14' }} />,
-      title: 'External API Tokenization',
-      description: 'Connect external data sources (QuantConnect, market feeds) directly to on-chain tokens. Dynamic token values backed by real-time API data.',
-      metrics: ['API Integration', 'Dynamic Tokens', 'Data Feeds']
-    },
-    {
-      icon: <DatabaseOutlined style={{ fontSize: '48px', color: '#722ed1' }} />,
-      title: 'Merkle Tree Registry',
-      description: 'Cryptographic proof of asset ownership and state changes with efficient Merkle tree verification and audit trails.',
-      metrics: ['Merkle Proofs', 'State Verification', 'Audit Trail']
-    },
-    {
-      icon: <CloudServerOutlined style={{ fontSize: '48px', color: '#1890ff' }} />,
-      title: 'Zero-Downtime Deployment',
-      description: 'Self-hosted CI/CD with GitHub Actions runners. Blue-green deployments, automatic rollback, and health-checked releases.',
-      metrics: ['Self-Hosted CI/CD', 'Auto Rollback', 'Health Checks']
     }
   ];
 
   const useCases = [
     {
-      title: 'Financial Services & Trading',
-      description: 'High-frequency trading with 6-exchange integration, DeFi applications, security token compliance (ERC-3643), and cross-border settlements.',
-      industries: ['Banking', 'Trading', 'DeFi', 'Securities']
-    },
-    {
-      title: 'Asset Tokenization',
-      description: 'Tokenize real estate, commodities, carbon credits, and securities with VVB approval workflows, KYC/AML, and regulatory compliance.',
-      industries: ['Real Estate', 'Commodities', 'Carbon Credits', 'Securities']
+      title: 'Financial Services',
+      description: 'High-frequency trading, payment processing, DeFi applications, and cross-border settlements with institutional-grade security.',
+      industries: ['Banking', 'Trading', 'DeFi', 'Payments']
     },
     {
       title: 'Supply Chain Management',
-      description: 'End-to-end traceability with Merkle tree proofs, provenance tracking, and automated compliance for global supply chains.',
+      description: 'End-to-end traceability, provenance tracking, and automated compliance for global supply chains.',
       industries: ['Logistics', 'Manufacturing', 'Retail', 'Food Safety']
     },
     {
       title: 'Healthcare & Life Sciences',
-      description: 'Secure patient data with quantum-encrypted storage, clinical trial tracking, and pharmaceutical supply chain integrity.',
+      description: 'Secure patient data management, clinical trial tracking, and pharmaceutical supply chain integrity.',
       industries: ['Healthcare', 'Pharmaceuticals', 'Clinical Research', 'Insurance']
     },
     {
       title: 'Automotive & IoT',
-      description: 'Vehicle identity management, autonomous vehicle coordination, and IoT device authentication with per-device encrypted storage.',
+      description: 'Vehicle identity management, autonomous vehicle coordination, and IoT device authentication at scale.',
       industries: ['Automotive', 'IoT', 'Smart Cities', 'Transportation']
-    },
-    {
-      title: 'Carbon & Sustainability',
-      description: 'Carbon credit tokenization, emissions tracking, ESG reporting, and environmental asset verification with immutable audit trails.',
-      industries: ['Carbon Markets', 'ESG', 'Renewable Energy', 'Sustainability']
     }
   ];
 
@@ -174,17 +122,13 @@ const LandingPage: React.FC = () => {
 
   const techStack = [
     'Java 21',
-    'Quarkus 3.28',
+    'Quarkus',
     'GraalVM',
-    'gRPC/HTTP2',
-    'CRYSTALS-Kyber',
-    'CRYSTALS-Dilithium',
+    'gRPC',
+    'CRYSTALS',
     'TensorFlow',
     'Kubernetes',
-    'LevelDB',
-    'PostgreSQL',
-    'React 18',
-    'TypeScript'
+    'LevelDB'
   ];
 
   return (
@@ -213,11 +157,9 @@ const LandingPage: React.FC = () => {
 
               <div className="hero-badges">
                 <Badge count="2M+ TPS" style={{ backgroundColor: '#faad14' }} />
-                <Badge count="Quantum-Encrypted" style={{ backgroundColor: '#52c41a' }} />
+                <Badge count="Quantum-Resistant" style={{ backgroundColor: '#52c41a' }} />
                 <Badge count="AI-Optimized" style={{ backgroundColor: '#1890ff' }} />
                 <Badge count="Multi-Chain" style={{ backgroundColor: '#722ed1' }} />
-                <Badge count="6 Exchanges" style={{ backgroundColor: '#13c2c2' }} />
-                <Badge count="ERC-3643" style={{ backgroundColor: '#eb2f96' }} />
               </div>
 
               <div className="hero-cta" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -463,7 +405,7 @@ const LandingPage: React.FC = () => {
       {/* Footer */}
       <div className="landing-footer">
         <Paragraph className="footer-text">
-          © 2025 Aurigraph DLT. Enterprise Blockchain Platform v12.0.0
+          © 2025 Aurigraph DLT. Enterprise Blockchain Platform v11.3.2
         </Paragraph>
         <Paragraph className="footer-links">
           <a href="https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT" target="_blank" rel="noopener noreferrer">

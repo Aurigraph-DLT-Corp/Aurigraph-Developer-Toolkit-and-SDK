@@ -1,0 +1,34 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - avoid_print: false
+    - prefer_const_constructors: true
+    - prefer_const_literals_to_create_immutables: true
+    - prefer_final_fields: true
+    - unnecessary_this: true
+    - avoid_unnecessary_containers: true
+    - avoid_function_literals_in_foreach_calls: true
+    - prefer_is_empty: true
+    - prefer_is_not_empty: true
+    - prefer_if_null_operators: true
+    - prefer_conditional_assignment: true
+    - avoid_init_to_null: true
+    - unnecessary_null_in_if_null_operators: true
+    - prefer_collection_literals: true
+    - prefer_spread_collections: true
+    - use_function_type_syntax_for_parameters: true
+    - unnecessary_lambdas: true
+    - prefer_equal_for_default_values: true
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+  errors:
+    invalid_annotation_target: ignore

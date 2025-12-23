@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: dlt-traefik
+    command:
+      # API & Dashboard
+      - --api.insecure=true
+      - --entrypoints.traefik.address=:8080
+
+      # Entrypoints
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+      # HTTP to HTTPS redirect (entrypoint-level)
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+
+      # TLS with static certificates on websecure entrypoint
+      - --entrypoints.websecure.http.tls.certificates[0].certFile=/etc/traefik/certs/server.crt
+      - --entrypoints.websecure.http.tls.certificates[0].keyFile=/etc/traefik/certs/server.key
+
+      # Disable Docker provider to avoid label issues
+      - --providers.docker=false
+
+      # Logging
+      - --log.level=error
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/traefik/certs:ro
+
+    networks:
+      - dlt-backend
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+    restart: unless-stopped
+
+networks:
+  dlt-backend:
+    driver: bridge

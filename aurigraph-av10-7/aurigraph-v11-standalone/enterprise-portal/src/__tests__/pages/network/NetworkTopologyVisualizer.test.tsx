@@ -543,7 +543,7 @@ describe('NetworkTopologyVisualizer', () => {
       render(<NetworkTopologyVisualizer />);
 
       await waitFor(() => {
-        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v12/network/topology');
+        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v11/network/topology');
       });
     });
 
@@ -551,7 +551,7 @@ describe('NetworkTopologyVisualizer', () => {
       render(<NetworkTopologyVisualizer />);
 
       await waitFor(() => {
-        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v12/network/health');
+        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v11/network/health');
       });
     });
 
@@ -559,7 +559,7 @@ describe('NetworkTopologyVisualizer', () => {
       render(<NetworkTopologyVisualizer />);
 
       await waitFor(() => {
-        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v12/network/events?limit=50');
+        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v11/network/events?limit=50');
       });
     });
 
@@ -567,7 +567,7 @@ describe('NetworkTopologyVisualizer', () => {
       render(<NetworkTopologyVisualizer />);
 
       await waitFor(() => {
-        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v12/live/network');
+        expect(mockedAxios.get).toHaveBeenCalledWith('/api/v11/live/network');
       });
     });
 

@@ -1,0 +1,620 @@
+package io.aurigraph.v11.services;
+
+import io.aurigraph.v11.models.*;
+import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import org.jboss.logging.Logger;
+
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+/**
+ * Channel Management Service
+ *
+ * Manages blockchain channel lifecycle operations including:
+ * - Channel creation and configuration
+ * - Member management
+ * - Channel isolation and access control
+ * - Channel status and lifecycle management
+ *
+ * Part of Sprint 10 - Story 1 (AV11-054)
+ *
+ * @author Claude Code - Backend Development Agent (BDA-2)
+ * @version 11.0.0
+ * @since Sprint 10
+ */
+@ApplicationScoped
+public class ChannelManagementService {
+
+    private static final Logger LOG = Logger.getLogger(ChannelManagementService.class);
+
+    @Inject
+    ChannelRepository channelRepository;
+
+    // Virtual thread executor for high concurrency
+    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+
+    // Channel cache for performance
+    private final Map<String, Channel> channelCache = new ConcurrentHashMap<>();
+
+    // ==================== CHANNEL CREATION & CONFIGURATION ====================
+
+    /**
+     * Create a new channel
+     *
+     * @param request Channel creation request
+     * @return Created channel
+     */
+    @Transactional
+    public Uni<Channel> createChannel(ChannelCreationRequest request) {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Creating channel: %s", request.name());
+
+            // Validate request
+            validateChannelCreationRequest(request);
+
+            // Check if channel name is already taken
+            if (channelRepository.existsByName(request.name())) {
+                throw new IllegalArgumentException("Channel name already exists: " + request.name());
+            }
+
+            // Create channel entity
+            Channel channel = new Channel();
+            channel.setName(request.name());
+            channel.setDescription(request.description());
+            channel.setCreatorAddress(request.creatorAddress());
+            channel.setConsensusAlgorithm(
+                request.consensusAlgorithm() != null ? request.consensusAlgorithm() : "HyperRAFT++"
+            );
+            channel.setPrivacyLevel(
+                request.privacyLevel() != null ? request.privacyLevel() : PrivacyLevel.PUBLIC
+            );
+            channel.setIsolationMode(
+                request.isolationMode() != null ? request.isolationMode() : IsolationMode.SHARED
+            );
+            channel.setStatus(ChannelStatus.ACTIVE);
+
+            // Set optional configuration
+            if (request.maxMembers() != null) {
+                channel.setMaxMembers(request.maxMembers());
+            }
+            if (request.minValidators() != null) {
+                channel.setMinValidators(request.minValidators());
+            }
+            if (request.blockTimeMs() != null) {
+                channel.setBlockTimeMs(request.blockTimeMs());
+            }
+            if (request.maxBlockSize() != null) {
+                channel.setMaxBlockSize(request.maxBlockSize());
+            }
+            if (request.enableSmartContracts() != null) {
+                channel.setEnableSmartContracts(request.enableSmartContracts());
+            }
+            if (request.enableCrossChannel() != null) {
+                channel.setEnableCrossChannel(request.enableCrossChannel());
+            }
+
+            // Set metadata
+            if (request.metadata() != null) {
+                channel.setMetadata(new HashMap<>(request.metadata()));
+            }
+
+            // Persist channel
+            channelRepository.persist(channel);
+
+            // Add creator as admin member
+            ChannelMember creator = new ChannelMember();
+            creator.setChannel(channel);
+            creator.setMemberAddress(request.creatorAddress());
+            creator.setNodeType(ChannelMemberType.ADMIN);
+            creator.setStatus(ChannelMemberStatus.ACTIVE);
+            creator.setInvitedBy("SYSTEM");
+            channel.addMember(creator);
+
+            channelRepository.persist(channel);
+
+            // Cache channel
+            channelCache.put(channel.getChannelId(), channel);
+
+            LOG.infof("Channel created successfully: %s (ID: %s)", channel.getName(), channel.getChannelId());
+            return channel;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Update channel configuration
+     *
+     * @param channelId Channel ID
+     * @param configUpdate Configuration update request
+     * @return Updated channel
+     */
+    @Transactional
+    public Uni<Channel> updateChannelConfig(String channelId, ChannelConfigUpdate configUpdate) {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Updating channel config: %s", channelId);
+
+            Channel channel = getChannel(channelId);
+
+            // Validate admin permission (would normally check caller's permissions)
+            if (channel == null) {
+                throw new IllegalArgumentException("Channel not found: " + channelId);
+            }
+
+            // Update configurable fields
+            if (configUpdate.description() != null) {
+                channel.setDescription(configUpdate.description());
+            }
+            if (configUpdate.consensusAlgorithm() != null) {
+                channel.setConsensusAlgorithm(configUpdate.consensusAlgorithm());
+            }
+            if (configUpdate.consensusConfig() != null) {
+                channel.setConsensusConfig(configUpdate.consensusConfig());
+            }
+            if (configUpdate.privacyLevel() != null) {
+                channel.setPrivacyLevel(configUpdate.privacyLevel());
+            }
+            if (configUpdate.maxMembers() != null) {
+                channel.setMaxMembers(configUpdate.maxMembers());
+            }
+            if (configUpdate.minValidators() != null) {
+                channel.setMinValidators(configUpdate.minValidators());
+            }
+            if (configUpdate.blockTimeMs() != null) {
+                channel.setBlockTimeMs(configUpdate.blockTimeMs());
+            }
+            if (configUpdate.maxBlockSize() != null) {
+                channel.setMaxBlockSize(configUpdate.maxBlockSize());
+            }
+            if (configUpdate.enableSmartContracts() != null) {
+                channel.setEnableSmartContracts(configUpdate.enableSmartContracts());
+            }
+            if (configUpdate.enableCrossChannel() != null) {
+                channel.setEnableCrossChannel(configUpdate.enableCrossChannel());
+            }
+            if (configUpdate.metadata() != null) {
+                channel.setMetadata(new HashMap<>(configUpdate.metadata()));
+            }
+
+            channelRepository.persist(channel);
+
+            // Update cache
+            channelCache.put(channelId, channel);
+
+            LOG.infof("Channel config updated: %s", channelId);
+            return channel;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Delete/archive a channel
+     *
+     * @param channelId Channel ID
+     * @param reason Archive reason
+     * @return true if successful
+     */
+    @Transactional
+    public Uni<Boolean> deleteChannel(String channelId, String reason) {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Archiving channel: %s", channelId);
+
+            boolean archived = channelRepository.archiveChannel(channelId, reason);
+
+            if (archived) {
+                // Remove from cache
+                channelCache.remove(channelId);
+                LOG.infof("Channel archived successfully: %s", channelId);
+            }
+
+            return archived;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    // ==================== CHANNEL RETRIEVAL ====================
+
+    /**
+     * Get all channels
+     *
+     * @return List of all channels
+     */
+    public Uni<List<Channel>> getAllChannels() {
+        return Uni.createFrom().item(() -> {
+            return channelRepository.listAll();
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get channel by ID
+     *
+     * @param channelId Channel ID
+     * @return Channel if found
+     */
+    public Uni<Optional<Channel>> getChannelById(String channelId) {
+        return Uni.createFrom().item(() -> {
+            // Check cache first
+            Channel cached = channelCache.get(channelId);
+            if (cached != null) {
+                return Optional.of(cached);
+            }
+
+            // Load from database
+            Optional<Channel> channel = channelRepository.findByChannelId(channelId);
+            channel.ifPresent(c -> channelCache.put(channelId, c));
+
+            return channel;
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get active channels only
+     *
+     * @return List of active channels
+     */
+    public Uni<List<Channel>> getActiveChannels() {
+        return Uni.createFrom().item(() -> {
+            return channelRepository.findActiveChannels();
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get channels by creator
+     *
+     * @param creatorAddress Creator address
+     * @return List of channels created by the address
+     */
+    public Uni<List<Channel>> getChannelsByCreator(String creatorAddress) {
+        return Uni.createFrom().item(() -> {
+            return channelRepository.findByCreator(creatorAddress);
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get channels where member is participant
+     *
+     * @param memberAddress Member address
+     * @return List of channels containing the member
+     */
+    public Uni<List<Channel>> getChannelsForMember(String memberAddress) {
+        return Uni.createFrom().item(() -> {
+            return channelRepository.findChannelsWithMember(memberAddress);
+        }).runSubscriptionOn(executor);
+    }
+
+    // ==================== MEMBER MANAGEMENT ====================
+
+    /**
+     * Add member to channel
+     *
+     * @param channelId Channel ID
+     * @param memberRequest Member addition request
+     * @return Updated channel
+     */
+    @Transactional
+    public Uni<Channel> addMember(String channelId, MemberAddRequest memberRequest) {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Adding member %s to channel %s", memberRequest.memberAddress(), channelId);
+
+            Channel channel = getChannel(channelId);
+
+            // Validate
+            if (channel.isFull()) {
+                throw new IllegalStateException("Channel has reached maximum member capacity");
+            }
+
+            // Check if member already exists
+            boolean memberExists = channel.getMembers().stream()
+                .anyMatch(m -> m.getMemberAddress().equals(memberRequest.memberAddress()));
+
+            if (memberExists) {
+                throw new IllegalArgumentException("Member already exists in channel");
+            }
+
+            // Create new member
+            ChannelMember newMember = new ChannelMember();
+            newMember.setChannel(channel);
+            newMember.setMemberAddress(memberRequest.memberAddress());
+            newMember.setNodeType(
+                memberRequest.nodeType() != null ? memberRequest.nodeType() : ChannelMemberType.PARTICIPANT
+            );
+            newMember.setStatus(ChannelMemberStatus.ACTIVE);
+            newMember.setInvitedBy(memberRequest.invitedBy());
+            newMember.setPublicKey(memberRequest.publicKey());
+            newMember.setNodeId(memberRequest.nodeId());
+
+            // Set custom permissions if provided
+            if (memberRequest.permissions() != null && !memberRequest.permissions().isEmpty()) {
+                newMember.setPermissions(new HashSet<>(memberRequest.permissions()));
+            }
+
+            channel.addMember(newMember);
+            channelRepository.persist(channel);
+
+            // Update cache
+            channelCache.put(channelId, channel);
+
+            LOG.infof("Member added successfully to channel %s", channelId);
+            return channel;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Remove member from channel
+     *
+     * @param channelId Channel ID
+     * @param memberAddress Member address to remove
+     * @param reason Removal reason
+     * @param removedBy Who removed the member
+     * @return Updated channel
+     */
+    @Transactional
+    public Uni<Channel> removeMember(String channelId, String memberAddress, String reason, String removedBy) {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Removing member %s from channel %s", memberAddress, channelId);
+
+            Channel channel = getChannel(channelId);
+
+            // Find member
+            Optional<ChannelMember> memberOpt = channel.getMembers().stream()
+                .filter(m -> m.getMemberAddress().equals(memberAddress))
+                .findFirst();
+
+            if (memberOpt.isEmpty()) {
+                throw new IllegalArgumentException("Member not found in channel");
+            }
+
+            ChannelMember member = memberOpt.get();
+
+            // Mark as removed
+            member.setStatus(ChannelMemberStatus.REMOVED);
+            member.setRemovedAt(Instant.now());
+            member.setRemovedBy(removedBy);
+            member.setRemovalReason(reason);
+
+            channelRepository.persist(channel);
+
+            // Update cache
+            channelCache.put(channelId, channel);
+
+            LOG.infof("Member removed from channel %s", channelId);
+            return channel;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Update member permissions
+     *
+     * @param channelId Channel ID
+     * @param memberAddress Member address
+     * @param permissions New permissions
+     * @return Updated channel
+     */
+    @Transactional
+    public Uni<Channel> updateMemberPermissions(String channelId, String memberAddress,
+                                               Set<ChannelPermission> permissions) {
+        return Uni.createFrom().item(() -> {
+            LOG.infof("Updating permissions for member %s in channel %s", memberAddress, channelId);
+
+            Channel channel = getChannel(channelId);
+
+            // Find member
+            Optional<ChannelMember> memberOpt = channel.getMembers().stream()
+                .filter(m -> m.getMemberAddress().equals(memberAddress))
+                .findFirst();
+
+            if (memberOpt.isEmpty()) {
+                throw new IllegalArgumentException("Member not found in channel");
+            }
+
+            ChannelMember member = memberOpt.get();
+            member.setPermissions(new HashSet<>(permissions));
+
+            channelRepository.persist(channel);
+
+            // Update cache
+            channelCache.put(channelId, channel);
+
+            LOG.infof("Member permissions updated in channel %s", channelId);
+            return channel;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Get channel (from cache or database)
+     *
+     * @param channelId Channel ID
+     * @return Channel
+     * @throws IllegalArgumentException if channel not found
+     */
+    private Channel getChannel(String channelId) {
+        // Check cache
+        Channel cached = channelCache.get(channelId);
+        if (cached != null) {
+            return cached;
+        }
+
+        // Load from database
+        return channelRepository.findByChannelId(channelId)
+            .orElseThrow(() -> new IllegalArgumentException("Channel not found: " + channelId));
+    }
+
+    /**
+     * Validate channel creation request
+     *
+     * @param request Channel creation request
+     */
+    private void validateChannelCreationRequest(ChannelCreationRequest request) {
+        if (request.name() == null || request.name().trim().isEmpty()) {
+            throw new IllegalArgumentException("Channel name is required");
+        }
+        if (request.creatorAddress() == null || request.creatorAddress().trim().isEmpty()) {
+            throw new IllegalArgumentException("Creator address is required");
+        }
+        if (request.name().length() > 100) {
+            throw new IllegalArgumentException("Channel name must not exceed 100 characters");
+        }
+    }
+
+    // ==================== CHANNEL ISOLATION LOGIC ====================
+
+    /**
+     * Check if member has access to channel
+     *
+     * @param channelId Channel ID
+     * @param memberAddress Member address
+     * @return true if member has access
+     */
+    public Uni<Boolean> hasChannelAccess(String channelId, String memberAddress) {
+        return Uni.createFrom().item(() -> {
+            Channel channel = getChannel(channelId);
+
+            // Public channels are accessible by all
+            if (channel.getPrivacyLevel() == PrivacyLevel.PUBLIC) {
+                return true;
+            }
+
+            // Check if member is in the channel
+            return channel.getMembers().stream()
+                .anyMatch(m -> m.getMemberAddress().equals(memberAddress) && m.isActive());
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Check if member has specific permission in channel
+     *
+     * @param channelId Channel ID
+     * @param memberAddress Member address
+     * @param permission Required permission
+     * @return true if member has the permission
+     */
+    public Uni<Boolean> hasChannelPermission(String channelId, String memberAddress,
+                                            ChannelPermission permission) {
+        return Uni.createFrom().item(() -> {
+            Channel channel = getChannel(channelId);
+
+            // Find member
+            Optional<ChannelMember> memberOpt = channel.getMembers().stream()
+                .filter(m -> m.getMemberAddress().equals(memberAddress) && m.isActive())
+                .findFirst();
+
+            if (memberOpt.isEmpty()) {
+                return false;
+            }
+
+            return memberOpt.get().hasPermission(permission);
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get channel isolation context
+     * Returns the isolation mode and allowed operations for a channel
+     *
+     * @param channelId Channel ID
+     * @return Isolation context map
+     */
+    public Uni<Map<String, Object>> getChannelIsolationContext(String channelId) {
+        return Uni.createFrom().item(() -> {
+            Channel channel = getChannel(channelId);
+
+            Map<String, Object> context = new HashMap<>();
+            context.put("channelId", channel.getChannelId());
+            context.put("isolationMode", channel.getIsolationMode());
+            context.put("privacyLevel", channel.getPrivacyLevel());
+            context.put("enableSmartContracts", channel.getEnableSmartContracts());
+            context.put("enableCrossChannel", channel.getEnableCrossChannel());
+            context.put("memberCount", channel.getMemberCount());
+            context.put("validatorCount", channel.getValidatorCount());
+
+            // Isolation rules based on mode
+            switch (channel.getIsolationMode()) {
+                case STRICT:
+                    context.put("allowCrossChannelCalls", false);
+                    context.put("allowExternalContracts", false);
+                    context.put("requireMembershipForRead", true);
+                    break;
+                case SHARED:
+                    context.put("allowCrossChannelCalls", channel.getEnableCrossChannel());
+                    context.put("allowExternalContracts", true);
+                    context.put("requireMembershipForRead", false);
+                    break;
+                case HYBRID:
+                    context.put("allowCrossChannelCalls", channel.getEnableCrossChannel());
+                    context.put("allowExternalContracts", channel.getEnableSmartContracts());
+                    context.put("requireMembershipForRead", channel.getPrivacyLevel() != PrivacyLevel.PUBLIC);
+                    break;
+            }
+
+            return context;
+
+        }).runSubscriptionOn(executor);
+    }
+
+    /**
+     * Get channel statistics
+     *
+     * @return Map of channel statistics
+     */
+    public Map<String, Object> getChannelStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalChannels", channelRepository.countTotalChannels());
+        stats.put("activeChannels", channelRepository.countActiveChannels());
+        stats.put("cachedChannels", channelCache.size());
+        stats.put("timestamp", Instant.now());
+        return stats;
+    }
+
+    // ==================== REQUEST/RESPONSE DTOs ====================
+
+    public record ChannelCreationRequest(
+        String name,
+        String description,
+        String creatorAddress,
+        String consensusAlgorithm,
+        PrivacyLevel privacyLevel,
+        IsolationMode isolationMode,
+        Integer maxMembers,
+        Integer minValidators,
+        Long blockTimeMs,
+        Long maxBlockSize,
+        Boolean enableSmartContracts,
+        Boolean enableCrossChannel,
+        Map<String, String> metadata
+    ) {}
+
+    public record ChannelConfigUpdate(
+        String description,
+        String consensusAlgorithm,
+        String consensusConfig,
+        PrivacyLevel privacyLevel,
+        Integer maxMembers,
+        Integer minValidators,
+        Long blockTimeMs,
+        Long maxBlockSize,
+        Boolean enableSmartContracts,
+        Boolean enableCrossChannel,
+        Map<String, String> metadata
+    ) {}
+
+    public record MemberAddRequest(
+        String memberAddress,
+        ChannelMemberType nodeType,
+        String invitedBy,
+        String publicKey,
+        String nodeId,
+        Set<ChannelPermission> permissions
+    ) {}
+}

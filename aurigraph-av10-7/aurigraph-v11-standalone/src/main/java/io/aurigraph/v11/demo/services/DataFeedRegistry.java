@@ -10,7 +10,7 @@ import java.util.*;
  * Data Feed Registry using Merkle Tree for cryptographic verification
  *
  * Manages external API data feeds with tokenization:
- * - 5 external API endpoints (mapped to 5 EI nodes)
+ * - 5 external API endpoints (mapped to 5 slim nodes)
  * - Each data feed is tokenized as RWAT (Real-World Asset Token)
  * - Merkle tree ensures data integrity
  * - Real-time updates tracked with timestamps
@@ -35,7 +35,7 @@ public class DataFeedRegistry extends MerkleTreeRegistry<DataFeedToken> {
         }
     }
 
-    // Standard 5 external API data feeds (for 5 EI nodes)
+    // Standard 5 external API data feeds (for 5 slim nodes)
     private static final String[] STANDARD_APIS = {
         "api-0-price-feed",
         "api-1-market-data",

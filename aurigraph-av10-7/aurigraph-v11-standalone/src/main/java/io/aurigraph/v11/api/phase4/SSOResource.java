@@ -20,7 +20,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 31
  */
-@Path("/api/v12/enterprise")
+@Path("/api/v11/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SSOResource {
@@ -29,7 +29,7 @@ public class SSOResource {
 
     /**
      * Configure SSO providers
-     * POST /api/v12/enterprise/auth/sso/configure
+     * POST /api/v11/enterprise/auth/sso/configure
      */
     @POST
     @Path("/auth/sso/configure")
@@ -51,7 +51,7 @@ public class SSOResource {
 
     /**
      * Get SSO providers
-     * GET /api/v12/enterprise/auth/sso/providers
+     * GET /api/v11/enterprise/auth/sso/providers
      */
     @GET
     @Path("/auth/sso/providers")
@@ -86,7 +86,7 @@ public class SSOResource {
 
     /**
      * Get authentication sessions
-     * GET /api/v12/enterprise/auth/sessions
+     * GET /api/v11/enterprise/auth/sessions
      */
     @GET
     @Path("/auth/sessions")

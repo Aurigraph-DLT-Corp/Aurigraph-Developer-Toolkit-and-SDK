@@ -1,0 +1,1 @@
+fdae4c3ca9d53df97851ea3595b3d76c9bbb60cc3ba8426ae1aa835ff42337d8  target/aurigraph-v11-standalone-11.4.4-runner.jar

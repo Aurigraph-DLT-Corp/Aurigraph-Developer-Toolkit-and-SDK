@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph DLT - Next-Generation Blockchain Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            animation: fadeInDown 1s;
+        }
+
+        .hero p {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .features {
+            padding: 80px 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 60px;
+            color: #667eea;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .stats {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stat-item h3 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .demo-section {
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .demo-section h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .demo-section p {
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            color: #666;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .mobile-apps {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .app-badge {
+            height: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="container">
+            <h1>Aurigraph DLT</h1>
+            <p>Next-Generation Blockchain Platform with 2M+ TPS</p>
+            <p style="font-size: 1.2em; opacity: 0.8;">Quantum-Safe • Real-World Assets • AI-Driven Consensus</p>
+            
+            <div class="cta-buttons">
+                <a href="aurigraph-dlt-demo-unified.html" class="btn btn-primary">View Live Demo</a>
+                <a href="aurigraph-mobile-download.html" class="btn btn-secondary">Download Mobile App</a>
+                <a href="aurigraph-contract-registry.html" class="btn btn-secondary">ActiveContract Registry</a>
+                <a href="aurigraph-rwat-registry.html" class="btn btn-secondary">RWAT Registry</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="container">
+            <h2>Platform Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Ultra High Performance</h3>
+                    <p>Achieving 2M+ transactions per second with HyperRAFT++ consensus algorithm and AI-driven optimization.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Quantum-Safe Security</h3>
+                    <p>CRYSTALS-Dilithium signatures and Kyber encryption for post-quantum cryptographic security.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📜</div>
+                    <h3>ActiveContracts</h3>
+                    <p>Smart contracts with legal enforceability, combining legal prose with executable code.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🏠</div>
+                    <h3>Real-World Assets</h3>
+                    <p>Tokenize real estate, carbon credits, art, IP, and financial assets with third-party verification.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI-Driven Optimization</h3>
+                    <p>Machine learning algorithms optimize consensus, transaction ordering, and network performance.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Cross-Chain Bridge</h3>
+                    <p>Seamless interoperability with Ethereum, Bitcoin, Binance Smart Chain, and more.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="container">
+            <h2 style="margin-bottom: 60px;">Platform Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>2M+</h3>
+                    <p>Transactions Per Second</p>
+                </div>
+                <div class="stat-item">
+                    <h3>&lt;100ms</h3>
+                    <p>Transaction Finality</p>
+                </div>
+                <div class="stat-item">
+                    <h3>10K+</h3>
+                    <p>Active Contracts</p>
+                </div>
+                <div class="stat-item">
+                    <h3>$500M+</h3>
+                    <p>Assets Tokenized</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <div class="container">
+            <h2>Experience Aurigraph DLT</h2>
+            <p>Try our interactive demo to see the platform in action</p>
+            <a href="aurigraph-dlt-demo-unified.html" class="btn btn-primary" style="font-size: 1.3em; padding: 20px 50px;">Launch Interactive Demo</a>
+            
+            <div class="mobile-apps">
+                <div>
+                    <h3 style="margin-bottom: 20px;">Download Mobile App</h3>
+                    <a href="aurigraph-mobile-download.html">
+                        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on App Store" class="app-badge">
+                    </a>
+                    <a href="aurigraph-mobile-download.html">
+                        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" class="app-badge" style="height: 80px;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Aurigraph DLT. All rights reserved.</p>
+            <p>Quantum-Safe Blockchain for the Future</p>
+            <p style="margin-top: 20px;">
+                <a href="aurigraph-contract-registry.html" style="color: white; margin: 0 15px;">ActiveContract Registry</a> |
+                <a href="aurigraph-rwat-registry.html" style="color: white; margin: 0 15px;">RWAT Registry</a> |
+                <a href="aurigraph-mobile-admin.html" style="color: white; margin: 0 15px;">Admin Portal</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Log page view
+        console.log('Aurigraph DLT Landing Page Loaded');
+        console.log('Platform Version: 11.4.0');
+    </script>
+</body>
+</html>

@@ -20,7 +20,7 @@ import java.util.Map;
  * @version 11.4.0
  * @since 2025-10-13
  */
-@Path("/api/v12/registry")
+@Path("/api/v11/registry")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RegistryResource {
@@ -38,7 +38,7 @@ public class RegistryResource {
     /**
      * Search contracts
      *
-     * GET /api/v12/registry/contracts/search?keyword=xxx
+     * GET /api/v11/registry/contracts/search?keyword=xxx
      */
     @GET
     @Path("/contracts/search")
@@ -52,7 +52,7 @@ public class RegistryResource {
     /**
      * Get contract by ID
      *
-     * GET /api/v12/registry/contracts/{contractId}
+     * GET /api/v11/registry/contracts/{contractId}
      */
     @GET
     @Path("/contracts/{contractId}")
@@ -71,7 +71,7 @@ public class RegistryResource {
     /**
      * List contracts by category
      *
-     * GET /api/v12/registry/contracts/category/{category}
+     * GET /api/v11/registry/contracts/category/{category}
      */
     @GET
     @Path("/contracts/category/{category}")
@@ -85,7 +85,7 @@ public class RegistryResource {
     /**
      * List recent contracts
      *
-     * GET /api/v12/registry/contracts/recent?limit=10
+     * GET /api/v11/registry/contracts/recent?limit=10
      */
     @GET
     @Path("/contracts/recent")
@@ -99,7 +99,7 @@ public class RegistryResource {
     /**
      * List featured contracts
      *
-     * GET /api/v12/registry/contracts/featured?limit=10
+     * GET /api/v11/registry/contracts/featured?limit=10
      */
     @GET
     @Path("/contracts/featured")
@@ -113,7 +113,7 @@ public class RegistryResource {
     /**
      * Get contract registry statistics
      *
-     * GET /api/v12/registry/contracts/stats
+     * GET /api/v11/registry/contracts/stats
      */
     @GET
     @Path("/contracts/stats")
@@ -129,7 +129,7 @@ public class RegistryResource {
     /**
      * Register new RWAT
      *
-     * POST /api/v12/registry/rwat/register
+     * POST /api/v11/registry/rwat/register
      */
     @POST
     @Path("/rwat/register")
@@ -149,7 +149,7 @@ public class RegistryResource {
     /**
      * Get RWAT by ID
      *
-     * GET /api/v12/registry/rwat/{rwatId}
+     * GET /api/v11/registry/rwat/{rwatId}
      */
     @GET
     @Path("/rwat/{rwatId}")
@@ -168,7 +168,7 @@ public class RegistryResource {
     /**
      * Search RWATs
      *
-     * GET /api/v12/registry/rwat/search?keyword=xxx
+     * GET /api/v11/registry/rwat/search?keyword=xxx
      */
     @GET
     @Path("/rwat/search")
@@ -182,7 +182,7 @@ public class RegistryResource {
     /**
      * List RWATs by asset type
      *
-     * GET /api/v12/registry/rwat/type/{assetType}
+     * GET /api/v11/registry/rwat/type/{assetType}
      */
     @GET
     @Path("/rwat/type/{assetType}")
@@ -203,7 +203,7 @@ public class RegistryResource {
     /**
      * List verified RWATs
      *
-     * GET /api/v12/registry/rwat/verified
+     * GET /api/v11/registry/rwat/verified
      */
     @GET
     @Path("/rwat/verified")
@@ -217,7 +217,7 @@ public class RegistryResource {
     /**
      * List recent RWATs
      *
-     * GET /api/v12/registry/rwat/recent?limit=10
+     * GET /api/v11/registry/rwat/recent?limit=10
      */
     @GET
     @Path("/rwat/recent")
@@ -231,7 +231,7 @@ public class RegistryResource {
     /**
      * List top RWATs by trading volume
      *
-     * GET /api/v12/registry/rwat/top-volume?limit=10
+     * GET /api/v11/registry/rwat/top-volume?limit=10
      */
     @GET
     @Path("/rwat/top-volume")
@@ -245,7 +245,7 @@ public class RegistryResource {
     /**
      * Update RWAT verification status (admin)
      *
-     * PUT /api/v12/registry/rwat/{rwatId}/verify
+     * PUT /api/v11/registry/rwat/{rwatId}/verify
      */
     @PUT
     @Path("/rwat/{rwatId}/verify")
@@ -285,7 +285,7 @@ public class RegistryResource {
     /**
      * Get RWAT registry statistics
      *
-     * GET /api/v12/registry/rwat/stats
+     * GET /api/v11/registry/rwat/stats
      */
     @GET
     @Path("/rwat/stats")
@@ -301,7 +301,7 @@ public class RegistryResource {
     /**
      * Get Merkle root hash for RWAT registry
      *
-     * GET /api/v12/registry/rwat/merkle/root
+     * GET /api/v11/registry/rwat/merkle/root
      */
     @GET
     @Path("/rwat/merkle/root")
@@ -315,7 +315,7 @@ public class RegistryResource {
     /**
      * Generate Merkle proof for an RWAT
      *
-     * GET /api/v12/registry/rwat/{rwatId}/merkle/proof
+     * GET /api/v11/registry/rwat/{rwatId}/merkle/proof
      */
     @GET
     @Path("/rwat/{rwatId}/merkle/proof")
@@ -334,7 +334,7 @@ public class RegistryResource {
     /**
      * Verify a Merkle proof
      *
-     * POST /api/v12/registry/rwat/merkle/verify
+     * POST /api/v11/registry/rwat/merkle/verify
      */
     @POST
     @Path("/rwat/merkle/verify")
@@ -353,7 +353,7 @@ public class RegistryResource {
     /**
      * Get Merkle tree statistics
      *
-     * GET /api/v12/registry/rwat/merkle/stats
+     * GET /api/v11/registry/rwat/merkle/stats
      */
     @GET
     @Path("/rwat/merkle/stats")

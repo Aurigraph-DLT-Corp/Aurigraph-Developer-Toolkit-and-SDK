@@ -28,7 +28,7 @@ import { getNetworkTopology, NetworkTopologyData } from '../../services/NetworkT
  * - Network connections
  * - Real-time updates
  *
- * API Endpoint: /api/v12/blockchain/network/topology
+ * API Endpoint: /api/v11/blockchain/network/topology
  */
 export const NetworkTopology: React.FC = () => {
   const [topology, setTopology] = useState<NetworkTopologyData | null>(null);
@@ -85,7 +85,7 @@ export const NetworkTopology: React.FC = () => {
         return '#1976d2';
       case 'business':
         return '#388e3c';
-      case 'ei':
+      case 'slim':
         return '#f57c00';
       default:
         return '#757575';

@@ -30,47 +30,23 @@ function App() {
   const navMenuItems = useMemo(() => {
     const categories: Record<string, any[]> = {};
 
-    // First pass: Add parent routes (top-level menu items)
     routes.forEach(route => {
       // Skip home route
       if (route.path === '/') return;
 
       // Skip routes without categories
-      if (!route.category) return;
-
-      // Only add top-level category routes (parent is '/' or undefined)
-      if (route.parent && route.parent !== '/') return;
+      if (!route.category || route.parent) return;
 
       if (!categories[route.category]) {
         categories[route.category] = [];
       }
 
-      // Check if this route has children
-      const children = routes.filter(r => r.parent === route.path);
-
-      if (children.length > 0) {
-        // Route with children - create submenu
-        categories[route.category]?.push({
-          key: route.path,
-          label: route.label,
-          icon: route.icon ? `icon-${route.icon}` : undefined,
-          title: route.description,
-          children: children.map(child => ({
-            key: child.path,
-            label: child.label,
-            icon: child.icon ? `icon-${child.icon}` : undefined,
-            title: child.description,
-          })),
-        });
-      } else {
-        // Route without children - direct link
-        categories[route.category]?.push({
-          key: route.path,
-          label: route.label,
-          icon: route.icon ? `icon-${route.icon}` : undefined,
-          title: route.description,
-        });
-      }
+      categories[route.category]?.push({
+        key: route.path,
+        label: route.label,
+        icon: route.icon ? `icon-${route.icon}` : undefined,
+        title: route.description,
+      });
     });
 
     // Category display labels
@@ -78,9 +54,7 @@ function App() {
       demo: 'Live Demo',
       blockchain: 'Blockchain',
       contracts: 'Smart Contracts',
-      tokenization: 'Tokenization',
-      rwat: 'RWAT Assets',
-      banking: 'Banking & Trade Finance',
+      tokenization: 'RWA Tokenization',
       compliance: 'Compliance & Security',
       registries: 'Registries & Traceability',
       ai: 'AI & Optimization',
@@ -102,41 +76,6 @@ function App() {
         token: {
           colorPrimary: '#1890ff',
           borderRadius: 8,
-          // Improved text contrast for better readability
-          colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
-          colorTextSecondary: isDarkMode ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.65)',
-          colorTextTertiary: isDarkMode ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.45)',
-          colorTextDescription: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.55)',
-          colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.88)',
-          colorTextLabel: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.75)',
-          colorTextPlaceholder: isDarkMode ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.35)',
-        },
-        components: {
-          // Table text contrast
-          Table: {
-            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
-            colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.88)',
-          },
-          // Card text contrast
-          Card: {
-            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
-            colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.88)',
-          },
-          // Menu text contrast
-          Menu: {
-            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
-            itemColor: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
-          },
-          // Statistic text contrast
-          Statistic: {
-            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
-            colorTextHeading: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
-          },
-          // Descriptions text contrast
-          Descriptions: {
-            colorText: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.88)',
-            colorTextLabel: isDarkMode ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.65)',
-          },
         },
       }}
     >
@@ -191,11 +130,11 @@ function App() {
           }}
         >
           <div>
-            Aurigraph DLT Enterprise Portal v5.0.0 | System Status:{' '}
+            Aurigraph DLT Enterprise Portal v4.6.0 | System Status:{' '}
             <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Healthy</span>
           </div>
           <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '4px' }}>
-            © 2025 Aurigraph DLT. Enterprise Blockchain Platform v12.0.0
+            © 2025 Aurigraph DLT. Enterprise Blockchain Platform v11.3.1
           </div>
         </Footer>
       </Layout>

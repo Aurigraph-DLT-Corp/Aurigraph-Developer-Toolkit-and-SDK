@@ -32,7 +32,7 @@ This document describes the GitHub Secrets required for automated CI/CD deployme
 
 **Related Secrets** (also already configured):
 - `SERVER_HOST` - dlt.aurigraph.io
-- `SERVER_PORT` - 22
+- `SERVER_PORT` - 2235
 - `SERVER_USERNAME` - subbu
 
 ### 2. SLACK_WEBHOOK_URL (Optional)
@@ -87,7 +87,7 @@ The deployment workflow is located at:
 
 ```bash
 # Test SSH connection
-ssh -p 22 -o BatchMode=yes subbu@dlt.aurigraph.io "echo 'SSH works'"
+ssh -p 2235 -o BatchMode=yes subbu@dlt.aurigraph.io "echo 'SSH works'"
 ```
 
 ### 2. Check GitHub Secrets
@@ -161,7 +161,7 @@ The workflow includes automatic rollback on health check failure:
 ### Manual Rollback
 
 ```bash
-ssh -p 22 subbu@dlt.aurigraph.io << 'EOF'
+ssh -p 2235 subbu@dlt.aurigraph.io << 'EOF'
 cd /home/subbu
 
 # Stop current
@@ -192,23 +192,23 @@ EOF
 ssh-add -l
 
 # Test with verbose output
-ssh -v -p 22 subbu@dlt.aurigraph.io
+ssh -v -p 2235 subbu@dlt.aurigraph.io
 
 # Ensure known_hosts has the server
-ssh-keyscan -p 22 dlt.aurigraph.io >> ~/.ssh/known_hosts
+ssh-keyscan -p 2235 dlt.aurigraph.io >> ~/.ssh/known_hosts
 ```
 
 ### Health Check Failed
 
 ```bash
 # Check logs on server
-ssh -p 22 subbu@dlt.aurigraph.io "tail -100 /home/subbu/logs/v12.log"
+ssh -p 2235 subbu@dlt.aurigraph.io "tail -100 /home/subbu/logs/v12.log"
 
 # Check if process is running
-ssh -p 22 subbu@dlt.aurigraph.io "ps aux | grep aurigraph"
+ssh -p 2235 subbu@dlt.aurigraph.io "ps aux | grep aurigraph"
 
 # Manual health check
-ssh -p 22 subbu@dlt.aurigraph.io "curl -v http://localhost:9003/api/v11/health"
+ssh -p 2235 subbu@dlt.aurigraph.io "curl -v http://localhost:9003/api/v11/health"
 ```
 
 ### Build Failed

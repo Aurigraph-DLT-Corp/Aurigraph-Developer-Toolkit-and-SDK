@@ -14,7 +14,7 @@ import uvicorn
 import grpc
 from concurrent import futures
 
-from app.api import health, transactions, consensus, monitoring, nodes, quantum_security
+from app.api import health, transactions, consensus, monitoring, nodes
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.grpc_services.server import GRPCServer
@@ -108,9 +108,6 @@ app.include_router(transactions.router, prefix="/api/v11/transactions", tags=["t
 app.include_router(consensus.router, prefix="/api/v11/consensus", tags=["consensus"])
 app.include_router(monitoring.router, prefix="/api/v11/monitoring", tags=["monitoring"])
 app.include_router(nodes.router, prefix="/api/v11/nodes", tags=["nodes"])
-
-# V12 Quantum Security API
-app.include_router(quantum_security.router, prefix="/api/v12", tags=["quantum-security-v12"])
 
 
 @app.exception_handler(Exception)

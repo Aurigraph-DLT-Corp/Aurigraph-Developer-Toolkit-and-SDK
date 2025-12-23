@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * @version 11.2.1
  * @since 2025-10-12
  */
-@Path("/api/v12/contracts")
+@Path("/api/v11/contracts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Smart Contracts", description = "Smart Contract SDK API")
@@ -35,7 +35,7 @@ public class SmartContractResource {
     /**
      * Deploy a new smart contract
      *
-     * POST /api/v12/contracts/deploy
+     * POST /api/v11/contracts/deploy
      */
     @POST
     @Path("/deploy")
@@ -66,7 +66,7 @@ public class SmartContractResource {
     /**
      * Execute a smart contract method
      *
-     * POST /api/v12/contracts/{contractId}/execute
+     * POST /api/v11/contracts/{contractId}/execute
      */
     @POST
     @Path("/{contractId}/execute")
@@ -105,7 +105,7 @@ public class SmartContractResource {
     /**
      * Get contract by ID
      *
-     * GET /api/v12/contracts/{contractId}
+     * GET /api/v11/contracts/{contractId}
      */
     @GET
     @Path("/{contractId}")
@@ -135,7 +135,7 @@ public class SmartContractResource {
     /**
      * List all contracts
      *
-     * GET /api/v12/contracts
+     * GET /api/v11/contracts
      */
     @GET
     @Operation(
@@ -169,7 +169,7 @@ public class SmartContractResource {
     /**
      * Get contract execution history
      *
-     * GET /api/v12/contracts/{contractId}/executions
+     * GET /api/v11/contracts/{contractId}/executions
      */
     @GET
     @Path("/{contractId}/executions")
@@ -201,7 +201,7 @@ public class SmartContractResource {
     /**
      * Get execution by ID
      *
-     * GET /api/v12/contracts/executions/{executionId}
+     * GET /api/v11/contracts/executions/{executionId}
      */
     @GET
     @Path("/executions/{executionId}")
@@ -231,7 +231,7 @@ public class SmartContractResource {
     /**
      * Update contract state
      *
-     * PUT /api/v12/contracts/{contractId}/state
+     * PUT /api/v11/contracts/{contractId}/state
      */
     @PUT
     @Path("/{contractId}/state")
@@ -265,7 +265,7 @@ public class SmartContractResource {
     /**
      * Pause contract
      *
-     * POST /api/v12/contracts/{contractId}/pause
+     * POST /api/v11/contracts/{contractId}/pause
      */
     @POST
     @Path("/{contractId}/pause")
@@ -296,7 +296,7 @@ public class SmartContractResource {
     /**
      * Resume contract
      *
-     * POST /api/v12/contracts/{contractId}/resume
+     * POST /api/v11/contracts/{contractId}/resume
      */
     @POST
     @Path("/{contractId}/resume")
@@ -327,7 +327,7 @@ public class SmartContractResource {
     /**
      * Get SDK info
      *
-     * GET /api/v12/contracts/sdk/info
+     * GET /api/v11/contracts/sdk/info
      */
     @GET
     @Path("/sdk/info")
@@ -352,12 +352,12 @@ public class SmartContractResource {
                     "Contract Pause/Resume"
                 ),
                 "endpoints", Map.of(
-                    "deploy", "POST /api/v12/contracts/deploy",
-                    "execute", "POST /api/v12/contracts/{contractId}/execute",
-                    "getContract", "GET /api/v12/contracts/{contractId}",
-                    "listContracts", "GET /api/v12/contracts",
-                    "getExecutions", "GET /api/v12/contracts/{contractId}/executions",
-                    "statistics", "GET /api/v12/contracts/statistics"
+                    "deploy", "POST /api/v11/contracts/deploy",
+                    "execute", "POST /api/v11/contracts/{contractId}/execute",
+                    "getContract", "GET /api/v11/contracts/{contractId}",
+                    "listContracts", "GET /api/v11/contracts",
+                    "getExecutions", "GET /api/v11/contracts/{contractId}/executions",
+                    "statistics", "GET /api/v11/contracts/statistics"
                 )
             )
         )).build();
@@ -366,7 +366,7 @@ public class SmartContractResource {
     /**
      * Get contract statistics
      *
-     * GET /api/v12/contracts/statistics
+     * GET /api/v11/contracts/statistics
      */
     @GET
     @Path("/statistics")
@@ -388,106 +388,5 @@ public class SmartContractResource {
                     "successRate", 0.0
                 )).build();
             });
-    }
-
-    /**
-     * Get contract templates
-     *
-     * GET /api/v12/contracts/templates
-     */
-    @GET
-    @Path("/templates")
-    @Operation(
-        summary = "Get Contract Templates",
-        description = "Retrieve available smart contract templates for deployment"
-    )
-    public Response getTemplates() {
-        LOGGER.info("API: Getting contract templates");
-
-        List<Map<String, Object>> templates = List.of(
-            Map.of(
-                "id", "template-erc20",
-                "name", "Token Contract",
-                "description", "ERC20-compatible token contract with minting and burning",
-                "category", "DeFi",
-                "complexity", "simple",
-                "estimatedGas", 250000,
-                "parameters", List.of(
-                    Map.of("name", "name", "type", "string", "description", "Token name", "required", true),
-                    Map.of("name", "symbol", "type", "string", "description", "Token symbol", "required", true),
-                    Map.of("name", "totalSupply", "type", "uint256", "description", "Initial supply", "required", true)
-                )
-            ),
-            Map.of(
-                "id", "template-rwa",
-                "name", "RWA Asset Registry",
-                "description", "Real-world asset tokenization with fractional ownership",
-                "category", "RWA",
-                "complexity", "complex",
-                "estimatedGas", 750000,
-                "parameters", List.of(
-                    Map.of("name", "assetName", "type", "string", "description", "Asset name", "required", true),
-                    Map.of("name", "assetValue", "type", "uint256", "description", "Total asset value", "required", true),
-                    Map.of("name", "shares", "type", "uint256", "description", "Number of shares", "required", true)
-                )
-            ),
-            Map.of(
-                "id", "template-supply-chain",
-                "name", "Supply Chain Tracker",
-                "description", "Track products through supply chain with provenance",
-                "category", "Supply Chain",
-                "complexity", "medium",
-                "estimatedGas", 450000,
-                "parameters", List.of(
-                    Map.of("name", "productId", "type", "string", "description", "Product identifier", "required", true),
-                    Map.of("name", "origin", "type", "string", "description", "Origin location", "required", true)
-                )
-            ),
-            Map.of(
-                "id", "template-nft",
-                "name", "NFT Collection",
-                "description", "ERC721-compatible NFT collection with metadata",
-                "category", "NFT",
-                "complexity", "medium",
-                "estimatedGas", 350000,
-                "parameters", List.of(
-                    Map.of("name", "collectionName", "type", "string", "description", "Collection name", "required", true),
-                    Map.of("name", "symbol", "type", "string", "description", "Collection symbol", "required", true),
-                    Map.of("name", "baseURI", "type", "string", "description", "Base metadata URI", "required", false)
-                )
-            ),
-            Map.of(
-                "id", "template-governance",
-                "name", "DAO Governance",
-                "description", "Decentralized governance with proposals and voting",
-                "category", "Governance",
-                "complexity", "complex",
-                "estimatedGas", 850000,
-                "parameters", List.of(
-                    Map.of("name", "daoName", "type", "string", "description", "DAO name", "required", true),
-                    Map.of("name", "votingPeriod", "type", "uint256", "description", "Voting period in blocks", "required", true),
-                    Map.of("name", "quorum", "type", "uint256", "description", "Quorum percentage", "required", true)
-                )
-            ),
-            Map.of(
-                "id", "template-escrow",
-                "name", "Escrow Contract",
-                "description", "Secure escrow for multi-party transactions",
-                "category", "Financial",
-                "complexity", "simple",
-                "estimatedGas", 200000,
-                "parameters", List.of(
-                    Map.of("name", "buyer", "type", "address", "description", "Buyer address", "required", true),
-                    Map.of("name", "seller", "type", "address", "description", "Seller address", "required", true),
-                    Map.of("name", "arbiter", "type", "address", "description", "Arbiter address", "required", true)
-                )
-            )
-        );
-
-        return Response.ok(Map.of(
-            "success", true,
-            "templates", templates,
-            "count", templates.size()
-        )).build();
     }
 }

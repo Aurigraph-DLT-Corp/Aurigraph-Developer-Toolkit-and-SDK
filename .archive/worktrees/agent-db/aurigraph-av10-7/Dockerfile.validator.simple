@@ -1,0 +1,35 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install all dependencies including dev dependencies for ts-node
+RUN npm install
+
+# Copy source code
+COPY src/ ./src/
+COPY config/ ./config/
+
+# Install global dependencies
+RUN npm install -g typescript ts-node
+
+# Create simple validator startup script
+RUN echo '#!/bin/sh' > /app/start-validator.sh && \
+    echo 'echo "🔥 Starting Validator in TEST Channel..."' >> /app/start-validator.sh && \
+    echo 'export NODE_ID=${NODE_ID:-VAL-001}' >> /app/start-validator.sh && \
+    echo 'export NODE_TYPE=VALIDATOR' >> /app/start-validator.sh && \
+    echo 'export API_PORT=${API_PORT:-8081}' >> /app/start-validator.sh && \
+    echo 'export CHANNEL_NAME=${CHANNEL_NAME:-TEST}' >> /app/start-validator.sh && \
+    echo 'npx ts-node -e "' >> /app/start-validator.sh && \
+    echo 'import { ChannelManager } from \"./src/management/ChannelManager\";' >> /app/start-validator.sh && \
+    echo 'const cm = new ChannelManager();' >> /app/start-validator.sh && \
+    echo 'cm.initialize().then(() => cm.createValidator(\"TEST\", \"VAL-001\")).then(() => console.log(\"Validator ready\"));' >> /app/start-validator.sh && \
+    echo '"' >> /app/start-validator.sh && \
+    chmod +x /app/start-validator.sh
+
+EXPOSE 8081 30001
+
+CMD ["/app/start-validator.sh"]

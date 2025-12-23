@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application files
+COPY enterprise_portal_fastapi.py .
+COPY aurigraph-av10-7/aurigraph-v11-standalone/aurigraph-v11-enterprise-portal.html ./public/index.html
+
+# Create public directory if it doesn't exist
+RUN mkdir -p /app/public
+
+# Expose port
+EXPOSE 3000
+
+# Environment variables (can be overridden)
+ENV AURIGRAPH_API_URL=http://host.docker.internal:9003
+ENV PORT=3000
+ENV PYTHONUNBUFFERED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:3000/health')"
+
+# Run the application
+CMD ["uvicorn", "enterprise_portal_fastapi:app", "--host", "0.0.0.0", "--port", "3000", "--workers", "4"]

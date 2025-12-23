@@ -1,0 +1,596 @@
+# Grafana Alert Rules Configuration for Aurigraph V11
+# Sprint 16 Phase 1: 24 Alert Rules (8 Critical, 12 Warning, 4 Info)
+#
+# This file can be used with Grafana Provisioning or as a reference for manual setup
+# Place in: /etc/grafana/provisioning/alerting/ (Linux) or /opt/homebrew/etc/grafana/provisioning/alerting/ (macOS)
+
+apiVersion: 1
+
+groups:
+  - name: aurigraph_v11_critical_alerts
+    folder: Aurigraph V11
+    interval: 1m
+    rules:
+      # CRITICAL ALERT 1: Network Health
+      - uid: aurigraph_network_health_critical
+        title: Network Health Score Critical
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 120
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: blockchain_network_health_score < 95
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Network health score below 95%"
+          description: "Network health at {{ $value }}%"
+        labels:
+          severity: critical
+          component: network
+
+      # CRITICAL ALERT 2: Node Offline
+      - uid: aurigraph_node_offline
+        title: Blockchain Node Offline
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: up{job="blockchain-node"} == 0
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Blockchain node is offline"
+          description: "Node {{ $labels.instance }} is offline"
+        labels:
+          severity: critical
+          component: infrastructure
+
+      # CRITICAL ALERT 3: High Network Latency
+      - uid: aurigraph_high_latency
+        title: High Network Latency
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: avg(blockchain_network_latency_ms) > 500
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Network latency exceeds 500ms"
+          description: "Average network latency {{ $value }}ms"
+        labels:
+          severity: critical
+          component: network
+
+      # CRITICAL ALERT 4: Consensus Failure
+      - uid: aurigraph_consensus_failure
+        title: Consensus Round Time Too High
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: blockchain_consensus_round_duration_ms > 60000
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "Consensus round time exceeds 60 seconds"
+          description: "Consensus round time {{ $value }}ms"
+        labels:
+          severity: critical
+          component: consensus
+
+      # CRITICAL ALERT 5: High Memory Usage
+      - uid: aurigraph_high_memory
+        title: JVM Heap Memory Critical
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 120
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.95
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "JVM heap memory usage above 95%"
+          description: "Heap memory usage {{ $value | humanizePercentage }}"
+        labels:
+          severity: critical
+          component: jvm
+
+      # CRITICAL ALERT 6: Disk Space Critical
+      - uid: aurigraph_disk_critical
+        title: Disk Space Critical
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) > 0.90
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Disk space usage above 90%"
+          description: "Disk space usage {{ $value | humanizePercentage }}"
+        labels:
+          severity: critical
+          component: infrastructure
+
+      # CRITICAL ALERT 7: High API Error Rate
+      - uid: aurigraph_api_error_rate
+        title: High API Error Rate
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "API error rate above 5%"
+          description: "API error rate {{ $value | humanizePercentage }}"
+        labels:
+          severity: critical
+          component: api
+
+      # CRITICAL ALERT 8: Validator Slashing
+      - uid: aurigraph_validator_slashing
+        title: Validator Slashing Events
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(validator_slashing_events_total[1h]) > 3
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "Multiple validators slashed"
+          description: "{{ $value }} validators slashed in 1 hour"
+        labels:
+          severity: critical
+          component: consensus
+
+  - name: aurigraph_v11_warning_alerts
+    folder: Aurigraph V11
+    interval: 5m
+    rules:
+      # WARNING ALERT 1: Network Health Warning
+      - uid: aurigraph_network_health_warning
+        title: Network Health Score Warning
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: blockchain_network_health_score < 98
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "Network health score below 98%"
+          description: "Network health at {{ $value }}%"
+        labels:
+          severity: warning
+          component: network
+
+      # WARNING ALERT 2: High CPU Usage
+      - uid: aurigraph_high_cpu
+        title: High CPU Usage
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "CPU usage above 80%"
+          description: "CPU usage at {{ $value }}%"
+        labels:
+          severity: warning
+          component: infrastructure
+
+      # WARNING ALERT 3: Elevated Network Latency
+      - uid: aurigraph_elevated_latency
+        title: Elevated Network Latency
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: avg(blockchain_network_latency_ms) > 200
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "Network latency above 200ms"
+          description: "Average network latency {{ $value }}ms"
+        labels:
+          severity: warning
+          component: network
+
+      # WARNING ALERT 4: Low Validator Uptime
+      - uid: aurigraph_low_validator_uptime
+        title: Low Validator Uptime
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: avg(validator_uptime_percent) < 99.9
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 1h
+        annotations:
+          summary: "Average validator uptime below 99.9%"
+          description: "Validator uptime at {{ $value }}%"
+        labels:
+          severity: warning
+          component: consensus
+
+      # WARNING ALERT 5: Memory Usage Warning
+      - uid: aurigraph_memory_warning
+        title: JVM Heap Memory Warning
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "JVM heap memory usage above 85%"
+          description: "Heap memory usage {{ $value | humanizePercentage }}"
+        labels:
+          severity: warning
+          component: jvm
+
+      # WARNING ALERT 6: High GC Time
+      - uid: aurigraph_high_gc
+        title: High Garbage Collection Time
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: rate(jvm_gc_duration_seconds_sum[5m]) > 0.1
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "GC time consuming >10% of CPU"
+          description: "GC time {{ $value | humanizeDuration }}"
+        labels:
+          severity: warning
+          component: jvm
+
+      # WARNING ALERT 7: Disk Space Warning
+      - uid: aurigraph_disk_warning
+        title: Disk Space Warning
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) > 0.80
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "Disk space usage above 80%"
+          description: "Disk space usage {{ $value | humanizePercentage }}"
+        labels:
+          severity: warning
+          component: infrastructure
+
+      # WARNING ALERT 8: Low AI Model Accuracy
+      - uid: aurigraph_low_model_accuracy
+        title: Low AI Model Accuracy
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: avg(ai_model_accuracy_percent) < 90
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 30m
+        annotations:
+          summary: "AI model accuracy below 90%"
+          description: "Model accuracy at {{ $value }}%"
+        labels:
+          severity: warning
+          component: ai
+
+      # WARNING ALERT 9: High Prediction Latency
+      - uid: aurigraph_high_prediction_latency
+        title: High AI Prediction Latency
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: histogram_quantile(0.99, ai_prediction_latency_ms) > 100
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "P99 prediction latency above 100ms"
+          description: "P99 latency {{ $value }}ms"
+        labels:
+          severity: warning
+          component: ai
+
+      # WARNING ALERT 10: High HTTP Response Time
+      - uid: aurigraph_high_response_time
+        title: High HTTP Response Time
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: histogram_quantile(0.99, http_request_duration_seconds_bucket) > 1
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "P99 HTTP response time above 1s"
+          description: "P99 response time {{ $value | humanizeDuration }}"
+        labels:
+          severity: warning
+          component: api
+
+      # WARNING ALERT 11: Transaction Pool Congestion
+      - uid: aurigraph_tx_pool_congestion
+        title: Transaction Pool Congestion
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: blockchain_transaction_pool_size > 10000
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "Transaction pool size above 10,000"
+          description: "Pool size {{ $value }}"
+        labels:
+          severity: warning
+          component: transactions
+
+      # WARNING ALERT 12: RWA Asset Compliance Issue
+      - uid: aurigraph_rwa_compliance
+        title: RWA Asset Compliance Issue
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: count(rwa_asset_compliance_status{status="non_compliant"}) > 0
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 1h
+        annotations:
+          summary: "Non-compliant RWA assets detected"
+          description: "{{ $value }} non-compliant assets"
+        labels:
+          severity: warning
+          component: rwa
+
+  - name: aurigraph_v11_info_alerts
+    folder: Aurigraph V11
+    interval: 15m
+    rules:
+      # INFO ALERT 1: New Validator Joined
+      - uid: aurigraph_new_validator
+        title: New Validator Joined Network
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(validator_status_total[15m]) > 0
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "New validator joined the network"
+          description: "{{ $value }} new validators"
+        labels:
+          severity: info
+          component: consensus
+
+      # INFO ALERT 2: High TPS Achieved
+      - uid: aurigraph_high_tps
+        title: High TPS Achieved
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: rate(blockchain_transactions_total[1m]) > 1000000
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "TPS exceeded 1M"
+          description: "Current TPS: {{ $value }}"
+        labels:
+          severity: info
+          component: performance
+
+      # INFO ALERT 3: New RWA Asset Tokenized
+      - uid: aurigraph_new_rwa_asset
+        title: New RWA Asset Tokenized
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(rwa_asset_info[15m]) > 0
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "New RWA asset tokenized"
+          description: "{{ $value }} new assets"
+        labels:
+          severity: info
+          component: rwa
+
+      # INFO ALERT 4: AI Model Retrained
+      - uid: aurigraph_model_retrained
+        title: AI Model Retrained
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: changes(ai_model_info[15m]) > 0
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "AI model retrained or updated"
+          description: "Model version changed"
+        labels:
+          severity: info
+          component: ai

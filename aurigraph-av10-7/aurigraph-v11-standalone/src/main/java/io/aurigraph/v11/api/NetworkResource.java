@@ -21,8 +21,8 @@ import io.aurigraph.v11.network.NetworkHealthService.*;
  * Network Monitoring API Resource
  *
  * Provides network health and peer monitoring endpoints:
- * - /api/v12/network/health - Network health status (AV11-273)
- * - /api/v12/network/peers - Connected peers map (AV11-274)
+ * - /api/v11/network/health - Network health status (AV11-273)
+ * - /api/v11/network/peers - Connected peers map (AV11-274)
  *
  * NOTE: This resource is superseded by PortalAPIGateway in Phase 3.
  * Kept for backward compatibility. During testing, PortalAPIGateway
@@ -33,7 +33,7 @@ import io.aurigraph.v11.network.NetworkHealthService.*;
  * @author Aurigraph V11 Backend Development Agent
  * @version 11.0.0
  */
-@Path("/api/v12/deprecated/network")
+@Path("/api/v11/deprecated/network")
 @ApplicationScoped
 @Tag(name = "Network Monitoring API", description = "Network health and peer monitoring endpoints")
 public class NetworkResource {

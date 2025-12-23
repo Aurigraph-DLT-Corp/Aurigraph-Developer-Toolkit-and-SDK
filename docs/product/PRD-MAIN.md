@@ -1,7 +1,7 @@
 # Aurigraph DLT Product Requirements Document - Main Overview
 
-**Version**: 12.0.0 | **Section**: Product Overview | **Status**: 🟢 Production Ready
-**Last Updated**: 2025-12-12 | **Document Type**: Main Product Requirements
+**Version**: 11.1.0 | **Section**: Product Overview | **Status**: 🟢 Production Ready
+**Last Updated**: 2025-11-17 | **Document Type**: Main Product Requirements
 
 ---
 
@@ -74,30 +74,6 @@ This document provides the executive overview and navigation for the complete Au
 - **Composite Tokens**: Merkle-verified digital twins with oracle validation
 - **Ricardian Contracts**: Legal + executable code binding
 - **AI Analytics**: Predictive models for asset performance and market conditions
-
-### V12 New Features (December 2025)
-
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Asset Registry** | 12 asset categories with full lifecycle management (DRAFT, PENDING_VERIFICATION, VERIFIED, TOKENIZED, TRANSFERRED, ARCHIVED) | Production |
-| **File Attachments** | MinIO CDN integration with SHA256 integrity verification for document storage | Production |
-| **External Verification** | Pluggable verification adapters (Land Registry, KYC, VVB, Manual) for asset validation | Production |
-| **Smart Contract Library** | 7 pre-built contract templates for common RWA use cases | Production |
-| **Referral System** | User referral tracking with rewards and analytics | Production |
-
-#### V12 Asset Categories
-1. Real Estate (REAL_ESTATE)
-2. Carbon Credits (CARBON_CREDITS)
-3. Renewable Energy (RENEWABLE_ENERGY)
-4. Art & Collectibles (ART_COLLECTIBLES)
-5. Commodities (COMMODITIES)
-6. Intellectual Property (IP_RIGHTS)
-7. Infrastructure (INFRASTRUCTURE)
-8. Agriculture (AGRICULTURE)
-9. Precious Metals (PRECIOUS_METALS)
-10. Equipment & Machinery (EQUIPMENT)
-11. Vehicles & Fleet (VEHICLES)
-12. Financial Instruments (FINANCIAL)
 
 ---
 
@@ -365,15 +341,14 @@ This document provides the executive overview and navigation for the complete Au
 
 | Category | Features |
 |----------|----------|
-| **Infrastructure** | 2M+ TPS, HyperRAFT++ consensus, sharding, hybrid storage |
+| **Infrastructure** | 100K+ TPS, RAFT consensus, sharding, hybrid storage |
 | **Tokenization** | Primary, Secondary, Compound tokens, Digital twins |
-| **Contracts** | Ricardian contracts, 7 smart contract templates, hot deployment |
-| **Security** | CRYSTALS post-quantum (NIST Level 5), MFA, RBAC, audit logging |
+| **Contracts** | Ricardian contracts, legal templates, hot deployment |
+| **Security** | NTRU post-quantum, MFA, RBAC, audit logging |
 | **AI/Automation** | Predictive analytics, drone integration, anomaly detection |
-| **Integration** | REST/GraphQL/gRPC APIs, IoT (MQTT), MinIO CDN |
+| **Integration** | REST/GraphQL APIs, IoT (MQTT), legacy system support |
 | **Sustainability** | Mining-less protocol, 90% carbon reduction, ESG compliance |
-| **Compliance** | Multi-jurisdictional, AML/KYC, external verification adapters |
-| **V12 Features** | Asset Registry (12 categories), File Attachments (SHA256), Referral System |
+| **Compliance** | Multi-jurisdictional, AML/KYC, regulatory reporting |
 
 ---
 
@@ -442,7 +417,6 @@ docs/product/
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 12.0.0 | 2025-12-12 | V12 features: Asset Registry (12 categories), File Attachments (MinIO CDN), External Verification adapters, Smart Contract Library (7 templates), Referral System |
 | 1.1.0 | 2025-11-17 | Split into 6 focused product documents (Phase 3 chunking) |
 | 1.0.0 | Original | Comprehensive monolithic PRD |
 

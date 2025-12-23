@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "BaseNode": {
+      "type": "object",
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^node-(channel|validator|business|api)-[0-9]{3}$",
+          "description": "Unique node identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["channel", "validator", "business", "api-integration"]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 50
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "createdAt": { "type": "string", "format": "date-time" },
+            "updatedAt": { "type": "string", "format": "date-time" },
+            "version": { "type": "string", "default": "1.0.0" }
+          }
+        }
+      }
+    },
+    "ChannelNode": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseNode" },
+        {
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "maxConnections": { "type": "integer", "minimum": 1, "maximum": 1000, "default": 100 },
+                "routingAlgorithm": { "type": "string", "enum": ["round-robin", "least-connections", "weighted"], "default": "round-robin" },
+                "bufferSize": { "type": "integer", "default": 10000 },
+                "timeout": { "type": "integer", "default": 30000 }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ValidatorNode": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseNode" },
+        {
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "stakeAmount": { "type": "number", "minimum": 1000, "default": 10000 },
+                "votingPower": { "type": "number", "minimum": 1, "maximum": 100, "default": 1 },
+                "consensusTimeout": { "type": "integer", "default": 5000 },
+                "maxBlockSize": { "type": "integer", "default": 1000000 }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BusinessNode": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseNode" },
+        {
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "processingCapacity": { "type": "integer", "minimum": 100, "default": 10000 },
+                "queueSize": { "type": "integer", "default": 50000 },
+                "batchSize": { "type": "integer", "default": 100 },
+                "parallelThreads": { "type": "integer", "default": 16 }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "APIIntegrationNode": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseNode" },
+        {
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "provider": { "type": "string", "enum": ["alpaca", "openweathermap"] },
+                "apiKey": { "type": "string" },
+                "apiSecret": { "type": "string" },
+                "endpoint": { "type": "string", "format": "uri" },
+                "updateFrequency": { "type": "integer", "minimum": 1000, "default": 5000 },
+                "rateLimit": { "type": "integer", "default": 200 },
+                "retryAttempts": { "type": "integer", "default": 3 },
+                "locations": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

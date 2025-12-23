@@ -343,7 +343,7 @@ const ExternalAPITokenization: React.FC = () => {
     const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     try {
       const response = await fetch(
-        `${API_BASE_URL}/tokenization/sources/${sourceId}/status`,
+        `http://localhost:9003/api/v11/tokenization/sources/${sourceId}/status`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -375,7 +375,7 @@ const ExternalAPITokenization: React.FC = () => {
       onOk: async () => {
         try {
           const response = await fetch(
-            `${API_BASE_URL}/tokenization/sources/${sourceId}`,
+            `http://localhost:9003/api/v11/tokenization/sources/${sourceId}`,
             {
               method: 'DELETE',
             }

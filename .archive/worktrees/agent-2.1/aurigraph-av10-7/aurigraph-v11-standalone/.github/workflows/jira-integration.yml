@@ -1,0 +1,300 @@
+name: JIRA Integration
+
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'release/**']
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  issues:
+    types: [opened, closed, reopened]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      jira_issue:
+        description: 'JIRA Issue Key (e.g., AV11-123)'
+        required: false
+        type: string
+      update_type:
+        description: 'Update Type'
+        required: true
+        default: 'status'
+        type: choice
+        options:
+          - status
+          - comment
+          - deployment
+          - release
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+  JIRA_USER_EMAIL: admin@aurigraph.io
+
+jobs:
+  extract-jira-key:
+    name: Extract JIRA Issue Key
+    runs-on: ubuntu-latest
+    outputs:
+      jira_key: ${{ steps.extract.outputs.jira_key }}
+      has_jira_key: ${{ steps.extract.outputs.has_jira_key }}
+    steps:
+      - name: Extract JIRA Key from Branch/PR
+        id: extract
+        run: |
+          # Extract from manual input
+          if [[ -n "${{ github.event.inputs.jira_issue }}" ]]; then
+            echo "jira_key=${{ github.event.inputs.jira_issue }}" >> $GITHUB_OUTPUT
+            echo "has_jira_key=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Extract from branch name
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          echo "Branch name: $BRANCH_NAME"
+          
+          # Pattern: AV11-XXX or av11-xxx
+          if [[ $BRANCH_NAME =~ ([Aa][Vv]11-[0-9]+) ]]; then
+            JIRA_KEY="${BASH_REMATCH[1]^^}"
+            echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+            echo "has_jira_key=true" >> $GITHUB_OUTPUT
+            echo "Found JIRA key: $JIRA_KEY"
+          else
+            echo "No JIRA key found in branch name"
+            echo "has_jira_key=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Extract from PR title or commit message
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            if [[ $PR_TITLE =~ ([Aa][Vv]11-[0-9]+) ]]; then
+              JIRA_KEY="${BASH_REMATCH[1]^^}"
+              echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+              echo "has_jira_key=true" >> $GITHUB_OUTPUT
+              echo "Found JIRA key in PR title: $JIRA_KEY"
+            fi
+          fi
+
+  update-jira-issue:
+    name: Update JIRA Issue
+    runs-on: ubuntu-latest
+    needs: extract-jira-key
+    if: needs.extract-jira-key.outputs.has_jira_key == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Login to JIRA
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ env.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ env.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      
+      - name: Update Issue Status on Push
+        if: github.event_name == 'push'
+        uses: atlassian/gajira-transition@v3
+        with:
+          issue: ${{ needs.extract-jira-key.outputs.jira_key }}
+          transition: "In Progress"
+          
+      - name: Update Issue Status on PR Open
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        uses: atlassian/gajira-transition@v3
+        with:
+          issue: ${{ needs.extract-jira-key.outputs.jira_key }}
+          transition: "In Review"
+          
+      - name: Update Issue Status on PR Merge
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
+        uses: atlassian/gajira-transition@v3
+        with:
+          issue: ${{ needs.extract-jira-key.outputs.jira_key }}
+          transition: "Done"
+          
+      - name: Add Comment to JIRA
+        uses: atlassian/gajira-comment@v3
+        with:
+          issue: ${{ needs.extract-jira-key.outputs.jira_key }}
+          comment: |
+            GitHub Action Update:
+            - Event: ${{ github.event_name }}
+            - Branch: ${{ github.ref_name }}
+            - Commit: ${{ github.sha }}
+            - Author: ${{ github.actor }}
+            - Message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+            - Repository: ${{ github.repository }}
+            - Workflow: ${{ github.workflow }}
+            - Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  sync-pr-to-jira:
+    name: Sync PR to JIRA
+    runs-on: ubuntu-latest
+    needs: extract-jira-key
+    if: github.event_name == 'pull_request' && needs.extract-jira-key.outputs.has_jira_key == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create JIRA Issue Link
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic $(echo -n '${{ env.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "globalId": "github-pr-${{ github.event.pull_request.id }}",
+              "application": {
+                "type": "com.github",
+                "name": "GitHub"
+              },
+              "relationship": "relates to",
+              "object": {
+                "url": "${{ github.event.pull_request.html_url }}",
+                "title": "PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}",
+                "icon": {
+                  "url16x16": "https://github.githubassets.com/favicon.ico"
+                },
+                "status": {
+                  "resolved": ${{ github.event.pull_request.merged }}
+                }
+              }
+            }' \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/${{ needs.extract-jira-key.outputs.jira_key }}/remotelink"
+
+  update-deployment-status:
+    name: Update Deployment Status
+    runs-on: ubuntu-latest
+    needs: extract-jira-key
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.update_type == 'deployment')
+    steps:
+      - name: Login to JIRA
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ env.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ env.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          
+      - name: Update Deployment Info
+        run: |
+          JIRA_KEY="${{ needs.extract-jira-key.outputs.jira_key || github.event.inputs.jira_issue }}"
+          
+          # Create deployment record
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "deployments": [
+                {
+                  "deploymentSequenceNumber": "${{ github.run_number }}",
+                  "updateSequenceNumber": "${{ github.run_number }}",
+                  "displayName": "Deployment #${{ github.run_number }}",
+                  "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                  "description": "Automated deployment from GitHub Actions",
+                  "lastUpdated": "'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'",
+                  "state": "successful",
+                  "pipeline": {
+                    "id": "github-actions",
+                    "displayName": "GitHub Actions",
+                    "url": "${{ github.server_url }}/${{ github.repository }}/actions"
+                  },
+                  "environment": {
+                    "id": "${{ github.ref_name }}",
+                    "displayName": "${{ github.ref_name }}",
+                    "type": "${{ github.ref_name == 'main' && 'production' || 'development' }}"
+                  }
+                }
+              ]
+            }' \
+            "${{ env.JIRA_BASE_URL }}/rest/deployments/1.0/cloud/deployments"
+            
+      - name: Add Release Notes to JIRA
+        if: github.event_name == 'release'
+        uses: atlassian/gajira-comment@v3
+        with:
+          issue: ${{ needs.extract-jira-key.outputs.jira_key || github.event.inputs.jira_issue }}
+          comment: |
+            🚀 Release Published: ${{ github.event.release.tag_name }}
+            
+            **Release Name:** ${{ github.event.release.name }}
+            **Release URL:** ${{ github.event.release.html_url }}
+            **Author:** ${{ github.event.release.author.login }}
+            **Created:** ${{ github.event.release.created_at }}
+            
+            **Release Notes:**
+            ${{ github.event.release.body }}
+
+  create-jira-issue:
+    name: Create JIRA Issue for GitHub Issue
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    steps:
+      - name: Login to JIRA
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ env.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ env.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          
+      - name: Create JIRA Issue
+        id: create
+        uses: atlassian/gajira-create@v3
+        with:
+          project: ${{ env.JIRA_PROJECT_KEY }}
+          issuetype: ${{ contains(github.event.issue.labels.*.name, 'bug') && 'Bug' || 'Task' }}
+          summary: "[GitHub #${{ github.event.issue.number }}] ${{ github.event.issue.title }}"
+          description: |
+            GitHub Issue: ${{ github.event.issue.html_url }}
+            Created by: ${{ github.event.issue.user.login }}
+            
+            ${{ github.event.issue.body }}
+          fields: '{"labels": ["github-issue", "automated"]}'
+          
+      - name: Comment on GitHub Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ JIRA issue created: [${{ steps.create.outputs.issue }}](${{ env.JIRA_BASE_URL }}/browse/${{ steps.create.outputs.issue }})`
+            });
+
+  sync-sprint-progress:
+    name: Sync Sprint Progress
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Calculate Sprint Metrics
+        run: |
+          # Get current sprint information
+          SPRINT_RESPONSE=$(curl -X GET \
+            -H "Authorization: Basic $(echo -n '${{ env.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            "${{ env.JIRA_BASE_URL }}/rest/agile/1.0/board/789/sprint?state=active")
+          
+          # Extract sprint ID
+          SPRINT_ID=$(echo $SPRINT_RESPONSE | jq -r '.values[0].id')
+          
+          # Get sprint issues
+          ISSUES_RESPONSE=$(curl -X GET \
+            -H "Authorization: Basic $(echo -n '${{ env.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            "${{ env.JIRA_BASE_URL }}/rest/agile/1.0/sprint/$SPRINT_ID/issue")
+          
+          # Calculate metrics
+          TOTAL_ISSUES=$(echo $ISSUES_RESPONSE | jq '.total')
+          DONE_ISSUES=$(echo $ISSUES_RESPONSE | jq '[.issues[] | select(.fields.status.name == "Done")] | length')
+          IN_PROGRESS=$(echo $ISSUES_RESPONSE | jq '[.issues[] | select(.fields.status.name == "In Progress")] | length')
+          
+          echo "Sprint Progress: $DONE_ISSUES/$TOTAL_ISSUES completed, $IN_PROGRESS in progress"
+          
+          # Update sprint custom field or add comment
+          curl -X POST \
+            -H "Authorization: Basic $(echo -n '${{ env.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"body\": \"📊 **Automated Sprint Update**\n\n- Total Issues: $TOTAL_ISSUES\n- Completed: $DONE_ISSUES\n- In Progress: $IN_PROGRESS\n- GitHub Commits: $(git rev-list --count HEAD)\n- Last Update: $(date -u +\"%Y-%m-%d %H:%M:%S UTC\")\"
+            }" \
+            "${{ env.JIRA_BASE_URL }}/rest/api/3/issue/AV11-1/comment"

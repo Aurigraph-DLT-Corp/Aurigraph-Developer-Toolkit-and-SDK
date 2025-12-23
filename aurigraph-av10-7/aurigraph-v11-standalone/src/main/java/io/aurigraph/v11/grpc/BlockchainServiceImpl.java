@@ -63,9 +63,6 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
     @Inject
     TransactionRepository transactionRepository;
 
-    @Inject
-    BlockchainHelper blockchainHelper;
-
     // Block cache for fast lookups (LRU cache with 1000 entries)
     private final Map<String, Block> blockCache = new ConcurrentHashMap<>(1000);
     private final Map<Long, String> heightToHashCache = new ConcurrentHashMap<>(1000);
@@ -99,13 +96,13 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             // Validate input
             if (request.getBlockId() == null || request.getBlockId().isEmpty()) {
                 responseObserver.onNext(BlockCreationResponse.newBuilder()
-                        .setSuccess(false)
-                        .setErrorMessage("Block ID is required")
-                        .setTimestamp(Timestamp.newBuilder()
-                                .setSeconds(Instant.now().getEpochSecond())
-                                .setNanos(Instant.now().getNano())
-                                .build())
-                        .build());
+                    .setSuccess(false)
+                    .setErrorMessage("Block ID is required")
+                    .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(Instant.now().getEpochSecond())
+                        .setNanos(Instant.now().getNano())
+                        .build())
+                    .build());
                 responseObserver.onCompleted();
                 return;
             }
@@ -117,8 +114,8 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             // Build Merkle tree from transactions
             List<io.aurigraph.v11.proto.Transaction> protoTransactions = request.getTransactionsList();
             List<String> transactionHashes = protoTransactions.stream()
-                    .map(io.aurigraph.v11.proto.Transaction::getTransactionHash)
-                    .collect(Collectors.toList());
+                .map(io.aurigraph.v11.proto.Transaction::getTransactionHash)
+                .collect(Collectors.toList());
 
             String merkleRoot = request.getTransactionRoot();
             if (merkleRoot.isEmpty() && !transactionHashes.isEmpty()) {
@@ -129,12 +126,12 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
             // Get previous block hash
             String previousHash = blockRepository.findLatestBlock()
-                    .map(Block::getHash)
-                    .orElse("0000000000000000000000000000000000000000000000000000000000000000");
+                .map(Block::getHash)
+                .orElse("0000000000000000000000000000000000000000000000000000000000000000");
 
             // Compute block hash (SHA-256 of block header)
-            String blockHash = blockchainHelper.computeBlockHash(newHeight, previousHash, merkleRoot,
-                    request.getStateRoot(), Instant.now());
+            String blockHash = computeBlockHash(newHeight, previousHash, merkleRoot,
+                request.getStateRoot(), Instant.now());
 
             // Create Block entity
             Block block = new Block();
@@ -162,37 +159,37 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             totalTransactionsProcessed.addAndGet(protoTransactions.size());
 
             // Build response
-            io.aurigraph.v11.proto.Block responseBlock = blockchainHelper.convertToProtoBlock(block, protoTransactions);
+            io.aurigraph.v11.proto.Block responseBlock = convertToProtoBlock(block, protoTransactions);
 
             long processingTime = System.currentTimeMillis() - startTime;
             Log.infof("Block %d created in %dms with hash: %s", newHeight, processingTime,
-                    blockHash.substring(0, 16) + "...");
+                blockHash.substring(0, 16) + "...");
 
             BlockCreationResponse response = BlockCreationResponse.newBuilder()
-                    .setBlock(responseBlock)
-                    .setSuccess(true)
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build();
+                .setBlock(responseBlock)
+                .setSuccess(true)
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
 
             // Notify streaming clients
-            blockchainHelper.notifyStreamingClients(responseBlock, activeStreams);
+            notifyStreamingClients(responseBlock);
 
         } catch (Exception e) {
             Log.errorf("Error creating block: %s", e.getMessage(), e);
             responseObserver.onNext(BlockCreationResponse.newBuilder()
-                    .setSuccess(false)
-                    .setErrorMessage("Failed to create block: " + e.getMessage())
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build());
+                .setSuccess(false)
+                .setErrorMessage("Failed to create block: " + e.getMessage())
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build());
             responseObserver.onCompleted();
         }
     }
@@ -222,20 +219,21 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
             // Validation 1: Block hash correctness
             if (request.getValidateStateRoot()) {
-                String recomputedHash = blockchainHelper.computeBlockHash(
-                        protoBlock.getBlockHeight(),
-                        protoBlock.getParentHash(),
-                        protoBlock.getTransactionRoot(),
-                        protoBlock.getStateRoot(),
-                        Instant.ofEpochSecond(protoBlock.getCreatedAt().getSeconds()));
+                String recomputedHash = computeBlockHash(
+                    protoBlock.getBlockHeight(),
+                    protoBlock.getParentHash(),
+                    protoBlock.getTransactionRoot(),
+                    protoBlock.getStateRoot(),
+                    Instant.ofEpochSecond(protoBlock.getCreatedAt().getSeconds())
+                );
 
                 if (!recomputedHash.equals(protoBlock.getBlockHash())) {
                     errors.add(ValidationError.newBuilder()
-                            .setErrorCode("HASH_MISMATCH")
-                            .setErrorMessage("Block hash does not match computed hash")
-                            .setErrorDetails("Expected: " + recomputedHash + ", Got: " + protoBlock.getBlockHash())
-                            .setErrorSeverity(3)
-                            .build());
+                        .setErrorCode("HASH_MISMATCH")
+                        .setErrorMessage("Block hash does not match computed hash")
+                        .setErrorDetails("Expected: " + recomputedHash + ", Got: " + protoBlock.getBlockHash())
+                        .setErrorSeverity(3)
+                        .build());
                 }
             }
 
@@ -251,36 +249,36 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
                 if (invalidSignatures > 0) {
                     errors.add(ValidationError.newBuilder()
-                            .setErrorCode("INVALID_SIGNATURES")
-                            .setErrorMessage("Found invalid transaction signatures")
-                            .setErrorDetails(
-                                    String.format("%d transactions have invalid signatures", invalidSignatures))
-                            .setErrorSeverity(3)
-                            .build());
+                        .setErrorCode("INVALID_SIGNATURES")
+                        .setErrorMessage("Found invalid transaction signatures")
+                        .setErrorDetails(String.format("%d transactions have invalid signatures", invalidSignatures))
+                        .setErrorSeverity(3)
+                        .build());
                 }
             }
 
             // Validation 3: Merkle root verification
             if (protoBlock.getTransactionHashesList().size() > 0) {
                 MerkleTree<String> merkleTree = new MerkleTree<>(
-                        protoBlock.getTransactionHashesList(),
-                        hash -> hash);
+                    protoBlock.getTransactionHashesList(),
+                    hash -> hash
+                );
 
                 String computedRoot = merkleTree.getRootHash();
                 if (!computedRoot.equals(protoBlock.getTransactionRoot())) {
                     errors.add(ValidationError.newBuilder()
-                            .setErrorCode("MERKLE_ROOT_MISMATCH")
-                            .setErrorMessage("Merkle root does not match computed value")
-                            .setErrorDetails("Expected: " + computedRoot + ", Got: " + protoBlock.getTransactionRoot())
-                            .setErrorSeverity(3)
-                            .build());
+                        .setErrorCode("MERKLE_ROOT_MISMATCH")
+                        .setErrorMessage("Merkle root does not match computed value")
+                        .setErrorDetails("Expected: " + computedRoot + ", Got: " + protoBlock.getTransactionRoot())
+                        .setErrorSeverity(3)
+                        .build());
                 }
             }
 
             // Validation 4: Block height consistency
             if (request.getBlockHeight() > 0 && protoBlock.getBlockHeight() != request.getBlockHeight()) {
                 warnings.add("Block height mismatch: expected " + request.getBlockHeight() +
-                        ", got " + protoBlock.getBlockHeight());
+                    ", got " + protoBlock.getBlockHeight());
             }
 
             // Validation 5: Validator signatures
@@ -296,15 +294,15 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             Log.infof("Block validation completed in %dms: %s", validationTime, isValid ? "VALID" : "INVALID");
 
             BlockValidationResult result = BlockValidationResult.newBuilder()
-                    .setIsValid(isValid)
-                    .addAllErrors(errors)
-                    .addAllWarnings(warnings)
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .setValidationTimeMs(validationTime)
-                    .build();
+                .setIsValid(isValid)
+                .addAllErrors(errors)
+                .addAllWarnings(warnings)
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .setValidationTimeMs(validationTime)
+                .build();
 
             responseObserver.onNext(result);
             responseObserver.onCompleted();
@@ -312,17 +310,17 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
         } catch (Exception e) {
             Log.errorf("Error validating block: %s", e.getMessage(), e);
             BlockValidationResult result = BlockValidationResult.newBuilder()
-                    .setIsValid(false)
-                    .addErrors(ValidationError.newBuilder()
-                            .setErrorCode("VALIDATION_ERROR")
-                            .setErrorMessage("Validation failed: " + e.getMessage())
-                            .setErrorSeverity(3)
-                            .build())
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build();
+                .setIsValid(false)
+                .addErrors(ValidationError.newBuilder()
+                    .setErrorCode("VALIDATION_ERROR")
+                    .setErrorMessage("Validation failed: " + e.getMessage())
+                    .setErrorSeverity(3)
+                    .build())
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build();
             responseObserver.onNext(result);
             responseObserver.onCompleted();
         }
@@ -384,12 +382,12 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
                 Log.debugf("Block not found (query time: %dms)", queryTime);
 
                 responseObserver.onNext(BlockDetailsResponse.newBuilder()
-                        .setFound(false)
-                        .setTimestamp(Timestamp.newBuilder()
-                                .setSeconds(Instant.now().getEpochSecond())
-                                .setNanos(Instant.now().getNano())
-                                .build())
-                        .build());
+                    .setFound(false)
+                    .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(Instant.now().getEpochSecond())
+                        .setNanos(Instant.now().getNano())
+                        .build())
+                    .build());
                 responseObserver.onCompleted();
                 return;
             }
@@ -409,12 +407,12 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             List<ValidatorInfo> validators = new ArrayList<>();
             if (request.getIncludeValidators() && block.getValidatorAddress() != null) {
                 validators.add(ValidatorInfo.newBuilder()
-                        .setValidatorId(block.getValidatorAddress())
-                        .setPublicKey(block.getValidatorAddress())
-                        .setIsActive(true)
-                        .setSignatureCount(1)
-                        .setReputationScore(95.0)
-                        .build());
+                    .setValidatorId(block.getValidatorAddress())
+                    .setPublicKey(block.getValidatorAddress())
+                    .setIsActive(true)
+                    .setSignatureCount(1)
+                    .setReputationScore(95.0)
+                    .build());
             }
 
             io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, protoTransactions);
@@ -423,15 +421,15 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             Log.debugf("Block retrieved in %dms", queryTime);
 
             BlockDetailsResponse response = BlockDetailsResponse.newBuilder()
-                    .setBlock(protoBlock)
-                    .addAllTransactions(protoTransactions)
-                    .addAllValidators(validators)
-                    .setFound(true)
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build();
+                .setBlock(protoBlock)
+                .addAllTransactions(protoTransactions)
+                .addAllValidators(validators)
+                .setFound(true)
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -439,12 +437,12 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
         } catch (Exception e) {
             Log.errorf("Error retrieving block details: %s", e.getMessage(), e);
             responseObserver.onNext(BlockDetailsResponse.newBuilder()
-                    .setFound(false)
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build());
+                .setFound(false)
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build());
             responseObserver.onCompleted();
         }
     }
@@ -462,7 +460,7 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
      */
     @Override
     public void executeTransaction(TransactionExecutionRequest request,
-            StreamObserver<TransactionExecutionResponse> responseObserver) {
+                                   StreamObserver<TransactionExecutionResponse> responseObserver) {
         long startTime = System.currentTimeMillis();
 
         try {
@@ -473,69 +471,69 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             if (request.getValidateBeforeExecute()) {
                 if (protoTx.getFromAddress().isEmpty() || protoTx.getToAddress().isEmpty()) {
                     responseObserver.onNext(TransactionExecutionResponse.newBuilder()
-                            .setSuccess(false)
-                            .setErrorMessage("Invalid transaction: missing from/to address")
-                            .setTimestamp(Timestamp.newBuilder()
-                                    .setSeconds(Instant.now().getEpochSecond())
-                                    .setNanos(Instant.now().getNano())
-                                    .build())
-                            .build());
+                        .setSuccess(false)
+                        .setErrorMessage("Invalid transaction: missing from/to address")
+                        .setTimestamp(Timestamp.newBuilder()
+                            .setSeconds(Instant.now().getEpochSecond())
+                            .setNanos(Instant.now().getNano())
+                            .build())
+                        .build());
                     responseObserver.onCompleted();
                     return;
                 }
             }
 
             // Execute transaction (simplified - in production, execute against VM)
-            List<BlockchainStateChange> stateChanges = new ArrayList<>();
+            List<StateChange> stateChanges = new ArrayList<>();
 
             // State change 1: Debit from sender
-            stateChanges.add(BlockchainStateChange.newBuilder()
-                    .setKey("balance:" + protoTx.getFromAddress())
-                    .setOldValue("1000.0")
-                    .setNewValue(String.valueOf(1000.0 - Double.parseDouble(protoTx.getAmount())))
-                    .setChangeType("UPDATE")
-                    .build());
+            stateChanges.add(StateChange.newBuilder()
+                .setKey("balance:" + protoTx.getFromAddress())
+                .setOldValue("1000.0")
+                .setNewValue(String.valueOf(1000.0 - Double.parseDouble(protoTx.getAmount())))
+                .setChangeType("UPDATE")
+                .build());
 
             // State change 2: Credit to receiver
-            stateChanges.add(BlockchainStateChange.newBuilder()
-                    .setKey("balance:" + protoTx.getToAddress())
-                    .setOldValue("500.0")
-                    .setNewValue(String.valueOf(500.0 + Double.parseDouble(protoTx.getAmount())))
-                    .setChangeType("UPDATE")
-                    .build());
+            stateChanges.add(StateChange.newBuilder()
+                .setKey("balance:" + protoTx.getToAddress())
+                .setOldValue("500.0")
+                .setNewValue(String.valueOf(500.0 + Double.parseDouble(protoTx.getAmount())))
+                .setChangeType("UPDATE")
+                .build());
 
             // State change 3: Transaction nonce
-            stateChanges.add(BlockchainStateChange.newBuilder()
-                    .setKey("nonce:" + protoTx.getFromAddress())
-                    .setOldValue(String.valueOf(protoTx.getNonce() - 1))
-                    .setNewValue(String.valueOf(protoTx.getNonce()))
-                    .setChangeType("UPDATE")
-                    .build());
+            stateChanges.add(StateChange.newBuilder()
+                .setKey("nonce:" + protoTx.getFromAddress())
+                .setOldValue(String.valueOf(protoTx.getNonce() - 1))
+                .setNewValue(String.valueOf(protoTx.getNonce()))
+                .setChangeType("UPDATE")
+                .build());
 
             // Update transaction status
             io.aurigraph.v11.proto.Transaction executedTx = protoTx.toBuilder()
-                    .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED)
-                    .setExecutedAt(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .setGasUsed(21000.0) // Standard gas for simple transfer
-                    .build();
+                .setStatus(io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED)
+                .setExecutedAt(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .setGasUsed(21000.0) // Standard gas for simple transfer
+                .build();
 
             long executionTime = System.currentTimeMillis() - startTime;
             Log.infof("Transaction executed in %dms with %d state changes",
-                    executionTime, stateChanges.size());
+                executionTime, stateChanges.size());
 
             TransactionExecutionResponse response = TransactionExecutionResponse.newBuilder()
-                    .setTransaction(executedTx)
-                    .setSuccess(true)
-                    .setResultData("Transaction executed successfully")
-                    .addAllStateChanges(stateChanges)
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build();
+                .setTransaction(executedTx)
+                .setSuccess(true)
+                .setResultData("Transaction executed successfully")
+                .addAllStateChanges(stateChanges)
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -543,13 +541,13 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
         } catch (Exception e) {
             Log.errorf("Error executing transaction: %s", e.getMessage(), e);
             responseObserver.onNext(TransactionExecutionResponse.newBuilder()
-                    .setSuccess(false)
-                    .setErrorMessage("Execution failed: " + e.getMessage())
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build());
+                .setSuccess(false)
+                .setErrorMessage("Execution failed: " + e.getMessage())
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build());
             responseObserver.onCompleted();
         }
     }
@@ -567,12 +565,12 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
      */
     @Override
     public void verifyTransaction(TransactionVerificationRequest request,
-            StreamObserver<TransactionVerificationResult> responseObserver) {
+                                  StreamObserver<TransactionVerificationResult> responseObserver) {
         long startTime = System.currentTimeMillis();
 
         try {
             Log.infof("Verifying transaction: %s in block: %s",
-                    request.getTransactionHash(), request.getBlockHash());
+                request.getTransactionHash(), request.getBlockHash());
 
             // Retrieve block to get expected Merkle root
             Block block = blockCache.get(request.getBlockHash());
@@ -582,14 +580,14 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
             if (block == null) {
                 responseObserver.onNext(TransactionVerificationResult.newBuilder()
-                        .setIsVerified(false)
-                        .setMerkleProofValid(false)
-                        .setErrorMessage("Block not found: " + request.getBlockHash())
-                        .setTimestamp(Timestamp.newBuilder()
-                                .setSeconds(Instant.now().getEpochSecond())
-                                .setNanos(Instant.now().getNano())
-                                .build())
-                        .build());
+                    .setIsVerified(false)
+                    .setMerkleProofValid(false)
+                    .setErrorMessage("Block not found: " + request.getBlockHash())
+                    .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(Instant.now().getEpochSecond())
+                        .setNanos(Instant.now().getNano())
+                        .build())
+                    .build());
                 responseObserver.onCompleted();
                 return;
             }
@@ -605,10 +603,10 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             for (String siblingHash : proofHashes) {
                 if (index % 2 == 0) {
                     // Current node is left child
-                    currentHash = blockchainHelper.computeSHA256(currentHash + siblingHash);
+                    currentHash = computeSHA256(currentHash + siblingHash);
                 } else {
                     // Current node is right child
-                    currentHash = blockchainHelper.computeSHA256(siblingHash + currentHash);
+                    currentHash = computeSHA256(siblingHash + currentHash);
                 }
                 index = index / 2;
             }
@@ -617,19 +615,19 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             long verificationTime = System.currentTimeMillis() - startTime;
 
             Log.infof("Transaction verification completed in %dms: %s",
-                    verificationTime, isVerified ? "VERIFIED" : "FAILED");
+                verificationTime, isVerified ? "VERIFIED" : "FAILED");
 
             TransactionVerificationResult result = TransactionVerificationResult.newBuilder()
-                    .setIsVerified(isVerified)
-                    .setMerkleProofValid(isVerified)
-                    .setVerificationHash(currentHash)
-                    .setExpectedRoot(expectedRoot)
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .setVerificationTimeMs(verificationTime)
-                    .build();
+                .setIsVerified(isVerified)
+                .setMerkleProofValid(isVerified)
+                .setVerificationHash(currentHash)
+                .setExpectedRoot(expectedRoot)
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .setVerificationTimeMs(verificationTime)
+                .build();
 
             responseObserver.onNext(result);
             responseObserver.onCompleted();
@@ -637,14 +635,14 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
         } catch (Exception e) {
             Log.errorf("Error verifying transaction: %s", e.getMessage(), e);
             responseObserver.onNext(TransactionVerificationResult.newBuilder()
-                    .setIsVerified(false)
-                    .setMerkleProofValid(false)
-                    .setErrorMessage("Verification failed: " + e.getMessage())
-                    .setTimestamp(Timestamp.newBuilder()
-                            .setSeconds(Instant.now().getEpochSecond())
-                            .setNanos(Instant.now().getNano())
-                            .build())
-                    .build());
+                .setIsVerified(false)
+                .setMerkleProofValid(false)
+                .setErrorMessage("Verification failed: " + e.getMessage())
+                .setTimestamp(Timestamp.newBuilder()
+                    .setSeconds(Instant.now().getEpochSecond())
+                    .setNanos(Instant.now().getNano())
+                    .build())
+                .build());
             responseObserver.onCompleted();
         }
     }
@@ -662,18 +660,18 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
      */
     @Override
     public void getBlockchainStatistics(BlockchainStatisticsRequest request,
-            StreamObserver<BlockchainStatistics> responseObserver) {
+                                       StreamObserver<BlockchainStatistics> responseObserver) {
         long startTime = System.currentTimeMillis();
 
         try {
             Log.infof("Generating blockchain statistics (window: %d minutes)",
-                    request.getTimeWindowMinutes());
+                request.getTimeWindowMinutes());
 
             // Calculate time window
             Instant now = Instant.now();
             Instant windowStart = request.getTimeWindowMinutes() > 0
-                    ? now.minus(Duration.ofMinutes(request.getTimeWindowMinutes()))
-                    : Instant.EPOCH;
+                ? now.minus(Duration.ofMinutes(request.getTimeWindowMinutes()))
+                : Instant.EPOCH;
 
             // Aggregate metrics
             long totalBlocks = blockRepository.count();
@@ -681,8 +679,8 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
             // Get blocks in time window
             List<Block> recentBlocks = request.getTimeWindowMinutes() > 0
-                    ? blockRepository.findInTimeRange(windowStart, now, 10000, 0)
-                    : blockRepository.findAllPaginated(1000, 0);
+                ? blockRepository.findInTimeRange(windowStart, now, 10000, 0)
+                : blockRepository.findAllPaginated(1000, 0);
 
             // Calculate average block time
             double avgBlockTimeMs = 0.0;
@@ -690,8 +688,9 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
                 long totalTime = 0;
                 for (int i = 1; i < recentBlocks.size(); i++) {
                     long timeDiff = Duration.between(
-                            recentBlocks.get(i - 1).getTimestamp(),
-                            recentBlocks.get(i).getTimestamp()).toMillis();
+                        recentBlocks.get(i-1).getTimestamp(),
+                        recentBlocks.get(i).getTimestamp()
+                    ).toMillis();
                     totalTime += timeDiff;
                 }
                 avgBlockTimeMs = (double) totalTime / (recentBlocks.size() - 1);
@@ -699,12 +698,11 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
             // Calculate TPS metrics
             long transactionsInWindow = recentBlocks.stream()
-                    .mapToLong(b -> b.getTransactionCount() != null ? b.getTransactionCount() : 0)
-                    .sum();
+                .mapToLong(b -> b.getTransactionCount() != null ? b.getTransactionCount() : 0)
+                .sum();
 
             long windowDurationSeconds = Duration.between(windowStart, now).getSeconds();
-            if (windowDurationSeconds == 0)
-                windowDurationSeconds = 1;
+            if (windowDurationSeconds == 0) windowDurationSeconds = 1;
 
             double currentTPS = (double) transactionsInWindow / windowDurationSeconds;
             double peakTPS = currentTPS * 1.5; // Estimate peak as 1.5x average
@@ -713,9 +711,9 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             // Calculate average transaction and block size
             double avgTransactionSizeBytes = 256.0; // Simplified estimate
             double avgBlockSizeBytes = recentBlocks.stream()
-                    .mapToLong(b -> b.getBlockSize() != null ? b.getBlockSize() : 0)
-                    .average()
-                    .orElse(0.0);
+                .mapToLong(b -> b.getBlockSize() != null ? b.getBlockSize() : 0)
+                .average()
+                .orElse(0.0);
 
             // Network health
             int activeValidators = 12; // From configuration
@@ -723,10 +721,8 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             int syncStatusPercent = 100; // Fully synced
 
             String networkHealthStatus = "HEALTHY";
-            if (avgBlockTimeMs > 5000)
-                networkHealthStatus = "DEGRADED";
-            if (totalBlocks == 0)
-                networkHealthStatus = "CRITICAL";
+            if (avgBlockTimeMs > 5000) networkHealthStatus = "DEGRADED";
+            if (totalBlocks == 0) networkHealthStatus = "CRITICAL";
 
             // Transaction statistics
             long pendingTransactions = transactionRepository.countByStatus(TransactionStatus.PENDING);
@@ -735,34 +731,34 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
 
             long aggregationTime = System.currentTimeMillis() - startTime;
             Log.infof("Statistics aggregated in %dms: TPS=%.2f, Blocks=%d, Transactions=%d",
-                    aggregationTime, currentTPS, totalBlocks, totalTransactions);
+                aggregationTime, currentTPS, totalBlocks, totalTransactions);
 
             BlockchainStatistics statistics = BlockchainStatistics.newBuilder()
-                    .setTotalBlocks(totalBlocks)
-                    .setTotalTransactions(totalTransactions)
-                    .setAverageBlockTimeMs(avgBlockTimeMs)
-                    .setAverageTransactionSizeBytes(avgTransactionSizeBytes)
-                    .setTransactionsPerSecond(currentTPS)
-                    .setPeakTps(peakTPS)
-                    .setAverageTps(avgTPS)
-                    .setActiveValidators(activeValidators)
-                    .setSyncStatusPercent(syncStatusPercent)
-                    .setHealthyNodes(healthyNodes)
-                    .setPendingTransactions(pendingTransactions)
-                    .setConfirmedTransactions(confirmedTransactions)
-                    .setFailedTransactions(failedTransactions)
-                    .setNetworkHealthStatus(networkHealthStatus)
-                    .setAverageBlockSizeBytes(avgBlockSizeBytes)
-                    .setMeasurementStart(Timestamp.newBuilder()
-                            .setSeconds(windowStart.getEpochSecond())
-                            .setNanos(windowStart.getNano())
-                            .build())
-                    .setMeasurementEnd(Timestamp.newBuilder()
-                            .setSeconds(now.getEpochSecond())
-                            .setNanos(now.getNano())
-                            .build())
-                    .setMeasurementDurationSeconds(windowDurationSeconds)
-                    .build();
+                .setTotalBlocks(totalBlocks)
+                .setTotalTransactions(totalTransactions)
+                .setAverageBlockTimeMs(avgBlockTimeMs)
+                .setAverageTransactionSizeBytes(avgTransactionSizeBytes)
+                .setTransactionsPerSecond(currentTPS)
+                .setPeakTps(peakTPS)
+                .setAverageTps(avgTPS)
+                .setActiveValidators(activeValidators)
+                .setSyncStatusPercent(syncStatusPercent)
+                .setHealthyNodes(healthyNodes)
+                .setPendingTransactions(pendingTransactions)
+                .setConfirmedTransactions(confirmedTransactions)
+                .setFailedTransactions(failedTransactions)
+                .setNetworkHealthStatus(networkHealthStatus)
+                .setAverageBlockSizeBytes(avgBlockSizeBytes)
+                .setMeasurementStart(Timestamp.newBuilder()
+                    .setSeconds(windowStart.getEpochSecond())
+                    .setNanos(windowStart.getNano())
+                    .build())
+                .setMeasurementEnd(Timestamp.newBuilder()
+                    .setSeconds(now.getEpochSecond())
+                    .setNanos(now.getNano())
+                    .build())
+                .setMeasurementDurationSeconds(windowDurationSeconds)
+                .build();
 
             responseObserver.onNext(statistics);
             responseObserver.onCompleted();
@@ -770,8 +766,8 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
         } catch (Exception e) {
             Log.errorf("Error generating statistics: %s", e.getMessage(), e);
             responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Failed to generate statistics: " + e.getMessage())
-                    .asRuntimeException());
+                .withDescription("Failed to generate statistics: " + e.getMessage())
+                .asRuntimeException());
         }
     }
 
@@ -819,15 +815,15 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
                         io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, transactions);
 
                         BlockStreamEvent event = BlockStreamEvent.newBuilder()
-                                .setBlock(protoBlock)
-                                .addAllTransactions(transactions)
-                                .setStreamId(streamId)
-                                .setEventSequence(height - startHeight)
-                                .setTimestamp(Timestamp.newBuilder()
-                                        .setSeconds(Instant.now().getEpochSecond())
-                                        .setNanos(Instant.now().getNano())
-                                        .build())
-                                .build();
+                            .setBlock(protoBlock)
+                            .addAllTransactions(transactions)
+                            .setStreamId(streamId)
+                            .setEventSequence(height - startHeight)
+                            .setTimestamp(Timestamp.newBuilder()
+                                .setSeconds(Instant.now().getEpochSecond())
+                                .setNanos(Instant.now().getNano())
+                                .build())
+                            .build();
 
                         responseObserver.onNext(event);
                     }
@@ -841,41 +837,69 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
             Log.errorf("Error in block stream %s: %s", streamId, e.getMessage(), e);
             activeStreams.remove(streamId);
             responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Stream failed: " + e.getMessage())
-                    .asRuntimeException());
+                .withDescription("Stream failed: " + e.getMessage())
+                .asRuntimeException());
         }
     }
 
     // ==================== HELPER METHODS ====================
 
     /**
+     * Compute SHA-256 hash of block header
+     */
+    private String computeBlockHash(Long height, String previousHash, String merkleRoot,
+                                    String stateRoot, Instant timestamp) {
+        String headerData = height + previousHash + merkleRoot + stateRoot + timestamp.toString();
+        return computeSHA256(headerData);
+    }
+
+    /**
+     * Compute SHA-256 hash
+     */
+    private String computeSHA256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to compute SHA-256", e);
+        }
+    }
+
+    /**
      * Convert Block entity to proto Block
      */
     private io.aurigraph.v11.proto.Block convertToProtoBlock(Block block,
-            List<io.aurigraph.v11.proto.Transaction> transactions) {
+                                                             List<io.aurigraph.v11.proto.Transaction> transactions) {
         return io.aurigraph.v11.proto.Block.newBuilder()
-                .setBlockHash(block.getHash())
-                .setBlockHeight(block.getHeight())
-                .setBlockId(block.getHash()) // Using hash as ID
-                .setStateRoot(block.getStateRoot() != null ? block.getStateRoot() : "")
-                .setTransactionRoot(block.getMerkleRoot() != null ? block.getMerkleRoot() : "")
-                .setParentHash(block.getPreviousHash() != null ? block.getPreviousHash() : "")
-                .setCreatedAt(Timestamp.newBuilder()
-                        .setSeconds(block.getTimestamp().getEpochSecond())
-                        .setNanos(block.getTimestamp().getNano())
-                        .build())
-                .setFinalizedAt(Timestamp.newBuilder()
-                        .setSeconds(block.getTimestamp().getEpochSecond())
-                        .setNanos(block.getTimestamp().getNano())
-                        .build())
-                .setStatus(convertToProtoBlockStatus(block.getStatus()))
-                .setTransactionCount(block.getTransactionCount() != null ? block.getTransactionCount() : 0)
-                .addAllTransactionHashes(block.getTransactionIds())
-                .setValidatorCount(1)
-                .addValidatorSignatures(block.getValidatorSignature() != null ? block.getValidatorSignature() : "")
-                .setProcessingTimeMs(0) // Calculated elsewhere
-                .setGasUsed(block.getGasUsed() != null ? block.getGasUsed().doubleValue() : 0.0)
-                .build();
+            .setBlockHash(block.getHash())
+            .setBlockHeight(block.getHeight())
+            .setBlockId(block.getHash()) // Using hash as ID
+            .setStateRoot(block.getStateRoot() != null ? block.getStateRoot() : "")
+            .setTransactionRoot(block.getMerkleRoot() != null ? block.getMerkleRoot() : "")
+            .setParentHash(block.getPreviousHash() != null ? block.getPreviousHash() : "")
+            .setCreatedAt(Timestamp.newBuilder()
+                .setSeconds(block.getTimestamp().getEpochSecond())
+                .setNanos(block.getTimestamp().getNano())
+                .build())
+            .setFinalizedAt(Timestamp.newBuilder()
+                .setSeconds(block.getTimestamp().getEpochSecond())
+                .setNanos(block.getTimestamp().getNano())
+                .build())
+            .setStatus(convertToProtoBlockStatus(block.getStatus()))
+            .setTransactionCount(block.getTransactionCount() != null ? block.getTransactionCount() : 0)
+            .addAllTransactionHashes(block.getTransactionIds())
+            .setValidatorCount(1)
+            .addValidatorSignatures(block.getValidatorSignature() != null ? block.getValidatorSignature() : "")
+            .setProcessingTimeMs(0) // Calculated elsewhere
+            .setGasUsed(block.getGasUsed() != null ? block.getGasUsed().doubleValue() : 0.0)
+            .build();
     }
 
     /**
@@ -883,24 +907,24 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
      */
     private io.aurigraph.v11.proto.Transaction convertToProtoTransaction(Transaction tx) {
         return io.aurigraph.v11.proto.Transaction.newBuilder()
-                .setTransactionHash(tx.getHash())
-                .setTransactionId(tx.getHash()) // Using hash as ID
-                .setFromAddress(tx.getFromAddress() != null ? tx.getFromAddress() : "")
-                .setToAddress(tx.getToAddress() != null ? tx.getToAddress() : "")
-                .setAmount(String.valueOf(tx.getAmount()))
-                .setGasPrice((double) tx.getGasPrice())
-                .setGasLimit((double) tx.getGasLimit())
-                .setGasUsed(0.0)
-                .setData(tx.getPayload() != null ? tx.getPayload() : "")
-                .setNonce(0) // Transaction entity doesn't have nonce field yet
-                .setCreatedAt(Timestamp.newBuilder()
-                        .setSeconds(tx.getTimestamp().getEpochSecond())
-                        .setNanos(tx.getTimestamp().getNano())
-                        .build())
-                .setStatus(convertToProtoTransactionStatus(tx.getStatus()))
-                .setSignature(tx.getSignature() != null ? tx.getSignature() : "")
-                .setPublicKey("") // Transaction entity doesn't have publicKey field yet
-                .build();
+            .setTransactionHash(tx.getHash())
+            .setTransactionId(tx.getHash()) // Using hash as ID
+            .setFromAddress(tx.getFromAddress() != null ? tx.getFromAddress() : "")
+            .setToAddress(tx.getToAddress() != null ? tx.getToAddress() : "")
+            .setAmount(String.valueOf(tx.getAmount()))
+            .setGasPrice((double) tx.getGasPrice())
+            .setGasLimit((double) tx.getGasLimit())
+            .setGasUsed(0.0)
+            .setData(tx.getPayload() != null ? tx.getPayload() : "")
+            .setNonce(0) // Transaction entity doesn't have nonce field yet
+            .setCreatedAt(Timestamp.newBuilder()
+                .setSeconds(tx.getTimestamp().getEpochSecond())
+                .setNanos(tx.getTimestamp().getNano())
+                .build())
+            .setStatus(convertToProtoTransactionStatus(tx.getStatus()))
+            .setSignature(tx.getSignature() != null ? tx.getSignature() : "")
+            .setPublicKey("") // Transaction entity doesn't have publicKey field yet
+            .build();
     }
 
     /**
@@ -908,297 +932,56 @@ public class BlockchainServiceImpl extends BlockchainServiceGrpc.BlockchainServi
      */
     private io.aurigraph.v11.proto.BlockStatus convertToProtoBlockStatus(BlockStatus status) {
         switch (status) {
-            case PROPOSED:
-                return io.aurigraph.v11.proto.BlockStatus.BLOCK_PROPOSED;
-            case CONFIRMED:
-                return io.aurigraph.v11.proto.BlockStatus.BLOCK_COMMITTED;
-            case FINALIZED:
-                return io.aurigraph.v11.proto.BlockStatus.BLOCK_FINALIZED;
-            default:
-                return io.aurigraph.v11.proto.BlockStatus.BLOCK_UNKNOWN;
+            case PROPOSED: return io.aurigraph.v11.proto.BlockStatus.BLOCK_PROPOSED;
+            case CONFIRMED: return io.aurigraph.v11.proto.BlockStatus.BLOCK_COMMITTED;
+            case FINALIZED: return io.aurigraph.v11.proto.BlockStatus.BLOCK_FINALIZED;
+            default: return io.aurigraph.v11.proto.BlockStatus.BLOCK_UNKNOWN;
         }
     }
 
     /**
      * Convert TransactionStatus to proto TransactionStatus
-     * Updated for AV11-360 fix - uses TransactionStatus.toProto() for complete
-     * mapping
      */
     private io.aurigraph.v11.proto.TransactionStatus convertToProtoTransactionStatus(TransactionStatus status) {
-        if (status == null) {
-            return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_UNKNOWN;
-        }
-        return status.toProto();
-    }
-
-    // ==================== NEW J4C gRPC METHODS ====================
-
-    /**
-     * RPC 8: GetBlockByNumber - Get block by block number/height
-     *
-     * Performance Target: <5ms (cached)
-     * Business Logic:
-     * - Check height->hash cache first
-     * - Check block cache second
-     * - Query repository if cache miss
-     * - Return block or NOT_FOUND error
-     */
-    @Override
-    public void getBlockByNumber(BlockNumberRequest request,
-            StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
-        long startTime = System.currentTimeMillis();
-
-        try {
-            long blockNumber = request.getBlockNumber();
-            Log.infof("GetBlockByNumber called for block %d", blockNumber);
-
-            // Validate input
-            if (blockNumber < 0) {
-                Log.warnf("Invalid block number: %d", blockNumber);
-                responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
-                        .withDescription("Block number must be >= 0")
-                        .asRuntimeException());
-                return;
-            }
-
-            // Check height->hash cache
-            String blockHash = heightToHashCache.get(blockNumber);
-            Block block = null;
-
-            if (blockHash != null) {
-                // Check block cache
-                block = blockCache.get(blockHash);
-            }
-
-            // Fall back to repository
-            if (block == null) {
-                block = blockRepository.findByHeight(blockNumber).orElse(null);
-                if (block != null) {
-                    // Update caches
-                    blockCache.put(block.getHash(), block);
-                    heightToHashCache.put(blockNumber, block.getHash());
-                }
-            }
-
-            if (block == null) {
-                long queryTime = System.currentTimeMillis() - startTime;
-                Log.infof("Block %d not found (query time: %dms)", blockNumber, queryTime);
-                responseObserver.onError(io.grpc.Status.NOT_FOUND
-                        .withDescription("Block not found at height: " + blockNumber)
-                        .asRuntimeException());
-                return;
-            }
-
-            // Convert to proto and return
-            io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
-
-            long queryTime = System.currentTimeMillis() - startTime;
-            Log.infof("Block %d retrieved in %dms", blockNumber, queryTime);
-
-            responseObserver.onNext(protoBlock);
-            responseObserver.onCompleted();
-
-        } catch (Exception e) {
-            Log.errorf("Error in GetBlockByNumber: %s", e.getMessage(), e);
-            responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Failed to retrieve block: " + e.getMessage())
-                    .asRuntimeException());
+        switch (status) {
+            case PENDING: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_PENDING;
+            case CONFIRMED: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_CONFIRMED;
+            case FAILED: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_FAILED;
+            default: return io.aurigraph.v11.proto.TransactionStatus.TRANSACTION_UNKNOWN;
         }
     }
 
     /**
-     * RPC 9: GetBlockByHash - Get block by block hash
-     *
-     * Performance Target: <5ms (cached)
-     * Business Logic:
-     * - Check block cache first
-     * - Query repository if cache miss
-     * - Return block or NOT_FOUND error
+     * Notify all streaming clients of new block
      */
-    @Override
-    public void getBlockByHash(BlockHashRequest request,
-            StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
-        long startTime = System.currentTimeMillis();
+    private void notifyStreamingClients(io.aurigraph.v11.proto.Block block) {
+        if (activeStreams.isEmpty()) return;
 
-        try {
-            String blockHash = request.getHash();
-            Log.infof("GetBlockByHash called for hash: %s", blockHash.substring(0, Math.min(16, blockHash.length())));
+        Log.debugf("Notifying %d streaming clients of new block %d",
+            activeStreams.size(), block.getBlockHeight());
 
-            // Validate input
-            if (blockHash == null || blockHash.isEmpty()) {
-                Log.warn("Empty block hash provided");
-                responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
-                        .withDescription("Block hash is required")
-                        .asRuntimeException());
-                return;
+        List<String> deadStreams = new ArrayList<>();
+
+        for (Map.Entry<String, StreamObserver<BlockStreamEvent>> entry : activeStreams.entrySet()) {
+            try {
+                BlockStreamEvent event = BlockStreamEvent.newBuilder()
+                    .setBlock(block)
+                    .setStreamId(entry.getKey())
+                    .setEventSequence(block.getBlockHeight())
+                    .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(Instant.now().getEpochSecond())
+                        .setNanos(Instant.now().getNano())
+                        .build())
+                    .build();
+
+                entry.getValue().onNext(event);
+            } catch (Exception e) {
+                Log.warnf("Stream %s failed, removing: %s", entry.getKey(), e.getMessage());
+                deadStreams.add(entry.getKey());
             }
-
-            // Check cache first
-            Block block = blockCache.get(blockHash);
-
-            // Fall back to repository
-            if (block == null) {
-                block = blockRepository.findByHash(blockHash).orElse(null);
-                if (block != null) {
-                    // Update caches
-                    blockCache.put(blockHash, block);
-                    heightToHashCache.put(block.getHeight(), blockHash);
-                }
-            }
-
-            if (block == null) {
-                long queryTime = System.currentTimeMillis() - startTime;
-                Log.infof("Block with hash %s... not found (query time: %dms)",
-                        blockHash.substring(0, Math.min(16, blockHash.length())), queryTime);
-                responseObserver.onError(io.grpc.Status.NOT_FOUND
-                        .withDescription("Block not found with hash: " + blockHash)
-                        .asRuntimeException());
-                return;
-            }
-
-            // Convert to proto and return
-            io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
-
-            long queryTime = System.currentTimeMillis() - startTime;
-            Log.infof("Block retrieved in %dms", queryTime);
-
-            responseObserver.onNext(protoBlock);
-            responseObserver.onCompleted();
-
-        } catch (Exception e) {
-            Log.errorf("Error in GetBlockByHash: %s", e.getMessage(), e);
-            responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Failed to retrieve block: " + e.getMessage())
-                    .asRuntimeException());
         }
-    }
 
-    /**
-     * RPC 10: GetLatestBlock - Get the latest/most recent block
-     *
-     * Performance Target: <5ms
-     * Business Logic:
-     * - Query repository for latest block
-     * - Cache the result
-     * - Return block or NOT_FOUND if chain is empty
-     */
-    @Override
-    public void getLatestBlock(com.google.protobuf.Empty request,
-            StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
-        long startTime = System.currentTimeMillis();
-
-        try {
-            Log.info("GetLatestBlock called");
-
-            // Get latest block from repository
-            Block block = blockRepository.findLatestBlock().orElse(null);
-
-            if (block == null) {
-                long queryTime = System.currentTimeMillis() - startTime;
-                Log.warnf("No blocks found in chain (query time: %dms)", queryTime);
-                responseObserver.onError(io.grpc.Status.NOT_FOUND
-                        .withDescription("No blocks exist in the blockchain")
-                        .asRuntimeException());
-                return;
-            }
-
-            // Update caches
-            blockCache.put(block.getHash(), block);
-            heightToHashCache.put(block.getHeight(), block.getHash());
-
-            // Convert to proto and return
-            io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
-
-            long queryTime = System.currentTimeMillis() - startTime;
-            Log.infof("Latest block %d (height) retrieved in %dms", block.getHeight(), queryTime);
-
-            responseObserver.onNext(protoBlock);
-            responseObserver.onCompleted();
-
-        } catch (Exception e) {
-            Log.errorf("Error in GetLatestBlock: %s", e.getMessage(), e);
-            responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Failed to retrieve latest block: " + e.getMessage())
-                    .asRuntimeException());
-        }
-    }
-
-    /**
-     * RPC 11: StreamBlocksEnhanced - Stream blocks as they're produced
-     *
-     * Performance Target: <50ms per block, 100+ concurrent streams
-     * Business Logic:
-     * - Stream historical blocks from start_block to latest
-     * - Subscribe to new block notifications
-     * - Support backpressure handling
-     * - Handle client cancellation gracefully
-     *
-     * This is an enhanced version that returns Block directly instead of
-     * BlockStreamEvent
-     */
-    @Override
-    public void streamBlocksEnhanced(StreamBlocksRequest request,
-            StreamObserver<io.aurigraph.v11.proto.Block> responseObserver) {
-        String streamId = UUID.randomUUID().toString();
-
-        try {
-            long startBlock = request.getStartBlock();
-            Log.infof("StreamBlocksEnhanced started (stream %s) from block %d", streamId, startBlock);
-
-            // Validate input
-            if (startBlock < 0) {
-                Log.warnf("Invalid start block: %d", startBlock);
-                responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
-                        .withDescription("start_block must be >= 0")
-                        .asRuntimeException());
-                return;
-            }
-
-            // Get latest block height
-            Long latestHeight = blockRepository.getLatestBlockHeight();
-            if (latestHeight == null) {
-                Log.warn("No blocks in blockchain");
-                responseObserver.onError(io.grpc.Status.NOT_FOUND
-                        .withDescription("No blocks exist in blockchain")
-                        .asRuntimeException());
-                return;
-            }
-
-            // Stream historical blocks
-            int blocksStreamed = 0;
-            for (long height = startBlock; height <= latestHeight; height++) {
-                Block block = blockRepository.findByHeight(height).orElse(null);
-                if (block != null) {
-                    io.aurigraph.v11.proto.Block protoBlock = convertToProtoBlock(block, new ArrayList<>());
-                    responseObserver.onNext(protoBlock);
-                    blocksStreamed++;
-
-                    // Backpressure handling - small delay every 100 blocks
-                    if (blocksStreamed % 100 == 0) {
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            Log.infof(
-                    "StreamBlocksEnhanced (stream %s): Streamed %d historical blocks, keeping connection open for new blocks",
-                    streamId, blocksStreamed);
-
-            // Note: Stream remains open for future blocks
-            // In production, you'd register this stream for notifications
-            // For now, we'll complete the stream after historical blocks
-            responseObserver.onCompleted();
-
-        } catch (Exception e) {
-            Log.errorf("Error in StreamBlocksEnhanced (stream %s): %s", streamId, e.getMessage(), e);
-            responseObserver.onError(io.grpc.Status.INTERNAL
-                    .withDescription("Stream failed: " + e.getMessage())
-                    .asRuntimeException());
-        }
+        // Clean up dead streams
+        deadStreams.forEach(activeStreams::remove);
     }
 }

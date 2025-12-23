@@ -1,0 +1,748 @@
+name: Create Mobile App Roadmap in JIRA
+
+on:
+  workflow_dispatch:
+    inputs:
+      epic_name:
+        description: 'Epic name for mobile roadmap'
+        required: false
+        default: 'Aurigraph Mobile Node Implementation'
+        type: string
+      create_epics:
+        description: 'Create epics for each phase'
+        required: false
+        type: boolean
+        default: true
+      assign_to_sprint:
+        description: 'Assign to current sprint'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Dry run (preview only)'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+
+jobs:
+  create-mobile-roadmap:
+    name: Create Mobile Roadmap Tickets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install JIRA client
+        run: pip install jira python-dateutil
+        
+      - name: Create Mobile Roadmap Tickets
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          cat > create_mobile_roadmap.py << 'EOF'
+          import os
+          import json
+          from datetime import datetime, timedelta
+          from jira import JIRA
+          
+          # Configuration
+          JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
+          JIRA_PROJECT_KEY = os.environ['JIRA_PROJECT_KEY']
+          JIRA_USER_EMAIL = 'admin@aurigraph.io'
+          JIRA_API_TOKEN = os.environ['JIRA_API_TOKEN']
+          
+          EPIC_NAME = '${{ github.event.inputs.epic_name }}'
+          CREATE_EPICS = '${{ github.event.inputs.create_epics }}' == 'true'
+          ASSIGN_TO_SPRINT = '${{ github.event.inputs.assign_to_sprint }}' == 'true'
+          DRY_RUN = '${{ github.event.inputs.dry_run }}' == 'true'
+          
+          # Initialize JIRA
+          jira = JIRA(
+              server=JIRA_BASE_URL,
+              basic_auth=(JIRA_USER_EMAIL, JIRA_API_TOKEN)
+          )
+          
+          class MobileRoadmapCreator:
+              def __init__(self):
+                  self.created_issues = []
+                  self.errors = []
+                  
+              def create_roadmap(self):
+                  """Create complete mobile roadmap in JIRA"""
+                  print("📱 Creating Aurigraph Mobile Node Roadmap...")
+                  
+                  # Create main epic
+                  main_epic = None
+                  if not DRY_RUN:
+                      try:
+                          main_epic = jira.create_issue(
+                              project=JIRA_PROJECT_KEY,
+                              summary=EPIC_NAME,
+                              description=self.get_main_epic_description(),
+                              issuetype='Epic',
+                              labels=['mobile', 'roadmap', 'strategic'],
+                              priority={'name': 'High'}
+                          )
+                          self.created_issues.append(main_epic.key)
+                          print(f"✅ Created main epic: {main_epic.key}")
+                      except Exception as e:
+                          self.errors.append(f"Failed to create main epic: {e}")
+                          print(f"❌ Error creating main epic: {e}")
+                  else:
+                      print(f"DRY RUN: Would create main epic: {EPIC_NAME}")
+                  
+                  # Create phase epics and stories
+                  phases = self.get_roadmap_phases()
+                  
+                  for phase in phases:
+                      phase_epic = self.create_phase_epic(phase, main_epic)
+                      
+                      # Create stories for each phase
+                      for story in phase['stories']:
+                          self.create_story(story, phase_epic, phase)
+                      
+                      # Create tasks for technical implementation
+                      for task in phase.get('tasks', []):
+                          self.create_task(task, phase_epic, phase)
+                  
+                  # Create cross-cutting concerns
+                  self.create_cross_cutting_tickets(main_epic)
+                  
+                  return self.generate_report()
+              
+              def get_main_epic_description(self):
+                  """Get description for main epic"""
+                  return """
+          # Aurigraph Mobile Node Implementation
+          
+          ## Overview
+          Deploy Aurigraph Business nodes on Android/iOS mobile devices to create a truly distributed and decentralized computing infrastructure.
+          
+          ## Goals
+          - Enable smartphones to participate as blockchain nodes
+          - Create the most geographically distributed blockchain network
+          - Leverage billions of mobile devices worldwide
+          - Reduce infrastructure costs through edge computing
+          
+          ## Target Metrics
+          - 10,000+ active mobile nodes in first year
+          - 100-1000 TPS per mobile node
+          - <5% battery impact per hour
+          - <100MB daily data usage
+          - Support for Android 8+ and iOS 14+
+          
+          ## Timeline
+          - Phase 1 (Months 1-3): Foundation & Architecture
+          - Phase 2 (Months 4-6): Light Node Implementation
+          - Phase 3 (Months 7-9): Mobile Optimizations
+          - Phase 4 (Months 10-12): Advanced Features
+          - Phase 5 (Months 13-15): Production Deployment
+          
+          ## Budget
+          Estimated: $1.1M over 15 months
+          
+          ## Links
+          - [Mobile Roadmap Documentation](docs/MOBILE_NODE_ROADMAP.md)
+          - [Technical Architecture](docs/mobile/architecture.md)
+          - [GitHub Repository](https://github.com/Aurigraph-DLT/mobile-node)
+                  """
+              
+              def get_roadmap_phases(self):
+                  """Define all phases of mobile roadmap"""
+                  return [
+                      {
+                          'name': 'Phase 1: Foundation (Months 1-3)',
+                          'description': 'Core library development and architecture design',
+                          'start_date': datetime.now(),
+                          'end_date': datetime.now() + timedelta(days=90),
+                          'stories': [
+                              {
+                                  'summary': 'Research mobile blockchain implementations',
+                                  'description': 'Study existing mobile blockchain solutions and identify best practices',
+                                  'story_points': 5,
+                                  'priority': 'High',
+                                  'components': ['Research', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Design mobile node architecture',
+                                  'description': 'Create detailed architecture for light, validator, and edge nodes',
+                                  'story_points': 8,
+                                  'priority': 'Critical',
+                                  'components': ['Architecture', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Implement Android core library',
+                                  'description': 'Develop Kotlin/Java library for Android nodes',
+                                  'story_points': 13,
+                                  'priority': 'Critical',
+                                  'components': ['Android', 'Development']
+                              },
+                              {
+                                  'summary': 'Implement iOS core library',
+                                  'description': 'Develop Swift library for iOS nodes',
+                                  'story_points': 13,
+                                  'priority': 'Critical',
+                                  'components': ['iOS', 'Development']
+                              },
+                              {
+                                  'summary': 'Create P2P networking layer',
+                                  'description': 'Implement libp2p for mobile with NAT traversal',
+                                  'story_points': 8,
+                                  'priority': 'High',
+                                  'components': ['Networking', 'Mobile']
+                              }
+                          ],
+                          'tasks': [
+                              {
+                                  'summary': 'Setup mobile development environment',
+                                  'description': 'Configure Android Studio, Xcode, and CI/CD',
+                                  'time_estimate': '2d'
+                              },
+                              {
+                                  'summary': 'Create project structure and dependencies',
+                                  'description': 'Setup Maven/Gradle for Android, CocoaPods for iOS',
+                                  'time_estimate': '1d'
+                              },
+                              {
+                                  'summary': 'Implement cryptography layer',
+                                  'description': 'Integrate hardware security modules',
+                                  'time_estimate': '5d'
+                              }
+                          ]
+                      },
+                      {
+                          'name': 'Phase 2: Light Node Implementation (Months 4-6)',
+                          'description': 'Implement blockchain light client functionality',
+                          'start_date': datetime.now() + timedelta(days=91),
+                          'end_date': datetime.now() + timedelta(days=180),
+                          'stories': [
+                              {
+                                  'summary': 'Implement SPV (Simplified Payment Verification)',
+                                  'description': 'Create header-only sync with Merkle proof verification',
+                                  'story_points': 13,
+                                  'priority': 'Critical',
+                                  'components': ['Blockchain', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Develop mobile consensus participation',
+                                  'description': 'Enable reduced stake validation for mobile nodes',
+                                  'story_points': 8,
+                                  'priority': 'High',
+                                  'components': ['Consensus', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Implement state channels',
+                                  'description': 'Create off-chain transaction capability',
+                                  'story_points': 13,
+                                  'priority': 'High',
+                                  'components': ['Blockchain', 'Performance']
+                              },
+                              {
+                                  'summary': 'Create wallet functionality',
+                                  'description': 'Implement secure key management and transactions',
+                                  'story_points': 8,
+                                  'priority': 'Critical',
+                                  'components': ['Security', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Implement data pruning',
+                                  'description': 'Automatic cleanup of old blockchain data',
+                                  'story_points': 5,
+                                  'priority': 'Medium',
+                                  'components': ['Storage', 'Mobile']
+                              }
+                          ],
+                          'tasks': [
+                              {
+                                  'summary': 'Integrate with main Aurigraph network',
+                                  'description': 'Connect mobile nodes to mainnet',
+                                  'time_estimate': '3d'
+                              },
+                              {
+                                  'summary': 'Implement transaction validation',
+                                  'description': 'Create mobile-optimized validation logic',
+                                  'time_estimate': '5d'
+                              },
+                              {
+                                  'summary': 'Add blockchain sync optimization',
+                                  'description': 'Implement selective block downloading',
+                                  'time_estimate': '3d'
+                              }
+                          ]
+                      },
+                      {
+                          'name': 'Phase 3: Mobile Optimizations (Months 7-9)',
+                          'description': 'Optimize for battery, network, and storage',
+                          'start_date': datetime.now() + timedelta(days=181),
+                          'end_date': datetime.now() + timedelta(days=270),
+                          'stories': [
+                              {
+                                  'summary': 'Implement battery optimization',
+                                  'description': 'Create adaptive processing based on battery status',
+                                  'story_points': 8,
+                                  'priority': 'Critical',
+                                  'components': ['Performance', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Optimize network usage',
+                                  'description': 'Wi-Fi preference, data compression, bandwidth limiting',
+                                  'story_points': 8,
+                                  'priority': 'High',
+                                  'components': ['Networking', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Implement storage management',
+                                  'description': 'Dynamic storage allocation, external storage support',
+                                  'story_points': 5,
+                                  'priority': 'Medium',
+                                  'components': ['Storage', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Add background processing',
+                                  'description': 'Work within OS background task limitations',
+                                  'story_points': 13,
+                                  'priority': 'High',
+                                  'components': ['Mobile', 'Performance']
+                              },
+                              {
+                                  'summary': 'Create adaptive performance tuning',
+                                  'description': 'Auto-adjust based on device capabilities',
+                                  'story_points': 8,
+                                  'priority': 'Medium',
+                                  'components': ['Performance', 'Mobile']
+                              }
+                          ],
+                          'tasks': [
+                              {
+                                  'summary': 'Profile battery consumption',
+                                  'description': 'Measure and optimize power usage',
+                                  'time_estimate': '3d'
+                              },
+                              {
+                                  'summary': 'Implement data usage monitoring',
+                                  'description': 'Track and limit cellular data usage',
+                                  'time_estimate': '2d'
+                              },
+                              {
+                                  'summary': 'Add compression algorithms',
+                                  'description': 'Implement zstd compression for all data',
+                                  'time_estimate': '2d'
+                              }
+                          ]
+                      },
+                      {
+                          'name': 'Phase 4: Advanced Features (Months 10-12)',
+                          'description': 'Add AI, incentives, and advanced capabilities',
+                          'start_date': datetime.now() + timedelta(days=271),
+                          'end_date': datetime.now() + timedelta(days=360),
+                          'stories': [
+                              {
+                                  'summary': 'Integrate Edge AI processing',
+                                  'description': 'Utilize neural engines for ML workloads',
+                                  'story_points': 13,
+                                  'priority': 'Medium',
+                                  'components': ['AI', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Implement incentive mechanism',
+                                  'description': 'Reward system for mobile node operators',
+                                  'story_points': 8,
+                                  'priority': 'High',
+                                  'components': ['Economics', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Add IoT gateway functionality',
+                                  'description': 'Enable IoT device connections',
+                                  'story_points': 8,
+                                  'priority': 'Low',
+                                  'components': ['IoT', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Create node reputation system',
+                                  'description': 'Track and reward reliable nodes',
+                                  'story_points': 5,
+                                  'priority': 'Medium',
+                                  'components': ['Blockchain', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Implement cross-platform sync',
+                                  'description': 'Sync between mobile and desktop nodes',
+                                  'story_points': 8,
+                                  'priority': 'Medium',
+                                  'components': ['Mobile', 'Integration']
+                              }
+                          ],
+                          'tasks': [
+                              {
+                                  'summary': 'Integrate TensorFlow Lite',
+                                  'description': 'Add ML model execution capability',
+                                  'time_estimate': '5d'
+                              },
+                              {
+                                  'summary': 'Implement reward distribution',
+                                  'description': 'Create smart contracts for rewards',
+                                  'time_estimate': '3d'
+                              },
+                              {
+                                  'summary': 'Add analytics dashboard',
+                                  'description': 'Node performance monitoring UI',
+                                  'time_estimate': '5d'
+                              }
+                          ]
+                      },
+                      {
+                          'name': 'Phase 5: Production Deployment (Months 13-15)',
+                          'description': 'Security hardening, testing, and launch',
+                          'start_date': datetime.now() + timedelta(days=361),
+                          'end_date': datetime.now() + timedelta(days=450),
+                          'stories': [
+                              {
+                                  'summary': 'Conduct security audit',
+                                  'description': 'Third-party security assessment',
+                                  'story_points': 13,
+                                  'priority': 'Critical',
+                                  'components': ['Security', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Implement anti-tampering measures',
+                                  'description': 'App integrity verification, obfuscation',
+                                  'story_points': 8,
+                                  'priority': 'High',
+                                  'components': ['Security', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Create beta testing program',
+                                  'description': 'TestFlight and Play Console beta',
+                                  'story_points': 5,
+                                  'priority': 'High',
+                                  'components': ['Testing', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Prepare app store submissions',
+                                  'description': 'Meet Apple and Google requirements',
+                                  'story_points': 8,
+                                  'priority': 'Critical',
+                                  'components': ['Deployment', 'Mobile']
+                              },
+                              {
+                                  'summary': 'Launch marketing campaign',
+                                  'description': 'User acquisition and education',
+                                  'story_points': 5,
+                                  'priority': 'Medium',
+                                  'components': ['Marketing', 'Mobile']
+                              }
+                          ],
+                          'tasks': [
+                              {
+                                  'summary': 'Perform penetration testing',
+                                  'description': 'Security vulnerability assessment',
+                                  'time_estimate': '5d'
+                              },
+                              {
+                                  'summary': 'Load test mobile network',
+                                  'description': 'Test with 10,000+ simulated nodes',
+                                  'time_estimate': '3d'
+                              },
+                              {
+                                  'summary': 'Create user documentation',
+                                  'description': 'Guides and tutorials',
+                                  'time_estimate': '5d'
+                              },
+                              {
+                                  'summary': 'Setup monitoring infrastructure',
+                                  'description': 'Production monitoring and alerts',
+                                  'time_estimate': '3d'
+                              }
+                          ]
+                      }
+                  ]
+              
+              def create_phase_epic(self, phase, parent_epic):
+                  """Create epic for each phase"""
+                  if DRY_RUN:
+                      print(f"DRY RUN: Would create epic: {phase['name']}")
+                      return None
+                  
+                  try:
+                      epic = jira.create_issue(
+                          project=JIRA_PROJECT_KEY,
+                          summary=phase['name'],
+                          description=phase['description'],
+                          issuetype='Epic',
+                          labels=['mobile', 'roadmap', phase['name'].split(':')[0].lower().replace(' ', '-')],
+                          priority={'name': 'High'},
+                          duedate=phase['end_date'].strftime('%Y-%m-%d')
+                      )
+                      
+                      # Link to parent epic if exists
+                      if parent_epic and CREATE_EPICS:
+                          jira.create_issue_link(
+                              type='Epic Link',
+                              inwardIssue=epic.key,
+                              outwardIssue=parent_epic.key
+                          )
+                      
+                      self.created_issues.append(epic.key)
+                      print(f"✅ Created phase epic: {epic.key} - {phase['name']}")
+                      return epic
+                      
+                  except Exception as e:
+                      self.errors.append(f"Failed to create epic {phase['name']}: {e}")
+                      print(f"❌ Error creating epic: {e}")
+                      return None
+              
+              def create_story(self, story, parent_epic, phase):
+                  """Create user story"""
+                  if DRY_RUN:
+                      print(f"DRY RUN: Would create story: {story['summary']}")
+                      return
+                  
+                  try:
+                      issue_dict = {
+                          'project': JIRA_PROJECT_KEY,
+                          'summary': story['summary'],
+                          'description': story['description'],
+                          'issuetype': 'Story',
+                          'labels': ['mobile'] + [c.lower() for c in story.get('components', [])],
+                          'priority': {'name': story.get('priority', 'Medium')}
+                      }
+                      
+                      # Add story points if custom field exists
+                      if 'story_points' in story:
+                          issue_dict['customfield_10016'] = story['story_points']
+                      
+                      # Add components
+                      if 'components' in story:
+                          components = []
+                          for comp_name in story['components']:
+                              try:
+                                  # Check if component exists
+                                  existing = jira.project_components(JIRA_PROJECT_KEY)
+                                  comp = next((c for c in existing if c.name == comp_name), None)
+                                  if not comp:
+                                      # Create component if doesn't exist
+                                      comp = jira.create_component(
+                                          name=comp_name,
+                                          project=JIRA_PROJECT_KEY
+                                      )
+                                  components.append({'name': comp_name})
+                              except:
+                                  pass
+                          if components:
+                              issue_dict['components'] = components
+                      
+                      issue = jira.create_issue(**issue_dict)
+                      
+                      # Link to epic
+                      if parent_epic:
+                          issue.update(fields={'parent': {'key': parent_epic.key}})
+                      
+                      # Add to sprint if requested
+                      if ASSIGN_TO_SPRINT:
+                          sprints = jira.sprints(789, state='active')
+                          if sprints:
+                              jira.add_issues_to_sprint(sprints[0].id, [issue.key])
+                      
+                      self.created_issues.append(issue.key)
+                      print(f"  ✅ Created story: {issue.key} - {story['summary']}")
+                      
+                  except Exception as e:
+                      self.errors.append(f"Failed to create story {story['summary']}: {e}")
+                      print(f"  ❌ Error creating story: {e}")
+              
+              def create_task(self, task, parent_epic, phase):
+                  """Create technical task"""
+                  if DRY_RUN:
+                      print(f"DRY RUN: Would create task: {task['summary']}")
+                      return
+                  
+                  try:
+                      issue = jira.create_issue(
+                          project=JIRA_PROJECT_KEY,
+                          summary=task['summary'],
+                          description=task['description'],
+                          issuetype='Task',
+                          labels=['mobile', 'technical'],
+                          priority={'name': 'Medium'},
+                          timetracking={'originalEstimate': task.get('time_estimate', '1d')}
+                      )
+                      
+                      # Link to epic
+                      if parent_epic:
+                          issue.update(fields={'parent': {'key': parent_epic.key}})
+                      
+                      self.created_issues.append(issue.key)
+                      print(f"  ✅ Created task: {issue.key} - {task['summary']}")
+                      
+                  except Exception as e:
+                      self.errors.append(f"Failed to create task {task['summary']}: {e}")
+                      print(f"  ❌ Error creating task: {e}")
+              
+              def create_cross_cutting_tickets(self, main_epic):
+                  """Create cross-cutting concern tickets"""
+                  cross_cutting = [
+                      {
+                          'summary': 'Mobile CI/CD Pipeline Setup',
+                          'description': 'Setup GitHub Actions for mobile builds and tests',
+                          'type': 'Task',
+                          'components': ['DevOps', 'Mobile']
+                      },
+                      {
+                          'summary': 'Mobile Performance Benchmarking Framework',
+                          'description': 'Create automated performance testing for mobile nodes',
+                          'type': 'Task',
+                          'components': ['Testing', 'Performance']
+                      },
+                      {
+                          'summary': 'Mobile Node Monitoring Dashboard',
+                          'description': 'Real-time monitoring of mobile node network',
+                          'type': 'Story',
+                          'components': ['Monitoring', 'Mobile']
+                      },
+                      {
+                          'summary': 'Mobile SDK Documentation',
+                          'description': 'Comprehensive developer documentation',
+                          'type': 'Task',
+                          'components': ['Documentation', 'Mobile']
+                      },
+                      {
+                          'summary': 'Mobile Security Guidelines',
+                          'description': 'Security best practices for mobile nodes',
+                          'type': 'Task',
+                          'components': ['Security', 'Documentation']
+                      }
+                  ]
+                  
+                  for item in cross_cutting:
+                      if DRY_RUN:
+                          print(f"DRY RUN: Would create {item['type']}: {item['summary']}")
+                      else:
+                          try:
+                              issue = jira.create_issue(
+                                  project=JIRA_PROJECT_KEY,
+                                  summary=item['summary'],
+                                  description=item['description'],
+                                  issuetype=item['type'],
+                                  labels=['mobile', 'cross-cutting'],
+                                  priority={'name': 'Medium'}
+                              )
+                              
+                              if main_epic:
+                                  jira.create_issue_link(
+                                      type='Relates',
+                                      inwardIssue=issue.key,
+                                      outwardIssue=main_epic.key
+                                  )
+                              
+                              self.created_issues.append(issue.key)
+                              print(f"✅ Created cross-cutting {item['type']}: {issue.key}")
+                              
+                          except Exception as e:
+                              self.errors.append(f"Failed to create {item['summary']}: {e}")
+              
+              def generate_report(self):
+                  """Generate creation report"""
+                  report = {
+                      'success': len(self.errors) == 0,
+                      'created_issues': self.created_issues,
+                      'errors': self.errors,
+                      'summary': {
+                          'total_created': len(self.created_issues),
+                          'total_errors': len(self.errors),
+                          'dry_run': DRY_RUN
+                      }
+                  }
+                  
+                  print("\n" + "="*50)
+                  print("📊 MOBILE ROADMAP CREATION REPORT")
+                  print("="*50)
+                  print(f"✅ Created: {report['summary']['total_created']} issues")
+                  print(f"❌ Errors: {report['summary']['total_errors']}")
+                  
+                  if DRY_RUN:
+                      print("\n⚠️ DRY RUN - No actual issues created")
+                      print("\nWould have created:")
+                      print("- 1 Main Epic")
+                      print("- 5 Phase Epics")
+                      print("- 25 User Stories")
+                      print("- 15 Technical Tasks")
+                      print("- 5 Cross-cutting Concerns")
+                      print("\nTotal: ~51 JIRA tickets")
+                  else:
+                      print("\nCreated Issues:")
+                      for issue_key in self.created_issues[:10]:
+                          print(f"  - {issue_key}")
+                      if len(self.created_issues) > 10:
+                          print(f"  ... and {len(self.created_issues) - 10} more")
+                  
+                  # Save report
+                  with open('mobile_roadmap_report.json', 'w') as f:
+                      json.dump(report, f, indent=2, default=str)
+                  
+                  return report
+          
+          # Main execution
+          creator = MobileRoadmapCreator()
+          creator.create_roadmap()
+          EOF
+          
+          python create_mobile_roadmap.py
+          
+      - name: Upload Creation Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-roadmap-report
+          path: mobile_roadmap_report.json
+          
+      - name: Create Summary Comment
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('mobile_roadmap_report.json', 'utf8'));
+            
+            let summary = `## 📱 Mobile Roadmap JIRA Creation Complete\n\n`;
+            
+            if (report.summary.dry_run) {
+              summary += `### DRY RUN - Preview Only\n\n`;
+              summary += `Would create approximately 51 JIRA tickets:\n`;
+              summary += `- 1 Main Epic\n`;
+              summary += `- 5 Phase Epics\n`;
+              summary += `- 25 User Stories\n`;
+              summary += `- 15 Technical Tasks\n`;
+              summary += `- 5 Cross-cutting Concerns\n\n`;
+              summary += `Run with dry_run=false to actually create tickets.\n`;
+            } else {
+              summary += `### Results:\n`;
+              summary += `- ✅ Created: ${report.summary.total_created} issues\n`;
+              summary += `- ❌ Errors: ${report.summary.total_errors}\n\n`;
+              
+              if (report.created_issues.length > 0) {
+                summary += `### Created Issues:\n`;
+                report.created_issues.slice(0, 10).forEach(key => {
+                  summary += `- [${key}](${process.env.JIRA_BASE_URL}/browse/${key})\n`;
+                });
+                if (report.created_issues.length > 10) {
+                  summary += `\n... and ${report.created_issues.length - 10} more\n`;
+                }
+              }
+            }
+            
+            // Create issue comment
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📱 Mobile Roadmap JIRA Tickets Created',
+              body: summary,
+              labels: ['mobile', 'jira', 'roadmap']
+            });

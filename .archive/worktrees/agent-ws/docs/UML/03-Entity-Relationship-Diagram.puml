@@ -1,0 +1,271 @@
+@startuml Aurigraph_DLT_ERD
+title Aurigraph DLT - Entity Relationship Diagram (PostgreSQL Schema)
+
+entity "users" {
+    *user_id : UUID <<PK>>
+    --
+    username : VARCHAR(255) <<UQ>>
+    email : VARCHAR(255) <<UQ>>
+    password_hash : VARCHAR(512)
+    public_key : BYTEA
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+    is_active : BOOLEAN
+    roles : VARCHAR[] <<FK>>
+}
+
+entity "roles" {
+    *role_id : UUID <<PK>>
+    --
+    role_name : VARCHAR(100) <<UQ>>
+    description : TEXT
+    permissions : VARCHAR[]
+    created_at : TIMESTAMP
+}
+
+entity "transactions" {
+    *tx_id : VARCHAR(64) <<PK>>
+    --
+    tx_hash : VARCHAR(64) <<UQ>>
+    block_height : BIGINT
+    from_address : VARCHAR(256)
+    to_address : VARCHAR(256)
+    amount : NUMERIC(38,18)
+    fee : NUMERIC(38,18)
+    nonce : BIGINT
+    gas_used : BIGINT
+    data : BYTEA
+    signature : BYTEA
+    status : ENUM(pending,confirmed,failed)
+    created_at : TIMESTAMP
+    confirmed_at : TIMESTAMP
+    block_id : VARCHAR(64) <<FK>>
+}
+
+entity "blocks" {
+    *block_id : VARCHAR(64) <<PK>>
+    --
+    block_height : BIGINT <<UQ>>
+    parent_hash : VARCHAR(64)
+    merkle_root : VARCHAR(64)
+    timestamp : TIMESTAMP
+    proposer : VARCHAR(256) <<FK>>
+    consensus_round : BIGINT
+    committed : BOOLEAN
+    created_at : TIMESTAMP
+}
+
+entity "consensus_state" {
+    *consensus_id : UUID <<PK>>
+    --
+    current_term : BIGINT
+    current_leader : VARCHAR(256) <<FK>>
+    voted_for : VARCHAR(256)
+    log_index : BIGINT
+    commit_index : BIGINT
+    last_applied : BIGINT
+    is_healthy : BOOLEAN
+    active_validators : INTEGER
+    updated_at : TIMESTAMP
+}
+
+entity "validators" {
+    *validator_id : VARCHAR(256) <<PK>>
+    --
+    validator_address : VARCHAR(256) <<UQ>>
+    stake : NUMERIC(38,18)
+    rewards : NUMERIC(38,18)
+    uptime_percent : NUMERIC(5,2)
+    slashed : BOOLEAN
+    slashed_amount : NUMERIC(38,18)
+    joined_at : TIMESTAMP
+    last_heartbeat : TIMESTAMP
+    status : ENUM(active,inactive,syncing,slashed)
+    node_id : VARCHAR(256) <<FK>>
+}
+
+entity "nodes" {
+    *node_id : VARCHAR(256) <<PK>>
+    --
+    node_address : VARCHAR(256)
+    ip_address : INET
+    port : INTEGER
+    node_type : ENUM(validator,business,slim)
+    version : VARCHAR(20)
+    sync_height : BIGINT
+    cpu_usage : NUMERIC(5,2)
+    memory_usage : NUMERIC(5,2)
+    last_seen : TIMESTAMP
+    is_online : BOOLEAN
+}
+
+entity "smart_contracts" {
+    *contract_id : VARCHAR(64) <<PK>>
+    --
+    contract_address : VARCHAR(256) <<UQ>>
+    deployer : VARCHAR(256) <<FK>>
+    bytecode : BYTEA
+    state_root : VARCHAR(64)
+    creation_block : BIGINT <<FK>>
+    created_at : TIMESTAMP
+    is_verified : BOOLEAN
+    source_hash : VARCHAR(64)
+}
+
+entity "contract_execution" {
+    *execution_id : UUID <<PK>>
+    --
+    contract_id : VARCHAR(64) <<FK>>
+    caller : VARCHAR(256)
+    method : VARCHAR(255)
+    input_data : BYTEA
+    output_data : BYTEA
+    gas_used : BIGINT
+    execution_time : NUMERIC(10,3)
+    block_id : VARCHAR(64) <<FK>>
+    status : ENUM(success,failed,reverted)
+    error_message : TEXT
+    created_at : TIMESTAMP
+}
+
+entity "events" {
+    *event_id : UUID <<PK>>
+    --
+    event_type : VARCHAR(100)
+    contract_id : VARCHAR(64) <<FK>>
+    indexed_data : JSONB
+    non_indexed_data : JSONB
+    block_id : VARCHAR(64) <<FK>>
+    log_index : INTEGER
+    created_at : TIMESTAMP
+}
+
+entity "cross_chain_bridges" {
+    *bridge_id : UUID <<PK>>
+    --
+    source_chain : VARCHAR(50)
+    destination_chain : VARCHAR(50)
+    source_tx_hash : VARCHAR(256)
+    destination_tx_hash : VARCHAR(256)
+    amount : NUMERIC(38,18)
+    asset_address : VARCHAR(256)
+    status : ENUM(locked,minted,redeemed,failed)
+    locked_at : TIMESTAMP
+    finalized_at : TIMESTAMP
+}
+
+entity "rwat_tokens" {
+    *rwat_id : VARCHAR(64) <<PK>>
+    --
+    asset_name : VARCHAR(255)
+    asset_type : VARCHAR(100)
+    issuer : VARCHAR(256)
+    total_supply : NUMERIC(38,18)
+    circulating_supply : NUMERIC(38,18)
+    real_world_value : NUMERIC(38,18)
+    valuation_currency : VARCHAR(10)
+    merkle_root : VARCHAR(64)
+    oracle_address : VARCHAR(256) <<FK>>
+    created_at : TIMESTAMP
+    last_verified : TIMESTAMP
+}
+
+entity "oracles" {
+    *oracle_id : VARCHAR(256) <<PK>>
+    --
+    oracle_address : VARCHAR(256) <<UQ>>
+    oracle_name : VARCHAR(255)
+    reputation_score : NUMERIC(5,2)
+    stake : NUMERIC(38,18)
+    is_active : BOOLEAN
+    last_update : TIMESTAMP
+    update_count : BIGINT
+}
+
+entity "authentication_logs" {
+    *log_id : UUID <<PK>>
+    --
+    user_id : UUID <<FK>>
+    action : ENUM(login,logout,failed_attempt,token_refresh)
+    ip_address : INET
+    user_agent : TEXT
+    success : BOOLEAN
+    created_at : TIMESTAMP
+}
+
+entity "audit_log" {
+    *audit_id : UUID <<PK>>
+    --
+    entity_type : VARCHAR(100)
+    entity_id : VARCHAR(256)
+    action : VARCHAR(50)
+    changed_by : UUID <<FK>>
+    old_values : JSONB
+    new_values : JSONB
+    created_at : TIMESTAMP
+}
+
+' Relationships
+
+users ||--o{ roles : has
+users ||--o{ authentication_logs : generates
+users ||--o{ audit_log : performs
+users ||--o{ smart_contracts : deploys
+
+transactions ||--|| blocks : contained_in
+transactions ||--o{ events : emits
+
+blocks ||--|| consensus_state : created_by
+blocks ||--o{ smart_contracts : executes
+
+consensus_state ||--|| validators : led_by
+
+validators ||--|| nodes : runs_on
+validators ||--|| consensus_state : participates_in
+
+smart_contracts ||--o{ contract_execution : executes
+smart_contracts ||--o{ events : emits
+
+contract_execution ||--|| blocks : recorded_in
+
+events ||--|| smart_contracts : from_contract
+
+cross_chain_bridges ||--o{ transactions : involves
+cross_chain_bridges ||--o{ oracles : verified_by
+
+rwat_tokens ||--|| oracles : managed_by
+rwat_tokens ||--o{ smart_contracts : tokenizes
+
+audit_log ||--o{ users : references
+
+note right of transactions
+  Status lifecycle:
+  pending → confirmed → finalized
+  or pending → failed
+end note
+
+note right of consensus_state
+  HyperRAFT++ consensus state
+  Updated per consensus round
+  Byzantine tolerant
+end note
+
+note right of smart_contracts
+  WASM bytecode
+  Deployed to chain
+  State root tracks contract state
+end note
+
+note right of cross_chain_bridges
+  Lock-and-mint model
+  Multi-signature verification
+  Oracle attestation required
+end note
+
+note right of rwat_tokens
+  Real-World Asset Tokens
+  Linked to real assets
+  Oracle-verified valuation
+end note
+
+@enduml

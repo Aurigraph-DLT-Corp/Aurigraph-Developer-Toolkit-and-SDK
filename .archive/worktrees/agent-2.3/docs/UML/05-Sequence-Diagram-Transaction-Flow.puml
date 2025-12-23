@@ -1,0 +1,189 @@
+@startuml Aurigraph_DLT_Transaction_Flow
+title Aurigraph DLT - Sequence Diagram: Transaction Submission to Finality
+
+actor User as user
+participant "REST API" as api
+participant "Transaction Service" as txsvc
+participant "Crypto Service" as crypto
+participant "Mempool" as mempool
+participant "Consensus Engine" as consensus
+participant "State Machine" as state
+participant "Smart Contract" as contract
+participant "PostgreSQL" as db
+participant "RocksDB" as rocks
+participant "WebSocket" as ws
+
+== Transaction Submission ==
+user -> api: POST /submit-transaction\n(Signed TX)
+activate api
+
+api -> txsvc: submitTransaction(tx)
+activate txsvc
+
+note over txsvc
+  Step 1: Validate Transaction
+end note
+
+txsvc -> crypto: verify(tx.data, tx.signature)
+activate crypto
+crypto --> txsvc: true (Signature Valid)
+deactivate crypto
+
+txsvc -> db: checkBalance(tx.from, tx.amount + tx.fee)
+activate db
+db --> txsvc: account balance exists
+deactivate db
+
+note over txsvc
+  Step 2: Add to Mempool
+end note
+
+txsvc -> mempool: addPendingTransaction(tx)
+activate mempool
+mempool -> rocks: cache pending tx
+mempool --> txsvc: tx queued
+deactivate mempool
+
+txsvc -> db: logTransaction(tx, status=PENDING)
+db --> txsvc: logged
+
+txsvc --> api: TransactionReceipt(hash, status=PENDING)
+deactivate txsvc
+
+api --> user: 202 Accepted\n{tx_hash, status: PENDING}
+deactivate api
+
+note over ws
+  Real-time notification sent to clients
+end note
+
+api -> ws: broadcast transaction pending
+ws -> user: {event: "tx:pending", tx_hash}
+
+== Transaction Ordered by Consensus ==
+note over consensus
+  HyperRAFT++ consensus round
+  batches transactions from mempool
+end note
+
+consensus -> mempool: getNextBatch()
+activate mempool
+mempool --> consensus: [tx1, tx2, tx3, ...]
+deactivate mempool
+
+consensus -> consensus: leaderElection()
+note right of consensus
+  If not leader, propagate to leader
+  via gossip protocol
+end note
+
+consensus -> consensus: computeAIOrdering([txs])
+note right of consensus
+  AI model orders transactions
+  by priority, gas, dependencies
+end note
+
+consensus -> rocks: appendLogEntry(Block)
+rocks --> consensus: log index
+
+consensus -> consensus: replicateLogEntry()
+note right of consensus
+  2+ validator confirmations needed
+  (Byzantine fault tolerance)
+end note
+
+== Transaction Confirmed ==
+consensus -> state: applyCommittedEntry(Block)
+activate state
+
+state -> contract: validateStateTransition()
+activate contract
+contract --> state: validation result
+deactivate contract
+
+state -> rocks: updateStateRoot(stateChanges)
+rocks --> state: new merkle root
+
+state -> db: updateBlockState(block, state_root)
+db --> state: stored
+
+state --> consensus: committed
+deactivate state
+
+consensus -> db: updateTransactionStatus(tx_hash, status=CONFIRMED)
+db --> consensus: updated
+
+note over ws
+  Block committed event broadcast
+end note
+
+consensus -> ws: broadcast block confirmed
+ws -> user: {event: "block:confirmed", block_height, txs}
+
+== Smart Contract Execution ==
+state -> contract: execute(contract_addr, method, input)
+activate contract
+
+contract -> contract: validateWasm(bytecode)
+contract -> contract: instantiate(bytecode)
+
+note right of contract
+  WASM runtime executes contract
+  deterministically on all nodes
+end note
+
+contract -> rocks: readState(contract_storage)
+rocks --> contract: state snapshot
+
+contract -> contract: executeMethod(method, input)
+note right of contract
+  Contract logic executes
+  updates internal state
+  emits events
+end note
+
+contract -> rocks: writeState(contract_storage, newState)
+rocks --> contract: acknowledged
+
+contract -> contract: emitEvent(ContractEvent)
+activate contract
+contract -> db: logEvent(event)
+db --> contract: logged
+deactivate contract
+
+contract --> state: ExecutionResult(output, events)
+deactivate contract
+
+state -> db: recordExecution(execution_id, result)
+db --> state: recorded
+
+== Transaction Finality ==
+note over consensus
+  After 3 confirmations = finalized
+  (Byzantine f < n/3)
+end note
+
+state -> db: updateTransactionStatus(tx_hash, status=FINALIZED)
+db --> state: finalized
+
+state -> rocks: pruneMempool(tx_hash)
+rocks --> state: removed from pending
+
+state --> consensus: finality achieved
+deactivate state
+
+note over ws
+  Finality notification sent to clients
+end note
+
+consensus -> ws: broadcast transaction finalized
+ws -> user: {event: "tx:finalized", tx_hash, block_height}
+
+user -> api: GET /transaction/{tx_hash}
+activate api
+api -> db: getTransaction(tx_hash)
+db --> api: transaction data (status=FINALIZED)
+api --> user: {tx_hash, status: FINALIZED, ...}
+deactivate api
+
+@enduml

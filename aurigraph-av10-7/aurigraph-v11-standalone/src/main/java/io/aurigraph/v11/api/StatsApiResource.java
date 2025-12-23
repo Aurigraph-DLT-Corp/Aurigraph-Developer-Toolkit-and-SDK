@@ -25,7 +25,7 @@ import java.util.Map;
  * @author Aurigraph V11 Team
  * @version 4.8.0
  */
-@Path("/api/v12/stats")
+@Path("/api/v11/stats")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -35,7 +35,7 @@ public class StatsApiResource {
     private static final Logger LOG = Logger.getLogger(StatsApiResource.class);
 
     /**
-     * GET /api/v12/stats
+     * GET /api/v11/stats
      *
      * Returns aggregated statistics from all subsystems:
      * - Performance metrics (TPS, latency, resource usage)
@@ -64,7 +64,7 @@ public class StatsApiResource {
         )
     })
     public Uni<Response> getStats() {
-        LOG.info("GET /api/v12/stats - Retrieving aggregated statistics");
+        LOG.info("GET /api/v11/stats - Retrieving aggregated statistics");
 
         return Uni.createFrom().item(() -> {
             Map<String, Object> response = new HashMap<>();
@@ -185,7 +185,7 @@ public class StatsApiResource {
         nodesByType.put("channel", 8);
         nodesByType.put("validator", 10);
         nodesByType.put("business", 5);
-        nodesByType.put("ei", 2);
+        nodesByType.put("slim", 2);
         networkStats.put("nodesByType", nodesByType);
 
         networkStats.put("totalConnections", 100);

@@ -20,7 +20,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 39
  */
-@Path("/api/v12/enterprise")
+@Path("/api/v11/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class IntegrationResource {
@@ -29,7 +29,7 @@ public class IntegrationResource {
 
     /**
      * Get available integrations
-     * GET /api/v12/enterprise/integrations/marketplace
+     * GET /api/v11/enterprise/integrations/marketplace
      */
     @GET
     @Path("/integrations/marketplace")
@@ -66,7 +66,7 @@ public class IntegrationResource {
 
     /**
      * Install integration
-     * POST /api/v12/enterprise/integrations/install
+     * POST /api/v11/enterprise/integrations/install
      */
     @POST
     @Path("/integrations/install")
@@ -88,7 +88,7 @@ public class IntegrationResource {
 
     /**
      * Get installed integrations
-     * GET /api/v12/enterprise/integrations/installed
+     * GET /api/v11/enterprise/integrations/installed
      */
     @GET
     @Path("/integrations/installed")

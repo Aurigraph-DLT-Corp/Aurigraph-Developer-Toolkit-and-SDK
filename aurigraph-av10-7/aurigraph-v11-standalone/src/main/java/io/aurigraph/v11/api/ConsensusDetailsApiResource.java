@@ -20,13 +20,13 @@ import java.util.*;
  * Consensus Details API Resource
  *
  * Provides consensus protocol operations:
- * - GET /api/v12/consensus/rounds - Consensus round details
- * - GET /api/v12/consensus/votes - Vote tallies and statistics
+ * - GET /api/v11/consensus/rounds - Consensus round details
+ * - GET /api/v11/consensus/votes - Vote tallies and statistics
  *
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/consensus")
+@Path("/api/v11/consensus")
 @ApplicationScoped
 @Tag(name = "Consensus Details API", description = "Consensus round and voting information")
 @Produces(MediaType.APPLICATION_JSON)
@@ -41,7 +41,7 @@ public class ConsensusDetailsApiResource {
     // ==================== ENDPOINT 14: Consensus Rounds ====================
 
     /**
-     * GET /api/v12/consensus/rounds
+     * GET /api/v11/consensus/rounds
      * Get consensus round details
      */
     @GET
@@ -111,7 +111,7 @@ public class ConsensusDetailsApiResource {
     // ==================== ENDPOINT 15: Consensus Votes ====================
 
     /**
-     * GET /api/v12/consensus/votes
+     * GET /api/v11/consensus/votes
      * Get vote tallies and statistics
      */
     @GET

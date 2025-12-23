@@ -1,0 +1,124 @@
+@startuml Aurigraph_DLT_Data_Flow
+title Aurigraph DLT - Data Flow Diagram (DFD Level 2)
+
+skinparam linetype ortho
+skinparam nodesep 80
+
+' Data Stores
+database "PostgreSQL\n(Transaction Log)" as DB_TXN
+database "RocksDB\n(State Store)" as DB_STATE
+database "Redis\n(Cache Layer)" as CACHE
+database "Event Log\n(Immutable)" as EVENT_LOG
+
+' External Systems
+actor "End User" as USER
+entity "External Blockchain" as EXT_CHAIN
+entity "Real-World Data Oracle" as ORACLE
+
+' Core Processes
+process "1. User Interface Layer" as P1
+process "2. Authentication & Authorization" as P2
+process "3. Transaction Processor" as P3
+process "4. Consensus Engine" as P4
+process "5. Smart Contract Executor" as P5
+process "6. Cross-Chain Bridge" as P6
+process "7. State Validator" as P7
+process "8. Event Publisher" as P8
+
+' Data Flows
+
+' User to UI
+USER --> P1: 1.1 User Input\n(Submit Tx, Query State)
+
+' UI to Auth
+P1 --> P2: 2.1 Credentials\n(Username, Password)
+
+' Auth to DB
+P2 --> DB_TXN: 2.2 Verify User\n(Check Auth Table)
+DB_TXN --> P2: 2.3 User Verified
+
+' Auth to UI
+P2 --> P1: 2.4 JWT Token\n(Session)
+
+' UI to Tx Processor
+P1 --> P3: 3.1 Transaction\n(Signed TX)
+
+' Tx to Cache
+P3 --> CACHE: 3.2 Check Pending\n(TX Mempool)
+CACHE --> P3: 3.3 Pending TXs
+
+' Tx to Event Log
+P3 --> EVENT_LOG: 3.4 Log TX Receipt\n(Immutable Record)
+
+' Tx to Consensus
+P3 --> P4: 4.1 Broadcast TX\n(HyperRAFT++ Protocol)
+
+' Consensus processes
+P4 --> P4: 4.2 Leader Election\n(RAFT Algorithm)
+P4 --> DB_STATE: 4.3 Store Consensus\n(Leader, Term, Log)
+DB_STATE --> P4: 4.4 Consensus State
+
+' Consensus to Smart Contract
+P4 --> P5: 5.1 Finalized Block\n(Ordered Transactions)
+
+' Smart Contract execution
+P5 --> DB_STATE: 5.2 Execute Contract\n(Update State)
+DB_STATE --> P5: 5.3 New State Root
+
+' Smart Contract to Validator
+P5 --> P7: 7.1 New State\n(Merkle Root)
+
+' State Validator
+P7 --> DB_STATE: 7.2 Verify State\n(Check Integrity)
+DB_STATE --> P7: 7.3 State Validation Result
+
+' Cross-Chain Bridge
+P6 --> EXT_CHAIN: 6.1 Lock/Mint\n(Interop Message)
+EXT_CHAIN --> P6: 6.2 Confirmation\n(Signed Proof)
+P6 --> DB_STATE: 6.3 Record Bridge TX\n(State Update)
+
+' Oracle Integration
+ORACLE --> P5: 7.4 Real-World Data\n(RWAT Input)
+P5 --> ORACLE: 7.5 Attestation\n(Signed Receipt)
+
+' Event Publisher
+P5 --> P8: 8.1 State Change Event
+P8 --> EVENT_LOG: 8.2 Publish Event
+P8 --> USER: 8.3 WebSocket Notification\n(Real-time Update)
+
+' Caching
+P3 --> CACHE: 9.1 Cache TX Status
+P4 --> CACHE: 9.2 Cache Consensus State
+P5 --> CACHE: 9.3 Cache Contract State
+P7 --> CACHE: 9.4 Cache Validation Result
+
+' Persistence
+P3 --> DB_TXN: 10.1 Store TX\n(Finalized)
+P4 --> DB_TXN: 10.2 Store Blocks\n(Consensus Log)
+P5 --> DB_TXN: 10.3 Store Contract\n(Execution History)
+
+note right of P3
+  Validates signature
+  Checks balance
+  Queues for consensus
+end note
+
+note right of P4
+  HyperRAFT++
+  Byzantine tolerant
+  AI-optimized ordering
+end note
+
+note right of P5
+  Executes WASM
+  Updates Merkle tree
+  Emits events
+end note
+
+note right of P6
+  Lock-and-mint model
+  Cross-chain proofs
+  Oracle attestation
+end note
+
+@enduml

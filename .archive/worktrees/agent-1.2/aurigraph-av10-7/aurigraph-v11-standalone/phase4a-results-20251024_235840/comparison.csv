@@ -1,0 +1,7 @@
+Metric,Baseline (Sprint 12),Target (Phase 4A),Actual,Status
+TPS,776000,1140000,8513034,PASS
+Improvement (TPS),0,350000,7737034,PASS
+Improvement (%),0.0%,45.1%,990.0%,PASS
+Stability (CV),N/A,<10%,50.00%,FAIL
+CPU Usage,56.35%,<50%,0%,PASS
+Memory Usage,N/A,<256MB,1448.2MB,WARNING

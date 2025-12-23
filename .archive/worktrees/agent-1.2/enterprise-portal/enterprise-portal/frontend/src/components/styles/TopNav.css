@@ -1,0 +1,343 @@
+/**
+ * Optimized Top Navigation Styles
+ * Provides responsive, accessible navigation with smooth transitions
+ */
+
+/* Main Navigation Container */
+.topnav-menu {
+  transition: all 0.3s ease;
+}
+
+.topnav-menu .ant-menu-item {
+  padding: 0 12px !important;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topnav-menu .ant-menu-submenu-title {
+  padding: 0 12px !important;
+  font-weight: 500;
+}
+
+/* Menu Item Hover Effect */
+.topnav-menu .ant-menu-item:hover,
+.topnav-menu .ant-menu-submenu:hover > .ant-menu-submenu-title {
+  color: #1890ff !important;
+  transition: color 0.2s ease;
+}
+
+/* Search Bar Styling */
+.topnav-search {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.topnav-search .ant-input {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.topnav-search .ant-input::placeholder {
+  color: #bfbfbf;
+}
+
+.topnav-search .ant-input:hover,
+.topnav-search .ant-input:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Icon Button Styling */
+.topnav-icon-btn {
+  padding: 8px !important;
+  height: 36px !important;
+  width: 36px !important;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.topnav-icon-btn:hover {
+  background-color: rgba(24, 144, 255, 0.1) !important;
+  color: #1890ff !important;
+}
+
+.topnav-icon-btn:active {
+  transform: scale(0.95);
+}
+
+/* User Profile Section */
+.user-profile {
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.user-profile:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Mobile Menu Toggle */
+.topnav-mobile-toggle {
+  display: none !important;
+}
+
+/* Desktop Navigation Menu */
+.nav-menu-desktop {
+  display: flex;
+}
+
+/* Mobile Navigation Menu */
+.topnav-mobile-menu {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design - Tablet */
+@media (max-width: 1024px) {
+  .topnav-menu .ant-menu-item {
+    padding: 0 8px !important;
+    font-size: 13px;
+  }
+
+  .topnav-menu .ant-menu-submenu-title {
+    padding: 0 8px !important;
+    font-size: 13px;
+  }
+
+  .topnav-search {
+    width: 150px !important;
+  }
+
+  .user-info {
+    display: none;
+  }
+}
+
+/* Responsive Design - Mobile */
+@media (max-width: 768px) {
+  .nav-menu-desktop {
+    display: none !important;
+  }
+
+  .topnav-mobile-toggle {
+    display: inline-flex !important;
+  }
+
+  .topnav-search {
+    width: 120px !important;
+    margin-right: 8px !important;
+  }
+
+  .topnav-search .ant-input {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .topnav-menu .ant-menu-item {
+    padding: 0 16px !important;
+  }
+
+  .topnav-mobile-menu {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Responsive Design - Small Mobile */
+@media (max-width: 480px) {
+  .topnav-icon-btn {
+    padding: 6px !important;
+    height: 32px !important;
+    width: 32px !important;
+  }
+
+  .topnav-search {
+    width: 100px !important;
+    margin-right: 4px !important;
+  }
+
+  .ant-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+/* Dark Mode Styles */
+.ant-layout-header {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Search Autocomplete Styling */
+.ant-select-dropdown {
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+}
+
+.ant-select-item {
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.ant-select-item:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.ant-select-item-option-selected {
+  background-color: rgba(24, 144, 255, 0.2);
+  color: #1890ff;
+}
+
+/* Breadcrumb Styling */
+.ant-breadcrumb {
+  font-size: 13px;
+}
+
+.ant-breadcrumb-link {
+  color: #1890ff;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.ant-breadcrumb-link:hover {
+  color: #0050b3;
+  text-decoration: underline;
+}
+
+/* Menu Dropdown Styling */
+.ant-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ant-dropdown-menu-item {
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.ant-dropdown-menu-item:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+/* Badge Styling */
+.ant-badge {
+  transition: all 0.3s ease;
+}
+
+.ant-badge-count {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* Floating Action Button */
+.ant-float-btn {
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ant-float-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Performance Optimization */
+.topnav-menu,
+.topnav-icon-btn,
+.user-profile {
+  will-change: auto;
+}
+
+/* Focus Styles for Accessibility */
+.topnav-icon-btn:focus-visible,
+.topnav-search .ant-input:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Loading State */
+.topnav-menu.loading,
+.topnav-search.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Animation for Menu Transitions */
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.topnav-menu,
+.topnav-mobile-menu {
+  animation: menuFadeIn 0.3s ease;
+}
+
+/* Separator Styling */
+.ant-menu-divider {
+  margin: 4px 0 !important;
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Overflow Handling for Long Menu Items */
+.topnav-menu .ant-menu-item-group-title {
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Tooltip Styling */
+.ant-tooltip-inner {
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 6px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Print Styles */
+@media print {
+  .topnav-mobile-toggle,
+  .topnav-icon-btn,
+  .topnav-search {
+    display: none !important;
+  }
+}

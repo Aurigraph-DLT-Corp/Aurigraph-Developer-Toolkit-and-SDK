@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph V11 - Complete DLT Platform with HMS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 16px 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hms-badge {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid transparent;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .main-container {
+            margin-top: 80px;
+            padding: 24px;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, #10b981, transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            to { left: 100%; }
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+
+        .metric-change {
+            font-size: 0.75rem;
+            color: #10b981;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .panel {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .smart-contract-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .smart-contract-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .contract-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .contract-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .contract-type {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .contract-type.erc20 {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .contract-type.erc721 {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+
+        .contract-type.erc1155 {
+            background: rgba(236, 72, 153, 0.2);
+            color: #ec4899;
+        }
+
+        .contract-type.ricardian {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .contract-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .contract-detail {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .token-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .token-card:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+        }
+
+        .token-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #10b981);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .token-symbol {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .token-name {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        .token-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .token-stat {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .rwa-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rwa-card::after {
+            content: 'RWA';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .rwa-header {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .rwa-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .rwa-info {
+            flex: 1;
+        }
+
+        .rwa-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+
+        .rwa-type {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .rwa-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .rwa-metric {
+            text-align: center;
+        }
+
+        .hms-panel {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(245, 158, 11, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .hms-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .hms-connected {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            color: #cbd5e1;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            color: #f1f5f9;
+            font-size: 0.875rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            color: #f1f5f9;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .code-editor {
+            font-family: 'Courier New', monospace;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            color: #10b981;
+            font-size: 0.875rem;
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+
+        .transaction-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .activity-feed {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            border-left: 3px solid #10b981;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .token-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">Aurigraph V11 DLT</div>
+                <div class="hms-badge">HMS INTEGRATED</div>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="showTab('overview')">Overview</div>
+                <div class="nav-item" onclick="showTab('smart-contracts')">Smart Contracts</div>
+                <div class="nav-item" onclick="showTab('tokenization')">Tokenization</div>
+                <div class="nav-item" onclick="showTab('rwa')">RWA</div>
+                <div class="nav-item" onclick="showTab('hms')">HMS</div>
+                <div class="nav-item" onclick="showTab('nodes')">Nodes</div>
+            </nav>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span>LIVE SYSTEM</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Metrics Dashboard -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Smart Contracts</div>
+                <div class="metric-value" id="contracts-count">0</div>
+                <div class="metric-change" id="contracts-change">0 deployed today</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Tokens</div>
+                <div class="metric-value" id="tokens-count">0</div>
+                <div class="metric-change" id="tokens-change">0 minted today</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">RWA Assets</div>
+                <div class="metric-value" id="rwa-count">0</div>
+                <div class="metric-change" id="rwa-value">$0M value</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">HMS Transactions</div>
+                <div class="metric-value" id="hms-tx">0</div>
+                <div class="metric-change">Real-time</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Business Nodes</div>
+                <div class="metric-value" id="business-nodes">0</div>
+                <div class="metric-change" id="nodes-processing">0 processing</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Network TPS</div>
+                <div class="metric-value" id="network-tps">0</div>
+                <div class="metric-change">Live</div>
+            </div>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <h3 class="panel-title">📊 Platform Activity</h3>
+                    <div class="chart-container">
+                        <canvas id="activity-chart"></canvas>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3 class="panel-title">🔄 Live Events</h3>
+                    <div class="activity-feed" id="activity-feed">
+                        <!-- Live events will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h3 class="panel-title">💎 Featured Assets</h3>
+                <div class="token-grid" id="featured-assets">
+                    <!-- Featured assets will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Smart Contracts Tab -->
+        <div id="smart-contracts" class="tab-content">
+            <div class="panel">
+                <h3 class="panel-title">📝 Smart Contract Management</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-success" onclick="openContractModal()">Deploy Contract</button>
+                    <button class="btn btn-primary" onclick="openTemplateModal()">Use Template</button>
+                    <button class="btn btn-warning" onclick="auditContracts()">Audit All</button>
+                </div>
+                
+                <div id="contracts-list">
+                    <!-- Smart contracts will be listed here -->
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <h3 class="panel-title">📈 Contract Analytics</h3>
+                    <div class="chart-container">
+                        <canvas id="contract-chart"></canvas>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3 class="panel-title">⚡ Recent Executions</h3>
+                    <div class="activity-feed" id="contract-executions">
+                        <!-- Contract executions will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tokenization Tab -->
+        <div id="tokenization" class="tab-content">
+            <div class="panel">
+                <h3 class="panel-title">🪙 Token Management</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-success" onclick="openTokenModal()">Create Token</button>
+                    <button class="btn btn-primary" onclick="mintTokens()">Mint Tokens</button>
+                    <button class="btn btn-warning" onclick="burnTokens()">Burn Tokens</button>
+                </div>
+                
+                <div class="token-grid" id="tokens-grid">
+                    <!-- Tokens will be displayed here -->
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h3 class="panel-title">💱 Token Exchange</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="color: #cbd5e1; margin-bottom: 12px;">Swap Tokens</h4>
+                        <div class="form-group">
+                            <label class="form-label">From Token</label>
+                            <select id="from-token" class="form-select">
+                                <option>Select Token</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">To Token</label>
+                            <select id="to-token" class="form-select">
+                                <option>Select Token</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Amount</label>
+                            <input type="number" id="swap-amount" class="form-input" placeholder="0.00">
+                        </div>
+                        <button class="btn btn-primary" onclick="swapTokens()">Swap</button>
+                    </div>
+                    <div>
+                        <h4 style="color: #cbd5e1; margin-bottom: 12px;">Liquidity Pools</h4>
+                        <div id="liquidity-pools">
+                            <!-- Liquidity pools will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RWA Tab -->
+        <div id="rwa" class="tab-content">
+            <div class="panel">
+                <h3 class="panel-title">🏢 Real World Assets</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-success" onclick="openRWAModal()">Tokenize Asset</button>
+                    <button class="btn btn-primary" onclick="verifyAsset()">Verify Asset</button>
+                    <button class="btn btn-warning" onclick="fractionalizeAsset()">Fractionalize</button>
+                </div>
+                
+                <div id="rwa-assets">
+                    <!-- RWA assets will be displayed here -->
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <h3 class="panel-title">📊 Asset Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="rwa-chart"></canvas>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3 class="panel-title">✅ Verification Status</h3>
+                    <div id="verification-status">
+                        <!-- Verification status will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HMS Tab -->
+        <div id="hms" class="tab-content">
+            <div class="hms-panel">
+                <div class="hms-status">
+                    <div class="hms-connected"></div>
+                    <span>HMS Connected</span>
+                </div>
+                <h3 class="panel-title">🔗 Hermes Management System</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0;">
+                    <div class="metric-card">
+                        <div class="metric-label">HMS Nodes</div>
+                        <div class="metric-value" id="hms-nodes">0</div>
+                        <div class="metric-change">Active</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Integration Status</div>
+                        <div class="metric-value" style="color: #10b981;">ONLINE</div>
+                        <div class="metric-change">All systems go</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Processing Rate</div>
+                        <div class="metric-value" id="hms-rate">0</div>
+                        <div class="metric-change">Assets/hour</div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div>
+                        <h4 style="color: #cbd5e1; margin-bottom: 16px;">HMS Operations</h4>
+                        <div style="display: grid; gap: 12px;">
+                            <button class="btn btn-primary" onclick="syncWithHMS()">Sync Assets</button>
+                            <button class="btn btn-success" onclick="processHMSBatch()">Process Batch</button>
+                            <button class="btn btn-warning" onclick="validateHMSData()">Validate Data</button>
+                            <button class="btn btn-primary" onclick="exportHMSReport()">Export Report</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="color: #cbd5e1; margin-bottom: 16px;">HMS Activity Log</h4>
+                        <div class="activity-feed" id="hms-activity" style="max-height: 300px;">
+                            <!-- HMS activity will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h3 class="panel-title">🔄 HMS-Aurigraph Bridge</h3>
+                <div class="chart-container">
+                    <canvas id="hms-bridge-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nodes Tab -->
+        <div id="nodes" class="tab-content">
+            <div class="panel">
+                <h3 class="panel-title">💼 Business Nodes with Smart Contract Support</h3>
+                <div id="business-nodes-grid">
+                    <!-- Business nodes will be displayed here -->
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <h3 class="panel-title">📈 Node Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="node-performance-chart"></canvas>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3 class="panel-title">🔧 Node Operations</h3>
+                    <div id="node-operations">
+                        <!-- Node operations will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Contract Deployment Modal -->
+    <div id="contract-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Deploy Smart Contract</h2>
+                <button class="modal-close" onclick="closeContractModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Contract Type</label>
+                <select id="contract-type" class="form-select" onchange="updateContractTemplate()">
+                    <option value="erc20">ERC-20 Token</option>
+                    <option value="erc721">ERC-721 NFT</option>
+                    <option value="erc1155">ERC-1155 Multi-Token</option>
+                    <option value="ricardian">Ricardian Contract</option>
+                    <option value="defi">DeFi Protocol</option>
+                    <option value="dao">DAO Governance</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Contract Name</label>
+                <input type="text" id="contract-name" class="form-input" placeholder="MySmartContract">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Symbol (if applicable)</label>
+                <input type="text" id="contract-symbol" class="form-input" placeholder="MSC">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Initial Supply (if applicable)</label>
+                <input type="number" id="initial-supply" class="form-input" placeholder="1000000">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Contract Code</label>
+                <div id="contract-code" class="code-editor" contenteditable="true">
+// Your smart contract code will appear here
+pragma solidity ^0.8.0;
+
+contract MyContract {
+    // Contract implementation
+}
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-success" onclick="deployContract()">Deploy</button>
+                <button class="btn btn-primary" onclick="compileContract()">Compile</button>
+                <button class="btn btn-warning" onclick="auditContract()">Audit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Creation Modal -->
+    <div id="token-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Token</h2>
+                <button class="modal-close" onclick="closeTokenModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Token Standard</label>
+                <select id="token-standard" class="form-select">
+                    <option value="erc20">ERC-20 (Fungible)</option>
+                    <option value="erc721">ERC-721 (NFT)</option>
+                    <option value="erc1155">ERC-1155 (Multi)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Token Name</label>
+                <input type="text" id="token-name" class="form-input" placeholder="Aurigraph Token">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Token Symbol</label>
+                <input type="text" id="token-symbol" class="form-input" placeholder="AUR">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Total Supply</label>
+                <input type="number" id="token-supply" class="form-input" placeholder="1000000000">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Decimals</label>
+                <input type="number" id="token-decimals" class="form-input" value="18">
+            </div>
+            
+            <button class="btn btn-success" onclick="createToken()">Create Token</button>
+        </div>
+    </div>
+
+    <!-- RWA Tokenization Modal -->
+    <div id="rwa-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Tokenize Real World Asset</h2>
+                <button class="modal-close" onclick="closeRWAModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Asset Type</label>
+                <select id="asset-type" class="form-select">
+                    <option value="real-estate">Real Estate</option>
+                    <option value="commodity">Commodity</option>
+                    <option value="art">Art & Collectibles</option>
+                    <option value="equity">Company Equity</option>
+                    <option value="debt">Debt Instrument</option>
+                    <option value="vehicle">Vehicle</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Asset Name</label>
+                <input type="text" id="asset-name" class="form-input" placeholder="Manhattan Office Building">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Asset Value (USD)</label>
+                <input type="number" id="asset-value" class="form-input" placeholder="10000000">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Number of Tokens</label>
+                <input type="number" id="asset-tokens" class="form-input" placeholder="1000">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Legal Documentation</label>
+                <input type="text" id="asset-docs" class="form-input" placeholder="IPFS Hash or URL">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">HMS Integration</label>
+                <select id="hms-integration" class="form-select">
+                    <option value="full">Full Integration</option>
+                    <option value="partial">Partial Integration</option>
+                    <option value="none">No Integration</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-success" onclick="tokenizeRWA()">Tokenize Asset</button>
+        </div>
+    </div>
+
+    <script>
+        // Complete Blockchain Platform with Smart Contracts, Tokens, and RWA
+        class AurigraphPlatform {
+            constructor() {
+                this.smartContracts = [];
+                this.tokens = [];
+                this.rwaAssets = [];
+                this.businessNodes = [];
+                this.hmsTransactions = 0;
+                this.networkTPS = 0;
+                this.charts = {};
+                
+                // HMS Integration
+                this.hmsConnected = true;
+                this.hmsNodes = 5;
+                this.hmsProcessingRate = 0;
+                
+                this.initializePlatform();
+            }
+
+            initializePlatform() {
+                this.createInitialContracts();
+                this.createInitialTokens();
+                this.createInitialRWA();
+                this.createBusinessNodes();
+                this.startLiveSimulation();
+                this.initializeCharts();
+                this.startActivityFeed();
+            }
+
+            createInitialContracts() {
+                const contractTypes = [
+                    { name: 'AurigraphToken', type: 'erc20', address: this.generateAddress(), deployed: Date.now() - 86400000, executions: 15234, gas: 1234567 },
+                    { name: 'NFTMarketplace', type: 'erc721', address: this.generateAddress(), deployed: Date.now() - 172800000, executions: 8976, gas: 2345678 },
+                    { name: 'DeFiLending', type: 'defi', address: this.generateAddress(), deployed: Date.now() - 259200000, executions: 45678, gas: 3456789 },
+                    { name: 'GovernanceDAO', type: 'dao', address: this.generateAddress(), deployed: Date.now() - 345600000, executions: 3456, gas: 987654 },
+                    { name: 'RicardianTrade', type: 'ricardian', address: this.generateAddress(), deployed: Date.now() - 432000000, executions: 12345, gas: 4567890 }
+                ];
+                
+                this.smartContracts = contractTypes;
+                this.updateContractDisplay();
+            }
+
+            createInitialTokens() {
+                const tokens = [
+                    { symbol: 'AUR', name: 'Aurigraph Token', type: 'erc20', supply: 1000000000, price: 1.25, marketCap: 1250000000, holders: 15234, icon: '🪙' },
+                    { symbol: 'GOLD', name: 'Gold Token', type: 'erc20', supply: 100000, price: 1850, marketCap: 185000000, holders: 5432, icon: '🥇' },
+                    { symbol: 'REAL', name: 'Real Estate Token', type: 'erc20', supply: 500000, price: 100, marketCap: 50000000, holders: 2345, icon: '🏢' },
+                    { symbol: 'ART', name: 'Art Collection NFT', type: 'erc721', supply: 10000, price: 500, marketCap: 5000000, holders: 1234, icon: '🎨' },
+                    { symbol: 'ENERGY', name: 'Energy Credit', type: 'erc20', supply: 10000000, price: 0.5, marketCap: 5000000, holders: 8765, icon: '⚡' }
+                ];
+                
+                this.tokens = tokens;
+                this.updateTokenDisplay();
+            }
+
+            createInitialRWA() {
+                const rwaAssets = [
+                    { 
+                        name: 'Manhattan Office Tower',
+                        type: 'real-estate',
+                        value: 50000000,
+                        tokens: 50000,
+                        tokenPrice: 1000,
+                        yield: 6.5,
+                        verified: true,
+                        hmsIntegrated: true,
+                        icon: '🏢'
+                    },
+                    {
+                        name: 'Gold Reserve Certificate',
+                        type: 'commodity',
+                        value: 10000000,
+                        tokens: 10000,
+                        tokenPrice: 1000,
+                        yield: 2.5,
+                        verified: true,
+                        hmsIntegrated: true,
+                        icon: '🥇'
+                    },
+                    {
+                        name: 'Renewable Energy Farm',
+                        type: 'real-estate',
+                        value: 25000000,
+                        tokens: 25000,
+                        tokenPrice: 1000,
+                        yield: 8.2,
+                        verified: true,
+                        hmsIntegrated: true,
+                        icon: '🌱'
+                    },
+                    {
+                        name: 'Classic Art Collection',
+                        type: 'art',
+                        value: 15000000,
+                        tokens: 1500,
+                        tokenPrice: 10000,
+                        yield: 4.5,
+                        verified: false,
+                        hmsIntegrated: false,
+                        icon: '🎨'
+                    },
+                    {
+                        name: 'Commercial Fleet',
+                        type: 'vehicle',
+                        value: 5000000,
+                        tokens: 5000,
+                        tokenPrice: 1000,
+                        yield: 7.8,
+                        verified: true,
+                        hmsIntegrated: true,
+                        icon: '🚚'
+                    }
+                ];
+                
+                this.rwaAssets = rwaAssets;
+                this.updateRWADisplay();
+            }
+
+            createBusinessNodes() {
+                for (let i = 1; i <= 8; i++) {
+                    this.businessNodes.push({
+                        id: `node-${i}`,
+                        name: `Business-${String(i).padStart(2, '0')}`,
+                        status: 'active',
+                        contracts: Math.floor(Math.random() * 50) + 20,
+                        tokens: Math.floor(Math.random() * 100) + 50,
+                        rwaProcessing: Math.floor(Math.random() * 10) + 5,
+                        tps: Math.floor(Math.random() * 50000) + 100000,
+                        cpu: Math.floor(Math.random() * 40) + 30,
+                        memory: Math.floor(Math.random() * 200) + 200,
+                        hmsConnected: Math.random() > 0.3
+                    });
+                }
+                
+                this.updateNodeDisplay();
+            }
+
+            startLiveSimulation() {
+                // Simulate contract executions
+                setInterval(() => {
+                    this.smartContracts.forEach(contract => {
+                        if (Math.random() > 0.5) {
+                            contract.executions += Math.floor(Math.random() * 10) + 1;
+                            contract.gas += Math.floor(Math.random() * 10000) + 1000;
+                        }
+                    });
+                    this.updateContractDisplay();
+                }, 2000);
+                
+                // Simulate token transactions
+                setInterval(() => {
+                    this.tokens.forEach(token => {
+                        // Price fluctuation
+                        const change = (Math.random() - 0.5) * 0.1;
+                        token.price *= (1 + change);
+                        token.marketCap = token.supply * token.price;
+                        
+                        // Holder changes
+                        token.holders += Math.floor(Math.random() * 10) - 5;
+                    });
+                    this.updateTokenDisplay();
+                }, 3000);
+                
+                // Simulate HMS transactions
+                setInterval(() => {
+                    this.hmsTransactions += Math.floor(Math.random() * 100) + 50;
+                    this.hmsProcessingRate = Math.floor(Math.random() * 500) + 200;
+                    
+                    document.getElementById('hms-tx').textContent = this.hmsTransactions.toLocaleString();
+                    document.getElementById('hms-rate').textContent = this.hmsProcessingRate.toLocaleString();
+                    
+                    // Update HMS activity
+                    this.addHMSActivity();
+                }, 1000);
+                
+                // Calculate network TPS
+                setInterval(() => {
+                    let totalTPS = 0;
+                    this.businessNodes.forEach(node => {
+                        if (node.status === 'active') {
+                            totalTPS += node.tps;
+                        }
+                    });
+                    
+                    this.networkTPS = totalTPS + Math.floor(Math.random() * 100000);
+                    document.getElementById('network-tps').textContent = 
+                        this.networkTPS > 1000000 ? 
+                        (this.networkTPS / 1000000).toFixed(2) + 'M' : 
+                        Math.floor(this.networkTPS / 1000) + 'K';
+                }, 500);
+            }
+
+            updateContractDisplay() {
+                const contractsList = document.getElementById('contracts-list');
+                if (contractsList) {
+                    contractsList.innerHTML = '';
+                    
+                    this.smartContracts.forEach(contract => {
+                        const card = document.createElement('div');
+                        card.className = 'smart-contract-card';
+                        card.innerHTML = `
+                            <div class="contract-header">
+                                <div class="contract-name">${contract.name}</div>
+                                <div class="contract-type ${contract.type}">${contract.type.toUpperCase()}</div>
+                            </div>
+                            <div style="font-family: monospace; font-size: 0.75rem; color: #64748b; margin: 8px 0;">
+                                ${contract.address}
+                            </div>
+                            <div class="contract-details">
+                                <div class="contract-detail">
+                                    <div class="detail-label">Executions</div>
+                                    <div class="detail-value">${contract.executions.toLocaleString()}</div>
+                                </div>
+                                <div class="contract-detail">
+                                    <div class="detail-label">Gas Used</div>
+                                    <div class="detail-value">${(contract.gas / 1000000).toFixed(2)}M</div>
+                                </div>
+                                <div class="contract-detail">
+                                    <div class="detail-label">Age</div>
+                                    <div class="detail-value">${Math.floor((Date.now() - contract.deployed) / 86400000)}d</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; display: flex; gap: 8px;">
+                                <button class="btn btn-primary" onclick="platform.executeContract('${contract.address}')">Execute</button>
+                                <button class="btn btn-warning" onclick="platform.upgradeContract('${contract.address}')">Upgrade</button>
+                            </div>
+                        `;
+                        contractsList.appendChild(card);
+                    });
+                }
+                
+                // Update metrics
+                document.getElementById('contracts-count').textContent = this.smartContracts.length;
+                document.getElementById('contracts-change').textContent = 
+                    `${Math.floor(Math.random() * 5) + 1} deployed today`;
+            }
+
+            updateTokenDisplay() {
+                const tokensGrid = document.getElementById('tokens-grid');
+                const featuredAssets = document.getElementById('featured-assets');
+                
+                if (tokensGrid) {
+                    tokensGrid.innerHTML = '';
+                    
+                    this.tokens.forEach(token => {
+                        const card = document.createElement('div');
+                        card.className = 'token-card';
+                        card.innerHTML = `
+                            <div class="token-icon">${token.icon}</div>
+                            <div class="token-symbol">${token.symbol}</div>
+                            <div class="token-name">${token.name}</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #10b981; margin: 12px 0;">
+                                $${token.price.toFixed(2)}
+                            </div>
+                            <div class="token-stats">
+                                <div class="token-stat">
+                                    <div class="detail-label">Market Cap</div>
+                                    <div class="detail-value">$${(token.marketCap / 1000000).toFixed(1)}M</div>
+                                </div>
+                                <div class="token-stat">
+                                    <div class="detail-label">Holders</div>
+                                    <div class="detail-value">${token.holders.toLocaleString()}</div>
+                                </div>
+                                <div class="token-stat">
+                                    <div class="detail-label">Supply</div>
+                                    <div class="detail-value">${(token.supply / 1000000).toFixed(1)}M</div>
+                                </div>
+                                <div class="token-stat">
+                                    <div class="detail-label">Type</div>
+                                    <div class="detail-value">${token.type.toUpperCase()}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; display: flex; gap: 8px;">
+                                <button class="btn btn-primary" onclick="platform.tradeToken('${token.symbol}')">Trade</button>
+                                <button class="btn btn-success" onclick="platform.stakeToken('${token.symbol}')">Stake</button>
+                            </div>
+                        `;
+                        tokensGrid.appendChild(card);
+                    });
+                }
+                
+                // Update featured assets on overview
+                if (featuredAssets) {
+                    featuredAssets.innerHTML = '';
+                    this.tokens.slice(0, 3).forEach(token => {
+                        const card = document.createElement('div');
+                        card.className = 'token-card';
+                        card.innerHTML = `
+                            <div class="token-icon">${token.icon}</div>
+                            <div class="token-symbol">${token.symbol}</div>
+                            <div style="color: #10b981; font-size: 1.25rem; font-weight: 700;">
+                                $${token.price.toFixed(2)}
+                            </div>
+                        `;
+                        featuredAssets.appendChild(card);
+                    });
+                }
+                
+                // Update metrics
+                document.getElementById('tokens-count').textContent = this.tokens.length;
+                const totalMinted = this.tokens.reduce((sum, t) => sum + t.supply, 0);
+                document.getElementById('tokens-change').textContent = 
+                    `${(totalMinted / 1000000).toFixed(1)}M total supply`;
+            }
+
+            updateRWADisplay() {
+                const rwaContainer = document.getElementById('rwa-assets');
+                if (rwaContainer) {
+                    rwaContainer.innerHTML = '';
+                    
+                    this.rwaAssets.forEach(asset => {
+                        const card = document.createElement('div');
+                        card.className = 'rwa-card';
+                        card.innerHTML = `
+                            <div class="rwa-header">
+                                <div class="rwa-image">${asset.icon}</div>
+                                <div class="rwa-info">
+                                    <div class="rwa-name">${asset.name}</div>
+                                    <div class="rwa-type">Type: ${asset.type}</div>
+                                    <div style="margin-top: 4px;">
+                                        ${asset.hmsIntegrated ? 
+                                            '<span style="color: #10b981;">✓ HMS Integrated</span>' : 
+                                            '<span style="color: #f59e0b;">⚠ HMS Pending</span>'}
+                                        ${asset.verified ? 
+                                            '<span style="color: #10b981; margin-left: 12px;">✓ Verified</span>' : 
+                                            '<span style="color: #ef4444; margin-left: 12px;">✗ Unverified</span>'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rwa-metrics">
+                                <div class="rwa-metric">
+                                    <div class="detail-label">Value</div>
+                                    <div class="detail-value">$${(asset.value / 1000000).toFixed(1)}M</div>
+                                </div>
+                                <div class="rwa-metric">
+                                    <div class="detail-label">Tokens</div>
+                                    <div class="detail-value">${asset.tokens.toLocaleString()}</div>
+                                </div>
+                                <div class="rwa-metric">
+                                    <div class="detail-label">Price/Token</div>
+                                    <div class="detail-value">$${asset.tokenPrice.toLocaleString()}</div>
+                                </div>
+                                <div class="rwa-metric">
+                                    <div class="detail-label">Yield</div>
+                                    <div class="detail-value">${asset.yield}%</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; display: flex; gap: 8px;">
+                                <button class="btn btn-primary" onclick="platform.investInRWA('${asset.name}')">Invest</button>
+                                <button class="btn btn-success" onclick="platform.fractionalizeRWA('${asset.name}')">Fractionalize</button>
+                                <button class="btn btn-warning" onclick="platform.verifyRWA('${asset.name}')">Verify</button>
+                            </div>
+                        `;
+                        rwaContainer.appendChild(card);
+                    });
+                }
+                
+                // Update metrics
+                document.getElementById('rwa-count').textContent = this.rwaAssets.length;
+                const totalValue = this.rwaAssets.reduce((sum, a) => sum + a.value, 0);
+                document.getElementById('rwa-value').textContent = 
+                    `$${(totalValue / 1000000).toFixed(0)}M value`;
+            }
+
+            updateNodeDisplay() {
+                const nodesGrid = document.getElementById('business-nodes-grid');
+                if (nodesGrid) {
+                    nodesGrid.innerHTML = '';
+                    
+                    this.businessNodes.forEach(node => {
+                        const card = document.createElement('div');
+                        card.className = 'smart-contract-card';
+                        card.innerHTML = `
+                            <div class="contract-header">
+                                <div class="contract-name">${node.name}</div>
+                                <div style="display: flex; gap: 8px;">
+                                    ${node.hmsConnected ? 
+                                        '<span style="color: #10b981; font-size: 0.75rem;">HMS ✓</span>' : ''}
+                                    <span class="contract-type ${node.status === 'active' ? 'ricardian' : 'erc20'}">
+                                        ${node.status.toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+                                <div>
+                                    <div class="detail-label">Contracts</div>
+                                    <div class="detail-value">${node.contracts}</div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">Tokens</div>
+                                    <div class="detail-value">${node.tokens}</div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">RWA</div>
+                                    <div class="detail-value">${node.rwaProcessing}</div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">TPS</div>
+                                    <div class="detail-value">${Math.floor(node.tps / 1000)}K</div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">CPU</div>
+                                    <div class="detail-value">${node.cpu}%</div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">Memory</div>
+                                    <div class="detail-value">${node.memory}MB</div>
+                                </div>
+                            </div>
+                        `;
+                        nodesGrid.appendChild(card);
+                    });
+                }
+                
+                // Update metrics
+                document.getElementById('business-nodes').textContent = this.businessNodes.length;
+                const activeNodes = this.businessNodes.filter(n => n.status === 'active').length;
+                document.getElementById('nodes-processing').textContent = `${activeNodes} processing`;
+                document.getElementById('hms-nodes').textContent = this.hmsNodes;
+            }
+
+            startActivityFeed() {
+                const activities = [
+                    () => `Smart contract ${this.smartContracts[Math.floor(Math.random() * this.smartContracts.length)]?.name} executed successfully`,
+                    () => `Token ${this.tokens[Math.floor(Math.random() * this.tokens.length)]?.symbol} minted: ${Math.floor(Math.random() * 10000)} units`,
+                    () => `RWA ${this.rwaAssets[Math.floor(Math.random() * this.rwaAssets.length)]?.name} tokenized`,
+                    () => `HMS processed ${Math.floor(Math.random() * 100) + 50} assets`,
+                    () => `Business node ${this.businessNodes[Math.floor(Math.random() * this.businessNodes.length)]?.name} deployed new contract`,
+                    () => `Liquidity added: ${Math.floor(Math.random() * 100000)} AUR`,
+                    () => `Cross-chain bridge: ${Math.floor(Math.random() * 10000)} tokens transferred`,
+                    () => `DAO proposal #${Math.floor(Math.random() * 100)} passed`,
+                    () => `NFT collection minted: ${Math.floor(Math.random() * 100)} items`,
+                    () => `DeFi pool APY updated: ${(Math.random() * 20 + 5).toFixed(2)}%`
+                ];
+                
+                setInterval(() => {
+                    const feed = document.getElementById('activity-feed');
+                    if (feed) {
+                        const activity = activities[Math.floor(Math.random() * activities.length)]();
+                        const item = document.createElement('div');
+                        item.className = 'activity-item';
+                        item.innerHTML = `
+                            <div class="activity-time">${new Date().toLocaleTimeString()}</div>
+                            <div>${activity}</div>
+                        `;
+                        feed.insertBefore(item, feed.firstChild);
+                        
+                        if (feed.children.length > 10) {
+                            feed.removeChild(feed.lastChild);
+                        }
+                    }
+                    
+                    // Contract executions feed
+                    const execFeed = document.getElementById('contract-executions');
+                    if (execFeed) {
+                        const contract = this.smartContracts[Math.floor(Math.random() * this.smartContracts.length)];
+                        if (contract) {
+                            const item = document.createElement('div');
+                            item.className = 'activity-item';
+                            item.innerHTML = `
+                                <div class="activity-time">${new Date().toLocaleTimeString()}</div>
+                                <div>${contract.name} executed | Gas: ${Math.floor(Math.random() * 100000)}</div>
+                            `;
+                            execFeed.insertBefore(item, execFeed.firstChild);
+                            
+                            if (execFeed.children.length > 5) {
+                                execFeed.removeChild(execFeed.lastChild);
+                            }
+                        }
+                    }
+                }, 3000);
+            }
+
+            addHMSActivity() {
+                const activities = [
+                    'Asset verification completed',
+                    'New RWA synchronized',
+                    'Compliance check passed',
+                    'Token distribution processed',
+                    'Oracle data updated',
+                    'Cross-chain transfer initiated',
+                    'Audit trail recorded',
+                    'Fractional ownership created'
+                ];
+                
+                const feed = document.getElementById('hms-activity');
+                if (feed) {
+                    const activity = activities[Math.floor(Math.random() * activities.length)];
+                    const item = document.createElement('div');
+                    item.className = 'activity-item';
+                    item.innerHTML = `
+                        <div class="activity-time">${new Date().toLocaleTimeString()}</div>
+                        <div>${activity}</div>
+                    `;
+                    feed.insertBefore(item, feed.firstChild);
+                    
+                    if (feed.children.length > 5) {
+                        feed.removeChild(feed.lastChild);
+                    }
+                }
+            }
+
+            initializeCharts() {
+                // Activity Chart
+                const activityCtx = document.getElementById('activity-chart');
+                if (activityCtx) {
+                    this.charts.activity = new Chart(activityCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Platform Activity',
+                                data: [],
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                                    ticks: { color: '#94a3b8' }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#94a3b8' }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Start updating charts
+                setInterval(() => {
+                    if (this.charts.activity) {
+                        const now = new Date().toLocaleTimeString();
+                        this.charts.activity.data.labels.push(now);
+                        this.charts.activity.data.datasets[0].data.push(
+                            Math.floor(Math.random() * 1000) + 500
+                        );
+                        
+                        if (this.charts.activity.data.labels.length > 20) {
+                            this.charts.activity.data.labels.shift();
+                            this.charts.activity.data.datasets[0].data.shift();
+                        }
+                        
+                        this.charts.activity.update('none');
+                    }
+                }, 2000);
+            }
+
+            generateAddress() {
+                return '0x' + Array.from({length: 40}, () => 
+                    Math.floor(Math.random() * 16).toString(16)).join('');
+            }
+
+            // Contract functions
+            executeContract(address) {
+                const contract = this.smartContracts.find(c => c.address === address);
+                if (contract) {
+                    contract.executions++;
+                    alert(`Contract ${contract.name} executed successfully!\nGas used: ${Math.floor(Math.random() * 100000)}`);
+                    this.updateContractDisplay();
+                }
+            }
+
+            upgradeContract(address) {
+                alert('Contract upgrade initiated. This will deploy a new version with enhanced features.');
+            }
+
+            // Token functions
+            tradeToken(symbol) {
+                alert(`Opening trading interface for ${symbol}`);
+            }
+
+            stakeToken(symbol) {
+                alert(`Staking ${symbol} for rewards. APY: ${(Math.random() * 20 + 5).toFixed(2)}%`);
+            }
+
+            // RWA functions
+            investInRWA(name) {
+                alert(`Investment portal for ${name} opening...`);
+            }
+
+            fractionalizeRWA(name) {
+                alert(`Fractionalizing ${name} into smaller tradeable units...`);
+            }
+
+            verifyRWA(name) {
+                const asset = this.rwaAssets.find(a => a.name === name);
+                if (asset) {
+                    asset.verified = true;
+                    asset.hmsIntegrated = true;
+                    this.updateRWADisplay();
+                    alert(`${name} has been verified and integrated with HMS!`);
+                }
+            }
+        }
+
+        // Initialize platform
+        let platform;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            platform = new AurigraphPlatform();
+        });
+
+        // UI Functions
+        function showTab(tabName) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Modal functions
+        function openContractModal() {
+            document.getElementById('contract-modal').classList.add('active');
+        }
+
+        function closeContractModal() {
+            document.getElementById('contract-modal').classList.remove('active');
+        }
+
+        function openTokenModal() {
+            document.getElementById('token-modal').classList.add('active');
+        }
+
+        function closeTokenModal() {
+            document.getElementById('token-modal').classList.remove('active');
+        }
+
+        function openRWAModal() {
+            document.getElementById('rwa-modal').classList.add('active');
+        }
+
+        function closeRWAModal() {
+            document.getElementById('rwa-modal').classList.remove('active');
+        }
+
+        function updateContractTemplate() {
+            const type = document.getElementById('contract-type').value;
+            const codeEditor = document.getElementById('contract-code');
+            
+            const templates = {
+                'erc20': `pragma solidity ^0.8.0;\n\ncontract ERC20Token {\n    mapping(address => uint256) balances;\n    uint256 public totalSupply;\n    \n    function transfer(address to, uint256 amount) public {\n        // Transfer logic\n    }\n}`,
+                'erc721': `pragma solidity ^0.8.0;\n\ncontract NFTCollection {\n    mapping(uint256 => address) owners;\n    \n    function mint(address to, uint256 tokenId) public {\n        // Minting logic\n    }\n}`,
+                'ricardian': `// Ricardian Contract\n// Legal prose and code combined\n\ncontract RicardianAgreement {\n    string public legalTerms;\n    mapping(address => bool) parties;\n    \n    function sign() public {\n        // Signature logic\n    }\n}`
+            };
+            
+            codeEditor.textContent = templates[type] || templates['erc20'];
+        }
+
+        function deployContract() {
+            const name = document.getElementById('contract-name').value;
+            const type = document.getElementById('contract-type').value;
+            
+            if (name) {
+                const newContract = {
+                    name: name,
+                    type: type,
+                    address: platform.generateAddress(),
+                    deployed: Date.now(),
+                    executions: 0,
+                    gas: 0
+                };
+                
+                platform.smartContracts.push(newContract);
+                platform.updateContractDisplay();
+                closeContractModal();
+                
+                alert(`Contract ${name} deployed successfully!\nAddress: ${newContract.address}`);
+            }
+        }
+
+        function compileContract() {
+            alert('Compiling contract... No errors found!');
+        }
+
+        function auditContract() {
+            alert('Running security audit...\n✓ No vulnerabilities detected\n✓ Gas optimization: Good\n✓ Best practices: Followed');
+        }
+
+        function createToken() {
+            const name = document.getElementById('token-name').value;
+            const symbol = document.getElementById('token-symbol').value;
+            const supply = document.getElementById('token-supply').value;
+            
+            if (name && symbol && supply) {
+                const newToken = {
+                    symbol: symbol,
+                    name: name,
+                    type: document.getElementById('token-standard').value,
+                    supply: parseInt(supply),
+                    price: Math.random() * 10 + 1,
+                    marketCap: 0,
+                    holders: 1,
+                    icon: '🪙'
+                };
+                
+                newToken.marketCap = newToken.supply * newToken.price;
+                
+                platform.tokens.push(newToken);
+                platform.updateTokenDisplay();
+                closeTokenModal();
+                
+                alert(`Token ${symbol} created successfully!\nTotal Supply: ${supply}`);
+            }
+        }
+
+        function tokenizeRWA() {
+            const name = document.getElementById('asset-name').value;
+            const value = document.getElementById('asset-value').value;
+            const tokens = document.getElementById('asset-tokens').value;
+            
+            if (name && value && tokens) {
+                const newRWA = {
+                    name: name,
+                    type: document.getElementById('asset-type').value,
+                    value: parseInt(value),
+                    tokens: parseInt(tokens),
+                    tokenPrice: parseInt(value) / parseInt(tokens),
+                    yield: Math.random() * 10 + 2,
+                    verified: false,
+                    hmsIntegrated: document.getElementById('hms-integration').value === 'full',
+                    icon: '🏢'
+                };
+                
+                platform.rwaAssets.push(newRWA);
+                platform.updateRWADisplay();
+                closeRWAModal();
+                
+                alert(`RWA ${name} tokenized successfully!\nTokens: ${tokens}\nPrice per token: $${newRWA.tokenPrice.toFixed(2)}`);
+            }
+        }
+
+        function mintTokens() {
+            alert('Token minting interface opening...');
+        }
+
+        function burnTokens() {
+            alert('Token burning interface opening...');
+        }
+
+        function swapTokens() {
+            alert('Token swap executing...');
+        }
+
+        function auditContracts() {
+            alert('Auditing all contracts...\n' + platform.smartContracts.length + ' contracts audited successfully!');
+        }
+
+        function verifyAsset() {
+            alert('Asset verification in progress...');
+        }
+
+        function fractionalizeAsset() {
+            alert('Asset fractionalization interface opening...');
+        }
+
+        // HMS Functions
+        function syncWithHMS() {
+            platform.hmsConnected = true;
+            alert('Syncing with HMS...\n✓ ' + platform.rwaAssets.length + ' assets synchronized');
+        }
+
+        function processHMSBatch() {
+            const processed = Math.floor(Math.random() * 100) + 50;
+            platform.hmsTransactions += processed;
+            alert(`HMS Batch Processing Complete!\nProcessed: ${processed} transactions`);
+        }
+
+        function validateHMSData() {
+            alert('HMS Data Validation:\n✓ All data validated\n✓ No inconsistencies found\n✓ Compliance check passed');
+        }
+
+        function exportHMSReport() {
+            alert('HMS Report Generated:\n- Total Transactions: ' + platform.hmsTransactions + 
+                  '\n- RWA Assets: ' + platform.rwaAssets.length +
+                  '\n- Processing Rate: ' + platform.hmsProcessingRate + '/hour');
+        }
+    </script>
+</body>
+</html>

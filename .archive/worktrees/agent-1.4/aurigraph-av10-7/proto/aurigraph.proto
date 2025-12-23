@@ -1,0 +1,639 @@
+syntax = "proto3";
+
+package aurigraph.v10;
+
+option go_package = "github.com/aurigraph/v10/proto";
+option java_package = "io.aurigraph.v10.proto";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+// ==================== Core Services ====================
+
+// Main Aurigraph Platform Service
+service AurigraphPlatform {
+  // Health & Status
+  rpc GetHealth(HealthRequest) returns (HealthResponse);
+  rpc GetMetrics(MetricsRequest) returns (MetricsResponse);
+  
+  // Transaction Processing
+  rpc SubmitTransaction(Transaction) returns (TransactionResponse);
+  rpc BatchSubmitTransactions(BatchTransactionRequest) returns (BatchTransactionResponse);
+  rpc GetTransaction(GetTransactionRequest) returns (Transaction);
+  
+  // Block Operations
+  rpc GetBlock(GetBlockRequest) returns (Block);
+  rpc SubscribeBlocks(BlockSubscriptionRequest) returns (stream Block);
+  
+  // Consensus Operations
+  rpc ProposeBlock(Block) returns (ProposalResponse);
+  rpc VoteOnProposal(Vote) returns (VoteResponse);
+  rpc GetConsensusState(ConsensusStateRequest) returns (ConsensusState);
+  
+  // Node Management
+  rpc RegisterNode(NodeRegistration) returns (NodeRegistrationResponse);
+  rpc GetNodeStatus(NodeStatusRequest) returns (NodeStatus);
+  rpc UpdateNodeConfig(NodeConfig) returns (ConfigUpdateResponse);
+}
+
+// Quantum Security Service
+service QuantumSecurity {
+  rpc GenerateQuantumKeyPair(KeyGenerationRequest) returns (QuantumKeyPair);
+  rpc QuantumSign(SignRequest) returns (QuantumSignature);
+  rpc QuantumVerify(VerifyRequest) returns (VerificationResult);
+  rpc RotateKeys(KeyRotationRequest) returns (KeyRotationResponse);
+  rpc GetSecurityMetrics(SecurityMetricsRequest) returns (SecurityMetrics);
+}
+
+// AI Orchestration Service
+service AIOrchestration {
+  rpc SubmitTask(AITask) returns (AITaskResponse);
+  rpc GetTaskStatus(TaskStatusRequest) returns (TaskStatus);
+  rpc StreamTaskUpdates(TaskStreamRequest) returns (stream TaskUpdate);
+  rpc OptimizeConsensus(OptimizationRequest) returns (OptimizationResult);
+  rpc GetAIMetrics(AIMetricsRequest) returns (AIMetrics);
+}
+
+// Cross-Chain Bridge Service
+service CrossChainBridge {
+  rpc InitiateBridge(BridgeRequest) returns (BridgeResponse);
+  rpc GetBridgeStatus(BridgeStatusRequest) returns (BridgeStatus);
+  rpc ListSupportedChains(ListChainsRequest) returns (SupportedChains);
+  rpc ExecuteSwap(SwapRequest) returns (SwapResponse);
+  rpc GetBridgeMetrics(BridgeMetricsRequest) returns (BridgeMetrics);
+}
+
+// RWA (Real World Assets) Service
+service RWAService {
+  rpc RegisterAsset(AssetRegistration) returns (AssetRegistrationResponse);
+  rpc TokenizeAsset(TokenizationRequest) returns (TokenizationResponse);
+  rpc GetAsset(GetAssetRequest) returns (Asset);
+  rpc UpdateAssetValuation(ValuationUpdate) returns (ValuationResponse);
+  rpc GetComplianceStatus(ComplianceRequest) returns (ComplianceStatus);
+}
+
+// ==================== Message Definitions ====================
+
+// Common Messages
+message HealthRequest {}
+
+message HealthResponse {
+  enum Status {
+    UNKNOWN = 0;
+    HEALTHY = 1;
+    DEGRADED = 2;
+    UNHEALTHY = 3;
+  }
+  Status status = 1;
+  string version = 2;
+  int64 uptime_seconds = 3;
+  map<string, string> components = 4;
+}
+
+message MetricsRequest {
+  repeated string metric_names = 1;
+  google.protobuf.Timestamp from = 2;
+  google.protobuf.Timestamp to = 3;
+}
+
+message MetricsResponse {
+  map<string, MetricValue> metrics = 1;
+  google.protobuf.Timestamp timestamp = 2;
+}
+
+message MetricValue {
+  oneof value {
+    int64 int_value = 1;
+    double float_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+  }
+  map<string, string> labels = 5;
+}
+
+// Transaction Messages
+message Transaction {
+  string id = 1;
+  string from = 2;
+  string to = 3;
+  double amount = 4;
+  uint64 nonce = 5;
+  double gas_price = 6;
+  uint64 gas_limit = 7;
+  bytes data = 8;
+  QuantumSignature signature = 9;
+  google.protobuf.Timestamp timestamp = 10;
+  TransactionType type = 11;
+  map<string, string> metadata = 12;
+}
+
+enum TransactionType {
+  TRANSFER = 0;
+  CONTRACT_CALL = 1;
+  CONTRACT_DEPLOY = 2;
+  BRIDGE = 3;
+  RWA_TOKENIZATION = 4;
+  CONSENSUS_VOTE = 5;
+}
+
+message TransactionResponse {
+  string transaction_id = 1;
+  string block_hash = 2;
+  uint64 block_number = 3;
+  TransactionStatus status = 4;
+  string message = 5;
+  uint64 gas_used = 6;
+}
+
+enum TransactionStatus {
+  PENDING = 0;
+  CONFIRMED = 1;
+  FAILED = 2;
+  REJECTED = 3;
+}
+
+message BatchTransactionRequest {
+  repeated Transaction transactions = 1;
+  bool atomic = 2; // All or nothing
+}
+
+message BatchTransactionResponse {
+  repeated TransactionResponse responses = 1;
+  bool success = 2;
+  string batch_id = 3;
+}
+
+// Block Messages
+message Block {
+  string hash = 1;
+  string previous_hash = 2;
+  uint64 number = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  string proposer = 5;
+  repeated Transaction transactions = 6;
+  bytes state_root = 7;
+  bytes receipts_root = 8;
+  QuantumSignature signature = 9;
+  ConsensusData consensus_data = 10;
+}
+
+message BlockSubscriptionRequest {
+  uint64 from_block = 1;
+  bool include_transactions = 2;
+  repeated string filter_addresses = 3;
+}
+
+// Consensus Messages
+message ConsensusData {
+  string algorithm = 1; // "HyperRAFT++"
+  uint32 round = 2;
+  repeated Vote votes = 3;
+  bytes quantum_proof = 4;
+}
+
+message Vote {
+  string voter = 1;
+  string block_hash = 2;
+  bool approve = 3;
+  QuantumSignature signature = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+message ProposalResponse {
+  string proposal_id = 1;
+  bool accepted = 2;
+  string message = 3;
+}
+
+message VoteResponse {
+  bool accepted = 1;
+  string message = 2;
+  uint32 total_votes = 3;
+  uint32 votes_needed = 4;
+}
+
+message ConsensusStateRequest {}
+
+message ConsensusState {
+  string current_leader = 1;
+  uint64 current_round = 2;
+  uint64 current_block = 3;
+  repeated string validators = 4;
+  map<string, bool> validator_status = 5;
+  double consensus_efficiency = 6;
+}
+
+// Node Messages
+message NodeRegistration {
+  string node_id = 1;
+  string public_key = 2;
+  string endpoint = 3;
+  NodeType type = 4;
+  map<string, string> capabilities = 5;
+}
+
+enum NodeType {
+  VALIDATOR = 0;
+  FULL_NODE = 1;
+  LIGHT_NODE = 2;
+  BRIDGE_NODE = 3;
+  AI_NODE = 4;
+}
+
+message NodeRegistrationResponse {
+  bool success = 1;
+  string message = 2;
+  string assigned_id = 3;
+  repeated string peer_endpoints = 4;
+}
+
+message NodeStatus {
+  string node_id = 1;
+  bool online = 2;
+  uint64 block_height = 3;
+  uint32 peer_count = 4;
+  double cpu_usage = 5;
+  double memory_usage = 6;
+  double disk_usage = 7;
+  map<string, MetricValue> custom_metrics = 8;
+}
+
+// Quantum Security Messages
+message QuantumKeyPair {
+  bytes public_key = 1;
+  bytes private_key_encrypted = 2;
+  string algorithm = 3; // "CRYSTALS-Kyber", "CRYSTALS-Dilithium", etc.
+  uint32 security_level = 4; // NIST level (1-5)
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+message QuantumSignature {
+  bytes signature = 1;
+  string algorithm = 2;
+  bytes public_key = 3;
+  uint32 security_level = 4;
+}
+
+message SignRequest {
+  bytes data = 1;
+  bytes private_key = 2;
+  string algorithm = 3;
+}
+
+message VerifyRequest {
+  bytes data = 1;
+  QuantumSignature signature = 2;
+}
+
+message VerificationResult {
+  bool valid = 1;
+  string message = 2;
+  double confidence = 3;
+}
+
+message SecurityMetrics {
+  uint32 active_security_level = 1;
+  uint64 keys_generated = 2;
+  uint64 signatures_created = 3;
+  uint64 verifications_performed = 4;
+  double quantum_resistance_score = 5;
+  map<string, uint64> algorithm_usage = 6;
+}
+
+// AI Orchestration Messages
+message AITask {
+  string task_id = 1;
+  TaskType type = 2;
+  google.protobuf.Any input_data = 3;
+  map<string, string> parameters = 4;
+  Priority priority = 5;
+  uint32 timeout_seconds = 6;
+}
+
+enum TaskType {
+  OPTIMIZATION = 0;
+  PREDICTION = 1;
+  PATTERN_RECOGNITION = 2;
+  CONSENSUS_TUNING = 3;
+  ANOMALY_DETECTION = 4;
+  PERFORMANCE_ANALYSIS = 5;
+}
+
+enum Priority {
+  LOW = 0;
+  MEDIUM = 1;
+  HIGH = 2;
+  CRITICAL = 3;
+}
+
+message AITaskResponse {
+  string task_id = 1;
+  bool accepted = 2;
+  string message = 3;
+  google.protobuf.Timestamp estimated_completion = 4;
+}
+
+message TaskStatus {
+  string task_id = 1;
+  TaskState state = 2;
+  double progress = 3;
+  google.protobuf.Any result = 4;
+  string error = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+}
+
+enum TaskState {
+  QUEUED = 0;
+  RUNNING = 1;
+  COMPLETED = 2;
+  FAILED = 3;
+  CANCELLED = 4;
+}
+
+message TaskUpdate {
+  string task_id = 1;
+  TaskState state = 2;
+  double progress = 3;
+  string message = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+message AIMetrics {
+  uint64 tasks_processed = 1;
+  uint64 tasks_in_queue = 2;
+  double average_completion_time = 3;
+  double success_rate = 4;
+  map<string, uint64> task_type_counts = 5;
+  repeated AgentMetrics agent_metrics = 6;
+}
+
+message AgentMetrics {
+  string agent_id = 1;
+  string agent_type = 2;
+  uint64 tasks_completed = 3;
+  double efficiency_score = 4;
+  bool active = 5;
+}
+
+// Cross-Chain Bridge Messages
+message BridgeRequest {
+  string source_chain = 1;
+  string target_chain = 2;
+  string asset = 3;
+  double amount = 4;
+  string source_address = 5;
+  string target_address = 6;
+  bytes proof = 7;
+}
+
+message BridgeResponse {
+  string bridge_id = 1;
+  bool initiated = 2;
+  string message = 3;
+  google.protobuf.Timestamp estimated_completion = 4;
+  double fee = 5;
+}
+
+message BridgeStatus {
+  string bridge_id = 1;
+  BridgeState state = 2;
+  string source_tx = 3;
+  string target_tx = 4;
+  uint32 confirmations = 5;
+  uint32 required_confirmations = 6;
+}
+
+enum BridgeState {
+  INITIATED = 0;
+  LOCKED = 1;
+  PROVING = 2;
+  MINTING = 3;
+  COMPLETED = 4;
+  FAILED = 5;
+  REFUNDED = 6;
+}
+
+message SupportedChains {
+  repeated ChainInfo chains = 1;
+}
+
+message ChainInfo {
+  string chain_id = 1;
+  string name = 2;
+  string type = 3; // "EVM", "Cosmos", "Substrate", etc.
+  bool active = 4;
+  double fee_percentage = 5;
+  uint32 confirmation_blocks = 6;
+}
+
+// RWA Messages
+message Asset {
+  string asset_id = 1;
+  string name = 2;
+  string type = 3;
+  string owner = 4;
+  double valuation = 5;
+  string currency = 6;
+  AssetStatus status = 7;
+  map<string, string> metadata = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+enum AssetStatus {
+  PENDING_VERIFICATION = 0;
+  VERIFIED = 1;
+  TOKENIZED = 2;
+  SUSPENDED = 3;
+  RETIRED = 4;
+}
+
+message TokenizationRequest {
+  string asset_id = 1;
+  uint64 total_tokens = 2;
+  double token_price = 3;
+  string currency = 4;
+  map<string, string> token_metadata = 5;
+  ComplianceData compliance = 6;
+}
+
+message TokenizationResponse {
+  bool success = 1;
+  string token_address = 2;
+  uint64 tokens_created = 3;
+  string message = 4;
+  string transaction_hash = 5;
+}
+
+message ComplianceData {
+  repeated string jurisdictions = 1;
+  map<string, bool> kyc_status = 2;
+  map<string, bool> aml_status = 3;
+  repeated string required_documents = 4;
+  google.protobuf.Timestamp verification_date = 5;
+}
+
+// Request/Response helpers
+message GetTransactionRequest {
+  string transaction_id = 1;
+}
+
+message GetBlockRequest {
+  oneof identifier {
+    uint64 number = 1;
+    string hash = 2;
+  }
+}
+
+message NodeStatusRequest {
+  string node_id = 1;
+}
+
+message NodeConfig {
+  string node_id = 1;
+  map<string, string> settings = 2;
+}
+
+message ConfigUpdateResponse {
+  bool success = 1;
+  string message = 2;
+  map<string, string> updated_settings = 3;
+}
+
+message KeyGenerationRequest {
+  string algorithm = 1;
+  uint32 security_level = 2;
+}
+
+message KeyRotationRequest {
+  string node_id = 1;
+  bool force = 2;
+}
+
+message KeyRotationResponse {
+  bool success = 1;
+  QuantumKeyPair new_keypair = 2;
+  google.protobuf.Timestamp next_rotation = 3;
+}
+
+message SecurityMetricsRequest {}
+
+message TaskStatusRequest {
+  string task_id = 1;
+}
+
+message TaskStreamRequest {
+  string task_id = 1;
+}
+
+message OptimizationRequest {
+  ConsensusParameters current_params = 1;
+  repeated MetricValue performance_metrics = 2;
+}
+
+message ConsensusParameters {
+  uint32 timeout_ms = 1;
+  uint32 max_validators = 2;
+  uint32 min_validators = 3;
+  double vote_threshold = 4;
+  uint32 block_time_ms = 5;
+}
+
+message OptimizationResult {
+  ConsensusParameters optimized_params = 1;
+  double expected_improvement = 2;
+  map<string, double> metric_predictions = 3;
+}
+
+message BridgeStatusRequest {
+  string bridge_id = 1;
+}
+
+message ListChainsRequest {
+  bool active_only = 1;
+}
+
+message SwapRequest {
+  string from_chain = 1;
+  string to_chain = 2;
+  string from_asset = 3;
+  string to_asset = 4;
+  double amount = 5;
+  double min_output = 6;
+  string recipient = 7;
+}
+
+message SwapResponse {
+  string swap_id = 1;
+  bool initiated = 2;
+  double expected_output = 3;
+  double fee = 4;
+  google.protobuf.Timestamp deadline = 5;
+}
+
+message BridgeMetricsRequest {}
+
+message BridgeMetrics {
+  uint64 total_bridges = 1;
+  uint64 active_bridges = 2;
+  double total_volume = 3;
+  map<string, double> chain_volumes = 4;
+  double success_rate = 5;
+  double average_time_seconds = 6;
+}
+
+message AssetRegistration {
+  Asset asset = 1;
+  repeated bytes documents = 2;
+  ComplianceData compliance = 3;
+}
+
+message AssetRegistrationResponse {
+  bool success = 1;
+  string asset_id = 2;
+  string message = 3;
+  AssetStatus status = 4;
+}
+
+message GetAssetRequest {
+  string asset_id = 1;
+}
+
+message ValuationUpdate {
+  string asset_id = 1;
+  double new_valuation = 2;
+  string valuation_method = 3;
+  bytes supporting_data = 4;
+  google.protobuf.Timestamp valuation_date = 5;
+}
+
+message ValuationResponse {
+  bool accepted = 1;
+  double final_valuation = 2;
+  string message = 3;
+  google.protobuf.Timestamp next_valuation = 4;
+}
+
+message ComplianceRequest {
+  string asset_id = 1;
+  repeated string jurisdictions = 2;
+}
+
+message ComplianceStatus {
+  string asset_id = 1;
+  bool compliant = 2;
+  map<string, bool> jurisdiction_status = 3;
+  repeated string issues = 4;
+  repeated string required_actions = 5;
+}
+
+message AIMetricsRequest {}
+
+message GetAssetRequest {
+  string asset_id = 1;
+}
+
+message AIMetricsRequest {}

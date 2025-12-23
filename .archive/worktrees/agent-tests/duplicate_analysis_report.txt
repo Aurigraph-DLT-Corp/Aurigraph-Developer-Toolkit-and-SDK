@@ -1,0 +1,781 @@
+================================================================================
+JIRA DUPLICATE TICKET ANALYSIS - AV11 PROJECT
+================================================================================
+
+Total Tickets Analyzed: 100
+Total Duplicate Pairs Found: 51
+
+Detection Methods:
+  - Summary Matches: 6
+  - Description Matches: 33
+  - Label-Based Matches: 0
+  - JIRA-Linked Duplicates: 24
+  - Keyword Overlap Matches: 34
+
+================================================================================
+DUPLICATE PAIRS (Sorted by Confidence)
+================================================================================
+
+1. AV11-408 ↔ AV11-382
+   Confidence: 3/5 (detected by 3 method(s))
+   Detection Type: summary_match
+   All Methods: summary_match, keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-408] Demo App & User Documentation - Enterprise Portal Access
+   [AV11-382] Demo App & User Documentation - Enterprise Portal Access
+   Similarity Score: 100.00%
+
+--------------------------------------------------------------------------------
+
+2. AV11-403 ↔ AV11-381
+   Confidence: 3/5 (detected by 3 method(s))
+   Detection Type: summary_match
+   All Methods: summary_match, keyword_overlap, description_match
+   Status: Done | To Do
+
+   [AV11-403] API Endpoints & External Integration - Complete REST & gRPC APIs
+   [AV11-381] API Endpoints & External Integration - Complete REST & gRPC APIs
+   Similarity Score: 100.00%
+
+--------------------------------------------------------------------------------
+
+3. AV11-397 ↔ AV11-380
+   Confidence: 3/5 (detected by 3 method(s))
+   Detection Type: summary_match
+   All Methods: summary_match, keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-397] 3rd Party Verification Service - Mandatory Asset & Contract Validation
+   [AV11-380] 3rd Party Verification Service - Mandatory Asset & Contract Validation
+   Similarity Score: 100.00%
+
+--------------------------------------------------------------------------------
+
+4. AV11-390 ↔ AV11-379
+   Confidence: 3/5 (detected by 3 method(s))
+   Detection Type: summary_match
+   All Methods: summary_match, keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-390] Real-World Asset Tokenization - Complete Platform
+   [AV11-379] Real-World Asset Tokenization - Complete Platform
+   Similarity Score: 100.00%
+
+--------------------------------------------------------------------------------
+
+5. AV11-383 ↔ AV11-378
+   Confidence: 3/5 (detected by 3 method(s))
+   Detection Type: summary_match
+   All Methods: summary_match, keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-383] Ricardian Smart Contracts - Complete Implementation
+   [AV11-378] Ricardian Smart Contracts - Complete Implementation
+   Similarity Score: 100.00%
+
+--------------------------------------------------------------------------------
+
+6. AV11-419 ↔ AV11-418
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-418] Consensus & Blockchain Epic
+   Similarity Score: 82.05%
+   Description Preview:
+     [AV11-419] epic for organizing all frontend  portal related tickets
+     [AV11-418] epic for organizing all consensus  blockchain related tickets
+
+--------------------------------------------------------------------------------
+
+7. AV11-419 ↔ AV11-415
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | Done
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-415] Documentation Epic
+   Similarity Score: 77.06%
+   Description Preview:
+     [AV11-419] epic for organizing all frontend  portal related tickets
+     [AV11-415] epic for organizing all documentation related tickets
+
+--------------------------------------------------------------------------------
+
+8. AV11-419 ↔ AV11-414
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-414] DevOps & Deployment Epic
+   Similarity Score: 75.44%
+   Description Preview:
+     [AV11-419] epic for organizing all frontend  portal related tickets
+     [AV11-414] epic for organizing all devops  deployment related tickets
+
+--------------------------------------------------------------------------------
+
+9. AV11-419 ↔ AV11-413
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-413] Cross-Chain & Integration Epic
+   Similarity Score: 77.31%
+   Description Preview:
+     [AV11-419] epic for organizing all frontend  portal related tickets
+     [AV11-413] epic for organizing all crosschain  integration related tickets
+
+--------------------------------------------------------------------------------
+
+10. AV11-419 ↔ AV11-412
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | Done
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-412] Testing & Quality Epic
+   Similarity Score: 83.93%
+   Description Preview:
+     [AV11-419] epic for organizing all frontend  portal related tickets
+     [AV11-412] epic for organizing all testing  quality related tickets
+
+--------------------------------------------------------------------------------
+
+11. AV11-419 ↔ AV11-411
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-411] Security & Cryptography Epic
+   Similarity Score: 81.36%
+   Description Preview:
+     [AV11-419] epic for organizing all frontend  portal related tickets
+     [AV11-411] epic for organizing all security  cryptography related tickets
+
+--------------------------------------------------------------------------------
+
+12. AV11-418 ↔ AV11-416
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-418] Consensus & Blockchain Epic
+   [AV11-416] Performance & Optimization Epic
+   Similarity Score: 76.19%
+   Description Preview:
+     [AV11-418] epic for organizing all consensus  blockchain related tickets
+     [AV11-416] epic for organizing all performance  optimization related tickets
+
+--------------------------------------------------------------------------------
+
+13. AV11-418 ↔ AV11-415
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | Done
+
+   [AV11-418] Consensus & Blockchain Epic
+   [AV11-415] Documentation Epic
+   Similarity Score: 78.95%
+   Description Preview:
+     [AV11-418] epic for organizing all consensus  blockchain related tickets
+     [AV11-415] epic for organizing all documentation related tickets
+
+--------------------------------------------------------------------------------
+
+14. AV11-418 ↔ AV11-414
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-418] Consensus & Blockchain Epic
+   [AV11-414] DevOps & Deployment Epic
+   Similarity Score: 78.99%
+   Description Preview:
+     [AV11-418] epic for organizing all consensus  blockchain related tickets
+     [AV11-414] epic for organizing all devops  deployment related tickets
+
+--------------------------------------------------------------------------------
+
+15. AV11-418 ↔ AV11-413
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-418] Consensus & Blockchain Epic
+   [AV11-413] Cross-Chain & Integration Epic
+   Similarity Score: 79.03%
+   Description Preview:
+     [AV11-418] epic for organizing all consensus  blockchain related tickets
+     [AV11-413] epic for organizing all crosschain  integration related tickets
+
+--------------------------------------------------------------------------------
+
+16. AV11-418 ↔ AV11-412
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | Done
+
+   [AV11-418] Consensus & Blockchain Epic
+   [AV11-412] Testing & Quality Epic
+   Similarity Score: 76.92%
+   Description Preview:
+     [AV11-418] epic for organizing all consensus  blockchain related tickets
+     [AV11-412] epic for organizing all testing  quality related tickets
+
+--------------------------------------------------------------------------------
+
+17. AV11-418 ↔ AV11-411
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-418] Consensus & Blockchain Epic
+   [AV11-411] Security & Cryptography Epic
+   Similarity Score: 76.42%
+   Description Preview:
+     [AV11-418] epic for organizing all consensus  blockchain related tickets
+     [AV11-411] epic for organizing all security  cryptography related tickets
+
+--------------------------------------------------------------------------------
+
+18. AV11-417 ↔ AV11-415
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: Done | Done
+
+   [AV11-417] Backend & Core Platform Epic
+   [AV11-415] Documentation Epic
+   Similarity Score: 80.00%
+   Description Preview:
+     [AV11-417] epic for organizing all backend  core platform related tickets
+     [AV11-415] epic for organizing all documentation related tickets
+
+--------------------------------------------------------------------------------
+
+19. AV11-416 ↔ AV11-415
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | Done
+
+   [AV11-416] Performance & Optimization Epic
+   [AV11-415] Documentation Epic
+   Similarity Score: 81.36%
+   Description Preview:
+     [AV11-416] epic for organizing all performance  optimization related tickets
+     [AV11-415] epic for organizing all documentation related tickets
+
+--------------------------------------------------------------------------------
+
+20. AV11-416 ↔ AV11-413
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-416] Performance & Optimization Epic
+   [AV11-413] Cross-Chain & Integration Epic
+   Similarity Score: 81.25%
+   Description Preview:
+     [AV11-416] epic for organizing all performance  optimization related tickets
+     [AV11-413] epic for organizing all crosschain  integration related tickets
+
+--------------------------------------------------------------------------------
+
+21. AV11-415 ↔ AV11-414
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: Done | To Do
+
+   [AV11-415] Documentation Epic
+   [AV11-414] DevOps & Deployment Epic
+   Similarity Score: 82.88%
+   Description Preview:
+     [AV11-415] epic for organizing all documentation related tickets
+     [AV11-414] epic for organizing all devops  deployment related tickets
+
+--------------------------------------------------------------------------------
+
+22. AV11-415 ↔ AV11-413
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: Done | To Do
+
+   [AV11-415] Documentation Epic
+   [AV11-413] Cross-Chain & Integration Epic
+   Similarity Score: 84.48%
+   Description Preview:
+     [AV11-415] epic for organizing all documentation related tickets
+     [AV11-413] epic for organizing all crosschain  integration related tickets
+
+--------------------------------------------------------------------------------
+
+23. AV11-415 ↔ AV11-412
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: Done | Done
+
+   [AV11-415] Documentation Epic
+   [AV11-412] Testing & Quality Epic
+   Similarity Score: 80.73%
+   Description Preview:
+     [AV11-415] epic for organizing all documentation related tickets
+     [AV11-412] epic for organizing all testing  quality related tickets
+
+--------------------------------------------------------------------------------
+
+24. AV11-415 ↔ AV11-411
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: Done | To Do
+
+   [AV11-415] Documentation Epic
+   [AV11-411] Security & Cryptography Epic
+   Similarity Score: 76.52%
+   Description Preview:
+     [AV11-415] epic for organizing all documentation related tickets
+     [AV11-411] epic for organizing all security  cryptography related tickets
+
+--------------------------------------------------------------------------------
+
+25. AV11-414 ↔ AV11-413
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-414] DevOps & Deployment Epic
+   [AV11-413] Cross-Chain & Integration Epic
+   Similarity Score: 76.03%
+   Description Preview:
+     [AV11-414] epic for organizing all devops  deployment related tickets
+     [AV11-413] epic for organizing all crosschain  integration related tickets
+
+--------------------------------------------------------------------------------
+
+26. AV11-414 ↔ AV11-412
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | Done
+
+   [AV11-414] DevOps & Deployment Epic
+   [AV11-412] Testing & Quality Epic
+   Similarity Score: 80.70%
+   Description Preview:
+     [AV11-414] epic for organizing all devops  deployment related tickets
+     [AV11-412] epic for organizing all testing  quality related tickets
+
+--------------------------------------------------------------------------------
+
+27. AV11-414 ↔ AV11-411
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | To Do
+
+   [AV11-414] DevOps & Deployment Epic
+   [AV11-411] Security & Cryptography Epic
+   Similarity Score: 76.67%
+   Description Preview:
+     [AV11-414] epic for organizing all devops  deployment related tickets
+     [AV11-411] epic for organizing all security  cryptography related tickets
+
+--------------------------------------------------------------------------------
+
+28. AV11-413 ↔ AV11-412
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: To Do | Done
+
+   [AV11-413] Cross-Chain & Integration Epic
+   [AV11-412] Testing & Quality Epic
+   Similarity Score: 78.99%
+   Description Preview:
+     [AV11-413] epic for organizing all crosschain  integration related tickets
+     [AV11-412] epic for organizing all testing  quality related tickets
+
+--------------------------------------------------------------------------------
+
+29. AV11-412 ↔ AV11-411
+   Confidence: 2/5 (detected by 2 method(s))
+   Detection Type: description_match
+   All Methods: keyword_overlap, description_match
+   Status: Done | To Do
+
+   [AV11-412] Testing & Quality Epic
+   [AV11-411] Security & Cryptography Epic
+   Similarity Score: 76.27%
+   Description Preview:
+     [AV11-412] epic for organizing all testing  quality related tickets
+     [AV11-411] epic for organizing all security  cryptography related tickets
+
+--------------------------------------------------------------------------------
+
+30. AV11-443 ↔ AV11-442
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: summary_match
+   Status: Done | Done
+
+   [AV11-443] Test
+   [AV11-442] Test
+   Similarity Score: 100.00%
+
+--------------------------------------------------------------------------------
+
+31. AV11-419 ↔ AV11-417
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: description_match
+   Status: To Do | Done
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-417] Backend & Core Platform Epic
+   Similarity Score: 81.36%
+   Description Preview:
+     [AV11-419] epic for organizing all frontend  portal related tickets
+     [AV11-417] epic for organizing all backend  core platform related tickets
+
+--------------------------------------------------------------------------------
+
+32. AV11-417 ↔ AV11-413
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: description_match
+   Status: Done | To Do
+
+   [AV11-417] Backend & Core Platform Epic
+   [AV11-413] Cross-Chain & Integration Epic
+   Similarity Score: 76.80%
+   Description Preview:
+     [AV11-417] epic for organizing all backend  core platform related tickets
+     [AV11-413] epic for organizing all crosschain  integration related tickets
+
+--------------------------------------------------------------------------------
+
+33. AV11-417 ↔ AV11-412
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: description_match
+   Status: Done | Done
+
+   [AV11-417] Backend & Core Platform Epic
+   [AV11-412] Testing & Quality Epic
+   Similarity Score: 77.97%
+   Description Preview:
+     [AV11-417] epic for organizing all backend  core platform related tickets
+     [AV11-412] epic for organizing all testing  quality related tickets
+
+--------------------------------------------------------------------------------
+
+34. AV11-417 ↔ AV11-411
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: description_match
+   Status: Done | To Do
+
+   [AV11-417] Backend & Core Platform Epic
+   [AV11-411] Security & Cryptography Epic
+   Similarity Score: 75.81%
+   Description Preview:
+     [AV11-417] epic for organizing all backend  core platform related tickets
+     [AV11-411] epic for organizing all security  cryptography related tickets
+
+--------------------------------------------------------------------------------
+
+35. AV11-450 ↔ AV11-431
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-450] API Endpoint Integration Testing Report - Portal V4.8.0
+   [AV11-431] Kubernetes Multi-Cloud Orchestration
+   JIRA Link: AV11-450 duplicates AV11-431
+
+--------------------------------------------------------------------------------
+
+36. AV11-449 ↔ AV11-430
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-449] CRITICAL: Portal Pages Using Non-Existent API Endpoints - Fixed
+   [AV11-430] Multi-Cloud Deployment Configuration
+   JIRA Link: AV11-449 duplicates AV11-430
+
+--------------------------------------------------------------------------------
+
+37. AV11-448 ↔ AV11-429
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-448] FIX: Dashboard Empty - API Endpoint Mismatch - Portal V4.8.0
+   [AV11-429] Separate Node Type Containers
+   JIRA Link: AV11-448 duplicates AV11-429
+
+--------------------------------------------------------------------------------
+
+38. AV11-447 ↔ AV11-428
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-447] DEPLOYMENT: Enterprise Portal V4.8.0 Deployed with Dashboard Fix
+   [AV11-428] Multi-Cloud Node Architecture
+   JIRA Link: AV11-447 duplicates AV11-428
+
+--------------------------------------------------------------------------------
+
+39. AV11-446 ↔ AV11-427
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-446] MINOR: JS Asset Bundle Hash Mismatch in Portal V4.8.0
+   [AV11-427] Aurigraph Mobile Nodes and Apps (Android/iOS)
+   JIRA Link: AV11-446 duplicates AV11-427
+
+--------------------------------------------------------------------------------
+
+40. AV11-440 ↔ AV11-419
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-440] ESG Compliance Reporting
+   [AV11-419] Frontend & Portal Epic
+   JIRA Link: AV11-440 duplicates AV11-419
+
+--------------------------------------------------------------------------------
+
+41. AV11-438 ↔ AV11-421
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-438] Carbon Dashboard Integration
+   [AV11-421] Enterprise Portal V4.3.2 - Production Deployment Complete ✅
+   JIRA Link: AV11-438 duplicates AV11-421
+
+--------------------------------------------------------------------------------
+
+42. AV11-437 ↔ AV11-413
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-437] Carbon Tracking REST APIs
+   [AV11-413] Cross-Chain & Integration Epic
+   JIRA Link: AV11-437 duplicates AV11-413
+
+--------------------------------------------------------------------------------
+
+43. AV11-426 ↔ AV11-407
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-426] Docker Multi-Node Containers Architecture
+   [AV11-407] Implement external API integration for 3rd party systems
+   JIRA Link: AV11-426 duplicates AV11-407
+
+--------------------------------------------------------------------------------
+
+44. AV11-425 ↔ AV11-410
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | Done
+
+   [AV11-425] Sprint 12 - Incremental Optimization & JFR Profiling Framework
+   [AV11-410] Rate Limiting Implementation (v11.3.2)
+   JIRA Link: AV11-425 duplicates AV11-410
+
+--------------------------------------------------------------------------------
+
+45. AV11-415 ↔ AV11-405
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-415] Documentation Epic
+   [AV11-405] Implement complete REST API for asset tokenization
+   JIRA Link: AV11-415 duplicates AV11-405
+
+--------------------------------------------------------------------------------
+
+46. AV11-412 ↔ AV11-398
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: jira_linked_duplicate
+   All Methods: jira_linked_duplicate
+   Status: Done | To Do
+
+   [AV11-412] Testing & Quality Epic
+   [AV11-398] Implement verifier registry with specialization and accreditation
+   JIRA Link: AV11-412 duplicates AV11-398
+
+--------------------------------------------------------------------------------
+
+47. AV11-419 ↔ AV11-416
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: keyword_overlap
+   Status: To Do | To Do
+
+   [AV11-419] Frontend & Portal Epic
+   [AV11-416] Performance & Optimization Epic
+   Common Keywords (4): epic, organizing, related, tickets
+   Jaccard Similarity: 50.00%
+
+--------------------------------------------------------------------------------
+
+48. AV11-416 ↔ AV11-414
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: keyword_overlap
+   Status: To Do | To Do
+
+   [AV11-416] Performance & Optimization Epic
+   [AV11-414] DevOps & Deployment Epic
+   Common Keywords (4): epic, organizing, related, tickets
+   Jaccard Similarity: 50.00%
+
+--------------------------------------------------------------------------------
+
+49. AV11-416 ↔ AV11-412
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: keyword_overlap
+   Status: To Do | Done
+
+   [AV11-416] Performance & Optimization Epic
+   [AV11-412] Testing & Quality Epic
+   Common Keywords (4): epic, organizing, related, tickets
+   Jaccard Similarity: 50.00%
+
+--------------------------------------------------------------------------------
+
+50. AV11-416 ↔ AV11-411
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: keyword_overlap
+   Status: To Do | To Do
+
+   [AV11-416] Performance & Optimization Epic
+   [AV11-411] Security & Cryptography Epic
+   Common Keywords (4): epic, organizing, related, tickets
+   Jaccard Similarity: 50.00%
+
+--------------------------------------------------------------------------------
+
+51. AV11-413 ↔ AV11-411
+   Confidence: 1/5 (detected by 1 method(s))
+   Detection Type: keyword_overlap
+   Status: To Do | To Do
+
+   [AV11-413] Cross-Chain & Integration Epic
+   [AV11-411] Security & Cryptography Epic
+   Common Keywords (4): epic, organizing, related, tickets
+   Jaccard Similarity: 50.00%
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+HIGH CONFIDENCE DUPLICATES (5 pairs):
+These tickets were detected by 3+ methods and are very likely duplicates.
+Recommendation: Review and consolidate immediately.
+  - AV11-408 ↔ AV11-382
+  - AV11-403 ↔ AV11-381
+  - AV11-397 ↔ AV11-380
+  - AV11-390 ↔ AV11-379
+  - AV11-383 ↔ AV11-378
+
+MEDIUM CONFIDENCE DUPLICATES (24 pairs):
+These tickets were detected by 2 methods.
+Recommendation: Review for potential consolidation.
+  - AV11-419 ↔ AV11-418
+  - AV11-419 ↔ AV11-415
+  - AV11-419 ↔ AV11-414
+  - AV11-419 ↔ AV11-413
+  - AV11-419 ↔ AV11-412
+  - AV11-419 ↔ AV11-411
+  - AV11-418 ↔ AV11-416
+  - AV11-418 ↔ AV11-415
+  - AV11-418 ↔ AV11-414
+  - AV11-418 ↔ AV11-413
+  - AV11-418 ↔ AV11-412
+  - AV11-418 ↔ AV11-411
+  - AV11-417 ↔ AV11-415
+  - AV11-416 ↔ AV11-415
+  - AV11-416 ↔ AV11-413
+  - AV11-415 ↔ AV11-414
+  - AV11-415 ↔ AV11-413
+  - AV11-415 ↔ AV11-412
+  - AV11-415 ↔ AV11-411
+  - AV11-414 ↔ AV11-413
+  - AV11-414 ↔ AV11-412
+  - AV11-414 ↔ AV11-411
+  - AV11-413 ↔ AV11-412
+  - AV11-412 ↔ AV11-411
+
+LOW CONFIDENCE DUPLICATES (22 pairs):
+These tickets were detected by 1 method only.
+Recommendation: Manual review to confirm if they are true duplicates.
+  (Showing first 10 of 22)
+  - AV11-443 ↔ AV11-442
+  - AV11-419 ↔ AV11-417
+  - AV11-417 ↔ AV11-413
+  - AV11-417 ↔ AV11-412
+  - AV11-417 ↔ AV11-411
+  - AV11-450 ↔ AV11-431
+  - AV11-449 ↔ AV11-430
+  - AV11-448 ↔ AV11-429
+  - AV11-447 ↔ AV11-428
+  - AV11-446 ↔ AV11-427
+
+BOTH DONE (5 pairs):
+Both tickets are marked as Done. Consider closing one as duplicate.
+  - AV11-417 ↔ AV11-415
+  - AV11-415 ↔ AV11-412
+  - AV11-443 ↔ AV11-442
+  - AV11-417 ↔ AV11-412
+  - AV11-425 ↔ AV11-410
+
+TODO vs DONE (27 pairs):
+One ticket is Done, other is To Do. Close To Do as duplicate.
+  - AV11-403 ↔ AV11-381
+  - AV11-419 ↔ AV11-415
+  - AV11-419 ↔ AV11-412
+  - AV11-418 ↔ AV11-415
+  - AV11-418 ↔ AV11-412

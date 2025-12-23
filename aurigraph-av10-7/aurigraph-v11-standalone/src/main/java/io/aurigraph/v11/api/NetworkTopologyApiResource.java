@@ -18,13 +18,13 @@ import java.util.*;
  * Network Topology API Resource
  *
  * Provides network visualization and event streaming:
- * - GET /api/v12/blockchain/network/topology - Network topology visualization
- * - GET /api/v12/blockchain/events - Event stream/log
+ * - GET /api/v11/blockchain/network/topology - Network topology visualization
+ * - GET /api/v11/blockchain/events - Event stream/log
  *
  * @version 11.0.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/blockchain")
+@Path("/api/v11/blockchain")
 @ApplicationScoped
 @Tag(name = "Network Topology API", description = "Network topology and event streaming operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -36,7 +36,7 @@ public class NetworkTopologyApiResource {
     // ==================== ENDPOINT 1: Network Topology ====================
 
     /**
-     * GET /api/v12/blockchain/network/topology
+     * GET /api/v11/blockchain/network/topology
      * Network topology visualization data
      */
     @GET
@@ -126,7 +126,7 @@ public class NetworkTopologyApiResource {
     // ==================== ENDPOINT 13: Blockchain Events ====================
 
     /**
-     * GET /api/v12/blockchain/events
+     * GET /api/v11/blockchain/events
      * Event stream and log retrieval
      */
     @GET

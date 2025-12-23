@@ -48,7 +48,7 @@ public class Demo extends PanacheEntityBase {
     public LocalDateTime expiresAt;
 
     @Column(name = "duration_minutes", nullable = false)
-    public int durationMinutes = 1440; // 24 hours default for persistent demos
+    public int durationMinutes = 10;
 
     @Column(name = "is_admin_demo", nullable = false)
     public boolean isAdminDemo = false;
@@ -71,21 +71,9 @@ public class Demo extends PanacheEntityBase {
     @Column(name = "business_nodes_json", columnDefinition = "TEXT")
     public String businessNodesJson;
 
-    // Store EI nodes as JSON
+    // Store slim nodes as JSON
     @Column(name = "slim_nodes_json", columnDefinition = "TEXT")
-    public String eiNodesJson;
-
-    // New fields for data feeds and tokenization
-    @Column(name = "tokenization_mode", length = 20)
-    public String tokenizationMode = "live-feed";
-
-    // Store selected data feeds as JSON array
-    @Column(name = "selected_data_feeds_json", columnDefinition = "TEXT")
-    public String selectedDataFeedsJson;
-
-    // Store tokenization config as JSON
-    @Column(name = "tokenization_config_json", columnDefinition = "TEXT")
-    public String tokenizationConfigJson;
+    public String slimNodesJson;
 
     public enum DemoStatus {
         PENDING,

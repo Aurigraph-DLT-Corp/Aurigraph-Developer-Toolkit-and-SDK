@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 36
  */
-@Path("/api/v12/enterprise")
+@Path("/api/v11/enterprise")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClusterResource {
@@ -28,7 +28,7 @@ public class ClusterResource {
 
     /**
      * Get cluster status
-     * GET /api/v12/enterprise/cluster/status
+     * GET /api/v11/enterprise/cluster/status
      */
     @GET
     @Path("/cluster/status")
@@ -55,7 +55,7 @@ public class ClusterResource {
 
     /**
      * Get cluster nodes
-     * GET /api/v12/enterprise/cluster/nodes
+     * GET /api/v11/enterprise/cluster/nodes
      */
     @GET
     @Path("/cluster/nodes")
@@ -92,7 +92,7 @@ public class ClusterResource {
 
     /**
      * Add cluster node
-     * POST /api/v12/enterprise/cluster/nodes/add
+     * POST /api/v11/enterprise/cluster/nodes/add
      */
     @POST
     @Path("/cluster/nodes/add")
@@ -114,7 +114,7 @@ public class ClusterResource {
 
     /**
      * Get load balancer stats
-     * GET /api/v12/enterprise/cluster/load-balancer
+     * GET /api/v11/enterprise/cluster/load-balancer
      */
     @GET
     @Path("/cluster/load-balancer")

@@ -1,0 +1,832 @@
+{
+  "total_tickets": 100,
+  "total_duplicate_pairs": 51,
+  "summary_duplicates": 6,
+  "description_duplicates": 33,
+  "label_duplicates": 0,
+  "linked_duplicates": 24,
+  "keyword_duplicates": 34,
+  "duplicates": [
+    {
+      "type": "summary_match",
+      "ticket1": "AV11-408",
+      "ticket2": "AV11-382",
+      "summary1": "Demo App & User Documentation - Enterprise Portal Access",
+      "summary2": "Demo App & User Documentation - Enterprise Portal Access",
+      "similarity": 1.0,
+      "status1": "To Do",
+      "status2": "To Do",
+      "detection_methods": [
+        "summary_match",
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 3
+    },
+    {
+      "type": "summary_match",
+      "ticket1": "AV11-403",
+      "ticket2": "AV11-381",
+      "summary1": "API Endpoints & External Integration - Complete REST & gRPC APIs",
+      "summary2": "API Endpoints & External Integration - Complete REST & gRPC APIs",
+      "similarity": 1.0,
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "summary_match",
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 3
+    },
+    {
+      "type": "summary_match",
+      "ticket1": "AV11-397",
+      "ticket2": "AV11-380",
+      "summary1": "3rd Party Verification Service - Mandatory Asset & Contract Validation",
+      "summary2": "3rd Party Verification Service - Mandatory Asset & Contract Validation",
+      "similarity": 1.0,
+      "status1": "To Do",
+      "status2": "To Do",
+      "detection_methods": [
+        "summary_match",
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 3
+    },
+    {
+      "type": "summary_match",
+      "ticket1": "AV11-390",
+      "ticket2": "AV11-379",
+      "summary1": "Real-World Asset Tokenization - Complete Platform",
+      "summary2": "Real-World Asset Tokenization - Complete Platform",
+      "similarity": 1.0,
+      "status1": "To Do",
+      "status2": "To Do",
+      "detection_methods": [
+        "summary_match",
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 3
+    },
+    {
+      "type": "summary_match",
+      "ticket1": "AV11-383",
+      "ticket2": "AV11-378",
+      "summary1": "Ricardian Smart Contracts - Complete Implementation",
+      "summary2": "Ricardian Smart Contracts - Complete Implementation",
+      "similarity": 1.0,
+      "status1": "To Do",
+      "status2": "To Do",
+      "detection_methods": [
+        "summary_match",
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 3
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-418",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "Consensus & Blockchain Epic",
+      "similarity": 0.8205128205128205,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all frontend  portal related tickets",
+      "desc_preview2": "epic for organizing all consensus  blockchain related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-415",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "Documentation Epic",
+      "similarity": 0.7706422018348624,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all frontend  portal related tickets",
+      "desc_preview2": "epic for organizing all documentation related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-414",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "DevOps & Deployment Epic",
+      "similarity": 0.7543859649122807,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all frontend  portal related tickets",
+      "desc_preview2": "epic for organizing all devops  deployment related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-413",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "Cross-Chain & Integration Epic",
+      "similarity": 0.773109243697479,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all frontend  portal related tickets",
+      "desc_preview2": "epic for organizing all crosschain  integration related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-412",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "Testing & Quality Epic",
+      "similarity": 0.8392857142857143,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all frontend  portal related tickets",
+      "desc_preview2": "epic for organizing all testing  quality related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-411",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "Security & Cryptography Epic",
+      "similarity": 0.8135593220338984,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all frontend  portal related tickets",
+      "desc_preview2": "epic for organizing all security  cryptography related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-418",
+      "ticket2": "AV11-416",
+      "summary1": "Consensus & Blockchain Epic",
+      "summary2": "Performance & Optimization Epic",
+      "similarity": 0.7619047619047619,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all consensus  blockchain related tickets",
+      "desc_preview2": "epic for organizing all performance  optimization related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-418",
+      "ticket2": "AV11-415",
+      "summary1": "Consensus & Blockchain Epic",
+      "summary2": "Documentation Epic",
+      "similarity": 0.7894736842105263,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all consensus  blockchain related tickets",
+      "desc_preview2": "epic for organizing all documentation related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-418",
+      "ticket2": "AV11-414",
+      "summary1": "Consensus & Blockchain Epic",
+      "summary2": "DevOps & Deployment Epic",
+      "similarity": 0.7899159663865546,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all consensus  blockchain related tickets",
+      "desc_preview2": "epic for organizing all devops  deployment related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-418",
+      "ticket2": "AV11-413",
+      "summary1": "Consensus & Blockchain Epic",
+      "summary2": "Cross-Chain & Integration Epic",
+      "similarity": 0.7903225806451613,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all consensus  blockchain related tickets",
+      "desc_preview2": "epic for organizing all crosschain  integration related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-418",
+      "ticket2": "AV11-412",
+      "summary1": "Consensus & Blockchain Epic",
+      "summary2": "Testing & Quality Epic",
+      "similarity": 0.7692307692307693,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all consensus  blockchain related tickets",
+      "desc_preview2": "epic for organizing all testing  quality related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-418",
+      "ticket2": "AV11-411",
+      "summary1": "Consensus & Blockchain Epic",
+      "summary2": "Security & Cryptography Epic",
+      "similarity": 0.7642276422764228,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all consensus  blockchain related tickets",
+      "desc_preview2": "epic for organizing all security  cryptography related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-417",
+      "ticket2": "AV11-415",
+      "summary1": "Backend & Core Platform Epic",
+      "summary2": "Documentation Epic",
+      "similarity": 0.8,
+      "status1": "Done",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all backend  core platform related tickets",
+      "desc_preview2": "epic for organizing all documentation related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-416",
+      "ticket2": "AV11-415",
+      "summary1": "Performance & Optimization Epic",
+      "summary2": "Documentation Epic",
+      "similarity": 0.8135593220338984,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all performance  optimization related tickets",
+      "desc_preview2": "epic for organizing all documentation related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-416",
+      "ticket2": "AV11-413",
+      "summary1": "Performance & Optimization Epic",
+      "summary2": "Cross-Chain & Integration Epic",
+      "similarity": 0.8125,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all performance  optimization related tickets",
+      "desc_preview2": "epic for organizing all crosschain  integration related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-415",
+      "ticket2": "AV11-414",
+      "summary1": "Documentation Epic",
+      "summary2": "DevOps & Deployment Epic",
+      "similarity": 0.8288288288288288,
+      "status1": "Done",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all documentation related tickets",
+      "desc_preview2": "epic for organizing all devops  deployment related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-415",
+      "ticket2": "AV11-413",
+      "summary1": "Documentation Epic",
+      "summary2": "Cross-Chain & Integration Epic",
+      "similarity": 0.8448275862068966,
+      "status1": "Done",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all documentation related tickets",
+      "desc_preview2": "epic for organizing all crosschain  integration related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-415",
+      "ticket2": "AV11-412",
+      "summary1": "Documentation Epic",
+      "summary2": "Testing & Quality Epic",
+      "similarity": 0.8073394495412844,
+      "status1": "Done",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all documentation related tickets",
+      "desc_preview2": "epic for organizing all testing  quality related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-415",
+      "ticket2": "AV11-411",
+      "summary1": "Documentation Epic",
+      "summary2": "Security & Cryptography Epic",
+      "similarity": 0.7652173913043478,
+      "status1": "Done",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all documentation related tickets",
+      "desc_preview2": "epic for organizing all security  cryptography related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-414",
+      "ticket2": "AV11-413",
+      "summary1": "DevOps & Deployment Epic",
+      "summary2": "Cross-Chain & Integration Epic",
+      "similarity": 0.7603305785123967,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all devops  deployment related tickets",
+      "desc_preview2": "epic for organizing all crosschain  integration related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-414",
+      "ticket2": "AV11-412",
+      "summary1": "DevOps & Deployment Epic",
+      "summary2": "Testing & Quality Epic",
+      "similarity": 0.8070175438596491,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all devops  deployment related tickets",
+      "desc_preview2": "epic for organizing all testing  quality related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-414",
+      "ticket2": "AV11-411",
+      "summary1": "DevOps & Deployment Epic",
+      "summary2": "Security & Cryptography Epic",
+      "similarity": 0.7666666666666667,
+      "status1": "To Do",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all devops  deployment related tickets",
+      "desc_preview2": "epic for organizing all security  cryptography related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-413",
+      "ticket2": "AV11-412",
+      "summary1": "Cross-Chain & Integration Epic",
+      "summary2": "Testing & Quality Epic",
+      "similarity": 0.7899159663865546,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all crosschain  integration related tickets",
+      "desc_preview2": "epic for organizing all testing  quality related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-412",
+      "ticket2": "AV11-411",
+      "summary1": "Testing & Quality Epic",
+      "summary2": "Security & Cryptography Epic",
+      "similarity": 0.7627118644067796,
+      "status1": "Done",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all testing  quality related tickets",
+      "desc_preview2": "epic for organizing all security  cryptography related tickets",
+      "detection_methods": [
+        "description_match",
+        "keyword_overlap"
+      ],
+      "confidence": 2
+    },
+    {
+      "type": "summary_match",
+      "ticket1": "AV11-443",
+      "ticket2": "AV11-442",
+      "summary1": "Test",
+      "summary2": "Test",
+      "similarity": 1.0,
+      "status1": "Done",
+      "status2": "Done",
+      "confidence": 1
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-417",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "Backend & Core Platform Epic",
+      "similarity": 0.8135593220338984,
+      "status1": "To Do",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all frontend  portal related tickets",
+      "desc_preview2": "epic for organizing all backend  core platform related tickets",
+      "confidence": 1
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-417",
+      "ticket2": "AV11-413",
+      "summary1": "Backend & Core Platform Epic",
+      "summary2": "Cross-Chain & Integration Epic",
+      "similarity": 0.768,
+      "status1": "Done",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all backend  core platform related tickets",
+      "desc_preview2": "epic for organizing all crosschain  integration related tickets",
+      "confidence": 1
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-417",
+      "ticket2": "AV11-412",
+      "summary1": "Backend & Core Platform Epic",
+      "summary2": "Testing & Quality Epic",
+      "similarity": 0.7796610169491526,
+      "status1": "Done",
+      "status2": "Done",
+      "desc_preview1": "epic for organizing all backend  core platform related tickets",
+      "desc_preview2": "epic for organizing all testing  quality related tickets",
+      "confidence": 1
+    },
+    {
+      "type": "description_match",
+      "ticket1": "AV11-417",
+      "ticket2": "AV11-411",
+      "summary1": "Backend & Core Platform Epic",
+      "summary2": "Security & Cryptography Epic",
+      "similarity": 0.7580645161290323,
+      "status1": "Done",
+      "status2": "To Do",
+      "desc_preview1": "epic for organizing all backend  core platform related tickets",
+      "desc_preview2": "epic for organizing all security  cryptography related tickets",
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-450",
+      "ticket2": "AV11-431",
+      "summary1": "API Endpoint Integration Testing Report - Portal V4.8.0",
+      "summary2": "Kubernetes Multi-Cloud Orchestration",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-449",
+      "ticket2": "AV11-430",
+      "summary1": "CRITICAL: Portal Pages Using Non-Existent API Endpoints - Fixed",
+      "summary2": "Multi-Cloud Deployment Configuration",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-448",
+      "ticket2": "AV11-429",
+      "summary1": "FIX: Dashboard Empty - API Endpoint Mismatch - Portal V4.8.0",
+      "summary2": "Separate Node Type Containers",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-447",
+      "ticket2": "AV11-428",
+      "summary1": "DEPLOYMENT: Enterprise Portal V4.8.0 Deployed with Dashboard Fix",
+      "summary2": "Multi-Cloud Node Architecture",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-446",
+      "ticket2": "AV11-427",
+      "summary1": "MINOR: JS Asset Bundle Hash Mismatch in Portal V4.8.0",
+      "summary2": "Aurigraph Mobile Nodes and Apps (Android/iOS)",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-440",
+      "ticket2": "AV11-419",
+      "summary1": "ESG Compliance Reporting",
+      "summary2": "Frontend & Portal Epic",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-438",
+      "ticket2": "AV11-421",
+      "summary1": "Carbon Dashboard Integration",
+      "summary2": "Enterprise Portal V4.3.2 - Production Deployment Complete \u2705",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-437",
+      "ticket2": "AV11-413",
+      "summary1": "Carbon Tracking REST APIs",
+      "summary2": "Cross-Chain & Integration Epic",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-426",
+      "ticket2": "AV11-407",
+      "summary1": "Docker Multi-Node Containers Architecture",
+      "summary2": "Implement external API integration for 3rd party systems",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-425",
+      "ticket2": "AV11-410",
+      "summary1": "Sprint 12 - Incremental Optimization & JFR Profiling Framework",
+      "summary2": "Rate Limiting Implementation (v11.3.2)",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "Done",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-415",
+      "ticket2": "AV11-405",
+      "summary1": "Documentation Epic",
+      "summary2": "Implement complete REST API for asset tokenization",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "jira_linked_duplicate",
+      "ticket1": "AV11-412",
+      "ticket2": "AV11-398",
+      "summary1": "Testing & Quality Epic",
+      "summary2": "Implement verifier registry with specialization and accreditation",
+      "link_type": "duplicates",
+      "status1": "Done",
+      "status2": "To Do",
+      "detection_methods": [
+        "jira_linked_duplicate",
+        "jira_linked_duplicate"
+      ],
+      "confidence": 1
+    },
+    {
+      "type": "keyword_overlap",
+      "ticket1": "AV11-419",
+      "ticket2": "AV11-416",
+      "summary1": "Frontend & Portal Epic",
+      "summary2": "Performance & Optimization Epic",
+      "common_keywords": [
+        "epic",
+        "organizing",
+        "related",
+        "tickets"
+      ],
+      "keyword_count": 4,
+      "jaccard_similarity": 0.5,
+      "status1": "To Do",
+      "status2": "To Do",
+      "confidence": 1
+    },
+    {
+      "type": "keyword_overlap",
+      "ticket1": "AV11-416",
+      "ticket2": "AV11-414",
+      "summary1": "Performance & Optimization Epic",
+      "summary2": "DevOps & Deployment Epic",
+      "common_keywords": [
+        "epic",
+        "organizing",
+        "related",
+        "tickets"
+      ],
+      "keyword_count": 4,
+      "jaccard_similarity": 0.5,
+      "status1": "To Do",
+      "status2": "To Do",
+      "confidence": 1
+    },
+    {
+      "type": "keyword_overlap",
+      "ticket1": "AV11-416",
+      "ticket2": "AV11-412",
+      "summary1": "Performance & Optimization Epic",
+      "summary2": "Testing & Quality Epic",
+      "common_keywords": [
+        "epic",
+        "organizing",
+        "related",
+        "tickets"
+      ],
+      "keyword_count": 4,
+      "jaccard_similarity": 0.5,
+      "status1": "To Do",
+      "status2": "Done",
+      "confidence": 1
+    },
+    {
+      "type": "keyword_overlap",
+      "ticket1": "AV11-416",
+      "ticket2": "AV11-411",
+      "summary1": "Performance & Optimization Epic",
+      "summary2": "Security & Cryptography Epic",
+      "common_keywords": [
+        "epic",
+        "organizing",
+        "related",
+        "tickets"
+      ],
+      "keyword_count": 4,
+      "jaccard_similarity": 0.5,
+      "status1": "To Do",
+      "status2": "To Do",
+      "confidence": 1
+    },
+    {
+      "type": "keyword_overlap",
+      "ticket1": "AV11-413",
+      "ticket2": "AV11-411",
+      "summary1": "Cross-Chain & Integration Epic",
+      "summary2": "Security & Cryptography Epic",
+      "common_keywords": [
+        "epic",
+        "organizing",
+        "related",
+        "tickets"
+      ],
+      "keyword_count": 4,
+      "jaccard_similarity": 0.5,
+      "status1": "To Do",
+      "status2": "To Do",
+      "confidence": 1
+    }
+  ]
+}

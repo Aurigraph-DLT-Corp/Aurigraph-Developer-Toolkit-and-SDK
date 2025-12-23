@@ -14,12 +14,12 @@ import java.util.Map;
  * Provides REST endpoints for querying and managing contract-asset traceability links.
  * Enables complete visibility into the lineage from contracts through assets to tokens.
  *
- * Base Path: /api/v12/traceability
+ * Base Path: /api/v11/traceability
  *
  * @version 1.0.0
  * @author Aurigraph V11 Development Team
  */
-@Path("/api/v12/traceability")
+@Path("/api/v11/traceability")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ContractAssetTraceabilityResource {
@@ -30,53 +30,40 @@ public class ContractAssetTraceabilityResource {
     /**
      * Create a new contract-asset traceability link
      *
-     * @param request CreateLinkRequest with contract and asset details
+     * @param contractId Contract identifier
+     * @param contractName Contract name
+     * @param assetId Asset identifier
+     * @param assetName Asset name
+     * @param assetType Asset type (e.g., REAL_ESTATE, COMMODITY, SECURITY)
+     * @param assetValuation Asset valuation in USD
+     * @param tokenId Token identifier
+     * @param tokenSymbol Token symbol
      * @return Created ContractAssetLink
      */
     @POST
     @Path("/links")
-    public Uni<Response> createTraceabilityLink(CreateLinkRequest request) {
-        Log.infof("Creating traceability link: contract=%s, asset=%s",
-                request.contractId, request.assetId);
+    public Uni<Response> createTraceabilityLink(
+            @QueryParam("contractId") String contractId,
+            @QueryParam("contractName") String contractName,
+            @QueryParam("assetId") String assetId,
+            @QueryParam("assetName") String assetName,
+            @QueryParam("assetType") String assetType,
+            @QueryParam("assetValuation") Double assetValuation,
+            @QueryParam("tokenId") String tokenId,
+            @QueryParam("tokenSymbol") String tokenSymbol) {
 
         return traceabilityService.linkContractToAsset(
-                request.contractId,
-                request.contractName,
-                request.assetId,
-                request.assetName,
-                request.assetType,
-                request.assetValuation,
-                request.tokenId,
-                request.tokenSymbol
+                contractId, contractName, assetId, assetName, assetType,
+                assetValuation, tokenId, tokenSymbol
         ).map(link -> {
             Log.info("Created traceability link: " + link.getLinkId());
             return Response.status(Response.Status.CREATED).entity(link).build();
         }).onFailure().recoverWithItem(e -> {
             Log.error("Error creating traceability link", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to create traceability link: " + e.getMessage()))
+                    .entity(Map.of("error", "Failed to create traceability link"))
                     .build();
         });
-    }
-
-    /**
-     * Request DTO for creating traceability links
-     */
-    public static class CreateLinkRequest {
-        public String contractId;
-        public String contractName;
-        public String assetId;
-        public String assetName;
-        public String assetType;
-        public Double assetValuation;
-        public String assetCurrency;
-        public String bindingType;
-        public String tokenId;
-        public String tokenSymbol;
-        public Long totalShares;
-        public String issuer;
-        public String custodian;
-        public Map<String, Object> metadata;
     }
 
     /**

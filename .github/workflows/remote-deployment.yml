@@ -40,7 +40,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/aurigraph-v11
   JAVA_VERSION: '21'
-  REMOTE_PORT: '22'
+  REMOTE_PORT: '2235'
   REMOTE_DIR: '/opt/aurigraph'
 
 permissions:
@@ -50,137 +50,11 @@ permissions:
 
 jobs:
   # ============================================================
-  # PHASE 0: J4C DEPLOYMENT AGENT - CHANGE DETECTION
-  # ============================================================
-  detect-changes:
-    name: J4C Agent - Detect Changed Components
-    runs-on: self-hosted
-    outputs:
-      backend_changed: ${{ steps.changes.outputs.backend }}
-      portal_changed: ${{ steps.changes.outputs.portal }}
-      nodes_changed: ${{ steps.changes.outputs.nodes }}
-      config_changed: ${{ steps.changes.outputs.config }}
-      docker_changed: ${{ steps.changes.outputs.docker }}
-      deploy_components: ${{ steps.changes.outputs.deploy_components }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Detect changed components
-        id: changes
-        run: |
-          echo "=== J4C Deployment Agent - Change Detection ==="
-          echo "Analyzing changes since last deployment..."
-          echo ""
-
-          # Get changed files
-          if [ "${{ github.event_name }}" == "push" ]; then
-            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} 2>/dev/null || git diff --name-only HEAD~1 HEAD)
-          else
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
-          fi
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-          echo ""
-
-          # Initialize flags
-          BACKEND_CHANGED=false
-          PORTAL_CHANGED=false
-          NODES_CHANGED=false
-          CONFIG_CHANGED=false
-          DOCKER_CHANGED=false
-          DEPLOY_COMPONENTS=""
-
-          # Check for backend (V11 standalone) changes
-          if echo "$CHANGED_FILES" | grep -qE "^aurigraph-av10-7/aurigraph-v11-standalone/"; then
-            BACKEND_CHANGED=true
-            DEPLOY_COMPONENTS="${DEPLOY_COMPONENTS}backend,"
-            echo "✓ Backend (V11 API) changes detected"
-          fi
-
-          # Check for portal changes
-          if echo "$CHANGED_FILES" | grep -qE "^enterprise-portal/"; then
-            PORTAL_CHANGED=true
-            DEPLOY_COMPONENTS="${DEPLOY_COMPONENTS}portal,"
-            echo "✓ Enterprise Portal changes detected"
-          fi
-
-          # Check for node configuration changes
-          if echo "$CHANGED_FILES" | grep -qE "^deploy-package/|^deployment/.*node"; then
-            NODES_CHANGED=true
-            DEPLOY_COMPONENTS="${DEPLOY_COMPONENTS}nodes,"
-            echo "✓ Node configuration changes detected"
-          fi
-
-          # Check for config/infrastructure changes
-          if echo "$CHANGED_FILES" | grep -qE "traefik|nginx|\.env|config/"; then
-            CONFIG_CHANGED=true
-            DEPLOY_COMPONENTS="${DEPLOY_COMPONENTS}config,"
-            echo "✓ Configuration changes detected"
-          fi
-
-          # Check for docker-compose changes
-          if echo "$CHANGED_FILES" | grep -qE "docker-compose.*\.yml$"; then
-            DOCKER_CHANGED=true
-            DEPLOY_COMPONENTS="${DEPLOY_COMPONENTS}docker,"
-            echo "✓ Docker compose changes detected"
-          fi
-
-          # Remove trailing comma
-          DEPLOY_COMPONENTS=$(echo "$DEPLOY_COMPONENTS" | sed 's/,$//')
-
-          # If nothing specific detected, check for workflow changes
-          if [ -z "$DEPLOY_COMPONENTS" ]; then
-            if echo "$CHANGED_FILES" | grep -qE "^\.github/workflows/"; then
-              echo "✓ Only workflow changes - minimal deployment"
-              DEPLOY_COMPONENTS="workflow-only"
-            else
-              echo "✓ General changes - full deployment"
-              DEPLOY_COMPONENTS="all"
-            fi
-          fi
-
-          echo ""
-          echo "=== Deployment Decision ==="
-          echo "Components to deploy: $DEPLOY_COMPONENTS"
-          echo ""
-
-          # Set outputs
-          echo "backend=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
-          echo "portal=$PORTAL_CHANGED" >> $GITHUB_OUTPUT
-          echo "nodes=$NODES_CHANGED" >> $GITHUB_OUTPUT
-          echo "config=$CONFIG_CHANGED" >> $GITHUB_OUTPUT
-          echo "docker=$DOCKER_CHANGED" >> $GITHUB_OUTPUT
-          echo "deploy_components=$DEPLOY_COMPONENTS" >> $GITHUB_OUTPUT
-
-      - name: Display deployment plan
-        run: |
-          echo ""
-          echo "╔══════════════════════════════════════════════════════════════╗"
-          echo "║     J4C DEPLOYMENT AGENT - SELECTIVE DEPLOYMENT PLAN         ║"
-          echo "╠══════════════════════════════════════════════════════════════╣"
-          echo "║ Components to Deploy:                                        ║"
-          echo "║   Backend (V11 API):     ${{ steps.changes.outputs.backend == 'true' && '✅ YES' || '⏸ NO (unchanged)' }}"
-          echo "║   Enterprise Portal:     ${{ steps.changes.outputs.portal == 'true' && '✅ YES' || '⏸ NO (unchanged)' }}"
-          echo "║   Nodes (Validators):    ${{ steps.changes.outputs.nodes == 'true' && '✅ YES' || '⏸ NO (unchanged)' }}"
-          echo "║   Configuration:         ${{ steps.changes.outputs.config == 'true' && '✅ YES' || '⏸ NO (unchanged)' }}"
-          echo "║   Docker Compose:        ${{ steps.changes.outputs.docker == 'true' && '✅ YES' || '⏸ NO (unchanged)' }}"
-          echo "╠══════════════════════════════════════════════════════════════╣"
-          echo "║ Strategy: Hot overwrite affected components only             ║"
-          echo "║ Unchanged components will NOT be redeployed                  ║"
-          echo "╚══════════════════════════════════════════════════════════════╝"
-
-  # ============================================================
   # PHASE 1: VALIDATION & BUILD
   # ============================================================
   validate-config:
     name: Validate Configuration
     runs-on: self-hosted
-    needs: detect-changes
     outputs:
       config_valid: ${{ steps.validate.outputs.valid }}
 
@@ -207,13 +81,10 @@ jobs:
   build:
     name: Build & Test
     runs-on: self-hosted
-    needs: [validate-config, detect-changes]
+    needs: validate-config
     outputs:
       version: ${{ steps.version.outputs.version }}
       image_tag: ${{ steps.meta.outputs.tags }}
-      backend_changed: ${{ needs.detect-changes.outputs.backend_changed }}
-      portal_changed: ${{ needs.detect-changes.outputs.portal_changed }}
-      deploy_components: ${{ needs.detect-changes.outputs.deploy_components }}
 
     steps:
       - name: Checkout code
@@ -236,47 +107,24 @@ jobs:
           echo "version=${VERSION}-${BUILD_NUM}" >> $GITHUB_OUTPUT
           echo "📦 Version: ${VERSION}-${BUILD_NUM}"
 
-      - name: Display deployment components
-        run: |
-          echo "╔══════════════════════════════════════════════════════════════╗"
-          echo "║  J4C DEPLOYMENT AGENT - SELECTIVE BUILD & DEPLOY             ║"
-          echo "╠══════════════════════════════════════════════════════════════╣"
-          echo "║  Components to build/deploy: ${{ needs.detect-changes.outputs.deploy_components }}"
-          echo "║  Backend changed: ${{ needs.detect-changes.outputs.backend_changed }}"
-          echo "║  Portal changed: ${{ needs.detect-changes.outputs.portal_changed }}"
-          echo "║  Nodes changed: ${{ needs.detect-changes.outputs.nodes_changed }}"
-          echo "║  Docker changed: ${{ needs.detect-changes.outputs.docker_changed }}"
-          echo "╚══════════════════════════════════════════════════════════════╝"
-
-      - name: Build V11 Backend (Conditional)
-        if: needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all'
+      - name: Build V11 project
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone
         run: |
-          echo "🔨 Building V11 Backend (changes detected)..."
           ./mvnw clean package -DskipTests -B
-          echo "✅ Backend build completed"
+          echo "✅ Build completed"
 
-      - name: Skip V11 Backend Build (No Changes)
-        if: needs.detect-changes.outputs.backend_changed != 'true' && needs.detect-changes.outputs.deploy_components != 'all'
-        run: |
-          echo "⏸ Skipping V11 Backend build - No changes detected"
-          echo "Backend unchanged - using existing deployed version"
-
-      - name: Run quick tests (Conditional)
-        if: (needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all') && !inputs.skip_tests
+      - name: Run quick tests
+        if: ${{ !inputs.skip_tests }}
         working-directory: aurigraph-av10-7/aurigraph-v11-standalone
         run: |
-          echo "🧪 Running tests for changed backend..."
           ./mvnw test -B --fail-at-end
           echo "✅ Tests completed"
         continue-on-error: true
 
       - name: Set up Docker Buildx
-        if: needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.docker_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all'
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
-        if: needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.docker_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -284,7 +132,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
-        if: needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.docker_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all'
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -294,8 +141,7 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=${{ steps.version.outputs.version }}
 
-      - name: Build and push Docker image (Conditional)
-        if: needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.docker_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all'
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: aurigraph-av10-7/aurigraph-v11-standalone
@@ -304,12 +150,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Skip Docker build (No Changes)
-        if: needs.detect-changes.outputs.backend_changed != 'true' && needs.detect-changes.outputs.docker_changed != 'true' && needs.detect-changes.outputs.deploy_components != 'all'
-        run: |
-          echo "⏸ Skipping Docker build - No backend or docker changes detected"
-          echo "Using existing Docker image from previous deployment"
 
   # ============================================================
   # PHASE 2: REMOTE DEPLOYMENT
@@ -380,9 +220,9 @@ jobs:
           echo "⚠️ Staging verification timeout"
 
   deploy-production:
-    name: Deploy to Production (Selective)
+    name: Deploy to Production
     runs-on: self-hosted
-    needs: [build, detect-changes]
+    needs: build
     if: github.ref == 'refs/heads/main' || github.event.inputs.deployment_target == 'production'
     environment:
       name: production
@@ -400,111 +240,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: J4C Agent - Selective Deployment Plan
-        run: |
-          echo ""
-          echo "╔══════════════════════════════════════════════════════════════════╗"
-          echo "║     J4C DEPLOYMENT AGENT - SELECTIVE HOT OVERWRITE PLAN          ║"
-          echo "╠══════════════════════════════════════════════════════════════════╣"
-          echo "║  Mode: HOT OVERWRITE (Only affected components)                  ║"
-          echo "╠══════════════════════════════════════════════════════════════════╣"
-          echo "║  Components to Deploy:                                           ║"
-          echo "║    Backend (V11 API):     ${{ needs.detect-changes.outputs.backend_changed == 'true' && '🔄 DEPLOY' || '⏸ SKIP (unchanged)' }}"
-          echo "║    Enterprise Portal:     ${{ needs.detect-changes.outputs.portal_changed == 'true' && '🔄 DEPLOY' || '⏸ SKIP (unchanged)' }}"
-          echo "║    Nodes (Validators):    ${{ needs.detect-changes.outputs.nodes_changed == 'true' && '🔄 DEPLOY' || '⏸ SKIP (unchanged)' }}"
-          echo "║    Configuration:         ${{ needs.detect-changes.outputs.config_changed == 'true' && '🔄 DEPLOY' || '⏸ SKIP (unchanged)' }}"
-          echo "║    Docker Infrastructure: ${{ needs.detect-changes.outputs.docker_changed == 'true' && '🔄 DEPLOY' || '⏸ SKIP (unchanged)' }}"
-          echo "╠══════════════════════════════════════════════════════════════════╣"
-          echo "║  Deploy List: ${{ needs.detect-changes.outputs.deploy_components }}"
-          echo "╠══════════════════════════════════════════════════════════════════╣"
-          echo "║  ⚡ Unchanged components will NOT be restarted or overwritten    ║"
-          echo "║  ⚡ Zero-downtime for unaffected services                        ║"
-          echo "╚══════════════════════════════════════════════════════════════════╝"
-          echo ""
-
-      - name: Pre-deployment cleanup (Backend only)
-        if: needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all'
-        run: |
-          echo "🧹 Pre-deployment cleanup - Checking for old instances..."
-          ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
-          set -e
-          echo "=== J4C Deployment Agent - Pre-Deployment Cleanup ==="
-          echo "Timestamp: $(date)"
-          echo ""
-
-          # Check for running Java processes (aurigraph/quarkus)
-          echo "📋 Checking running Java processes..."
-          JAVA_PROCS=$(pgrep -f 'quarkus-run.jar\|aurigraph' 2>/dev/null || true)
-          if [ -n "$JAVA_PROCS" ]; then
-            echo "Found running processes: $JAVA_PROCS"
-            echo "Stopping old Java processes..."
-            pkill -f 'quarkus-run.jar' 2>/dev/null || true
-            pkill -f 'aurigraph-v12.jar' 2>/dev/null || true
-            sleep 5
-            echo "✅ Old Java processes stopped"
-          else
-            echo "✅ No old Java processes found"
-          fi
-
-          # Check for old Docker containers
-          echo ""
-          echo "🐳 Checking Docker containers..."
-          OLD_CONTAINERS=$(docker ps -a --filter "name=aurigraph" --filter "status=exited" -q 2>/dev/null || true)
-          if [ -n "$OLD_CONTAINERS" ]; then
-            echo "Found stopped containers: $OLD_CONTAINERS"
-            echo "Removing stopped aurigraph containers..."
-            docker rm -f $OLD_CONTAINERS 2>/dev/null || true
-            echo "✅ Old containers removed"
-          else
-            echo "✅ No stopped containers found"
-          fi
-
-          # Check for dangling Docker images
-          echo ""
-          echo "🖼️ Checking dangling Docker images..."
-          DANGLING_IMAGES=$(docker images -f "dangling=true" -q 2>/dev/null || true)
-          if [ -n "$DANGLING_IMAGES" ]; then
-            echo "Found dangling images"
-            echo "Removing dangling images..."
-            docker image prune -f 2>/dev/null || true
-            echo "✅ Dangling images removed"
-          else
-            echo "✅ No dangling images found"
-          fi
-
-          # Check for old aurigraph images (keep last 3)
-          echo ""
-          echo "🗑️ Cleaning old aurigraph images (keeping last 3)..."
-          docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep aurigraph | tail -n +4 | awk '{print $2}' | xargs -r docker rmi 2>/dev/null || true
-
-          # Clean up old deployment backups (keep last 5)
-          echo ""
-          echo "💾 Cleaning old backups (keeping last 5)..."
-          ls -dt $HOME/quarkus-app.backup.* 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
-
-          # Show disk usage
-          echo ""
-          echo "📊 Disk usage:"
-          df -h / | tail -1
-
-          # Show memory usage
-          echo ""
-          echo "💻 Memory usage:"
-          free -h | head -2
-
-          echo ""
-          echo "✅ Pre-deployment cleanup complete"
-          echo "==================================================="
-          EOF
-
-      - name: Skip cleanup (No backend changes)
-        if: needs.detect-changes.outputs.backend_changed != 'true' && needs.detect-changes.outputs.deploy_components != 'all'
-        run: |
-          echo "⏸ Skipping pre-deployment cleanup - No backend changes detected"
-          echo "Existing backend services will continue running"
-
-      - name: Pre-deployment backup (Conditional)
-        if: needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all'
+      - name: Pre-deployment backup
         run: |
           echo "💾 Creating pre-deployment backup..."
           ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
@@ -530,11 +266,10 @@ jobs:
           echo "strategy=$STRATEGY" >> $GITHUB_OUTPUT
           echo "📋 Deployment strategy: $STRATEGY"
 
-      - name: Deploy (Blue-Green) - Selective
-        if: steps.strategy.outputs.strategy == 'blue-green' && (needs.detect-changes.outputs.backend_changed == 'true' || needs.detect-changes.outputs.docker_changed == 'true' || needs.detect-changes.outputs.deploy_components == 'all')
+      - name: Deploy (Blue-Green)
+        if: steps.strategy.outputs.strategy == 'blue-green'
         run: |
-          echo "🔄 Starting selective blue-green deployment..."
-          echo "📦 Only deploying changed components: ${{ needs.detect-changes.outputs.deploy_components }}"
+          echo "🔄 Starting blue-green deployment..."
           ssh -p ${{ env.REMOTE_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
           set -e
 
@@ -617,25 +352,6 @@ jobs:
             exit 1
           fi
           EOF
-
-      - name: Skip Deployment (No Changes to Deploy)
-        if: needs.detect-changes.outputs.backend_changed != 'true' && needs.detect-changes.outputs.docker_changed != 'true' && needs.detect-changes.outputs.deploy_components != 'all' && needs.detect-changes.outputs.deploy_components != 'workflow-only'
-        run: |
-          echo ""
-          echo "╔══════════════════════════════════════════════════════════════════╗"
-          echo "║     J4C DEPLOYMENT AGENT - ZERO-TOUCH DEPLOYMENT                 ║"
-          echo "╠══════════════════════════════════════════════════════════════════╣"
-          echo "║  Status: NO DEPLOYABLE CHANGES DETECTED                          ║"
-          echo "║                                                                   ║"
-          echo "║  Components checked:                                             ║"
-          echo "║    Backend (V11 API):     ⏸ No changes"
-          echo "║    Docker Infrastructure: ⏸ No changes"
-          echo "║                                                                   ║"
-          echo "║  Action: SKIPPING DEPLOYMENT                                     ║"
-          echo "║  Existing production services remain UNCHANGED and RUNNING       ║"
-          echo "╚══════════════════════════════════════════════════════════════════╝"
-          echo ""
-          echo "✅ Zero-downtime achieved - no unnecessary restarts!"
 
       - name: Verify production health
         run: |

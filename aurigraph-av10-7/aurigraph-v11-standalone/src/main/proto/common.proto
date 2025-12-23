@@ -9,20 +9,13 @@ option java_package = "io.aurigraph.v11.proto";
 option java_outer_classname = "CommonProto";
 
 // Status enumerations
-// Updated for BUG-005 fix - Added missing values to match Java TransactionStatus enum
 enum TransactionStatus {
   TRANSACTION_UNKNOWN = 0;
   TRANSACTION_PENDING = 1;
-  TRANSACTION_VALIDATING = 2;
-  TRANSACTION_PROCESSING = 3;
-  TRANSACTION_IN_MEMPOOL = 4;
-  TRANSACTION_COMMITTED = 5;
-  TRANSACTION_CONFIRMED = 6;
-  TRANSACTION_FINALIZED = 7;
-  TRANSACTION_FAILED = 8;
-  TRANSACTION_EXPIRED = 9;
-  TRANSACTION_REJECTED = 10;
-  TRANSACTION_QUEUED = 11;
+  TRANSACTION_CONFIRMED = 2;
+  TRANSACTION_FAILED = 3;
+  TRANSACTION_REJECTED = 4;
+  TRANSACTION_QUEUED = 5;
 }
 
 enum BlockStatus {

@@ -79,12 +79,10 @@ class HighThroughputDemoService {
   private apiKey: string = 'sk_test_dev_key_12345'; // From Credentials.md
 
   constructor() {
-    // Always use HTTPS in production, check both protocol and hostname
-    const isProduction = typeof window !== 'undefined' &&
-      (window.location.protocol === 'https:' || window.location.hostname === 'dlt.aurigraph.io');
-    this.baseURL = isProduction
-      ? 'https://dlt.aurigraph.io/api/v11'
-      : (import.meta.env.VITE_API_URL || 'http://localhost:9003') + '/api/v11';
+    this.baseURL =
+      typeof window !== 'undefined' && window.location.protocol === 'https:'
+        ? 'https://dlt.aurigraph.io/api/v11'
+        : 'http://localhost:9003/api/v11';
 
     this.apiClient = axios.create({
       baseURL: this.baseURL,

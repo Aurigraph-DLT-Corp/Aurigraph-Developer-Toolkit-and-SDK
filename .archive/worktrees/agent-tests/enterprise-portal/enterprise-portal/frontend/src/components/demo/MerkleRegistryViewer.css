@@ -1,0 +1,168 @@
+.merkle-registry-viewer {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.merkle-registry-viewer h2 {
+  color: #1890ff;
+  margin-bottom: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.simulation-config-card {
+  background: white;
+  border-left: 4px solid #1890ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.simulation-config-card .ant-statistic-title {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.merkle-registry-viewer .ant-card {
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  background: white;
+}
+
+.merkle-registry-viewer .ant-card-head {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+}
+
+.merkle-registry-viewer .ant-card-head .ant-card-head-title {
+  color: white;
+  font-weight: 600;
+}
+
+.merkle-registry-viewer code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  color: #d73a49;
+}
+
+.merkle-registry-viewer .ant-statistic {
+  text-align: center;
+}
+
+.merkle-registry-viewer .ant-statistic-title {
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
+.merkle-registry-viewer .ant-statistic-content {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.merkle-registry-viewer .ant-tag {
+  border-radius: 4px;
+  border: none;
+  font-weight: 500;
+}
+
+.merkle-registry-viewer .ant-table {
+  font-size: 13px;
+}
+
+.merkle-registry-viewer .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.merkle-registry-viewer .ant-collapse {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.merkle-registry-viewer .ant-collapse-header {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Animation for real-time updates */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.merkle-registry-viewer .ant-badge-status-processing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Data feed status styling */
+.merkle-registry-viewer .feed-active {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.merkle-registry-viewer .feed-inactive {
+  color: #999;
+  font-weight: 400;
+}
+
+/* Merkle tree visualization helper */
+.merkle-tree-visual {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+  border-left: 3px solid #1890ff;
+  overflow-x: auto;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 1200px) {
+  .merkle-registry-viewer .ant-col {
+    margin-bottom: 16px;
+  }
+
+  .simulation-config-card .ant-row {
+    margin-bottom: 16px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .merkle-registry-viewer {
+    background: linear-gradient(135deg, #1f1f1f 0%, #2d2d2d 100%);
+  }
+
+  .merkle-registry-viewer .ant-card {
+    background: #262626;
+    color: #e8e8e8;
+  }
+
+  .merkle-registry-viewer code {
+    background: #404040;
+    color: #ff7f7f;
+  }
+}

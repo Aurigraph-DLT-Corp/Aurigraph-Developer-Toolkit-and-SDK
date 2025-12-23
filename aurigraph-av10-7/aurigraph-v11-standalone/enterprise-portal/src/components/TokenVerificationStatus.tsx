@@ -72,11 +72,7 @@ interface Props {
   onVerify?: (tokenId: string) => void;
 }
 
-// Use window.location.origin for correct protocol detection (http vs https)
-const getBaseUrl = () => typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-  ? window.location.origin
-  : 'http://localhost:9003';
-const API_BASE = `${getBaseUrl()}/api/v12/traceability`;
+const API_BASE = 'http://localhost:9003/api/v11/traceability';
 
 const TokenVerificationStatus: React.FC<Props> = ({ tokenId, tokenTrace, onVerify }) => {
   const [trace, setTrace] = useState<TokenTrace | null>(tokenTrace || null);

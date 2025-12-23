@@ -1,0 +1,525 @@
+version: '3.8'
+
+services:
+  # 7 Validator Nodes
+  validator-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: av10-validator-1
+    ports:
+      - "8181:8181"
+    environment:
+      - NODE_ID=validator-1
+      - NODE_TYPE=validator
+      - VALIDATOR_ID=1
+      - CONSENSUS_PORT=8181
+      - PEER_DISCOVERY_PORT=9181
+      - QUANTUM_LEVEL=5
+      - TARGET_TPS=150000
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  validator-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: av10-validator-2
+    ports:
+      - "8182:8181"
+    environment:
+      - NODE_ID=validator-2
+      - NODE_TYPE=validator
+      - VALIDATOR_ID=2
+      - CONSENSUS_PORT=8181
+      - PEER_DISCOVERY_PORT=9182
+      - QUANTUM_LEVEL=5
+      - TARGET_TPS=150000
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  validator-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: av10-validator-3
+    ports:
+      - "8183:8181"
+    environment:
+      - NODE_ID=validator-3
+      - NODE_TYPE=validator
+      - VALIDATOR_ID=3
+      - CONSENSUS_PORT=8181
+      - PEER_DISCOVERY_PORT=9183
+      - QUANTUM_LEVEL=5
+      - TARGET_TPS=150000
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  validator-4:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: av10-validator-4
+    ports:
+      - "8184:8181"
+    environment:
+      - NODE_ID=validator-4
+      - NODE_TYPE=validator
+      - VALIDATOR_ID=4
+      - CONSENSUS_PORT=8181
+      - PEER_DISCOVERY_PORT=9184
+      - QUANTUM_LEVEL=5
+      - TARGET_TPS=150000
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  validator-5:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: av10-validator-5
+    ports:
+      - "8185:8181"
+    environment:
+      - NODE_ID=validator-5
+      - NODE_TYPE=validator
+      - VALIDATOR_ID=5
+      - CONSENSUS_PORT=8181
+      - PEER_DISCOVERY_PORT=9185
+      - QUANTUM_LEVEL=5
+      - TARGET_TPS=150000
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  validator-6:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: av10-validator-6
+    ports:
+      - "8186:8181"
+    environment:
+      - NODE_ID=validator-6
+      - NODE_TYPE=validator
+      - VALIDATOR_ID=6
+      - CONSENSUS_PORT=8181
+      - PEER_DISCOVERY_PORT=9186
+      - QUANTUM_LEVEL=5
+      - TARGET_TPS=150000
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  validator-7:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: av10-validator-7
+    ports:
+      - "8187:8181"
+    environment:
+      - NODE_ID=validator-7
+      - NODE_TYPE=validator
+      - VALIDATOR_ID=7
+      - CONSENSUS_PORT=8181
+      - PEER_DISCOVERY_PORT=9187
+      - QUANTUM_LEVEL=5
+      - TARGET_TPS=150000
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  # 20 Basic Nodes
+  basic-node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-1
+    ports:
+      - "8201:8201"
+    environment:
+      - NODE_ID=basic-1
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9201
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-2
+    ports:
+      - "8202:8201"
+    environment:
+      - NODE_ID=basic-2
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9202
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-3
+    ports:
+      - "8203:8201"
+    environment:
+      - NODE_ID=basic-3
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9203
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-4:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-4
+    ports:
+      - "8204:8201"
+    environment:
+      - NODE_ID=basic-4
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9204
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-5:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-5
+    ports:
+      - "8205:8201"
+    environment:
+      - NODE_ID=basic-5
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9205
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-6:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-6
+    ports:
+      - "8206:8201"
+    environment:
+      - NODE_ID=basic-6
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9206
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-7:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-7
+    ports:
+      - "8207:8201"
+    environment:
+      - NODE_ID=basic-7
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9207
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-8:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-8
+    ports:
+      - "8208:8201"
+    environment:
+      - NODE_ID=basic-8
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9208
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-9:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-9
+    ports:
+      - "8209:8201"
+    environment:
+      - NODE_ID=basic-9
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9209
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-10:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-10
+    ports:
+      - "8210:8201"
+    environment:
+      - NODE_ID=basic-10
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9210
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-11:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-11
+    ports:
+      - "8211:8201"
+    environment:
+      - NODE_ID=basic-11
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9211
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-12:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-12
+    ports:
+      - "8212:8201"
+    environment:
+      - NODE_ID=basic-12
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9212
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-13:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-13
+    ports:
+      - "8213:8201"
+    environment:
+      - NODE_ID=basic-13
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9213
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-14:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-14
+    ports:
+      - "8214:8201"
+    environment:
+      - NODE_ID=basic-14
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9214
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-15:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-15
+    ports:
+      - "8215:8201"
+    environment:
+      - NODE_ID=basic-15
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9215
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-16:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-16
+    ports:
+      - "8216:8201"
+    environment:
+      - NODE_ID=basic-16
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9216
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-17:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-17
+    ports:
+      - "8217:8201"
+    environment:
+      - NODE_ID=basic-17
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9217
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-18:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-18
+    ports:
+      - "8218:8201"
+    environment:
+      - NODE_ID=basic-18
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9218
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-19:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-19
+    ports:
+      - "8219:8201"
+    environment:
+      - NODE_ID=basic-19
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9219
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  basic-node-20:
+    build:
+      context: .
+      dockerfile: Dockerfile.basicnode
+    container_name: av10-basic-20
+    ports:
+      - "8220:8201"
+    environment:
+      - NODE_ID=basic-20
+      - NODE_TYPE=basic
+      - API_PORT=8201
+      - PEER_DISCOVERY_PORT=9220
+      - QUANTUM_LEVEL=3
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+  # Management Console
+  management-console:
+    build:
+      context: ./fastapi-aurigraph
+      dockerfile: Dockerfile.minimal
+    container_name: av10-management-console
+    ports:
+      - "3040:3100"
+    environment:
+      - PLATFORM_NAME=Aurigraph Management Console
+      - NODE_MANAGEMENT_MODE=true
+      - VALIDATOR_COUNT=7
+      - BASIC_NODE_COUNT=20
+      - MANAGEMENT_PORT=3100
+    volumes:
+      - ./ui:/app/static:ro
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+    depends_on:
+      - validator-1
+      - validator-2
+      - validator-3
+      - basic-node-1
+      - basic-node-2
+
+  # Monitoring Dashboard
+  monitoring-dashboard:
+    image: nginx:alpine
+    container_name: av10-monitoring
+    ports:
+      - "3052:80"
+    volumes:
+      - ./ui:/usr/share/nginx/html:ro
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    networks:
+      - aurigraph-network
+    restart: unless-stopped
+
+networks:
+  aurigraph-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

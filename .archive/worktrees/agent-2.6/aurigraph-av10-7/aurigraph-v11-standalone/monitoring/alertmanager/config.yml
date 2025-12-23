@@ -1,0 +1,79 @@
+global:
+  resolve_timeout: 5m
+  # Slack API URL - configure when Slack integration is needed
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  routes:
+    - match:
+        severity: critical
+        priority: P0
+      receiver: 'critical-alerts'
+      continue: true
+
+    - match:
+        severity: warning
+        priority: P1
+      receiver: 'warning-alerts'
+      continue: true
+
+    - match:
+        severity: info
+        priority: P2
+      receiver: 'info-alerts'
+
+receivers:
+  - name: 'default'
+    # Webhook receiver - replace with actual webhook URL when configured
+    webhook_configs:
+      - url: 'http://localhost:5001/alerts'
+        send_resolved: true
+
+  - name: 'critical-alerts'
+    # slack_configs:
+    #   - channel: '#aurigraph-critical'
+    #     title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    #     send_resolved: true
+    webhook_configs:
+      - url: 'http://localhost:5001/alerts/critical'
+        send_resolved: true
+    email_configs:
+      - to: 'ops@aurigraph.io,oncall@aurigraph.io'
+        from: 'alertmanager@aurigraph.io'
+        smarthost: 'smtp.gmail.com:587'
+        auth_username: '${SMTP_USER}'
+        auth_password: '${SMTP_PASSWORD}'
+        headers:
+          Subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+          Priority: 'urgent'
+
+  - name: 'warning-alerts'
+    # slack_configs:
+    #   - channel: '#aurigraph-warnings'
+    #     title: '⚠️  WARNING: {{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    webhook_configs:
+      - url: 'http://localhost:5001/alerts/warning'
+        send_resolved: true
+
+  - name: 'info-alerts'
+    # slack_configs:
+    #   - channel: '#aurigraph-info'
+    #     title: 'ℹ️  INFO: {{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    webhook_configs:
+      - url: 'http://localhost:5001/alerts/info'
+        send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

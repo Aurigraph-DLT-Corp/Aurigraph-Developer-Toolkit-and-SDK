@@ -1,0 +1,646 @@
+{
+  "dashboards": [
+    {
+      "id": 1,
+      "name": "Blockchain Network Overview",
+      "description": "Real-time blockchain network health and performance metrics",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Network Health Score",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "blockchain_network_health_score"
+            }
+          ],
+          "thresholds": "0,50,80,95,100",
+          "unit": "percent"
+        },
+        {
+          "id": 2,
+          "title": "Active Nodes",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count(blockchain_node_status{status=\"active\"})"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Average Network Latency",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "avg(blockchain_network_latency_ms)"
+            }
+          ],
+          "unit": "ms"
+        },
+        {
+          "id": 4,
+          "title": "Transactions Per Second",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(blockchain_transactions_total[1m])"
+            }
+          ],
+          "unit": "tps"
+        },
+        {
+          "id": 5,
+          "title": "Node Status Distribution",
+          "type": "piechart",
+          "targets": [
+            {
+              "expr": "count by(status) (blockchain_node_status)"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Block Production Rate",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(blockchain_blocks_created_total[5m])"
+            }
+          ],
+          "unit": "ops"
+        },
+        {
+          "id": 7,
+          "title": "Network Connections",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(blockchain_network_connections)"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Consensus Round Time",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "avg(blockchain_consensus_round_duration_ms)"
+            }
+          ],
+          "unit": "ms"
+        }
+      ],
+      "refresh": "5s",
+      "timeRange": "last_1h"
+    },
+    {
+      "id": 2,
+      "name": "Validator Performance",
+      "description": "Validator-specific metrics and rewards tracking",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Active Validators",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count(validator_status{status=\"active\"})"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Total Validator Stake",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(validator_stake_amount) / 1e18"
+            }
+          ],
+          "unit": "short"
+        },
+        {
+          "id": 3,
+          "title": "Average Commission Rate",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "avg(validator_commission_rate) * 100"
+            }
+          ],
+          "unit": "percent"
+        },
+        {
+          "id": 4,
+          "title": "Average Uptime",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "avg(validator_uptime_percent)"
+            }
+          ],
+          "unit": "percent",
+          "thresholds": "0,80,97,99.9"
+        },
+        {
+          "id": 5,
+          "title": "Slashing Events",
+          "type": "barchart",
+          "targets": [
+            {
+              "expr": "rate(validator_slashing_events_total[1h])"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Validator Earnings",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "sum by(validator_id)(rate(validator_rewards_total[1h]))"
+            }
+          ],
+          "unit": "short"
+        },
+        {
+          "id": 7,
+          "title": "Reward Distribution",
+          "type": "piechart",
+          "targets": [
+            {
+              "expr": "sum by(validator_id)(validator_rewards_total)"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Validator APY",
+          "type": "table",
+          "targets": [
+            {
+              "expr": "(sum(validator_rewards_total) / sum(validator_stake_amount)) * 365 * 100"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "Jailing Status",
+          "type": "status",
+          "targets": [
+            {
+              "expr": "count by(validator_id)(validator_status{status=\"jailed\"})"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "title": "Top 10 Validators by Voting Power",
+          "type": "barchart",
+          "targets": [
+            {
+              "expr": "topk(10, validator_voting_power)"
+            }
+          ]
+        }
+      ],
+      "refresh": "30s",
+      "timeRange": "last_24h"
+    },
+    {
+      "id": 3,
+      "name": "AI & ML Optimization",
+      "description": "AI model performance and prediction accuracy metrics",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Active Models",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count(ai_model_status{status=\"active\"})"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Average Model Accuracy",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "avg(ai_model_accuracy_percent)"
+            }
+          ],
+          "unit": "percent",
+          "thresholds": "0,80,90,95,99"
+        },
+        {
+          "id": 3,
+          "title": "Predictions Per Second",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(ai_predictions_total[1m])"
+            }
+          ],
+          "unit": "ops"
+        },
+        {
+          "id": 4,
+          "title": "Model Training Progress",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "ai_model_training_progress_percent"
+            }
+          ],
+          "unit": "percent"
+        },
+        {
+          "id": 5,
+          "title": "Prediction Latency Distribution",
+          "type": "heatmap",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.99, ai_prediction_latency_ms)"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Model Confidence Scores",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "avg(ai_prediction_confidence_score)"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "Anomalies Detected",
+          "type": "counter",
+          "targets": [
+            {
+              "expr": "rate(ai_anomalies_detected_total[1h])"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Model Versions",
+          "type": "table",
+          "targets": [
+            {
+              "expr": "ai_model_info"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "Inference Queue Depth",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "ai_inference_queue_depth"
+            }
+          ]
+        }
+      ],
+      "refresh": "10s",
+      "timeRange": "last_6h"
+    },
+    {
+      "id": 4,
+      "name": "System & Infrastructure Health",
+      "description": "JVM, memory, CPU, disk and application health metrics",
+      "panels": [
+        {
+          "id": 1,
+          "title": "CPU Usage",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
+            }
+          ],
+          "unit": "percent",
+          "alert": "warning:80,critical:90"
+        },
+        {
+          "id": 2,
+          "title": "Memory Heap Usage",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "jvm_memory_used_bytes{area=\"heap\"} / 1024 / 1024 / 1024"
+            }
+          ],
+          "unit": "GB"
+        },
+        {
+          "id": 3,
+          "title": "Garbage Collection Time",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(jvm_gc_duration_seconds_sum[5m])"
+            }
+          ],
+          "unit": "seconds"
+        },
+        {
+          "id": 4,
+          "title": "Active Threads",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "jvm_threads_current"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "File Descriptor Usage",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "process_open_fds / process_max_fds * 100"
+            }
+          ],
+          "unit": "percent"
+        },
+        {
+          "id": 6,
+          "title": "Disk Space Usage",
+          "type": "barchart",
+          "targets": [
+            {
+              "expr": "(node_filesystem_size_bytes - node_filesystem_avail_bytes) / node_filesystem_size_bytes * 100"
+            }
+          ],
+          "unit": "percent"
+        },
+        {
+          "id": 7,
+          "title": "Network I/O",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(node_network_transmit_bytes_total[1m]) + rate(node_network_receive_bytes_total[1m])"
+            }
+          ],
+          "unit": "bytes/sec"
+        },
+        {
+          "id": 8,
+          "title": "JVM Uptime",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "jvm_uptime_seconds / 86400"
+            }
+          ],
+          "unit": "days"
+        },
+        {
+          "id": 9,
+          "title": "HTTP Error Rate",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100"
+            }
+          ],
+          "unit": "percent"
+        },
+        {
+          "id": 10,
+          "title": "Exception Count",
+          "type": "counter",
+          "targets": [
+            {
+              "expr": "increase(application_exceptions_total[1h])"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "title": "HTTP Response Time Distribution",
+          "type": "heatmap",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.99, http_request_duration_seconds_bucket)"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "title": "HTTP Requests Per Second",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(http_requests_total[1m])"
+            }
+          ],
+          "unit": "rps"
+        }
+      ],
+      "refresh": "5s",
+      "timeRange": "last_4h"
+    },
+    {
+      "id": 5,
+      "name": "Real-World Assets & Tokenization",
+      "description": "RWA portfolio and token metrics",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Total RWA Portfolio Value",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(rwa_asset_value_usd) / 1e6"
+            }
+          ],
+          "unit": "million"
+        },
+        {
+          "id": 2,
+          "title": "Asset Count by Type",
+          "type": "piechart",
+          "targets": [
+            {
+              "expr": "count by(asset_type) (rwa_asset_info)"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Asset Status Distribution",
+          "type": "barchart",
+          "targets": [
+            {
+              "expr": "count by(status) (rwa_asset_status)"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Token Total Supply",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "sum(rwa_token_supply)"
+            }
+          ],
+          "unit": "short"
+        },
+        {
+          "id": 5,
+          "title": "Token Circulation Rate",
+          "type": "gauge",
+          "targets": [
+            {
+              "expr": "sum(rwa_token_circulating_supply) / sum(rwa_token_supply) * 100"
+            }
+          ],
+          "unit": "percent"
+        },
+        {
+          "id": 6,
+          "title": "Mint/Burn Events",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "rate(rwa_token_mint_events_total[1h])",
+              "legendFormat": "Mint"
+            },
+            {
+              "expr": "rate(rwa_token_burn_events_total[1h])",
+              "legendFormat": "Burn"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "Asset Freeze Status",
+          "type": "status",
+          "targets": [
+            {
+              "expr": "count by(asset_id)(rwa_asset_frozen)"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Asset Valuation Trends",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "avg(rwa_asset_value_usd) by (asset_type)"
+            }
+          ],
+          "unit": "short"
+        },
+        {
+          "id": 9,
+          "title": "Compliance Status",
+          "type": "table",
+          "targets": [
+            {
+              "expr": "rwa_asset_compliance_status"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "title": "Owner Distribution",
+          "type": "piechart",
+          "targets": [
+            {
+              "expr": "count by(owner_type) (rwa_asset_owner)"
+            }
+          ]
+        }
+      ],
+      "refresh": "30s",
+      "timeRange": "last_7d"
+    }
+  ],
+  "alertRules": [
+    {
+      "id": 1,
+      "name": "NetworkHealthCritical",
+      "condition": "blockchain_network_health_score < 95",
+      "for": "2m",
+      "severity": "critical",
+      "message": "Network health at {{ $value }}%"
+    },
+    {
+      "id": 2,
+      "name": "NodeOffline",
+      "condition": "up{job=\"blockchain-node\"} == 0",
+      "for": "5m",
+      "severity": "critical",
+      "message": "Node {{ $labels.instance }} is offline"
+    },
+    {
+      "id": 3,
+      "name": "HighLatency",
+      "condition": "avg(blockchain_network_latency_ms) > 500",
+      "for": "5m",
+      "severity": "critical",
+      "message": "Average network latency {{ $value }}ms"
+    },
+    {
+      "id": 4,
+      "name": "ConsensusFailure",
+      "condition": "blockchain_consensus_round_duration_ms > 60000",
+      "for": "3m",
+      "severity": "critical",
+      "message": "Consensus round time {{ $value }}ms"
+    },
+    {
+      "id": 5,
+      "name": "HighMemoryUsage",
+      "condition": "jvm_memory_used_bytes{area=\"heap\"} / jvm_memory_max_bytes{area=\"heap\"} > 0.95",
+      "for": "2m",
+      "severity": "critical",
+      "message": "Heap memory usage {{ $value }}%"
+    },
+    {
+      "id": 6,
+      "name": "DiskSpaceCritical",
+      "condition": "(1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) > 0.90",
+      "for": "5m",
+      "severity": "critical",
+      "message": "Disk space usage {{ $value }}%"
+    },
+    {
+      "id": 7,
+      "name": "APIErrorRateHigh",
+      "condition": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) > 0.05",
+      "for": "3m",
+      "severity": "critical",
+      "message": "API error rate {{ $value }}%"
+    },
+    {
+      "id": 8,
+      "name": "ValidatorSlashing",
+      "condition": "increase(validator_slashing_events_total[1h]) > 3",
+      "for": "1m",
+      "severity": "critical",
+      "message": "{{ $value }} validators slashed in 1 hour"
+    }
+  ],
+  "metadata": {
+    "createdDate": "2025-11-05",
+    "totalDashboards": 5,
+    "totalPanels": 49,
+    "totalAlerts": 24,
+    "status": "ready-for-deployment"
+  }
+}

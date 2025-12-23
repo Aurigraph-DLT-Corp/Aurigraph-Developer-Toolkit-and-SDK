@@ -1,0 +1,367 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------< io.aurigraph:aurigraph-v11-standalone >----------------
+[INFO] Building aurigraph-v11-standalone 11.4.3
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.4.1:enforce (enforce-banned-dependencies) @ aurigraph-v11-standalone ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.dependency.BannedDependencies passed
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (prepare-agent) @ aurigraph-v11-standalone ---
+[INFO] argLine set to -javaagent:/Users/subbujois/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar=destfile=/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ aurigraph-v11-standalone ---
+[INFO] Copying 33 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- quarkus:3.28.2:generate-code (default) @ aurigraph-v11-standalone ---
+[WARNING] [io.smallrye.config] SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+[WARNING] [io.smallrye.config] SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+[INFO] [io.quarkus.grpc.codegen.GrpcCodeGen] Successfully finished generating and post-processing sources from proto files
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ aurigraph-v11-standalone ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 684 source files with javac [debug parameters release 21] to target/classes
+[INFO] /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/bridge/adapters/EthereumAdapter.java: Some input files use or override a deprecated API.
+[INFO] /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/bridge/adapters/EthereumAdapter.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/TransactionService.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/TransactionService.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- quarkus:3.28.2:generate-code-tests (default) @ aurigraph-v11-standalone ---
+[WARNING] [io.smallrye.config] SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+[WARNING] [io.smallrye.config] SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ aurigraph-v11-standalone ---
+[INFO] Copying 5 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ aurigraph-v11-standalone ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 48 source files with javac [debug parameters release 21] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ aurigraph-v11-standalone ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+2025-10-25 09:00:22,370 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:22,370 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:24,109 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:24,109 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:24,252 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:24,252 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:24,937 WARN  [io.qua.config] (build-6) The "quarkus.datasource.jdbc.enable-metrics" config property is deprecated and should not be used anymore.
+2025-10-25 09:00:25,010 INFO  [io.qua.sma.jwt.dep.SmallryeJwtDevModeProcessor] (build-29) The smallrye-jwt extension has configured an in-memory key pair, which is not enabled in production. Please ensure the correct keys/locations are set in production to avoid potential issues.
+2025-10-25 09:00:26,272 WARN  [io.qua.config] (build-29) Unrecognized configuration file /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties.clean2 found; Please, check if your are providing the proper extension to load the file
+2025-10-25 09:00:26,446 INFO  [org.tes.DockerClientFactory] (build-17) Testcontainers version: 1.21.3
+2025-10-25 09:00:26,748 INFO  [org.tes.doc.DockerClientProviderStrategy] (build-17) Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+2025-10-25 09:00:26,761 INFO  [org.tes.doc.DockerMachineClientProviderStrategy] (build-17) docker-machine executable was not found on PATH ([/opt/homebrew/opt/openjdk@21/bin, /Users/subbujois/.jbang/bin, /Users/subbujois/.nvm/versions/node/v22.18.0/bin, /usr/local/bin, /System/Cryptexes/App/usr/bin, /usr/bin, /bin, /usr/sbin, /sbin, /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin, /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin, /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin, /Library/Apple/usr/bin, /opt/homebrew/bin, /Users/subbujois/.sdkman/candidates/java/current/bin, /opt/homebrew/opt/openjdk@21/bin, /Users/subbujois/.jbang/bin, /Users/subbujois/.local/bin, /Users/subbujois/.nvm/versions/node/v22.18.0/bin, /Users/subbujois/.cargo/bin, /Users/subbujois/.vscode/extensions/ms-python.debugpy-2025.14.1-darwin-arm64/bundled/scripts/noConfigScripts, /Users/subbujois/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand])
+2025-10-25 09:00:26,762 ERROR [org.tes.doc.DockerClientProviderStrategy] (build-17) Could not find a valid Docker environment. Please check configuration. Attempted configurations were:
+	UnixSocketClientProviderStrategy: failed with exception InvalidConfigurationException (Could not find unix domain socket). Root cause NoSuchFileException (/var/run/docker.sock)
+	DockerDesktopClientProviderStrategy: failed with exception NullPointerException (Cannot invoke "java.nio.file.Path.toString()" because the return value of "org.testcontainers.dockerclient.DockerDesktopClientProviderStrategy.getSocketPath()" is null)As no valid configuration was found, execution cannot continue.
+See https://java.testcontainers.org/on_failure.html for more details.
+2025-10-25 09:00:26,795 WARN  [io.qua.dep.uti.ContainerRuntimeUtil] (build-17) quarkus.native.container-runtime config property must be set to either podman or docker and the executable must be available. Ignoring it.
+2025-10-25 09:00:26,834 WARN  [io.qua.kaf.cli.dep.DevServicesKafkaProcessor] (build-17) Docker isn't working, please configure the Kafka bootstrap servers property (kafka.bootstrap.servers).
+2025-10-25 09:00:26,834 WARN  [io.qua.red.dep.cli.DevServicesRedisProcessor] (build-29) Please configure quarkus.redis.hosts for default redis client or get a working docker instance
+2025-10-25 09:00:28,994 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:28,994 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+[INFO] Running io.aurigraph.v11.ai.OnlineLearningServiceTest
+2025-10-25 09:00:29,694 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:29,694 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:30,110 INFO  [org.hib.jpa.int.uti.LogHelper] (main) HHH000204: Processing PersistenceUnitInfo [name: <default>]
+2025-10-25 09:00:30,365 INFO  [org.hib.Version] (main) HHH000412: Hibernate ORM core version 7.1.2.Final
+2025-10-25 09:00:30,619 INFO  [org.hib.orm.con.pooling] (main) HHH10001005: Database info:
+	Database JDBC URL [undefined/unknown]
+	Database driver: undefined/unknown
+	Database dialect: PostgreSQLDialect
+	Database version: 13.0
+	Default catalog/schema: unknown/unknown
+	Autocommit mode: undefined/unknown
+	Isolation level: <unknown>
+	JDBC fetch size: undefined/unknown
+	Pool: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-10-25 09:00:30,815 INFO  [io.und.websockets] (main) UT026003: Adding annotated server endpoint class io.aurigraph.v11.portal.EnterprisePortalService for path /api/v11/portal/websocket
+2025-10-25 09:00:30,822 INFO  [io.und.websockets] (main) UT026003: Adding annotated server endpoint class io.aurigraph.v11.websocket.ChannelWebSocket for path /ws/channels
+2025-10-25 09:00:30,834 INFO  [org.hib.val.int.uti.Version] (main) HV000001: Hibernate Validator 9.0.1.Final
+2025-10-25 09:00:31,306 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:31,306 WARN  [io.sma.config] (main) SRCFG01007: Duplicate value found for name : %dev.quarkus.log.category."io.aurigraph".level, config source name : PropertiesConfigSource[source=file:/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/classes/application.properties], (old value : DEBUG)
+2025-10-25 09:00:31,360 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.jpa.format_sql" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,360 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.flyway.repair-on-migrate" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,360 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.jpa.dialect" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,361 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.http.cors" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,361 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.jpa.properties."hibernate.generate_statistics"" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,361 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.grpc.server.enabled" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,361 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.datasource.min-size" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,361 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.jpa.hibernate.ddl-generation" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,361 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.datasource.max-size" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,362 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.jpa.show_sql" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-10-25 09:00:31,363 WARN  [io.qua.config] (main) The "quarkus.hibernate-orm.database.generation" config property is deprecated and should not be used anymore.
+2025-10-25 09:00:31,363 WARN  [io.qua.config] (main) The "quarkus.log.file.enable" config property is deprecated and should not be used anymore.
+2025-10-25 09:00:31,363 WARN  [io.qua.config] (main) The "quarkus.log.console.json" config property is deprecated and should not be used anymore.
+2025-10-25 09:00:31,363 WARN  [io.qua.config] (main) The "quarkus.smallrye-health.ui.enable" config property is deprecated and should not be used anymore.
+2025-10-25 09:00:31,363 WARN  [io.qua.config] (main) The "quarkus.log.console.enable" config property is deprecated and should not be used anymore.
+{"timestamp":"2025-10-25T03:30:32.101386Z","sequence":6767,"loggerClassName":"org.slf4j.impl.Slf4jLogger","loggerName":"org.flywaydb.core.FlywayExecutor","level":"INFO","message":"Database: jdbc:postgresql://localhost:5432/aurigraph_test (PostgreSQL 16.10)","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:32.137057Z","sequence":6768,"loggerClassName":"org.slf4j.impl.Slf4jLogger","loggerName":"org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory","level":"INFO","message":"Schema history table \"public\".\"flyway_schema_history\" does not exist yet","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:32.13958Z","sequence":6769,"loggerClassName":"org.slf4j.impl.Slf4jLogger","loggerName":"org.flywaydb.core.internal.command.DbValidate","level":"INFO","message":"Successfully validated 1 migration (execution time 00:00.013s)","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:32.152259Z","sequence":6770,"loggerClassName":"org.slf4j.impl.Slf4jLogger","loggerName":"org.flywaydb.core.Flyway","level":"INFO","message":"All configured schemas are empty; baseline operation skipped. A baseline or migration script with a lower version than the baseline version may execute if available. Check the Schemas parameter if this is not intended.","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:32.155184Z","sequence":6771,"loggerClassName":"org.slf4j.impl.Slf4jLogger","loggerName":"org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory","level":"INFO","message":"Creating Schema History table \"public\".\"flyway_schema_history\" ...","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+[ERROR] Tests run: 23, Failures: 0, Errors: 1, Skipped: 22, Time elapsed: 11.90 s <<< FAILURE! -- in io.aurigraph.v11.ai.OnlineLearningServiceTest
+[ERROR] io.aurigraph.v11.ai.OnlineLearningServiceTest.testServiceInitialization -- Time elapsed: 0.005 s <<< ERROR!
+java.lang.RuntimeException: java.lang.RuntimeException: Failed to start quarkus
+	at io.quarkus.test.junit.QuarkusTestExtension.throwBootFailureException(QuarkusTestExtension.java:666)
+	at io.quarkus.test.junit.QuarkusTestExtension.interceptTestClassConstructor(QuarkusTestExtension.java:761)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.RuntimeException: Failed to start quarkus
+	at io.quarkus.runner.ApplicationImpl.doStart(Unknown Source)
+	at io.quarkus.runtime.Application.start(Application.java:101)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at io.quarkus.runner.bootstrap.StartupActionImpl.run(StartupActionImpl.java:351)
+	at io.quarkus.test.junit.QuarkusTestExtension.doJavaStart(QuarkusTestExtension.java:232)
+	at io.quarkus.test.junit.QuarkusTestExtension.ensureStarted(QuarkusTestExtension.java:640)
+	at io.quarkus.test.junit.QuarkusTestExtension.beforeAll(QuarkusTestExtension.java:685)
+	... 1 more
+Caused by: org.flywaydb.core.internal.sqlscript.FlywaySqlScriptException: Failed to execute script 
+-------------------------
+SQL State  : 42501
+Error Code : 0
+Message    : ERROR: permission denied for schema public
+  Position: 14
+Location   :  ()
+Line       : 1
+Statement  : Run Flyway with -X option to see the actual statement causing the problem
+
+	at org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor.handleException(DefaultSqlScriptExecutor.java:256)
+	at org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor.executeStatement(DefaultSqlScriptExecutor.java:217)
+	at org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor.execute(DefaultSqlScriptExecutor.java:137)
+	at org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory$1$1.call(JdbcTableSchemaHistory.java:124)
+	at org.flywaydb.core.internal.jdbc.TransactionalExecutionTemplate.execute(TransactionalExecutionTemplate.java:59)
+	at org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory$1.call(JdbcTableSchemaHistory.java:120)
+	at org.flywaydb.database.postgresql.PostgreSQLAdvisoryLockTemplate.execute(PostgreSQLAdvisoryLockTemplate.java:77)
+	at org.flywaydb.database.postgresql.PostgreSQLAdvisoryLockTemplate.lambda$execute$0(PostgreSQLAdvisoryLockTemplate.java:60)
+	at org.flywaydb.core.internal.jdbc.TransactionalExecutionTemplate.execute(TransactionalExecutionTemplate.java:59)
+	at org.flywaydb.database.postgresql.PostgreSQLAdvisoryLockTemplate.execute(PostgreSQLAdvisoryLockTemplate.java:60)
+	at org.flywaydb.database.postgresql.PostgreSQLConnection.lock(PostgreSQLConnection.java:105)
+	at org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory.create(JdbcTableSchemaHistory.java:110)
+	at org.flywaydb.core.Flyway.lambda$migrate$3(Flyway.java:243)
+	at org.flywaydb.core.FlywayExecutor.execute(FlywayExecutor.java:212)
+	at org.flywaydb.core.Flyway.migrate(Flyway.java:187)
+	at io.quarkus.flyway.runtime.FlywayRecorder.doStartActions(FlywayRecorder.java:150)
+	at io.quarkus.runner.recorded.FlywayProcessor$startActions1575138505.deploy_0(Unknown Source)
+	at io.quarkus.runner.recorded.FlywayProcessor$startActions1575138505.deploy(Unknown Source)
+	... 8 more
+Caused by: org.postgresql.util.PSQLException: ERROR: permission denied for schema public
+  Position: 14
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2736)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2421)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:372)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:525)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:435)
+	at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:357)
+	at org.postgresql.jdbc.PgStatement.executeCachedSql(PgStatement.java:342)
+	at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:318)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:313)
+	at io.agroal.pool.wrapper.StatementWrapper.execute(StatementWrapper.java:222)
+	at org.flywaydb.core.internal.jdbc.JdbcTemplate.executeStatement(JdbcTemplate.java:215)
+	at org.flywaydb.core.internal.sqlscript.ParsedSqlStatement.execute(ParsedSqlStatement.java:88)
+	at org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor.executeStatement(DefaultSqlScriptExecutor.java:212)
+	... 24 more
+
+[INFO] Running io.aurigraph.v11.api.Phase1EndpointsTest
+[WARNING] Tests run: 20, Failures: 0, Errors: 0, Skipped: 20, Time elapsed: 0.009 s -- in io.aurigraph.v11.api.Phase1EndpointsTest
+[INFO] Running io.aurigraph.v11.api.Phase2EndpointsTest
+[WARNING] Tests run: 18, Failures: 0, Errors: 0, Skipped: 18, Time elapsed: 0.012 s -- in io.aurigraph.v11.api.Phase2EndpointsTest
+[INFO] Running io.aurigraph.v11.bridge.EthereumBridgeServiceTest
+[WARNING] Tests run: 44, Failures: 0, Errors: 0, Skipped: 44, Time elapsed: 0.013 s -- in io.aurigraph.v11.bridge.EthereumBridgeServiceTest
+[INFO] Running io.aurigraph.v11.bridge.adapters.AvalancheAdapterTest
+[WARNING] Tests run: 22, Failures: 0, Errors: 0, Skipped: 22, Time elapsed: 0.012 s -- in io.aurigraph.v11.bridge.adapters.AvalancheAdapterTest
+[INFO] Running io.aurigraph.v11.bridge.adapters.BSCAdapterTest
+[WARNING] Tests run: 22, Failures: 0, Errors: 0, Skipped: 22, Time elapsed: 0.005 s -- in io.aurigraph.v11.bridge.adapters.BSCAdapterTest
+[INFO] Running io.aurigraph.v11.bridge.adapters.CosmosAdapterTest
+[WARNING] Tests run: 25, Failures: 0, Errors: 0, Skipped: 25, Time elapsed: 0.028 s -- in io.aurigraph.v11.bridge.adapters.CosmosAdapterTest
+[INFO] Running io.aurigraph.v11.bridge.adapters.EthereumAdapterTest
+[WARNING] Tests run: 18, Failures: 0, Errors: 0, Skipped: 18, Time elapsed: 0.035 s -- in io.aurigraph.v11.bridge.adapters.EthereumAdapterTest
+[INFO] Running io.aurigraph.v11.bridge.adapters.PolkadotAdapterTest
+[WARNING] Tests run: 25, Failures: 0, Errors: 0, Skipped: 25, Time elapsed: 0.005 s -- in io.aurigraph.v11.bridge.adapters.PolkadotAdapterTest
+[INFO] Running io.aurigraph.v11.bridge.adapters.PolygonAdapterTest
+[WARNING] Tests run: 21, Failures: 0, Errors: 0, Skipped: 21, Time elapsed: 0.006 s -- in io.aurigraph.v11.bridge.adapters.PolygonAdapterTest
+[INFO] Running io.aurigraph.v11.bridge.adapters.SolanaAdapterTest
+[WARNING] Tests run: 19, Failures: 0, Errors: 0, Skipped: 19, Time elapsed: 0.014 s -- in io.aurigraph.v11.bridge.adapters.SolanaAdapterTest
+[INFO] Running io.aurigraph.v11.consensus.HyperRAFTConsensusServiceTest
+[WARNING] Tests run: 15, Failures: 0, Errors: 0, Skipped: 15, Time elapsed: 0.036 s -- in io.aurigraph.v11.consensus.HyperRAFTConsensusServiceTest
+[INFO] Running io.aurigraph.v11.consensus.LogReplicationTest
+[WARNING] Tests run: 24, Failures: 0, Errors: 0, Skipped: 24, Time elapsed: 0.004 s -- in io.aurigraph.v11.consensus.LogReplicationTest
+[INFO] Running io.aurigraph.v11.consensus.RaftLeaderElectionTest
+[WARNING] Tests run: 21, Failures: 0, Errors: 0, Skipped: 21, Time elapsed: 0.004 s -- in io.aurigraph.v11.consensus.RaftLeaderElectionTest
+[INFO] Running io.aurigraph.v11.contracts.SmartContractServiceTest
+[WARNING] Tests run: 75, Failures: 0, Errors: 0, Skipped: 75, Time elapsed: 0.012 s -- in io.aurigraph.v11.contracts.SmartContractServiceTest
+[INFO] Running io.aurigraph.v11.crypto.DilithiumSignatureServiceTest
+[INFO] Running io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$MetricsTests
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.001 s -- in io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$MetricsTests
+[INFO] Running io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$ConcurrencyTests
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.001 s -- in io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$ConcurrencyTests
+[INFO] Running io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$ErrorHandlingTests
+[WARNING] Tests run: 6, Failures: 0, Errors: 0, Skipped: 6, Time elapsed: 0.004 s -- in io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$ErrorHandlingTests
+[INFO] Running io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$SignatureOperationTests
+[WARNING] Tests run: 7, Failures: 0, Errors: 0, Skipped: 7, Time elapsed: 0.042 s -- in io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$SignatureOperationTests
+[INFO] Running io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$InitializationTests
+[WARNING] Tests run: 6, Failures: 0, Errors: 0, Skipped: 6, Time elapsed: 0.004 s -- in io.aurigraph.v11.crypto.DilithiumSignatureServiceTest$InitializationTests
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.066 s -- in io.aurigraph.v11.crypto.DilithiumSignatureServiceTest
+[INFO] Running io.aurigraph.v11.crypto.HSMCryptoTest
+[INFO] Running io.aurigraph.v11.crypto.HSMCryptoTest$FIPSComplianceTests
+[WARNING] Tests run: 3, Failures: 0, Errors: 0, Skipped: 3, Time elapsed: 0.001 s -- in io.aurigraph.v11.crypto.HSMCryptoTest$FIPSComplianceTests
+[INFO] Running io.aurigraph.v11.crypto.HSMCryptoTest$KeyRotationTests
+[WARNING] Tests run: 5, Failures: 0, Errors: 0, Skipped: 5, Time elapsed: 0.002 s -- in io.aurigraph.v11.crypto.HSMCryptoTest$KeyRotationTests
+[INFO] Running io.aurigraph.v11.crypto.HSMCryptoTest$KeyStorageTests
+[WARNING] Tests run: 4, Failures: 0, Errors: 0, Skipped: 4, Time elapsed: 0.002 s -- in io.aurigraph.v11.crypto.HSMCryptoTest$KeyStorageTests
+{"timestamp":"2025-10-25T03:30:42.013979Z","sequence":6772,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.HSMCryptoTest","level":"INFO","message":"HSM Crypto Service test suite completed successfully","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.014159Z","sequence":6773,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.HSMCryptoTest","level":"INFO","message":"Total tests: 10 | Coverage: Key storage, rotation, FIPS compliance","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.014227Z","sequence":6774,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.HSMCryptoTest","level":"INFO","message":"Note: Tests executed in software fallback mode (HSM hardware not configured)","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.067 s -- in io.aurigraph.v11.crypto.HSMCryptoTest
+[INFO] Running io.aurigraph.v11.crypto.KyberKeyEncapsulationTest
+[INFO] Running io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$PerformanceBenchmarkTests
+[WARNING] Tests run: 3, Failures: 0, Errors: 0, Skipped: 3, Time elapsed: 0.001 s -- in io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$PerformanceBenchmarkTests
+[INFO] Running io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$ErrorHandlingTests
+[WARNING] Tests run: 5, Failures: 0, Errors: 0, Skipped: 5, Time elapsed: 0.001 s -- in io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$ErrorHandlingTests
+[INFO] Running io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$EncapsulationTests
+[WARNING] Tests run: 8, Failures: 0, Errors: 0, Skipped: 8, Time elapsed: 0.003 s -- in io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$EncapsulationTests
+[INFO] Running io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$KeyGenerationTests
+[WARNING] Tests run: 8, Failures: 0, Errors: 0, Skipped: 8, Time elapsed: 0.003 s -- in io.aurigraph.v11.crypto.KyberKeyEncapsulationTest$KeyGenerationTests
+{"timestamp":"2025-10-25T03:30:42.052403Z","sequence":6775,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.KyberKeyEncapsulationTest","level":"INFO","message":"Kyber Key Encapsulation Mechanism test suite completed successfully","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.052584Z","sequence":6776,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.KyberKeyEncapsulationTest","level":"INFO","message":"Total tests: 20 | Coverage: Kyber-512, Kyber-768, Kyber-1024","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.052648Z","sequence":6777,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.KyberKeyEncapsulationTest","level":"INFO","message":"NIST Level 5 (Kyber-1024) compliance validated","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in io.aurigraph.v11.crypto.KyberKeyEncapsulationTest
+[INFO] Running io.aurigraph.v11.crypto.NISTVectorTest
+[INFO] Running io.aurigraph.v11.crypto.NISTVectorTest$NISTEdgeCases
+[WARNING] Tests run: 8, Failures: 0, Errors: 0, Skipped: 8, Time elapsed: 0.005 s -- in io.aurigraph.v11.crypto.NISTVectorTest$NISTEdgeCases
+[INFO] Running io.aurigraph.v11.crypto.NISTVectorTest$DilithiumNISTVectors
+[WARNING] Tests run: 3, Failures: 0, Errors: 0, Skipped: 3, Time elapsed: 0.001 s -- in io.aurigraph.v11.crypto.NISTVectorTest$DilithiumNISTVectors
+[INFO] Running io.aurigraph.v11.crypto.NISTVectorTest$KyberNISTVectors
+[WARNING] Tests run: 3, Failures: 0, Errors: 0, Skipped: 3, Time elapsed: 0.002 s -- in io.aurigraph.v11.crypto.NISTVectorTest$KyberNISTVectors
+{"timestamp":"2025-10-25T03:30:42.064992Z","sequence":6778,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.NISTVectorTest","level":"INFO","message":"NIST Test Vector Validation completed successfully","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.065256Z","sequence":6779,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.NISTVectorTest","level":"INFO","message":"Total tests: 10 | FIPS 203 (Kyber) + FIPS 204 (Dilithium) validated","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.065315Z","sequence":6780,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.NISTVectorTest","level":"INFO","message":"All NIST security levels (1, 3, 5) compliance verified","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in io.aurigraph.v11.crypto.NISTVectorTest
+[INFO] Running io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest
+{"timestamp":"2025-10-25T03:30:42.069059Z","sequence":6781,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"================================================================================","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.069224Z","sequence":6782,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"QUANTUM CRYPTOGRAPHY PERFORMANCE BENCHMARK SUMMARY","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.069286Z","sequence":6783,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"================================================================================","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.069335Z","sequence":6784,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"Performance Targets:","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.069379Z","sequence":6785,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"  ✓ Key Generation:     <100ms","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.069752Z","sequence":6786,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"  ✓ Encapsulation:      <50ms","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.069892Z","sequence":6787,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"  ✓ Signing:            <20ms","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.070047Z","sequence":6788,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"  ✓ Verification:       <10ms","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.070143Z","sequence":6789,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"  ✓ Throughput:         >10,000 ops/sec","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.070225Z","sequence":6790,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.070308Z","sequence":6791,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"Result: ALL PERFORMANCE TARGETS MET","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.070394Z","sequence":6792,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"Platform capability: 2M+ TPS blockchain operations validated","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+{"timestamp":"2025-10-25T03:30:42.070475Z","sequence":6793,"loggerClassName":"org.jboss.logging.Logger","loggerName":"io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest","level":"INFO","message":"================================================================================","threadName":"main","threadId":1,"mdc":{},"ndc":"","hostName":"subbus-macbook-pro.local","processName":"/Users/subbujois/.sdkman/candidates/java/21-graal/bin/java","processId":45009}
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in io.aurigraph.v11.crypto.QuantumCryptoBenchmarkTest
+[INFO] Running io.aurigraph.v11.crypto.QuantumCryptoServiceTest
+QuantumCryptoService test suite completed successfully
+All quantum-resistant cryptographic operations validated
+[WARNING] Tests run: 12, Failures: 0, Errors: 0, Skipped: 12, Time elapsed: 0.005 s -- in io.aurigraph.v11.crypto.QuantumCryptoServiceTest
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$PerformanceTests
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.001 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$PerformanceTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$ErrorHandlingTests
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.001 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$ErrorHandlingTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$PersistenceTests
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$PersistenceTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$DeleteDemoTests
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$DeleteDemoTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$DemoTransactionTests
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.001 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$DemoTransactionTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$DemoLifecycleTests
+[WARNING] Tests run: 4, Failures: 0, Errors: 0, Skipped: 4, Time elapsed: 0.002 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$DemoLifecycleTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$UpdateDemoTests
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.001 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$UpdateDemoTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$ReadDemoTests
+[WARNING] Tests run: 4, Failures: 0, Errors: 0, Skipped: 4, Time elapsed: 0.002 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$ReadDemoTests
+[INFO] Running io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$CreateDemoTests
+[WARNING] Tests run: 3, Failures: 0, Errors: 0, Skipped: 3, Time elapsed: 0.001 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest$CreateDemoTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in io.aurigraph.v11.demo.api.DemoResourceIntegrationTest
+[INFO] Running io.aurigraph.v11.execution.ParallelTransactionExecutorTest
+[WARNING] Tests run: 65, Failures: 0, Errors: 0, Skipped: 65, Time elapsed: 0.014 s -- in io.aurigraph.v11.execution.ParallelTransactionExecutorTest
+[INFO] Running io.aurigraph.v11.governance.GovernanceServiceTest
+[WARNING] Tests run: 11, Failures: 0, Errors: 0, Skipped: 11, Time elapsed: 0.003 s -- in io.aurigraph.v11.governance.GovernanceServiceTest
+[INFO] Running io.aurigraph.v11.grpc.HighPerformanceGrpcServiceTest
+[WARNING] Tests run: 33, Failures: 0, Errors: 0, Skipped: 33, Time elapsed: 0.017 s -- in io.aurigraph.v11.grpc.HighPerformanceGrpcServiceTest
+[INFO] Running io.aurigraph.v11.integration.EndpointIntegrationTests
+
+================================================================================
+ENDPOINT INTEGRATION TEST SUMMARY
+================================================================================
+Total Test Cases: 0
+================================================================================
+[WARNING] Tests run: 63, Failures: 0, Errors: 0, Skipped: 63, Time elapsed: 0.054 s -- in io.aurigraph.v11.integration.EndpointIntegrationTests
+[INFO] Running io.aurigraph.v11.integration.PerformanceTests
+
+================================================================================
+PERFORMANCE TEST REPORT
+================================================================================
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.001 s <<< FAILURE! -- in io.aurigraph.v11.integration.PerformanceTests
+[ERROR] io.aurigraph.v11.integration.PerformanceTests -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.NullPointerException: Cannot read field "totalRequests" because "io.aurigraph.v11.integration.PerformanceTests.overallMetrics" is null
+	at io.aurigraph.v11.integration.PerformanceTests.printPerformanceReport(PerformanceTests.java:71)
+	at io.aurigraph.v11.integration.PerformanceTests.tearDownPerformanceTests(PerformanceTests.java:64)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at io.quarkus.test.junit.QuarkusTestExtension.interceptAfterAllMethod(QuarkusTestExtension.java:919)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.Collections$UnmodifiableCollection.forEach(Collections.java:1116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: org.opentest4j.TestAbortedException: Boot failed
+		at io.quarkus.test.junit.QuarkusTestExtension.throwBootFailureException(QuarkusTestExtension.java:668)
+		at io.quarkus.test.junit.QuarkusTestExtension.interceptBeforeAllMethod(QuarkusTestExtension.java:733)
+		... 1 more
+	Suppressed: [CIRCULAR REFERENCE: org.opentest4j.TestAbortedException: Boot failed]
+
+[INFO] Running io.aurigraph.v11.monitoring.NetworkMonitoringServiceTest
+[WARNING] Tests run: 22, Failures: 0, Errors: 0, Skipped: 22, Time elapsed: 0.003 s -- in io.aurigraph.v11.monitoring.NetworkMonitoringServiceTest
+[INFO] Running io.aurigraph.v11.monitoring.SystemMonitoringServiceTest
+[WARNING] Tests run: 33, Failures: 0, Errors: 0, Skipped: 33, Time elapsed: 0.003 s -- in io.aurigraph.v11.monitoring.SystemMonitoringServiceTest
+[INFO] Running io.aurigraph.v11.performance.Phase4AOptimizationTest
+[WARNING] Tests run: 8, Failures: 0, Errors: 0, Skipped: 8, Time elapsed: 0.001 s -- in io.aurigraph.v11.performance.Phase4AOptimizationTest
+[INFO] Running io.aurigraph.v11.portal.EnterprisePortalServiceTest
+[WARNING] Tests run: 52, Failures: 0, Errors: 0, Skipped: 52, Time elapsed: 0.005 s -- in io.aurigraph.v11.portal.EnterprisePortalServiceTest
+[INFO] Running io.aurigraph.v11.ComprehensiveApiEndpointTest
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in io.aurigraph.v11.ComprehensiveApiEndpointTest
+[INFO] Running io.aurigraph.v11.PerformanceOptimizationTest
+[WARNING] Tests run: 8, Failures: 0, Errors: 0, Skipped: 8, Time elapsed: 0 s -- in io.aurigraph.v11.PerformanceOptimizationTest
+[INFO] Running io.aurigraph.v11.ai.AnomalyDetectionServiceTest
+[WARNING] Tests run: 18, Failures: 0, Errors: 0, Skipped: 18, Time elapsed: 0 s -- in io.aurigraph.v11.ai.AnomalyDetectionServiceTest
+[INFO] Running io.aurigraph.v11.ai.MLIntegrationTest
+[WARNING] Tests run: 10, Failures: 0, Errors: 0, Skipped: 10, Time elapsed: 0 s -- in io.aurigraph.v11.ai.MLIntegrationTest
+[INFO] Running io.aurigraph.v11.ai.MLLoadBalancerTest
+[WARNING] Tests run: 18, Failures: 0, Errors: 0, Skipped: 18, Time elapsed: 0 s -- in io.aurigraph.v11.ai.MLLoadBalancerTest
+[INFO] Running io.aurigraph.v11.ai.PredictiveTransactionOrderingTest
+[WARNING] Tests run: 30, Failures: 0, Errors: 0, Skipped: 30, Time elapsed: 0.015 s -- in io.aurigraph.v11.ai.PredictiveTransactionOrderingTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   OnlineLearningServiceTest.testServiceInitialization » Runtime java.lang.RuntimeException: Failed to start quarkus
+[ERROR]   PerformanceTests.tearDownPerformanceTests:64->printPerformanceReport:71 NullPointer Cannot read field "totalRequests" because "io.aurigraph.v11.integration.PerformanceTests.overallMetrics" is null
+[INFO] 
+[ERROR] Tests run: 872, Failures: 0, Errors: 2, Skipped: 870
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  43.879 s
+[INFO] Finished at: 2025-10-25T09:00:42+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.3:test (default-test) on project aurigraph-v11-standalone: 
+[ERROR] 
+[ERROR] See /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

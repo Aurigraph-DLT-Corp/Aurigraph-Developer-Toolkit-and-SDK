@@ -8,24 +8,12 @@ export type AssetCategory =
   | 'real_estate'
   | 'commodities'
   | 'art'
-  | 'digital_art'           // NFTs, digital art, digital collectibles
   | 'carbon_credits'
   | 'bonds'
   | 'equities'
   | 'precious_metals'
   | 'collectibles'
-  | 'intellectual_property' // Patents, trademarks, copyrights
-  | 'patent'                // Patents and registered inventions
-  | 'trademark'             // Trademarks and service marks
-  | 'copyright'             // Copyrights and literary works
-  | 'nft'                   // Non-fungible tokens
-  // Banking & Trade Finance
-  | 'trade_finance'         // Letters of credit, trade receivables
-  | 'deposits'              // Bank deposits, certificates of deposit
-  | 'loans'                 // Commercial loans, mortgages
-  | 'invoice_factoring'     // Invoice financing, factoring
-  | 'supply_chain_finance'  // Supply chain financing
-  | 'treasury'              // Treasury instruments
+  | 'intellectual_property'
   | 'other';
 
 export interface RealWorldAsset {

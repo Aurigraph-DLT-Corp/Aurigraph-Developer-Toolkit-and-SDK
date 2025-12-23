@@ -18,12 +18,12 @@ import java.util.*;
  * Security Audit API Resource
  *
  * Provides security audit operations:
- * - GET /api/v12/security/audit-logs - Security audit trail
+ * - GET /api/v11/security/audit-logs - Security audit trail
  *
  * @version 11.0.0
  * @author Security & Cryptography Agent (SCA)
  */
-@Path("/api/v12/security")
+@Path("/api/v11/security")
 @ApplicationScoped
 @Tag(name = "Security Audit API", description = "Security audit logs and monitoring")
 @Produces(MediaType.APPLICATION_JSON)
@@ -35,7 +35,7 @@ public class SecurityAuditApiResource {
     // ==================== ENDPOINT 8: Security Audit Logs ====================
 
     /**
-     * GET /api/v12/security/audit-logs
+     * GET /api/v11/security/audit-logs
      * Get security audit trail
      */
     @GET
@@ -100,7 +100,7 @@ public class SecurityAuditApiResource {
                         log.details.put("location", "US-East");
                         break;
                     case "ACCESS_DENIED":
-                        log.details.put("resource", "/api/v12/admin/config");
+                        log.details.put("resource", "/api/v11/admin/config");
                         log.details.put("required_role", "ADMIN");
                         log.details.put("user_role", "USER");
                         break;

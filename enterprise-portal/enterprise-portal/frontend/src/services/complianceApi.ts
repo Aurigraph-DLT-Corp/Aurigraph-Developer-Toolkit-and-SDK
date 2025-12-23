@@ -81,20 +81,11 @@ export interface ComplianceReport {
   };
 }
 
-// Helper to get production-safe base URL
-const getProductionBaseURL = (): string => {
-  const isProduction = typeof window !== 'undefined' &&
-    (window.location.hostname === 'dlt.aurigraph.io' || window.location.protocol === 'https:');
-  return isProduction
-    ? 'https://dlt.aurigraph.io/api/v11'
-    : (import.meta.env.VITE_API_URL || 'http://localhost:9003') + '/api/v11';
-};
-
 class ComplianceApiService {
   private apiClient: AxiosInstance;
   private baseURL: string;
 
-  constructor(baseURL: string = getProductionBaseURL()) {
+  constructor(baseURL: string = 'http://localhost:9003/api/v11') {
     this.baseURL = baseURL;
     this.apiClient = axios.create({
       baseURL: this.baseURL,

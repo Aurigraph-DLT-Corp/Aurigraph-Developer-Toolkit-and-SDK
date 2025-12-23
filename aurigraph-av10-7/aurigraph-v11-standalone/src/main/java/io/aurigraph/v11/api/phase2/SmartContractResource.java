@@ -19,7 +19,7 @@ import java.util.*;
  * @version 11.0.0
  * @since Sprint 18
  */
-@Path("/api/v12/blockchain")
+@Path("/api/v11/blockchain")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SmartContractResource {
@@ -28,7 +28,7 @@ public class SmartContractResource {
 
     /**
      * Deploy smart contract
-     * POST /api/v12/blockchain/contracts/deploy
+     * POST /api/v11/blockchain/contracts/deploy
      */
     @POST
     @Path("/contracts/deploy")
@@ -49,7 +49,7 @@ public class SmartContractResource {
 
     /**
      * Test smart contract
-     * POST /api/v12/blockchain/contracts/{address}/test
+     * POST /api/v11/blockchain/contracts/{address}/test
      */
     @POST
     @Path("/contracts/{address}/test")
@@ -76,7 +76,7 @@ public class SmartContractResource {
 
     /**
      * Get contract IDE templates
-     * GET /api/v12/blockchain/contracts/templates
+     * GET /api/v11/blockchain/contracts/templates
      */
     @GET
     @Path("/contracts/templates")

@@ -1,0 +1,225 @@
+@startuml Aurigraph_Enterprise_Portal_Component
+title Enterprise Portal v4.5.0 - Component Diagram
+
+skinparam linetype ortho
+
+package "Browser / Client" {
+    component "React Application" as React {
+        component "Login Page" as LoginPage
+        component "Dashboard" as Dashboard
+        component "Transaction Monitor" as TxMonitor
+        component "Metrics Viewer" as MetricsViewer
+        component "Smart Contract UI" as ContractUI
+        component "Cross-Chain Bridge UI" as BridgeUI
+        component "RWAT Registry" as RWATPortal
+    }
+
+    component "State Management" as Redux {
+        component "Auth Slice" as AuthSlice
+        component "App Slice" as AppSlice
+        component "Live Data Slice" as LiveDataSlice
+        component "Settings Slice" as SettingsSlice
+    }
+
+    component "Services Layer" as Services {
+        component "Auth Service" as AuthService
+        component "API Client" as APIClient
+        component "WebSocket Service" as WSService
+        component "Demo Service" as DemoService
+    }
+
+    component "UI Libraries" as UILibs {
+        component "Ant Design" as AntD
+        component "Material-UI" as MUI
+        component "Recharts" as Charts
+    }
+
+    component "Utilities" as Utils {
+        component "Constants" as Constants
+        component "Validators" as Validators
+        component "Formatters" as Formatters
+        component "Hooks (useAuth, useWebSocket)" as CustomHooks
+    }
+}
+
+package "HTTP/HTTPS Communication" {
+    component "API Gateway (NGINX)" as Gateway
+}
+
+package "Backend Services (V11)" {
+    component "REST API (Port 9003)" as RESTAPI {
+        component "Authentication Endpoint" as AuthEP
+        component "Transaction Endpoint" as TxEP
+        component "Consensus Endpoint" as ConsensusEP
+        component "Smart Contract Endpoint" as ContractEP
+        component "RWAT Endpoint" as RWATEP
+        component "Cross-Chain Endpoint" as BridgeEP
+    }
+
+    component "WebSocket (Port 9003)" as WSAPI {
+        component "Transaction Stream" as TxStream
+        component "Metrics Stream" as MetricsStream
+        component "Consensus Stream" as ConsensusStream
+        component "Block Stream" as BlockStream
+    }
+}
+
+package "Data Layer" {
+    component "PostgreSQL 16" as DB
+    component "RocksDB (State)" as StateDB
+    component "Redis Cache" as Cache
+}
+
+package "E2E Testing" {
+    component "Playwright" as Playwright {
+        component "Auth Tests" as AuthTests
+        component "Component Tests" as ComponentTests
+        component "WebSocket Tests" as WSTests
+        component "Visual Regression" as VisualTests
+    }
+}
+
+package "CI/CD Pipeline" {
+    component "GitHub Actions" as GHA {
+        component "Build Job" as BuildJob
+        component "Test Job" as TestJob
+        component "Deploy Job" as DeployJob
+    }
+}
+
+' Component Relationships
+
+' React to Redux
+LoginPage --> AuthSlice
+Dashboard --> AppSlice
+TxMonitor --> LiveDataSlice
+MetricsViewer --> LiveDataSlice
+
+' React to Services
+LoginPage --> AuthService
+Dashboard --> APIClient
+TxMonitor --> WSService
+MetricsViewer --> WSService
+
+' Services to HTTP
+AuthService --> Gateway
+APIClient --> Gateway
+WSService --> Gateway
+DemoService --> APIClient
+
+' HTTP to Backend
+Gateway --> RESTAPI
+Gateway --> WSAPI
+
+' Backend API endpoints
+AuthEP --> DB
+TxEP --> DB
+TxEP --> StateDB
+ConsensusEP --> DB
+ContractEP --> StateDB
+RWATEP --> DB
+BridgeEP --> DB
+
+' Backend WebSocket endpoints
+TxStream --> DB
+MetricsStream --> StateDB
+ConsensusStream --> DB
+BlockStream --> StateDB
+
+' Caching
+RESTAPI --> Cache
+WSAPI --> Cache
+
+' UI Components to UI Libraries
+LoginPage --> AntD
+Dashboard --> AntD
+Dashboard --> Charts
+TxMonitor --> AntD
+MetricsViewer --> AntD
+MetricsViewer --> Charts
+
+' Custom Hooks to Services
+CustomHooks --> AuthService
+CustomHooks --> APIClient
+CustomHooks --> WSService
+
+' Utils
+Services --> Constants
+Services --> Validators
+Services --> Formatters
+
+' E2E Testing
+Playwright --> React
+Playwright --> RESTAPI
+Playwright --> WSAPI
+
+' CI/CD
+GHA --> React
+BuildJob --> React
+TestJob --> Playwright
+DeployJob --> Gateway
+
+note right of LoginPage
+  JWT Token Storage
+  Session Management
+  Return URL handling
+  Demo account login
+end note
+
+note right of Dashboard
+  Real-time metrics
+  Transaction feed
+  Network status
+  Connected via WebSocket
+end note
+
+note right of AuthService
+  JWT token persistence
+  Token refresh
+  Automatic token injection
+  401 error handling
+end note
+
+note right of APIClient
+  Centralized API requests
+  Automatic auth header
+  Error handling
+  Retry logic
+end note
+
+note right of WSService
+  7 concurrent channels
+  Auto-reconnection
+  Exponential backoff
+  Subscription pattern
+end note
+
+note right of RESTAPI
+  REST endpoints
+  HTTP/2 support
+  Quarkus/Java 21
+  Session-based fallback
+end note
+
+note right of WSAPI
+  Real-time streaming
+  Push notifications
+  Bidirectional comms
+  Event broadcasting
+end note
+
+note right of Playwright
+  50+ test cases
+  Cross-browser testing
+  Visual regression
+  CI/CD integration
+end note
+
+note right of GHA
+  GitHub Actions
+  Auto-build on push
+  Run tests on PR
+  Deploy on main
+end note
+
+@enduml

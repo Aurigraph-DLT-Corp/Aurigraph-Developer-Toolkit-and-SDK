@@ -1,0 +1,49 @@
+==================================================
+INDIVIDUAL API & INTEGRATION TESTING SUITE
+==================================================
+Base URL: https://dlt.aurigraph.io
+Results Directory: test-results-20251010-165654
+Log File: test-results-20251010-165654/test-log.txt
+Date: Fri Oct 10 16:56:54 IST 2025
+==================================================
+
+Starting Individual API Tests...
+================================
+
+==================================================
+CATEGORY 1: CORE INFRASTRUCTURE TESTS
+==================================================
+
+==================================================
+TEST CORE-001: Health Check Endpoint
+==================================================
+Description: Verify application health status and all subsystem checks
+Method: GET
+Endpoint: /q/health
+Expected Status: 200
+Testing... [0;32m✅ PASS (HTTP 200)[0m
+Status: ✅ PASS
+HTTP Code: 200
+Health Status: 
+
+==================================================
+TEST CORE-002: Prometheus Metrics
+==================================================
+Description: Retrieve Prometheus-format metrics for monitoring
+Method: GET
+Endpoint: /q/metrics
+Expected Status: 200
+Testing... [0;32m✅ PASS (HTTP 200)[0m
+Status: ✅ PASS
+HTTP Code: 200
+
+==================================================
+TEST CORE-003: System Information
+==================================================
+Description: Get system version and configuration information
+Method: GET
+Endpoint: /api/v11/info
+Expected Status: 200
+Testing... [1;33m⚠️  NOT FOUND (HTTP 404)[0m
+Status: ⚠️  NOT FOUND
+HTTP Code: 404

@@ -1,0 +1,188 @@
+name: JIRA Build Status
+
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+  pull_request:
+    types: [opened, synchronize]
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+
+env:
+  JIRA_BASE_URL: https://aurigraphdlt.atlassian.net
+  JIRA_PROJECT_KEY: AV11
+
+jobs:
+  update-build-status:
+    name: Update JIRA Build Status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Extract JIRA Issue Key
+        id: extract
+        run: |
+          # Extract from branch name or PR title
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          PR_TITLE="${{ github.event.pull_request.title || '' }}"
+          COMMIT_MESSAGE="${{ github.event.head_commit.message || '' }}"
+          
+          # Try to find JIRA key in various places
+          for SOURCE in "$BRANCH_NAME" "$PR_TITLE" "$COMMIT_MESSAGE"; do
+            if [[ $SOURCE =~ ([Aa][Vv]11-[0-9]+) ]]; then
+              JIRA_KEY="${BASH_REMATCH[1]^^}"
+              echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+              echo "has_jira_key=true" >> $GITHUB_OUTPUT
+              echo "Found JIRA key: $JIRA_KEY"
+              break
+            fi
+          done
+          
+          if [[ -z "$JIRA_KEY" ]]; then
+            echo "has_jira_key=false" >> $GITHUB_OUTPUT
+            echo "No JIRA key found"
+          fi
+      
+      - name: Send Build Info to JIRA
+        if: steps.extract.outputs.has_jira_key == 'true'
+        run: |
+          BUILD_STATE="SUCCESSFUL"
+          if [[ "${{ job.status }}" == "failure" ]]; then
+            BUILD_STATE="FAILED"
+          elif [[ "${{ job.status }}" == "cancelled" ]]; then
+            BUILD_STATE="CANCELLED"
+          fi
+          
+          # Send build information to JIRA
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "builds": [
+                {
+                  "schemaVersion": "1.0",
+                  "pipelineId": "github-actions-${{ github.repository }}",
+                  "buildNumber": ${{ github.run_number }},
+                  "updateSequenceNumber": ${{ github.run_number }},
+                  "displayName": "Build #${{ github.run_number }}",
+                  "description": "${{ github.event.head_commit.message || github.event.pull_request.title }}",
+                  "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                  "state": "'$BUILD_STATE'",
+                  "lastUpdated": "'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'",
+                  "issueKeys": ["${{ steps.extract.outputs.jira_key }}"],
+                  "testInfo": {
+                    "totalNumber": 0,
+                    "numberPassed": 0,
+                    "numberFailed": 0,
+                    "numberSkipped": 0
+                  },
+                  "references": [
+                    {
+                      "commit": {
+                        "id": "${{ github.sha }}",
+                        "repositoryUri": "${{ github.server_url }}/${{ github.repository }}"
+                      },
+                      "ref": {
+                        "name": "${{ github.ref_name }}",
+                        "uri": "${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }' \
+            "${{ env.JIRA_BASE_URL }}/rest/builds/1.0/bulk"
+
+  update-test-results:
+    name: Update Test Results in JIRA
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          
+      - name: Run Tests and Generate Report
+        id: test
+        continue-on-error: true
+        run: |
+          ./mvnw test --fail-at-end
+          TEST_EXIT_CODE=$?
+          
+          # Parse test results
+          if [ -f target/surefire-reports/TEST-*.xml ]; then
+            TOTAL_TESTS=$(grep -o 'tests="[^"]*"' target/surefire-reports/TEST-*.xml | cut -d'"' -f2 | awk '{s+=$1} END {print s}')
+            FAILED_TESTS=$(grep -o 'failures="[^"]*"' target/surefire-reports/TEST-*.xml | cut -d'"' -f2 | awk '{s+=$1} END {print s}')
+            SKIPPED_TESTS=$(grep -o 'skipped="[^"]*"' target/surefire-reports/TEST-*.xml | cut -d'"' -f2 | awk '{s+=$1} END {print s}')
+            PASSED_TESTS=$((TOTAL_TESTS - FAILED_TESTS - SKIPPED_TESTS))
+            
+            echo "total_tests=$TOTAL_TESTS" >> $GITHUB_OUTPUT
+            echo "passed_tests=$PASSED_TESTS" >> $GITHUB_OUTPUT
+            echo "failed_tests=$FAILED_TESTS" >> $GITHUB_OUTPUT
+            echo "skipped_tests=$SKIPPED_TESTS" >> $GITHUB_OUTPUT
+          fi
+          
+          exit $TEST_EXIT_CODE
+      
+      - name: Extract JIRA Issue Key
+        id: extract
+        run: |
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          if [[ $BRANCH_NAME =~ ([Aa][Vv]11-[0-9]+) ]]; then
+            JIRA_KEY="${BASH_REMATCH[1]^^}"
+            echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+            echo "has_jira_key=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_jira_key=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Update Test Info in JIRA
+        if: steps.extract.outputs.has_jira_key == 'true'
+        run: |
+          # Update build with test information
+          curl -X PUT \
+            -H "Authorization: Bearer ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "schemaVersion": "1.0",
+              "pipelineId": "github-actions-${{ github.repository }}",
+              "buildNumber": ${{ github.run_number }},
+              "updateSequenceNumber": ${{ github.run_number }},
+              "testInfo": {
+                "totalNumber": ${{ steps.test.outputs.total_tests || 0 }},
+                "numberPassed": ${{ steps.test.outputs.passed_tests || 0 }},
+                "numberFailed": ${{ steps.test.outputs.failed_tests || 0 }},
+                "numberSkipped": ${{ steps.test.outputs.skipped_tests || 0 }}
+              }
+            }' \
+            "${{ env.JIRA_BASE_URL }}/rest/builds/1.0/bulk"
+            
+      - name: Comment Test Results on JIRA
+        if: steps.extract.outputs.has_jira_key == 'true' && steps.test.outputs.total_tests
+        uses: atlassian/gajira-comment@v3
+        env:
+          JIRA_BASE_URL: ${{ env.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: admin@aurigraph.io
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        with:
+          issue: ${{ steps.extract.outputs.jira_key }}
+          comment: |
+            🧪 **Test Results from GitHub Actions**
+            
+            Build: #${{ github.run_number }}
+            Commit: ${{ github.sha }}
+            
+            📊 **Test Summary:**
+            - ✅ Passed: ${{ steps.test.outputs.passed_tests || 0 }}
+            - ❌ Failed: ${{ steps.test.outputs.failed_tests || 0 }}
+            - ⏭️ Skipped: ${{ steps.test.outputs.skipped_tests || 0 }}
+            - 📝 Total: ${{ steps.test.outputs.total_tests || 0 }}
+            
+            [View Full Test Report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

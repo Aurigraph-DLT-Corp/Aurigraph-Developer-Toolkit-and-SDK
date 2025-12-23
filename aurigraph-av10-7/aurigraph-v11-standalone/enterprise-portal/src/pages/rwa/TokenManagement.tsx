@@ -68,7 +68,7 @@ const TokenManagement: React.FC = () => {
       setError(null);
       setLoading(true);
 
-      // Fetch tokens from /api/v12/tokens endpoint
+      // Fetch tokens from /api/v11/tokens endpoint
       const tokenData = await apiService.getTokens();
       console.log('✅ Fetched token data:', tokenData);
 
@@ -165,7 +165,7 @@ const TokenManagement: React.FC = () => {
 
       {error && (
         <Alert severity="warning" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error} - Endpoint /api/v12/tokens may not be implemented yet.
+          {error} - Endpoint /api/v11/tokens may not be implemented yet.
         </Alert>
       )}
 
@@ -314,7 +314,7 @@ const TokenManagement: React.FC = () => {
             <TextField fullWidth type="number" label="Decimal Places" defaultValue={18} />
             <TextField fullWidth type="number" label="Initial Supply" placeholder="1000000" />
             <Alert severity="info">
-              Token creation will be available once /api/v12/tokens endpoint is implemented.
+              Token creation will be available once /api/v11/tokens endpoint is implemented.
             </Alert>
           </Box>
         </DialogContent>

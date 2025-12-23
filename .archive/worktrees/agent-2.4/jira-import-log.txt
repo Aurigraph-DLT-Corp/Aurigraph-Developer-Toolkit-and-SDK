@@ -1,0 +1,17 @@
+
+🚀 Starting JIRA Ticket Import for AV11 Enterprise Portal
+
+======================================================================
+
+❌ Import failed: ENOENT: no such file or directory, open './JIRA_TICKETS.json'
+Error: ENOENT: no such file or directory, open './JIRA_TICKETS.json'
+    at Object.readFileSync (node:fs:441:20)
+    at importTickets (/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/import-jira-tickets.js:198:39)
+    at Object.<anonymous> (/Users/subbujois/Documents/GitHub/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/import-jira-tickets.js:257:1)
+    at Module._compile (node:internal/modules/cjs/loader:1688:14)
+    at Object..js (node:internal/modules/cjs/loader:1820:10)
+    at Module.load (node:internal/modules/cjs/loader:1423:32)
+    at Function._load (node:internal/modules/cjs/loader:1246:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)

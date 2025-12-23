@@ -1,0 +1,157 @@
+
+> aurigraph-av10-18@10.18.0 build
+> tsc
+
+src/av10-21/index.ts(839,78): error TS2345: Argument of type '{ entityId: string; entityType: string; tier: "SIMPLIFIED" | "STANDARD" | "ENHANCED" | "SUPREME" | undefined; jurisdiction: string; purpose: string; requesterId: string; priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | "URGENT"; deadline: Date | undefined; businessJustification: string; }' is not assignable to parameter of type 'DueDiligenceRequest'.
+  Types of property 'priority' are incompatible.
+    Type '"LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | "URGENT"' is not assignable to type '"LOW" | "MEDIUM" | "HIGH" | "URGENT"'.
+      Type '"CRITICAL"' is not assignable to type '"LOW" | "MEDIUM" | "HIGH" | "URGENT"'.
+src/av10-21/index.ts(996,9): error TS2353: Object literal may only specify known properties, and 'av10_21' does not exist in type 'Partial<{ nodeId: string; sessionId?: string | undefined; ipAddress?: string | undefined; userAgent?: string | undefined; jurisdiction?: string | undefined; regulatoryFramework?: string | undefined; }>'.
+src/av10-21/index.ts(1371,48): error TS2339: Property 'complianceRate' does not exist on type '{ totalEvents: number; criticalEvents: number; complianceViolations: number; securityIncidents: number; jurisdictions: string[]; }'.
+src/av10-21/index.ts(1373,36): error TS2339: Property 'complianceFrameworks' does not exist on type 'AuditReport'.
+src/av10-21/index.ts(1374,39): error TS2339: Property 'jurisdictionBreakdown' does not exist on type 'AuditReport'.
+src/av10-21/index.ts(1476,9): error TS2353: Object literal may only specify known properties, and 'av10_21' does not exist in type 'Partial<{ nodeId: string; sessionId?: string | undefined; ipAddress?: string | undefined; userAgent?: string | undefined; jurisdiction?: string | undefined; regulatoryFramework?: string | undefined; }>'.
+src/compliance/DueDiligenceAutomation.ts(750,11): error TS2353: Object literal may only specify known properties, and 'requesterId' does not exist in type 'Partial<{ nodeId: string; sessionId?: string | undefined; ipAddress?: string | undefined; userAgent?: string | undefined; jurisdiction?: string | undefined; regulatoryFramework?: string | undefined; }>'.
+src/compliance/LegalComplianceModule.ts(1477,17): error TS2339: Property 'critical' does not exist on type 'Logger'.
+src/consensus/QuantumShardManager.ts(404,52): error TS2339: Property 'timestamp' does not exist on type 'ParallelUniverseConfig'.
+src/core/AV18Node.ts(95,8): error TS2345: Argument of type 'QuantumCryptoManager' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'QuantumCryptoManager' is missing the following properties from type 'QuantumCryptoManagerV2': config, distributionKeys, quantumRandomPool, consensusProofs, and 48 more.
+src/core/AV18Node.ts(175,7): error TS2345: Argument of type 'QuantumCryptoManager' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'QuantumCryptoManager' is missing the following properties from type 'QuantumCryptoManagerV2': config, distributionKeys, quantumRandomPool, consensusProofs, and 48 more.
+src/crypto/NTRUCryptoEngine.ts(289,50): error TS18046: 'error' is of type 'unknown'.
+src/crypto/NTRUCryptoEngine.ts(341,50): error TS18046: 'error' is of type 'unknown'.
+src/crypto/NTRUCryptoEngine.ts(381,49): error TS18046: 'error' is of type 'unknown'.
+src/crypto/NTRUCryptoEngine.ts(442,52): error TS18046: 'error' is of type 'unknown'.
+src/crypto/NTRUCryptoEngine.ts(559,27): error TS2551: Property 'createCipherGCM' does not exist on type 'typeof import("crypto")'. Did you mean 'createCipher'?
+src/crypto/NTRUCryptoEngine.ts(590,31): error TS2551: Property 'createDecipherGCM' does not exist on type 'typeof import("crypto")'. Did you mean 'createDecipher'?
+src/digitaltwin/PredictiveAnalyticsEngine.ts(432,59): error TS18046: 'error' is of type 'unknown'.
+src/digitaltwin/PredictiveAnalyticsEngine.ts(1365,28): error TS2531: Object is possibly 'null'.
+src/digitaltwin/PredictiveAnalyticsEngine.ts(1445,28): error TS2531: Object is possibly 'null'.
+src/digitaltwin/PredictiveAnalyticsEngine.ts(1546,28): error TS2531: Object is possibly 'null'.
+src/digitaltwin/PredictiveAnalyticsEngine.ts(2033,24): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ emergency: number; corrective: number; preventive: number; optimization: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ emergency: number; corrective: number; preventive: number; optimization: number; }'.
+src/digitaltwin/PredictiveAnalyticsEngine.ts(2044,22): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ emergency: number; corrective: number; preventive: number; optimization: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ emergency: number; corrective: number; preventive: number; optimization: number; }'.
+src/digitaltwin/PredictiveAnalyticsEngine.ts(2337,18): error TS2531: Object is possibly 'null'.
+src/index-av10-comprehensive.ts(28,37): error TS2307: Cannot find module './quantum/QuantumShardManager' or its corresponding type declarations.
+src/index-av10-comprehensive.ts(177,23): error TS2554: Expected 4 arguments, but got 0.
+src/index-av10-comprehensive.ts(227,25): error TS2554: Expected 2 arguments, but got 1.
+src/index-av10-comprehensive.ts(228,56): error TS2345: Argument of type 'QuantumCryptoManagerV2' is not assignable to parameter of type 'AuditTrailManager'.
+  Type 'QuantumCryptoManagerV2' is missing the following properties from type 'AuditTrailManager': auditChain, eventStorage, complianceRules, retentionPolicies, and 47 more.
+src/index-av10-comprehensive.ts(555,49): error TS7030: Not all code paths return a value.
+src/index-av10-comprehensive.ts(617,34): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/index-av10-comprehensive.ts(633,43): error TS2339: Property 'optimizationsPerSecond' does not exist on type 'Promise<QuantumAnalytics>'.
+src/index-av10-comprehensive.ts(634,39): error TS2339: Property 'quantumPerformance' does not exist on type 'Promise<QuantumAnalytics>'.
+src/index-av10-comprehensive.ts(778,20): error TS2339: Property 'getApp' does not exist on type 'MCPInterface'.
+src/index-av10-comprehensive.ts(815,53): error TS7030: Not all code paths return a value.
+src/index-av10-comprehensive.ts(872,43): error TS7030: Not all code paths return a value.
+src/index-av10-comprehensive.ts(933,48): error TS7030: Not all code paths return a value.
+src/index-av10-comprehensive.ts(985,52): error TS7030: Not all code paths return a value.
+src/index-av10-comprehensive.ts(1127,9): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/index-av10-comprehensive.ts(1137,58): error TS7030: Not all code paths return a value.
+src/index-av10-comprehensive.ts(1245,73): error TS2367: This comparison appears to be unintentional because the types '"ACTIVE" | "STARTING" | "SYNCING" | "DEGRADED" | "OFFLINE"' and '"running"' have no overlap.
+src/index-av10-comprehensive.ts(1251,100): error TS2339: Property 'memoryMB' does not exist on type 'ResourceUsage'.
+src/index-av10-comprehensive.ts(1252,97): error TS2339: Property 'cpuPercent' does not exist on type 'ResourceUsage'.
+src/index-av10-comprehensive.ts(1253,98): error TS2339: Property 'diskGB' does not exist on type 'ResourceUsage'.
+src/monitoring/DigitalTwinDashboard.ts(258,37): error TS7030: Not all code paths return a value.
+src/monitoring/DigitalTwinDashboard.ts(266,47): error TS7030: Not all code paths return a value.
+src/monitoring/DigitalTwinDashboard.ts(280,45): error TS7030: Not all code paths return a value.
+src/monitoring/MetricsCollector.ts(283,60): error TS18046: 'error' is of type 'unknown'.
+src/monitoring/MetricsCollector.ts(521,53): error TS18046: 'error' is of type 'unknown'.
+src/monitoring/MetricsCollector.ts(1073,30): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ psi: number; kl_divergence: number; wasserstein: number; ks_test: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ psi: number; kl_divergence: number; wasserstein: number; ks_test: number; }'.
+src/monitoring/MetricsCollector.ts(1315,7): error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{}'.
+  No index signature with a parameter of type 'number' was found on type '{}'.
+src/monitoring/MetricsCollector.ts(1346,7): error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{}'.
+  No index signature with a parameter of type 'number' was found on type '{}'.
+src/monitoring/MetricsCollector.ts(1346,28): error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{}'.
+  No index signature with a parameter of type 'number' was found on type '{}'.
+src/monitoring/MetricsCollector.ts(1351,7): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/monitoring/MetricsCollector.ts(1351,27): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/monitoring/PredictiveAnalyticsDashboard.ts(280,39): error TS18046: 'error' is of type 'unknown'.
+src/network/AdvancedNetworkTopologyManager.ts(328,48): error TS2554: Expected 1 arguments, but got 0.
+src/platform/HighPerformanceIntegrationEngine.ts(104,11): error TS2564: Property 'quantumCrypto' has no initializer and is not definitely assigned in the constructor.
+src/platform/HighPerformanceIntegrationEngine.ts(105,11): error TS2564: Property 'ntruEngine' has no initializer and is not definitely assigned in the constructor.
+src/platform/HighPerformanceIntegrationEngine.ts(106,11): error TS2564: Property 'consensus' has no initializer and is not definitely assigned in the constructor.
+src/platform/HighPerformanceIntegrationEngine.ts(107,11): error TS2564: Property 'dltNode' has no initializer and is not definitely assigned in the constructor.
+src/platform/HighPerformanceIntegrationEngine.ts(108,11): error TS2564: Property 'prometheusExporter' has no initializer and is not definitely assigned in the constructor.
+src/platform/HighPerformanceIntegrationEngine.ts(109,11): error TS2564: Property 'aiOptimizer' has no initializer and is not definitely assigned in the constructor.
+src/platform/HighPerformanceIntegrationEngine.ts(202,68): error TS18046: 'error' is of type 'unknown'.
+src/platform/HighPerformanceIntegrationEngine.ts(254,61): error TS18046: 'error' is of type 'unknown'.
+src/platform/HighPerformanceIntegrationEngine.ts(302,62): error TS18046: 'error' is of type 'unknown'.
+src/platform/HighPerformanceIntegrationEngine.ts(347,52): error TS2339: Property 'optimizeSystem' does not exist on type 'AIOptimizer'.
+src/platform/HighPerformanceIntegrationEngine.ts(430,22): error TS2554: Expected 4 arguments, but got 0.
+src/platform/HighPerformanceIntegrationEngine.ts(435,20): error TS2554: Expected 3 arguments, but got 2.
+src/platform/HighPerformanceIntegrationEngine.ts(543,43): error TS2339: Property 'start' does not exist on type 'AIOptimizer | QuantumCryptoManagerV2 | HyperRAFTPlusPlusV2 | EnhancedDLTNode | NTRUCryptoEngine'.
+  Property 'start' does not exist on type 'QuantumCryptoManagerV2'.
+src/platform/HighPerformanceIntegrationEngine.ts(544,27): error TS2339: Property 'start' does not exist on type 'AIOptimizer | QuantumCryptoManagerV2 | HyperRAFTPlusPlusV2 | EnhancedDLTNode | NTRUCryptoEngine'.
+  Property 'start' does not exist on type 'QuantumCryptoManagerV2'.
+src/platform/HighPerformanceIntegrationEngine.ts(644,55): error TS2551: Property 'getPerformanceMetrics' does not exist on type 'QuantumCryptoManagerV2'. Did you mean 'getNTRUPerformanceMetrics'?
+src/rwa/audit/AuditTrailManager.ts(306,17): error TS2353: Object literal may only specify known properties, and 'alertReason' does not exist in type 'Partial<{ nodeId: string; sessionId?: string | undefined; ipAddress?: string | undefined; userAgent?: string | undefined; jurisdiction?: string | undefined; regulatoryFramework?: string | undefined; }>'.
+src/rwa/audit/AuditTrailManager.ts(327,17): error TS2353: Object literal may only specify known properties, and 'alertReason' does not exist in type 'Partial<{ nodeId: string; sessionId?: string | undefined; ipAddress?: string | undefined; userAgent?: string | undefined; jurisdiction?: string | undefined; regulatoryFramework?: string | undefined; }>'.
+src/rwa/audit/AuditTrailManager.ts(389,59): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/rwa/audit/AuditTrailManager.ts(403,32): error TS2339: Property 'signatureValid' does not exist on type '{ nodeId: string; sessionId?: string | undefined; ipAddress?: string | undefined; userAgent?: string | undefined; jurisdiction?: string | undefined; regulatoryFramework?: string | undefined; }'.
+src/rwa/audit/AuditTrailManager.ts(501,17): error TS2353: Object literal may only specify known properties, and 'reportId' does not exist in type 'Partial<{ nodeId: string; sessionId?: string | undefined; ipAddress?: string | undefined; userAgent?: string | undefined; jurisdiction?: string | undefined; regulatoryFramework?: string | undefined; }>'.
+src/rwa/audit/AuditTrailManager.ts(527,13): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+src/rwa/compliance/CrossJurisdictionEngine.ts(579,62): error TS2339: Property 'verification' does not exist on type 'KYCProfile'.
+src/rwa/compliance/CrossJurisdictionEngine.ts(805,54): error TS18046: 'error' is of type 'unknown'.
+src/rwa/compliance/KYCManager.ts(538,37): error TS2339: Property 'encryptData' does not exist on type 'QuantumCryptoManagerV2'.
+src/rwa/index-rwa.ts(39,34): error TS2554: Expected 2 arguments, but got 1.
+src/rwa/index-rwa.ts(41,61): error TS2345: Argument of type 'AssetRegistry' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'AssetRegistry' is missing the following properties from type 'QuantumCryptoManagerV2': logger, config, keyPairs, distributionKeys, and 72 more.
+src/rwa/index-rwa.ts(122,57): error TS2551: Property 'getAllAssets' does not exist on type 'AssetRegistry'. Did you mean 'getAsset'?
+src/rwa/index-rwa.ts(132,46): error TS7030: Not all code paths return a value.
+src/rwa/index-rwa.ts(215,60): error TS2339: Property 'checkCompliance' does not exist on type 'CrossJurisdictionEngine'.
+src/rwa/index-rwa.ts(269,60): error TS2339: Property 'createAsset' does not exist on type 'AssetRegistry'.
+src/rwa/index-rwa.ts(298,56): error TS2339: Property 'createAsset' does not exist on type 'AssetRegistry'.
+src/rwa/index-rwa.ts(325,61): error TS2345: Argument of type 'AssetRegistry' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'AssetRegistry' is missing the following properties from type 'QuantumCryptoManagerV2': logger, config, keyPairs, distributionKeys, and 72 more.
+src/rwa/index-rwa.ts(327,13): error TS2353: Object literal may only specify known properties, and 'totalTokens' does not exist in type 'TokenizationRequest'.
+src/rwa/index-rwa.ts(338,63): error TS2345: Argument of type 'AssetRegistry' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'AssetRegistry' is missing the following properties from type 'QuantumCryptoManagerV2': logger, config, keyPairs, distributionKeys, and 72 more.
+src/rwa/index-rwa.ts(340,13): error TS2353: Object literal may only specify known properties, and 'iotIntegration' does not exist in type 'IoTDevice[]'.
+src/rwa/management/AutonomousAssetManager.ts(513,71): error TS2554: Expected 1 arguments, but got 2.
+src/rwa/management/AutonomousAssetManager.ts(527,66): error TS2554: Expected 1 arguments, but got 2.
+src/rwa/management/AutonomousAssetManager.ts(541,69): error TS2554: Expected 1 arguments, but got 2.
+src/rwa/management/AutonomousAssetManager.ts(556,74): error TS2554: Expected 1 arguments, but got 2.
+src/rwa/management/AutonomousAssetManager.ts(736,57): error TS18048: 'currentData.sentiment' is possibly 'undefined'.
+src/rwa/management/AutonomousAssetManager.ts(1152,88): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'Float32Array<ArrayBufferLike>[]'.
+  Type 'Float32Array<ArrayBufferLike>' is missing the following properties from type 'Float32Array<ArrayBufferLike>[]': pop, push, concat, shift, and 6 more.
+src/rwa/management/AutonomousAssetManager.ts(1313,37): error TS18048: 'marketData.momentum' is possibly 'undefined'.
+src/rwa/management/AutonomousAssetManager.ts(1313,60): error TS18048: 'marketData.sentiment' is possibly 'undefined'.
+src/rwa/mcp/MCPInterface.ts(117,60): error TS2345: Argument of type 'AssetRegistry' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'AssetRegistry' is missing the following properties from type 'QuantumCryptoManagerV2': logger, config, keyPairs, distributionKeys, and 72 more.
+src/rwa/mcp/MCPInterface.ts(118,62): error TS2345: Argument of type 'AssetRegistry' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'AssetRegistry' is missing the following properties from type 'QuantumCryptoManagerV2': logger, config, keyPairs, distributionKeys, and 72 more.
+src/rwa/mcp/MCPInterface.ts(119,56): error TS2345: Argument of type 'AssetRegistry' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'AssetRegistry' is missing the following properties from type 'QuantumCryptoManagerV2': logger, config, keyPairs, distributionKeys, and 72 more.
+src/rwa/mcp/MCPInterface.ts(120,50): error TS2345: Argument of type 'AssetRegistry' is not assignable to parameter of type 'QuantumCryptoManagerV2'.
+  Type 'AssetRegistry' is missing the following properties from type 'QuantumCryptoManagerV2': logger, config, keyPairs, distributionKeys, and 72 more.
+src/rwa/mcp/MCPInterface.ts(520,49): error TS2551: Property 'getAllAssets' does not exist on type 'AssetRegistry'. Did you mean 'getAsset'?
+src/rwa/mcp/MCPInterface.ts(529,56): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(533,56): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(538,56): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(543,56): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(547,56): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(554,34): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(554,37): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(574,40): error TS7006: Parameter 'asset' implicitly has an 'any' type.
+src/rwa/mcp/MCPInterface.ts(585,30): error TS2339: Property 'name' does not exist on type 'Asset'.
+src/rwa/mcp/MCPInterface.ts(587,30): error TS2551: Property 'createdAt' does not exist on type 'Asset'. Did you mean 'created'?
+src/rwa/mcp/MCPInterface.ts(589,30): error TS2551: Property 'updatedAt' does not exist on type 'Asset'. Did you mean 'updated'?
+src/rwa/mcp/MCPInterface.ts(599,25): error TS2339: Property 'name' does not exist on type 'Asset'.
+src/rwa/mcp/MCPInterface.ts(600,32): error TS2339: Property 'description' does not exist on type 'Asset'.
+src/rwa/mcp/MCPInterface.ts(601,31): error TS2339: Property 'assetClass' does not exist on type 'Asset'.
+src/rwa/mcp/MCPInterface.ts(602,27): error TS2339: Property 'status' does not exist on type 'Asset'.
+src/rwa/mcp/MCPInterface.ts(603,30): error TS2551: Property 'createdAt' does not exist on type 'Asset'. Did you mean 'created'?
+src/rwa/mcp/MCPInterface.ts(604,30): error TS2551: Property 'updatedAt' does not exist on type 'Asset'. Did you mean 'updated'?
+src/rwa/mcp/MCPInterface.ts(619,42): error TS2339: Property 'compliance' does not exist on type 'Asset'.
+src/rwa/mcp/MCPInterface.ts(654,50): error TS2339: Property 'createAsset' does not exist on type 'AssetRegistry'.
+src/rwa/mcp/MCPInterface.ts(680,50): error TS2339: Property 'updateAsset' does not exist on type 'AssetRegistry'.
+src/rwa/mcp/MCPInterface.ts(704,71): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Asset'.

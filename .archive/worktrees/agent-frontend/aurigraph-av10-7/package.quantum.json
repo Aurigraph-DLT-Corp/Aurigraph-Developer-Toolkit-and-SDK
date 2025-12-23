@@ -1,0 +1,68 @@
+{
+  "name": "aurigraph-av10-quantum",
+  "version": "10.35.0-quantum",
+  "description": "Aurigraph V10 Blockchain Platform - Quantum Computing Version",
+  "main": "dist/index-quantum.js",
+  "scripts": {
+    "build": "npm run clean && npm run compile:quantum",
+    "clean": "rimraf dist",
+    "compile:quantum": "tsc -p tsconfig.quantum.json",
+    "start": "node dist/index-quantum.js",
+    "dev": "nodemon --exec ts-node src/index-quantum.ts",
+    "test": "jest --config jest.quantum.config.js",
+    "test:coverage": "jest --config jest.quantum.config.js --coverage",
+    "docker:build": "docker build -f Dockerfile.quantum -t aurigraph-quantum:latest .",
+    "docker:run": "docker run -p 3100:3100 aurigraph-quantum:latest"
+  },
+  "keywords": [
+    "blockchain",
+    "quantum-computing",
+    "quantum-cryptography",
+    "distributed-ledger",
+    "DLT",
+    "post-quantum",
+    "NIST"
+  ],
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^4.28.0",
+    "axios": "^1.7.0",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.0",
+    "winston": "^3.11.0",
+    "quantum-circuit": "^0.4.11",
+    "qiskit-js": "^0.1.0",
+    "@quantum-computing/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aurigraph-DLT-Corp/Aurigraph-Quantum.git"
+  },
+  "hardware": {
+    "quantum": {
+      "qubits": 1000,
+      "coherenceTime": "100ms",
+      "gateF fidelity": "99.9%",
+      "provider": "IBM Quantum | Google Quantum AI | AWS Braket"
+    },
+    "classical": {
+      "cpu": "2x AMD EPYC 9654",
+      "ram": "2TB DDR5 ECC",
+      "gpu": "8x NVIDIA H100",
+      "storage": "100TB NVMe"
+    }
+  }
+}

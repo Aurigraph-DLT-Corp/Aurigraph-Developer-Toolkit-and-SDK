@@ -31,7 +31,7 @@ import java.math.BigDecimal;
  * Kept for backward compatibility. During testing, PortalAPIGateway
  * is used as the single REST endpoint gateway.
  */
-@Path("/api/v12/deprecated")
+@Path("/api/v11/deprecated")
 @ApplicationScoped
 public class AurigraphResource {
 
@@ -734,22 +734,22 @@ public class AurigraphResource {
     // See: io.aurigraph.v11.tokens.TokenResource for all token operations
     //
     // Available token endpoints in TokenResource:
-    // - POST /api/v12/tokens/create - Create new token
-    // - GET  /api/v12/tokens/list - List all tokens
-    // - GET  /api/v12/tokens/{id} - Get token by ID
-    // - POST /api/v12/tokens/transfer - Transfer tokens
-    // - POST /api/v12/tokens/mint - Mint tokens
-    // - POST /api/v12/tokens/burn - Burn tokens
-    // - GET  /api/v12/tokens/{id}/balance/{address} - Get balance
-    // - GET  /api/v12/tokens/stats - Get statistics
+    // - POST /api/v11/tokens/create - Create new token
+    // - GET  /api/v11/tokens/list - List all tokens
+    // - GET  /api/v11/tokens/{id} - Get token by ID
+    // - POST /api/v11/tokens/transfer - Transfer tokens
+    // - POST /api/v11/tokens/mint - Mint tokens
+    // - POST /api/v11/tokens/burn - Burn tokens
+    // - GET  /api/v11/tokens/{id}/balance/{address} - Get balance
+    // - GET  /api/v11/tokens/stats - Get statistics
 
     // ==================== ML & AI OPTIMIZATION ENDPOINTS ====================
 
     // ========== ML METHODS MOVED TO AIApiResource.java ==========
     // The following ML-related endpoints have been moved to AIApiResource.java:
-    // - GET /api/v12/ai/metrics
-    // - GET /api/v12/ai/predictions
-    // - GET /api/v12/ai/performance
-    // - GET /api/v12/ai/confidence
+    // - GET /api/v11/ai/metrics
+    // - GET /api/v11/ai/predictions
+    // - GET /api/v11/ai/performance
+    // - GET /api/v11/ai/confidence
     // See AIApiResource.java for implementation details
 }

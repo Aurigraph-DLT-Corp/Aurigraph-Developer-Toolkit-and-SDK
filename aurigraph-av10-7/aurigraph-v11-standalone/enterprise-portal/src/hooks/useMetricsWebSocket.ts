@@ -2,10 +2,6 @@
  * useMetricsWebSocket.ts
  * Custom hook for real-time metrics streaming via WebSocket
  *
- * @deprecated This hook is deprecated. Use useMetricsGrpc from '../grpc' instead.
- * Migration: import { useMetricsGrpc } from '../grpc'
- * Sunset date: 2025-03-01
- *
  * Endpoint: ws://localhost:9003/ws/metrics
  * Update frequency: 1 second
  * Auto-reconnect: Exponential backoff (1s, 2s, 4s, 8s, max 30s)

@@ -1,0 +1,259 @@
+# Aurigraph V12 Multi-Node Native Infrastructure (GraalVM)
+# 4 Containers running 32 nodes total (Native Mode)
+# Memory-optimized: ~128-256MB per node vs ~1GB in JVM mode
+# Total: ~7GB vs ~32GB in JVM mode
+# - validator-cluster-1: 4 validator nodes (ports 9003-9006)
+# - validator-cluster-2: 3 validator nodes (ports 9007-9009)
+# - business-cluster: 20 business nodes (ports 9020-9039)
+# - slim-cluster: 5 slim nodes (ports 9050-9054)
+
+# Database and Bridge environment variables (shared across all containers)
+x-db-env: &db-env
+  QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://host.docker.internal:5432/j4c_db
+  QUARKUS_DATASOURCE_USERNAME: j4c_user
+  QUARKUS_DATASOURCE_PASSWORD: j4c_password
+  # Bridge placeholder configuration
+  BRIDGE_ETH_KEY: placeholder
+  BRIDGE_SOL_KEY: placeholder
+  BRIDGE_LZ_RELAYER: placeholder
+  BRIDGE_LZ_ORACLE: placeholder
+  BRIDGE_LZ_KEY: placeholder
+  BRIDGE_SOL_PROGRAM: placeholder
+  # Quantum API placeholder
+  CURBY_QUANTUM_API_KEY: placeholder
+
+services:
+  # ==========================================
+  # VALIDATOR CLUSTER 1 (4 nodes in 1 container)
+  # Native GraalVM - ~200MB per node
+  # Ports: 9003-9006 (HTTP), 9103-9106 (gRPC)
+  # ==========================================
+  validator-cluster-1:
+    image: registry.access.redhat.com/ubi8/ubi-minimal:8.9
+    container_name: aurigraph-validator-cluster-1-native
+    hostname: validator-cluster-1
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - aurigraph-network
+    environment:
+      <<: *db-env
+      NODE_TYPE: validator
+      CLUSTER_NAME: validator-cluster-1
+    volumes:
+      - validator-data-1:/data
+      - ./native-app:/app:ro
+      - ./scripts/run-validators-1-native.sh:/app/run-validators.sh:ro
+      - validator-logs-1:/var/log
+    working_dir: /app
+    command: ["/bin/sh", "/app/run-validators.sh"]
+    ports:
+      # Validator HTTP ports (9003-9006 -> 19001-19004)
+      - "19001:9003"
+      - "19002:9004"
+      - "19003:9005"
+      - "19004:9006"
+      # Validator gRPC ports (9103-9106 -> 19101-19104)
+      - "19101:9103"
+      - "19102:9104"
+      - "19103:9105"
+      - "19104:9106"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:9003/q/health/live 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 1G    # ~200MB per node x 4 = ~800MB (vs 6GB JVM)
+        reservations:
+          cpus: '2'
+          memory: 512M
+
+  # ==========================================
+  # VALIDATOR CLUSTER 2 (3 nodes in 1 container)
+  # Native GraalVM - ~200MB per node
+  # Ports: 9007-9009 (HTTP), 9107-9109 (gRPC)
+  # ==========================================
+  validator-cluster-2:
+    image: registry.access.redhat.com/ubi8/ubi-minimal:8.9
+    container_name: aurigraph-validator-cluster-2-native
+    hostname: validator-cluster-2
+    restart: unless-stopped
+    depends_on:
+      validator-cluster-1:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - aurigraph-network
+    environment:
+      <<: *db-env
+      NODE_TYPE: validator
+      CLUSTER_NAME: validator-cluster-2
+    volumes:
+      - validator-data-2:/data
+      - ./native-app:/app:ro
+      - ./scripts/run-validators-2-native.sh:/app/run-validators.sh:ro
+      - validator-logs-2:/var/log
+    working_dir: /app
+    command: ["/bin/sh", "/app/run-validators.sh"]
+    ports:
+      # Validator HTTP ports (9007-9009 -> 19005-19007)
+      - "19005:9007"
+      - "19006:9008"
+      - "19007:9009"
+      # Validator gRPC ports (9107-9109 -> 19105-19107)
+      - "19105:9107"
+      - "19106:9108"
+      - "19107:9109"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:9007/q/health/live 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          cpus: '3'
+          memory: 768M    # ~200MB per node x 3 = ~600MB (vs 5GB JVM)
+        reservations:
+          cpus: '1'
+          memory: 384M
+
+  # ==========================================
+  # BUSINESS CLUSTER (20 nodes in 1 container)
+  # Native GraalVM - ~150MB per node
+  # Ports: 9020-9039 (HTTP)
+  # ==========================================
+  business-cluster:
+    image: registry.access.redhat.com/ubi8/ubi-minimal:8.9
+    container_name: aurigraph-business-cluster-native
+    hostname: business-cluster
+    restart: unless-stopped
+    depends_on:
+      validator-cluster-1:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - aurigraph-network
+    environment:
+      <<: *db-env
+      NODE_TYPE: business
+      CLUSTER_NAME: business-cluster
+    volumes:
+      - business-data:/data
+      - ./native-app:/app:ro
+      - ./scripts/run-business-native.sh:/app/run-business.sh:ro
+      - business-logs:/var/log
+    working_dir: /app
+    command: ["/bin/sh", "/app/run-business.sh"]
+    ports:
+      # Business HTTP ports (9020-9039 -> 19011-19030)
+      - "19011:9020"
+      - "19012:9021"
+      - "19013:9022"
+      - "19014:9023"
+      - "19015:9024"
+      - "19016:9025"
+      - "19017:9026"
+      - "19018:9027"
+      - "19019:9028"
+      - "19020:9029"
+      - "19021:9030"
+      - "19022:9031"
+      - "19023:9032"
+      - "19024:9033"
+      - "19025:9034"
+      - "19026:9035"
+      - "19027:9036"
+      - "19028:9037"
+      - "19029:9038"
+      - "19030:9039"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:9020/q/health/live 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 4G    # ~150MB per node x 20 = ~3GB (vs 16GB JVM)
+        reservations:
+          cpus: '4'
+          memory: 2G
+
+  # ==========================================
+  # SLIM CLUSTER (5 nodes in 1 container)
+  # Native GraalVM - ~100MB per node
+  # Ports: 9050-9054 (HTTP)
+  # ==========================================
+  slim-cluster:
+    image: registry.access.redhat.com/ubi8/ubi-minimal:8.9
+    container_name: aurigraph-slim-cluster-native
+    hostname: slim-cluster
+    restart: unless-stopped
+    depends_on:
+      validator-cluster-1:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - aurigraph-network
+    environment:
+      <<: *db-env
+      NODE_TYPE: slim
+      CLUSTER_NAME: slim-cluster
+    volumes:
+      - slim-data:/data
+      - ./native-app:/app:ro
+      - ./scripts/run-slim-native.sh:/app/run-slim.sh:ro
+      - slim-logs:/var/log
+    working_dir: /app
+    command: ["/bin/sh", "/app/run-slim.sh"]
+    ports:
+      # Slim HTTP ports (9050-9054 -> 19041-19045)
+      - "19041:9050"
+      - "19042:9051"
+      - "19043:9052"
+      - "19044:9053"
+      - "19045:9054"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:9050/q/health/live 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 768M    # ~100MB per node x 5 = ~500MB (vs 4GB JVM)
+        reservations:
+          cpus: '1'
+          memory: 256M
+
+networks:
+  aurigraph-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  validator-data-1:
+  validator-logs-1:
+  validator-data-2:
+  validator-logs-2:
+  business-data:
+  business-logs:
+  slim-data:
+  slim-logs:

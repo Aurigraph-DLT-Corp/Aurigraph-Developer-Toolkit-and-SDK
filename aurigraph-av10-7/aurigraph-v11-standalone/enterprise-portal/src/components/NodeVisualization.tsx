@@ -29,7 +29,7 @@ interface Channel {
 interface Props {
   validators: Node[];
   businessNodes: Node[];
-  eiNodes: Node[];
+  slimNodes: Node[];
   channels: Channel[];
 }
 
@@ -50,15 +50,15 @@ const NODE_ICONS = {
 export const NodeVisualization: React.FC<Props> = ({
   validators,
   businessNodes,
-  eiNodes,
+  slimNodes,
   channels,
 }) => {
   // Combine all nodes for processing
   const allNodes = useMemo(() => [
     ...validators,
     ...businessNodes,
-    ...eiNodes,
-  ], [validators, businessNodes, eiNodes]);
+    ...slimNodes,
+  ], [validators, businessNodes, slimNodes]);
 
   // Group nodes by channel
   const nodesByChannel = useMemo(() => {
@@ -79,10 +79,10 @@ export const NodeVisualization: React.FC<Props> = ({
     totalNodes: allNodes.length,
     validators: validators.length,
     businessNodes: businessNodes.length,
-    eiNodes: eiNodes.length,
+    slimNodes: slimNodes.length,
     totalChannels: channels.length,
     activeChannels: nodesByChannel.size,
-  }), [allNodes, validators, businessNodes, eiNodes, channels, nodesByChannel]);
+  }), [allNodes, validators, businessNodes, slimNodes, channels, nodesByChannel]);
 
   const getNodeColor = (type: NodeType) => NODE_COLORS[type];
   const getNodeIcon = (type: NodeType) => NODE_ICONS[type];
@@ -128,9 +128,9 @@ export const NodeVisualization: React.FC<Props> = ({
             <Stack direction="row" spacing={1} alignItems="center">
               <SlimIcon sx={{ color: NODE_COLORS.SLIM }} />
               <Box>
-                <Typography variant="body2"><strong>External Integration (EI) Nodes</strong></Typography>
+                <Typography variant="body2"><strong>Slim Nodes</strong></Typography>
                 <Typography variant="caption" color="textSecondary">
-                  Lightweight clients ({stats.eiNodes})
+                  Lightweight clients ({stats.slimNodes})
                 </Typography>
               </Box>
             </Stack>
@@ -183,9 +183,9 @@ export const NodeVisualization: React.FC<Props> = ({
             <CardContent>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Box>
-                  <Typography color="textSecondary" variant="body2">External Integration (EI) Nodes</Typography>
+                  <Typography color="textSecondary" variant="body2">Slim Nodes</Typography>
                   <Typography variant="h3" sx={{ color: NODE_COLORS.SLIM }}>
-                    {stats.eiNodes}
+                    {stats.slimNodes}
                   </Typography>
                 </Box>
                 <SlimIcon sx={{ fontSize: 48, color: NODE_COLORS.SLIM, opacity: 0.3 }} />
@@ -280,11 +280,11 @@ export const NodeVisualization: React.FC<Props> = ({
                           </Box>
                         )}
 
-                        {/* External Integration (EI) Nodes Section */}
+                        {/* Slim Nodes Section */}
                         {channelSlim.length > 0 && (
                           <Box>
                             <Typography variant="subtitle2" gutterBottom sx={{ color: NODE_COLORS.SLIM }}>
-                              External Integration (EI) Nodes ({channelSlim.length})
+                              Slim Nodes ({channelSlim.length})
                             </Typography>
                             <Grid container spacing={1}>
                               {channelSlim.map((node) => (

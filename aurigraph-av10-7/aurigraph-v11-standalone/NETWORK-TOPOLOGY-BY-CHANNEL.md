@@ -15,7 +15,7 @@ This document provides network connection diagrams organized by channel type. Ea
 ### 1.1 Public Channel Architecture
 
 **Purpose**: Fully transparent, publicly accessible blockchain channel
-**Participants**: All registered nodes (Validators, Business Nodes, External Integration (EI) Nodes)
+**Participants**: All registered nodes (Validators, Business Nodes, Slim Nodes)
 **Consensus**: HyperRAFT++ with full participation
 
 ```
@@ -84,11 +84,11 @@ Connection Types:
 
 ### 1.2 Public Channel Connection Matrix
 
-| From → To | Validator | Business Node | External Integration (EI) Node |
+| From → To | Validator | Business Node | Slim Node |
 |-----------|-----------|---------------|-----------|
 | **Validator** | Full Mesh (Consensus) | Block Propagation | Block Propagation |
 | **Business Node** | Block Sync | Peer-to-Peer | Block Sharing |
-| **External Integration (EI) Node** | Block Headers | Block Headers | Peer Headers |
+| **Slim Node** | Block Headers | Block Headers | Peer Headers |
 
 ---
 
@@ -402,7 +402,7 @@ demo:
       nodes:
         validators: 3
         businessNodes: 5
-        slimNodes: 0  # No EI nodes in private
+        slimNodes: 0  # No slim nodes in private
       config:
         aclEnabled: true
         encryption: "AES-256-GCM"

@@ -31,7 +31,7 @@ import java.time.Duration;
  * @version 11.3.0
  * @author Backend Development Agent (BDA)
  */
-@Path("/api/v12/tokenization")
+@Path("/api/v11/tokenization")
 @ApplicationScoped
 @Tag(name = "External API Tokenization", description = "Tokenize external API data and stream to channels")
 @Produces(MediaType.APPLICATION_JSON)
@@ -47,7 +47,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Get all API sources
-     * GET /api/v12/tokenization/sources
+     * GET /api/v11/tokenization/sources
      */
     @GET
     @Path("/sources")
@@ -61,7 +61,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Get specific API source
-     * GET /api/v12/tokenization/sources/{id}
+     * GET /api/v11/tokenization/sources/{id}
      */
     @GET
     @Path("/sources/{id}")
@@ -81,7 +81,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Add new API source
-     * POST /api/v12/tokenization/sources
+     * POST /api/v11/tokenization/sources
      */
     @POST
     @Path("/sources")
@@ -110,7 +110,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Update API source status
-     * PUT /api/v12/tokenization/sources/{id}/status
+     * PUT /api/v11/tokenization/sources/{id}/status
      */
     @PUT
     @Path("/sources/{id}/status")
@@ -133,7 +133,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Delete API source
-     * DELETE /api/v12/tokenization/sources/{id}
+     * DELETE /api/v11/tokenization/sources/{id}
      */
     @DELETE
     @Path("/sources/{id}")
@@ -155,7 +155,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Get tokenized transactions
-     * GET /api/v12/tokenization/transactions
+     * GET /api/v11/tokenization/transactions
      */
     @GET
     @Path("/transactions")
@@ -179,7 +179,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Get transaction by ID
-     * GET /api/v12/tokenization/transactions/{id}
+     * GET /api/v11/tokenization/transactions/{id}
      */
     @GET
     @Path("/transactions/{id}")
@@ -200,7 +200,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Stream real-time tokenization events
-     * GET /api/v12/tokenization/stream
+     * GET /api/v11/tokenization/stream
      */
     @GET
     @Path("/stream")
@@ -219,7 +219,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Get channel statistics
-     * GET /api/v12/tokenization/channels/stats
+     * GET /api/v11/tokenization/channels/stats
      */
     @GET
     @Path("/channels/stats")
@@ -234,7 +234,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Get specific channel statistics
-     * GET /api/v12/tokenization/channels/{channelId}/stats
+     * GET /api/v11/tokenization/channels/{channelId}/stats
      */
     @GET
     @Path("/channels/{channelId}/stats")
@@ -257,7 +257,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Manually trigger tokenization for a source
-     * POST /api/v12/tokenization/sources/{id}/tokenize
+     * POST /api/v11/tokenization/sources/{id}/tokenize
      */
     @POST
     @Path("/sources/{id}/tokenize")
@@ -288,7 +288,7 @@ public class ExternalAPITokenizationResource {
 
     /**
      * Get LevelDB storage info
-     * GET /api/v12/tokenization/storage/info
+     * GET /api/v11/tokenization/storage/info
      */
     @GET
     @Path("/storage/info")
@@ -301,7 +301,7 @@ public class ExternalAPITokenizationResource {
             .map(info -> new StorageInfoResponse(
                 info.basePath,
                 info.totalSize,
-                info.eiNodeCount,
+                info.slimNodeCount,
                 info.channelCount,
                 info.compressionEnabled,
                 info.encryptionEnabled,
@@ -351,7 +351,7 @@ public class ExternalAPITokenizationResource {
     public record StorageInfoResponse(
         String basePath,
         long totalSize,
-        int eiNodeCount,
+        int slimNodeCount,
         int channelCount,
         boolean compressionEnabled,
         boolean encryptionEnabled,

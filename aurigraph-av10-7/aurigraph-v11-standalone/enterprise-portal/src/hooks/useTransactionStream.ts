@@ -2,10 +2,6 @@
  * useTransactionStream.ts
  * Custom hook for real-time transaction streaming via WebSocket
  *
- * @deprecated This hook is deprecated. Use useTransactionGrpc from '../grpc' instead.
- * Migration: import { useTransactionGrpc } from '../grpc'
- * Sunset date: 2025-03-01
- *
  * Endpoint: ws://localhost:9003/ws/transactions
  * Trigger: On new transaction
  * Features: Auto-update transaction list, new badge for recent txs

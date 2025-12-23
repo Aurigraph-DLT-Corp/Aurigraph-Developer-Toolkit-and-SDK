@@ -28,7 +28,7 @@ import io.aurigraph.v11.crypto.QuantumCryptoService.*;
  * @version 11.3.0
  * @author Aurigraph V11 Team
  */
-@Path("/api/v12/crypto")
+@Path("/api/v11/crypto")
 @ApplicationScoped
 @Tag(name = "Cryptography API", description = "Post-quantum cryptography operations")
 public class CryptoApiResource {

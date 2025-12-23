@@ -1,0 +1,355 @@
+/* Whitepaper Styles */
+
+.whitepaper-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  background: #f5f5f5;
+}
+
+.whitepaper-header {
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 60px 40px;
+  background: linear-gradient(135deg, #1890ff 0%, #0066cc 100%);
+  border-radius: 16px;
+  color: white;
+}
+
+.whitepaper-header h1 {
+  color: white !important;
+  font-size: 56px !important;
+  font-weight: 800 !important;
+  margin-bottom: 16px !important;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.whitepaper-header h2 {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 32px !important;
+  font-weight: 400 !important;
+  margin-bottom: 24px !important;
+}
+
+.version-info {
+  font-size: 16px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-top: 20px !important;
+}
+
+.section-card {
+  margin-bottom: 32px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-card h3 {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  margin-bottom: 24px !important;
+  color: #1890ff !important;
+  border-bottom: 2px solid #1890ff;
+  padding-bottom: 12px;
+}
+
+.section-card h4 {
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  margin-top: 24px !important;
+  margin-bottom: 16px !important;
+  color: #0066cc !important;
+}
+
+.section-card h5 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin-bottom: 12px !important;
+  color: #333 !important;
+}
+
+.abstract-text {
+  font-size: 16px !important;
+  line-height: 1.8 !important;
+  color: #595959 !important;
+  text-align: justify;
+  margin-bottom: 16px !important;
+}
+
+/* Table of Contents */
+.toc-card {
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+}
+
+.toc-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.toc-list li {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.toc-list a {
+  color: #1890ff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.toc-list a:hover {
+  color: #0066cc;
+  text-decoration: underline;
+  padding-left: 8px;
+}
+
+/* Feature Lists */
+.feature-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.feature-list li {
+  margin-bottom: 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+}
+
+.feature-list li .anticon {
+  color: #52c41a;
+  font-size: 18px;
+  margin-right: 12px;
+  margin-top: 3px;
+}
+
+/* Goal Cards */
+.goal-card {
+  text-align: center;
+  height: 100%;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 2px solid #f0f0f0;
+}
+
+.goal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: #1890ff;
+}
+
+.goal-icon {
+  font-size: 48px;
+  color: #1890ff;
+  margin-bottom: 16px;
+}
+
+.goal-card h5 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 12px !important;
+}
+
+/* Architecture Diagram */
+.architecture-diagram {
+  margin: 24px 0;
+}
+
+.layer-card {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #e6f7ff 0%, #ffffff 100%);
+  border: 2px solid #1890ff;
+  border-radius: 8px;
+}
+
+.layer-card h5 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1890ff !important;
+  margin-bottom: 8px !important;
+}
+
+.layer-card .ant-typography {
+  color: #595959 !important;
+  font-size: 14px !important;
+}
+
+/* Technology List */
+.tech-list {
+  column-count: 2;
+  column-gap: 32px;
+}
+
+.tech-list li {
+  margin-bottom: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  break-inside: avoid;
+}
+
+.tech-list li strong {
+  color: #1890ff;
+}
+
+/* ML Model Cards */
+.ml-model-card {
+  height: 100%;
+  border-radius: 12px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.ml-model-card:hover {
+  border-color: #722ed1;
+  box-shadow: 0 4px 16px rgba(114, 46, 209, 0.2);
+}
+
+.ml-model-card h5 {
+  color: #722ed1 !important;
+  margin-bottom: 12px !important;
+}
+
+/* Contract Type Cards */
+.contract-type-card {
+  text-align: center;
+  height: 100%;
+  border-radius: 12px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
+  padding: 24px !important;
+}
+
+.contract-type-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.2);
+}
+
+.contract-type-card h5 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 12px !important;
+  color: #1890ff !important;
+}
+
+/* Asset Class Cards */
+.asset-class-card {
+  text-align: center;
+  height: 100%;
+  border-radius: 12px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
+  padding: 20px !important;
+}
+
+.asset-class-card:hover {
+  border-color: #faad14;
+  box-shadow: 0 4px 16px rgba(250, 173, 20, 0.2);
+}
+
+.asset-class-card h5 {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+  color: #faad14 !important;
+}
+
+/* Tables */
+.ant-table {
+  margin-top: 16px;
+}
+
+.ant-table-thead > tr > th {
+  background: #1890ff !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #e6f7ff !important;
+}
+
+/* Timeline */
+.ant-timeline {
+  margin-top: 24px;
+}
+
+.ant-timeline-item-content h5 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+
+/* References */
+.references-list {
+  list-style: decimal;
+  padding-left: 24px;
+}
+
+.references-list li {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #595959;
+}
+
+/* Footer */
+.footer-info {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #e8e8e8;
+  text-align: center;
+}
+
+.footer-text {
+  color: #595959 !important;
+  font-size: 14px !important;
+  margin-bottom: 8px !important;
+}
+
+.footer-text a {
+  color: #1890ff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-text a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .whitepaper-container {
+    padding: 24px 16px;
+  }
+
+  .whitepaper-header {
+    padding: 40px 20px;
+  }
+
+  .whitepaper-header h1 {
+    font-size: 36px !important;
+  }
+
+  .whitepaper-header h2 {
+    font-size: 24px !important;
+  }
+
+  .section-card h3 {
+    font-size: 24px !important;
+  }
+
+  .section-card h4 {
+    font-size: 20px !important;
+  }
+
+  .tech-list {
+    column-count: 1;
+  }
+
+  .goal-icon {
+    font-size: 36px;
+  }
+}

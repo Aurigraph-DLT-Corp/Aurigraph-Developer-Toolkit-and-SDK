@@ -14,7 +14,6 @@ import {
   LinearProgress,
   IconButton,
   Button,
-  Alert,
 } from '@mui/material'
 import {
   Payments,
@@ -27,8 +26,7 @@ import {
   Schedule,
   PendingActions,
 } from '@mui/icons-material'
-import { useState, useEffect } from 'react'
-import { apiService, safeApiCall } from '../../services/api'
+import { useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 
 const CARD_STYLE = {
@@ -128,61 +126,15 @@ const DIVIDEND_BREAKDOWN_DATA = [
 ]
 
 export default function Dividends() {
-  const [dividendHistory, setDividendHistory] = useState<DividendPayment[]>(SAMPLE_DIVIDEND_HISTORY)
-  const [schedule, setSchedule] = useState<DividendSchedule[]>(SAMPLE_SCHEDULE)
+  const [dividendHistory] = useState<DividendPayment[]>(SAMPLE_DIVIDEND_HISTORY)
+  const [schedule] = useState<DividendSchedule[]>(SAMPLE_SCHEDULE)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchDividendData = async () => {
-    setLoading(true)
-    setError(null)
-
-    // Use RWA distribution endpoint for dividend data
-    const result = await safeApiCall(
-      () => apiService.getRWADistribution(),
-      { distributions: [] }
-    )
-
-    if (result.success && result.data.distributions && result.data.distributions.length > 0) {
-      // Transform API data to dividend format
-      const transformedDividends: DividendPayment[] = result.data.distributions.map((dist: any, index: number) => ({
-        id: dist.id || `dist-${index}`,
-        assetName: dist.assetName || dist.name || 'Unknown Asset',
-        paymentDate: dist.date || dist.paymentDate || new Date().toISOString().split('T')[0],
-        amount: parseFloat(dist.amount || dist.value || '0'),
-        status: (dist.status || 'Pending') as 'Paid' | 'Pending' | 'Scheduled',
-        tokensOwned: parseInt(dist.tokensOwned || '0'),
-        perTokenAmount: parseFloat(dist.perToken || dist.amount || '0'),
-      }))
-      setDividendHistory(transformedDividends)
-
-      // Generate schedule from upcoming distributions
-      const upcomingSchedule: DividendSchedule[] = transformedDividends
-        .filter(d => d.status === 'Scheduled')
-        .map(d => ({
-          assetName: d.assetName,
-          nextPaymentDate: d.paymentDate,
-          estimatedAmount: d.amount,
-          frequency: 'Monthly',
-        }))
-      if (upcomingSchedule.length > 0) {
-        setSchedule(upcomingSchedule)
-      }
-    } else if (!result.success) {
-      setError(result.error?.message || 'Failed to load dividend data')
-      // Keep sample data on error
-    }
-
-    setLoading(false)
-  }
 
   const handleRefresh = () => {
-    fetchDividendData()
+    setLoading(true)
+    // TODO: Fetch from API
+    setTimeout(() => setLoading(false), 1000)
   }
-
-  useEffect(() => {
-    fetchDividendData()
-  }, [])
 
   const totalEarnings = dividendHistory
     .filter((d) => d.status === 'Paid')
@@ -258,12 +210,6 @@ export default function Dividends() {
       </Box>
 
       {loading && <LinearProgress sx={{ mb: 2 }} />}
-
-      {error && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          {error} - Displaying sample data
-        </Alert>
-      )}
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
