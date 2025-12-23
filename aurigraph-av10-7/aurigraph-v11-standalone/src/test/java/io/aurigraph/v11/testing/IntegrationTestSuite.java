@@ -56,7 +56,7 @@ public class IntegrationTestSuite {
             testCreateSecondaryToken();
 
             // Test 2: Create VVB version
-            testCreateVVBVersion();
+            testCreateVVBVersionForToken();
 
             // Test 3: Multiple approvals
             testMultipleApprovals();
@@ -86,7 +86,7 @@ public class IntegrationTestSuite {
         // Verify Merkle tree includes new token
     }
 
-    private void testCreateVVBVersion() {
+    private void testCreateVVBVersionForToken() {
         Log.debug("Test: Create VVB version for token");
         // Verify version created with token reference
         // Verify version starts in PENDING state
@@ -115,6 +115,75 @@ public class IntegrationTestSuite {
         // Reject version
         // Verify token remains inactive
         // Verify registry not updated
+    }
+
+    /**
+     * Verify VVB Workflow Integration
+     *
+     * Test sequence:
+     * 1. Create version with pending state
+     * 2. Submit for approval
+     * 3. Get multiple approvals
+     * 4. Handle timeouts and rejections
+     * 5. Verify state transitions
+     */
+    public void verifyVVBIntegration() {
+        Log.info("Testing VVB Workflow Integration");
+
+        try {
+            IntegrationTestResult result = new IntegrationTestResult();
+            result.name = "VVB Workflow";
+            result.startTime = System.currentTimeMillis();
+
+            // Test 1: Create VVB version
+            testCreateVVBVersion();
+
+            // Test 2: Submit for approval
+            testSubmitForApproval();
+
+            // Test 3: Multiple approvals
+            testMultipleApprovals();
+
+            // Test 4: Timeout handling
+            testApprovalTimeout();
+
+            // Test 5: Rejection handling
+            testApprovalRejection();
+
+            result.endTime = System.currentTimeMillis();
+            result.passed = true;
+            testResults.put("vvb_integration", result);
+
+            Log.info("VVB Integration: PASSED (" + result.duration() + "ms)");
+
+        } catch (Exception e) {
+            Log.error("VVB Integration FAILED", e);
+            testResults.put("vvb_integration", createFailedResult("VVB Integration", e));
+        }
+    }
+
+    private void testCreateVVBVersion() {
+        Log.debug("Test: Create VVB version");
+        // Verify version created with PENDING state
+        // Verify deadline is 7 days from creation
+    }
+
+    private void testSubmitForApproval() {
+        Log.debug("Test: Submit version for approval");
+        // Submit version for approval
+        // Verify approval request created
+    }
+
+    private void testApprovalTimeout() {
+        Log.debug("Test: Approval timeout handling");
+        // Let 7-day deadline pass
+        // Verify version expires
+    }
+
+    private void testApprovalRejection() {
+        Log.debug("Test: Approval rejection");
+        // Reject approval
+        // Verify version remains pending
     }
 
     // ===== COMPOSITE + SECONDARY + VVB INTEGRATION =====

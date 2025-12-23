@@ -324,7 +324,7 @@ public class TestOrchestrator {
 
             // Recent events
             report.append("## Recent Events\n");
-            eventLog.stream().takeRight(10).forEach(event ->
+            takeRight(eventLog, 10).forEach(event ->
                 report.append("- ").append(event.timestamp).append(": ")
                     .append(event.eventType).append(" - ").append(event.description).append("\n")
             );
