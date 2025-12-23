@@ -274,9 +274,15 @@ public class SecondaryTokenVersion extends PanacheEntity {
      * @return Next version number (1-indexed)
      */
     public static Integer getNextVersionNumber(UUID tokenId) {
-        Number maxVersion = find("select max(versionNumber) from SecondaryTokenVersion where secondaryTokenId = ?1",
+        Object maxVersion = find("select max(versionNumber) from SecondaryTokenVersion where secondaryTokenId = ?1",
                 tokenId).singleResult();
-        return (maxVersion != null) ? maxVersion.intValue() + 1 : 1;
+        if (maxVersion == null) {
+            return 1;
+        }
+        if (maxVersion instanceof Number) {
+            return ((Number) maxVersion).intValue() + 1;
+        }
+        return 1;
     }
 
     // =========================================================================

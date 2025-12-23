@@ -267,9 +267,16 @@ public class SecondaryTokenVersionRepository implements PanacheRepository<Second
      * @return Maximum version number or 0 if no versions exist
      */
     public Integer getMaxVersionNumber(UUID tokenId) {
-        Number result = find("select max(versionNumber) from SecondaryTokenVersion where secondaryTokenId = ?1",
+        Object result = find("select max(versionNumber) from SecondaryTokenVersion where secondaryTokenId = ?1",
                 tokenId)
                 .singleResult();
-        return (result != null && result.intValue() > 0) ? result.intValue() : 0;
+        if (result == null) {
+            return 0;
+        }
+        if (result instanceof Number) {
+            int value = ((Number) result).intValue();
+            return value > 0 ? value : 0;
+        }
+        return 0;
     }
 }
