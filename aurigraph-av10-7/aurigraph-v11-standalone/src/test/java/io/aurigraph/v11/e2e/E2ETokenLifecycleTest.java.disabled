@@ -179,13 +179,7 @@ public class E2ETokenLifecycleTest {
     void testCreateCompositeToken() {
         compositeTokenId = given()
             .contentType("application/json")
-            .body("""
-                {
-                    "componentTokenIds": [""" + "\"" + secondaryTokenId + "\"" + """],
-                    "owner": "new-owner",
-                    "name": "Test Composite Token"
-                }
-                """)
+            .body("{\"componentTokenIds\": [\"" + secondaryTokenId + "\"], \"owner\": \"new-owner\", \"name\": \"Test Composite Token\"}")
             .when()
             .post("/tokens/composite")
             .then()
