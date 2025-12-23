@@ -51,6 +51,13 @@ public class VVBValidator {
         return Uni.createFrom().item(() -> {
             Log.infof("VVB validation initiated for version: %s, changeType: %s", versionId, request.getChangeType());
 
+            // Check if changeType is provided
+            if (request.getChangeType() == null) {
+                return new VVBApprovalResult(
+                    versionId, VVBApprovalStatus.REJECTED, "Change type is required", null
+                );
+            }
+
             // Check if rule exists
             VVBApprovalRule rule = APPROVAL_RULES.get(request.getChangeType());
             if (rule == null) {
@@ -184,12 +191,22 @@ public class VVBValidator {
                 return null;
             }
 
+            // Determine the submitted timestamp
+            Instant submittedAt = status != null ? status.getCreatedAt() : null;
+            if (submittedAt == null && !records.isEmpty()) {
+                // Use the earliest record's timestamp if validation status is no longer available
+                submittedAt = records.stream()
+                    .map(VVBApprovalRecord::getCreatedAt)
+                    .min(Instant::compareTo)
+                    .orElse(null);
+            }
+
             return new VVBValidationDetails(
                 versionId,
-                status != null ? status.getStatus() : VVBApprovalStatus.COMPLETED,
+                status != null ? status.getStatus() : VVBApprovalStatus.APPROVED,
                 status != null ? status.getChangeType() : "UNKNOWN",
                 records,
-                status != null ? status.getCreatedAt() : null
+                submittedAt
             );
         });
     }
@@ -283,8 +300,8 @@ public class VVBValidator {
 
         return switch (type) {
             case STANDARD -> role.equals("VVB_VALIDATOR") || role.equals("VVB_ADMIN");
-            case ELEVATED -> role.equals("VVB_ADMIN");
-            case CRITICAL -> role.equals("VVB_ADMIN");
+            case ELEVATED -> role.equals("VVB_ADMIN") || role.equals("VVB_VALIDATOR");  // Both roles required for quorum
+            case CRITICAL -> role.equals("VVB_ADMIN");  // Only admins for critical changes
         };
     }
 
