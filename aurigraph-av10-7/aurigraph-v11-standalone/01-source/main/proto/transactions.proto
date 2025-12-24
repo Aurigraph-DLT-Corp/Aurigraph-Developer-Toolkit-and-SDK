@@ -1,0 +1,344 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.proto;
+
+import "common.proto";
+
+// ========================================================================
+// Story 9, Phase 1: Transaction gRPC Service
+// ========================================================================
+// Provides comprehensive transaction processing via native gRPC
+// - 8 RPC methods covering submit, query, validate, stream
+// - Bidirectional streaming for efficient transaction flow
+// - Performance targets: <100ms latency, >50k tx/sec
+// ========================================================================
+
+/**
+ * TransactionGrpcService: Replaces REST transaction endpoints with native gRPC
+ * 
+ * RPC Methods (8 total):
+ * 1. submitTransaction (Unary) - Submit and process single transaction
+ * 2. getTransactionStatus (Unary) - Query transaction status by ID
+ * 3. validateTransaction (Unary) - Validate transaction before submission
+ * 4. streamPendingTransactions (Server Streaming) - Stream all pending transactions
+ * 5. watchTransactionStatus (Server Streaming) - Watch for status updates
+ * 6. batchSubmitTransactions (Client Streaming) - Submit multiple transactions
+ * 7. transactionServiceStream (Bidirectional) - Full-duplex transaction flow
+ * 8. checkHealth (Unary) - Service health status
+ * 
+ * Performance Targets:
+ * - Latency: <100ms per transaction
+ * - Throughput: >50k tx/sec (single node)
+ * - Memory: <2MB per concurrent transaction
+ * - Finality: <100ms (via consensus)
+ */
+service TransactionGrpcService {
+    
+    // Unary RPC: Submit single transaction
+    // Immediately returns receipt with transaction ID
+    // Async processing via queue (does not block)
+    rpc submitTransaction(SubmitTransactionRequest) 
+        returns (TransactionReceipt);
+    
+    // Unary RPC: Query transaction status
+    // Returns immediate status from in-memory index
+    // <5ms latency target
+    rpc getTransactionStatus(TransactionIdRequest) 
+        returns (TransactionStatus);
+    
+    // Unary RPC: Validate transaction before submission
+    // Runs signature, nonce, format checks
+    // Does NOT submit to blockchain
+    rpc validateTransaction(ValidateTransactionRequest) 
+        returns (ValidationResult);
+    
+    // Server Streaming: Stream pending transactions
+    // Continuously streams transactions waiting for consensus
+    // Used by validators and monitoring tools
+    rpc streamPendingTransactions(Empty) 
+        returns (stream Transaction);
+    
+    // Server Streaming: Watch for transaction status updates
+    // Receives status updates as transaction progresses
+    // Closed when transaction finalized
+    rpc watchTransactionStatus(TransactionIdRequest) 
+        returns (stream TransactionStatusUpdate);
+    
+    // Client Streaming: Submit batch of transactions
+    // Client sends stream of TransactionRequest messages
+    // Server responds with batch summary
+    rpc batchSubmitTransactions(stream BatchSubmitRequest) 
+        returns (BatchSubmitResponse);
+    
+    // Bidirectional Streaming: Full-duplex transaction service
+    // Client sends transaction requests
+    // Server sends responses and status updates
+    // Used for advanced workflows
+    rpc transactionServiceStream(stream TransactionRequest) 
+        returns (stream TransactionResponse);
+    
+    // Unary RPC: Service health check (gRPC standard)
+    rpc checkHealth(Empty) 
+        returns (HealthStatus);
+}
+
+// ========================================================================
+// Message Types
+// ========================================================================
+
+/**
+ * SubmitTransactionRequest: Submit a transaction for processing
+ * 
+ * Fields:
+ * - txHash: Unique transaction hash (or None for auto-generate)
+ * - payload: Serialized transaction data (binary)
+ * - signature: Cryptographic signature (Ed25519 or Dilithium)
+ * - signer: Public key or account ID of transaction signer
+ * - nonce: Anti-replay nonce (sequential per account)
+ * - gas_limit: Maximum computation units allowed
+ * - gas_price: Price per computation unit (wei or satoshi)
+ * - priority: Transaction priority (NORMAL, HIGH, CRITICAL)
+ * - timestamp: Transaction creation time (ISO 8601)
+ * - metadata: Custom key-value pairs (e.g., external_id)
+ */
+message SubmitTransactionRequest {
+    string tx_hash = 1;              // Transaction hash (optional)
+    bytes payload = 2;               // Transaction data (required)
+    bytes signature = 3;             // Signature bytes (required)
+    string signer = 4;               // Signer public key/account (required)
+    int64 nonce = 5;                 // Anti-replay nonce (required)
+    int64 gas_limit = 6;             // Max computation units
+    int64 gas_price = 7;             // Price per unit
+    TransactionPriority priority = 8;    // Priority level
+    string timestamp = 9;            // ISO 8601 timestamp
+    map<string, string> metadata = 10;   // Custom metadata
+}
+
+/**
+ * TransactionIdRequest: Request by transaction ID
+ * 
+ * Fields:
+ * - tx_id: Transaction identifier (hash)
+ */
+message TransactionIdRequest {
+    string tx_id = 1;  // Transaction hash
+}
+
+/**
+ * ValidateTransactionRequest: Validate transaction before submission
+ * 
+ * Does not submit to blockchain - used for pre-validation checks
+ */
+message ValidateTransactionRequest {
+    bytes payload = 1;               // Transaction data
+    bytes signature = 2;             // Signature bytes
+    string signer = 3;               // Signer address
+    int64 nonce = 4;                 // Nonce for validation
+}
+
+/**
+ * ValidationResult: Result of transaction validation
+ * 
+ * Fields:
+ * - valid: Whether transaction is valid
+ * - error_code: Error code if invalid (ValidationError enum)
+ * - error_message: Human-readable error message
+ * - warnings: Non-fatal warnings (e.g., high gas price)
+ * - suggested_gas_price: Recommended gas price if too low
+ * - estimated_cost: Estimated total cost in wei/satoshi
+ */
+message ValidationResult {
+    bool valid = 1;                      // Valid or not
+    ValidationError error_code = 2;      // Error type
+    string error_message = 3;            // Error description
+    repeated string warnings = 4;        // Non-fatal warnings
+    int64 suggested_gas_price = 5;       // Recommended gas price
+    int64 estimated_cost = 6;            // Estimated total cost
+}
+
+/**
+ * TransactionReceipt: Confirmation of transaction submission
+ * 
+ * Returned immediately after submitTransaction
+ * Does NOT mean transaction is finalized
+ * 
+ * Fields:
+ * - tx_id: Transaction identifier
+ * - status: Current status (PENDING, CONFIRMED, FINALIZED, FAILED, REJECTED)
+ * - block_height: Block number (0 if not yet in block)
+ * - gas_used: Actual computation units used (0 if pending)
+ * - timestamp: Server timestamp of receipt
+ * - confirmation_count: Number of block confirmations
+ */
+message TransactionReceipt {
+    string tx_id = 1;                    // Transaction ID
+    TransactionStatus status = 2;        // Current status
+    int64 block_height = 3;              // Block number (0 if pending)
+    int64 gas_used = 4;                  // Actual gas used (0 if pending)
+    string timestamp = 5;                // Server timestamp
+    int32 confirmation_count = 6;        // Block confirmations
+}
+
+/**
+ * TransactionStatus: Current status of transaction
+ * 
+ * Fields:
+ * - tx_id: Transaction identifier
+ * - status: Current state from enum
+ * - confirmations: Number of block confirmations
+ * - block_hash: Hash of block containing transaction (empty if not in block)
+ * - finalized: Whether transaction is finalized (Byzantine finality)
+ * - error: Error message if failed/rejected
+ * - updated_at: Last update timestamp
+ */
+message TransactionStatus {
+    string tx_id = 1;                    // Transaction ID
+    TransactionStatusEnum status = 2;    // Status state
+    int32 confirmations = 3;             // Number of confirmations
+    string block_hash = 4;               // Block hash if finalized
+    bool finalized = 5;                  // Byzantine finality achieved
+    string error = 6;                    // Error message if failed
+    string updated_at = 7;               // Last update time
+}
+
+/**
+ * TransactionStatusUpdate: Broadcast when transaction status changes
+ * 
+ * Used by watchTransactionStatus streaming endpoint
+ */
+message TransactionStatusUpdate {
+    string tx_id = 1;                    // Transaction ID
+    TransactionStatusEnum status = 2;    // New status
+    int32 confirmations = 3;             // Current confirmations
+    string block_hash = 4;               // Block hash if included
+    bool finalized = 5;                  // Finality achieved
+    string timestamp = 6;                // Update timestamp
+}
+
+/**
+ * Transaction: Full transaction details
+ * 
+ * Used in streaming responses
+ */
+message Transaction {
+    string tx_id = 1;                    // Transaction ID
+    string from_address = 2;             // Sender address
+    string to_address = 3;               // Recipient address
+    int64 value = 4;                     // Value in wei/satoshi
+    bytes data = 5;                      // Transaction data/payload
+    int64 gas_limit = 6;                 // Gas limit
+    int64 gas_price = 7;                 // Gas price
+    int64 nonce = 8;                     // Nonce
+    TransactionStatusEnum status = 9;    // Current status
+    string timestamp = 10;               // Creation time
+    int64 block_height = 11;             // Block number (0 if pending)
+    TransactionPriority priority = 12;   // Priority level
+}
+
+/**
+ * BatchSubmitRequest: Submit batch of transactions
+ * 
+ * Used in batchSubmitTransactions client streaming RPC
+ * Client sends multiple BatchSubmitRequest messages
+ */
+message BatchSubmitRequest {
+    string tx_hash = 1;                  // Transaction hash
+    bytes payload = 2;                   // Transaction data
+    bytes signature = 3;                 // Signature
+    string signer = 4;                   // Signer
+    int64 nonce = 5;                     // Nonce
+}
+
+/**
+ * BatchSubmitResponse: Summary of batch submission
+ * 
+ * Server sends one response after receiving all requests
+ */
+message BatchSubmitResponse {
+    int32 received_count = 1;            // Number received
+    int32 accepted_count = 2;            // Number accepted
+    int32 rejected_count = 3;            // Number rejected
+    repeated string failed_hashes = 4;   // Failed transaction hashes
+    repeated string error_messages = 5;  // Error details
+    string summary = 6;                  // Overall summary
+}
+
+/**
+ * TransactionRequest: Request in transactionServiceStream (bidirectional)
+ * 
+ * Client sends these messages for full-duplex interaction
+ */
+message TransactionRequest {
+    oneof request_type {
+        SubmitTransactionRequest submit = 1;
+        TransactionIdRequest query = 2;
+        ValidateTransactionRequest validate = 3;
+    }
+}
+
+/**
+ * TransactionResponse: Response in transactionServiceStream (bidirectional)
+ * 
+ * Server sends these messages in response to requests
+ */
+message TransactionResponse {
+    oneof response_type {
+        TransactionReceipt receipt = 1;
+        TransactionStatus status = 2;
+        ValidationResult validation = 3;
+        TransactionStatusUpdate update = 4;
+    }
+}
+
+// ========================================================================
+// Enums
+// ========================================================================
+
+/**
+ * TransactionStatusEnum: Current state of transaction
+ * 
+ * Values:
+ * - UNKNOWN: Status not determined
+ * - PENDING: Awaiting inclusion in block
+ * - CONFIRMED: Included in block (not yet finalized)
+ * - FINALIZED: Byzantine finality achieved (~100 blocks)
+ * - FAILED: Reverted or execution failed
+ * - REJECTED: Never included in block (timeout or error)
+ * - CANCELLED: Explicitly cancelled by user
+ */
+enum TransactionStatusEnum {
+    TRANSACTION_STATUS_UNKNOWN = 0;      // Unknown status
+    TRANSACTION_STATUS_PENDING = 1;      // Pending in mempool
+    TRANSACTION_STATUS_CONFIRMED = 2;    // In block
+    TRANSACTION_STATUS_FINALIZED = 3;    // Finalized
+    TRANSACTION_STATUS_FAILED = 4;       // Execution failed
+    TRANSACTION_STATUS_REJECTED = 5;     // Rejected
+    TRANSACTION_STATUS_CANCELLED = 6;    // Cancelled
+}
+
+/**
+ * TransactionPriority: User-specified priority
+ * 
+ * Affects fee estimation and block inclusion order
+ */
+enum TransactionPriority {
+    TRANSACTION_PRIORITY_NORMAL = 0;     // Standard priority
+    TRANSACTION_PRIORITY_HIGH = 1;       // Higher priority (higher fee)
+    TRANSACTION_PRIORITY_CRITICAL = 2;   // Highest priority (highest fee)
+}
+
+/**
+ * ValidationError: Error codes for validation failures
+ */
+enum ValidationError {
+    VALIDATION_ERROR_NONE = 0;               // No error
+    VALIDATION_ERROR_INVALID_SIGNATURE = 1;  // Signature verification failed
+    VALIDATION_ERROR_INVALID_NONCE = 2;      // Nonce out of sequence
+    VALIDATION_ERROR_DUPLICATE = 3;          // Duplicate transaction
+    VALIDATION_ERROR_INSUFFICIENT_BALANCE = 4;  // Balance too low
+    VALIDATION_ERROR_INVALID_FORMAT = 5;     // Invalid message format
+    VALIDATION_ERROR_EXPIRED = 6;            // Transaction expired
+    VALIDATION_ERROR_GAS_TOO_LOW = 7;        // Gas price too low
+    VALIDATION_ERROR_PAYLOAD_TOO_LARGE = 8;  // Payload exceeds limit
+    VALIDATION_ERROR_UNKNOWN = 99;           // Unknown error
+}
