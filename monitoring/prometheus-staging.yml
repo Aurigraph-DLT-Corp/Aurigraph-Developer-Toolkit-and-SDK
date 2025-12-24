@@ -1,0 +1,82 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'aurigraph-staging'
+    environment: 'staging'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  - 'alert-rules.yml'
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Aurigraph V11 API Server (Quarkus)
+  - job_name: 'aurigraph-v11-api'
+    metrics_path: '/q/metrics'
+    static_configs:
+      - targets: ['aurigraph-v11-staging:9003']
+        labels:
+          instance: 'v11-api-staging'
+          service: 'approval-api'
+    scrape_interval: 10s
+    relabel_configs:
+      - source_labels: [__scheme__, __address__, __metrics_path__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 'aurigraph-v11-staging:9003'
+
+  # PostgreSQL Database (via postgres_exporter - if available)
+  - job_name: 'postgres-staging'
+    static_configs:
+      - targets: ['postgres-staging:5432']
+        labels:
+          instance: 'postgres-staging'
+          service: 'database'
+
+  # Redis Cache
+  - job_name: 'redis-staging'
+    static_configs:
+      - targets: ['redis-staging:6379']
+        labels:
+          instance: 'redis-staging'
+          service: 'cache'
+
+  # Webhook Processor
+  - job_name: 'webhook-processor'
+    static_configs:
+      - targets: ['webhook-processor-staging:8080']
+        labels:
+          instance: 'webhook-processor-staging'
+          service: 'webhook-delivery'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # NGINX Reverse Proxy
+  - job_name: 'nginx-staging'
+    static_configs:
+      - targets: ['nginx-staging:80']
+        labels:
+          instance: 'nginx-staging'
+          service: 'gateway'
+    metrics_path: '/nginx_status'
+    scrape_interval: 30s
+
+# Metric relabeling for better organization
+metric_relabel_configs:
+  - source_labels: [__name__]
+    regex: 'go_.*'
+    action: 'drop'
+  - source_labels: [__name__]
+    regex: 'process_.*'
+    action: 'keep'

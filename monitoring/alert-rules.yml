@@ -1,0 +1,281 @@
+groups:
+  - name: approval_system_alerts
+    interval: 30s
+    rules:
+      # Alert: High Approval Rejection Rate
+      - alert: HighApprovalRejectionRate
+        expr: |
+          (increase(approvals_rejected[1h]) / (increase(approval_requests_total[1h]) + 1)) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          component: approval-system
+        annotations:
+          summary: "High approval rejection rate detected"
+          description: "More than 20% of approvals are being rejected in the last hour. Current rate: {{ $value | humanizePercentage }}"
+
+      # Alert: Consensus Not Being Reached
+      - alert: ConsensusAchievementLow
+        expr: |
+          (increase(approvals_consensus_reached[1h]) / (increase(approval_requests_total[1h]) + 1)) < 0.85
+        for: 10m
+        labels:
+          severity: critical
+          component: approval-system
+        annotations:
+          summary: "Consensus achievement rate below threshold"
+          description: "Less than 85% of approvals are reaching consensus. Current rate: {{ $value | humanizePercentage }}"
+
+      # Alert: Approval Processing Delays
+      - alert: ApprovalProcessingDelayed
+        expr: |
+          histogram_quantile(0.95, rate(approval_processing_time_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: approval-system
+        annotations:
+          summary: "Approval processing is experiencing delays"
+          description: "95th percentile approval processing time exceeds 10 seconds. Current: {{ $value | humanizeDuration }}"
+
+      # Alert: Consensus Time SLA Breach
+      - alert: ConsensusTimeSLABreach
+        expr: |
+          histogram_quantile(0.5, rate(approval_consensus_time_seconds_bucket[5m])) > 5
+        for: 10m
+        labels:
+          severity: critical
+          component: approval-system
+        annotations:
+          summary: "Consensus time SLA breached"
+          description: "Median time to consensus exceeds 5 seconds target. Current: {{ $value | humanizeDuration }}"
+
+      # Alert: Low Validator Participation
+      - alert: LowValidatorParticipation
+        expr: |
+          (rate(validator_votes_submitted[1h]) / (rate(approval_requests_total[1h]) * 3 + 1)) < 0.7
+        for: 15m
+        labels:
+          severity: warning
+          component: approval-validators
+        annotations:
+          summary: "Validator participation rate is low"
+          description: "Less than 70% of expected validator votes are being submitted. Current: {{ $value | humanizePercentage }}"
+
+      # Alert: Validator Response Time Degradation
+      - alert: ValidatorResponseTimeDegraded
+        expr: |
+          histogram_quantile(0.99, rate(validator_vote_submission_time_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: approval-validators
+        annotations:
+          summary: "Validator response times are degraded"
+          description: "99th percentile validator response time exceeds 2 seconds. Current: {{ $value | humanizeDuration }}"
+
+      # Alert: Webhook Delivery Failure Rate High
+      - alert: WebhookDeliveryFailureHigh
+        expr: |
+          (increase(webhook_deliveries_failed[1h]) / (increase(webhook_deliveries_total[1h]) + 1)) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: webhooks
+        annotations:
+          summary: "Webhook delivery failure rate is elevated"
+          description: "More than 5% of webhook deliveries are failing. Current rate: {{ $value | humanizePercentage }}"
+
+      # Alert: Webhook Queue Backlog
+      - alert: WebhookQueueBacklog
+        expr: webhook_queue_depth > 1000
+        for: 5m
+        labels:
+          severity: critical
+          component: webhooks
+        annotations:
+          summary: "Webhook queue has significant backlog"
+          description: "Webhook event queue depth exceeded 1000 events. Current: {{ $value }}"
+
+      # Alert: Cache Hit Rate Low
+      - alert: CacheHitRateLow
+        expr: |
+          (increase(cache_hits[1h]) / (increase(cache_hits[1h]) + increase(cache_misses[1h]) + 1)) < 0.75
+        for: 15m
+        labels:
+          severity: warning
+          component: caching
+        annotations:
+          summary: "Cache hit rate is below optimal level"
+          description: "Cache hit rate has dropped below 75%. Current: {{ $value | humanizePercentage }}"
+
+      # Alert: Database Connection Pool Exhausted
+      - alert: DatabaseConnectionPoolExhausted
+        expr: pg_stat_activity_count > 190
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool near capacity"
+          description: "Active database connections are approaching limit. Current: {{ $value }}/200"
+
+      # Alert: API Server Down
+      - alert: APIServerDown
+        expr: up{job='aurigraph-v11-api'} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API server is unreachable"
+          description: "Aurigraph V11 API server health check has failed"
+
+      # Alert: Database Server Down
+      - alert: DatabaseServerDown
+        expr: up{job='postgres-staging'} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database server is unreachable"
+          description: "PostgreSQL database server health check has failed"
+
+      # Alert: Redis Cache Down
+      - alert: RedisCacheDown
+        expr: up{job='redis-staging'} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis cache is unreachable"
+          description: "Redis cache server health check has failed"
+
+      # Alert: Webhook Processor Down
+      - alert: WebhookProcessorDown
+        expr: up{job='webhook-processor'} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: webhooks
+        annotations:
+          summary: "Webhook processor service is down"
+          description: "Webhook processor health check has failed"
+
+      # Alert: Excessive Memory Usage
+      - alert: ExcessiveMemoryUsage
+        expr: |
+          (process_resident_memory_bytes / (100 * 1024 * 1024)) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Process memory usage is high"
+          description: "Process is consuming over 80% of allocated memory. Current: {{ $value | humanizePercentage }}"
+
+      # Alert: High Request Error Rate
+      - alert: HighRequestErrorRate
+        expr: |
+          (increase(http_requests_total{status=~"5.."}[5m]) / increase(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API error rate is elevated"
+          description: "More than 5% of API requests are returning 5xx errors. Current: {{ $value | humanizePercentage }}"
+
+      # Alert: Approval Creation Rate Anomaly
+      - alert: ApprovalCreationRateAnomaly
+        expr: |
+          abs(rate(approval_requests_total[5m]) - avg_over_time(rate(approval_requests_total[5m] offset 1h)[1h:5m])) >
+          2 * stddev_over_time(rate(approval_requests_total[5m] offset 1h)[1h:5m])
+        for: 10m
+        labels:
+          severity: warning
+          component: approval-system
+        annotations:
+          summary: "Approval creation rate shows anomalous behavior"
+          description: "Approval creation rate has deviated significantly from normal patterns"
+
+      # Alert: Consensus Distribution Anomaly
+      - alert: ConsensusDistributionAnomaly
+        expr: |
+          (increase(approvals_expired[1h]) / (increase(approval_requests_total[1h]) + 1)) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          component: approval-system
+        annotations:
+          summary: "Unusually high approval expiration rate"
+          description: "More than 10% of approvals are expiring without reaching consensus. Current: {{ $value | humanizePercentage }}"
+
+  - name: performance_alerts
+    interval: 30s
+    rules:
+      # Alert: Throughput Below Baseline
+      - alert: ThroughputBelowBaseline
+        expr: |
+          rate(approval_requests_total[5m]) < 10
+        for: 10m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Approval throughput is below baseline"
+          description: "Approval request rate has dropped below 10 req/min. Current: {{ $value | humanize }} req/min"
+
+      # Alert: Execution Latency Increasing
+      - alert: ExecutionLatencyIncreasing
+        expr: |
+          histogram_quantile(0.95, rate(approval_processing_time_seconds_bucket[5m])) >
+          histogram_quantile(0.95, rate(approval_processing_time_seconds_bucket[5m] offset 1h)) * 1.5
+        for: 10m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Execution latency is increasing"
+          description: "Processing time has increased by more than 50% compared to 1 hour ago"
+
+  - name: compliance_alerts
+    interval: 30s
+    rules:
+      # Alert: Audit Trail Gaps
+      - alert: AuditTrailGaps
+        expr: |
+          increase(audit_events_total[1h]) < increase(approval_requests_total[1h]) * 3
+        for: 5m
+        labels:
+          severity: critical
+          component: compliance
+        annotations:
+          summary: "Audit trail may have gaps"
+          description: "Number of audit events is significantly lower than expected based on approval requests"
+
+      # Alert: Vote Verification Failure
+      - alert: VoteVerificationFailure
+        expr: |
+          increase(vote_verification_failures[1h]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: compliance
+        annotations:
+          summary: "Vote verification failures detected"
+          description: "One or more vote verification failures have been detected. This may indicate tampering."
+
+      # Alert: Execution Authorization Missing
+      - alert: ExecutionAuthorizationMissing
+        expr: |
+          increase(executions_without_audit[1h]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: compliance
+        annotations:
+          summary: "Executions without proper authorization detected"
+          description: "One or more approvals have been executed without proper authorization records"
