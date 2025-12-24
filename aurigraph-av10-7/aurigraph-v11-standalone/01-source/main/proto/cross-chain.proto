@@ -1,0 +1,325 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.proto;
+
+import "common.proto";
+
+// ========================================================================
+// Story 9, Phase 2: Cross-Chain Bridge gRPC Service
+// ========================================================================
+// Provides comprehensive cross-chain interoperability via native gRPC
+// - 8 RPC methods covering atomic swaps, message relay, settlement
+// - Bidirectional streaming for bridge message verification
+// - Performance targets: <500ms cross-chain latency, >10k tx/sec per chain
+// - Support for Ethereum, Solana, Polkadot, Cosmos, and Aurigraph
+// ========================================================================
+
+/**
+ * CrossChainBridgeService: Enable atomic transactions across blockchains
+ *
+ * RPC Methods (8 total):
+ * 1. initiateBridgeTransfer (Unary) - Initiate cross-chain transfer
+ * 2. getBridgeTransferStatus (Unary) - Query bridge transfer status
+ * 3. executeBridgeCallback (Unary) - Execute callback from destination chain
+ * 4. verifyBridgeMessage (Bidirectional) - Real-time message verification
+ * 5. streamPendingBridgeTransfers (Server Streaming) - Stream pending transfers
+ * 6. batchBridgeTransfers (Client Streaming) - Submit multiple bridge transfers
+ * 7. monitorCrossChainStatus (Bidirectional) - Real-time cross-chain monitoring
+ * 8. checkHealth (Unary) - Service health status
+ *
+ * Performance Targets:
+ * - Cross-chain latency: <500ms (via parallel oracles)
+ * - Throughput: >10k tx/sec per chain pair
+ * - Settlement finality: Byzantine finality + destination chain confirmation
+ * - Atomic swap success rate: >99.9%
+ * - Bridge safety: No slippage, atomic execution or full refund
+ */
+service CrossChainBridgeService {
+
+    // Unary RPC: Initiate bridge transfer
+    // Locks assets on source chain, broadcasts to all oracles
+    // Returns bridge transaction ID immediately
+    rpc initiateBridgeTransfer(BridgeTransferRequest)
+        returns (BridgeTransferReceipt);
+
+    // Unary RPC: Query bridge transfer status
+    // Returns status: PENDING, RELAYED, EXECUTED, SETTLED, FAILED
+    // <10ms latency target (in-memory index)
+    rpc getBridgeTransferStatus(BridgeTransferIdRequest)
+        returns (BridgeTransferStatus);
+
+    // Unary RPC: Execute bridge callback from destination chain
+    // Called by destination chain oracle to confirm execution
+    // Updates status to EXECUTED when >67% oracles confirm
+    rpc executeBridgeCallback(BridgeExecutionCallback)
+        returns (CallbackResponse);
+
+    // Bidirectional Streaming: Verify bridge message authenticity
+    // Oracles submit message verification proofs in real-time
+    // Server broadcasts verification results to all oracles
+    // Consensus when >67% agree (Byzantine resilience)
+    rpc verifyBridgeMessage(stream BridgeMessageVerification)
+        returns (stream VerificationResult);
+
+    // Server Streaming: Stream pending bridge transfers
+    // Continuously streams transfers waiting for oracle consensus
+    // Used by oracle nodes and monitoring tools
+    rpc streamPendingBridgeTransfers(BridgeStreamRequest)
+        returns (stream BridgeTransfer);
+
+    // Client Streaming: Submit batch of bridge transfers
+    // Client sends stream of BridgeTransferRequest messages
+    // Server responds with batch summary after processing all
+    rpc batchBridgeTransfers(stream BridgeTransferRequest)
+        returns (BatchBridgeResponse);
+
+    // Bidirectional Streaming: Monitor cross-chain status in real-time
+    // Subscribe to cross-chain events (initiated, verified, executed, settled)
+    // Receive real-time updates as transfers progress through phases
+    rpc monitorCrossChainStatus(stream CrossChainMonitorRequest)
+        returns (stream CrossChainStatusUpdate);
+
+    // Unary RPC: Service health check (gRPC standard)
+    rpc checkHealth(Empty)
+        returns (HealthStatus);
+}
+
+// ========================================================================
+// Message Types
+// ========================================================================
+
+/**
+ * BridgeTransferRequest: Initiate atomic transfer across chains
+ *
+ * Fields:
+ * - bridge_id: Unique bridge transfer identifier
+ * - source_chain: Source blockchain (AURIGRAPH, ETHEREUM, SOLANA, POLKADOT, COSMOS)
+ * - dest_chain: Destination blockchain
+ * - asset_address: Token contract address on source chain
+ * - amount: Amount to transfer (wei/satoshi/atomic units)
+ * - recipient: Recipient address on destination chain
+ * - source_tx_hash: Transaction hash on source chain
+ * - lock_proof: Merkle proof of asset lock on source
+ * - oracle_set: Set of oracle addresses that will verify
+ * - timeout: Refund timeout if not executed (seconds)
+ * - metadata: Custom metadata (swap price, slippage tolerance)
+ */
+message BridgeTransferRequest {
+    string bridge_id = 1;              // Unique bridge transfer ID
+    BlockchainNetwork source_chain = 2;    // Source blockchain
+    BlockchainNetwork dest_chain = 3;      // Destination blockchain
+    string asset_address = 4;          // Token address on source
+    string amount = 5;                 // Amount (BigInt as string)
+    string recipient = 6;              // Recipient address (dest format)
+    string source_tx_hash = 7;         // Source transaction hash
+    bytes lock_proof = 8;              // Merkle proof of lock
+    repeated string oracle_set = 9;    // Oracle addresses for verification
+    int64 timeout = 10;                // Refund timeout (Unix seconds)
+    map<string, string> metadata = 11; // Custom metadata
+}
+
+/**
+ * BridgeTransferIdRequest: Request by bridge transfer ID
+ */
+message BridgeTransferIdRequest {
+    string bridge_id = 1;  // Bridge transfer ID
+}
+
+/**
+ * BridgeTransferReceipt: Confirmation of bridge transfer initiation
+ *
+ * Returns immediately after initiateBridgeTransfer
+ * Status starts at PENDING, progresses as oracles verify
+ */
+message BridgeTransferReceipt {
+    string bridge_id = 1;                  // Bridge transfer ID
+    BlockchainNetwork source_chain = 2;    // Source chain
+    BlockchainNetwork dest_chain = 3;      // Destination chain
+    BridgeTransferStatus status = 4;       // Current status (PENDING)
+    string amount = 5;                     // Transfer amount
+    string recipient = 6;                  // Recipient address
+    int32 required_confirmations = 7;      // Confirmations needed (>67%)
+    int32 current_confirmations = 8;       // Current confirmations (0 initially)
+    string timestamp = 9;                  // Receipt timestamp (ISO 8601)
+}
+
+/**
+ * BridgeTransferStatus: Current status of bridge transfer
+ *
+ * Lifecycle:
+ * PENDING -> RELAYED -> EXECUTED -> SETTLED (or FAILED/REFUNDED)
+ */
+message BridgeTransferStatus {
+    string bridge_id = 1;                  // Bridge transfer ID
+    BridgeStatusEnum status = 2;           // Current status
+    BlockchainNetwork source_chain = 3;    // Source blockchain
+    BlockchainNetwork dest_chain = 4;      // Destination blockchain
+    string amount = 5;                     // Original amount
+    int32 oracle_confirmations = 6;        // Number of oracle confirmations
+    int32 required_confirmations = 7;      // Confirmations needed (67% of set)
+    string dest_tx_hash = 8;               // Destination transaction hash (empty if not executed)
+    bool finalized = 9;                    // Byzantine finality achieved
+    string error = 10;                     // Error message if failed
+    string updated_at = 11;                // Last update timestamp
+}
+
+/**
+ * BridgeExecutionCallback: Called by destination chain oracle
+ *
+ * Confirms that transfer was executed on destination chain
+ * Updates status when >67% of oracles confirm execution
+ */
+message BridgeExecutionCallback {
+    string bridge_id = 1;              // Bridge transfer ID
+    string dest_tx_hash = 2;           // Destination chain transaction hash
+    string oracle_address = 3;         // Oracle that observed execution
+    string oracle_signature = 4;       // Signature proving observation
+    int64 dest_block_height = 5;       // Block height on destination
+    int32 gas_used = 6;                // Gas consumed on destination
+    string timestamp = 7;              // When oracle observed execution (ISO 8601)
+}
+
+/**
+ * CallbackResponse: Response to bridge callback execution
+ */
+message CallbackResponse {
+    bool accepted = 1;                 // Callback accepted
+    string bridge_id = 2;              // Bridge transfer ID
+    BridgeStatusEnum updated_status = 3;   // Updated status
+    int32 confirmations = 4;           // Current confirmations
+    string message = 5;                // Status message
+}
+
+/**
+ * BridgeMessageVerification: Oracle verification of bridge message
+ *
+ * Used in bidirectional verifyBridgeMessage stream
+ * Oracles submit proofs, server aggregates consensus
+ */
+message BridgeMessageVerification {
+    string bridge_id = 1;              // Bridge transfer ID
+    string oracle_address = 2;         // Oracle address
+    string verification_type = 3;      // LOCK_PROOF, EXECUTION_PROOF, STATE_SYNC
+    bytes proof_data = 4;              // Merkle proof or execution proof
+    string signature = 5;              // Oracle signature over proof
+    int64 timestamp = 6;               // Unix timestamp
+    bool approved = 7;                 // Oracle approves or rejects
+    string reason = 8;                 // Reason if rejecting
+}
+
+/**
+ * VerificationResult: Broadcasting verification consensus
+ *
+ * Sent by server when >67% of oracles agree
+ */
+message VerificationResult {
+    string bridge_id = 1;              // Bridge transfer ID
+    bool consensus_reached = 2;        // >67% agree
+    int32 approved_count = 3;          // Number approving
+    int32 rejected_count = 4;          // Number rejecting
+    string timestamp = 5;              // Consensus timestamp
+}
+
+/**
+ * BridgeTransfer: Full bridge transfer details
+ *
+ * Used in streamPendingBridgeTransfers
+ */
+message BridgeTransfer {
+    string bridge_id = 1;              // Bridge transfer ID
+    BlockchainNetwork source_chain = 2;    // Source blockchain
+    BlockchainNetwork dest_chain = 3;      // Destination blockchain
+    string asset_address = 4;          // Token address
+    string amount = 5;                 // Amount
+    string recipient = 6;              // Recipient address
+    BridgeStatusEnum status = 7;       // Current status
+    int32 confirmations = 8;           // Current confirmations
+    int32 required = 9;                // Required confirmations
+    string created_at = 10;            // Creation timestamp
+    string updated_at = 11;            // Last update timestamp
+}
+
+/**
+ * BatchBridgeResponse: Summary of batch bridge submission
+ */
+message BatchBridgeResponse {
+    int32 received_count = 1;          // Number received
+    int32 accepted_count = 2;          // Number accepted
+    int32 rejected_count = 3;          // Number rejected
+    repeated string failed_ids = 4;    // Failed bridge transfer IDs
+    repeated string error_messages = 5; // Error details
+    string summary = 6;                // Overall summary
+}
+
+/**
+ * BridgeStreamRequest: Filter for pending bridge transfers
+ */
+message BridgeStreamRequest {
+    BlockchainNetwork filter_chain = 1;    // Filter by chain (optional)
+    BridgeStatusEnum filter_status = 2;    // Filter by status (optional)
+    int64 from_timestamp = 3;          // Start timestamp (optional)
+}
+
+/**
+ * CrossChainMonitorRequest: Subscribe to cross-chain events
+ */
+message CrossChainMonitorRequest {
+    string monitor_id = 1;             // Monitor session ID
+    BlockchainNetwork source_chain = 2;    // Monitor transfers from (optional)
+    BlockchainNetwork dest_chain = 3;      // Monitor transfers to (optional)
+    repeated string bridge_ids = 4;    // Specific bridge IDs to monitor (optional)
+}
+
+/**
+ * CrossChainStatusUpdate: Real-time update for monitored transfers
+ */
+message CrossChainStatusUpdate {
+    string bridge_id = 1;              // Bridge transfer ID
+    BridgeStatusEnum status = 2;       // Updated status
+    CrossChainEventType event = 3;     // Event type (INITIATED, VERIFIED, EXECUTED, SETTLED)
+    int32 confirmations = 4;           // Current confirmations
+    string message = 5;                // Status message
+    string timestamp = 6;              // Update timestamp
+}
+
+// ========================================================================
+// Enums
+// ========================================================================
+
+/**
+ * BlockchainNetwork: Supported blockchain networks
+ */
+enum BlockchainNetwork {
+    BLOCKCHAIN_NETWORK_UNKNOWN = 0;    // Unknown network
+    BLOCKCHAIN_NETWORK_AURIGRAPH = 1;  // Aurigraph DLT
+    BLOCKCHAIN_NETWORK_ETHEREUM = 2;   // Ethereum mainnet
+    BLOCKCHAIN_NETWORK_SOLANA = 3;     // Solana
+    BLOCKCHAIN_NETWORK_POLKADOT = 4;   // Polkadot
+    BLOCKCHAIN_NETWORK_COSMOS = 5;     // Cosmos/IBC
+}
+
+/**
+ * BridgeStatusEnum: Status of bridge transfer
+ */
+enum BridgeStatusEnum {
+    BRIDGE_STATUS_UNKNOWN = 0;         // Unknown status
+    BRIDGE_STATUS_PENDING = 1;         // Waiting for lock confirmation
+    BRIDGE_STATUS_RELAYED = 2;         // Relayed to destination oracles
+    BRIDGE_STATUS_EXECUTED = 3;        // Executed on destination (>67% confirmed)
+    BRIDGE_STATUS_SETTLED = 4;         // Settled (finality achieved)
+    BRIDGE_STATUS_FAILED = 5;          // Execution failed
+    BRIDGE_STATUS_REFUNDED = 6;        // Assets refunded due to timeout
+}
+
+/**
+ * CrossChainEventType: Event type for monitoring
+ */
+enum CrossChainEventType {
+    CROSS_CHAIN_EVENT_UNKNOWN = 0;     // Unknown event
+    CROSS_CHAIN_EVENT_INITIATED = 1;   // Transfer initiated on source
+    CROSS_CHAIN_EVENT_VERIFIED = 2;    // Oracle verification consensus reached
+    CROSS_CHAIN_EVENT_EXECUTED = 3;    // Executed on destination
+    CROSS_CHAIN_EVENT_SETTLED = 4;     // Finality achieved on destination
+    CROSS_CHAIN_EVENT_FAILED = 5;      // Transfer failed
+    CROSS_CHAIN_EVENT_REFUNDED = 6;    // Assets refunded
+}
