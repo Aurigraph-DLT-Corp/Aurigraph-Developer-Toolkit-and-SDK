@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.proto;
+
+import "common.proto";
+
+// ========================================================================
+// Sprint 15: Approval Service gRPC - Story 8 Migration
+// ========================================================================
+// Provides approval workflow for large transactions via native gRPC
+// - 5 RPC methods for submit, query, approve/reject, stream
+// - Real-time approval status updates
+// - Performance: <20ms approval submission, >50k approvals/sec
+// ========================================================================
+
+service ApprovalGrpcService {
+    rpc submitApprovalRequest(ApprovalRequest) returns (ApprovalReceipt);
+    rpc getApprovalStatus(ApprovalIdRequest) returns (ApprovalStatus_Message);
+    rpc submitApprovalVote(ApprovalVote_Message) returns (VoteResponse_Message);
+    rpc streamApprovalUpdates(ApprovalStreamRequest) returns (stream ApprovalStatusUpdate_Message);
+    rpc checkHealth(Empty) returns (HealthStatus);
+}
+
+message ApprovalRequest {
+    string approval_id = 1;
+    ApprovalType approval_type = 2;
+    ApprovalPriority priority = 3;
+    string requester_id = 4;
+    bytes content = 5;
+    string content_hash = 6;
+    int32 required_approvals = 7;
+    int32 total_validators = 8;
+    map<string, string> metadata = 9;
+}
+
+message ApprovalReceipt {
+    string approval_id = 1;
+    ApprovalType approval_type = 2;
+    bool accepted = 3;
+    string message = 4;
+    int32 required_approvals = 5;
+    int32 current_approvals = 6;
+    string timestamp = 7;
+}
+
+message ApprovalIdRequest {
+    string approval_id = 1;
+}
+
+message ApprovalStatus_Message {
+    string approval_id = 1;
+    ApprovalStatusEnum status = 2;
+    int32 approvals_received = 3;
+    int32 approvals_required = 4;
+    repeated ApprovalDetail details = 5;
+    string updated_at = 6;
+}
+
+message ApprovalDetail {
+    string approver_id = 1;
+    bool approved = 2;
+    string timestamp = 3;
+}
+
+message ApprovalVote_Message {
+    string approval_id = 1;
+    string approver_id = 2;
+    bool approved = 3;
+    string reason = 4;
+    string signature = 5;
+}
+
+message VoteResponse_Message {
+    string approval_id = 1;
+    bool vote_recorded = 2;
+    int32 current_approvals = 3;
+    bool approval_finalized = 4;
+    string message = 5;
+}
+
+message ApprovalStreamRequest {
+    ApprovalType filter_type = 1;
+    ApprovalStatusEnum filter_status = 2;
+}
+
+message ApprovalStatusUpdate_Message {
+    string approval_id = 1;
+    ApprovalStatusEnum status = 2;
+    int32 current_approvals = 3;
+    string event = 4;
+    string timestamp = 5;
+}
+
+enum ApprovalType {
+    APPROVAL_TYPE_LARGE_TRANSACTION = 0;
+    APPROVAL_TYPE_CONTRACT_DEPLOYMENT = 1;
+    APPROVAL_TYPE_PARAMETER_CHANGE = 2;
+    APPROVAL_TYPE_EMERGENCY = 3;
+}
+
+enum ApprovalPriority {
+    APPROVAL_PRIORITY_NORMAL = 0;
+    APPROVAL_PRIORITY_HIGH = 1;
+    APPROVAL_PRIORITY_CRITICAL = 2;
+}
+
+enum ApprovalStatusEnum {
+    APPROVAL_STATUS_PENDING = 0;
+    APPROVAL_STATUS_APPROVED = 1;
+    APPROVAL_STATUS_REJECTED = 2;
+    APPROVAL_STATUS_EXPIRED = 3;
+}
