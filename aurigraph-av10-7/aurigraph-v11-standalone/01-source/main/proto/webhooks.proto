@@ -1,0 +1,360 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.proto;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+option java_multiple_files = true;
+option java_package = "io.aurigraph.v11.proto";
+option java_outer_classname = "WebhooksProto";
+
+// ============================================================================
+// Webhook Registry Service - Protocol Buffers
+// Purpose: Database-backed webhook registry with gRPC streaming
+// Features: CRUD operations, event subscriptions, real-time delivery
+// Performance Target: 100% data integrity, <50ms latency
+// ============================================================================
+
+// ============================================================================
+// Enumerations
+// ============================================================================
+
+enum WebhookEvent {
+  WEBHOOK_EVENT_UNKNOWN = 0;
+  WEBHOOK_EVENT_APPROVAL_CREATED = 1;
+  WEBHOOK_EVENT_APPROVAL_APPROVED = 2;
+  WEBHOOK_EVENT_APPROVAL_REJECTED = 3;
+  WEBHOOK_EVENT_APPROVAL_EXPIRED = 4;
+  WEBHOOK_EVENT_RESPONSE_RECEIVED = 5;
+  WEBHOOK_EVENT_TRANSACTION_CONFIRMED = 6;
+  WEBHOOK_EVENT_BLOCK_FINALIZED = 7;
+  WEBHOOK_EVENT_NODE_STATUS_CHANGED = 8;
+  WEBHOOK_EVENT_CONSENSUS_ROUND_COMPLETE = 9;
+  WEBHOOK_EVENT_CUSTOM = 10;
+}
+
+enum WebhookStatus {
+  WEBHOOK_STATUS_UNKNOWN = 0;
+  WEBHOOK_STATUS_ACTIVE = 1;
+  WEBHOOK_STATUS_INACTIVE = 2;
+  WEBHOOK_STATUS_PAUSED = 3;
+  WEBHOOK_STATUS_FAILED = 4;
+  WEBHOOK_STATUS_DELETED = 5;
+}
+
+enum DeliveryStatus {
+  DELIVERY_STATUS_UNKNOWN = 0;
+  DELIVERY_STATUS_PENDING = 1;
+  DELIVERY_STATUS_RETRYING = 2;
+  DELIVERY_STATUS_DELIVERED = 3;
+  DELIVERY_STATUS_FAILED = 4;
+  DELIVERY_STATUS_EXPIRED = 5;
+}
+
+enum HttpMethod {
+  HTTP_METHOD_UNKNOWN = 0;
+  HTTP_METHOD_POST = 1;
+  HTTP_METHOD_PUT = 2;
+  HTTP_METHOD_PATCH = 3;
+}
+
+// ============================================================================
+// Message Types
+// ============================================================================
+
+// Core webhook registration
+message WebhookRegistry {
+  string webhook_id = 1;            // Unique identifier (UUID)
+  string owner_id = 2;              // Owner/application ID
+  string endpoint_url = 3;          // Target URL for deliveries
+
+  // Event configuration
+  repeated WebhookEvent events = 4; // Events this webhook subscribes to
+  bool custom_events_enabled = 5;   // Allow custom event types
+
+  // Delivery configuration
+  HttpMethod http_method = 6;       // POST, PUT, PATCH
+  map<string, string> headers = 7;  // Custom headers
+  string retry_policy = 8;          // Retry strategy (exponential, linear, none)
+  int32 max_retries = 9;            // Maximum retry attempts
+  int32 timeout_seconds = 10;       // Request timeout
+
+  // Status and metadata
+  WebhookStatus status = 11;
+  string webhook_secret = 12;       // HMAC secret for signature verification
+  bool require_signature = 13;       // Enforce signature validation
+
+  // Timestamps
+  google.protobuf.Timestamp created_at = 14;
+  google.protobuf.Timestamp updated_at = 15;
+  google.protobuf.Timestamp last_triggered_at = 16;
+
+  // Statistics
+  int64 total_deliveries = 17;
+  int64 successful_deliveries = 18;
+  int64 failed_deliveries = 19;
+  double success_rate = 20;
+
+  // Metadata
+  map<string, string> metadata = 21;
+  string description = 22;
+}
+
+// Webhook event payload
+message WebhookPayload {
+  string webhook_id = 1;
+  WebhookEvent event_type = 2;
+  string event_id = 3;              // Unique event ID for deduplication
+
+  // Content
+  bytes event_data = 4;             // Binary-encoded event data
+  string content_type = 5;          // "application/protobuf" or "application/json"
+
+  // Context
+  google.protobuf.Timestamp timestamp = 6;
+  string source_service = 7;        // Service that triggered the event
+  map<string, string> metadata = 8;
+
+  // Retry context
+  int32 attempt = 9;                // Current delivery attempt
+  string correlation_id = 10;       // For request tracing
+}
+
+// Delivery record (history tracking)
+message WebhookDeliveryRecord {
+  string delivery_id = 1;
+  string webhook_id = 2;
+  string event_id = 3;
+
+  // Request information
+  string endpoint_url = 4;
+  HttpMethod http_method = 5;
+  map<string, string> headers = 6;
+  bytes request_body = 7;
+
+  // Response information
+  int32 http_status_code = 8;
+  bytes response_body = 9;
+  int64 response_time_ms = 10;
+
+  // Delivery status
+  DeliveryStatus status = 11;
+  string error_message = 12;
+  int32 attempt_number = 13;
+  google.protobuf.Timestamp next_retry_at = 14;
+
+  // Timestamps
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp completed_at = 16;
+}
+
+// Webhook event for streaming (real-time subscriptions)
+message WebhookRegistryEvent {
+  string event_id = 1;
+  string webhook_id = 2;
+  string event_type = 3;            // "created", "updated", "deleted", "triggered", "delivery_failed"
+
+  // Event payload
+  oneof event_data {
+    WebhookRegistry registry_data = 4;
+    WebhookPayload payload_data = 5;
+    WebhookDeliveryRecord delivery_data = 6;
+  }
+
+  // Metadata
+  google.protobuf.Timestamp timestamp = 7;
+  map<string, string> context = 8;
+}
+
+// Request to create or update webhook
+message CreateWebhookRequest {
+  string owner_id = 1;
+  string endpoint_url = 2;
+  repeated WebhookEvent events = 3;
+  HttpMethod http_method = 4;
+  map<string, string> headers = 5;
+  string retry_policy = 6;
+  int32 max_retries = 7;
+  int32 timeout_seconds = 8;
+  bool require_signature = 9;
+  map<string, string> metadata = 10;
+  string description = 11;
+}
+
+// Request to update webhook
+message UpdateWebhookRequest {
+  string webhook_id = 1;
+  string endpoint_url = 2;
+  repeated WebhookEvent events = 3;
+  WebhookStatus status = 4;
+  map<string, string> headers = 5;
+  map<string, string> metadata = 6;
+}
+
+// Request for webhook delivery
+message TriggerWebhookRequest {
+  string webhook_id = 1;
+  WebhookEvent event_type = 2;
+  bytes event_data = 3;
+  string content_type = 4;
+  map<string, string> metadata = 5;
+}
+
+// Pagination helper
+message PaginationParams {
+  int32 page = 1;                   // Page number (0-indexed)
+  int32 page_size = 2;              // Items per page
+  string sort_field = 3;            // Field to sort by
+  bool sort_ascending = 4;          // Sort order
+}
+
+// List response wrapper
+message WebhookListResponse {
+  repeated WebhookRegistry webhooks = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// Health check for webhook service
+message WebhookServiceHealthCheck {
+  string service_version = 1;
+  HealthStatus health_status = 2;
+  int64 total_webhooks = 3;
+  int64 active_webhooks = 4;
+  int64 failed_deliveries_pending = 5;
+  double average_delivery_time_ms = 6;
+  google.protobuf.Timestamp checked_at = 7;
+}
+
+// ============================================================================
+// gRPC Service Definition
+// ============================================================================
+
+service WebhookGrpcService {
+  // === Webhook Registry CRUD ===
+
+  // Create a new webhook
+  rpc CreateWebhook(CreateWebhookRequest) returns (WebhookRegistry);
+
+  // Get webhook by ID
+  rpc GetWebhook(GetWebhookRequest) returns (WebhookRegistry);
+
+  // List all webhooks (with optional pagination)
+  rpc ListWebhooks(ListWebhooksRequest) returns (WebhookListResponse);
+
+  // Update webhook configuration
+  rpc UpdateWebhook(UpdateWebhookRequest) returns (WebhookRegistry);
+
+  // Delete webhook
+  rpc DeleteWebhook(DeleteWebhookRequest) returns (DeleteWebhookResponse);
+
+  // === Event Triggering ===
+
+  // Manually trigger a webhook delivery
+  rpc TriggerWebhook(TriggerWebhookRequest) returns (WebhookDeliveryRecord);
+
+  // Get delivery history for a webhook
+  rpc GetDeliveryHistory(DeliveryHistoryRequest) returns (DeliveryHistoryResponse);
+
+  // === Real-Time Streaming ===
+
+  // Server-side streaming: Stream webhook registry events
+  rpc WatchWebhookRegistry(WatchWebhookRequest) returns (stream WebhookRegistryEvent);
+
+  // Server-side streaming: Stream webhook deliveries (for monitoring)
+  rpc WatchDeliveries(WatchDeliveriesRequest) returns (stream WebhookDeliveryRecord);
+
+  // Bidirectional streaming: Handle incoming webhooks
+  rpc HandleIncomingWebhooks(stream WebhookPayload) returns (stream WebhookDeliveryRecord);
+
+  // === Management ===
+
+  // Retry failed deliveries
+  rpc RetryFailedDeliveries(RetryRequest) returns (RetryResponse);
+
+  // Get webhook statistics
+  rpc GetStatistics(WebhookStatisticsRequest) returns (WebhookStatistics);
+
+  // Health check
+  rpc CheckHealth(HealthCheckRequest) returns (WebhookServiceHealthCheck);
+}
+
+// ============================================================================
+// Helper Messages for RPC Parameters
+// ============================================================================
+
+message GetWebhookRequest {
+  string webhook_id = 1;
+}
+
+message ListWebhooksRequest {
+  string owner_id = 1;
+  WebhookStatus status = 2;         // Optional filter
+  PaginationParams pagination = 3;
+}
+
+message DeleteWebhookRequest {
+  string webhook_id = 1;
+}
+
+message DeleteWebhookResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DeliveryHistoryRequest {
+  string webhook_id = 1;
+  int32 limit = 2;
+  DeliveryStatus status_filter = 3; // Optional filter
+}
+
+message DeliveryHistoryResponse {
+  repeated WebhookDeliveryRecord records = 1;
+  int32 total_count = 2;
+}
+
+message WatchWebhookRequest {
+  string owner_id = 1;              // Only watch own webhooks
+  repeated string event_types = 2;  // Optional event filter
+}
+
+message WatchDeliveriesRequest {
+  repeated string webhook_ids = 1;  // Specific webhooks to monitor
+  DeliveryStatus status_filter = 2; // Optional filter
+}
+
+message RetryRequest {
+  repeated string webhook_ids = 1;  // Webhooks to retry (or all if empty)
+  int32 max_attempts = 2;           // How many attempts to retry
+}
+
+message RetryResponse {
+  int32 retried_count = 1;
+  int32 success_count = 2;
+  repeated string failed_ids = 3;
+  string summary = 4;
+}
+
+message WebhookStatisticsRequest {
+  string webhook_id = 1;
+  google.protobuf.Timestamp from_date = 2;
+  google.protobuf.Timestamp to_date = 3;
+}
+
+message WebhookStatistics {
+  string webhook_id = 1;
+  int64 total_deliveries = 2;
+  int64 successful_deliveries = 3;
+  int64 failed_deliveries = 4;
+  double success_rate = 5;
+  double average_delivery_time_ms = 6;
+  double p95_delivery_time_ms = 7;
+  double p99_delivery_time_ms = 8;
+  google.protobuf.Timestamp calculated_at = 9;
+}
+
+message HealthCheckRequest {
+  string service_name = 1;
+}

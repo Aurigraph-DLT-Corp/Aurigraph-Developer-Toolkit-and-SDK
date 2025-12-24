@@ -1,0 +1,216 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.proto;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+option java_multiple_files = true;
+option java_package = "io.aurigraph.v11.proto";
+option java_outer_classname = "ApprovalsProto";
+
+// ============================================================================
+// VVB Approval Service - Protocol Buffers
+// Purpose: High-performance gRPC-based VVB approval request/response system
+// Replaces: WebSocket polling patterns
+// Performance Target: <20ms latency, 50k events/sec
+// ============================================================================
+
+// ============================================================================
+// Enumerations
+// ============================================================================
+
+enum ApprovalStatus {
+  APPROVAL_STATUS_UNKNOWN = 0;
+  APPROVAL_STATUS_PENDING = 1;
+  APPROVAL_STATUS_IN_PROGRESS = 2;
+  APPROVAL_STATUS_APPROVED = 3;
+  APPROVAL_STATUS_REJECTED = 4;
+  APPROVAL_STATUS_EXPIRED = 5;
+  APPROVAL_STATUS_CANCELLED = 6;
+}
+
+enum ApprovalType {
+  APPROVAL_TYPE_UNKNOWN = 0;
+  APPROVAL_TYPE_CONTRACT_DEPLOYMENT = 1;
+  APPROVAL_TYPE_LARGE_TRANSACTION = 2;
+  APPROVAL_TYPE_PERMISSION_CHANGE = 3;
+  APPROVAL_TYPE_PROTOCOL_UPGRADE = 4;
+  APPROVAL_TYPE_EMERGENCY = 5;
+  APPROVAL_TYPE_RISK_MITIGATION = 6;
+}
+
+enum ValidatorDecision {
+  VALIDATOR_DECISION_UNKNOWN = 0;
+  VALIDATOR_DECISION_APPROVE = 1;
+  VALIDATOR_DECISION_REJECT = 2;
+  VALIDATOR_DECISION_ABSTAIN = 3;
+}
+
+enum ApprovalPriority {
+  APPROVAL_PRIORITY_UNKNOWN = 0;
+  APPROVAL_PRIORITY_LOW = 1;
+  APPROVAL_PRIORITY_NORMAL = 2;
+  APPROVAL_PRIORITY_HIGH = 3;
+  APPROVAL_PRIORITY_CRITICAL = 4;
+}
+
+// ============================================================================
+// Message Types
+// ============================================================================
+
+// Core approval request message (minimal, optimized for gRPC)
+message ApprovalRequest {
+  string approval_id = 1;           // Unique identifier (UUID)
+  ApprovalType approval_type = 2;   // Type of approval needed
+  ApprovalPriority priority = 3;    // Priority level
+
+  // Content
+  string requester_id = 4;          // Requesting entity
+  bytes content = 5;                // Binary-encoded approval content
+  string content_hash = 6;          // SHA-256 hash for verification
+
+  // Metadata
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  map<string, string> metadata = 9; // Flexible metadata storage
+
+  // Validator consensus requirement
+  int32 required_approvals = 10;    // Number of approvals needed
+  int32 total_validators = 11;      // Total validator count
+}
+
+// Approval response from a single validator
+message ApprovalResponse {
+  string approval_id = 1;           // Reference to ApprovalRequest
+  string validator_id = 2;          // Validator node ID
+  ValidatorDecision decision = 3;   // Approve/Reject/Abstain
+  string reason = 4;                // Decision rationale (optional)
+
+  // Signature and verification
+  bytes signature = 5;              // Validator signature
+  string signature_algorithm = 6;   // e.g., "CRYSTALS-Dilithium"
+
+  // Metadata
+  google.protobuf.Timestamp responded_at = 7;
+  int64 response_time_ms = 8;       // Response latency
+  map<string, string> data = 9;     // Additional response data
+}
+
+// Aggregate approval status (current state)
+message ApprovalStatus_Message {
+  string approval_id = 1;
+  ApprovalStatus status = 2;
+  int32 approvals_count = 3;        // Number of approvals received
+  int32 rejections_count = 4;       // Number of rejections
+  int32 abstentions_count = 5;      // Number of abstentions
+
+  // Results
+  bool consensus_reached = 6;       // True if approval threshold met
+  google.protobuf.Timestamp completed_at = 7;
+  string completion_reason = 8;     // Why approval process ended
+
+  // Historical tracking
+  repeated ApprovalResponse responses = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// Approval event for streaming subscriptions
+message ApprovalEvent {
+  string event_id = 1;              // Unique event ID
+  string approval_id = 2;           // Associated approval ID
+  string event_type = 3;            // "request_created", "response_received", "status_changed", etc.
+
+  // Event payload
+  ApprovalStatus previous_status = 4;
+  ApprovalStatus current_status = 5;
+
+  // Context
+  google.protobuf.Timestamp timestamp = 6;
+  map<string, string> context = 7;
+
+  // Detailed information
+  oneof event_data {
+    ApprovalRequest request_data = 8;
+    ApprovalResponse response_data = 9;
+    ApprovalStatus_Message status_data = 10;
+  }
+}
+
+// Batch request for multiple approvals (optimization)
+message BatchApprovalRequest {
+  repeated ApprovalRequest requests = 1;
+  string batch_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+// Health check message for gRPC service
+message ApprovalServiceHealthCheck {
+  string service_version = 1;
+  HealthStatus health_status = 2;
+  int64 total_approvals_processed = 3;
+  int64 active_approvals = 4;
+  double average_response_time_ms = 5;
+  google.protobuf.Timestamp checked_at = 6;
+}
+
+// ============================================================================
+// gRPC Service Definition
+// ============================================================================
+
+service ApprovalGrpcService {
+  // Unary RPC: Submit a single approval request
+  rpc SubmitApprovalRequest(ApprovalRequest) returns (ApprovalStatus_Message);
+
+  // Unary RPC: Get current approval status
+  rpc GetApprovalStatus(GetApprovalRequest) returns (ApprovalStatus_Message);
+
+  // Unary RPC: Submit validator response (approve/reject/abstain)
+  rpc SubmitValidatorResponse(ApprovalResponse) returns (ApprovalStatus_Message);
+
+  // Server-side streaming: Stream all approval updates for a specific ID
+  rpc WatchApprovalUpdates(WatchApprovalRequest) returns (stream ApprovalEvent);
+
+  // Server-side streaming: List all pending approvals with streaming
+  rpc StreamPendingApprovals(StreamPendingRequest) returns (stream ApprovalRequest);
+
+  // Client-side streaming: Submit multiple responses in batch
+  rpc BatchSubmitResponses(stream ApprovalResponse) returns (BatchResponse);
+
+  // Bidirectional streaming: Real-time approval flow
+  // Client streams approval requests, server streams status updates
+  rpc BidirectionalApprovalStream(stream ApprovalRequest) returns (stream ApprovalEvent);
+
+  // Health check endpoint (standard gRPC pattern)
+  rpc CheckHealth(HealthCheckRequest) returns (ApprovalServiceHealthCheck);
+}
+
+// Helper message for GetApprovalStatus RPC
+message GetApprovalRequest {
+  string approval_id = 1;
+}
+
+// Helper message for WatchApprovalUpdates RPC
+message WatchApprovalRequest {
+  string approval_id = 1;
+  bool include_history = 2;        // Include historical responses
+}
+
+// Helper message for StreamPendingApprovals RPC
+message StreamPendingRequest {
+  ApprovalPriority min_priority = 1;
+  int32 batch_size = 2;            // For pagination
+}
+
+// Helper message for BatchSubmitResponses RPC
+message BatchResponse {
+  int32 successful = 1;
+  int32 failed = 2;
+  repeated string error_messages = 3;
+  google.protobuf.Timestamp processed_at = 4;
+}
+
+// Helper message for CheckHealth RPC
+message HealthCheckRequest {
+  string service_name = 1;
+}
