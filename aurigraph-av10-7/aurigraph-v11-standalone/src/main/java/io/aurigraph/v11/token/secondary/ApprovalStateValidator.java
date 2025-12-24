@@ -5,6 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -123,7 +124,11 @@ public class ApprovalStateValidator {
      * @throws IllegalStateException if validator already voted
      */
     public void validateNoDuplicateVote(VVBApprovalRequest approval, String validatorId) {
-        if (approvalRegistry.hasValidatorVoted(approval.requestId, validatorId)) {
+        List<ValidatorVote> existingVotes = approvalRegistry.getVotesByRequest(approval.requestId);
+        boolean hasVoted = existingVotes.stream()
+            .anyMatch(vote -> vote.validatorId.equals(validatorId));
+
+        if (hasVoted) {
             throw new IllegalStateException(
                 String.format("Validator %s has already voted", validatorId)
             );
