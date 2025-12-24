@@ -2,359 +2,357 @@ syntax = "proto3";
 
 package io.aurigraph.v11.proto;
 
-import "google/protobuf/timestamp.proto";
 import "common.proto";
-import "core_types.proto";
-import "blockchain.proto";
 
-option java_multiple_files = true;
-option java_package = "io.aurigraph.v11.proto";
-option java_outer_classname = "ConsensusProto";
+// ========================================================================
+// Story 9, Phase 1: Consensus gRPC Service (HyperRAFT++)
+// ========================================================================
+// Implements distributed consensus protocol via bidirectional gRPC
+// - Bidirectional streaming for real-time voting
+// - Byzantine fault tolerance (f < n/3)
+// - Parallel log replication
+// - <100ms finality target
+// ========================================================================
 
 /**
- * Consensus Protocol Buffer Definitions
+ * ConsensusGrpcService: HyperRAFT++ Consensus Protocol Implementation
  *
- * This proto file defines all message types for ConsensusServiceImpl gRPC service.
- * Implements HyperRAFT++ consensus with 11 RPC methods for distributed consensus:
- * - proposeBlock()
- * - voteOnBlock()
- * - commitBlock()
- * - getConsensusState()
- * - requestLeaderElection()
- * - heartbeat()
- * - syncState()
- * - getValidatorInfo()
- * - submitConsensusMetrics()
- * - getRaftLog()
- * - streamConsensusEvents()
+ * RPC Methods (10 total):
+ * 1. requestLeadership (Unary) - Leader election request
+ * 2. heartbeat (Unary) - Leader heartbeat messages
+ * 3. replicateLog (Bidirectional) - Parallel log replication
+ * 4. consensusVote (Bidirectional) - Byzantine voting pattern
+ * 5. syncState (Server Streaming) - State synchronization
+ * 6. watchConsensusState (Server Streaming) - Consensus state updates
+ * 7. getConsensusMetrics (Unary) - Metrics query
+ * 8. proposeBlock (Unary) - Propose new block
+ * 9. applyCommit (Unary) - Apply committed block to state
+ * 10. checkHealth (Unary) - Service health
+ *
+ * Performance Targets:
+ * - Consensus latency: <500ms
+ * - Byzantine finality: <100ms (f < n/3)
+ * - Log replication: Parallel for all nodes
+ * - Heartbeat interval: 50ms
+ * - Leader election timeout: 150-300ms
  */
-
-// ============================================================================
-// HyperRAFT++ Consensus State
-// ============================================================================
-
-enum ConsensusRole {
-  ROLE_UNKNOWN = 0;
-  ROLE_LEADER = 1;
-  ROLE_CANDIDATE = 2;
-  ROLE_FOLLOWER = 3;
+service ConsensusGrpcService {
+    
+    // Unary RPC: Request leadership position
+    // Used during leader election phase
+    rpc requestLeadership(LeadershipRequest) 
+        returns (LeadershipResponse);
+    
+    // Unary RPC: Heartbeat from leader
+    // Keeps followers alive and prevents re-election
+    // Frequency: Every 50ms
+    rpc heartbeat(HeartbeatMessage) 
+        returns (HeartbeatAck);
+    
+    // Bidirectional Streaming: Parallel log replication
+    // Leader sends log entries, followers send acknowledgments
+    // Multiple concurrent streams for throughput
+    rpc replicateLog(stream LogEntry) 
+        returns (stream LogAck);
+    
+    // Bidirectional Streaming: Byzantine consensus voting (HyperRAFT++)
+    // Central voting mechanism for approval decisions
+    // Client sends VoteRequest, server sends VoteResponse
+    rpc consensusVote(stream VoteRequest) 
+        returns (stream VoteResponse);
+    
+    // Server Streaming: State synchronization
+    // Follower behind on state - catch up via stream
+    // Sends state deltas until current
+    rpc syncState(SyncStateRequest) 
+        returns (stream StateDelta);
+    
+    // Server Streaming: Watch consensus state changes
+    // Real-time updates on consensus progress
+    // Closed when block finalized
+    rpc watchConsensusState(Empty) 
+        returns (stream ConsensusStateUpdate);
+    
+    // Unary RPC: Get consensus metrics
+    // Query current consensus metrics
+    rpc getConsensusMetrics(Empty) 
+        returns (ConsensusMetrics);
+    
+    // Unary RPC: Propose new block
+    // Validators propose blocks for voting
+    rpc proposeBlock(BlockProposal) 
+        returns (ProposalResponse);
+    
+    // Unary RPC: Apply committed block
+    // Apply finalized block to blockchain state
+    rpc applyCommit(ApplyCommitRequest) 
+        returns (ApplyCommitResponse);
+    
+    // Unary RPC: Service health check
+    rpc checkHealth(Empty) 
+        returns (HealthStatus);
 }
 
-enum ConsensusPhase {
-  PHASE_UNKNOWN = 0;
-  PHASE_PROPOSAL = 1;
-  PHASE_VOTING = 2;
-  PHASE_COMMITMENT = 3;
-  PHASE_FINALIZATION = 4;
+// ========================================================================
+// Message Types
+// ========================================================================
+
+/**
+ * LeadershipRequest: Request to become leader
+ * 
+ * Fields:
+ * - candidate_id: Node requesting leadership
+ * - term: Current election term
+ * - last_log_index: Index of last log entry
+ * - last_log_term: Term of last log entry
+ */
+message LeadershipRequest {
+    string candidate_id = 1;        // Node ID
+    int64 term = 2;                 // Election term
+    int64 last_log_index = 3;       // Last log index
+    int64 last_log_term = 4;        // Last log term
 }
 
-message ConsensusState {
-  ConsensusRole current_role = 1;
-  ConsensusPhase current_phase = 2;
-  int64 current_term = 3;
-  string current_leader = 4;
-  int32 active_validators = 5;
-  int32 required_majority = 6;
-  google.protobuf.Timestamp last_heartbeat = 7;
-  string state_hash = 8;
+/**
+ * LeadershipResponse: Response to leadership request
+ * 
+ * Fields:
+ * - vote_granted: Whether vote granted
+ * - term: Current term
+ * - leader_id: Current leader (if exists)
+ */
+message LeadershipResponse {
+    bool vote_granted = 1;          // Grant leadership vote
+    int64 term = 2;                 // Current term
+    string leader_id = 3;           // Current leader ID
 }
 
-// ValidatorInfo is defined in blockchain.proto and reused here
-// It contains validator metadata and reputation information
-
-// ============================================================================
-// Block Proposal & Voting
-// ============================================================================
-
-message BlockProposal {
-  string block_hash = 1;
-  Block block = 2;
-  string proposer_id = 3;
-  int64 proposal_term = 4;
-  int64 proposal_height = 5;
-  google.protobuf.Timestamp created_at = 6;
-  string proposal_data = 7;
-  repeated string validator_voters = 8;
+/**
+ * HeartbeatMessage: Leader heartbeat (keep-alive)
+ * 
+ * Sent every 50ms to prevent follower timeouts
+ * Also resets follower election timer
+ */
+message HeartbeatMessage {
+    string leader_id = 1;           // Leader node ID
+    int64 term = 2;                 // Current term
+    int64 commit_index = 3;         // Index of last committed entry
+    int64 last_log_index = 4;       // Index of last log entry
 }
 
-message ProposeBlockRequest {
-  Block block = 1;
-  int64 proposal_term = 2;
-  string proposer_id = 3;
-  int32 timeout_seconds = 4;
+/**
+ * HeartbeatAck: Acknowledgment of heartbeat
+ * 
+ * Sent by follower to confirm receipt and state
+ */
+message HeartbeatAck {
+    string node_id = 1;             // Node acknowledging
+    int64 term = 2;                 // Current term
+    bool success = 3;               // Heartbeat acknowledged
+    int64 match_index = 4;          // Index of last matching entry
 }
 
-message ProposeBlockResponse {
-  string block_hash = 1;
-  BlockStatus status = 2;
-  int32 votes_received = 3;
-  int32 votes_required = 4;
-  google.protobuf.Timestamp timestamp = 5;
-}
-
-message Vote {
-  string block_hash = 1;
-  string voter_id = 2;
-  int64 vote_term = 3;
-  bool vote_choice = 4;
-  google.protobuf.Timestamp vote_time = 5;
-  string vote_signature = 6;
-}
-
-message VoteOnBlockRequest {
-  string block_hash = 1;
-  string voter_id = 2;
-  bool vote_choice = 3;
-  int64 vote_term = 4;
-  string vote_signature = 5;
-}
-
-message VoteOnBlockResponse {
-  string block_hash = 1;
-  bool vote_accepted = 2;
-  int32 total_votes = 3;
-  int32 votes_needed = 4;
-  google.protobuf.Timestamp timestamp = 5;
-}
-
-// ============================================================================
-// Block Commitment & Finalization
-// ============================================================================
-
-message CommitBlockRequest {
-  string block_hash = 1;
-  Block block = 2;
-  int64 commit_term = 3;
-  repeated string validator_signatures = 4;
-  int32 timeout_seconds = 5;
-}
-
-message CommitBlockResponse {
-  string block_hash = 1;
-  BlockStatus status = 2;
-  int64 block_height = 3;
-  int32 confirmation_count = 4;
-  google.protobuf.Timestamp commit_time = 5;
-}
-
-message BlockCommitment {
-  string block_hash = 1;
-  int64 block_height = 2;
-  int64 commit_term = 3;
-  repeated string committer_signatures = 4;
-  google.protobuf.Timestamp commit_timestamp = 5;
-}
-
-// ============================================================================
-// Leader Election
-// ============================================================================
-
-message LeaderElectionRequest {
-  string candidate_id = 1;
-  int64 election_term = 2;
-  int32 timeout_seconds = 3;
-  string election_reason = 4;
-}
-
-message LeaderElectionResponse {
-  bool election_accepted = 1;
-  string new_leader_id = 2;
-  int64 election_term = 3;
-  int32 votes_received = 4;
-  int32 votes_required = 5;
-  google.protobuf.Timestamp timestamp = 6;
-}
-
-message ElectionVote {
-  string candidate_id = 1;
-  string voter_id = 2;
-  int64 election_term = 3;
-  bool vote_choice = 4;
-  google.protobuf.Timestamp vote_time = 5;
-}
-
-// ============================================================================
-// Heartbeat & Health
-// ============================================================================
-
-message Heartbeat {
-  string leader_id = 1;
-  int64 heartbeat_term = 2;
-  int64 last_log_index = 3;
-  int64 last_log_term = 4;
-  google.protobuf.Timestamp heartbeat_time = 5;
-}
-
-message HeartbeatRequest {
-  string leader_id = 1;
-  int64 current_term = 2;
-  int64 prev_log_index = 3;
-  int64 prev_log_term = 4;
-  int64 leader_commit_index = 5;
-  int32 timeout_seconds = 6;
-}
-
-message HeartbeatResponse {
-  string follower_id = 1;
-  int64 current_term = 2;
-  bool heartbeat_accepted = 3;
-  int64 next_log_index = 4;
-  google.protobuf.Timestamp timestamp = 5;
-}
-
-// ============================================================================
-// State Synchronization
-// ============================================================================
-
-message SyncStateRequest {
-  string node_id = 1;
-  int64 current_term = 2;
-  int64 last_log_index = 3;
-  int32 timeout_seconds = 4;
-}
-
-message SyncStateResponse {
-  bool sync_successful = 1;
-  int64 remote_term = 2;
-  int64 remote_log_index = 3;
-  repeated LogEntry log_entries = 4;
-  string state_snapshot = 5;
-  google.protobuf.Timestamp timestamp = 6;
-}
-
+/**
+ * LogEntry: Single log entry for replication
+ * 
+ * Used in replicateLog bidirectional stream
+ */
 message LogEntry {
-  int64 index = 1;
-  int64 term = 2;
-  string command = 3;
-  bytes data = 4;
-  google.protobuf.Timestamp created_at = 5;
+    int64 index = 1;                // Entry index
+    int64 term = 2;                 // Entry term
+    string command = 3;             // Command to execute
+    bytes data = 4;                 // Command data (serialized)
+    string leader_id = 5;           // Source leader
+    int64 prev_log_index = 6;       // Index before this entry
+    int64 prev_log_term = 7;        // Term before this entry
+    int64 leader_commit = 8;        // Leader's commit index
 }
 
-message StateSnapshot {
-  int64 snapshot_index = 1;
-  int64 snapshot_term = 2;
-  string state_root = 3;
-  bytes snapshot_data = 4;
-  google.protobuf.Timestamp created_at = 5;
+/**
+ * LogAck: Acknowledgment of log entry
+ * 
+ * Sent by follower to confirm receipt
+ */
+message LogAck {
+    string node_id = 1;             // Node acknowledging
+    int64 term = 2;                 // Current term
+    bool success = 3;               // Entry accepted
+    int64 match_index = 4;          // Index of last accepted entry
+    int64 next_index = 5;           // Next index to request
 }
 
-// ============================================================================
-// Consensus Metrics & Monitoring
-// ============================================================================
+/**
+ * VoteRequest: Request for approval vote (HyperRAFT++)
+ * 
+ * Used in consensusVote bidirectional stream
+ * Core Byzantine voting mechanism
+ */
+message VoteRequest {
+    string voter_id = 1;            // Voter node ID
+    string approval_id = 2;         // Approval ID being voted on
+    ApprovalVote vote = 3;          // APPROVE, REJECT, ABSTAIN
+    string reasoning = 4;           // Why this vote (optional)
+    int64 term = 5;                 // Current consensus term
+    int64 timestamp = 6;            // Vote timestamp
+    bytes signature = 7;            // Cryptographic signature
+}
 
+/**
+ * VoteResponse: Response to vote request
+ * 
+ * Sent by voting service after processing vote
+ */
+message VoteResponse {
+    string vote_id = 1;             // Unique vote ID
+    string approval_id = 2;         // Approval ID voted on
+    bool accepted = 3;              // Vote accepted/valid
+    string result = 4;              // Current vote tally result
+    int64 votes_received = 5;       // Total votes received so far
+    int64 votes_needed = 6;         // Votes needed for finality
+    bool finalized = 7;             // Consensus reached
+    string consensus_result = 8;    // APPROVED, REJECTED if finalized
+}
+
+/**
+ * SyncStateRequest: Request state synchronization
+ * 
+ * Used when follower falls behind on state
+ */
+message SyncStateRequest {
+    string node_id = 1;             // Node requesting sync
+    int64 from_index = 2;           // Start sync from this index
+}
+
+/**
+ * StateDelta: State change delta
+ * 
+ * Sent as part of state synchronization stream
+ */
+message StateDelta {
+    int64 index = 1;                // Entry index
+    int64 term = 2;                 // Entry term
+    string operation = 3;           // Operation type
+    bytes data = 4;                 // Operation data
+    string state_hash = 5;          // Hash of state after apply
+}
+
+/**
+ * ConsensusStateUpdate: Consensus progress update
+ * 
+ * Broadcast in real-time for monitoring
+ */
+message ConsensusStateUpdate {
+    string leader_id = 1;           // Current leader
+    int64 term = 2;                 // Current consensus term
+    int64 last_applied_index = 3;   // Last applied log entry
+    int64 commit_index = 4;         // Last committed index
+    int32 quorum_size = 5;          // Quorum required (n/2 + 1)
+    int32 faulty_tolerance = 6;     // Faulty nodes tolerated (f < n/3)
+    ConsensusPhase phase = 7;       // Current phase
+    string timestamp = 8;           // Update timestamp
+}
+
+/**
+ * BlockProposal: Propose new block for voting
+ * 
+ * Sent by validator who wants to propose
+ */
+message BlockProposal {
+    string block_hash = 1;          // Block hash
+    int64 block_height = 2;         // Block height
+    string proposer_id = 3;         // Proposing validator
+    repeated string transaction_ids = 4;  // Transactions in block
+    int64 timestamp = 5;            // Proposal timestamp
+    bytes signature = 6;            // Proposer signature
+}
+
+/**
+ * ProposalResponse: Response to block proposal
+ * 
+ * Indicates if proposal accepted for voting
+ */
+message ProposalResponse {
+    string block_hash = 1;          // Block hash
+    bool accepted = 2;              // Proposal accepted
+    string reason = 3;              // Reason if rejected
+    int64 voting_round = 4;         // Round ID for this vote
+}
+
+/**
+ * ApplyCommitRequest: Apply committed block
+ * 
+ * Once consensus finalized, apply to chain state
+ */
+message ApplyCommitRequest {
+    string block_hash = 1;          // Block to apply
+    int64 block_height = 2;         // Block height
+    repeated string transaction_ids = 3;  // Transactions to apply
+}
+
+/**
+ * ApplyCommitResponse: Confirmation of commit
+ */
+message ApplyCommitResponse {
+    string block_hash = 1;          // Block applied
+    int64 block_height = 2;         // Block height
+    bool success = 3;               // Apply successful
+    string state_hash = 4;          // Hash of resulting state
+    string error = 5;               // Error if failed
+}
+
+/**
+ * ConsensusMetrics: Consensus performance metrics
+ * 
+ * Returned by getConsensusMetrics()
+ */
 message ConsensusMetrics {
-  double consensus_latency_ms = 1;
-  int32 total_validators = 2;
-  int32 active_validators = 3;
-  int64 total_blocks_committed = 4;
-  double average_block_time_ms = 5;
-  int32 failed_consensus_attempts = 6;
-  double network_health_percent = 7;
-  google.protobuf.Timestamp measurement_time = 8;
+    int64 current_term = 1;         // Current consensus term
+    int64 total_terms = 2;          // Total terms seen
+    int64 leader_elections = 3;     // Number of elections
+    double avg_election_time_ms = 4;    // Avg election latency
+    double consensus_latency_ms = 5;    // Avg consensus latency
+    int32 active_nodes = 6;         // Active nodes in consensus
+    int32 total_nodes = 7;          // Total expected nodes
+    int64 blocks_finalized = 8;     // Blocks with finality
+    double finality_latency_ms = 9; // Avg finality latency
+    string current_phase = 10;      // Current consensus phase
 }
 
-message SubmitConsensusMetricsRequest {
-  string validator_id = 1;
-  ConsensusMetrics metrics = 2;
-  google.protobuf.Timestamp timestamp = 3;
+// ========================================================================
+// Enums
+// ========================================================================
+
+/**
+ * ApprovalVote: Validator's decision on approval
+ * 
+ * Values:
+ * - UNKNOWN: Vote not cast
+ * - APPROVE: Validator approves
+ * - REJECT: Validator rejects
+ * - ABSTAIN: Validator abstains
+ */
+enum ApprovalVote {
+    APPROVAL_VOTE_UNKNOWN = 0;      // Unknown vote
+    APPROVAL_VOTE_APPROVE = 1;      // Vote approve
+    APPROVAL_VOTE_REJECT = 2;       // Vote reject
+    APPROVAL_VOTE_ABSTAIN = 3;      // Vote abstain
 }
 
-message SubmitConsensusMetricsResponse {
-  bool metrics_accepted = 1;
-  string message = 2;
-  google.protobuf.Timestamp timestamp = 3;
-}
-
-// ============================================================================
-// Raft Log Management
-// ============================================================================
-
-message GetRaftLogRequest {
-  int64 start_index = 1;
-  int64 end_index = 2;
-  int32 limit = 3;
-}
-
-message RaftLogResponse {
-  repeated LogEntry log_entries = 1;
-  int64 log_size = 2;
-  int64 last_applied_index = 3;
-  int64 last_log_term = 4;
-  google.protobuf.Timestamp timestamp = 5;
-}
-
-// ============================================================================
-// Consensus Status Query
-// ============================================================================
-
-message GetConsensusStateRequest {
-  bool include_validators = 1;
-  bool include_metrics = 2;
-}
-
-message ConsensusStateResponse {
-  ConsensusState state = 1;
-  repeated ValidatorInfo validators = 2;
-  ConsensusMetrics metrics = 3;
-  google.protobuf.Timestamp timestamp = 4;
-}
-
-message GetValidatorInfoRequest {
-  string validator_id = 1;
-}
-
-message ValidatorInfoResponse {
-  ValidatorInfo validator = 1;
-  double reputation_score = 2;
-  int32 blocks_validated = 3;
-  int32 failed_validations = 4;
-  google.protobuf.Timestamp last_activity = 5;
-}
-
-// ============================================================================
-// Consensus Event Streaming
-// ============================================================================
-
-message StreamConsensusEventsRequest {
-  bool include_block_proposals = 1;
-  bool include_votes = 2;
-  bool include_leader_elections = 3;
-  bool include_heartbeats = 4;
-  int32 stream_timeout_seconds = 5;
-}
-
-message ConsensusEvent {
-  string event_type = 1;               // PROPOSAL, VOTE, COMMIT, ELECTION, HEARTBEAT
-  string event_id = 2;
-  string source_validator = 3;
-  int64 event_term = 4;
-  bytes event_data = 5;
-  string stream_id = 6;
-  int64 event_sequence = 7;
-  google.protobuf.Timestamp timestamp = 8;
-}
-
-message ConsensusEventCompletion {
-  string stream_id = 1;
-  int64 total_events_streamed = 2;
-  google.protobuf.Timestamp completion_time = 3;
-  string completion_reason = 4;
-}
-
-// ============================================================================
-// Service gRPC definition for ConsensusService
-// ============================================================================
-
-service ConsensusService {
-  rpc proposeBlock(ProposeBlockRequest) returns (ProposeBlockResponse);
-  rpc voteOnBlock(VoteOnBlockRequest) returns (VoteOnBlockResponse);
-  rpc commitBlock(CommitBlockRequest) returns (CommitBlockResponse);
-  rpc requestLeaderElection(LeaderElectionRequest) returns (LeaderElectionResponse);
-  rpc heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
-  rpc syncState(SyncStateRequest) returns (SyncStateResponse);
-  rpc getConsensusState(GetConsensusStateRequest) returns (ConsensusStateResponse);
-  rpc getValidatorInfo(GetValidatorInfoRequest) returns (ValidatorInfoResponse);
-  rpc submitConsensusMetrics(SubmitConsensusMetricsRequest) returns (SubmitConsensusMetricsResponse);
-  rpc getRaftLog(GetRaftLogRequest) returns (RaftLogResponse);
-  rpc streamConsensusEvents(StreamConsensusEventsRequest) returns (stream ConsensusEvent);
+/**
+ * ConsensusPhase: Current phase of consensus algorithm
+ * 
+ * Values:
+ * - LEADER_ELECTION: Electing new leader
+ * - LOG_REPLICATION: Replicating log entries
+ * - COMMITMENT: Committing entries
+ * - FINALITY: Achieving Byzantine finality
+ * - STABLE: Stable consensus state
+ */
+enum ConsensusPhase {
+    CONSENSUS_PHASE_UNKNOWN = 0;         // Unknown phase
+    CONSENSUS_PHASE_LEADER_ELECTION = 1; // Leader election
+    CONSENSUS_PHASE_LOG_REPLICATION = 2; // Log replication
+    CONSENSUS_PHASE_COMMITMENT = 3;      // Commitment phase
+    CONSENSUS_PHASE_FINALITY = 4;        // Finality phase
+    CONSENSUS_PHASE_STABLE = 5;          // Stable consensus
 }
