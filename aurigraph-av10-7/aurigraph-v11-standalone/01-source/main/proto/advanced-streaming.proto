@@ -1,0 +1,310 @@
+syntax = "proto3";
+
+package io.aurigraph.v11.proto;
+
+import "common.proto";
+
+// ========================================================================
+// Story 9, Phase 3: Advanced Streaming Patterns & Performance Optimization
+// ========================================================================
+// Provides high-throughput, low-latency patterns for extreme scaling
+// - 6 RPC methods with advanced streaming optimizations
+// - Multiplexed transactions for 10x throughput increase
+// - Adaptive batching based on network conditions
+// - Performance targets: <10ms latency at 200k+ TPS per stream
+// ========================================================================
+
+/**
+ * AdvancedStreamingService: High-performance patterns for 2M+ TPS
+ *
+ * RPC Methods (6 total):
+ * 1. multiplexedTransactionStream (Bidirectional) - 10 tx per message
+ * 2. adaptiveBatchingStream (Bidirectional) - Dynamic batch sizing
+ * 3. priorityTransactionStream (Bidirectional) - Latency SLA guarantees
+ * 4. shardedStreamingAggregator (Server Streaming) - Multi-shard output
+ * 5. memoryEfficientLargeTransfers (Client Streaming) - Chunked processing
+ * 6. checkHealth (Unary) - Service health status
+ *
+ * Performance Targets:
+ * - Multiplexed latency: <5ms per 10 transactions
+ * - Adaptive batch throughput: >200k tx/sec per stream
+ * - Priority SLA: <2ms for critical transactions
+ * - Memory per stream: <10MB (vs 1MB traditional)
+ * - Streaming efficiency: 95%+ network utilization
+ */
+service AdvancedStreamingService {
+
+    // Bidirectional Streaming: Multiplexed transaction batch stream
+    // Client sends 10 transactions per message (vs 1 traditionally)
+    // 10x throughput improvement with minimal latency increase
+    // Server responds with aggregated results after consensus
+    rpc multiplexedTransactionStream(stream MultiplexedTransactionBatch)
+        returns (stream MultiplexedResultBatch);
+
+    // Bidirectional Streaming: Adaptive batching based on network
+    // Dynamic batch size: 1 tx when high latency, 100 tx when low latency
+    // Optimizes for both real-time (low latency) and high-throughput (high batch)
+    // Throughput varies 50k-200k tx/sec based on network conditions
+    rpc adaptiveBatchingStream(stream AdaptiveTransactionBatch)
+        returns (stream AdaptiveResultBatch);
+
+    // Bidirectional Streaming: Priority queue with latency SLA
+    // CRITICAL priority: <2ms, HIGH: <5ms, NORMAL: <20ms
+    // Separate queues per priority prevent priority inversion
+    // Monitors SLA compliance and preempts low-priority work
+    rpc priorityTransactionStream(stream PriorityTransaction)
+        returns (stream PriorityTransactionResult);
+
+    // Server Streaming: Aggregate results from multiple shards
+    // Single stream aggregates results from N shards (default 4)
+    // Reduces client complexity from N streams to 1 aggregated stream
+    // Enables shard-transparent operation
+    rpc shardedStreamingAggregator(ShardAggregatorRequest)
+        returns (stream AggregatedShardResult);
+
+    // Client Streaming: Efficient large transfer processing
+    // Large transfers (>10MB) chunked and streamed
+    // Server reassembles chunks, validates, and responds
+    // Memory efficient: chunks discarded after processing
+    rpc memoryEfficientLargeTransfers(stream TransferChunk)
+        returns (LargeTransferResponse);
+
+    // Unary RPC: Service health check
+    rpc checkHealth(Empty)
+        returns (HealthStatus);
+}
+
+// ========================================================================
+// Message Types - Multiplexing Pattern
+// ========================================================================
+
+/**
+ * MultiplexedTransactionBatch: 10 transactions in single message
+ *
+ * Reduces gRPC/protobuf overhead by batching 10 transactions
+ * Single message header vs 10 separate message headers
+ * Typical improvement: 1000 txs/sec -> 10000 txs/sec (10x gain)
+ *
+ * Trade-off: Latency increases by ~1ms (batching delay)
+ * Net result: Higher throughput, slightly higher latency acceptable for scaling
+ */
+message MultiplexedTransactionBatch {
+    string batch_id = 1;                       // Unique batch identifier
+    repeated MultiplexedTransaction transactions = 2;  // 10 transactions (typical)
+    int64 submitted_at = 3;                    // Batch submission time (ns)
+    string metadata = 4;                       // Batch metadata
+}
+
+/**
+ * MultiplexedTransaction: Single transaction in multiplexed batch
+ */
+message MultiplexedTransaction {
+    string tx_id = 1;                          // Transaction ID
+    string from = 2;                           // Sender
+    string to = 3;                             // Recipient
+    string value = 4;                          // Amount
+    bytes data = 5;                            // Payload (contract call)
+    int64 gas_limit = 6;                       // Gas limit
+    int64 nonce = 7;                           // Anti-replay nonce
+    string signature = 8;                      // Transaction signature
+}
+
+/**
+ * MultiplexedResultBatch: Results for 10 transactions
+ */
+message MultiplexedResultBatch {
+    string batch_id = 1;                       // Batch ID (matches request)
+    repeated TransactionResult results = 2;    // Results for each tx
+    int64 processing_time_us = 3;              // Processing time in microseconds
+    bool all_succeeded = 4;                    // All transactions succeeded
+}
+
+/**
+ * TransactionResult: Single transaction result
+ */
+message TransactionResult {
+    string tx_id = 1;                          // Transaction ID
+    bool success = 2;                          // Success flag
+    string error = 3;                          // Error message if failed
+    int64 gas_used = 4;                        // Actual gas consumed
+    int64 block_height = 5;                    // Block number
+    int64 timestamp = 6;                       // Result timestamp (ns)
+}
+
+// ========================================================================
+// Message Types - Adaptive Batching Pattern
+// ========================================================================
+
+/**
+ * AdaptiveTransactionBatch: Dynamic batch size (1-100 tx)
+ *
+ * Batch size determined by:
+ * - Network latency: Low latency (RTT <1ms) = larger batches (100 tx)
+ * - Network latency: High latency (RTT >10ms) = smaller batches (1 tx)
+ * - Queue depth: Many pending = larger batches, Few pending = smaller batches
+ * - Timeout: Batch always sent after 10ms timeout even if not full
+ *
+ * Achieves 50k-200k tx/sec depending on network conditions
+ * Self-optimizing: No configuration needed, adapts automatically
+ */
+message AdaptiveTransactionBatch {
+    string batch_id = 1;                       // Unique batch ID
+    repeated MultiplexedTransaction transactions = 2;  // Variable-size batch (1-100)
+    int32 batch_size = 3;                      // Actual batch size used
+    int64 queue_depth = 4;                     // Pending transactions at send time
+    int32 estimated_latency_ms = 5;            // Estimated network latency
+    int64 submitted_at = 6;                    // Submission timestamp (ns)
+}
+
+/**
+ * AdaptiveResultBatch: Results for adaptive batch
+ */
+message AdaptiveResultBatch {
+    string batch_id = 1;                       // Batch ID
+    repeated TransactionResult results = 2;    // Results (same count as submitted)
+    int32 batch_size = 3;                      // Confirmed batch size
+    int64 processing_time_us = 4;              // Processing time
+    double throughput_tps = 5;                 // Achieved throughput
+}
+
+// ========================================================================
+// Message Types - Priority Queue Pattern
+// ========================================================================
+
+/**
+ * PriorityTransaction: Transaction with latency SLA
+ *
+ * Priority levels with SLA guarantees:
+ * - CRITICAL: <2ms latency (preempts all other work)
+ * - HIGH: <5ms latency (preempts NORMAL)
+ * - NORMAL: <20ms latency (background processing)
+ *
+ * Separate queues prevent priority inversion (high-priority blocked by low-priority)
+ * Critical transactions processed first, even if submitted after normal ones
+ */
+message PriorityTransaction {
+    string tx_id = 1;                          // Transaction ID
+    TransactionPriorityLevel priority = 2;     // Priority level
+    MultiplexedTransaction transaction = 3;    // Actual transaction
+    int64 max_latency_ms = 4;                  // SLA latency target
+    string requester = 5;                      // Requester identification
+}
+
+/**
+ * PriorityTransactionResult: Result with SLA compliance
+ */
+message PriorityTransactionResult {
+    string tx_id = 1;                          // Transaction ID
+    TransactionResult result = 2;              // Actual result
+    int64 actual_latency_ms = 3;               // Actual latency achieved
+    bool sla_met = 4;                          // SLA compliance
+    string sla_status = 5;                     // "MET", "MISSED", or "CRITICAL"
+}
+
+/**
+ * TransactionPriorityLevel: Priority enumeration
+ */
+enum TransactionPriorityLevel {
+    PRIORITY_UNKNOWN = 0;
+    PRIORITY_NORMAL = 1;                       // <20ms SLA
+    PRIORITY_HIGH = 2;                         // <5ms SLA
+    PRIORITY_CRITICAL = 3;                     // <2ms SLA (preempts all)
+}
+
+// ========================================================================
+// Message Types - Sharded Streaming Pattern
+// ========================================================================
+
+/**
+ * ShardAggregatorRequest: Subscribe to aggregated shard results
+ *
+ * Clients can subscribe to:
+ * - Single aggregated stream (default) - Results from all 4 shards
+ * - Specific shard stream - Results from shard N only
+ * - Shard group stream - Results from shards [N, N+1, ...]
+ *
+ * Reduces client complexity from 4 concurrent streams to 1 aggregated stream
+ */
+message ShardAggregatorRequest {
+    string aggregator_id = 1;                  // Aggregator session ID
+    int32 num_shards = 2;                      // Number of shards (default 4)
+    int32 filter_shard = 3;                    // Filter to shard N (-1 for all)
+}
+
+/**
+ * AggregatedShardResult: Result from multiple shards
+ *
+ * Aggregates results from N shards into single message
+ * Clients don't need to multiplex N shard streams
+ * Server handles shard-to-result routing transparently
+ */
+message AggregatedShardResult {
+    string aggregator_id = 1;                  // Aggregator ID
+    int32 shard_id = 2;                        // Source shard
+    repeated TransactionResult results = 3;    // Results from this shard
+    int32 total_shards = 4;                    // Total shards in cluster
+    int64 timestamp = 5;                       // Result timestamp
+}
+
+// ========================================================================
+// Message Types - Large Transfer Pattern
+// ========================================================================
+
+/**
+ * TransferChunk: Chunk of large transfer data
+ *
+ * Large transfers (>10MB) are chunked for memory efficiency:
+ * - Chunk size: 1MB (configurable)
+ * - Server reassembles as chunks arrive
+ * - Discards chunks after processing (no memory accumulation)
+ * - Enables streaming very large payloads (GB+) with fixed memory usage
+ *
+ * Example: 1GB transfer = 1000 x 1MB chunks = 1MB memory overhead (vs 1GB)
+ */
+message TransferChunk {
+    string transfer_id = 1;                    // Large transfer ID
+    int32 chunk_number = 2;                    // Chunk sequence number (0-indexed)
+    int32 total_chunks = 3;                    // Total chunks in transfer
+    bytes chunk_data = 4;                      // 1MB chunk data
+    string chunk_hash = 5;                     // SHA256 hash for validation
+    int64 timestamp = 6;                       // Chunk timestamp (ns)
+}
+
+/**
+ * LargeTransferResponse: Result of large transfer processing
+ */
+message LargeTransferResponse {
+    string transfer_id = 1;                    // Transfer ID
+    bool success = 2;                          // Transfer succeeded
+    int32 chunks_received = 3;                 // Number of chunks received
+    int32 chunks_processed = 4;                // Number of chunks processed
+    string error = 5;                          // Error if failed
+    string content_hash = 6;                   // Hash of complete content
+    int64 total_bytes = 7;                     // Total bytes transferred
+    int64 processing_time_ms = 8;              // Total processing time
+}
+
+// ========================================================================
+// Performance Metrics
+// ========================================================================
+
+/**
+ * StreamingPerformanceMetrics: Performance data for optimization
+ *
+ * Collected per stream to measure and optimize performance:
+ * - Throughput: Transactions per second
+ * - Latency: P50, P95, P99 latencies
+ * - Memory: Per-stream memory usage
+ * - Network: Bytes sent/received, efficiency %
+ */
+message StreamingPerformanceMetrics {
+    string stream_id = 1;                      // Stream identifier
+    double throughput_tps = 2;                 // Current throughput
+    int64 latency_p50_us = 3;                  // P50 latency (microseconds)
+    int64 latency_p95_us = 4;                  // P95 latency
+    int64 latency_p99_us = 5;                  // P99 latency
+    int64 memory_mb = 6;                       // Current memory usage
+    double network_efficiency = 7;             // Network utilization %
+    int64 total_messages = 8;                  // Total messages processed
+    int64 timestamp = 9;                       // Metrics timestamp
+}
