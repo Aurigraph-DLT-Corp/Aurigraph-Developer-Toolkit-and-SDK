@@ -1,0 +1,511 @@
+# Sprint 18: Docker Compose for Aurigraph V11 Cluster with TLS/mTLS
+# Production-grade multi-node cluster with enterprise-grade security
+
+version: '3.9'
+
+services:
+  # ========== Consul Service Discovery (TLS Enabled) ==========
+  consul-server:
+    image: consul:1.17.0
+    container_name: consul-server
+    hostname: consul-server
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.6
+    ports:
+      - "8500:8501"    # HTTPS UI
+      - "8600:8600/udp" # DNS
+      - "8301:8301"     # Server RPC (TLS)
+      - "8302:8302"     # Serf WAN (TLS)
+      - "8502:8502"     # gRPC
+      - "8503:8503"     # gRPC TLS
+    volumes:
+      - ./deployment/consul-server-tls.hcl:/consul/config/server.hcl:ro
+      - ./tls-certs/consul:/opt/consul-certs:ro
+      - consul-data:/consul/data
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+      CONSUL_CLIENT_INTERFACE: eth0
+    command: agent -config-file=/consul/config/server.hcl
+    healthcheck:
+      test: ["CMD", "consul", "version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ========== NGINX Load Balancer (TLS Enabled) ==========
+  nginx-lb:
+    image: nginx:1.25-alpine
+    container_name: nginx-lb
+    hostname: nginx-lb
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.5
+    ports:
+      - "80:80"         # HTTP redirect
+      - "443:443"       # HTTPS (TLS 1.3)
+      - "9443:9443"     # Backend HTTPS
+      - "9444:9444"     # gRPC TLS (TCP)
+    volumes:
+      - ./deployment/nginx-cluster-tls.conf:/etc/nginx/nginx.conf:ro
+      - ./tls-certs/nginx:/etc/nginx/certs:ro
+      - ./deployment/logs/nginx:/var/log/nginx
+    depends_on:
+      - aurigraph-v11-node-1
+      - aurigraph-v11-node-2
+      - aurigraph-v11-node-3
+      - aurigraph-v11-node-4
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # ========== PostgreSQL Cluster (Shared Database) ==========
+  postgres-cluster:
+    image: postgres:16-alpine
+    container_name: postgres-cluster
+    hostname: postgres-cluster
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.7
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: aurigraph_v11
+      POSTGRES_USER: aurigraph_v11
+      POSTGRES_PASSWORD: secure_postgres_password_2025
+      # Performance tuning
+      POSTGRES_INITDB_ARGS: >
+        -c max_connections=500
+        -c shared_buffers=256MB
+        -c effective_cache_size=1GB
+        -c maintenance_work_mem=64MB
+        -c checkpoint_completion_target=0.9
+        -c wal_buffers=16MB
+        -c default_statistics_target=100
+        -c random_page_cost=1.1
+        -c effective_io_concurrency=200
+    volumes:
+      - ./deployment/postgres-init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurigraph_v11"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  # ========== Redis Cluster (Cache) ==========
+  redis-cluster:
+    image: redis:7-alpine
+    container_name: redis-cluster
+    hostname: redis-cluster
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.8
+    ports:
+      - "6379:6379"
+    command:
+      - redis-server
+      - --maxmemory
+      - "1gb"
+      - --maxmemory-policy
+      - "allkeys-lru"
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - "everysec"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ========== Prometheus Monitoring (TLS Ready) ==========
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.20
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployment/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./tls-certs:/etc/prometheus/certs:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    depends_on:
+      - aurigraph-v11-node-1
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  # ========== Grafana Dashboards ==========
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.21
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./deployment/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./deployment/grafana-dashboards.json:/etc/grafana/provisioning/dashboards/dashboards.json:ro
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
+
+  # ========== Aurigraph V11 Node 1 (Validator/Leader) ==========
+  aurigraph-v11-node-1:
+    build:
+      context: ./aurigraph-av10-7/aurigraph-v11-standalone
+      dockerfile: Dockerfile
+      args:
+        JAVA_VERSION: "21"
+        QUARKUS_VERSION: "3.26.2"
+    image: aurigraph-v11:11.0.0-jvm
+    container_name: aurigraph-v11-node-1
+    hostname: aurigraph-v11-node-1
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.10
+    ports:
+      - "9443:9443"     # HTTPS
+      - "9444:9444"     # gRPC TLS
+    environment:
+      # Node Configuration
+      AURIGRAPH_NODE_ID: validator-1
+      AURIGRAPH_NODE_TYPE: validator
+      
+      # Consensus Configuration
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: HYPERRAFT_PLUS_PLUS
+      CONSENSUS_CLUSTER_NODES: "validator-1,node-2,node-3,node-4"
+      CONSENSUS_INITIAL_LEADER: "validator-1"
+      CONSENSUS_LOG_REPLICATION_ENABLED: "true"
+      CONSENSUS_BYZANTINE_TOLERANCE: "1"
+      CONSENSUS_VOTING_TIMEOUT_MS: "5000"
+      CONSENSUS_HEARTBEAT_INTERVAL_MS: "50"
+      CONSENSUS_ELECTION_TIMEOUT_MIN_MS: "150"
+      CONSENSUS_ELECTION_TIMEOUT_MAX_MS: "300"
+      
+      # TLS Configuration
+      QUARKUS_PROFILE: tls
+      QUARKUS_HTTP_SSL_CERTIFICATE_FILES: /opt/certs/node-1-server.crt
+      QUARKUS_HTTP_SSL_CERTIFICATE_KEY_FILES: /opt/certs/node-1-server.key
+      QUARKUS_GRPC_SERVER_SSL_CERTIFICATE: /opt/certs/node-1-server.crt
+      QUARKUS_GRPC_SERVER_SSL_KEY: /opt/certs/node-1-server.key
+      QUARKUS_GRPC_SERVER_SSL_TRUST_STORE: /opt/certs/ca.crt
+      
+      # Service Discovery
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8301
+      CONSUL_SCHEME: https
+      CONSUL_TLS_CA_FILE: /opt/certs/ca.crt
+      CONSUL_TLS_CERT_FILE: /opt/certs/node-1-client.crt
+      CONSUL_TLS_KEY_FILE: /opt/certs/node-1-client.key
+      
+      # Database Configuration
+      QUARKUS_DATASOURCE_JDBC_URL: "jdbc:postgresql://postgres-cluster:5432/aurigraph_v11"
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_v11
+      QUARKUS_DATASOURCE_PASSWORD: secure_postgres_password_2025
+      QUARKUS_DATASOURCE_JDBC_MAX_SIZE: "20"
+      QUARKUS_DATASOURCE_JDBC_MIN_SIZE: "5"
+      
+      # Cache Configuration
+      QUARKUS_REDIS_HOSTS: "redis://redis-cluster:6379"
+      
+      # Metrics & Monitoring
+      QUARKUS_MICROMETER_EXPORT_PROMETHEUS_ENABLED: "true"
+      QUARKUS_MICROMETER_EXPORT_PROMETHEUS_PATH: "/q/metrics"
+      
+      # JVM Settings
+      JAVA_OPTS: >
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:InitiatingHeapOccupancyPercent=35
+        -XX:+ParallelRefProcEnabled
+        -XX:+UnlockExperimentalVMOptions
+        -XX:G1NewCollectionHeuristicPercent=20
+        -Djava.net.preferIPv4Stack=true
+    volumes:
+      - ./tls-certs/nodes:/opt/certs:ro
+      - ./aurigraph-av10-7/aurigraph-v11-standalone/logs/node-1:/opt/logs
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "--ca-certificate=/opt/certs/ca.crt", "https://localhost:9443/q/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # ========== Aurigraph V11 Node 2 (Business/Follower) ==========
+  aurigraph-v11-node-2:
+    image: aurigraph-v11:11.0.0-jvm
+    container_name: aurigraph-v11-node-2
+    hostname: aurigraph-v11-node-2
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.11
+    ports:
+      - "9445:9443"     # HTTPS
+      - "9445:9444"     # gRPC TLS
+    environment:
+      AURIGRAPH_NODE_ID: node-2
+      AURIGRAPH_NODE_TYPE: business
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: HYPERRAFT_PLUS_PLUS
+      CONSENSUS_CLUSTER_NODES: "validator-1,node-2,node-3,node-4"
+      CONSENSUS_INITIAL_LEADER: "validator-1"
+      CONSENSUS_LOG_REPLICATION_ENABLED: "true"
+      
+      QUARKUS_PROFILE: tls
+      QUARKUS_HTTP_SSL_CERTIFICATE_FILES: /opt/certs/node-2-server.crt
+      QUARKUS_HTTP_SSL_CERTIFICATE_KEY_FILES: /opt/certs/node-2-server.key
+      QUARKUS_GRPC_SERVER_SSL_CERTIFICATE: /opt/certs/node-2-server.crt
+      QUARKUS_GRPC_SERVER_SSL_KEY: /opt/certs/node-2-server.key
+      QUARKUS_GRPC_SERVER_SSL_TRUST_STORE: /opt/certs/ca.crt
+      
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8301
+      CONSUL_SCHEME: https
+      CONSUL_TLS_CA_FILE: /opt/certs/ca.crt
+      CONSUL_TLS_CERT_FILE: /opt/certs/node-2-client.crt
+      CONSUL_TLS_KEY_FILE: /opt/certs/node-2-client.key
+      
+      QUARKUS_DATASOURCE_JDBC_URL: "jdbc:postgresql://postgres-cluster:5432/aurigraph_v11"
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_v11
+      QUARKUS_DATASOURCE_PASSWORD: secure_postgres_password_2025
+      QUARKUS_REDIS_HOSTS: "redis://redis-cluster:6379"
+      
+      QUARKUS_MICROMETER_EXPORT_PROMETHEUS_ENABLED: "true"
+    volumes:
+      - ./tls-certs/nodes:/opt/certs:ro
+      - ./aurigraph-av10-7/aurigraph-v11-standalone/logs/node-2:/opt/logs
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "--ca-certificate=/opt/certs/ca.crt", "https://localhost:9443/q/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # ========== Aurigraph V11 Node 3 (Business/Follower) ==========
+  aurigraph-v11-node-3:
+    image: aurigraph-v11:11.0.0-jvm
+    container_name: aurigraph-v11-node-3
+    hostname: aurigraph-v11-node-3
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.12
+    ports:
+      - "9446:9443"     # HTTPS
+      - "9446:9444"     # gRPC TLS
+    environment:
+      AURIGRAPH_NODE_ID: node-3
+      AURIGRAPH_NODE_TYPE: business
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: HYPERRAFT_PLUS_PLUS
+      CONSENSUS_CLUSTER_NODES: "validator-1,node-2,node-3,node-4"
+      CONSENSUS_INITIAL_LEADER: "validator-1"
+      CONSENSUS_LOG_REPLICATION_ENABLED: "true"
+      
+      QUARKUS_PROFILE: tls
+      QUARKUS_HTTP_SSL_CERTIFICATE_FILES: /opt/certs/node-3-server.crt
+      QUARKUS_HTTP_SSL_CERTIFICATE_KEY_FILES: /opt/certs/node-3-server.key
+      QUARKUS_GRPC_SERVER_SSL_CERTIFICATE: /opt/certs/node-3-server.crt
+      QUARKUS_GRPC_SERVER_SSL_KEY: /opt/certs/node-3-server.key
+      QUARKUS_GRPC_SERVER_SSL_TRUST_STORE: /opt/certs/ca.crt
+      
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8301
+      CONSUL_SCHEME: https
+      CONSUL_TLS_CA_FILE: /opt/certs/ca.crt
+      CONSUL_TLS_CERT_FILE: /opt/certs/node-3-client.crt
+      CONSUL_TLS_KEY_FILE: /opt/certs/node-3-client.key
+      
+      QUARKUS_DATASOURCE_JDBC_URL: "jdbc:postgresql://postgres-cluster:5432/aurigraph_v11"
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_v11
+      QUARKUS_DATASOURCE_PASSWORD: secure_postgres_password_2025
+      QUARKUS_REDIS_HOSTS: "redis://redis-cluster:6379"
+      
+      QUARKUS_MICROMETER_EXPORT_PROMETHEUS_ENABLED: "true"
+    volumes:
+      - ./tls-certs/nodes:/opt/certs:ro
+      - ./aurigraph-av10-7/aurigraph-v11-standalone/logs/node-3:/opt/logs
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "--ca-certificate=/opt/certs/ca.crt", "https://localhost:9443/q/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # ========== Aurigraph V11 Node 4 (Business/Follower) ==========
+  aurigraph-v11-node-4:
+    image: aurigraph-v11:11.0.0-jvm
+    container_name: aurigraph-v11-node-4
+    hostname: aurigraph-v11-node-4
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.13
+    ports:
+      - "9447:9443"     # HTTPS
+      - "9447:9444"     # gRPC TLS
+    environment:
+      AURIGRAPH_NODE_ID: node-4
+      AURIGRAPH_NODE_TYPE: business
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: HYPERRAFT_PLUS_PLUS
+      CONSENSUS_CLUSTER_NODES: "validator-1,node-2,node-3,node-4"
+      CONSENSUS_INITIAL_LEADER: "validator-1"
+      CONSENSUS_LOG_REPLICATION_ENABLED: "true"
+      
+      QUARKUS_PROFILE: tls
+      QUARKUS_HTTP_SSL_CERTIFICATE_FILES: /opt/certs/node-4-server.crt
+      QUARKUS_HTTP_SSL_CERTIFICATE_KEY_FILES: /opt/certs/node-4-server.key
+      QUARKUS_GRPC_SERVER_SSL_CERTIFICATE: /opt/certs/node-4-server.crt
+      QUARKUS_GRPC_SERVER_SSL_KEY: /opt/certs/node-4-server.key
+      QUARKUS_GRPC_SERVER_SSL_TRUST_STORE: /opt/certs/ca.crt
+      
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8301
+      CONSUL_SCHEME: https
+      CONSUL_TLS_CA_FILE: /opt/certs/ca.crt
+      CONSUL_TLS_CERT_FILE: /opt/certs/node-4-client.crt
+      CONSUL_TLS_KEY_FILE: /opt/certs/node-4-client.key
+      
+      QUARKUS_DATASOURCE_JDBC_URL: "jdbc:postgresql://postgres-cluster:5432/aurigraph_v11"
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_v11
+      QUARKUS_DATASOURCE_PASSWORD: secure_postgres_password_2025
+      QUARKUS_REDIS_HOSTS: "redis://redis-cluster:6379"
+      
+      QUARKUS_MICROMETER_EXPORT_PROMETHEUS_ENABLED: "true"
+    volumes:
+      - ./tls-certs/nodes:/opt/certs:ro
+      - ./aurigraph-av10-7/aurigraph-v11-standalone/logs/node-4:/opt/logs
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "--ca-certificate=/opt/certs/ca.crt", "https://localhost:9443/q/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+# ========== Networks ==========
+networks:
+  aurigraph-cluster-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16
+
+# ========== Volumes ==========
+volumes:
+  consul-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-storage:
+    driver: local
