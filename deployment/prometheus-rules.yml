@@ -349,7 +349,7 @@ groups:
     interval: 60s
     rules:
       # Certificate expiring soon
-      - alert: CertificateExpiringVeryoon
+      - alert: CertificateExpiringVerySoon
         expr: |
           (tls_certificate_not_after - time()) < (30 * 24 * 3600)
         for: 5m
