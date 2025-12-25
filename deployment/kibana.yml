@@ -1,0 +1,192 @@
+# Sprint 18: Kibana Configuration for Log Visualization
+# Web interface for Elasticsearch data exploration and dashboard creation
+
+# ========== Server Configuration ==========
+server:
+  # Server port
+  port: 5601
+  
+  # Server host
+  host: "0.0.0.0"
+  
+  # Base path for all Kibana routes
+  basePath: ""
+  rewriteBasePath: false
+  
+  # Max size of request body
+  maxPayloadBytes: 1048576
+  
+  # Timeout for websockets
+  websocketTimeout: 30000
+  
+  # SSL/TLS Configuration
+  ssl:
+    enabled: true
+    certificate: /usr/share/kibana/certs/kibana.crt
+    key: /usr/share/kibana/certs/kibana.key
+
+# ========== Elasticsearch Configuration ==========
+elasticsearch:
+  # Elasticsearch hosts
+  hosts:
+    - https://elasticsearch:9200
+  
+  # Authentication
+  username: elastic
+  password: "${ELASTICSEARCH_PASSWORD}"
+  
+  # SSL/TLS Configuration
+  ssl:
+    verificationMode: certificate
+    certificateAuthorities:
+      - /usr/share/kibana/certs/ca.crt
+    alwaysPresentCertificate: false
+  
+  # Connection settings
+  requestTimeout: 30000
+  requestHeadersWhitelist:
+    - authorization
+    - x-elastic-internal-origin
+  
+  # Username/password (handled by Kibana saved objects for user access)
+  # Leave empty for default Elasticsearch security
+  logQueries: false
+
+# ========== Kibana Authentication & Authorization ==========
+xpack:
+  security:
+    enabled: true
+    authc:
+      providers:
+        basic:
+          basic:
+            order: 0
+            enabled: true
+  reporting:
+    enabled: true
+    csv:
+      enabled: true
+  
+  # Monitoring
+  monitoring:
+    enabled: true
+    ui:
+      enabled: true
+    kibana:
+      collection:
+        enabled: true
+  
+  # Graph exploration
+  graph:
+    enabled: true
+  
+  # Canvas for custom visualizations
+  canvas:
+    enabled: true
+  
+  # Alerts and actions
+  alerting:
+    enabled: true
+  actions:
+    enabled: true
+    allowedHosts:
+      - "*"
+
+# ========== Logging ==========
+logging:
+  # Log level
+  level: warn
+  
+  # Log verbosity
+  verbose: false
+  
+  # Appenders (output destinations)
+  appenders:
+    default:
+      type: console
+      layout:
+        type: pattern
+        pattern: "%d{ISO8601} %p %c - %m"
+  
+  loggers:
+    - name: plugins.aurigraph
+      level: info
+    - name: elasticsearch
+      level: warn
+
+# ========== UI Settings ==========
+# Default index pattern
+kibana:
+  defaultAppId: "discover"
+  
+  # Index pattern for Aurigraph logs
+  # Will be automatically created on first log arrival
+  # Index pattern: aurigraph-logs-*
+  
+  # Default time range
+  timeRange:
+    value: last_7days
+
+# ========== Custom Branding ==========
+# Customize Kibana appearance
+# kibana.branding:
+#   logo: "/path/to/logo.png"
+#   favicon: "/path/to/favicon.ico"
+#   mark: "/path/to/mark.svg"
+#   logoAlt: "Aurigraph"
+
+# ========== Saved Objects ==========
+savedObjects:
+  maxImportPayloadBytes: 26214400
+
+# ========== Advanced Settings ==========
+# Enable development mode
+devMode: false
+
+# Console auto-formatting
+console:
+  autocomplete: true
+
+# Metrics collection interval
+metrics:
+  interval: 10000
+
+# ========== Plugins ==========
+plugins:
+  # Plugin directory
+  paths:
+    - /usr/share/kibana/plugins
+  
+  # Enable/disable plugins
+  # searchableSnapshots:
+  #   enabled: true
+
+# ========== Dashboard Refresh Settings ==========
+dashboard:
+  # Default refresh interval
+  refreshInterval: "1m"
+  
+  # Show timezone selector
+  showTimezone: true
+
+# ========== Visualization Settings ==========
+visualization:
+  # Enable experimental features
+  experimentalTitleMd: true
+  
+  # Chart theming
+  darkTheme: true
+
+# ========== Data Index Settings ==========
+# Index lifecycle management
+slm:
+  enabled: true
+
+# ========== Shutdown Timeout ==========
+# How long Kibana waits for outstanding requests before shutting down
+shutdownTimeout: 30s
+
+# ========== Network Configuration ==========
+# Restrict Kibana to internal network only (if behind proxy)
+# server:
+#   publicBaseUrl: https://logs.aurigraph.io/kibana

@@ -1,0 +1,50 @@
+# Sprint 18: Grafana Datasources Configuration
+# Defines Prometheus as data source for Aurigraph V11 dashboards
+
+apiVersion: 1
+
+# Datasources
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      tlsSkipVerify: false
+    secureJsonData:
+      tlsCACert: "/etc/grafana/certs/ca.crt"
+      tlsClientCert: "/etc/grafana/certs/client.crt"
+      tlsClientKey: "/etc/grafana/certs/client.key"
+    orgId: 1
+    orgName: Main Org
+    readOnly: false
+
+  # ========== Optional: ClickHouse for Long-term Metrics Storage ==========
+  # Uncomment to enable ClickHouse backend for better performance on large datasets
+  # - name: ClickHouse
+  #   type: clickhouse-datasource
+  #   access: proxy
+  #   url: http://clickhouse:8123
+  #   database: aurigraph_metrics
+  #   isDefault: false
+  #   editable: true
+  #   jsonData:
+  #     tlsSkipVerify: true
+
+  # ========== Optional: Elasticsearch for Logs ==========
+  # - name: Elasticsearch-Logs
+  #   type: elasticsearch
+  #   access: proxy
+  #   url: http://elasticsearch:9200
+  #   database: "logs-*"
+  #   isDefault: false
+  #   editable: true
+  #   jsonData:
+  #     tlsSkipVerify: true
+  #     version: "7.10.0"
+  #     timeField: "@timestamp"
+  #     logMessageField: "message"
+  #     logLevelField: "level"

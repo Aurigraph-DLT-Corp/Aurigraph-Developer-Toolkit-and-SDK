@@ -1,0 +1,171 @@
+# Sprint 18: Elasticsearch Configuration for ELK Stack
+# Centralized logging infrastructure for Aurigraph V11 Cluster
+
+version: '3.9'
+
+services:
+  # ========== Elasticsearch (Data Store) ==========
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: elasticsearch
+    hostname: elasticsearch
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.30
+    environment:
+      # Cluster configuration
+      cluster.name: aurigraph-logs
+      node.name: elasticsearch-1
+      discovery.type: single-node
+      
+      # Memory settings
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      
+      # Security settings
+      xpack.security.enabled: "true"
+      xpack.security.authc.api_key.enabled: "true"
+      ELASTIC_PASSWORD: elasticsearch_password_2025
+      
+      # TLS/SSL settings
+      xpack.security.transport.ssl.enabled: "true"
+      xpack.security.transport.ssl.verification_mode: certificate
+      xpack.security.transport.ssl.keystore.path: certs/elasticsearch.p12
+      xpack.security.transport.ssl.truststore.path: certs/elasticsearch.p12
+      
+      xpack.security.http.ssl.enabled: "true"
+      xpack.security.http.ssl.keystore.path: certs/elasticsearch.p12
+      xpack.security.http.ssl.truststore.path: certs/elasticsearch.p12
+      
+      # Performance settings
+      indices.memory.index_buffer_size: "40%"
+      thread_pool.bulk.queue_size: 1000
+      thread_pool.search.queue_size: 1000
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./tls-certs/elasticsearch:/usr/share/elasticsearch/config/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -u elastic:elasticsearch_password_2025 --cacert /usr/share/elasticsearch/config/certs/ca.crt https://localhost:9200 | grep -q cluster_name"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ========== Logstash (Log Processing) ==========
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.0
+    container_name: logstash
+    hostname: logstash
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.31
+    environment:
+      LS_JAVA_OPTS: -Xmx256m -Xms256m
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      ELASTICSEARCH_USER: elastic
+      ELASTICSEARCH_PASSWORD: elasticsearch_password_2025
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    volumes:
+      - ./deployment/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./tls-certs/elasticsearch:/usr/share/logstash/certs:ro
+      - logstash-data:/usr/share/logstash/data
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ========== Kibana (Visualization) ==========
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.0
+    container_name: kibana
+    hostname: kibana
+    networks:
+      aurigraph-cluster-net:
+        ipv4_address: 172.26.0.32
+    environment:
+      ELASTICSEARCH_HOSTS: https://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: elasticsearch_password_2025
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_CERTIFICATE: /usr/share/kibana/certs/kibana.crt
+      SERVER_SSL_KEY: /usr/share/kibana/certs/kibana.key
+      ELASTICSEARCH_SSL_VERIFICATIONMODE: certificate
+      ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES: /usr/share/kibana/certs/ca.crt
+      MONITORING_ENABLED: "true"
+      xpack.security.enabled: "true"
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./deployment/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      - ./tls-certs/elasticsearch:/usr/share/kibana/certs:ro
+      - kibana-data:/usr/share/kibana/data
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q green"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+  # ========== Filebeat (Log Collector - Optional) ==========
+  # Filebeat can run as a sidecar in each node container for log collection
+  # filebeat:
+  #   image: docker.elastic.co/beats/filebeat:8.10.0
+  #   container_name: filebeat
+  #   hostname: filebeat
+  #   user: root
+  #   command: filebeat -e -strict.perms=false
+  #   volumes:
+  #     - ./deployment/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   depends_on:
+  #     - logstash
+  #   restart: unless-stopped
+
+# ========== Networks ==========
+networks:
+  aurigraph-cluster-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16
+
+# ========== Volumes ==========
+volumes:
+  elasticsearch-data:
+    driver: local
+  logstash-data:
+    driver: local
+  kibana-data:
+    driver: local

@@ -1,0 +1,373 @@
+# Sprint 18: Prometheus Alert Rules for Aurigraph V11 Cluster
+# Alerting rules for consensus, failover, and system health
+
+groups:
+  # ========== Consensus Metrics ==========
+  - name: consensus
+    interval: 15s
+    rules:
+      # Leader election issues
+      - alert: LeaderElectionDelayed
+        expr: |
+          (max(aurigraph_consensus_leader_election_duration_ms) > 10000)
+        for: 2m
+        labels:
+          severity: warning
+          component: consensus
+        annotations:
+          summary: "Consensus leader election delayed ({{ $value }}ms)"
+          description: "Leader election is taking longer than expected. Current: {{ $value }}ms, Threshold: 10000ms"
+
+      # Consensus quorum loss
+      - alert: ConsensusQuorumLost
+        expr: |
+          (count(aurigraph_consensus_node_state{state="FOLLOWER"}) 
+           + count(aurigraph_consensus_node_state{state="LEADER"})) < 3
+        for: 30s
+        labels:
+          severity: critical
+          component: consensus
+        annotations:
+          summary: "Consensus quorum lost"
+          description: "Fewer than 3 nodes are in FOLLOWER or LEADER state. Cluster cannot achieve consensus."
+
+      # High voting round latency
+      - alert: HighVotingLatency
+        expr: |
+          (histogram_quantile(0.99, aurigraph_consensus_voting_duration_ms) > 1000)
+        for: 3m
+        labels:
+          severity: warning
+          component: consensus
+        annotations:
+          summary: "High voting round latency"
+          description: "Consensus voting rounds taking >1000ms (p99). Current: {{ $value }}ms"
+
+      # Byzantine node detected
+      - alert: ByzantineNodeDetected
+        expr: |
+          (aurigraph_consensus_byzantine_node_count > 0)
+        for: 1m
+        labels:
+          severity: critical
+          component: consensus
+        annotations:
+          summary: "Byzantine node detected"
+          description: "{{ $value }} Byzantine nodes detected in consensus. This exceeds tolerance threshold."
+
+      # Consensus finality SLA breach
+      - alert: ConsensusFinaletySlaBreach
+        expr: |
+          (histogram_quantile(0.95, aurigraph_consensus_finality_duration_ms) > 100)
+        for: 5m
+        labels:
+          severity: critical
+          component: consensus
+        annotations:
+          summary: "Consensus finality SLA breached"
+          description: "Finality p95 latency > 100ms. Target: <100ms. Current: {{ $value }}ms"
+
+  # ========== Transaction Metrics ==========
+  - name: transactions
+    interval: 15s
+    rules:
+      # High transaction error rate
+      - alert: HighTransactionErrorRate
+        expr: |
+          (rate(aurigraph_transaction_errors_total[5m]) > 0.01)
+        for: 2m
+        labels:
+          severity: warning
+          component: transactions
+        annotations:
+          summary: "High transaction error rate"
+          description: "Transaction error rate exceeds 1%. Current: {{ $value | humanizePercentage }}"
+
+      # Transaction processing latency SLA
+      - alert: TransactionLatencySlaBreach
+        expr: |
+          (histogram_quantile(0.99, aurigraph_transaction_latency_ms) > 5000)
+        for: 5m
+        labels:
+          severity: warning
+          component: transactions
+        annotations:
+          summary: "Transaction processing latency SLA breached"
+          description: "p99 transaction latency > 5000ms. Current: {{ $value }}ms"
+
+      # Transaction queue backlog
+      - alert: TransactionQueueBacklog
+        expr: |
+          (aurigraph_transaction_queue_length > 10000)
+        for: 3m
+        labels:
+          severity: warning
+          component: transactions
+        annotations:
+          summary: "Transaction queue backlog detected"
+          description: "Transaction queue length: {{ $value }} (threshold: 10000)"
+
+      # TPS degradation
+      - alert: TpsDegradation
+        expr: |
+          (rate(aurigraph_transaction_submitted_total[5m]) < 100000)
+        for: 5m
+        labels:
+          severity: warning
+          component: transactions
+        annotations:
+          summary: "TPS degradation detected"
+          description: "Current TPS: {{ $value | humanize }}, Expected: >100k TPS"
+
+  # ========== Node Health ==========
+  - name: node_health
+    interval: 15s
+    rules:
+      # Node down
+      - alert: NodeDown
+        expr: |
+          (up{job=~"aurigraph-node-.*"} == 0)
+        for: 1m
+        labels:
+          severity: critical
+          component: node_health
+        annotations:
+          summary: "Aurigraph node is down"
+          description: "Node {{ $labels.instance }} is not responding to health checks"
+
+      # Node memory pressure
+      - alert: NodeMemoryPressure
+        expr: |
+          (aurigraph_jvm_memory_used_bytes / aurigraph_jvm_memory_max_bytes > 0.85)
+        for: 5m
+        labels:
+          severity: warning
+          component: node_health
+        annotations:
+          summary: "Node memory usage high"
+          description: "Memory usage on {{ $labels.instance }}: {{ $value | humanizePercentage }}"
+
+      # Node GC pressure
+      - alert: HighGcTime
+        expr: |
+          (rate(aurigraph_jvm_gc_time_seconds[5m]) > 0.5)
+        for: 5m
+        labels:
+          severity: warning
+          component: node_health
+        annotations:
+          summary: "High garbage collection time"
+          description: "GC time on {{ $labels.instance }}: {{ $value | humanizeDuration }}/sec"
+
+      # Node CPU high
+      - alert: HighNodeCpu
+        expr: |
+          (process_cpu_usage > 0.8)
+        for: 5m
+        labels:
+          severity: warning
+          component: node_health
+        annotations:
+          summary: "High CPU usage on node"
+          description: "CPU on {{ $labels.instance }}: {{ $value | humanizePercentage }}"
+
+      # Node restart loop
+      - alert: NodeRestartLoop
+        expr: |
+          (process_uptime_seconds < 300)
+        for: 1m
+        labels:
+          severity: critical
+          component: node_health
+        annotations:
+          summary: "Node possibly in restart loop"
+          description: "Node {{ $labels.instance }} uptime < 5 minutes. Possible restart loop detected."
+
+  # ========== Failover & Replication ==========
+  - name: failover_replication
+    interval: 15s
+    rules:
+      # Log replication lag
+      - alert: LogReplicationLag
+        expr: |
+          (aurigraph_raft_log_replication_lag_entries > 1000)
+        for: 3m
+        labels:
+          severity: warning
+          component: failover
+        annotations:
+          summary: "Log replication lag detected"
+          description: "{{ $labels.instance }} behind by {{ $value }} log entries"
+
+      # Slow snapshot recovery
+      - alert: SlowSnapshotRecovery
+        expr: |
+          (aurigraph_raft_snapshot_recovery_duration_ms > 30000)
+        for: 2m
+        labels:
+          severity: warning
+          component: failover
+        annotations:
+          summary: "Slow snapshot recovery"
+          description: "Snapshot recovery on {{ $labels.instance }} took {{ $value }}ms (threshold: 30000ms)"
+
+      # Cluster split-brain risk
+      - alert: SplitBrainRisk
+        expr: |
+          (count(aurigraph_consensus_node_state{state="LEADER"}) > 1)
+        for: 30s
+        labels:
+          severity: critical
+          component: failover
+        annotations:
+          summary: "Multiple leaders detected - split-brain risk"
+          description: "{{ $value }} leader nodes detected. Cluster consensus compromised."
+
+  # ========== Database & Cache ==========
+  - name: data_layer
+    interval: 30s
+    rules:
+      # Database connection pool exhaustion
+      - alert: DbConnectionPoolExhausted
+        expr: |
+          (pg_stat_activity_count >= 500)
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Active connections: {{ $value }} / 500 (threshold: 500)"
+
+      # Database query latency
+      - alert: HighDatabaseLatency
+        expr: |
+          (histogram_quantile(0.99, rate(pg_slow_queries[5m])) > 5000)
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database query latency"
+          description: "Database p99 query latency: {{ $value }}ms"
+
+      # Redis memory pressure
+      - alert: RedisMemoryPressure
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes > 0.9)
+        for: 2m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage critical"
+          description: "Redis memory usage: {{ $value | humanizePercentage }}"
+
+      # Redis evictions
+      - alert: RedisEvictions
+        expr: |
+          (rate(redis_evicted_keys_total[5m]) > 100)
+        for: 2m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High Redis eviction rate"
+          description: "Redis eviction rate: {{ $value | humanize }} keys/sec"
+
+  # ========== Service Discovery ==========
+  - name: service_discovery
+    interval: 30s
+    rules:
+      # Consul server down
+      - alert: ConsulServerDown
+        expr: |
+          (up{job="consul"} == 0)
+        for: 1m
+        labels:
+          severity: critical
+          component: service_discovery
+        annotations:
+          summary: "Consul server is down"
+          description: "Consul service discovery server is not responding"
+
+      # Service registration issues
+      - alert: ServiceRegistrationFailure
+        expr: |
+          (aurigraph_consul_registration_failures_total > 0)
+        for: 2m
+        labels:
+          severity: warning
+          component: service_discovery
+        annotations:
+          summary: "Service registration failures detected"
+          description: "{{ $value }} Consul registration failures detected"
+
+      # Unhealthy service instances
+      - alert: UnhealthyServiceInstances
+        expr: |
+          (count(up{job=~"aurigraph-node-.*"} == 0) > 0)
+        for: 1m
+        labels:
+          severity: critical
+          component: service_discovery
+        annotations:
+          summary: "Unhealthy service instances detected"
+          description: "{{ $value }} Aurigraph services are unhealthy or unreachable"
+
+  # ========== Load Balancing ==========
+  - name: load_balancing
+    interval: 15s
+    rules:
+      # Load imbalance
+      - alert: LoadImbalance
+        expr: |
+          (max(rate(nginx_requests_total[5m])) / 
+           min(rate(nginx_requests_total[5m])) > 1.5)
+        for: 5m
+        labels:
+          severity: warning
+          component: load_balancing
+        annotations:
+          summary: "Load balancer distribution skewed"
+          description: "Request distribution skew: {{ $value | humanize }}x (threshold: 1.5x)"
+
+      # Backend unhealthy
+      - alert: BackendUnhealthy
+        expr: |
+          (nginx_upstream_requests_total{state="failed"} > 0)
+        for: 1m
+        labels:
+          severity: warning
+          component: load_balancing
+        annotations:
+          summary: "Load balancer detected unhealthy backend"
+          description: "Failed requests to {{ $labels.upstream }}: {{ $value }}"
+
+  # ========== TLS & Security ==========
+  - name: security
+    interval: 60s
+    rules:
+      # Certificate expiring soon
+      - alert: CertificateExpiringVeryoon
+        expr: |
+          (tls_certificate_not_after - time()) < (30 * 24 * 3600)
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "TLS certificate expiring within 30 days"
+          description: "Certificate for {{ $labels.subject }} expires in {{ $value | humanizeDuration }}"
+
+      # Expired certificate
+      - alert: ExpiredCertificate
+        expr: |
+          (tls_certificate_not_after - time()) < 0
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "TLS certificate has expired"
+          description: "Certificate for {{ $labels.subject }} is expired"

@@ -1,0 +1,262 @@
+# Sprint 18: OpenTelemetry Collector Configuration
+# Distributed tracing for Aurigraph V11 consensus and transactions
+
+receivers:
+  # ========== OTLP Receiver (gRPC) ==========
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        # mTLS configuration
+        auth:
+          authenticator: basicauth
+        tls:
+          cert_file: /etc/otel-certs/otel.crt
+          key_file: /etc/otel-certs/otel.key
+          ca_file: /etc/otel-certs/ca.crt
+      http:
+        endpoint: 0.0.0.0:4318
+        tls:
+          cert_file: /etc/otel-certs/otel.crt
+          key_file: /etc/otel-certs/otel.key
+
+  # ========== Prometheus Receiver (Metrics) ==========
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'aurigraph-metrics'
+          static_configs:
+            - targets: ['localhost:8888']
+          tls_config:
+            ca_file: /etc/otel-certs/ca.crt
+            cert_file: /etc/otel-certs/otel.crt
+            key_file: /etc/otel-certs/otel.key
+
+  # ========== Jaeger Receiver (Legacy Support) ==========
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:14250
+      thrift_http:
+        endpoint: 0.0.0.0:14268
+      thrift_compact:
+        endpoint: 0.0.0.0:6831/udp
+
+processors:
+  # ========== Batch Processor (Optimization) ==========
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # ========== Resource Processor (Attributes) ==========
+  resource:
+    attributes:
+      actions:
+        - key: service.name
+          value: aurigraph-v11
+          action: insert
+        - key: service.version
+          value: 11.0.0
+          action: insert
+        - key: cluster.name
+          value: aurigraph-cluster
+          action: insert
+        - key: deployment.environment
+          value: production
+          action: insert
+
+  # ========== Attributes Processor (Consensus Context) ==========
+  attributes:
+    actions:
+      # Add consensus context
+      - key: consensus.protocol
+        value: HYPERRAFT_PLUS_PLUS
+        action: insert
+      
+      # Add node identification
+      - key: node.id
+        pattern: 'node_name'
+        action: insert
+
+  # ========== Span Processor (Filtering & Sampling) ==========
+  sampling:
+    # Sample 10% of traces in production for cost optimization
+    # Increase to 100% for development
+    sampling_percentage: 10
+    
+    # Always sample error traces
+    policies:
+      - name: error-traces
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+          span_event_status_codes: [ERROR, UNSET]
+        always_sample: true
+      
+      - name: high-latency
+        type: latency
+        latency:
+          threshold_ms: 1000
+        always_sample: true
+
+  # ========== Trace Transform (Consensus Context) ==========
+  attributes/consensus:
+    actions:
+      # Extract voting round from span name
+      - key: voting.round_id
+        from_attribute: voting_round_id
+        action: insert
+      
+      # Extract leader election metrics
+      - key: consensus.leader
+        from_attribute: leader_node
+        action: insert
+      
+      # Extract finality information
+      - key: consensus.finality_ms
+        from_attribute: finality_duration_ms
+        action: insert
+
+  # ========== Tail-Sampling Processor ==========
+  tail_sampling:
+    policies:
+      # Always sample errors
+      - name: error-spans
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      
+      # Sample high latency transactions
+      - name: high-latency-traces
+        type: latency
+        latency:
+          threshold_ms: 100
+      
+      # Sample Byzantine node activity
+      - name: byzantine-activity
+        type: regex_attributes
+        regex_attributes:
+          regexp: '.*byzantine.*'
+      
+      # Probabilistic sampling fallback
+      - name: probabilistic
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+  # ========== Memory Limiter ==========
+  memory_limiter:
+    # Total memory available to collector
+    total_memory_mib: 512
+    # Threshold to start dropping spans
+    check_interval: 5s
+    # Memory limit before aggressive dropping
+    limit_mib: 400
+    # Memory limit before spike protection
+    spike_limit_mib: 100
+
+exporters:
+  # ========== Jaeger Exporter (Trace Visualization) ==========
+  jaeger:
+    endpoint: https://jaeger:14250
+    tls:
+      ca_file: /etc/otel-certs/ca.crt
+      cert_file: /etc/otel-certs/otel.crt
+      key_file: /etc/otel-certs/otel.key
+      insecure_skip_verify: false
+    compression: gzip
+
+  # ========== Prometheus Exporter (Metrics) ==========
+  prometheus:
+    endpoint: "0.0.0.0:8888"
+    tls:
+      cert_file: /etc/otel-certs/otel.crt
+      key_file: /etc/otel-certs/otel.key
+
+  # ========== Logging Exporter (Fallback) ==========
+  logging:
+    loglevel: debug
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  # ========== Elasticsearch Exporter (Trace Storage) ==========
+  elasticsearch:
+    endpoints:
+      - https://elasticsearch:9200
+    auth:
+      authenticator: basicauth
+      basicauth:
+        username: elastic
+        password: "${ELASTICSEARCH_PASSWORD}"
+    tls:
+      ca_file: /etc/otel-certs/ca.crt
+      cert_file: /etc/otel-certs/otel.crt
+      key_file: /etc/otel-certs/otel.key
+    index: aurigraph-traces-%{+YYYY.MM.dd}
+    logs_index: aurigraph-logs-%{+YYYY.MM.dd}
+
+  # ========== OTLP Exporter (Multi-Cloud) ==========
+  otlphttp:
+    endpoint: https://otlp-collector.aurigraph.io:4318
+    headers:
+      Authorization: "Bearer ${OTEL_AUTH_TOKEN}"
+    tls:
+      ca_file: /etc/otel-certs/ca.crt
+
+service:
+  # Telemetry for OpenTelemetry Collector itself
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      enabled: true
+      level: detailed
+      reporting_interval: 60s
+
+  # ========== Pipeline Configuration ==========
+  pipelines:
+    # Traces pipeline
+    traces:
+      receivers: [otlp, jaeger]
+      processors: [memory_limiter, batch, resource, attributes, attributes/consensus, tail_sampling]
+      exporters: [jaeger, elasticsearch, otlphttp, logging]
+    
+    # Metrics pipeline
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch, resource]
+      exporters: [prometheus, otlphttp, logging]
+    
+    # Logs pipeline (optional)
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [elasticsearch, logging]
+
+# ========== Extensions ==========
+extensions:
+  # ========== Health Check ==========
+  health_check:
+    endpoint: localhost:13133
+    tls:
+      cert_file: /etc/otel-certs/otel.crt
+      key_file: /etc/otel-certs/otel.key
+
+  # ========== Performance Profiler ==========
+  pprof:
+    endpoint: localhost:1888
+
+  # ========== zpages (Debug) ==========
+  zpages:
+    endpoint: localhost:55679
+
+# ========== Authentication (Basic Auth) ==========
+# Note: In production, use OAuth2 or mTLS
+auth:
+  authenticator: basicauth
+  basicauth:
+    htpasswd:
+      file: /etc/otel-certs/htpasswd
+      inline: |
+        admin:$2y$05$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW
