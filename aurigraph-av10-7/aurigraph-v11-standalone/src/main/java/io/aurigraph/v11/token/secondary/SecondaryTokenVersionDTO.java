@@ -74,25 +74,28 @@ public class SecondaryTokenVersionDTO {
 
     /**
      * Convert from entity to DTO
+     * Uses direct field access since Lombok getters may not be available
      */
     public static SecondaryTokenVersionDTO fromEntity(SecondaryTokenVersion entity) {
+        if (entity == null) return null;
+
         return SecondaryTokenVersionDTO.builder()
-                .id(entity.getId())
-                .secondaryTokenId(entity.getSecondaryTokenId())
-                .versionNumber(entity.getVersionNumber())
-                .content(entity.getContent())
-                .merkleHash(entity.getMerkleHash())
-                .status(entity.getStatus() != null ? entity.getStatus().name() : null)
-                .previousVersionId(entity.getPreviousVersionId())
-                .replacedAt(entity.getReplacedAt())
-                .replacedByVersionId(entity.getReplacedByVersionId())
-                .vvbRequired(entity.getVvbRequired())
-                .vvbApprovedAt(entity.getVvbApprovedAt())
-                .vvbApprovedBy(entity.getVvbApprovedBy())
-                .rejectionReason(entity.getRejectionReason())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .archivedAt(entity.getArchivedAt())
+                .id(entity.id)
+                .secondaryTokenId(entity.secondaryTokenId)
+                .versionNumber(entity.versionNumber)
+                .content(entity.content)
+                .merkleHash(entity.merkleHash)
+                .status(entity.status != null ? entity.status.name() : null)
+                .previousVersionId(entity.previousVersionId)
+                .replacedAt(entity.replacedAt)
+                .replacedByVersionId(entity.replacedByVersionId)
+                .vvbRequired(entity.vvbRequired)
+                .vvbApprovedAt(entity.vvbApprovedAt)
+                .vvbApprovedBy(entity.vvbApprovedBy)
+                .rejectionReason(entity.rejectionReason)
+                .createdAt(entity.createdAt)
+                .updatedAt(entity.updatedAt)
+                .archivedAt(entity.archivedAt)
                 .build();
     }
 }
