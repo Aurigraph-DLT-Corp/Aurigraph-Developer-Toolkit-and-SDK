@@ -1,0 +1,304 @@
+version: '3.8'
+
+# Sprint 17: Multi-Node Aurigraph V11 Cluster
+# 4-node validator cluster with Consul service discovery and NGINX load balancer
+# Validates HyperRAFT++ consensus, Byzantine fault tolerance, and failover recovery
+
+services:
+  # ========== Consul Service Discovery ==========
+  
+  consul-server:
+    image: consul:1.17.0
+    container_name: consul-server
+    ports:
+      - "8500:8500"  # HTTP API
+      - "8600:8600/udp"  # DNS
+      - "8301:8301"  # Serf LAN
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+    volumes:
+      - ./deployment/consul-server.hcl:/etc/consul.d/server.hcl
+      - consul_data:/consul/data
+    command: agent -server -ui -config-file=/etc/consul.d/server.hcl
+    healthcheck:
+      test: ["CMD", "consul", "version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+  # ========== NGINX Load Balancer ==========
+  
+  nginx-lb:
+    image: nginx:1.25-alpine
+    container_name: nginx-lb
+    ports:
+      - "80:80"
+      - "9003:80"  # REST API load balancer
+      - "9004:50051"  # gRPC load balancer
+      - "8080:8080"  # Metrics
+    volumes:
+      - ./deployment/nginx-cluster.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - aurigraph-v11-node-1
+      - aurigraph-v11-node-2
+      - aurigraph-v11-node-3
+      - aurigraph-v11-node-4
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/nginx_status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+  # ========== PostgreSQL Cluster Database ==========
+  
+  postgres-cluster:
+    image: postgres:16-alpine
+    container_name: postgres-cluster
+    environment:
+      POSTGRES_USER: aurigraph_cluster
+      POSTGRES_PASSWORD: cluster_password_secure_123
+      POSTGRES_DB: aurigraph_v11_cluster
+      POSTGRES_INITDB_ARGS: "-c max_connections=500 -c shared_buffers=512MB -c max_wal_size=2GB"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_cluster_data:/var/lib/postgresql/data
+      - ./deployment/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurigraph_cluster"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+  # ========== Redis Cluster Cache ==========
+  
+  redis-cluster:
+    image: redis:7-alpine
+    container_name: redis-cluster
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 1gb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - redis_cluster_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+  # ========== Aurigraph V11 Validator Nodes ==========
+  
+  aurigraph-v11-node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aurigraph-v11-node-1
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    environment:
+      # Node identification
+      AURIGRAPH_NODE_ID: validator-1
+      AURIGRAPH_NODE_NAME: aurigraph-v11-node-1
+      AURIGRAPH_NODE_ADDRESS: aurigraph-v11-node-1
+      AURIGRAPH_CLUSTER_ENABLED: "true"
+      AURIGRAPH_CLUSTER_NODES: "aurigraph-v11-node-1:9004,aurigraph-v11-node-2:9004,aurigraph-v11-node-3:9004,aurigraph-v11-node-4:9004"
+      
+      # Consensus configuration
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: "HyperRAFT++"
+      CONSENSUS_TERM_TIMEOUT: "300"
+      CONSENSUS_HEARTBEAT_INTERVAL: "50"
+      
+      # Database
+      QUARKUS_DATASOURCE_DB_KIND: postgresql
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres-cluster:5432/aurigraph_v11_cluster
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_cluster
+      QUARKUS_DATASOURCE_PASSWORD: cluster_password_secure_123
+      QUARKUS_DATASOURCE_JDBC_MAX_SIZE: 50
+      
+      # Redis cache
+      QUARKUS_REDIS_HOSTS: redis://redis-cluster:6379
+      
+      # Consul service discovery
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8500
+      CONSUL_DATACENTER: aurigraph-cluster
+      CONSUL_SERVICE_NAME: aurigraph-v11
+      CONSUL_SERVICE_ID: aurigraph-v11-node-1
+      
+      # HTTP/2 and gRPC
+      QUARKUS_HTTP_PORT: 9003
+      QUARKUS_HTTP_HTTP2: "true"
+      QUARKUS_GRPC_PORT: 9004
+      
+      # Logging
+      QUARKUS_LOG_LEVEL: INFO
+      
+      # JVM settings
+      JAVA_OPTS: "-Xmx2g -Xms1g -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
+    ports:
+      - "9003:9003"  # REST API (load balanced via NGINX)
+      - "9004:9004"  # gRPC (load balanced via NGINX)
+    volumes:
+      - ./src:/app/src
+      - ./target:/app/target
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/q/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+  aurigraph-v11-node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aurigraph-v11-node-2
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    environment:
+      AURIGRAPH_NODE_ID: validator-2
+      AURIGRAPH_NODE_NAME: aurigraph-v11-node-2
+      AURIGRAPH_NODE_ADDRESS: aurigraph-v11-node-2
+      AURIGRAPH_CLUSTER_ENABLED: "true"
+      AURIGRAPH_CLUSTER_NODES: "aurigraph-v11-node-1:9004,aurigraph-v11-node-2:9004,aurigraph-v11-node-3:9004,aurigraph-v11-node-4:9004"
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: "HyperRAFT++"
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres-cluster:5432/aurigraph_v11_cluster
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_cluster
+      QUARKUS_DATASOURCE_PASSWORD: cluster_password_secure_123
+      QUARKUS_REDIS_HOSTS: redis://redis-cluster:6379
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8500
+      CONSUL_SERVICE_ID: aurigraph-v11-node-2
+      QUARKUS_HTTP_PORT: 9003
+      QUARKUS_GRPC_PORT: 9004
+      JAVA_OPTS: "-Xmx2g -Xms1g -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
+    ports:
+      - "9005:9003"
+      - "9105:9004"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/q/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+  aurigraph-v11-node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aurigraph-v11-node-3
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    environment:
+      AURIGRAPH_NODE_ID: validator-3
+      AURIGRAPH_NODE_NAME: aurigraph-v11-node-3
+      AURIGRAPH_NODE_ADDRESS: aurigraph-v11-node-3
+      AURIGRAPH_CLUSTER_ENABLED: "true"
+      AURIGRAPH_CLUSTER_NODES: "aurigraph-v11-node-1:9004,aurigraph-v11-node-2:9004,aurigraph-v11-node-3:9004,aurigraph-v11-node-4:9004"
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: "HyperRAFT++"
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres-cluster:5432/aurigraph_v11_cluster
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_cluster
+      QUARKUS_DATASOURCE_PASSWORD: cluster_password_secure_123
+      QUARKUS_REDIS_HOSTS: redis://redis-cluster:6379
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8500
+      CONSUL_SERVICE_ID: aurigraph-v11-node-3
+      QUARKUS_HTTP_PORT: 9003
+      QUARKUS_GRPC_PORT: 9004
+      JAVA_OPTS: "-Xmx2g -Xms1g -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
+    ports:
+      - "9006:9003"
+      - "9106:9004"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/q/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+  aurigraph-v11-node-4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aurigraph-v11-node-4
+    depends_on:
+      postgres-cluster:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      consul-server:
+        condition: service_healthy
+    environment:
+      AURIGRAPH_NODE_ID: validator-4
+      AURIGRAPH_NODE_NAME: aurigraph-v11-node-4
+      AURIGRAPH_NODE_ADDRESS: aurigraph-v11-node-4
+      AURIGRAPH_CLUSTER_ENABLED: "true"
+      AURIGRAPH_CLUSTER_NODES: "aurigraph-v11-node-1:9004,aurigraph-v11-node-2:9004,aurigraph-v11-node-3:9004,aurigraph-v11-node-4:9004"
+      CONSENSUS_ENABLE: "true"
+      CONSENSUS_PROTOCOL: "HyperRAFT++"
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres-cluster:5432/aurigraph_v11_cluster
+      QUARKUS_DATASOURCE_USERNAME: aurigraph_cluster
+      QUARKUS_DATASOURCE_PASSWORD: cluster_password_secure_123
+      QUARKUS_REDIS_HOSTS: redis://redis-cluster:6379
+      CONSUL_HOST: consul-server
+      CONSUL_PORT: 8500
+      CONSUL_SERVICE_ID: aurigraph-v11-node-4
+      QUARKUS_HTTP_PORT: 9003
+      QUARKUS_GRPC_PORT: 9004
+      JAVA_OPTS: "-Xmx2g -Xms1g -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
+    ports:
+      - "9007:9003"
+      - "9107:9004"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/q/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-cluster-net
+
+# Volumes for persistent data
+volumes:
+  consul_data:
+    driver: local
+  postgres_cluster_data:
+    driver: local
+  redis_cluster_data:
+    driver: local
+
+# Network for cluster communication
+networks:
+  aurigraph-cluster-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16
