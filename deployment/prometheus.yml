@@ -1,115 +1,176 @@
-# Prometheus Configuration for Aurigraph V11 Monitoring
-# Collects metrics from V11 backend, PostgreSQL, and system resources
+# Sprint 18: Prometheus Configuration for Aurigraph V11 Cluster
+# Metrics collection for consensus, transactions, failover, and system health
 
 global:
+  # How often to scrape targets by default
   scrape_interval: 15s
+  
+  # How long until a scrape request times out
+  scrape_timeout: 10s
+  
+  # How often to evaluate rules
   evaluation_interval: 15s
+  
+  # Attach labels to all timeseries collected
   external_labels:
-    monitor: 'aurigraph-v11-production'
+    monitor: 'aurigraph-cluster'
     environment: 'production'
-    region: 'us-east-1'
+    version: '11.0.0'
 
 # Alertmanager configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-            - localhost:9093
+            # - 'alertmanager:9093'
 
 # Load rules once and periodically evaluate them
 rule_files:
-  - '/etc/prometheus/rules/*.yml'
+  - "rules.yml"
+
+# ========== Scrape Configurations ==========
 
 scrape_configs:
-  # V11 Backend Service Metrics (Quarkus)
-  - job_name: 'v11-backend'
-    metrics_path: '/api/v11/metrics'
-    scrape_interval: 10s
-    scrape_timeout: 5s
-    static_configs:
-      - targets: ['localhost:9003']
-        labels:
-          service: 'v11-api'
-          component: 'backend'
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-      - source_labels: [__scheme__]
-        target_label: scheme
-
-  # V11 Health Check Endpoint
-  - job_name: 'v11-health'
-    metrics_path: '/api/v11/health'
-    scrape_interval: 5s
-    scrape_timeout: 3s
-    static_configs:
-      - targets: ['localhost:9003']
-        labels:
-          service: 'v11-api'
-          component: 'health'
-
-  # PostgreSQL Database Metrics (postgres_exporter)
-  - job_name: 'postgres'
-    scrape_interval: 30s
-    scrape_timeout: 10s
-    static_configs:
-      - targets: ['localhost:9187']
-        labels:
-          service: 'postgres'
-          component: 'database'
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-
-  # Node Exporter (System Metrics)
-  - job_name: 'node'
-    scrape_interval: 30s
-    static_configs:
-      - targets: ['localhost:9100']
-        labels:
-          service: 'system'
-          component: 'host-metrics'
-
-  # Docker Metrics (cAdvisor)
-  - job_name: 'docker'
-    scrape_interval: 30s
-    static_configs:
-      - targets: ['localhost:8080']
-        labels:
-          service: 'docker'
-          component: 'containers'
-
-  # Redis Cache Metrics
-  - job_name: 'redis'
-    scrape_interval: 30s
-    static_configs:
-      - targets: ['localhost:6379']
-        labels:
-          service: 'redis'
-          component: 'cache'
-
-  # NGINX Reverse Proxy Metrics (nginx_exporter)
-  - job_name: 'nginx'
-    scrape_interval: 30s
-    static_configs:
-      - targets: ['localhost:9113']
-        labels:
-          service: 'nginx'
-          component: 'reverse-proxy'
-
-  # Consul Service Discovery
-  - job_name: 'consul'
-    scrape_interval: 30s
-    static_configs:
-      - targets: ['localhost:8500']
-        labels:
-          service: 'consul'
-          component: 'service-discovery'
-
-  # Prometheus Self-Monitoring
+  # ========== Prometheus Self-Monitoring ==========
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # ========== Aurigraph Node 1 (Validator/Leader) ==========
+  - job_name: 'aurigraph-node-1'
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus/certs/ca.crt
+      cert_file: /etc/prometheus/certs/nginx-client.crt
+      key_file: /etc/prometheus/certs/nginx-client.key
+      server_name: aurigraph-v11-node-1
+      insecure_skip_verify: false
+    static_configs:
+      - targets: ['aurigraph-v11-node-1:9443']
         labels:
-          service: 'prometheus'
-          component: 'monitoring'
+          instance: 'validator-1'
+          node_type: 'validator'
+          node_role: 'leader'
+    metrics_path: '/q/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # ========== Aurigraph Node 2 (Business/Follower) ==========
+  - job_name: 'aurigraph-node-2'
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus/certs/ca.crt
+      cert_file: /etc/prometheus/certs/nginx-client.crt
+      key_file: /etc/prometheus/certs/nginx-client.key
+      server_name: aurigraph-v11-node-2
+      insecure_skip_verify: false
+    static_configs:
+      - targets: ['aurigraph-v11-node-2:9443']
+        labels:
+          instance: 'node-2'
+          node_type: 'business'
+          node_role: 'follower'
+    metrics_path: '/q/metrics'
+    scrape_interval: 15s
+
+  # ========== Aurigraph Node 3 (Business/Follower) ==========
+  - job_name: 'aurigraph-node-3'
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus/certs/ca.crt
+      cert_file: /etc/prometheus/certs/nginx-client.crt
+      key_file: /etc/prometheus/certs/nginx-client.key
+      server_name: aurigraph-v11-node-3
+      insecure_skip_verify: false
+    static_configs:
+      - targets: ['aurigraph-v11-node-3:9443']
+        labels:
+          instance: 'node-3'
+          node_type: 'business'
+          node_role: 'follower'
+    metrics_path: '/q/metrics'
+    scrape_interval: 15s
+
+  # ========== Aurigraph Node 4 (Business/Follower) ==========
+  - job_name: 'aurigraph-node-4'
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus/certs/ca.crt
+      cert_file: /etc/prometheus/certs/nginx-client.crt
+      key_file: /etc/prometheus/certs/nginx-client.key
+      server_name: aurigraph-v11-node-4
+      insecure_skip_verify: false
+    static_configs:
+      - targets: ['aurigraph-v11-node-4:9443']
+        labels:
+          instance: 'node-4'
+          node_type: 'business'
+          node_role: 'follower'
+    metrics_path: '/q/metrics'
+    scrape_interval: 15s
+
+  # ========== Consul Service Discovery ==========
+  - job_name: 'consul'
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus/certs/ca.crt
+      cert_file: /etc/prometheus/certs/nginx-client.crt
+      key_file: /etc/prometheus/certs/nginx-client.key
+      server_name: consul-server
+      insecure_skip_verify: false
+    static_configs:
+      - targets: ['consul-server:8501']
+        labels:
+          instance: 'consul-server'
+          component: 'service-discovery'
+    metrics_path: '/v1/agent/metrics'
+    scrape_interval: 30s
+
+  # ========== NGINX Load Balancer ==========
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-lb:80']
+        labels:
+          instance: 'nginx-lb'
+          component: 'load-balancer'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # ========== PostgreSQL Database ==========
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-cluster:5432']
+        labels:
+          instance: 'postgres-cluster'
+          component: 'database'
+    scrape_interval: 30s
+
+  # ========== Redis Cache ==========
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-cluster:6379']
+        labels:
+          instance: 'redis-cluster'
+          component: 'cache'
+    scrape_interval: 30s
+
+# ========== Service Discovery Targets (Docker) ==========
+# Automatic service discovery if using Docker labels
+
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['unix:///var/run/docker.sock']
+    scrape_interval: 30s
+
+# ========== Node Exporter (Optional - System Metrics) ==========
+# Add if node_exporter is running on host
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['localhost:9100']
+  #   metrics_path: '/metrics'
+  #   scrape_interval: 30s
