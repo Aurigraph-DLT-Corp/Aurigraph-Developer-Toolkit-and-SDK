@@ -96,10 +96,14 @@ public class ApprovalSubscriptionManager {
      */
     public void broadcastApprovalStatusChange(String approvalId, ApprovalStatus newStatus) {
         BroadcastProcessor<ApprovalEvent> processor = approvalStatusProcessors.get(approvalId);
-        if (processor != null && !processor.isClosed()) {
-            ApprovalEvent event = new ApprovalEvent(approvalId, "STATUS_CHANGED", LocalDateTime.now());
-            processor.onNext(event);
-            Log.debugf("Broadcasted approval status change: %s -> %s", approvalId, newStatus);
+        if (processor != null) {
+            try {
+                ApprovalEvent event = new ApprovalEvent(approvalId, "STATUS_CHANGED", LocalDateTime.now());
+                processor.onNext(event);
+                Log.debugf("Broadcasted approval status change: %s -> %s", approvalId, newStatus);
+            } catch (Exception e) {
+                Log.debugf("Failed to broadcast to closed processor: %s", e.getMessage());
+            }
         }
     }
 
@@ -108,10 +112,14 @@ public class ApprovalSubscriptionManager {
      */
     public void broadcastVoteSubmitted(String approvalId, ValidatorVote vote) {
         BroadcastProcessor<VoteEvent> processor = voteSubmissionProcessors.get(approvalId);
-        if (processor != null && !processor.isClosed()) {
-            VoteEvent event = new VoteEvent(approvalId, vote.validatorId, vote.choice, LocalDateTime.now());
-            processor.onNext(event);
-            Log.debugf("Broadcasted vote submission: %s by %s", approvalId, vote.validatorId);
+        if (processor != null) {
+            try {
+                VoteEvent event = new VoteEvent(approvalId, vote.validatorId, vote.vote, LocalDateTime.now());
+                processor.onNext(event);
+                Log.debugf("Broadcasted vote submission: %s by %s", approvalId, vote.validatorId);
+            } catch (Exception e) {
+                Log.debugf("Failed to broadcast vote to closed processor: %s", e.getMessage());
+            }
         }
     }
 
@@ -120,10 +128,14 @@ public class ApprovalSubscriptionManager {
      */
     public void broadcastConsensusReached(String approvalId, ConsensusResult result, int totalVotes) {
         BroadcastProcessor<ConsensusEvent> processor = consensusProcessors.get(approvalId);
-        if (processor != null && !processor.isClosed()) {
-            ConsensusEvent event = new ConsensusEvent(approvalId, result, LocalDateTime.now(), totalVotes);
-            processor.onNext(event);
-            Log.debugf("Broadcasted consensus reached: %s (%s)", approvalId, result);
+        if (processor != null) {
+            try {
+                ConsensusEvent event = new ConsensusEvent(approvalId, result, LocalDateTime.now(), totalVotes);
+                processor.onNext(event);
+                Log.debugf("Broadcasted consensus reached: %s (%s)", approvalId, result);
+            } catch (Exception e) {
+                Log.debugf("Failed to broadcast consensus to closed processor: %s", e.getMessage());
+            }
         }
     }
 
@@ -132,12 +144,16 @@ public class ApprovalSubscriptionManager {
      */
     public void broadcastWebhookDelivery(String webhookId, int httpStatus, int responseTimeMs) {
         BroadcastProcessor<WebhookEvent> processor = webhookProcessors.get(webhookId);
-        if (processor != null && !processor.isClosed()) {
-            WebhookEvent event = new WebhookEvent(webhookId, "DELIVERY_COMPLETE",
-                    httpStatus, responseTimeMs, LocalDateTime.now());
-            processor.onNext(event);
-            Log.debugf("Broadcasted webhook delivery: %s (status=%d, time=%dms)",
-                    webhookId, httpStatus, responseTimeMs);
+        if (processor != null) {
+            try {
+                WebhookEvent event = new WebhookEvent(webhookId, "DELIVERY_COMPLETE",
+                        httpStatus, responseTimeMs, LocalDateTime.now());
+                processor.onNext(event);
+                Log.debugf("Broadcasted webhook delivery: %s (status=%d, time=%dms)",
+                        webhookId, httpStatus, responseTimeMs);
+            } catch (Exception e) {
+                Log.debugf("Failed to broadcast webhook to closed processor: %s", e.getMessage());
+            }
         }
     }
 
@@ -146,9 +162,13 @@ public class ApprovalSubscriptionManager {
      */
     public void broadcastApprovalEvent(ApprovalEvent event) {
         BroadcastProcessor<ApprovalEvent> processor = approvalStatusProcessors.get(event.approvalId);
-        if (processor != null && !processor.isClosed()) {
-            processor.onNext(event);
-            Log.debugf("Broadcasted approval event: %s (%s)", event.approvalId, event.eventType);
+        if (processor != null) {
+            try {
+                processor.onNext(event);
+                Log.debugf("Broadcasted approval event: %s (%s)", event.approvalId, event.eventType);
+            } catch (Exception e) {
+                Log.debugf("Failed to broadcast approval event to closed processor: %s", e.getMessage());
+            }
         }
     }
 

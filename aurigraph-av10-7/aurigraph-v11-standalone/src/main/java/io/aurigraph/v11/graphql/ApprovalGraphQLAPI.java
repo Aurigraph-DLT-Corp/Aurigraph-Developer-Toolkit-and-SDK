@@ -50,7 +50,7 @@ public class ApprovalGraphQLAPI {
     public Uni<ApprovalDTO> getApproval(@Name("id") String approvalId) {
         Log.infof("GraphQL Query: get approval %s", approvalId);
         return Uni.createFrom().item(() -> {
-            VVBApprovalRequest approval = approvalRegistry.getApprovalById(approvalId);
+            VVBApprovalRequest approval = VVBApprovalRequest.findByRequestId(UUID.fromString(approvalId));
             if (approval == null) {
                 throw new IllegalArgumentException("Approval not found: " + approvalId);
             }
@@ -71,7 +71,7 @@ public class ApprovalGraphQLAPI {
         int finalOffset = offset != null ? offset : 0;
 
         return Uni.createFrom().item(() -> {
-            List<VVBApprovalRequest> approvals = approvalRegistry.getAllApprovals();
+            List<VVBApprovalRequest> approvals = VVBApprovalRequest.listAll();
 
             // Filter by status if provided
             if (status != null) {
@@ -93,7 +93,7 @@ public class ApprovalGraphQLAPI {
     public Uni<ApprovalStatisticsDTO> getApprovalStatistics() {
         Log.info("GraphQL Query: get approval statistics");
         return Uni.createFrom().item(() -> {
-            List<VVBApprovalRequest> approvals = approvalRegistry.getAllApprovals();
+            List<VVBApprovalRequest> approvals = VVBApprovalRequest.listAll();
 
             int total = approvals.size();
             int pending = (int) approvals.stream()
@@ -105,10 +105,11 @@ public class ApprovalGraphQLAPI {
             int expired = (int) approvals.stream()
                     .filter(a -> a.status == ApprovalStatus.EXPIRED).count();
 
+            // Calculate average time from creation to update (voting window completion)
             double averageConsensusTime = approvals.stream()
-                    .filter(a -> a.consensusReachedAt != null)
+                    .filter(a -> a.updatedAt != null)
                     .mapToLong(a -> java.time.temporal.ChronoUnit.SECONDS.between(
-                            a.createdAt, a.consensusReachedAt))
+                            a.createdAt, a.updatedAt))
                     .average()
                     .orElse(0);
 
@@ -125,11 +126,11 @@ public class ApprovalGraphQLAPI {
 
             int totalVotes = votes.size();
             int approveCount = (int) votes.stream()
-                    .filter(v -> v.choice == VoteChoice.APPROVE).count();
+                    .filter(v -> v.vote == VoteChoice.YES).count();
             int rejectCount = (int) votes.stream()
-                    .filter(v -> v.choice == VoteChoice.REJECT).count();
+                    .filter(v -> v.vote == VoteChoice.NO).count();
             int abstainCount = (int) votes.stream()
-                    .filter(v -> v.choice == VoteChoice.ABSTAIN).count();
+                    .filter(v -> v.vote == VoteChoice.ABSTAIN).count();
 
             double approvalRate = totalVotes > 0 ? (double) approveCount / totalVotes * 100 : 0;
 
@@ -146,7 +147,8 @@ public class ApprovalGraphQLAPI {
     public Uni<ExecutionResponseDTO> executeApproval(@Name("approvalId") String approvalId) {
         Log.infof("GraphQL Mutation: execute approval %s", approvalId);
         return Uni.createFrom().item(() -> {
-            VVBApprovalRequest approval = approvalRegistry.getApprovalById(approvalId);
+            UUID requestId = UUID.fromString(approvalId);
+            VVBApprovalRequest approval = VVBApprovalRequest.findByRequestId(requestId);
             if (approval == null) {
                 return new ExecutionResponseDTO(false, "Approval not found", null);
             }
@@ -154,14 +156,23 @@ public class ApprovalGraphQLAPI {
             try {
                 stateValidator.validateExecutionPrerequisites(approval);
 
-                // Execute the approval
+                // Execute the approval - use factory method
+                long startTime = System.currentTimeMillis();
+                SecondaryTokenVersionStatus fromStatus = SecondaryTokenVersionStatus.PENDING_VVB;
+                SecondaryTokenVersionStatus toStatus = approval.status == ApprovalStatus.APPROVED 
+                    ? SecondaryTokenVersionStatus.ACTIVE : SecondaryTokenVersionStatus.REJECTED;
+                
                 ApprovalExecutionService.ExecutionResult result =
-                        new ApprovalExecutionService.ExecutionResult(
-                                approvalId, true, "Approval executed successfully");
+                        ApprovalExecutionService.ExecutionResult.success(
+                                approval.tokenVersionId, 
+                                requestId,
+                                fromStatus,
+                                toStatus,
+                                System.currentTimeMillis() - startTime);
 
-                // Broadcast event
+                // Broadcast event using subscription manager's inner class
                 subscriptionManager.broadcastApprovalEvent(
-                        new ApprovalEvent(approvalId, "APPROVAL_EXECUTED", LocalDateTime.now()));
+                        new ApprovalSubscriptionManager.ApprovalEvent(approvalId, "APPROVAL_EXECUTED", LocalDateTime.now()));
 
                 return new ExecutionResponseDTO(true, "Execution successful", approvalId);
             } catch (Exception e) {
