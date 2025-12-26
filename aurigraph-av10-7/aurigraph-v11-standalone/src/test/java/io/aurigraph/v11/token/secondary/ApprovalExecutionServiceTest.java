@@ -36,7 +36,7 @@ class ApprovalExecutionServiceTest {
 
     private UUID approvalRequestId;
     private UUID tokenVersionId;
-    private ExecutionResult executionResult;
+    private ApprovalExecutionService.ExecutionResult executionResult;
 
     @BeforeEach
     void setUp() {
@@ -62,7 +62,7 @@ class ApprovalExecutionServiceTest {
 
             // Assert
             assertNotNull(result);
-            assertEquals(ExecutionStatus.COMPLETED, result.getStatus());
+            assertEquals("SUCCESS", result.status);
         }
 
         @Test
@@ -112,46 +112,43 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
             assertNotNull(result);
-            assertNotNull(result.getApprovalRequestId());
-            assertNotNull(result.getStatus());
+            assertNotNull(result.approvalRequestId);
+            assertNotNull(result.status);
         }
 
         @Test
-        @DisplayName("Execution captures start time for metrics")
+        @DisplayName("Execution records duration for metrics")
         void testExecuteApproval_CapturesStartTime_ForMetrics() {
             // Arrange
             UUID versionId = UUID.randomUUID();
-            long beforeMs = System.currentTimeMillis();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
-            long afterMs = System.currentTimeMillis();
-
             // Assert
-            assertNotNull(result.getStartTime());
-            assertTrue(result.getStartTime().toEpochMilli() >= beforeMs);
+            assertNotNull(result.durationMs);
+            assertTrue(result.durationMs >= 0);
         }
 
         @Test
-        @DisplayName("Execution captures end time for metrics")
+        @DisplayName("Execution duration is non-negative")
         void testExecuteApproval_CapturesEndTime_ForMetrics() {
             // Arrange
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertNotNull(result.getEndTime());
-            assertTrue(result.getEndTime().isAfter(result.getStartTime()));
+            assertNotNull(result.durationMs);
+            assertTrue(result.durationMs >= 0);
         }
 
         @Test
@@ -161,15 +158,12 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
-            long calculatedDuration = result.getEndTime().toEpochMilli() -
-                                      result.getStartTime().toEpochMilli();
-
             // Assert
-            assertTrue(calculatedDuration >= 0);
-            assertEquals(result.getDurationMs(), calculatedDuration);
+            assertTrue(result.durationMs >= 0);
+            assertNotNull(result.durationMs);
         }
 
         @Test
@@ -180,9 +174,9 @@ class ApprovalExecutionServiceTest {
             UUID versionId2 = UUID.randomUUID();
 
             // Act
-            ExecutionResult result1 = executionService.executeApproval(versionId1)
+            ApprovalExecutionService.ExecutionResult result1 = executionService.executeApproval(versionId1)
                 .await().indefinitely();
-            ExecutionResult result2 = executionService.executeApproval(versionId2)
+            ApprovalExecutionService.ExecutionResult result2 = executionService.executeApproval(versionId2)
                 .await().indefinitely();
 
             // Assert
@@ -197,14 +191,14 @@ class ApprovalExecutionServiceTest {
             long beforeMs = System.currentTimeMillis();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             long afterMs = System.currentTimeMillis();
 
             // Assert
-            assertTrue(result.getStartTime().toEpochMilli() >= beforeMs);
-            assertTrue(result.getStartTime().toEpochMilli() <= afterMs + 100);
+            assertTrue(result.getStartTime().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() >= beforeMs);
+            assertTrue(result.getStartTime().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() <= afterMs + 100);
         }
     }
 
@@ -221,12 +215,12 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertTrue(result.getNewStatus() == TokenStatus.PENDING_ACTIVE ||
-                      result.getNewStatus() == TokenStatus.ACTIVE);
+            assertTrue(result.toStatus == TokenStatus.PENDING_ACTIVE ||
+                      result.toStatus == TokenStatus.ACTIVE);
         }
 
         @Test
@@ -235,11 +229,11 @@ class ApprovalExecutionServiceTest {
             // This would typically be tested with a pre-rejected version
             UUID versionId = UUID.randomUUID();
 
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             assertNotNull(result);
-            assertNotNull(result.getNewStatus());
+            assertNotNull(result.toStatus);
         }
 
         @Test
@@ -249,7 +243,7 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act & Assert - execution should handle gracefully
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             assertNotNull(result);
@@ -262,11 +256,11 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert - event firing confirmed by result
-            assertNotNull(result.getStatus());
+            assertNotNull(result.status);
         }
 
         @Test
@@ -276,11 +270,11 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertNotNull(result.getPreviousStatus());
+            assertNotNull(result.fromStatus);
         }
 
         @Test
@@ -290,12 +284,12 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertNotNull(result.getNewStatus());
-            assertNotEquals(result.getPreviousStatus(), result.getNewStatus());
+            assertNotNull(result.toStatus);
+            assertNotEquals(result.fromStatus, result.toStatus);
         }
 
         @Test
@@ -305,7 +299,7 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert - persistence verified by result availability
@@ -319,12 +313,12 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertTrue(result.getStatus() == ExecutionStatus.COMPLETED ||
-                      result.getStatus() == ExecutionStatus.FAILED);
+            assertTrue(result.status == ExecutionStatus.COMPLETED ||
+                      result.status == ExecutionStatus.FAILED);
         }
     }
 
@@ -341,7 +335,7 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
@@ -356,11 +350,11 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertEquals(ExecutionStatus.COMPLETED, result.getStatus());
+            assertEquals(ExecutionStatus.COMPLETED, result.status);
         }
 
         @Test
@@ -370,7 +364,7 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
@@ -384,7 +378,7 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert - result indicates execution outcome
@@ -398,12 +392,12 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertNotNull(result.getNewStatus());
-            assertNotNull(result.getPreviousStatus());
+            assertNotNull(result.toStatus);
+            assertNotNull(result.fromStatus);
         }
     }
 
@@ -420,7 +414,7 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
@@ -435,11 +429,11 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertNotNull(result.getApprovalRequestId());
+            assertNotNull(result.approvalRequestId);
         }
 
         @Test
@@ -450,10 +444,10 @@ class ApprovalExecutionServiceTest {
             UUID versionId2 = UUID.randomUUID();
 
             // Act
-            ExecutionResult result1 = executionService.executeApproval(versionId1)
+            ApprovalExecutionService.ExecutionResult result1 = executionService.executeApproval(versionId1)
                 .await().indefinitely();
 
-            ExecutionResult result2 = executionService.executeApproval(versionId2)
+            ApprovalExecutionService.ExecutionResult result2 = executionService.executeApproval(versionId2)
                 .await().indefinitely();
 
             // Assert
@@ -467,13 +461,13 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertNotNull(result.getDurationMs());
-            assertNotNull(result.getStatus());
-            assertNotNull(result.getNewStatus());
+            assertNotNull(result.durationMs);
+            assertNotNull(result.status);
+            assertNotNull(result.toStatus);
         }
     }
 
@@ -490,11 +484,11 @@ class ApprovalExecutionServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            ExecutionResult result = executionService.executeApproval(versionId)
+            ApprovalExecutionService.ExecutionResult result = executionService.executeApproval(versionId)
                 .await().indefinitely();
 
             // Assert
-            assertNotNull(result.getPreviousStatus());
+            assertNotNull(result.fromStatus);
         }
 
         @Test

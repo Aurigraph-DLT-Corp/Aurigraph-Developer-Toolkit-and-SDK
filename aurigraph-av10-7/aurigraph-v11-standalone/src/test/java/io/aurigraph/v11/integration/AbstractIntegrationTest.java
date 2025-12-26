@@ -99,7 +99,7 @@ public abstract class AbstractIntegrationTest {
     protected RequestSpecification spec;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         log.info("Setting up integration test...");
         
         // Wait for all containers to be healthy
@@ -135,7 +135,7 @@ public abstract class AbstractIntegrationTest {
     /**
      * Wait for all Docker containers to reach healthy status
      */
-    private void waitForContainers() {
+    private void waitForContainers() throws Exception {
         log.info("Waiting for containers to be healthy...");
         
         // PostgreSQL health check
