@@ -1,0 +1,873 @@
+{
+  "config": {
+    "configFile": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/playwright.config.ts",
+    "rootDir": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 1800000,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/junit.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "graphql-endpoints.spec.ts",
+      "file": "graphql-endpoints.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GraphQL API Endpoints - Story 8",
+          "file": "graphql-endpoints.spec.ts",
+          "line": 6,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Query Resolvers",
+              "file": "graphql-endpoints.spec.ts",
+              "line": 13,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should introspect GraphQL schema",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 9,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:08.446Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-19420d3f578298b41683",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 14,
+                  "column": 9
+                },
+                {
+                  "title": "should support getApproval query",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 4,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"getApproval\"\u001b[39m\nReceived array: \u001b[31m[\"approvals\", \"validator\", \"approvalStats\", \"approval\"]\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"getApproval\"\u001b[39m\nReceived array: \u001b[31m[\"approvals\", \"validator\", \"approvalStats\", \"approval\"]\u001b[39m\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:59:26",
+                            "location": {
+                              "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                              "column": 26,
+                              "line": 59
+                            },
+                            "snippet": "  57 |\n  58 |       // Verify key query resolvers exist\n> 59 |       expect(fieldNames).toContain('getApproval');\n     |                          ^\n  60 |       expect(fieldNames).toContain('getApprovals');\n  61 |       expect(fieldNames).toContain('getApprovalStatistics');\n  62 |     });"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                                "column": 26,
+                                "line": 59
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"getApproval\"\u001b[39m\nReceived array: \u001b[31m[\"approvals\", \"validator\", \"approvalStats\", \"approval\"]\u001b[39m\n\n  57 |\n  58 |       // Verify key query resolvers exist\n> 59 |       expect(fieldNames).toContain('getApproval');\n     |                          ^\n  60 |       expect(fieldNames).toContain('getApprovals');\n  61 |       expect(fieldNames).toContain('getApprovalStatistics');\n  62 |     });\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:59:26"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:08.487Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                            "column": 26,
+                            "line": 59
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-bfcca66409f3fc208fb0",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 38,
+                  "column": 9
+                },
+                {
+                  "title": "should support getApprovals with filters",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 7,
+                          "error": {
+                            "message": "TypeError: Cannot read properties of null (reading 'inputFields')",
+                            "stack": "TypeError: Cannot read properties of null (reading 'inputFields')\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:86:45",
+                            "location": {
+                              "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                              "column": 45,
+                              "line": 86
+                            },
+                            "snippet": "  84 |       const data = await response.json();\n  85 |       expect(data.data.__type).toBeDefined();\n> 86 |       expect(Array.isArray(data.data.__type.inputFields)).toBeTruthy();\n     |                                             ^\n  87 |     });\n  88 |\n  89 |     test('should return approval statistics structure', async () => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                                "column": 45,
+                                "line": 86
+                              },
+                              "message": "TypeError: Cannot read properties of null (reading 'inputFields')\n\n  84 |       const data = await response.json();\n  85 |       expect(data.data.__type).toBeDefined();\n> 86 |       expect(Array.isArray(data.data.__type.inputFields)).toBeTruthy();\n     |                                             ^\n  87 |     });\n  88 |\n  89 |     test('should return approval statistics structure', async () => {\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:86:45"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:08.838Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                            "column": 45,
+                            "line": 86
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-6ffb97ec6e5748d56d9f",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 64,
+                  "column": 9
+                },
+                {
+                  "title": "should return approval statistics structure",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 6,
+                          "error": {
+                            "message": "TypeError: Cannot read properties of null (reading 'fields')",
+                            "stack": "TypeError: Cannot read properties of null (reading 'fields')\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:112:43",
+                            "location": {
+                              "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                              "column": 43,
+                              "line": 112
+                            },
+                            "snippet": "  110 |       const data = await response.json();\n  111 |       expect(data.data.__type).toBeDefined();\n> 112 |       const fieldNames = data.data.__type.fields.map((f: any) => f.name);\n      |                                           ^\n  113 |       expect(fieldNames.length).toBeGreaterThan(0);\n  114 |     });\n  115 |   });"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                                "column": 43,
+                                "line": 112
+                              },
+                              "message": "TypeError: Cannot read properties of null (reading 'fields')\n\n  110 |       const data = await response.json();\n  111 |       expect(data.data.__type).toBeDefined();\n> 112 |       const fieldNames = data.data.__type.fields.map((f: any) => f.name);\n      |                                           ^\n  113 |       expect(fieldNames.length).toBeGreaterThan(0);\n  114 |     });\n  115 |   });\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:112:43"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:09.220Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                            "column": 43,
+                            "line": 112
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-a69112ca2f07721dc3dc",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 89,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Mutation Resolvers",
+              "file": "graphql-endpoints.spec.ts",
+              "line": 117,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should support executeApproval mutation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 12,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:09.595Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-1a066703abdceec5201f",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 118,
+                  "column": 9
+                },
+                {
+                  "title": "should support registerWebhook with URL validation",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 6,
+                          "error": {
+                            "message": "TypeError: Cannot read properties of null (reading 'inputFields')",
+                            "stack": "TypeError: Cannot read properties of null (reading 'inputFields')\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:166:43",
+                            "location": {
+                              "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                              "column": 43,
+                              "line": 166
+                            },
+                            "snippet": "  164 |       const data = await response.json();\n  165 |       expect(data.data.__type).toBeDefined();\n> 166 |       const fieldNames = data.data.__type.inputFields.map((f: any) => f.name);\n      |                                           ^\n  167 |       expect(fieldNames).toContain('webhookUrl');\n  168 |     });\n  169 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                                "column": 43,
+                                "line": 166
+                              },
+                              "message": "TypeError: Cannot read properties of null (reading 'inputFields')\n\n  164 |       const data = await response.json();\n  165 |       expect(data.data.__type).toBeDefined();\n> 166 |       const fieldNames = data.data.__type.inputFields.map((f: any) => f.name);\n      |                                           ^\n  167 |       expect(fieldNames).toContain('webhookUrl');\n  168 |     });\n  169 |\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:166:43"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:09.639Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                            "column": 43,
+                            "line": 166
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-fee63485f35d4592c3de",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 143,
+                  "column": 9
+                },
+                {
+                  "title": "should support unregisterWebhook mutation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 7,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:09.974Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-35b955bff9834c51eef9",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 170,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Subscription Resolvers",
+              "file": "graphql-endpoints.spec.ts",
+              "line": 199,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should expose subscription types",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.013Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-4ce1f2f42125024bd12a",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 200,
+                  "column": 9
+                },
+                {
+                  "title": "should support approvalStatusChanged subscription",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 5,
+                          "error": {
+                            "message": "TypeError: Cannot read properties of null (reading 'fields')",
+                            "stack": "TypeError: Cannot read properties of null (reading 'fields')\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:249:43",
+                            "location": {
+                              "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                              "column": 43,
+                              "line": 249
+                            },
+                            "snippet": "  247 |       const data = await response.json();\n  248 |       expect(data.data.__type).toBeDefined();\n> 249 |       const fieldNames = data.data.__type.fields.map((f: any) => f.name);\n      |                                           ^\n  250 |       expect(fieldNames.length).toBeGreaterThan(0);\n  251 |     });\n  252 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                                "column": 43,
+                                "line": 249
+                              },
+                              "message": "TypeError: Cannot read properties of null (reading 'fields')\n\n  247 |       const data = await response.json();\n  248 |       expect(data.data.__type).toBeDefined();\n> 249 |       const fieldNames = data.data.__type.fields.map((f: any) => f.name);\n      |                                           ^\n  250 |       expect(fieldNames.length).toBeGreaterThan(0);\n  251 |     });\n  252 |\n    at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:249:43"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.024Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts",
+                            "column": 43,
+                            "line": 249
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-271f3c7cc2a16a33e375",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 227,
+                  "column": 9
+                },
+                {
+                  "title": "should support voteSubmitted subscription event",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 8,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.372Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-c73f98a8e24f1c542a05",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 253,
+                  "column": 9
+                },
+                {
+                  "title": "should support consensusReached subscription event",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.413Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-b4f3016e2282b3c50555",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 274,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Error Handling",
+              "file": "graphql-endpoints.spec.ts",
+              "line": 296,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should return error for invalid query",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.421Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-02a2a0ee1390bbd28b42",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 297,
+                  "column": 9
+                },
+                {
+                  "title": "should return error for malformed request",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 7,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.433Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-b4a2656cb7f47be33049",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 317,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Schema Validation",
+              "file": "graphql-endpoints.spec.ts",
+              "line": 329,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have valid GraphQL schema with no Object type without fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 9,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.444Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-1208f195ce3867768879",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 330,
+                  "column": 9
+                },
+                {
+                  "title": "should define ApprovalEventDTO type correctly",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.459Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-4c6be74a3f09e59c98ad",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 363,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Performance",
+              "file": "graphql-endpoints.spec.ts",
+              "line": 398,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "introspection query should complete within 500ms",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.466Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-fde9e8cc3210d8691b39",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 399,
+                  "column": 9
+                },
+                {
+                  "title": "schema query should return valid JSON",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-26T12:21:10.476Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bcd588766d0226d79103-980a9510274b583dc564",
+                  "file": "graphql-endpoints.spec.ts",
+                  "line": 422,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-26T12:21:08.126Z",
+    "duration": 2369.7940000000003,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 5,
+    "flaky": 0
+  }
+}

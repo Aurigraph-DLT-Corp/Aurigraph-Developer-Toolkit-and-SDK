@@ -1,0 +1,18 @@
+{
+  "name": "aurigraph-v11-standalone",
+  "version": "12.0.0",
+  "description": "Aurigraph V11 Standalone Service - GraphQL API with gRPC Communication",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:chromium": "playwright test --project=chromium",
+    "test:e2e:firefox": "playwright test --project=firefox",
+    "test:e2e:webkit": "playwright test --project=webkit",
+    "test:e2e:report": "playwright show-report test-results"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.2"
+  }
+}

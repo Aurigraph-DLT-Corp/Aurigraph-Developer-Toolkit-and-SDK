@@ -1,0 +1,116 @@
+<testsuites id="" name="" tests="17" failures="5" skipped="0" errors="0" time="2.369794">
+<testsuite name="graphql-endpoints.spec.ts" timestamp="2025-12-26T12:21:08.141Z" hostname="chromium" tests="17" failures="5" skipped="0" time="0.102" errors="0">
+<testcase name="GraphQL API Endpoints - Story 8 › Query Resolvers › should introspect GraphQL schema" classname="graphql-endpoints.spec.ts" time="0.009">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Query Resolvers › should support getApproval query" classname="graphql-endpoints.spec.ts" time="0.004">
+<failure message="graphql-endpoints.spec.ts:38:9 should support getApproval query" type="FAILURE">
+<![CDATA[  [chromium] › graphql-endpoints.spec.ts:38:9 › GraphQL API Endpoints - Story 8 › Query Resolvers › should support getApproval query 
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: "getApproval"
+    Received array: ["approvals", "validator", "approvalStats", "approval"]
+
+      57 |
+      58 |       // Verify key query resolvers exist
+    > 59 |       expect(fieldNames).toContain('getApproval');
+         |                          ^
+      60 |       expect(fieldNames).toContain('getApprovals');
+      61 |       expect(fieldNames).toContain('getApprovalStatistics');
+      62 |     });
+        at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:59:26
+]]>
+</failure>
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Query Resolvers › should support getApprovals with filters" classname="graphql-endpoints.spec.ts" time="0.007">
+<failure message="graphql-endpoints.spec.ts:64:9 should support getApprovals with filters" type="FAILURE">
+<![CDATA[  [chromium] › graphql-endpoints.spec.ts:64:9 › GraphQL API Endpoints - Story 8 › Query Resolvers › should support getApprovals with filters 
+
+    TypeError: Cannot read properties of null (reading 'inputFields')
+
+      84 |       const data = await response.json();
+      85 |       expect(data.data.__type).toBeDefined();
+    > 86 |       expect(Array.isArray(data.data.__type.inputFields)).toBeTruthy();
+         |                                             ^
+      87 |     });
+      88 |
+      89 |     test('should return approval statistics structure', async () => {
+        at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:86:45
+]]>
+</failure>
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Query Resolvers › should return approval statistics structure" classname="graphql-endpoints.spec.ts" time="0.006">
+<failure message="graphql-endpoints.spec.ts:89:9 should return approval statistics structure" type="FAILURE">
+<![CDATA[  [chromium] › graphql-endpoints.spec.ts:89:9 › GraphQL API Endpoints - Story 8 › Query Resolvers › should return approval statistics structure 
+
+    TypeError: Cannot read properties of null (reading 'fields')
+
+      110 |       const data = await response.json();
+      111 |       expect(data.data.__type).toBeDefined();
+    > 112 |       const fieldNames = data.data.__type.fields.map((f: any) => f.name);
+          |                                           ^
+      113 |       expect(fieldNames.length).toBeGreaterThan(0);
+      114 |     });
+      115 |   });
+        at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:112:43
+]]>
+</failure>
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Mutation Resolvers › should support executeApproval mutation" classname="graphql-endpoints.spec.ts" time="0.012">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Mutation Resolvers › should support registerWebhook with URL validation" classname="graphql-endpoints.spec.ts" time="0.006">
+<failure message="graphql-endpoints.spec.ts:143:9 should support registerWebhook with URL validation" type="FAILURE">
+<![CDATA[  [chromium] › graphql-endpoints.spec.ts:143:9 › GraphQL API Endpoints - Story 8 › Mutation Resolvers › should support registerWebhook with URL validation 
+
+    TypeError: Cannot read properties of null (reading 'inputFields')
+
+      164 |       const data = await response.json();
+      165 |       expect(data.data.__type).toBeDefined();
+    > 166 |       const fieldNames = data.data.__type.inputFields.map((f: any) => f.name);
+          |                                           ^
+      167 |       expect(fieldNames).toContain('webhookUrl');
+      168 |     });
+      169 |
+        at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:166:43
+]]>
+</failure>
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Mutation Resolvers › should support unregisterWebhook mutation" classname="graphql-endpoints.spec.ts" time="0.007">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Subscription Resolvers › should expose subscription types" classname="graphql-endpoints.spec.ts" time="0.004">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Subscription Resolvers › should support approvalStatusChanged subscription" classname="graphql-endpoints.spec.ts" time="0.005">
+<failure message="graphql-endpoints.spec.ts:227:9 should support approvalStatusChanged subscription" type="FAILURE">
+<![CDATA[  [chromium] › graphql-endpoints.spec.ts:227:9 › GraphQL API Endpoints - Story 8 › Subscription Resolvers › should support approvalStatusChanged subscription 
+
+    TypeError: Cannot read properties of null (reading 'fields')
+
+      247 |       const data = await response.json();
+      248 |       expect(data.data.__type).toBeDefined();
+    > 249 |       const fieldNames = data.data.__type.fields.map((f: any) => f.name);
+          |                                           ^
+      250 |       expect(fieldNames.length).toBeGreaterThan(0);
+      251 |     });
+      252 |
+        at /Users/subbujois/subbuworkingdir/Aurigraph-DLT/aurigraph-av10-7/aurigraph-v11-standalone/tests/e2e/graphql-endpoints.spec.ts:249:43
+]]>
+</failure>
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Subscription Resolvers › should support voteSubmitted subscription event" classname="graphql-endpoints.spec.ts" time="0.008">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Subscription Resolvers › should support consensusReached subscription event" classname="graphql-endpoints.spec.ts" time="0.003">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Error Handling › should return error for invalid query" classname="graphql-endpoints.spec.ts" time="0.004">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Error Handling › should return error for malformed request" classname="graphql-endpoints.spec.ts" time="0.007">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Schema Validation › should have valid GraphQL schema with no Object type without fields" classname="graphql-endpoints.spec.ts" time="0.009">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Schema Validation › should define ApprovalEventDTO type correctly" classname="graphql-endpoints.spec.ts" time="0.003">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Performance › introspection query should complete within 500ms" classname="graphql-endpoints.spec.ts" time="0.004">
+</testcase>
+<testcase name="GraphQL API Endpoints - Story 8 › Performance › schema query should return valid JSON" classname="graphql-endpoints.spec.ts" time="0.004">
+</testcase>
+</testsuite>
+</testsuites>
