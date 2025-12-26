@@ -226,8 +226,7 @@ public class ApprovalGraphQLAPI {
                 .map(event -> new ApprovalEventDTO(
                         event.approvalId,
                         event.eventType,
-                        event.timestamp.toString(),
-                        new HashMap<>()));
+                        event.timestamp.toString()));
     }
 
     @Subscription("voteSubmitted")

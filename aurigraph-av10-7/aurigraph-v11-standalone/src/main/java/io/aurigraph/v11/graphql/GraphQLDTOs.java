@@ -4,7 +4,6 @@ import org.eclipse.microprofile.graphql.Type;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.Map;
 
 /**
  * GraphQL Data Transfer Objects for Story 8 API
@@ -68,7 +67,6 @@ class ApprovalEventDTO {
     public String approvalId;
     public String eventType;
     public String timestamp;
-    public Map<String, Object> data;
 }
 
 @Type

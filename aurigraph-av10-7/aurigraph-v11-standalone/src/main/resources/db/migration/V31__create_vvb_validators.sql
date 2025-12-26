@@ -1,4 +1,4 @@
--- V30__create_vvb_validators.sql
+-- V31__create_vvb_validators.sql
 -- VVB Validator Configuration Tables
 -- Creates infrastructure for Verified Valuator Board validators and approval rules
 
@@ -9,10 +9,12 @@ CREATE TABLE IF NOT EXISTS vvb_validators (
     approval_authority VARCHAR(100),
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_vvb_validators_role (role),
-    INDEX idx_vvb_validators_active (active)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create indexes for vvb_validators
+CREATE INDEX idx_vvb_validators_role ON vvb_validators(role);
+CREATE INDEX idx_vvb_validators_active ON vvb_validators(active);
 
 CREATE TABLE IF NOT EXISTS vvb_approval_rules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -21,10 +23,12 @@ CREATE TABLE IF NOT EXISTS vvb_approval_rules (
     role_required VARCHAR(100),
     approval_type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_vvb_approval_rules_change_type (change_type),
-    INDEX idx_vvb_approval_rules_role (role_required)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create indexes for vvb_approval_rules
+CREATE INDEX idx_vvb_approval_rules_change_type ON vvb_approval_rules(change_type);
+CREATE INDEX idx_vvb_approval_rules_role ON vvb_approval_rules(role_required);
 
 -- Insert default validators
 INSERT INTO vvb_validators (name, role, approval_authority, active)
@@ -33,7 +37,7 @@ VALUES
     ('VVB_VALIDATOR_2', 'VVB_VALIDATOR', 'STANDARD', TRUE),
     ('VVB_ADMIN_1', 'VVB_ADMIN', 'ELEVATED', TRUE),
     ('VVB_ADMIN_2', 'VVB_ADMIN', 'ELEVATED', TRUE)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
 
 -- Insert default approval rules
 INSERT INTO vvb_approval_rules (change_type, requires_vvb, role_required, approval_type)
@@ -45,8 +49,4 @@ VALUES
     ('SECONDARY_TOKEN_ACTIVATE', FALSE, NULL, 'STANDARD'),
     ('SECONDARY_TOKEN_REDEEM', FALSE, NULL, 'STANDARD'),
     ('TOKEN_TRANSFER', FALSE, NULL, 'STANDARD')
-ON CONFLICT DO NOTHING;
-
--- Grant appropriate privileges
-ALTER TABLE vvb_validators OWNER TO postgres;
-ALTER TABLE vvb_approval_rules OWNER TO postgres;
+ON CONFLICT (change_type) DO NOTHING;

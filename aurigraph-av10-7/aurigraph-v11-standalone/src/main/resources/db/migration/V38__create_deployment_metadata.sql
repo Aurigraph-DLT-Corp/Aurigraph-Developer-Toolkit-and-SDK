@@ -17,16 +17,18 @@ CREATE TABLE IF NOT EXISTS deployment_history (
 -- Deployment artifacts (for rollback support)
 CREATE TABLE IF NOT EXISTS deployment_artifacts (
     id VARCHAR(255) PRIMARY KEY,
+    deployment_id VARCHAR(255) NOT NULL,
     version VARCHAR(50) NOT NULL,
     artifact_type VARCHAR(50) NOT NULL,
     artifact_location VARCHAR(2048) NOT NULL,
     checksum VARCHAR(255),
     size_bytes BIGINT,
     created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (version) REFERENCES deployment_history(version),
-    INDEX idx_artifact_version (version),
-    INDEX idx_artifact_type (artifact_type)
+    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_artifact_version ON deployment_artifacts(version);
+CREATE INDEX idx_artifact_type ON deployment_artifacts(artifact_type);
 
 -- Deployment logs
 CREATE TABLE IF NOT EXISTS deployment_logs (
@@ -35,10 +37,11 @@ CREATE TABLE IF NOT EXISTS deployment_logs (
     log_level VARCHAR(20) NOT NULL,
     log_message VARCHAR(4096),
     log_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE,
-    INDEX idx_deployment_logs (deployment_id),
-    INDEX idx_log_timestamp (log_timestamp)
+    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_deployment_logs ON deployment_logs(deployment_id);
+CREATE INDEX idx_log_timestamp ON deployment_logs(log_timestamp);
 
 -- Health check results after deployment
 CREATE TABLE IF NOT EXISTS deployment_health_checks (
@@ -49,39 +52,42 @@ CREATE TABLE IF NOT EXISTS deployment_health_checks (
     check_status VARCHAR(20) NOT NULL,
     response_time_ms INTEGER,
     check_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE,
-    INDEX idx_health_check_status (check_status),
-    INDEX idx_health_check_time (check_timestamp)
+    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_health_check_status ON deployment_health_checks(check_status);
+CREATE INDEX idx_health_check_time ON deployment_health_checks(check_timestamp);
 
 -- Performance baseline after deployment
 CREATE TABLE IF NOT EXISTS deployment_performance (
     id VARCHAR(255) PRIMARY KEY,
     deployment_id VARCHAR(255) NOT NULL,
     metric_name VARCHAR(255) NOT NULL,
-    metric_value DOUBLE,
+    metric_value DOUBLE PRECISION,
     metric_unit VARCHAR(50),
     measured_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE,
-    INDEX idx_deployment_perf (deployment_id),
-    INDEX idx_metric_name (metric_name)
+    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_deployment_perf ON deployment_performance(deployment_id);
+CREATE INDEX idx_metric_name ON deployment_performance(metric_name);
 
 -- Rollback history
 CREATE TABLE IF NOT EXISTS rollback_history (
     id VARCHAR(255) PRIMARY KEY,
-    from_version VARCHAR(50) NOT NULL,
-    to_version VARCHAR(50) NOT NULL,
+    from_deployment_id VARCHAR(255) NOT NULL,
+    to_deployment_id VARCHAR(255) NOT NULL,
     rollback_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     reason VARCHAR(2048),
     status VARCHAR(50) NOT NULL,
     initiated_by VARCHAR(255),
     duration_seconds INTEGER,
-    FOREIGN KEY (from_version) REFERENCES deployment_history(version),
-    FOREIGN KEY (to_version) REFERENCES deployment_history(version),
-    INDEX idx_rollback_time (rollback_time),
-    INDEX idx_rollback_status (status)
+    FOREIGN KEY (from_deployment_id) REFERENCES deployment_history(id) ON DELETE RESTRICT,
+    FOREIGN KEY (to_deployment_id) REFERENCES deployment_history(id) ON DELETE RESTRICT
 );
+
+CREATE INDEX idx_rollback_time ON rollback_history(rollback_time);
+CREATE INDEX idx_rollback_status ON rollback_history(status);
 
 -- Deployment pre-checks
 CREATE TABLE IF NOT EXISTS deployment_prechecks (
@@ -91,9 +97,10 @@ CREATE TABLE IF NOT EXISTS deployment_prechecks (
     check_result VARCHAR(50) NOT NULL,
     details TEXT,
     check_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE,
-    INDEX idx_precheck_result (check_result)
+    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_precheck_result ON deployment_prechecks(check_result);
 
 -- Incident tracking during deployments
 CREATE TABLE IF NOT EXISTS deployment_incidents (
@@ -104,10 +111,11 @@ CREATE TABLE IF NOT EXISTS deployment_incidents (
     description VARCHAR(4096),
     resolved BOOLEAN DEFAULT FALSE,
     incident_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE,
-    INDEX idx_incident_severity (severity),
-    INDEX idx_incident_resolved (resolved)
+    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_incident_severity ON deployment_incidents(severity);
+CREATE INDEX idx_incident_resolved ON deployment_incidents(resolved);
 
 -- Deployment config snapshot (for reproducibility)
 CREATE TABLE IF NOT EXISTS deployment_config_snapshot (
@@ -116,9 +124,10 @@ CREATE TABLE IF NOT EXISTS deployment_config_snapshot (
     config_key VARCHAR(255) NOT NULL,
     config_value TEXT NOT NULL,
     config_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE,
-    INDEX idx_config_key (config_key)
+    FOREIGN KEY (deployment_id) REFERENCES deployment_history(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_config_key ON deployment_config_snapshot(config_key);
 
 -- Create views for deployment reporting
 CREATE VIEW deployment_summary AS

@@ -9,12 +9,13 @@ CREATE TABLE IF NOT EXISTS vvb_approvals (
     decision VARCHAR(50) NOT NULL,
     reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(version_id, approver_id),
-    INDEX idx_vvb_approvals_version_id (version_id),
-    INDEX idx_vvb_approvals_approver_id (approver_id),
-    INDEX idx_vvb_approvals_decision (decision),
-    INDEX idx_vvb_approvals_created_at (created_at)
+    UNIQUE(version_id, approver_id)
 );
+
+CREATE INDEX idx_vvb_approvals_version_id ON vvb_approvals(version_id);
+CREATE INDEX idx_vvb_approvals_approver_id ON vvb_approvals(approver_id);
+CREATE INDEX idx_vvb_approvals_decision ON vvb_approvals(decision);
+CREATE INDEX idx_vvb_approvals_created_at ON vvb_approvals(created_at);
 
 CREATE TABLE IF NOT EXISTS vvb_timeline (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,11 +23,12 @@ CREATE TABLE IF NOT EXISTS vvb_timeline (
     event_type VARCHAR(100) NOT NULL,
     event_timestamp TIMESTAMP NOT NULL,
     details TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_vvb_timeline_version_id (version_id),
-    INDEX idx_vvb_timeline_event_type (event_type),
-    INDEX idx_vvb_timeline_event_timestamp (event_timestamp)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_vvb_timeline_version_id ON vvb_timeline(version_id);
+CREATE INDEX idx_vvb_timeline_event_type ON vvb_timeline(event_type);
+CREATE INDEX idx_vvb_timeline_event_timestamp ON vvb_timeline(event_timestamp);
 
 CREATE TABLE IF NOT EXISTS vvb_approval_metrics (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -39,11 +41,7 @@ CREATE TABLE IF NOT EXISTS vvb_approval_metrics (
     approval_rate_percent DECIMAL(5, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(approval_date),
-    INDEX idx_vvb_approval_metrics_date (approval_date)
+    UNIQUE(approval_date)
 );
 
--- Grant appropriate privileges
-ALTER TABLE vvb_approvals OWNER TO postgres;
-ALTER TABLE vvb_timeline OWNER TO postgres;
-ALTER TABLE vvb_approval_metrics OWNER TO postgres;
+CREATE INDEX idx_vvb_approval_metrics_date ON vvb_approval_metrics(approval_date);
