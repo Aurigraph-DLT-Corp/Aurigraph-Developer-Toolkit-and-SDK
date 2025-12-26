@@ -58,7 +58,7 @@ public class VVBApprovalRequest extends PanacheEntity {
      * Unique across all approval requests.
      */
     @NotNull
-    @Column(name = "id", columnDefinition = "UUID", nullable = false)
+    @Column(columnDefinition = "UUID", nullable = false)
     public UUID requestId;
 
     /**

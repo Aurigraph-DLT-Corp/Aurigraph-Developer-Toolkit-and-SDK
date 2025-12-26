@@ -66,7 +66,7 @@ public class ValidatorVote extends PanacheEntity {
      * Unique across all votes.
      */
     @NotNull
-    @Column(name = "id", columnDefinition = "UUID", nullable = false)
+    @Column(columnDefinition = "UUID", nullable = false)
     public UUID voteId;
 
     /**

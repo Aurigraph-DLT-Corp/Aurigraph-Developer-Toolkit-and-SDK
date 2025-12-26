@@ -37,9 +37,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ApprovalExecutionAudit extends PanacheEntity {
 
-    @Column(name = "id", columnDefinition = "uuid")
-    @GeneratedValue(strategy = GenerationType.UUID)
-    public UUID id;
+    // Panache provides inherited 'id' field; this UUID column is for business-level identification
+    @Column(columnDefinition = "uuid")
+    public UUID auditId;
 
     /**
      * Reference to the version being transitioned

@@ -137,7 +137,7 @@ public class TokenStateTransitionManager {
             Map<String, Object> metadata) {
         try {
             ApprovalExecutionAudit audit = new ApprovalExecutionAudit();
-            audit.id = UUID.randomUUID();
+            audit.auditId = UUID.randomUUID();
             audit.versionId = versionId;
             audit.executionPhase = phase;
             audit.previousStatus = fromStatus != null ? fromStatus.toString() : null;

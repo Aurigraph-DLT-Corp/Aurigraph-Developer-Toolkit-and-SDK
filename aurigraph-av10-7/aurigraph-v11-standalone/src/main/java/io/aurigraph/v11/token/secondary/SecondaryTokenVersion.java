@@ -56,9 +56,11 @@ public class SecondaryTokenVersion extends PanacheEntity {
 
     /**
      * UUID identifier for this version
+     * Note: Uses Panache's inherited `id` field as primary key (Long).
+     * This field provides business-level UUID unique identification.
      */
     @NotNull
-    @Column(name = "id", columnDefinition = "UUID", nullable = false)
+    @Column(columnDefinition = "UUID", nullable = false)
     public UUID id;
 
     /**
