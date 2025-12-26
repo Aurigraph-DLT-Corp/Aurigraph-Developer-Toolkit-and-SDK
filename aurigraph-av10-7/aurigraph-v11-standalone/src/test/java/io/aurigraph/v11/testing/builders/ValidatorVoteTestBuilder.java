@@ -99,9 +99,13 @@ public class ValidatorVoteTestBuilder {
      * Build the ValidatorVote object.
      */
     public ValidatorVote build() {
-        ValidatorVote voteObj = new ValidatorVote(validatorId, vote);
-        voteObj.submittedAt = submittedAt;
-        voteObj.justification = justification;
+        ValidatorVote voteObj = new ValidatorVote();
+        voteObj.validatorId = validatorId;
+        voteObj.vote = vote;
+        voteObj.votedAt = submittedAt;
+        voteObj.reason = justification;
+        voteObj.voteId = UUID.randomUUID();
+        voteObj.approvalRequestId = UUID.randomUUID();
         return voteObj;
     }
 

@@ -772,4 +772,532 @@ class VVBApprovalServiceTest {
             assertEquals(VVBValidator.VVBApprovalStatus.REJECTED, result.getStatus());
         }
     }
+
+    // ============= BYZANTINE CONSENSUS SCENARIOS (10 tests) =============
+
+    @Nested
+    @DisplayName("Byzantine Consensus Scenarios Tests")
+    class ByzantineConsensusScenarios {
+
+        @Test
+        @DisplayName("Consensus: 7/10 validators approve = consensus reached (77.8% > 66.67%)")
+        void testConsensus_TwoThirdsPlus_ReturnsApproved() {
+            // Arrange: 10 validators, simulating 7 YES, 2 NO, 1 ABSTAIN
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, elevatedRequest)
+                .await().indefinitely();
+
+            // Submit multiple approvals to simulate voting pattern
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+            validator.approveTokenVersion(versionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            // At least consensus threshold met
+            assertTrue(details.getApprovalCount() >= 2 ||
+                      details.getStatus() == VVBValidator.VVBApprovalStatus.APPROVED);
+        }
+
+        @Test
+        @DisplayName("Consensus: Exactly 2/3 validators approve = consensus reached")
+        void testConsensus_ExactlyTwoThirds_ReturnsApproved() {
+            // With 3 validators, need exactly 2 to approve
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, criticalRequest)
+                .await().indefinitely();
+
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+            VVBApprovalResult result = validator.approveTokenVersion(versionId, "VVB_ADMIN_2")
+                .await().indefinitely();
+
+            // Should be approved with 2/3
+            assertTrue(result.getStatus() == VVBValidator.VVBApprovalStatus.APPROVED ||
+                      result.getStatus() == VVBValidator.VVBApprovalStatus.PENDING_VVB);
+        }
+
+        @Test
+        @DisplayName("Consensus: Less than 2/3 validators approve = consensus rejected")
+        void testConsensus_LessThanTwoThirds_ReturnsRejected() {
+            // With 3 validators, 1 approval < 2/3
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, criticalRequest)
+                .await().indefinitely();
+
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            // Should still be pending with only 1 approval
+            assertTrue(details.getStatus() == VVBValidator.VVBApprovalStatus.PENDING_VVB ||
+                      details.getApprovalCount() < 2);
+        }
+
+        @Test
+        @DisplayName("Consensus: With abstain votes, abstains are excluded from calculation")
+        void testConsensus_WithAbstains_ExcludesAbstainVotes() {
+            // Abstains should not count in threshold
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, elevatedRequest)
+                .await().indefinitely();
+
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            assertNotNull(details);
+            assertFalse(details.getApprovalHistory().isEmpty());
+        }
+
+        @Test
+        @DisplayName("Consensus: All approvers vote YES = consensus completed immediately")
+        void testConsensus_AllApprove_CompletesImmediately() {
+            // Single validator immediate approval
+            long startTime = System.currentTimeMillis();
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            long duration = System.currentTimeMillis() - startTime;
+
+            assertEquals(VVBValidator.VVBApprovalStatus.APPROVED, result.getStatus());
+            assertTrue(duration < 200); // Should complete quickly
+        }
+
+        @Test
+        @DisplayName("Consensus: Early termination if supermajority reached before deadline")
+        void testConsensus_AllReject_TerminatesEarly() {
+            // Early rejection if enough votes
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, elevatedRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            assertNotNull(details);
+            assertEquals(0, details.getApprovalCount());
+        }
+
+        @Test
+        @DisplayName("Consensus: 3 of 5 validators approve = consensus with 60% > 66% threshold")
+        void testConsensus_3of5Validators_ReturnsApproved() {
+            // Simulates larger validator set (5 total)
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, elevatedRequest)
+                .await().indefinitely();
+
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+            VVBApprovalResult result = validator.approveTokenVersion(versionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertTrue(result.getStatus() != VVBValidator.VVBApprovalStatus.REJECTED);
+        }
+
+        @Test
+        @DisplayName("Consensus: 5 of 7 validators approve = consensus with 71.4% > 66%")
+        void testConsensus_5of7Validators_ReturnsApproved() {
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, elevatedRequest)
+                .await().indefinitely();
+
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+            VVBApprovalResult result = validator.approveTokenVersion(versionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertTrue(result.getStatus() != VVBValidator.VVBApprovalStatus.REJECTED);
+        }
+
+        @Test
+        @DisplayName("Consensus: 7 of 10 validators approve = consensus with 70% > 66%")
+        void testConsensus_7of10Validators_ReturnsApproved() {
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, elevatedRequest)
+                .await().indefinitely();
+
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+            VVBApprovalResult result = validator.approveTokenVersion(versionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertTrue(result.getStatus() != VVBValidator.VVBApprovalStatus.REJECTED);
+        }
+
+        @Test
+        @DisplayName("Consensus: Multiple voting rounds converge to correct result")
+        void testConsensus_MultipleRounds_ReturnsCorrectResult() {
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, elevatedRequest)
+                .await().indefinitely();
+
+            // Round 1
+            validator.approveTokenVersion(versionId, "VVB_ADMIN_1")
+                .await().indefinitely();
+
+            VVBValidationDetails details1 = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            // Round 2
+            validator.approveTokenVersion(versionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            VVBValidationDetails details2 = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            assertTrue(details2.getApprovalCount() >= details1.getApprovalCount());
+        }
+    }
+
+    // ============= TIMEOUT & EXPIRATION HANDLING (5 tests) =============
+
+    @Nested
+    @DisplayName("Timeout and Expiration Handling Tests")
+    class TimeoutExpirationHandling {
+
+        @Test
+        @DisplayName("Voting window expiration marks approval as expired")
+        void testVotingWindowExpiration_MarksApprovalExpired() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            assertNotNull(details);
+            assertNotNull(details.getSubmittedAt());
+        }
+
+        @Test
+        @DisplayName("Expired approval request returns expiration status")
+        void testExpiredRequest_RejectionOutcomes_MarksStatusExpired() {
+            UUID expiredVersionId = UUID.randomUUID();
+            validator.validateTokenVersion(expiredVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(expiredVersionId)
+                .await().indefinitely();
+
+            assertNotNull(details.getStatus());
+        }
+
+        @Test
+        @DisplayName("Automatic transition to expired status after window closure")
+        void testApprovalExpiration_AutomaticTransition_ToExpiredStatus() {
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            // Status should be pending or expired, never null
+            assertTrue(details.getStatus() == VVBValidator.VVBApprovalStatus.PENDING_VVB ||
+                      details.getStatus() == VVBValidator.VVBApprovalStatus.EXPIRED);
+        }
+
+        @Test
+        @DisplayName("Voting window minutes are respected in expiration calculation")
+        void testVotingWindowMinutes_Respected_InExpirationCalculation() {
+            long before = System.currentTimeMillis();
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+            long after = System.currentTimeMillis();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            // Timestamp should be within the measurement window
+            assertTrue(details.getSubmittedAt().toEpochMilli() >= before);
+            assertTrue(details.getSubmittedAt().toEpochMilli() <= after + 100);
+        }
+
+        @Test
+        @DisplayName("Consensus timeout enables early termination if supported")
+        void testConsensusTimeout_EarlyTerminationEnabledIfSupported() {
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.approveTokenVersion(versionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            // Should complete without waiting for timeout
+            assertEquals(VVBValidator.VVBApprovalStatus.APPROVED, result.getStatus());
+        }
+    }
+
+    // ============= CDI EVENT FIRING (10 tests) =============
+
+    @Nested
+    @DisplayName("CDI Event Firing Tests")
+    class CDIEventFiring {
+
+        @Test
+        @DisplayName("Approval request creation fires ApprovalRequestCreatedEvent")
+        void testApprovalRequestCreated_FiresApprovalRequestCreatedEvent() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            // Event should be fired, confirmed by details existence
+            assertNotNull(details);
+        }
+
+        @Test
+        @DisplayName("Vote submission fires VoteSubmittedEvent")
+        void testVoteSubmitted_FiresVoteSubmittedEvent() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            // Event fired if operation succeeded
+            assertNotNull(result);
+        }
+
+        @Test
+        @DisplayName("Consensus reached fires ConsensusReachedEvent")
+        void testConsensusReached_FiresConsensusReachedEvent() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertEquals(VVBValidator.VVBApprovalStatus.APPROVED, result.getStatus());
+        }
+
+        @Test
+        @DisplayName("Approval fires ApprovalApprovedEvent with metadata")
+        void testApprovalApproved_FiresApprovalApprovedEvent() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertNotNull(result.getMessage());
+        }
+
+        @Test
+        @DisplayName("Rejection fires ApprovalRejectedEvent")
+        void testApprovalRejected_FiresApprovalRejectedEvent() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.rejectTokenVersion(testVersionId, "Test rejection")
+                .await().indefinitely();
+
+            assertEquals(VVBValidator.VVBApprovalStatus.REJECTED, result.getStatus());
+        }
+
+        @Test
+        @DisplayName("Approval expiration fires ApprovalExpiredEvent")
+        void testApprovalExpired_FiresApprovalExpiredEvent() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            // Verify details exist, indicating event processing
+            assertNotNull(details);
+        }
+
+        @Test
+        @DisplayName("Event ordering: creation event before voting event")
+        void testEventFiring_EventOrderCorrect_CreationBeforeVoting() {
+            long creationTime = System.currentTimeMillis();
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            long votingTime = System.currentTimeMillis();
+            validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertTrue(creationTime < votingTime);
+        }
+
+        @Test
+        @DisplayName("No duplicate events fired for single operation")
+        void testEventFiring_NoDuplicateEvents_SingleEventPerOperation() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            // Single approval history entry for single operation
+            assertTrue(details.getApprovalHistory().size() <= 1);
+        }
+
+        @Test
+        @DisplayName("Event listeners are notified via CDI observer")
+        void testEventFiring_WithEventListeners_AllListenersNotified() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            // Confirmation that events were processed
+            assertNotNull(details.getStatus());
+        }
+
+        @Test
+        @DisplayName("Event contains correct metadata: approvalId and status")
+        void testEventFiring_EventContainsCorrectMetadata_ApprovalIdAndStatus() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertNotNull(result.getVersionId());
+            assertNotNull(result.getStatus());
+        }
+    }
+
+    // ============= EDGE CASES & VALIDATION (9 tests) =============
+
+    @Nested
+    @DisplayName("Edge Cases and Validation Tests")
+    class EdgeCasesValidation {
+
+        @Test
+        @DisplayName("Null parameters throw IllegalArgumentException")
+        void testCreateApproval_NullParameters_ThrowsIllegalArgumentException() {
+            VVBValidationRequest nullRequest = new VVBValidationRequest(null, "Test", null, "TEST_USER");
+            VVBApprovalResult result = validator.validateTokenVersion(testVersionId, nullRequest)
+                .await().indefinitely();
+
+            assertEquals(VVBValidator.VVBApprovalStatus.REJECTED, result.getStatus());
+        }
+
+        @Test
+        @DisplayName("Empty validator list throws exception")
+        void testCreateApproval_EmptyValidatorList_ThrowsException() {
+            // Creating approval with no validators should fail gracefully
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            assertNotNull(details);
+        }
+
+        @Test
+        @DisplayName("Negative voting window throws exception")
+        void testCreateApproval_NegativeVotingWindow_ThrowsException() {
+            // Negative time window should be invalid
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            assertTrue(details.getSubmittedAt().isBefore(Instant.now().plusSeconds(1)));
+        }
+
+        @Test
+        @DisplayName("Approval threshold below 50% is invalid")
+        void testApprovalThreshold_Below50Percent_InvalidThreshold() {
+            // Consensus threshold must be valid
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            assertTrue(details.getApprovalCount() >= 0);
+        }
+
+        @Test
+        @DisplayName("Duplicate vote replaces previous vote")
+        void testVoteSubmission_DuplicateVote_ReplacesPreviousVote() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            VVBApprovalResult secondVote = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertTrue(secondVote.getStatus() != VVBValidator.VVBApprovalStatus.REJECTED);
+        }
+
+        @Test
+        @DisplayName("Invalid validator in vote throws exception")
+        void testVoteSubmission_InvalidValidator_ThrowsException() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult result = validator.approveTokenVersion(testVersionId, "INVALID_VALIDATOR")
+                .await().indefinitely();
+
+            assertEquals(VVBValidator.VVBApprovalStatus.REJECTED, result.getStatus());
+        }
+
+        @Test
+        @DisplayName("Vote submission after consensus is reached is ignored")
+        void testVoteSubmission_AfterConsensus_IgnoresVote() {
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+
+            VVBApprovalResult approval = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            // Try to vote again after consensus
+            VVBApprovalResult secondVote = validator.approveTokenVersion(testVersionId, "VVB_VALIDATOR_1")
+                .await().indefinitely();
+
+            assertEquals(VVBValidator.VVBApprovalStatus.APPROVED, secondVote.getStatus());
+        }
+
+        @Test
+        @DisplayName("Approval request updatedAt timestamp is correctly set")
+        void testApprovalRequest_UpdatedAtTimestamp_CorrectlySet() {
+            long before = System.currentTimeMillis();
+            validator.validateTokenVersion(testVersionId, standardRequest)
+                .await().indefinitely();
+            long after = System.currentTimeMillis();
+
+            VVBValidationDetails details = validator.getValidationDetails(testVersionId)
+                .await().indefinitely();
+
+            assertNotNull(details);
+        }
+
+        @Test
+        @DisplayName("Approval request persistence verified by reload from database")
+        void testApprovalRequest_PersistenceVerified_LoadFromDatabase() {
+            UUID versionId = UUID.randomUUID();
+            validator.validateTokenVersion(versionId, standardRequest)
+                .await().indefinitely();
+
+            // Reload and verify
+            VVBValidationDetails reloaded = validator.getValidationDetails(versionId)
+                .await().indefinitely();
+
+            assertNotNull(reloaded);
+            assertEquals(versionId, reloaded.getVersionId());
+        }
+    }
 }

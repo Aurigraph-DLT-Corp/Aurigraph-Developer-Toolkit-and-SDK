@@ -143,14 +143,14 @@ public class ApprovalRequestTestBuilder {
      */
     public VVBApprovalRequest build() {
         VVBApprovalRequest approval = new VVBApprovalRequest();
-        approval.id = id;
+        approval.requestId = id;
         approval.tokenVersionId = tokenVersionId;
         approval.status = status;
-        approval.validators = validators;
-        approval.requiredConsensusCount = consensusThreshold;
+        approval.totalValidators = validators.size();
+        approval.approvalCount = 0;
         approval.createdAt = createdAt;
         approval.updatedAt = updatedAt;
-        approval.expiresAt = expiresAt;
+        approval.votingWindowEnd = LocalDateTime.from(expiresAt.atZone(java.time.ZoneId.systemDefault()));
         return approval;
     }
 
