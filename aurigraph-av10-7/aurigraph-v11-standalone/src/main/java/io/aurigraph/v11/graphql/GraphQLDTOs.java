@@ -10,7 +10,7 @@ import java.util.Map;
  */
 
 @Type
-public class ApprovalStatisticsDTO {
+class ApprovalStatisticsDTO {
     public Integer totalApprovals;
     public Integer pending;
     public Integer approved;
@@ -34,7 +34,7 @@ public class ApprovalStatisticsDTO {
 }
 
 @Type
-public class ValidatorStatsDTO {
+class ValidatorStatsDTO {
     public String validatorId;
     public Integer totalVotes;
     public Integer approvesCount;
@@ -56,7 +56,7 @@ public class ValidatorStatsDTO {
 }
 
 @Type
-public class ExecutionResponseDTO {
+class ExecutionResponseDTO {
     public Boolean success;
     public String message;
     public String executionId;
@@ -71,7 +71,7 @@ public class ExecutionResponseDTO {
 }
 
 @Type
-public class WebhookResponseDTO {
+class WebhookResponseDTO {
     public Boolean success;
     public String message;
     public String webhookId;
@@ -86,7 +86,7 @@ public class WebhookResponseDTO {
 }
 
 @Type
-public class ApprovalEventDTO {
+class ApprovalEventDTO {
     public String approvalId;
     public String eventType;
     public String timestamp;
@@ -103,7 +103,7 @@ public class ApprovalEventDTO {
 }
 
 @Type
-public class VoteEventDTO {
+class VoteEventDTO {
     public String approvalId;
     public String validatorId;
     public String choice;
@@ -120,7 +120,7 @@ public class VoteEventDTO {
 }
 
 @Type
-public class ConsensusEventDTO {
+class ConsensusEventDTO {
     public String approvalId;
     public String result;
     public String timestamp;
@@ -137,7 +137,7 @@ public class ConsensusEventDTO {
 }
 
 @Type
-public class WebhookEventDTO {
+class WebhookEventDTO {
     public String webhookId;
     public String eventType;
     public Integer httpStatus;

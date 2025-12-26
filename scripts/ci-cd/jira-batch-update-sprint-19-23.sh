@@ -10,7 +10,7 @@ set -e
 # Configuration
 JIRA_URL="https://aurigraphdlt.atlassian.net"
 PROJECT="AV11"
-API_USER="sjoish12@gmail.com"
+API_USER="subbu@aurigraph.io"
 # Note: API_TOKEN should be loaded from environment or secrets manager
 # export JIRA_API_TOKEN="<token from Credentials.md>"
 
