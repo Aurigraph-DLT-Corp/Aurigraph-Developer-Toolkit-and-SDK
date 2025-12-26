@@ -10,6 +10,7 @@ import java.util.Map;
  * GraphQL Data Transfer Objects for Story 8 API
  *
  * Contains all DTO classes for GraphQL responses, statistics, and events.
+ * All classes are package-private but marked with @Type for GraphQL schema generation.
  */
 
 @Type

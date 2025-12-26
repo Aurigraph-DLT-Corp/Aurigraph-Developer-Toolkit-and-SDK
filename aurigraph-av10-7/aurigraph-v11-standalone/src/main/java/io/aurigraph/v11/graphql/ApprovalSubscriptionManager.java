@@ -5,6 +5,10 @@ import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.operators.multi.processors.BroadcastProcessor;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.graphql.Type;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -184,63 +188,50 @@ public class ApprovalSubscriptionManager {
     }
 
     // ============================================================================
-    // EVENT TYPES
+    // EVENT TYPES (GraphQL @Type classes for subscription responses)
     // ============================================================================
 
+    @Type
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ApprovalEvent {
         public String approvalId;
         public String eventType;
         public LocalDateTime timestamp;
-
-        public ApprovalEvent(String approvalId, String eventType, LocalDateTime timestamp) {
-            this.approvalId = approvalId;
-            this.eventType = eventType;
-            this.timestamp = timestamp;
-        }
     }
 
+    @Type
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class VoteEvent {
         public String approvalId;
         public String validatorId;
         public VoteChoice choice;
         public LocalDateTime timestamp;
-
-        public VoteEvent(String approvalId, String validatorId, VoteChoice choice, LocalDateTime timestamp) {
-            this.approvalId = approvalId;
-            this.validatorId = validatorId;
-            this.choice = choice;
-            this.timestamp = timestamp;
-        }
     }
 
+    @Type
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ConsensusEvent {
         public String approvalId;
         public ConsensusResult consensusResult;
         public LocalDateTime timestamp;
         public Integer totalVotes;
-
-        public ConsensusEvent(String approvalId, ConsensusResult result, LocalDateTime timestamp, Integer totalVotes) {
-            this.approvalId = approvalId;
-            this.consensusResult = result;
-            this.timestamp = timestamp;
-            this.totalVotes = totalVotes;
-        }
     }
 
+    @Type
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class WebhookEvent {
         public String webhookId;
         public String eventType;
         public Integer httpStatus;
         public Integer responseTimeMs;
         public LocalDateTime timestamp;
-
-        public WebhookEvent(String webhookId, String eventType, Integer httpStatus,
-                           Integer responseTimeMs, LocalDateTime timestamp) {
-            this.webhookId = webhookId;
-            this.eventType = eventType;
-            this.httpStatus = httpStatus;
-            this.responseTimeMs = responseTimeMs;
-            this.timestamp = timestamp;
-        }
     }
 }
