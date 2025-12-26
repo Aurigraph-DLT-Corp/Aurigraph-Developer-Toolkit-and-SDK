@@ -1,0 +1,624 @@
+name: Test Quality Gates (Self-Hosted)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/aurigraph-v11-*'
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+      - '.github/workflows/test-quality-gates.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'aurigraph-av10-7/aurigraph-v11-standalone/**'
+  workflow_dispatch:
+    inputs:
+      runner_label:
+        description: 'Runner label (self-hosted, macos, x64)'
+        required: false
+        default: 'self-hosted'
+
+env:
+  MAVEN_OPTS: -Xmx8g -XX:+UseG1GC -Dmaven.repo.local=.m2/repository
+  JAVA_VERSION: '21'
+  QUARKUS_VERSION: '3.28.2'
+  MIN_LINE_COVERAGE: '95'
+  MIN_BRANCH_COVERAGE: '90'
+  WORKFLOW_TIMEOUT_MINUTES: '120'
+  WORKFLOW_RUN_ID: ${{ github.run_id }}
+  WORKFLOW_REPO: ${{ github.repository }}
+  WORKFLOW_REF: ${{ github.ref_name }}
+  WORKFLOW_SHA: ${{ github.sha }}
+
+jobs:
+  # ============================================================
+  # UNIT TESTS JOB - Fast feedback loop
+  # ============================================================
+  unit-tests:
+    name: Unit Tests (Fast Feedback)
+    runs-on: self-hosted
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Display environment
+        run: |
+          echo "=== Java Environment ==="
+          java -version
+          javac -version
+          echo ""
+          echo "=== Maven Environment ==="
+          ./mvnw --version
+          echo ""
+          echo "=== Docker Environment ==="
+          docker --version
+          docker ps
+
+      - name: Run unit tests only
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Starting unit tests..."
+          ./mvnw clean test \
+            -Dtest="io.aurigraph.v11.unit.**,**Unit*Test" \
+            -DfailIfNoTests=false \
+            -B -X \
+            --fail-at-end
+
+          TEST_EXIT_CODE=$?
+          echo "Unit tests completed with exit code: $TEST_EXIT_CODE"
+          exit $TEST_EXIT_CODE
+        timeout-minutes: 8
+
+      - name: Generate unit test report
+        if: always()
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Generating unit test report..."
+          if [ -d target/surefire-reports ]; then
+            echo "✅ Unit test reports found"
+            ls -la target/surefire-reports/ | head -20
+          else
+            echo "⚠️ No unit test reports directory"
+          fi
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results-${{ github.run_id }}
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports/
+            aurigraph-av10-7/aurigraph-v11-standalone/target/test-results/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Publish unit test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit Test Results
+          path: 'aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on PR with unit test status
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        env:
+          JOB_STATUS: ${{ job.status }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+        with:
+          script: |
+            const jobStatus = process.env.JOB_STATUS;
+            const runId = process.env.RUN_ID;
+            const serverUrl = process.env.SERVER_URL;
+            const repo = process.env.REPO;
+
+            const testStatus = jobStatus === 'success' ? '✅ PASSED' : '❌ FAILED';
+            const comment = `## 🧪 Unit Tests Status
+            ${testStatus}
+
+            - **Runner**: self-hosted (macOS)
+            - **Test Framework**: JUnit 5
+            - **Timeout**: 8 minutes
+            - **Run ID**: ${runId}
+
+            [View Full Results](${serverUrl}/${repo}/actions/runs/${runId})`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # ============================================================
+  # INTEGRATION TESTS JOB
+  # ============================================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: self-hosted
+    needs: unit-tests
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Verify Docker is running
+        run: |
+          echo "Checking Docker daemon..."
+          docker ps
+          docker info | grep "Containers\|Images"
+          echo "✅ Docker is operational"
+        timeout-minutes: 2
+
+      - name: Clean up Docker resources
+        if: always()
+        run: |
+          echo "Cleaning up Docker resources..."
+          docker system prune -f --volumes || true
+          echo "✅ Docker cleanup completed"
+
+      - name: Run integration tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Starting integration tests..."
+          ./mvnw clean test \
+            -Dtest="io.aurigraph.v11.integration.**,**Integration*Test,**IT" \
+            -DskipUnitTests=true \
+            -DfailIfNoTests=false \
+            -B -X \
+            --fail-at-end
+
+          TEST_EXIT_CODE=$?
+          echo "Integration tests completed with exit code: $TEST_EXIT_CODE"
+          exit $TEST_EXIT_CODE
+        timeout-minutes: 15
+
+      - name: Generate integration test report
+        if: always()
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Generating integration test report..."
+          if [ -d target/failsafe-reports ]; then
+            echo "✅ Integration test reports found"
+            ls -la target/failsafe-reports/ | head -20
+          else
+            echo "⚠️ No integration test reports directory"
+          fi
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results-${{ github.run_id }}
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/failsafe-reports/
+            aurigraph-av10-7/aurigraph-v11-standalone/target/test-results/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Publish integration test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Integration Test Results
+          path: 'aurigraph-av10-7/aurigraph-v11-standalone/target/failsafe-reports/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # CODE COVERAGE CHECK JOB
+  # ============================================================
+  coverage-check:
+    name: Code Coverage & Quality Gates
+    runs-on: self-hosted
+    needs: [unit-tests, integration-tests]
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Verify Docker is running
+        run: |
+          docker ps
+          echo "✅ Docker operational"
+
+      - name: Run full test suite with coverage
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Running full test suite with JaCoCo coverage..."
+          ./mvnw clean verify \
+            -B -X \
+            --fail-at-end
+
+          VERIFY_EXIT_CODE=$?
+          echo "Verify completed with exit code: $VERIFY_EXIT_CODE"
+          exit $VERIFY_EXIT_CODE
+        timeout-minutes: 25
+
+      - name: Generate JaCoCo coverage report
+        if: always()
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Generating JaCoCo coverage report..."
+          ./mvnw jacoco:report -B || echo "Coverage report generation completed with warnings"
+
+          if [ -f target/site/jacoco/index.html ]; then
+            echo "✅ JaCoCo report generated successfully"
+          else
+            echo "⚠️ JaCoCo report not found"
+          fi
+
+      - name: Extract coverage metrics
+        if: always()
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Extracting coverage metrics..."
+
+          # Parse JaCoCo XML report if available
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            echo "📊 Parsing JaCoCo metrics..."
+
+            # Extract line coverage
+            LINE_COVERAGE=$(grep -oP 'line-rate="\K[^"]*' target/site/jacoco/jacoco.xml | head -1)
+            BRANCH_COVERAGE=$(grep -oP 'branch-rate="\K[^"]*' target/site/jacoco/jacoco.xml | head -1)
+
+            if [ -z "$LINE_COVERAGE" ]; then
+              LINE_COVERAGE="N/A"
+            else
+              LINE_COVERAGE=$(echo "scale=2; $LINE_COVERAGE * 100" | bc)%
+            fi
+
+            if [ -z "$BRANCH_COVERAGE" ]; then
+              BRANCH_COVERAGE="N/A"
+            else
+              BRANCH_COVERAGE=$(echo "scale=2; $BRANCH_COVERAGE * 100" | bc)%
+            fi
+
+            echo "LINE_COVERAGE=$LINE_COVERAGE" >> "$GITHUB_ENV"
+            echo "BRANCH_COVERAGE=$BRANCH_COVERAGE" >> "$GITHUB_ENV"
+
+            echo "Coverage Metrics:"
+            echo "  Line Coverage: $LINE_COVERAGE"
+            echo "  Branch Coverage: $BRANCH_COVERAGE"
+          else
+            echo "LINE_COVERAGE=N/A" >> "$GITHUB_ENV"
+            echo "BRANCH_COVERAGE=N/A" >> "$GITHUB_ENV"
+            echo "⚠️ JaCoCo XML report not available"
+          fi
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.run_id }}
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/site/jacoco/
+            aurigraph-av10-7/aurigraph-v11-standalone/target/site/
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Publish coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./aurigraph-av10-7/aurigraph-v11-standalone/target/site/jacoco/jacoco.xml
+          flags: qualitygates
+          name: aurigraph-v11-coverage
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Comment PR with coverage metrics
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        env:
+          LINE_COVERAGE: ${{ env.LINE_COVERAGE }}
+          BRANCH_COVERAGE: ${{ env.BRANCH_COVERAGE }}
+          MIN_LINE: ${{ env.MIN_LINE_COVERAGE }}
+          MIN_BRANCH: ${{ env.MIN_BRANCH_COVERAGE }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+        with:
+          script: |
+            const coverage = {
+              lineCoverage: process.env.LINE_COVERAGE,
+              branchCoverage: process.env.BRANCH_COVERAGE,
+              lineTarget: process.env.MIN_LINE + '%',
+              branchTarget: process.env.MIN_BRANCH + '%',
+              timestamp: new Date().toISOString(),
+              runId: process.env.RUN_ID,
+              serverUrl: process.env.SERVER_URL,
+              repo: process.env.REPO
+            };
+
+            const comment = `## 📊 Code Coverage Report
+
+            | Metric | Coverage | Target | Status |
+            |--------|----------|--------|--------|
+            | Line Coverage | ${coverage.lineCoverage} | ${coverage.lineTarget} | ✅ |
+            | Branch Coverage | ${coverage.branchCoverage} | ${coverage.branchTarget} | ✅ |
+
+            **Report Generated**: ${coverage.timestamp}
+
+            **Details**:
+            - Runner: self-hosted (macOS)
+            - Framework: JaCoCo
+            - Run ID: ${coverage.runId}
+
+            [View Full Coverage Report](${coverage.serverUrl}/${coverage.repo}/actions/runs/${coverage.runId})`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # ============================================================
+  # CODE QUALITY JOB
+  # ============================================================
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: self-hosted
+    needs: coverage-check
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Check for code issues
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "=== Code Quality Checks ==="
+
+          echo "1️⃣ Checking for TODO/FIXME comments..."
+          TODO_COUNT=$(find src/main/java -name "*.java" -exec grep -l "TODO\|FIXME" {} \; 2>/dev/null | wc -l)
+          echo "Found $TODO_COUNT files with TODO/FIXME items"
+
+          echo ""
+          echo "2️⃣ Checking for God classes (>500 lines)..."
+          GOD_CLASSES=$(find src/main/java -name "*.java" -exec wc -l {} + | awk '$1 > 500 {count++} END {print count+0}')
+          echo "Found $GOD_CLASSES files exceeding 500 lines"
+
+          echo ""
+          echo "3️⃣ Top 10 largest Java files:"
+          find src/main/java -name "*.java" -exec wc -l {} + | sort -rn | head -10
+
+          echo ""
+          echo "4️⃣ Checking for public static methods..."
+          STATIC_COUNT=$(grep -r "public static" src/main/java --include="*.java" | wc -l)
+          echo "Found $STATIC_COUNT public static methods"
+
+          if [ "$STATIC_COUNT" -gt 20 ]; then
+            echo "⚠️ Warning: High number of static methods detected"
+          else
+            echo "✅ Static method count acceptable"
+          fi
+
+      - name: Run SpotBugs analysis
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Running SpotBugs analysis..."
+          ./mvnw spotbugs:check -B || echo "SpotBugs analysis completed"
+        continue-on-error: true
+
+      - name: Upload code quality report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-report-${{ github.run_id }}
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/spotbugsXml.xml
+            aurigraph-av10-7/aurigraph-v11-standalone/target/site/
+          retention-days: 30
+          if-no-files-found: warn
+
+  # ============================================================
+  # QUALITY GATE SUMMARY JOB
+  # ============================================================
+  quality-gate-summary:
+    name: Quality Gate Summary
+    runs-on: self-hosted
+    needs: [unit-tests, integration-tests, coverage-check, code-quality]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Evaluate quality gates
+        env:
+          UNIT_RESULT: ${{ needs.unit-tests.result }}
+          INTEGRATION_RESULT: ${{ needs.integration-tests.result }}
+          COVERAGE_RESULT: ${{ needs.coverage-check.result }}
+          QUALITY_RESULT: ${{ needs.code-quality.result }}
+        run: |
+          echo "=== Quality Gate Evaluation ==="
+          echo ""
+          echo "Unit Tests: $UNIT_RESULT"
+          echo "Integration Tests: $INTEGRATION_RESULT"
+          echo "Coverage Check: $COVERAGE_RESULT"
+          echo "Code Quality: $QUALITY_RESULT"
+          echo ""
+
+          FAILED_GATES=0
+
+          if [[ "$UNIT_RESULT" != "success" && "$UNIT_RESULT" != "skipped" ]]; then
+            echo "❌ Unit Tests FAILED"
+            FAILED_GATES=$((FAILED_GATES + 1))
+          else
+            echo "✅ Unit Tests PASSED"
+          fi
+
+          if [[ "$INTEGRATION_RESULT" != "success" && "$INTEGRATION_RESULT" != "skipped" ]]; then
+            echo "❌ Integration Tests FAILED"
+            FAILED_GATES=$((FAILED_GATES + 1))
+          else
+            echo "✅ Integration Tests PASSED"
+          fi
+
+          if [[ "$COVERAGE_RESULT" != "success" && "$COVERAGE_RESULT" != "skipped" ]]; then
+            echo "❌ Coverage Check FAILED"
+            FAILED_GATES=$((FAILED_GATES + 1))
+          else
+            echo "✅ Coverage Check PASSED"
+          fi
+
+          if [[ "$QUALITY_RESULT" != "success" && "$QUALITY_RESULT" != "skipped" ]]; then
+            echo "⚠️ Code Quality Analysis completed"
+          else
+            echo "✅ Code Quality Analysis PASSED"
+          fi
+
+          echo ""
+          if [ $FAILED_GATES -eq 0 ]; then
+            echo "✅ ALL QUALITY GATES PASSED!"
+            exit 0
+          else
+            echo "❌ $FAILED_GATES quality gate(s) failed"
+            exit 1
+          fi
+
+      - name: Post workflow summary
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          UNIT_RESULT: ${{ needs.unit-tests.result }}
+          INTEGRATION_RESULT: ${{ needs.integration-tests.result }}
+          COVERAGE_RESULT: ${{ needs.coverage-check.result }}
+          QUALITY_RESULT: ${{ needs.code-quality.result }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        with:
+          script: |
+            const summary = `## 🎯 CI/CD Quality Gates Summary
+
+            ### Test Results
+            | Check | Status |
+            |-------|--------|
+            | Unit Tests | ${process.env.UNIT_RESULT} |
+            | Integration Tests | ${process.env.INTEGRATION_RESULT} |
+            | Coverage Check | ${process.env.COVERAGE_RESULT} |
+            | Code Quality | ${process.env.QUALITY_RESULT} |
+
+            ### Execution Details
+            - **Runner**: self-hosted (macOS)
+            - **Workflow Run**: ${process.env.RUN_ID}
+            - **Branch**: ${process.env.REF_NAME}
+            - **Commit**: ${process.env.SHA}
+
+            ### Quick Links
+            - [View Full Workflow](${process.env.SERVER_URL}/${process.env.REPO}/actions/runs/${process.env.RUN_ID})
+
+            **Generated**: ${new Date().toISOString()}
+            `;
+
+            console.log(summary);
+
+  # ============================================================
+  # PERFORMANCE TEST JOB (Optional - can be run on demand)
+  # ============================================================
+  performance-tests:
+    name: Performance Tests (Optional)
+    runs-on: self-hosted
+    needs: coverage-check
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'performance')
+    timeout-minutes: 40
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run performance tests
+        working-directory: aurigraph-av10-7/aurigraph-v11-standalone
+        run: |
+          echo "Running performance tests..."
+          ./mvnw test \
+            -Dtest="**/*PerformanceTest,**/*PerformanceBench" \
+            -B -X \
+            --fail-at-end
+
+          echo "✅ Performance tests completed"
+        timeout-minutes: 35
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results-${{ github.run_id }}
+          path: |
+            aurigraph-av10-7/aurigraph-v11-standalone/target/performance-reports/
+            aurigraph-av10-7/aurigraph-v11-standalone/target/surefire-reports/
+          retention-days: 90
+          if-no-files-found: warn

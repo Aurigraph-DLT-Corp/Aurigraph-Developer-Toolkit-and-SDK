@@ -1262,6 +1262,277 @@
             </build>
         </profile>
 
+        <!-- PHASE 5A: Unit Tests Only Profile (Fast feedback - <30 seconds) -->
+        <profile>
+            <id>unit-tests-only</id>
+            <properties>
+                <skipITs>true</skipITs>
+                <skipTests>false</skipTests>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*IntegrationTest.java</exclude>
+                                <exclude>**/*IT.java</exclude>
+                                <exclude>**/*PerformanceTest.java</exclude>
+                                <exclude>**/Performance*.java</exclude>
+                                <exclude>**/*E2ETest.java</exclude>
+                                <exclude>**/E2E*.java</exclude>
+                            </excludes>
+                            <forkCount>2</forkCount>
+                            <reuseForks>true</reuseForks>
+                            <argLine>-Xmx2g -XX:+UseParallelGC</argLine>
+                            <systemPropertyVariables>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <maven.home>${maven.home}</maven.home>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- PHASE 5A: Integration Tests Profile (Comprehensive - 2-5 minutes) -->
+        <profile>
+            <id>integration-tests</id>
+            <properties>
+                <skipITs>false</skipITs>
+                <skipTests>true</skipTests>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*IntegrationTest.java</include>
+                                <include>**/*IT.java</include>
+                            </includes>
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
+                            <argLine>-Xmx4g -XX:+UseParallelGC</argLine>
+                            <systemPropertyVariables>
+                                <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <maven.home>${maven.home}</maven.home>
+                            </systemPropertyVariables>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- PHASE 5A: Full Test Suite Profile (Complete with coverage - 10-15 minutes) -->
+        <profile>
+            <id>full-test-suite</id>
+            <properties>
+                <skipITs>false</skipITs>
+                <skipTests>false</skipTests>
+                <performance.test.enabled>true</performance.test.enabled>
+                <jacoco.agent></jacoco.agent>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Unit Tests with JaCoCo instrumentation -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*IntegrationTest.java</exclude>
+                                <exclude>**/*IT.java</exclude>
+                                <exclude>**/*E2ETest.java</exclude>
+                                <exclude>**/E2E*.java</exclude>
+                            </excludes>
+                            <forkCount>2</forkCount>
+                            <reuseForks>true</reuseForks>
+                            <argLine>-Xmx2g -XX:+UseParallelGC ${jacoco.agent}</argLine>
+                            <systemPropertyVariables>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <maven.home>${maven.home}</maven.home>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+
+                    <!-- Integration Tests -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*IntegrationTest.java</include>
+                                <include>**/*IT.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*E2ETest.java</exclude>
+                                <exclude>**/E2E*.java</exclude>
+                                <exclude>**/*PerformanceTest.java</exclude>
+                                <exclude>**/Performance*.java</exclude>
+                            </excludes>
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
+                            <argLine>-Xmx4g -XX:+UseParallelGC ${jacoco.agent}</argLine>
+                            <systemPropertyVariables>
+                                <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <maven.home>${maven.home}</maven.home>
+                            </systemPropertyVariables>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- JaCoCo Code Coverage -->
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.11</version>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
+                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <propertyName>jacoco.agent</propertyName>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <configuration>
+                                    <formats>
+                                        <format>HTML</format>
+                                        <format>XML</format>
+                                        <format>CSV</format>
+                                    </formats>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jacoco-check</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <!-- Overall Project Coverage -->
+                                        <rule>
+                                            <element>PACKAGE</element>
+                                            <excludes>
+                                                <exclude>*Test</exclude>
+                                                <exclude>*Proto</exclude>
+                                                <exclude>*_generated</exclude>
+                                                <exclude>generated.*</exclude>
+                                            </excludes>
+                                            <limits>
+                                                <limit>
+                                                    <counter>LINE</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.95</minimum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>BRANCH</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.90</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+
+                                        <!-- Critical Crypto Package -->
+                                        <rule>
+                                            <element>PACKAGE</element>
+                                            <includes>
+                                                <include>io.aurigraph.v11.crypto.*</include>
+                                            </includes>
+                                            <limits>
+                                                <limit>
+                                                    <counter>LINE</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.98</minimum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>BRANCH</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.95</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+
+                                        <!-- Critical Consensus Package -->
+                                        <rule>
+                                            <element>PACKAGE</element>
+                                            <includes>
+                                                <include>io.aurigraph.v11.consensus.*</include>
+                                            </includes>
+                                            <limits>
+                                                <limit>
+                                                    <counter>LINE</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.95</minimum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>BRANCH</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.90</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
+                                    <excludes>
+                                        <!-- Generated code -->
+                                        <exclude>**/*_generated/**</exclude>
+                                        <exclude>**/generated/**</exclude>
+                                        <exclude>**/*_.java</exclude>
+                                        <!-- DTOs and models with no logic -->
+                                        <exclude>**/models/**/*Record.java</exclude>
+                                        <!-- Configuration classes -->
+                                        <exclude>**/*Config.java</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- Full Test Suite Profile (Unit + Integration + Performance) -->
         <profile>
             <id>full-test</id>
