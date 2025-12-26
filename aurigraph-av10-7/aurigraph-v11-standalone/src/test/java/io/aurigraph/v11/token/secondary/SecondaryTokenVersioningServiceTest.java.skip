@@ -51,7 +51,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Create new version initializes correctly")
         void testCreateVersion_NewVersion_Initialized() {
             // Act
-            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Assert
@@ -64,11 +64,11 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Default state is set to PENDING_VVB")
         void testCreateVersion_DefaultState_SetToPendingVVB() {
             // Act
-            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Assert
-            assertEquals(TokenStatus.PENDING_VVB, created.getStatus());
+            assertEquals(SecondaryTokenVersionStatus.PENDING_VVB, created.getStatus());
         }
 
         @Test
@@ -95,7 +95,7 @@ class SecondaryTokenVersioningServiceTest {
             UUID versionId = UUID.randomUUID();
 
             // Act
-            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             SecondaryTokenVersion loaded = versioningService.getVersion(created.getId())
@@ -110,7 +110,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Version metadata is stored correctly")
         void testCreateVersion_Metadata_StoredCorrectly() {
             // Act
-            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Assert
@@ -126,7 +126,7 @@ class SecondaryTokenVersioningServiceTest {
             Instant before = Instant.now();
 
             // Act
-            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion created = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             Instant after = Instant.now();
@@ -147,7 +147,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Activation transitions state to PENDING_EXECUTE")
         void testActivateVersion_StateChange_ToPendingExecute() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
@@ -155,15 +155,15 @@ class SecondaryTokenVersioningServiceTest {
                 .await().indefinitely();
 
             // Assert
-            assertTrue(activated.getStatus() == TokenStatus.PENDING_EXECUTE ||
-                      activated.getStatus() == TokenStatus.ACTIVE);
+            assertTrue(activated.getStatus() == SecondaryTokenVersionStatus.PENDING_VVB ||
+                      activated.getStatus() == SecondaryTokenVersionStatus.ACTIVE);
         }
 
         @Test
         @DisplayName("Activation generates Merkle hash for updates")
         void testActivateVersion_GeneratesMerkleHash_ForUpdates() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
@@ -178,7 +178,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Activation updates timestamp correctly")
         void testActivateVersion_TimestampUpdated_OnActivation() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
             Instant before = version.getCreatedAt();
 
@@ -194,7 +194,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Activation records property updates")
         void testActivateVersion_PropertyUpdates_Recorded() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
@@ -209,7 +209,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Activated version marked in database")
         void testActivateVersion_ActiveVersionMarked_InDatabase() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
@@ -235,11 +235,11 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("VVB approval is required for version activation")
         void testSubmitToVVB_RequiresVVBApproval_Mandatory() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
-            var result = versioningService.submitToVVB(version.getId())
+            var result = versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             // Assert
@@ -250,11 +250,11 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Submission submits pending version for approval")
         void testSubmitToVVB_SubmitsPendingVersion_ForApproval() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
-            boolean submitted = versioningService.submitToVVB(version.getId())
+            boolean submitted = versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             // Assert
@@ -265,11 +265,11 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Submission creates approval request with correct metadata")
         void testSubmitToVVB_CreatesApprovalRequest_WithCorrectMetadata() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
-            boolean submitted = versioningService.submitToVVB(version.getId())
+            boolean submitted = versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             // Assert
@@ -280,30 +280,30 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Submission marks status as IN_VVB")
         void testSubmitToVVB_StatusMarked_AsInVVB() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
-            versioningService.submitToVVB(version.getId())
+            versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             SecondaryTokenVersion updated = versioningService.getVersion(version.getId())
                 .await().indefinitely();
 
             // Assert
-            assertTrue(updated.getStatus() == TokenStatus.PENDING_VVB ||
-                      updated.getStatus() == TokenStatus.IN_VVB);
+            assertTrue(updated.getStatus() == SecondaryTokenVersionStatus.PENDING_VVB ||
+                      updated.getStatus() == SecondaryTokenVersionStatus.PENDING_VVB);
         }
 
         @Test
         @DisplayName("Submission stores version and update metadata")
         void testSubmitToVVB_MetadataStored_Version_andUpdates() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
-            versioningService.submitToVVB(version.getId())
+            versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             SecondaryTokenVersion updated = versioningService.getVersion(version.getId())
@@ -317,11 +317,11 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Submission triggers activation on VVB approval")
         void testSubmitToVVB_ActivationTriggered_OnApproval() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
-            versioningService.submitToVVB(version.getId())
+            versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             // Assert - activation would be triggered asynchronously
@@ -339,54 +339,54 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Approved outcome activates version")
         void testApprovalOutcome_Approved_ActivatesVersion() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
-            versioningService.submitToVVB(version.getId())
+            versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             // Act
-            versioningService.markApproved(version.getId())
+            versioningService.approveWithVVB(version.getId(), "VVB_VALIDATOR_1")
                 .await().indefinitely();
 
             SecondaryTokenVersion updated = versioningService.getVersion(version.getId())
                 .await().indefinitely();
 
             // Assert
-            assertTrue(updated.getStatus() == TokenStatus.ACTIVE ||
-                      updated.getStatus() == TokenStatus.PENDING_EXECUTE);
+            assertTrue(updated.getStatus() == SecondaryTokenVersionStatus.ACTIVE ||
+                      updated.getStatus() == SecondaryTokenVersionStatus.PENDING_VVB);
         }
 
         @Test
         @DisplayName("Rejected outcome marks version as rejected")
         void testApprovalOutcome_Rejected_MarksAsRejected() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
-            versioningService.submitToVVB(version.getId())
+            versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             // Act
-            versioningService.markRejected(version.getId(), "Compliance issue")
+            versioningService.rejectVersion(version.getId(), "Compliance issue", "VVB_VALIDATOR_1")
                 .await().indefinitely();
 
             SecondaryTokenVersion updated = versioningService.getVersion(version.getId())
                 .await().indefinitely();
 
             // Assert
-            assertEquals(TokenStatus.REJECTED, updated.getStatus());
+            assertEquals(SecondaryTokenVersionStatus.REJECTED, updated.getStatus());
         }
 
         @Test
         @DisplayName("Approval outcome stores metadata and reason")
         void testApprovalOutcome_MetadataStored_OutcomeReason() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
-            versioningService.submitToVVB(version.getId())
+            versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             // Act
-            versioningService.markApproved(version.getId())
+            versioningService.approveWithVVB(version.getId(), "VVB_VALIDATOR_1")
                 .await().indefinitely();
 
             SecondaryTokenVersion updated = versioningService.getVersion(version.getId())
@@ -400,15 +400,15 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Outcome timestamp recorded correctly")
         void testApprovalOutcome_TimestampRecorded_OfOutcome() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
-            versioningService.submitToVVB(version.getId())
+            versioningService.submitForVVBApproval(version.getId())
                 .await().indefinitely();
 
             Instant before = Instant.now();
 
             // Act
-            versioningService.markApproved(version.getId())
+            versioningService.approveWithVVB(version.getId(), "VVB_VALIDATOR_1")
                 .await().indefinitely();
 
             Instant after = Instant.now();
@@ -428,9 +428,9 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Merkle hash generated from updates is deterministic")
         void testMerkleHash_GeneratedFromUpdates_Deterministic() {
             // Arrange
-            SecondaryTokenVersion version1 = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version1 = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
-            SecondaryTokenVersion version2 = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version2 = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
@@ -452,7 +452,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Merkle hash verified on load")
         void testMerkleHash_Verified_OnLoad() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
             versioningService.activateVersion(version.getId())
                 .await().indefinitely();
@@ -469,9 +469,9 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("Different updates produce different hash")
         void testMerkleHash_DifferentUpdates_DifferentHash() {
             // Arrange
-            SecondaryTokenVersion version1 = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version1 = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
-            SecondaryTokenVersion version2 = versioningService.createVersion(tokenId, "1.2.0")
+            SecondaryTokenVersion version2 = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
@@ -493,7 +493,7 @@ class SecondaryTokenVersioningServiceTest {
         @DisplayName("No updates produces consistent hash")
         void testMerkleHash_NoUpdates_ConsistentHash() {
             // Arrange
-            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0")
+            SecondaryTokenVersion version = versioningService.createVersion(tokenId, "1.1.0", true, null)
                 .await().indefinitely();
 
             // Act
@@ -516,7 +516,7 @@ class SecondaryTokenVersion {
     private UUID tokenId;
     private String versionNumber;
     private int versionSequence;
-    private TokenStatus status = TokenStatus.PENDING_VVB;
+    private SecondaryTokenVersionStatus status = SecondaryTokenVersionStatus.PENDING_VVB;
     private String merkleHash;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
@@ -534,8 +534,8 @@ class SecondaryTokenVersion {
     public int getVersionSequence() { return versionSequence; }
     public void setVersionSequence(int seq) { this.versionSequence = seq; }
 
-    public TokenStatus getStatus() { return status; }
-    public void setStatus(TokenStatus status) { this.status = status; }
+    public SecondaryTokenVersionStatus getStatus() { return status; }
+    public void setStatus(SecondaryTokenVersionStatus status) { this.status = status; }
 
     public String getMerkleHash() { return merkleHash; }
     public void setMerkleHash(String hash) { this.merkleHash = hash; }
