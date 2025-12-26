@@ -5,6 +5,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import io.smallrye.mutiny.Uni;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -30,6 +32,9 @@ public class TokenStateTransitionManager {
 
     @Inject
     ApprovalExecutionAuditRepository auditRepository;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     /**
      * Execute state transition with validation, audit trail, and error handling
@@ -139,7 +144,8 @@ public class TokenStateTransitionManager {
             audit.newStatus = toStatus != null ? toStatus.toString() : null;
             audit.executedBy = "SYSTEM";
             audit.executionTimestamp = Instant.now();
-            audit.metadata = metadata;
+            // Convert Map to JsonNode for JSON storage
+            audit.metadata = metadata != null ? objectMapper.valueToTree(metadata) : null;
 
             auditRepository.persistAndFlush(audit);
         } catch (Exception e) {

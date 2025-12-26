@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.Instant;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class ApprovalExecutionAudit extends PanacheEntity {
      * - {"approval_threshold": 66.67, "consensus_reached": true}
      */
     @Column(name = "metadata", columnDefinition = "jsonb")
-    public Map<String, Object> metadata;
+    public JsonNode metadata;
 
     /**
      * Query by version ID
