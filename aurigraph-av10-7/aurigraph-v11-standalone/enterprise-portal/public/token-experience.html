@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurigraph Token Experience - Node Topology Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-group input[type="text"],
+        .control-group input[type="number"],
+        .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .topology-container {
+            flex: 1;
+            position: relative;
+            min-height: 500px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #topologyCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .phase-tracker {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phases-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .phase-item {
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #ddd;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .phase-item.active {
+            background: #e3f2fd;
+            border-left-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .phase-item.completed {
+            background: #f1f8e9;
+            border-left-color: #4caf50;
+        }
+
+        .phase-item.pending {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        .phase-status {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .phase-item.completed .phase-status {
+            background: #4caf50;
+        }
+
+        .phase-item.active .phase-status {
+            background: #667eea;
+            animation: pulse 1.5s infinite;
+        }
+
+        .phase-item.pending .phase-status {
+            background: #ddd;
+            color: #999;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .phase-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phase-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .phase-desc {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .phase-progress {
+            width: 100%;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .phase-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .phase-item.completed .phase-progress-bar {
+            width: 100%;
+            background: #4caf50;
+        }
+
+        .phase-item.active .phase-progress-bar {
+            width: 50%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Enhanced visualizations */
+        .visualization-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+        }
+
+        .gauge-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .phase-animation {
+            animation: phaseFlash 0.6s ease-out;
+        }
+
+        @keyframes phaseFlash {
+            0% {
+                background: rgba(102, 126, 234, 0.3);
+                transform: scale(1.02);
+            }
+            100% {
+                background: transparent;
+                transform: scale(1);
+            }
+        }
+
+        .node-pulse {
+            animation: nodePulse 0.8s ease-out;
+        }
+
+        @keyframes nodePulse {
+            0% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            }
+            100% {
+                box-shadow: 0 0 0 rgba(102, 126, 234, 0);
+            }
+        }
+
+        .consensus-bar {
+            position: relative;
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .consensus-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .energy-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: energyPulse 1.5s infinite;
+        }
+
+        @keyframes energyPulse {
+            0%, 100% { background: #4caf50; }
+            50% { background: #8bc34a; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Token Experience Demo</h1>
+            <p>Real-time Node Topology &amp; Token Lifecycle Phases</p>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="tokenId">Token ID:</label>
+                <input type="text" id="tokenId" placeholder="e.g., TOKEN-001" value="TOKEN-001">
+            </div>
+            <div class="control-group">
+                <label for="tokenAmount">Amount:</label>
+                <input type="number" id="tokenAmount" placeholder="1000" value="1000" min="1">
+            </div>
+            <div class="control-group">
+                <label for="nodeCount">Validators:</label>
+                <input type="number" id="nodeCount" value="7" min="3" max="25">
+            </div>
+            <button onclick="tokenManager.initializeToken()">Start Token Experience</button>
+            <button onclick="tokenManager.reset()" style="background: #999;">Reset Demo</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value" id="currentPhase">Phase 0</div>
+                <div class="stat-label">Current Phase</div>
+                <div class="consensus-bar">
+                    <div class="consensus-fill" id="phaseBar" style="width: 0%;"></div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="nodesConfirmed">0</div>
+                <div class="stat-label">Nodes Confirmed</div>
+                <div class="consensus-bar">
+                    <div class="consensus-fill" id="nodeBar" style="width: 0%;"></div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="consensusLevel">0%</div>
+                <div class="stat-label">Byzantine Consensus</div>
+                <div class="consensus-bar">
+                    <div class="consensus-fill" id="consensusBar" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Node Topology Card -->
+            <div class="card">
+                <h2>Network Node Topology</h2>
+                <div class="topology-container">
+                    <canvas id="topologyCanvas"></canvas>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #667eea;"></div>
+                        <span>Active Nodes</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #4caf50;"></div>
+                        <span>Confirmed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #ffc107;"></div>
+                        <span>Processing</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #ddd;"></div>
+                        <span>Pending</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase Tracker Card -->
+            <div class="card">
+                <h2>Token Lifecycle Phases</h2>
+                <div class="phases-list" id="phasesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Token Experience Manager
+        class TokenExperienceManager {
+            constructor() {
+                this.tokenId = 'TOKEN-001';
+                this.tokenAmount = 1000;
+                this.nodeCount = 7;
+                this.nodes = [];
+                this.currentPhase = 0;
+                this.canvas = document.getElementById('topologyCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.animationFrame = null;
+                this.phaseTimers = [];
+
+                this.phases = [
+                    {
+                        name: 'Initiation',
+                        desc: 'Token request submitted to network',
+                        duration: 2000,
+                        nodeAffected: 'all'
+                    },
+                    {
+                        name: 'Validation',
+                        desc: 'Validators check token authenticity',
+                        duration: 3000,
+                        nodeAffected: 'validators'
+                    },
+                    {
+                        name: 'Byzantine Consensus',
+                        desc: 'Achieving consensus across nodes',
+                        duration: 4000,
+                        nodeAffected: 'majority'
+                    },
+                    {
+                        name: 'Merkle Finalization',
+                        desc: 'Merkle tree hash computation',
+                        duration: 2000,
+                        nodeAffected: 'leaders'
+                    },
+                    {
+                        name: 'State Commitment',
+                        desc: 'State committed to blockchain',
+                        duration: 2000,
+                        nodeAffected: 'all'
+                    },
+                    {
+                        name: 'Finality',
+                        desc: 'Token fully confirmed and immutable',
+                        duration: 1000,
+                        nodeAffected: 'all'
+                    }
+                ];
+
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+            }
+
+            initializeToken() {
+                const tokenId = document.getElementById('tokenId').value;
+                const tokenAmount = parseInt(document.getElementById('tokenAmount').value);
+                const nodeCount = parseInt(document.getElementById('nodeCount').value);
+
+                if (!tokenId || isNaN(tokenAmount) || isNaN(nodeCount)) {
+                    this.showMessage('Please fill in all fields correctly', 'error');
+                    return;
+                }
+
+                this.tokenId = tokenId;
+                this.tokenAmount = tokenAmount;
+                this.nodeCount = Math.min(Math.max(nodeCount, 3), 25);
+                this.currentPhase = 0;
+                this.clearPhaseTimers();
+                this.initializeNodes();
+                this.renderPhases();
+                this.showMessage('Token experience started for ' + this.tokenId + ' with ' + this.nodeCount + ' validators', 'success');
+                this.startPhaseProgression();
+            }
+
+            initializeNodes() {
+                this.nodes = [];
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const radius = Math.min(this.canvas.width, this.canvas.height) / 3;
+
+                for (let i = 0; i < this.nodeCount; i++) {
+                    const angle = (i / this.nodeCount) * Math.PI * 2;
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+
+                    this.nodes.push({
+                        id: i,
+                        x: x,
+                        y: y,
+                        confirmed: false,
+                        processing: false,
+                        voteWeight: Math.random() * 0.5 + 0.5
+                    });
+                }
+            }
+
+            startPhaseProgression() {
+                this.executePhase(0);
+            }
+
+            executePhase(phaseIndex) {
+                if (phaseIndex >= this.phases.length) {
+                    this.showMessage('Token ' + this.tokenId + ' finalized successfully!', 'success');
+                    return;
+                }
+
+                this.currentPhase = phaseIndex + 1;
+                const phase = this.phases[phaseIndex];
+
+                // Update nodes based on phase
+                this.updateNodesForPhase(phaseIndex);
+                this.renderPhases();
+
+                // Simulate node confirmations during the phase
+                let confirmedCount = 0;
+                const confirmInterval = phase.duration / Math.max(this.nodeCount - 1, 1);
+
+                this.nodes.forEach((node, index) => {
+                    const delay = index * (confirmInterval / this.nodeCount);
+                    const timer = setTimeout(() => {
+                        if (this.shouldNodeConfirm(node, phaseIndex)) {
+                            node.confirmed = true;
+                            confirmedCount++;
+                            this.updateStats();
+                        }
+                    }, delay);
+                    this.phaseTimers.push(timer);
+                });
+
+                // Move to next phase
+                const timer = setTimeout(() => {
+                    this.nodes.forEach(node => node.processing = false);
+                    this.executePhase(phaseIndex + 1);
+                }, phase.duration);
+                this.phaseTimers.push(timer);
+
+                this.animationFrame = requestAnimationFrame(() => this.draw());
+            }
+
+            updateNodesForPhase(phaseIndex) {
+                const phase = this.phases[phaseIndex];
+
+                this.nodes.forEach((node, index) => {
+                    node.processing = false;
+
+                    if (phase.nodeAffected === 'all') {
+                        node.processing = true;
+                    } else if (phase.nodeAffected === 'validators' && index < Math.ceil(this.nodeCount * 0.7)) {
+                        node.processing = true;
+                    } else if (phase.nodeAffected === 'majority' && index < Math.ceil(this.nodeCount * 0.66)) {
+                        node.processing = true;
+                    } else if (phase.nodeAffected === 'leaders' && index < 3) {
+                        node.processing = true;
+                    }
+                });
+            }
+
+            shouldNodeConfirm(node, phaseIndex) {
+                const confirmationRate = 0.7 + (phaseIndex * 0.05);
+                return Math.random() < Math.min(confirmationRate, 0.95);
+            }
+
+            draw() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const time = Date.now() / 1000;
+
+                // Clear canvas with fade effect
+                this.ctx.fillStyle = '#f8f9fa';
+                this.ctx.fillRect(0, 0, w, h);
+
+                // Draw animated background gradient
+                const gradient = this.ctx.createLinearGradient(0, 0, w, h);
+                gradient.addColorStop(0, 'rgba(102, 126, 234, 0.02)');
+                gradient.addColorStop(1, 'rgba(118, 75, 162, 0.02)');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, w, h);
+
+                // Draw animated connections with energy flow
+                this.nodes.forEach((node, i) => {
+                    this.nodes.slice(i + 1).forEach((other, j) => {
+                        const dist = Math.hypot(other.x - node.x, other.y - node.y);
+                        const opacity = Math.max(0.05, 0.15 - (dist / 1000));
+
+                        // Base connection
+                        this.ctx.strokeStyle = 'rgba(102, 126, 234, ' + (opacity * 0.5) + ')';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(node.x, node.y);
+                        this.ctx.lineTo(other.x, other.y);
+                        this.ctx.stroke();
+
+                        // Energy flow animation
+                        if (node.processing || other.processing) {
+                            const flowPos = (time * 100 + i * 20 + j * 30) % 100;
+                            const flowX = node.x + (other.x - node.x) * (flowPos / 100);
+                            const flowY = node.y + (other.y - node.y) * (flowPos / 100);
+
+                            this.ctx.fillStyle = 'rgba(102, 126, 234, 0.6)';
+                            this.ctx.beginPath();
+                            this.ctx.arc(flowX, flowY, 3, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                    });
+                });
+
+                // Draw nodes with enhanced effects
+                this.nodes.forEach(node => {
+                    const nodeSize = 20;
+
+                    // Outer glow
+                    this.ctx.fillStyle = node.confirmed ? 'rgba(76, 175, 80, 0.1)' :
+                                        node.processing ? 'rgba(255, 193, 7, 0.1)' : 'rgba(0, 0, 0, 0.02)';
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, nodeSize + 12, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    // Pulse animation for processing nodes
+                    if (node.processing) {
+                        const pulseSize = 5 + Math.sin(time * 4 + node.id) * 3;
+                        this.ctx.fillStyle = 'rgba(255, 193, 7, 0.3)';
+                        this.ctx.beginPath();
+                        this.ctx.arc(node.x, node.y, nodeSize + pulseSize, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+
+                    // Main node circle
+                    this.ctx.fillStyle = node.confirmed ? '#4caf50' :
+                                        node.processing ? '#ffc107' : '#ddd';
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    // Node border
+                    this.ctx.strokeStyle = node.confirmed ? '#2e7d32' :
+                                          node.processing ? '#f57f17' : '#999';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+
+                    // Node label with enhanced styling
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = 'bold 11px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText('V' + (node.id + 1), node.x, node.y);
+
+                    // Confirmation checkmark
+                    if (node.confirmed) {
+                        this.ctx.strokeStyle = '#fff';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(node.x - 5, node.y);
+                        this.ctx.lineTo(node.x - 1, node.y + 3);
+                        this.ctx.lineTo(node.x + 4, node.y - 4);
+                        this.ctx.stroke();
+                    }
+                });
+
+                // Center token visualization
+                const centerX = w / 2;
+                const centerY = h / 2;
+
+                // Token aura
+                this.ctx.fillStyle = 'rgba(102, 126, 234, 0.05)';
+                const auraSize = 60 + Math.sin(time * 2) * 8;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, auraSize, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                // Token main display
+                this.ctx.fillStyle = 'rgba(102, 126, 234, 0.1)';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, 45, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.fillStyle = '#667eea';
+                this.ctx.font = 'bold 18px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(this.tokenId, centerX, centerY - 12);
+
+                this.ctx.font = 'bold 12px Arial';
+                this.ctx.fillStyle = '#764ba2';
+                this.ctx.fillText(this.tokenAmount + ' units', centerX, centerY + 12);
+
+                if (this.currentPhase > 0 && this.currentPhase <= this.phases.length) {
+                    this.animationFrame = requestAnimationFrame(() => this.draw());
+                }
+            }
+
+            renderPhases() {
+                const phasesList = document.getElementById('phasesList');
+                phasesList.textContent = '';
+
+                this.phases.forEach((phase, index) => {
+                    const status = index < this.currentPhase ? 'completed' :
+                                  index === this.currentPhase - 1 ? 'active' : 'pending';
+
+                    const phaseItem = document.createElement('div');
+                    phaseItem.className = 'phase-item ' + status;
+
+                    if (status === 'active') {
+                        phaseItem.classList.add('phase-animation');
+                    }
+
+                    const statusDiv = document.createElement('div');
+                    statusDiv.className = 'phase-status';
+                    statusDiv.textContent = String(index + 1);
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'phase-content';
+
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'phase-title';
+                    titleDiv.textContent = phase.name;
+
+                    const descDiv = document.createElement('div');
+                    descDiv.className = 'phase-desc';
+                    if (status === 'active') {
+                        descDiv.innerHTML = '<span class="energy-indicator"></span>' + phase.desc;
+                    } else {
+                        descDiv.textContent = phase.desc;
+                    }
+
+                    const progressDiv = document.createElement('div');
+                    progressDiv.className = 'phase-progress';
+
+                    const progressBar = document.createElement('div');
+                    progressBar.className = 'phase-progress-bar';
+
+                    progressDiv.appendChild(progressBar);
+                    contentDiv.appendChild(titleDiv);
+                    contentDiv.appendChild(descDiv);
+                    contentDiv.appendChild(progressDiv);
+
+                    phaseItem.appendChild(statusDiv);
+                    phaseItem.appendChild(contentDiv);
+
+                    phasesList.appendChild(phaseItem);
+                });
+            }
+
+            updateStats() {
+                const confirmedCount = this.nodes.filter(n => n.confirmed).length;
+                const consensusLevel = Math.round((confirmedCount / this.nodeCount) * 100);
+                const phaseProgress = (this.currentPhase / this.phases.length) * 100;
+                const nodeProgress = (confirmedCount / this.nodeCount) * 100;
+
+                document.getElementById('currentPhase').textContent = 'Phase ' + this.currentPhase;
+                document.getElementById('nodesConfirmed').textContent = String(confirmedCount);
+                document.getElementById('consensusLevel').textContent = consensusLevel + '%';
+
+                // Update progress bars
+                document.getElementById('phaseBar').style.width = phaseProgress + '%';
+                document.getElementById('nodeBar').style.width = nodeProgress + '%';
+                document.getElementById('consensusBar').style.width = consensusLevel + '%';
+            }
+
+            showMessage(text, type) {
+                const msgDiv = document.getElementById('message');
+                msgDiv.textContent = text;
+                msgDiv.className = 'message show ' + type;
+                setTimeout(() => msgDiv.classList.remove('show'), 4000);
+            }
+
+            clearPhaseTimers() {
+                this.phaseTimers.forEach(timer => clearTimeout(timer));
+                this.phaseTimers = [];
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+            }
+
+            reset() {
+                this.clearPhaseTimers();
+                this.currentPhase = 0;
+                this.nodes = [];
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                document.getElementById('currentPhase').textContent = 'Phase 0';
+                document.getElementById('nodesConfirmed').textContent = '0';
+                document.getElementById('consensusLevel').textContent = '0%';
+                this.renderPhases();
+                this.showMessage('Demo reset. Click "Start Token Experience" to begin.', 'info');
+            }
+        }
+
+        // Initialize manager
+        const tokenManager = new TokenExperienceManager();
+        tokenManager.renderPhases();
+    </script>
+</body>
+</html>
