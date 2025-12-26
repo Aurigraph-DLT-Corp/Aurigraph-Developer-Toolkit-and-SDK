@@ -14,6 +14,8 @@ import java.util.List;
  * Maps VVBApprovalRequest to GraphQL type with all approval data.
  */
 @Type
+@lombok.Data
+@lombok.AllArgsConstructor
 public class ApprovalDTO {
     public String id;
     public ApprovalStatus status;
@@ -26,18 +28,16 @@ public class ApprovalDTO {
     public LocalDateTime rejectedAt;
     public LocalDateTime createdAt;
 
-    public ApprovalDTO() {}
-
     public ApprovalDTO(VVBApprovalRequest approval) {
-        this.id = approval.requestId;
+        this.id = approval.requestId != null ? approval.requestId.toString() : null;
         this.status = approval.status;
-        this.tokenVersionId = approval.tokenVersionId;
+        this.tokenVersionId = approval.tokenVersionId != null ? approval.tokenVersionId.toString() : null;
         this.totalValidators = approval.totalValidators;
         this.votingWindowEnd = approval.votingWindowEnd;
-        this.votes = approval.votes;
-        this.consensusReachedAt = approval.consensusReachedAt;
-        this.executedAt = approval.executedAt;
-        this.rejectedAt = approval.rejectedAt;
+        this.votes = null; // Set from separate votes query
+        this.consensusReachedAt = null; // Not present in VVBApprovalRequest
+        this.executedAt = null; // Not present in VVBApprovalRequest
+        this.rejectedAt = null; // Not present in VVBApprovalRequest
         this.createdAt = approval.createdAt;
     }
 }
