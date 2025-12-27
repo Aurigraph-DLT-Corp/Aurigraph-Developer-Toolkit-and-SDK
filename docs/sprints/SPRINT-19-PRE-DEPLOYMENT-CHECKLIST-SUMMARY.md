@@ -36,7 +36,7 @@
 | 1.3 | JIRA token @J4CTestingAgent | P0 | ☐ | Dec 27 | |
 | 1.4 | JIRA token @J4CCoordinatorAgent | P0 | ☐ | Dec 27 | |
 | 1.5 | GitHub SSH access - all 4 agents | P0 | ☐ | Dec 27 | |
-| 1.6 | V10/V11 service credentials (SSH, API, DB) | P0 | ☐ | Dec 27 | |
+| 1.6 | V10/V12 service credentials (SSH, API, DB) | P0 | ☐ | Dec 27 | |
 | 1.7 | Keycloak/IAM JWT token generation | P0 | ☐ | Dec 27 | |
 | 1.8 | Load testing tool (Gatling) | P1 | ☐ | Dec 27 | Can defer to Day 1 if needed |
 
@@ -56,7 +56,7 @@
 
 | Item | Description | Priority | Status | Due | Time Estimate |
 |------|-------------|----------|--------|-----|---|
-| 2.1 | V11 codebase cloned, branch V12, Maven compile | P0 | ☐ | Dec 27 | 5 mins |
+| 2.1 | V12 codebase cloned, branch V12, Maven compile | P0 | ☐ | Dec 27 | 5 mins |
 | 2.2 | Quarkus dev mode starts on port 9003 | P0 | ☐ | Dec 27 | 2 mins |
 | 2.3 | Unit tests pass (0 failures) | P0 | ☐ | Dec 27 | 5 mins |
 | 2.4 | PostgreSQL running, database setup | P0 | ☐ | Dec 27 | 5 mins |
@@ -80,7 +80,7 @@
 | Item | Description | Priority | Status | Due |
 |------|-------------|----------|--------|-----|
 | 3.1 | Prometheus server running (port 9090) | P1 | ☐ | Dec 28 |
-| 3.2 | V11 metrics endpoint available | P1 | ☐ | Dec 28 |
+| 3.2 | V12 metrics endpoint available | P1 | ☐ | Dec 28 |
 | 3.3 | Grafana setup with dashboards | P1 | ☐ | Dec 28 |
 | 3.4 | AlertManager configured with rules | P2 | ☐ | Dec 28 |
 | 3.5 | Centralized logging accessible | P2 | ☐ | Dec 28 |
@@ -154,7 +154,7 @@
 
 ---
 
-### SECTION 8: V11 Baseline Validation
+### SECTION 8: V12 Baseline Validation
 **Status**: 🟡 READY FOR VERIFICATION
 **Due**: December 30, 2025
 **Items**: 3/3
@@ -162,9 +162,9 @@
 
 | Item | Description | Priority | Status | Due |
 |------|-------------|----------|--------|-----|
-| 8.1 | V11 service health (starts without errors) | P1 | ☐ | Dec 30 |
-| 8.2 | V11 database initialized (schema, tables) | P1 | ☐ | Dec 30 |
-| 8.3 | V11 baseline performance captured | P2 | ☐ | Dec 30 |
+| 8.1 | V12 service health (starts without errors) | P1 | ☐ | Dec 30 |
+| 8.2 | V12 database initialized (schema, tables) | P1 | ☐ | Dec 30 |
+| 8.3 | V12 baseline performance captured | P2 | ☐ | Dec 30 |
 
 ---
 
@@ -194,7 +194,7 @@ SECTION                      ITEMS  PRIORITY  STATUS  DUE      DEFERRABLE
 5. Communication               3    MEDIUM    ☐☐☐       Dec 29   No
 6. Documentation               3    LOW       ✅⚠️☐     Dec 30   Yes (6.2-3)
 7. V10 Validation              3    MEDIUM    ☐☐☐       Dec 30   No
-8. V11 Baseline                3    MEDIUM    ☐☐☐       Dec 30   No
+8. V12 Baseline                3    MEDIUM    ☐☐☐       Dec 30   No
 9. Risk Mitigation             3    MEDIUM    ☐☐☐       Dec 31   Partial
 ─────────────────────────────────────────────────────────────────────────────
 TOTAL                         37    MIXED     0/37 (0%)  Dec 31   ≥3 items
@@ -234,7 +234,7 @@ Dec 26: Section 1-2 execution
 ├─ 09:00-09:45: Section 1 credentials (automated script)
 ├─ 09:45-10:15: Section 2 dev environment
 ├─ 10:15-12:00: Sections 3-4 (monitoring, testing)
-└─ 14:00-17:00: Sections 5-9 (documentation, V10/V11, risk)
+└─ 14:00-17:00: Sections 5-9 (documentation, V10/V12, risk)
    MILESTONE: All Sections started
 
 Dec 27: Verification completion & fixes
@@ -254,7 +254,7 @@ Dec 29: Communication & coordination
 
 Dec 30: System validation
 ├─ Section 7 (V10 validation)
-├─ Section 8 (V11 baseline)
+├─ Section 8 (V12 baseline)
 └─ MILESTONE: Both systems validated
 
 Dec 31: Final sign-off
@@ -416,7 +416,7 @@ Sign-Offs:
 ---
 
 **Generated**: December 25, 2025, 8:47 PM
-**For**: Aurigraph V11 Migration - Sprint 19 Pre-Deployment
+**For**: Aurigraph V12 Migration - Sprint 19 Pre-Deployment
 **Target Go-Live**: January 1, 2026 at 9:00 AM EST
 **Production Launch**: February 15, 2026
 

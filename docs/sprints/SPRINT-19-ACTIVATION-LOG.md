@@ -15,21 +15,21 @@
 🟢 @J4CDeploymentAgent
    Role: REST-to-gRPC Gateway Lead
    Hours: 58 (primary lead)
-   Stories: AV11-611, AV11-612, AV11-614
+   Stories: AV12-611, AV12-612, AV12-614
    Status: READY FOR DAY 1
    Day 1 Task: P0 Gap #1 & #2 closure (8 hrs)
 
 🟢 @J4CNetworkAgent
-   Role: V10-V11 Data Sync Lead
+   Role: V10-V12 Data Sync Lead
    Hours: 48 (parallel track)
-   Stories: AV11-613, AV11-616
+   Stories: AV12-613, AV12-616
    Status: READY FOR DAY 1
    Day 1 Task: P0 Gap #3 & #4 closure (8 hrs)
 
 🟢 @J4CTestingAgent
    Role: Acceptance Testing & QA Lead
    Hours: 32 (validation)
-   Stories: AV11-615
+   Stories: AV12-615
    Status: READY FOR DAY 1
    Day 1 Task: P0 Gap #5 closure (8 hrs)
 
@@ -84,18 +84,18 @@ SECTION 1: Agent Credentials & Access
   [ ] JIRA API tokens configured (all 4 agents)
   [ ] GitHub SSH keys working (all 4 agents)
   [ ] V10 service credentials (REST API + SSH)
-  [ ] V11 dev environment credentials (Quarkus + DB)
+  [ ] V12 dev environment credentials (Quarkus + DB)
   [ ] Keycloak/IAM access verified
 
 SECTION 2: Development Environment
-  [ ] V11 codebase cloned (branch: V12)
+  [ ] V12 codebase cloned (branch: V12)
   [ ] Maven clean compile successful
   [ ] Quarkus dev mode starts without errors
   [ ] All unit tests passing
   [ ] Database connected and schema initialized
 
 SECTION 3: Monitoring & Observability
-  [ ] Prometheus running + V11 metrics available
+  [ ] Prometheus running + V12 metrics available
   [ ] Grafana dashboards created (latency, TPS, errors)
   [ ] Alert rules configured (P99 latency, error rate)
   [ ] Logging setup (centralized logs accessible)
@@ -121,8 +121,8 @@ SECTION 7: V10 System Validation
   [ ] All 50+ endpoints documented
   [ ] V10 backup completed
 
-SECTION 8: V11 Baseline Captured
-  [ ] V11 service health confirmed
+SECTION 8: V12 Baseline Captured
+  [ ] V12 service health confirmed
   [ ] Database initialized with schema
   [ ] Baseline performance recorded
 
@@ -148,7 +148,7 @@ SECTION 9: Risk Mitigation Prep
 
 ### DEC 26-30 (Pre-Sprint Phase)
 - [ ] Complete 37-item pre-deployment checklist
-- [ ] **CRITICAL**: Verify agent credentials (JIRA, GitHub, V10, V11, Keycloak)
+- [ ] **CRITICAL**: Verify agent credentials (JIRA, GitHub, V10, V12, Keycloak)
 - [ ] **CRITICAL**: Verify dev environment (Quarkus, tests, databases)
 - [ ] Optional: Complete JIRA manual work (70 mins)
   - Add story points (15 mins)

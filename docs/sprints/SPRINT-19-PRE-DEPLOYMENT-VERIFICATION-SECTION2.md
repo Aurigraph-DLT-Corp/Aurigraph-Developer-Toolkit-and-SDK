@@ -12,7 +12,7 @@
 ## Overview
 
 This section verifies that all agents have working development environments capable of:
-- Cloning and building V11 codebase
+- Cloning and building V12 codebase
 - Running Quarkus in dev mode with hot reload
 - Running unit tests
 - Connecting to PostgreSQL database
@@ -20,7 +20,7 @@ This section verifies that all agents have working development environments capa
 
 ---
 
-## ✅ Item 2.1: V11 Codebase Setup
+## ✅ Item 2.1: V12 Codebase Setup
 
 **What to Verify**: Repository cloned, on correct branch, Maven clean build succeeds
 
@@ -51,7 +51,7 @@ if [ "$CURRENT_BRANCH" != "V12" ]; then
   git pull origin V12
 fi
 
-# Step 3: Navigate to V11 standalone
+# Step 3: Navigate to V12 standalone
 cd aurigraph-av10-7/aurigraph-v11-standalone
 
 # Step 4: Check Java version (must be 21+)
@@ -77,7 +77,7 @@ echo "→ Running Maven clean compile..."
 - [ ] Branch is V12 (or correct dev branch)
 - [ ] Java version is 21+
 - [ ] `./mvnw clean compile` completes with BUILD SUCCESS
-- [ ] No compilation errors in V11 codebase
+- [ ] No compilation errors in V12 codebase
 
 **If Verification Fails**:
 
@@ -237,7 +237,7 @@ echo "→ Running unit tests (this takes 2-5 minutes)..."
 - PostgreSQL server running on localhost:5432
 - Database "aurigraph" exists
 - All tables created via Liquibase migration
-- V11 application can connect
+- V12 application can connect
 
 **Verification Steps**:
 
@@ -502,7 +502,7 @@ curl 8.1.2 (x86_64-apple-darwin23.1.0)
 
 | Item | Verification | Pass/Fail | Date | Notes |
 |------|--------------|-----------|------|-------|
-| 2.1 | V11 Codebase cloned, branch V12, Maven compile | ☐ | | |
+| 2.1 | V12 Codebase cloned, branch V12, Maven compile | ☐ | | |
 | 2.2 | Quarkus dev mode starts on port 9003 | ☐ | | |
 | 2.3 | Unit tests run successfully (0 failures) | ☐ | | |
 | 2.4 | PostgreSQL running, database exists, tables created | ☐ | | |
@@ -545,6 +545,6 @@ curl 8.1.2 (x86_64-apple-darwin23.1.0)
 ---
 
 **Generated**: December 25, 2025
-**For**: Aurigraph V11 Migration - Sprint 19 Pre-Deployment
+**For**: Aurigraph V12 Migration - Sprint 19 Pre-Deployment
 **Status**: Ready for verification starting Dec 26
 

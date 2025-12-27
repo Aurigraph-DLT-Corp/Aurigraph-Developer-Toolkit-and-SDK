@@ -48,7 +48,7 @@ All materials are ready. Here's what you need to know:
   [ ] Read the materials above
 
 ❓ QUESTIONS?
-  Post in #aurigraph-v11-migration Slack channel or reply to this email
+  Post in #aurigraph-v12-migration Slack channel or reply to this email
 
 Let's make this happen. The 6 days of verification determine 75% of success.
 Get Sections 1-2 to 100% and we're golden.
@@ -69,7 +69,7 @@ Joining at 9:00 AM EST for Section 1 verification (Credentials - 45 mins).
 
 What we're doing:
   ✅ Run credential verification script
-  ✅ Test JIRA tokens, GitHub SSH, V10/V11 access
+  ✅ Test JIRA tokens, GitHub SSH, V10/V12 access
   ✅ Confirm all 4 agents can access core systems
 
 Expected outcome:
@@ -105,7 +105,7 @@ SECTIONS COMPLETED:
   [ ] Section 5 (Communication): X/3
   [ ] Section 6 (Documentation): X/3
   [ ] Section 7 (V10 Validation): X/3
-  [ ] Section 8 (V11 Baseline): X/3
+  [ ] Section 8 (V12 Baseline): X/3
   [ ] Section 9 (Risk Mitigation): X/3
 
 CRITICAL PATH (Sections 1-2):

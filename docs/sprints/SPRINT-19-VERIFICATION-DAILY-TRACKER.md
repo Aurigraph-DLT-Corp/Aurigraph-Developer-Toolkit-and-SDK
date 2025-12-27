@@ -32,7 +32,7 @@ DEC 29 (Sunday): Communication Setup
 
 DEC 30 (Monday): System Validation
 ├─ Morning: Section 7 (V10 validation)
-├─ Afternoon: Section 8 (V11 baseline)
+├─ Afternoon: Section 8 (V12 baseline)
 └─ EOD: Sections 7-8 MUST be 100%
 
 DEC 31 (Tuesday): Final Readiness
@@ -73,7 +73,7 @@ cd ~/Aurigraph-DLT
 
 **Expected Results by 10:00 AM**:
 - [ ] 1.5 GitHub SSH: ✅ PASS (1 item done)
-- [ ] 1.6.x V10/V11 services: ⚠️ SKIP (expected - credentials not in ENV)
+- [ ] 1.6.x V10/V12 services: ⚠️ SKIP (expected - credentials not in ENV)
 - [ ] 1.7 Keycloak: ⚠️ SKIP (expected - password not in ENV)
 - [ ] 1.8 Gatling: ✅ PASS or ❌ FAIL (check if installed)
 
@@ -95,7 +95,7 @@ SECTION 1 RESULTS - Dec 26, 9:00-10:00 AM
 1.3 JIRA @TestingAgent:       ⏳ NOT TESTED (need token)
 1.4 JIRA @CoordinatorAgent:   ⏳ NOT TESTED (need token)
 1.5 GitHub SSH (all agents):  ✅ PASS
-1.6 V10/V11 credentials:      ⏳ NOT TESTED (need ENV vars)
+1.6 V10/V12 credentials:      ⏳ NOT TESTED (need ENV vars)
 1.7 Keycloak JWT:            ⏳ NOT TESTED (need ENV vars)
 1.8 Gatling:                  [✅ PASS / ❌ FAIL / ⏳ SKIP]
 
@@ -112,10 +112,10 @@ Issues: [List any]
 **Verification Execution**:
 
 ```bash
-# 1:00 PM: V11 Codebase Setup (Item 2.1)
+# 1:00 PM: V12 Codebase Setup (Item 2.1)
 cd ~/Aurigraph-DLT
 git status  # Should show V12 branch
-cd aurigraph-av10-7/aurigraph-v11-standalone
+cd aurigraph-av10-7/aurigraph-v12-standalone
 ./mvnw clean compile
 
 # 1:15 PM: Quarkus Dev Mode (Item 2.2)
@@ -140,7 +140,7 @@ maven --version
 ```
 SECTION 2 RESULTS - Dec 26, 1:00-2:00 PM
 =========================================
-2.1 V11 codebase cloned:      [✅ PASS / ❌ FAIL]
+2.1 V12 codebase cloned:      [✅ PASS / ❌ FAIL]
 2.2 Quarkus dev mode starts:  [✅ PASS / ❌ FAIL]
 2.3 Unit tests pass:          [✅ PASS / ❌ FAIL]
 2.4 PostgreSQL setup:         [✅ PASS / ❌ FAIL]
@@ -217,7 +217,7 @@ export KEYCLOAK_PASSWORD="[from Credentials.md]"
 **Acceptance Criteria - Section 1**:
 - [ ] 1.1-1.4: All 4 JIRA tokens verified (4/4)
 - [ ] 1.5: GitHub SSH confirmed (1/1)
-- [ ] 1.6: V10 SSH, API, V11 DB, V11 Quarkus (4/4)
+- [ ] 1.6: V10 SSH, API, V12 DB, V12 Quarkus (4/4)
 - [ ] 1.7: Keycloak JWT obtained (1/1)
 - [ ] 1.8: Gatling ready (1/1)
 - **Total**: 7/7 items PASS (no SKIP, no FAIL)
@@ -244,7 +244,7 @@ export KEYCLOAK_PASSWORD="[from Credentials.md]"
 # 3.1: Prometheus
 curl http://localhost:9090/api/v1/targets | jq '.data.activeTargets'
 
-# 3.2: V11 metrics
+# 3.2: V12 metrics
 curl http://localhost:9003/q/metrics | head -10
 
 # 3.3: Grafana dashboards
@@ -322,7 +322,7 @@ If GO:
 **Dec 28**: Sections 3-4 verification (Monitoring, Testing)
 ```
 3.1 Prometheus:           ☐ Start  [ ] Done  [ ] Issues
-3.2 V11 metrics:          ☐ Start  [ ] Done  [ ] Issues
+3.2 V12 metrics:          ☐ Start  [ ] Done  [ ] Issues
 3.3 Grafana dashboards:   ☐ Start  [ ] Done  [ ] Issues
 3.4 AlertManager:         ☐ Start  [ ] Done  [ ] Issues
 3.5 Centralized logging:  ☐ Start  [ ] Done  [ ] Issues
@@ -337,10 +337,10 @@ EOD Goal: Sections 3-4 ready for Sections 5-9
 
 **Dec 29**: Section 5 Communication Setup
 ```
-5.1 Slack channels:       [ ] #aurigraph-v11-migration
-                          [ ] #aurigraph-v11-weekly
-                          [ ] #aurigraph-v11-alerts
-                          [ ] #aurigraph-v11-on-call
+5.1 Slack channels:       [ ] #aurigraph-v12-migration
+                          [ ] #aurigraph-v12-weekly
+                          [ ] #aurigraph-v12-alerts
+                          [ ] #aurigraph-v12-on-call
 
 5.2 Email list:           [ ] sprint-19-team@aurigraph.io
 5.3 Calendar invites:     [ ] Daily standup (09:00 AM EST)
@@ -363,13 +363,13 @@ EOD Goal: All agents have calendar invite + Slack access
                           [ ] Backup tested
                           [ ] Restore procedure documented
 
-8.1 V11 service health:   [ ] Starts without errors
+8.1 V12 service health:   [ ] Starts without errors
                           [ ] Listens on port 9003
                           [ ] Health endpoint UP
-8.2 V11 database:         [ ] Schema initialized
+8.2 V12 database:         [ ] Schema initialized
                           [ ] All tables exist
                           [ ] Indexes created
-8.3 V11 baseline:         [ ] TPS recorded
+8.3 V12 baseline:         [ ] TPS recorded
                           [ ] Latency P99 recorded
                           [ ] Memory usage recorded
 
@@ -386,7 +386,7 @@ Morning (9:00 AM - 12:00 PM): Section 9 Verification
                           [ ] NGINX config prepared
 
 9.2 Rollback procedures:  [ ] V10 rollback documented
-                          [ ] V11 rollback documented
+                          [ ] V12 rollback documented
                           [ ] Both tested (non-production)
                           [ ] Decision criteria clear
 
@@ -395,7 +395,7 @@ Morning (9:00 AM - 12:00 PM): Section 9 Verification
                           [ ] Runbooks created:
                             [ ] Gateway latency spike
                             [ ] Data sync lag
-                            [ ] V11 service crash
+                            [ ] V12 service crash
                             [ ] Database exhausted
 
 Afternoon (2:00 PM - 4:00 PM): FINAL SIGN-OFF MEETING
@@ -542,7 +542,7 @@ COMPLETED SECTIONS:
 ✅ Section 5: Communication (3/3)
 ✅ Section 6: Documentation (3/3)
 ✅ Section 7: V10 Validation (3/3)
-✅ Section 8: V11 Baseline (3/3)
+✅ Section 8: V12 Baseline (3/3)
 ✅ Section 9: Risk Mitigation (3/3)
 
 STAKEHOLDER SIGN-OFFS:

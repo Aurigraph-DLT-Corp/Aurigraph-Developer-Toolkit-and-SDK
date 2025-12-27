@@ -11,9 +11,9 @@
 ## ✅ Section 1: Agent Credentials & Access (Complete by Dec 27)
 
 ### JIRA Access
-- [ ] @J4CDeploymentAgent: JIRA API token configured for AV11 project
-- [ ] @J4CNetworkAgent: JIRA API token configured for AV11 project
-- [ ] @J4CTestingAgent: JIRA API token configured for AV11 project
+- [ ] @J4CDeploymentAgent: JIRA API token configured for AV12 project
+- [ ] @J4CNetworkAgent: JIRA API token configured for AV12 project
+- [ ] @J4CTestingAgent: JIRA API token configured for AV12 project
 - [ ] @J4CCoordinatorAgent: JIRA API token + dashboard access
 
 **Verification**:
@@ -49,7 +49,7 @@ git clone git@github.com:Aurigraph-DLT-Corp/Aurigraph-DLT.git
 
 ---
 
-### V10 & V11 Service Credentials
+### V10 & V12 Service Credentials
 - [ ] All 4 agents: SSH credentials for V10 production server
   - Host: [production-v10-host]
   - User: [username]
@@ -61,8 +61,8 @@ git clone git@github.com:Aurigraph-DLT-Corp/Aurigraph-DLT.git
   - Auth: Bearer token or basic auth
   - Test endpoint: GET /health
 
-- [ ] All 4 agents: V11 development environment credentials
-  - V11 Quarkus service: http://localhost:9003 (dev) or https://v11-dev.aurigraph.io (staging)
+- [ ] All 4 agents: V12 development environment credentials
+  - V12 Quarkus service: http://localhost:9003 (dev) or https://v12-dev.aurigraph.io (staging)
   - Database (PostgreSQL): Host, port, username, password
   - Test: Can connect and run SELECT 1
 
@@ -72,10 +72,10 @@ git clone git@github.com:Aurigraph-DLT-Corp/Aurigraph-DLT.git
 curl -H "Authorization: Bearer $V10_TOKEN" \
   https://v10-api.aurigraph.io/api/v10/health
 
-# Test V11 database
+# Test V12 database
 psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "SELECT 1"
 
-# Test V11 Quarkus dev mode
+# Test V12 Quarkus dev mode
 curl http://localhost:9003/q/health
 # Should return: {"status":"UP"}
 ```
@@ -108,7 +108,7 @@ curl -X POST https://iam2.aurigraph.io/realms/AWD/protocol/openid-connect/token 
 
 ### Load Testing Tool Credentials
 - [ ] Gatling or JMeter installed on agent machines
-- [ ] Load testing tool can reach V11 gateway (http://localhost:9003 or staging URL)
+- [ ] Load testing tool can reach V12 gateway (http://localhost:9003 or staging URL)
 - [ ] Load test configuration stored in repository (scripts/load-test/)
 
 **Verification**:
@@ -116,7 +116,7 @@ curl -X POST https://iam2.aurigraph.io/realms/AWD/protocol/openid-connect/token 
 # Check Gatling installation
 gatling.sh -version
 
-# Test connection to V11 gateway
+# Test connection to V12 gateway
 curl http://localhost:9003/q/health
 ```
 
@@ -124,7 +124,7 @@ curl http://localhost:9003/q/health
 
 ## ✅ Section 2: Development Environment (Complete by Dec 27)
 
-### V11 Codebase Setup
+### V12 Codebase Setup
 - [ ] Repository cloned to all agent machines
 - [ ] Branch: **V12** (or current development branch)
 - [ ] Maven clean build successful
@@ -155,7 +155,7 @@ curl http://localhost:9003/q/health
 - [ ] PostgreSQL server running (version 16+)
 - [ ] Aurigraph database created
 - [ ] Tables/schema initialized (Liquibase migrations run)
-- [ ] Test connection from V11 service works
+- [ ] Test connection from V12 service works
 
 **Verification**:
 ```bash
@@ -164,8 +164,8 @@ psql -h localhost -U aurigraph -d aurigraph
 \dt  # List all tables
 \q   # Quit
 
-# Verify from V11 app
-curl http://localhost:9003/api/v11/health
+# Verify from V12 app
+curl http://localhost:9003/api/v12/health
 # Should show database connection status
 ```
 
@@ -192,18 +192,18 @@ git config --global user.email
 
 ### Prometheus Setup
 - [ ] Prometheus server running (http://localhost:9090)
-- [ ] V11 metrics endpoint available (http://localhost:9003/q/metrics)
-- [ ] Scrape configuration includes V11 service
+- [ ] V12 metrics endpoint available (http://localhost:9003/q/metrics)
+- [ ] Scrape configuration includes V12 service
 - [ ] V10 metrics also scraped (if available)
 
 **Verification**:
 ```bash
-# Check V11 metrics endpoint
+# Check V12 metrics endpoint
 curl http://localhost:9003/q/metrics
 
 # Check Prometheus targets
 curl http://localhost:9090/api/v1/targets
-# Should show V11 service as UP
+# Should show V12 service as UP
 ```
 
 ---
@@ -213,9 +213,9 @@ curl http://localhost:9090/api/v1/targets
 - [ ] Prometheus datasource configured
 - [ ] Dashboards created/imported for:
   - **Gateway Metrics**: Latency (P50, P99, P99.9), TPS, error rate
-  - **V11 System**: CPU, memory, JVM heap, GC pause time
+  - **V12 System**: CPU, memory, JVM heap, GC pause time
   - **Database**: Connection pool usage, query latency
-  - **Canary Deployment**: Traffic split (V10% vs V11%), error rate comparison
+  - **Canary Deployment**: Traffic split (V10% vs V12%), error rate comparison
 
 **Sample Dashboard Queries**:
 ```
@@ -256,7 +256,7 @@ curl http://localhost:9090/api/v1/alerts
 
 ### Logging Setup
 - [ ] Centralized logging (ELK stack or equivalent) accessible
-- [ ] V11 logs flowing to central repository
+- [ ] V12 logs flowing to central repository
 - [ ] Log level configured (DEBUG for development, INFO for production)
 - [ ] Application logs searchable by transaction ID or request ID
 
@@ -281,9 +281,9 @@ docker-compose logs quarkus-app | grep ERROR
   - `scripts/load-test/SyncLoadTest.scala`
 
 - [ ] Load test can target:
-  - Local V11 (http://localhost:9003)
-  - Staging V11 (https://v11-staging.aurigraph.io)
-  - Production V11 (https://dlt.aurigraph.io)
+  - Local V12 (http://localhost:9003)
+  - Staging V12 (https://v12-staging.aurigraph.io)
+  - Production V12 (https://dlt.aurigraph.io)
 
 **Verification**:
 ```bash
@@ -296,7 +296,7 @@ cd scripts/load-test
 ---
 
 ### Integration Test Environment
-- [ ] Both V10 and V11 services running in test environment
+- [ ] Both V10 and V12 services running in test environment
 - [ ] Test database (PostgreSQL) provisioned separately from dev database
 - [ ] Test data seeded (100+ sample transactions, consensus state, RWA tokens)
 - [ ] Integration test suite can connect to both services
@@ -313,9 +313,9 @@ cd aurigraph-av10-7/aurigraph-v11-standalone
 
 ### Canary Deployment Test Environment
 - [ ] NGINX reverse proxy configured with traffic shaping
-- [ ] NGINX config can route 1% → 10% → 100% traffic to V11
-- [ ] Health checks configured for both V10 and V11
-- [ ] Automatic failover to 100% V10 if V11 error rate >1%
+- [ ] NGINX config can route 1% → 10% → 100% traffic to V12
+- [ ] Health checks configured for both V10 and V12
+- [ ] Automatic failover to 100% V10 if V12 error rate >1%
 
 **Sample NGINX config**:
 ```nginx
@@ -323,19 +323,19 @@ upstream v10_backend {
   server v10-service:9003;
 }
 
-upstream v11_backend {
-  server v11-service:9003;
+upstream v12_backend {
+  server v12-service:9003;
 }
 
-# Traffic shaping: V10=99%, V11=1% initially
+# Traffic shaping: V10=99%, V12=1% initially
 upstream backend {
   server v10-service:9003 weight=99;
-  server v11-service:9003 weight=1;
+  server v12-service:9003 weight=1;
 }
 
 server {
   listen 80;
-  location /api/v11 {
+  location /api/v12 {
     proxy_pass http://backend;
     proxy_pass_request_headers on;
   }
@@ -345,8 +345,8 @@ server {
 **Verification**:
 ```bash
 # Test traffic routing
-for i in {1..100}; do curl http://localhost/api/v11/health; done | sort | uniq -c
-# Should show ~99 hits to V10, ~1 hit to V11 (roughly)
+for i in {1..100}; do curl http://localhost/api/v12/health; done | sort | uniq -c
+# Should show ~99 hits to V10, ~1 hit to V12 (roughly)
 ```
 
 ---
@@ -354,8 +354,8 @@ for i in {1..100}; do curl http://localhost/api/v11/health; done | sort | uniq -
 ## ✅ Section 5: Communication & Escalation (Complete by Dec 29)
 
 ### Slack Channels Created
-- [ ] #aurigraph-v11-migration (main channel)
-- [ ] #aurigraph-v11-weekly (weekly reports)
+- [ ] #aurigraph-v12-migration (main channel)
+- [ ] #aurigraph-v12-weekly (weekly reports)
 - [ ] #aurigraph-v11-alerts (critical alerts)
 - [ ] #aurigraph-v11-on-call (on-call rotation)
 
@@ -509,17 +509,17 @@ ls -lh /backups/v10/latest.sql.gz
 
 ---
 
-## ✅ Section 8: V11 Baseline Validation (Complete by Dec 30)
+## ✅ Section 8: V12 Baseline Validation (Complete by Dec 30)
 
-### V11 Service Health
-- [ ] V11 Quarkus service starts without errors
-- [ ] V11 HTTP/2 endpoint responding on port 9003
-- [ ] V11 health endpoint returns status=UP
-- [ ] V11 metrics endpoint available (Prometheus format)
+### V12 Service Health
+- [ ] V12 Quarkus service starts without errors
+- [ ] V12 HTTP/2 endpoint responding on port 9003
+- [ ] V12 health endpoint returns status=UP
+- [ ] V12 metrics endpoint available (Prometheus format)
 
 **Verification**:
 ```bash
-# Start V11 dev mode
+# Start V12 dev mode
 cd aurigraph-av10-7/aurigraph-v11-standalone
 ./mvnw quarkus:dev
 
@@ -533,7 +533,7 @@ curl http://localhost:9003/q/metrics | head -20
 
 ---
 
-### V11 Database Initialized
+### V12 Database Initialized
 - [ ] PostgreSQL schema created via Liquibase
 - [ ] All tables exist (transactions, consensus, rwa_tokens, bridges)
 - [ ] Foreign key constraints configured
@@ -555,16 +555,16 @@ psql -h localhost -U aurigraph -d aurigraph
 
 ---
 
-### V11 Baseline Performance Captured
-- [ ] Current V11 TPS recorded (baseline)
-- [ ] Current V11 P99 latency recorded
+### V12 Baseline Performance Captured
+- [ ] Current V12 TPS recorded (baseline)
+- [ ] Current V12 P99 latency recorded
 - [ ] Current memory usage recorded
 - [ ] Current CPU usage recorded
 - **Baseline Purpose**: To measure improvement post-gateway/sync
 
 **Sample Baseline**:
 ```
-V11 Baseline (pre-Sprint 19):
+V12 Baseline (pre-Sprint 19):
 - TPS: 50K (existing endpoints only)
 - P99 Latency: 80ms (internal gRPC calls)
 - Memory: 256MB
@@ -587,7 +587,7 @@ V11 Baseline (pre-Sprint 19):
 
 ### Rollback Procedures Ready
 - [ ] V10 production rollback plan documented
-- [ ] V11 production rollback plan documented
+- [ ] V12 production rollback plan documented
 - [ ] Both plans tested (not on production)
 - [ ] Decision criteria for rollback clear (error rate >5%? latency >500ms?)
 
@@ -601,7 +601,7 @@ V11 Baseline (pre-Sprint 19):
 - [ ] Runbooks for common issues created:
   - "Gateway latency spike"
   - "Data sync lag >10 seconds"
-  - "V11 service crash"
+  - "V12 service crash"
   - "Database connection pool exhausted"
 
 **Location**: `docs/sprints/INCIDENT-RESPONSE-RUNBOOKS.md`
@@ -661,7 +661,7 @@ V11 Baseline (pre-Sprint 19):
 | 5. Communication | 3 | ☐ | Dec 29 |
 | 6. Documentation | 3 | ☐ | Dec 30 |
 | 7. V10 Validation | 3 | ☐ | Dec 30 |
-| 8. V11 Validation | 3 | ☐ | Dec 30 |
+| 8. V12 Validation | 3 | ☐ | Dec 30 |
 | 9. Risk Mitigation | 3 | ☐ | Dec 31 |
 | **TOTAL** | **37** | ☐ | **Dec 31** |
 

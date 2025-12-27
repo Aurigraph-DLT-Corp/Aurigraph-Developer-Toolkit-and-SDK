@@ -22,7 +22,7 @@ Run these commands sequentially to verify each credential. Copy-paste the comman
 
 ### Item 1.1: JIRA API Token - @J4CDeploymentAgent
 
-**What to verify**: Agent can authenticate to JIRA and access AV11 project
+**What to verify**: Agent can authenticate to JIRA and access AV12 project
 
 **Verification Command**:
 ```bash
@@ -172,13 +172,13 @@ rm -rf /tmp/test-clone
 
 ---
 
-### Item 1.6: V10 & V11 Service Credentials
+### Item 1.6: V10 & V12 Service Credentials
 
 **What to verify**:
 1. Can SSH into V10 production server
 2. Can authenticate to V10 REST API
-3. Can connect to V11 database
-4. Can reach V11 Quarkus service
+3. Can connect to V12 database
+4. Can reach V12 Quarkus service
 
 **Verification Command - V10 SSH**:
 ```bash
@@ -206,7 +206,7 @@ curl -s -H "Authorization: Bearer ${V10_TOKEN}" \
 # Expected: "UP" (or similar healthy status)
 ```
 
-**Verification Command - V11 Database**:
+**Verification Command - V12 Database**:
 ```bash
 export DB_HOST="localhost"
 export DB_PORT="5432"
@@ -225,9 +225,9 @@ PGPASSWORD="${DB_PASSWORD}" psql -h ${DB_HOST} -p ${DB_PORT} \
 # (1 row)
 ```
 
-**Verification Command - V11 Quarkus Service**:
+**Verification Command - V12 Quarkus Service**:
 ```bash
-# Test V11 health endpoint (dev mode)
+# Test V12 health endpoint (dev mode)
 curl -s http://localhost:9003/q/health | jq '.status'
 
 # Expected: "UP"
@@ -245,13 +245,13 @@ curl -s http://localhost:9003/q/health | jq '.status'
 - [ ] ❌ FAIL - 503 Service Unavailable
 - [ ] ⏳ NOT TESTED
 
-**Result - V11 Database**:
+**Result - V12 Database**:
 - [ ] ✅ PASS - Connected successfully
 - [ ] ❌ FAIL - Connection refused
 - [ ] ❌ FAIL - Authentication failed
 - [ ] ⏳ NOT TESTED
 
-**Result - V11 Quarkus**:
+**Result - V12 Quarkus**:
 - [ ] ✅ PASS - Service responding
 - [ ] ❌ FAIL - Connection refused
 - [ ] ❌ FAIL - Service down
@@ -259,7 +259,7 @@ curl -s http://localhost:9003/q/health | jq '.status'
 
 **Notes**: ___________________________
 
-**Reference**: From Credentials.md V10 section, V11 database config
+**Reference**: From Credentials.md V10 section, V12 database config
 
 ---
 
@@ -310,7 +310,7 @@ echo "$RESPONSE" | jq '.access_token' | head -c 50
 
 ### Item 1.8: Load Testing Tool (Gatling/JMeter)
 
-**What to verify**: Gatling or JMeter installed and can target V11 gateway
+**What to verify**: Gatling or JMeter installed and can target V12 gateway
 
 **Verification Command**:
 ```bash
@@ -326,7 +326,7 @@ gatling --version
 # Or install via: brew install gatling (on macOS)
 # Or: apt-get install gatling (on Linux)
 
-# Test connection to V11 (ensure V11 is running on port 9003)
+# Test connection to V12 (ensure V12 is running on port 9003)
 curl -s http://localhost:9003/q/health | jq '.status'
 # Should return: "UP"
 ```
@@ -350,7 +350,7 @@ curl -s http://localhost:9003/q/health | jq '.status'
 | 1.3 | JIRA @TestingAgent | ☐ | | |
 | 1.4 | JIRA @CoordinatorAgent | ☐ | | |
 | 1.5 | GitHub SSH - All agents | ☐ | | |
-| 1.6 | V10/V11 Service credentials | ☐ | | |
+| 1.6 | V10/V12 Service credentials | ☐ | | |
 | 1.7 | Keycloak/IAM JWT token | ☐ | | |
 | **SECTION 1 TOTAL** | **7 items** | **0/7** | | |
 
@@ -405,7 +405,7 @@ curl -s https://v10-api.aurigraph.io/api/v10/health
 # - Verify token not expired
 ```
 
-### V11 Database Issues
+### V12 Database Issues
 ```bash
 # Verify PostgreSQL is running
 psql --version
@@ -450,6 +450,6 @@ gatling --version
 ---
 
 **Generated**: December 25, 2025
-**For**: Aurigraph V11 Migration - Sprint 19 Pre-Deployment
+**For**: Aurigraph V12 Migration - Sprint 19 Pre-Deployment
 **Status**: Ready for verification
 

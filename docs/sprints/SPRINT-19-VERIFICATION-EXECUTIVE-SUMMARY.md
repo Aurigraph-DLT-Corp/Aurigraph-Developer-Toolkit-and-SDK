@@ -59,7 +59,7 @@ Expected result: GitHub SSH passes, other items may skip (need ENV variables)
 
 **Afternoon (1:00 PM - 5:00 PM)**: Section 2 Dev Environment [45 mins]
 ```bash
-cd aurigraph-av10-7/aurigraph-v11-standalone
+cd aurigraph-av10-7/aurigraph-v12-standalone
 ./mvnw clean compile  # 10 mins
 ./mvnw quarkus:dev    # 15 mins
 ./mvnw test           # 20 mins
@@ -104,7 +104,7 @@ If successful:
 |------|----------|--------|------|
 | Dec 28 | 3-4 | 22/37 (22 total) | Monitoring & Testing ready |
 | Dec 29 | 5 | 26/37 (3 total) | Communication channels live |
-| Dec 30 | 7-8 | 32/37 (6 total) | V10 & V11 systems validated |
+| Dec 30 | 7-8 | 32/37 (6 total) | V10 & V12 systems validated |
 | Dec 31 | 9 | 37/37 (3 total) | Final readiness review @ 2 PM |
 
 ---
@@ -285,7 +285,7 @@ TOMORROW: [Plans for next day]
 ### For Tech Lead (Today - Dec 25)
 - [ ] Review verification guides for technical accuracy
 - [ ] Test the credential verification script on your machine
-- [ ] Confirm V11 codebase is on V12 branch
+- [ ] Confirm V12 codebase is on V12 branch
 - [ ] Verify PostgreSQL is running locally
 - [ ] Prep answers to common issues (as escalation backup)
 
@@ -330,7 +330,7 @@ This verification framework represents the **safety net** for Sprint 19 executio
 - **Testing (4)**: Can we validate changes?
 - **Communication (3)**: Can team stay coordinated?
 - **Documentation (3)**: Do teams have references?
-- **System Health (6)**: Are both V10 and V11 ready?
+- **System Health (6)**: Are both V10 and V12 ready?
 - **Risk Readiness (3)**: Can we respond to emergencies?
 
 **Each item verified** = One less crisis during sprint execution.

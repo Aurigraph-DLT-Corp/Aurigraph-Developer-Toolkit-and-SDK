@@ -1,7 +1,7 @@
 # Agent Sprint 19 Deployment Guide
 ## REST-to-gRPC Gateway Zero-Downtime Migration
 
-**Sprint**: 19 (REST-to-gRPC Gateway & V10-V11 Data Sync)  
+**Sprint**: 19 (REST-to-gRPC Gateway & V10-V12 Data Sync)  
 **Duration**: 10 business days  
 **Target Dates**: January 1-15, 2026 (or December 1-15 if date corrected)  
 **Team Size**: 3 lead agents + 1 coordination agent  
@@ -17,28 +17,28 @@
 **@J4CDeploymentAgent** - REST-to-gRPC Gateway Implementation
 - **Hours**: 58 (primary lead)
 - **Utilization**: 91% (high priority)
-- **Stories**: AV11-611 (Gateway), AV11-612 (Canary), AV11-614 (Cutover)
+- **Stories**: AV12-611 (Gateway), AV12-612 (Canary), AV12-614 (Cutover)
 - **Key Responsibility**: REST-to-gRPC translation layer + canary deployment
 - **Escalation Path**: Project manager if timeline slips >1 day
 
-**@J4CNetworkAgent** - V10-V11 Data Synchronization
+**@J4CNetworkAgent** - V10-V12 Data Synchronization
 - **Hours**: 48 (parallel track)
 - **Utilization**: 48% (moderate)
-- **Stories**: AV11-613 (Data Sync), AV11-616 (Consistency Validation)
+- **Stories**: AV12-613 (Data Sync), AV12-616 (Consistency Validation)
 - **Key Responsibility**: Bidirectional sync, transaction/consensus/RWA replication
 - **Escalation Path**: Database migration team if latency >5s
 
 **@J4CTestingAgent** - Acceptance Testing & Validation
 - **Hours**: 32 (QA lead)
 - **Utilization**: 32% (moderate)
-- **Stories**: AV11-615 (Testing)
+- **Stories**: AV12-615 (Testing)
 - **Key Responsibility**: Test suite development, canary validation, go/no-go gate
 - **Escalation Path**: QA engineering lead if test coverage <80%
 
 **@J4CCutoverAgent** - Cutover Coordination & Rollback
 - **Hours**: 40 (execution only)
 - **Utilization**: 40% (on standby Days 1-9)
-- **Stories**: AV11-614 (Cutover)
+- **Stories**: AV12-614 (Cutover)
 - **Key Responsibility**: Cutover runbook, approval routing, rollback procedures
 - **Escalation Path**: Executive sponsor if rollback needed
 
@@ -153,9 +153,9 @@ public class AurigraphResource {
 - [ ] Traffic shaping logic tested with simple curl requests
 
 **Acceptance Criteria**:
-- ✅ Route 1% traffic to V11, 99% to V10 (via NGINX weight)
-- ✅ Monitor V11 error rate (target: <0.5%)
-- ✅ Fail fast: If V11 error rate >1%, automatically rollback to 100% V10
+- ✅ Route 1% traffic to V12, 99% to V10 (via NGINX weight)
+- ✅ Monitor V12 error rate (target: <0.5%)
+- ✅ Fail fast: If V12 error rate >1%, automatically rollback to 100% V10
 
 **Risk Mitigation**: If NGINX config too complex, use Kubernetes canary (if available) or manual traffic shift
 
@@ -191,7 +191,7 @@ public class AurigraphResource {
 #### Task: Core Gateway Implementation
 **Agent**: @J4CDeploymentAgent  
 **Duration**: 24 hours (split 12 hrs/day)  
-**Story**: AV11-611 (REST-to-gRPC Gateway)  
+**Story**: AV12-611 (REST-to-gRPC Gateway)  
 
 **Sub-tasks**:
 
@@ -206,7 +206,7 @@ public class AurigraphResource {
 
 **Code Skeleton** (starter template for agent):
 ```java
-// aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/AurigraphResource.java
+// aurigraph-v11-standalone/src/main/java/io/aurigraph/v12/AurigraphResource.java
 
 @Path("/api/v11")
 @ApplicationScoped
@@ -240,7 +240,7 @@ public class AurigraphResource {
 }
 ```
 
-**File Location**: `aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/AurigraphResource.java`
+**File Location**: `aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v12/AurigraphResource.java`
 
 ---
 
@@ -248,7 +248,7 @@ public class AurigraphResource {
 **Deliverable**: gRPC stubs properly injected and callable
 
 **Acceptance Criteria**:
-- ✅ TransactionServiceStub can call V11 backend
+- ✅ TransactionServiceStub can call V12 backend
 - ✅ ConsensusServiceStub available for consensus queries
 - ✅ SmartContractServiceStub ready for future use
 - ✅ Connection pooling working (max 100 connections)
@@ -256,7 +256,7 @@ public class AurigraphResource {
 
 **Code Skeleton**:
 ```java
-// aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/grpc/GRPCClientFactory.java
+// aurigraph-v11-standalone/src/main/java/io/aurigraph/v12/grpc/GRPCClientFactory.java
 
 @ApplicationScoped
 public class GRPCClientFactory {
@@ -282,7 +282,7 @@ public class GRPCClientFactory {
 }
 ```
 
-**File Location**: `aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/grpc/GRPCClientFactory.java`
+**File Location**: `aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v12/grpc/GRPCClientFactory.java`
 
 ---
 
@@ -298,7 +298,7 @@ public class GRPCClientFactory {
 
 **Code Skeleton**:
 ```java
-// aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/translator/RESTToGRPCTranslator.java
+// aurigraph-v11-standalone/src/main/java/io/aurigraph/v12/translator/RESTToGRPCTranslator.java
 
 @ApplicationScoped
 public class RESTToGRPCTranslator {
@@ -335,7 +335,7 @@ public class RESTToGRPCTranslator {
 }
 ```
 
-**File Location**: `aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v11/translator/RESTToGRPCTranslator.java`
+**File Location**: `aurigraph-av10-7/aurigraph-v11-standalone/src/main/java/io/aurigraph/v12/translator/RESTToGRPCTranslator.java`
 
 ---
 
@@ -390,14 +390,14 @@ public Response getTransaction(@PathParam("id") String txId) {
 
 ---
 
-### **Days 5-7: V10-V11 Data Synchronization Setup** 🔄
+### **Days 5-7: V10-V12 Data Synchronization Setup** 🔄
 
 #### Task: Bidirectional Data Sync Implementation
 **Agent**: @J4CNetworkAgent  
 **Duration**: 24 hours total  
-**Story**: AV11-613 (V10-V11 Data Sync), AV11-616 (Consistency Validation)  
+**Story**: AV12-613 (V10-V12 Data Sync), AV12-616 (Consistency Validation)  
 
-**Context**: V10 continues processing transactions while V11 syncs data. Must maintain consistency across both systems.
+**Context**: V10 continues processing transactions while V12 syncs data. Must maintain consistency across both systems.
 
 ---
 
@@ -415,7 +415,7 @@ public Response getTransaction(@PathParam("id") String txId) {
 
 **Code Skeleton** (V10 data source):
 ```java
-// src/main/java/io/aurigraph/v11/sync/V10DataSource.java
+// src/main/java/io/aurigraph/v12/sync/V10DataSource.java
 
 @ApplicationScoped
 public class V10DataSource {
@@ -448,24 +448,24 @@ public class V10DataSource {
 
 ---
 
-##### Day 5 Task 2: V11 Data Sink (Write Incoming Data)
+##### Day 5 Task 2: V12 Data Sink (Write Incoming Data)
 **Duration**: 8 hours  
 
-**Deliverable**: V11 can ingest synced data from V10
+**Deliverable**: V12 can ingest synced data from V10
 
 **Acceptance Criteria**:
-- ✅ Can write transactions to V11 database (PostgreSQL)
-- ✅ Can write consensus state to V11 consensus module
-- ✅ Can write RWA tokens to V11 registry
-- ✅ Can write bridge state to V11 bridge module
+- ✅ Can write transactions to V12 database (PostgreSQL)
+- ✅ Can write consensus state to V12 consensus module
+- ✅ Can write RWA tokens to V12 registry
+- ✅ Can write bridge state to V12 bridge module
 - ✅ Write performance: <100ms per transaction
 
 **Code Skeleton**:
 ```java
-// src/main/java/io/aurigraph/v11/sync/V11DataSink.java
+// src/main/java/io/aurigraph/v12/sync/V12DataSink.java
 
 @ApplicationScoped
-public class V11DataSink {
+public class V12DataSink {
   
   @Inject
   TransactionService txService;
@@ -495,7 +495,7 @@ public class V11DataSink {
 ##### Day 6 Task 1: Sync Loop with Heartbeat (8 hours)
 **Duration**: 8 hours  
 
-**Deliverable**: Continuous sync process pulling V10 data and writing to V11
+**Deliverable**: Continuous sync process pulling V10 data and writing to V12
 
 **Acceptance Criteria**:
 - ✅ Sync loop runs every 1 second (or lower latency target)
@@ -507,16 +507,16 @@ public class V11DataSink {
 
 **Code Pattern**:
 ```java
-// src/main/java/io/aurigraph/v11/sync/V10V11SyncService.java
+// src/main/java/io/aurigraph/v12/sync/V10V12SyncService.java
 
 @ApplicationScoped
-public class V10V11SyncService {
+public class V10V12SyncService {
   
   @Inject
   V10DataSource v10Data;
   
   @Inject
-  V11DataSink v11Sink;
+  V12DataSink v11Sink;
   
   @Scheduled(every = "1s") // Run every 1 second
   void syncLoop() {
@@ -527,7 +527,7 @@ public class V10V11SyncService {
       // Fetch new transactions from V10
       List<Transaction> newTxs = v10Data.getTransactionsSince(lastSyncTimestamp);
       
-      // Write to V11
+      // Write to V12
       for (Transaction tx : newTxs) {
         v11Sink.writeTransaction(tx);
         updateLastSyncTimestamp(tx.getTimestamp());
@@ -551,19 +551,19 @@ public class V10V11SyncService {
 ##### Day 6 Task 2: Transaction ID Deduplication (8 hours)
 **Duration**: 8 hours  
 
-**Deliverable**: Prevent duplicate transactions when V10 and V11 both process same tx
+**Deliverable**: Prevent duplicate transactions when V10 and V12 both process same tx
 
 **Acceptance Criteria**:
-- ✅ Detect if transaction ID already exists in V11
+- ✅ Detect if transaction ID already exists in V12
 - ✅ Skip duplicate transactions (idempotent writes)
 - ✅ Log deduplication events (INFO level)
-- ✅ Handle edge case: Transaction exists in V10 but not V11 (write it)
-- ✅ Handle edge case: Transaction in V11 but not V10 (keep it, V10 may have pruned)
+- ✅ Handle edge case: Transaction exists in V10 but not V12 (write it)
+- ✅ Handle edge case: Transaction in V12 but not V10 (keep it, V10 may have pruned)
 
 **Code Pattern**:
 ```java
 public void writeTransaction(Transaction tx) {
-  // Check if transaction already exists in V11
+  // Check if transaction already exists in V12
   Optional<Transaction> existing = txService.getTransactionById(tx.getId());
   
   if (existing.isPresent()) {
@@ -572,7 +572,7 @@ public void writeTransaction(Transaction tx) {
     return;
   }
   
-  // New transaction, write to V11
+  // New transaction, write to V12
   txService.storeTransaction(tx);
   logger.info("Synced transaction {} from V10", tx.getId());
 }
@@ -583,17 +583,17 @@ public void writeTransaction(Transaction tx) {
 ##### Day 7 Task 1: Consensus State Verification (8 hours)
 **Duration**: 8 hours  
 
-**Deliverable**: V10 and V11 consensus state aligned
+**Deliverable**: V10 and V12 consensus state aligned
 
 **Acceptance Criteria**:
-- ✅ V10 consensus root hash = V11 consensus root hash (after sync)
-- ✅ V10 block height = V11 block height (after sync, with <5 second lag)
+- ✅ V10 consensus root hash = V12 consensus root hash (after sync)
+- ✅ V10 block height = V12 block height (after sync, with <5 second lag)
 - ✅ Verified via hash comparison (SHA256 of consensus state)
 - ✅ Periodic verification every 10 seconds (log mismatches if any)
 
 **Code Pattern** (consistency validation):
 ```java
-// src/main/java/io/aurigraph/v11/sync/ConsistencyValidator.java
+// src/main/java/io/aurigraph/v12/sync/ConsistencyValidator.java
 
 @ApplicationScoped
 public class ConsistencyValidator {
@@ -613,7 +613,7 @@ public class ConsistencyValidator {
     String v11Hash = hashConsensusState(v11State);
     
     if (!v10Hash.equals(v11Hash)) {
-      logger.warn("Consensus state mismatch: V10={}, V11={}", v10Hash, v11Hash);
+      logger.warn("Consensus state mismatch: V10={}, V12={}", v10Hash, v11Hash);
       // TODO: Trigger remediation (re-sync)
     } else {
       logger.debug("Consensus state consistent (hash: {})", v10Hash);
@@ -633,16 +633,16 @@ public class ConsistencyValidator {
 ##### Day 7 Task 2: RWA Registry Sync & Validation (8 hours)
 **Duration**: 8 hours  
 
-**Deliverable**: RWA tokens synced from V10 to V11, total supply matches
+**Deliverable**: RWA tokens synced from V10 to V12, total supply matches
 
 **Acceptance Criteria**:
-- ✅ All RWA tokens in V10 exist in V11
-- ✅ RWA token balances match between V10 and V11
+- ✅ All RWA tokens in V10 exist in V12
+- ✅ RWA token balances match between V10 and V12
 - ✅ Total RWA supply verified (sum of all balances)
 - ✅ Merkle tree proof validation (if V10 uses Merkle tree)
 
-**Story**: AV11-616 (Consistency Validation)  
-**File Location**: `src/main/java/io/aurigraph/v11/sync/RWARegistrySync.java`
+**Story**: AV12-616 (Consistency Validation)  
+**File Location**: `src/main/java/io/aurigraph/v12/sync/RWARegistrySync.java`
 
 ---
 
@@ -651,7 +651,7 @@ public class ConsistencyValidator {
 #### Task: Acceptance Test Suite Development
 **Agent**: @J4CTestingAgent  
 **Duration**: 32 hours total (16 hrs/day)  
-**Story**: AV11-615 (Testing)  
+**Story**: AV12-615 (Testing)  
 
 ---
 
@@ -669,7 +669,7 @@ public class ConsistencyValidator {
 
 **Test File Template**:
 ```java
-// aurigraph-av10-7/aurigraph-v11-standalone/src/test/java/io/aurigraph/v11/AurigraphResourceTest.java
+// aurigraph-av10-7/aurigraph-v11-standalone/src/test/java/io/aurigraph/v12/AurigraphResourceTest.java
 
 @QuarkusTest
 class AurigraphResourceTest {
@@ -720,12 +720,12 @@ class AurigraphResourceTest {
 ##### Day 8 Task 2: Integration Test Suite (8 hours)
 **Duration**: 8 hours  
 
-**Deliverable**: End-to-end tests with real V11 backend
+**Deliverable**: End-to-end tests with real V12 backend
 
 **Acceptance Criteria**:
 - ✅ REST request → gRPC call → database write → successful response
-- ✅ Transaction submitted via REST, verified in V11 database
-- ✅ Consensus state updated via sync, reflected in V11
+- ✅ Transaction submitted via REST, verified in V12 database
+- ✅ Consensus state updated via sync, reflected in V12
 - ✅ 95% of acceptance criteria testable via integration tests
 - ✅ Test execution time < 5 minutes for full suite
 
@@ -779,24 +779,24 @@ class GatewayIntegrationTest {
 **Deliverable**: Canary deployment validated with low traffic
 
 **Acceptance Criteria**:
-- ✅ Route 1% traffic to V11, 99% to V10
-- ✅ V11 error rate <0.5% on canary traffic
-- ✅ V11 latency <150ms P99 on canary traffic
+- ✅ Route 1% traffic to V12, 99% to V10
+- ✅ V12 error rate <0.5% on canary traffic
+- ✅ V12 latency <150ms P99 on canary traffic
 - ✅ Response correctness validated (spot checks)
 - ✅ Monitoring dashboard shows metrics clearly
 - ✅ Rollback procedure tested (100% traffic back to V10 works)
 
 **Canary Testing Steps**:
 ```
-Step 1: Set NGINX weight V11=1, V10=99
+Step 1: Set NGINX weight V12=1, V10=99
 Step 2: Generate 100 test transactions (via load tester)
-Step 3: Monitor V11 error rate (target: 0%)
-Step 4: Check V11 latency percentiles:
+Step 3: Monitor V12 error rate (target: 0%)
+Step 4: Check V12 latency percentiles:
         - P50: <50ms
         - P99: <150ms
         - P99.9: <300ms
 Step 5: Manually verify 10 random transactions (spot check)
-Step 6: Test rollback: Set NGINX weight V11=0, V10=100
+Step 6: Test rollback: Set NGINX weight V12=0, V10=100
 Step 7: Verify all traffic returns to V10
 ```
 
@@ -848,28 +848,28 @@ scenario "Gateway Load Test" {
 ```
 ✅ PASS if ALL of the following are true:
 
-1. REST-to-gRPC Gateway (AV11-611)
+1. REST-to-gRPC Gateway (AV12-611)
    ✓ All 50+ REST endpoints implemented
    ✓ Request/response translation 100% correct
    ✓ Unit test coverage ≥80%
    ✓ Integration tests all passing
    ✓ <100ms P99 latency on 100K TPS
 
-2. V10-V11 Data Sync (AV11-613)
+2. V10-V12 Data Sync (AV12-613)
    ✓ Transactions syncing every 1 second
    ✓ Consensus state aligned (hash match)
    ✓ RWA tokens synced correctly
    ✓ Deduplication working (no duplicate writes)
    ✓ Sync lag consistently <5 seconds
 
-3. Testing (AV11-615)
+3. Testing (AV12-615)
    ✓ Unit tests: ≥80% coverage, all passing
    ✓ Integration tests: all passing
    ✓ Canary test: <0.5% error rate on 1% traffic
    ✓ Load test: 100K TPS sustained 5 mins
    ✓ Rollback tested and working
 
-4. Cutover Readiness (AV11-614)
+4. Cutover Readiness (AV12-614)
    ✓ Cutover runbook complete & reviewed
    ✓ All 3 approvers briefed & ready
    ✓ Rollback procedure tested
@@ -933,9 +933,9 @@ scenario "Gateway Load Test" {
 
 **Mitigation**:
 - Day 6: Monitor sync lag continuously
-- If lag >3 seconds: Investigate bottleneck (V10 API latency? V11 database write latency?)
+- If lag >3 seconds: Investigate bottleneck (V10 API latency? V12 database write latency?)
 - If V10 API slow: Reduce batch size (fetch 100 txs at a time instead of 1000)
-- If V11 database slow: Add database indexes, increase connection pool
+- If V12 database slow: Add database indexes, increase connection pool
 - **Fallback**: Accept 10-second lag for launch, optimize post-launch
 
 **Escalation**: If lag cannot be <7 seconds by Day 8, escalate to database team
@@ -965,9 +965,9 @@ scenario "Gateway Load Test" {
 **Mitigation**:
 - Day 9: If canary error rate >0.5%, revert to 100% V10 traffic
 - Investigate error logs (what's failing?)
-- Fix issues in V11 code
+- Fix issues in V12 code
 - Retry canary test (repeat Days 8-9 if needed)
-- **Fallback**: Launch with 100% V10, defer V11 cutover 1 week
+- **Fallback**: Launch with 100% V10, defer V12 cutover 1 week
 
 **Escalation**: If unable to get error rate <0.5%, escalate to CTO for design review
 
@@ -1007,7 +1007,7 @@ scenario "Gateway Load Test" {
 
 **Validation**:
 - @J4CTestingAgent creates integration test plan
-- Verify test environment has both V10 and V11 running
+- Verify test environment has both V10 and V12 running
 - Plan load test infrastructure
 
 **Output**: Integration test suite ready for Day 8
@@ -1047,7 +1047,7 @@ scenario "Gateway Load Test" {
 1. `AurigraphResource.java` (50+ REST endpoints)
 2. `RESTToGRPCTranslator.java` (translation logic)
 3. `GRPCClientFactory.java` (gRPC client setup)
-4. `V10V11SyncService.java` (sync loop)
+4. `V10V12SyncService.java` (sync loop)
 5. `ConsistencyValidator.java` (validation)
 
 ### Documentation Deliverables
@@ -1086,7 +1086,7 @@ scenario "Gateway Load Test" {
 
 **3. Error Handling First Principle**: We allocate Day 4 Task 2 (8 hours) to error handling because REST-to-gRPC translation has 8 distinct error scenarios. Implementing error handling upfront (not as an afterthought) prevents production surprises where "gateway works for happy path but fails on errors."
 
-**4. Canary as Safety Net**: The 1% traffic canary on Day 9 is a critical gate. If V11 has a bug, canary catches it (1% user impact) instead of deploying broken code to 100% of traffic. This single test prevents potential outages.
+**4. Canary as Safety Net**: The 1% traffic canary on Day 9 is a critical gate. If V12 has a bug, canary catches it (1% user impact) instead of deploying broken code to 100% of traffic. This single test prevents potential outages.
 
 `─────────────────────────────────────────────────`
 
@@ -1097,20 +1097,20 @@ scenario "Gateway Load Test" {
 ### Pre-Sprint Checklist (Complete Before Day 1)
 
 - [ ] **All 3 agents** have credentials configured for:
-  - JIRA (AV11 project)
+  - JIRA (AV12 project)
   - GitHub repository (`Aurigraph-DLT-Corp/Aurigraph-DLT`)
-  - V10 and V11 services (SSH, REST API keys)
+  - V10 and V12 services (SSH, REST API keys)
   - Keycloak/IAM system
 
 - [ ] **Development environment ready**:
-  - V11 code checked out and builds successfully (`./mvnw clean compile`)
+  - V12 code checked out and builds successfully (`./mvnw clean compile`)
   - V10 API accessible and responding
   - Test databases (PostgreSQL) provisioned
   - Load testing tools (Gatling/JMeter) installed
 
 - [ ] **Monitoring ready**:
   - Grafana dashboards created for latency, TPS, error rate
-  - Prometheus scraping V11 metrics
+  - Prometheus scraping V12 metrics
   - Alert thresholds configured (P99 latency >150ms, error rate >1%)
 
 - [ ] **Communication channels open**:
@@ -1166,7 +1166,7 @@ scenario "Gateway Load Test" {
 ---
 
 **Generated**: December 25, 2025  
-**For**: Aurigraph V11 Sprint 19 Agent Deployment  
+**For**: Aurigraph V12 Sprint 19 Agent Deployment  
 **Target Date**: January 1-15, 2026  
 **Status**: 🟢 Ready for Agent Kickoff
 

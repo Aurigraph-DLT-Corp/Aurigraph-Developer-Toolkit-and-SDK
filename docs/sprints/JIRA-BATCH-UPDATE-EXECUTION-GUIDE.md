@@ -43,7 +43,7 @@ cat /Users/subbujois/Documents/GitHub/Aurigraph-DLT/doc/Credentials.md | grep -A
 # - JIRA URL: https://aurigraphdlt.atlassian.net
 # - Username: sjoish12@gmail.com
 # - API Token: [token]
-# - Project: AV11
+# - Project: AV12
 ```
 
 **Load Credentials**:
@@ -62,7 +62,7 @@ chmod 600 ~/.jira/credentials
 - 110 tickets will take ~1 minute to create
 
 ### 3. Project Board Access
-- Ensure sjoish12@gmail.com has access to AV11 project
+- Ensure sjoish12@gmail.com has access to AV12 project
 - Must have "Create Issue" permission
 - Must have "Link Issues" permission
 
@@ -113,7 +113,7 @@ fi
 # [INFO] Fetching project board...
 # [SUCCESS] Board ID: 789
 # [INFO] Creating Epic: Sprint 19-23 Pre-Deployment Verification & Production Launch
-# [SUCCESS] Epic created: AV11-500
+# [SUCCESS] Epic created: AV12-500
 # [INFO] ====================================================
 # [INFO] SPRINT 19: Pre-Deployment Verification (20 tickets)
 # ... (20 tickets would be created)
@@ -174,38 +174,38 @@ tail -f /tmp/jira-execution.log
 [INFO] ======================================================
 [SUCCESS] JIRA API authentication successful
 [SUCCESS] Board ID: 789
-[SUCCESS] Epic created: AV11-500
-[SUCCESS] Issue created: AV11-501
-[SUCCESS] Issue created: AV11-502
+[SUCCESS] Epic created: AV12-500
+[SUCCESS] Issue created: AV12-501
+[SUCCESS] Issue created: AV12-502
 ... (110 tickets)
 [INFO] ======================================================
 [INFO] JIRA Batch Update Complete
 [INFO] ======================================================
 [SUCCESS] Total tickets created: 110
-[SUCCESS] Epic: AV11-500
+[SUCCESS] Epic: AV12-500
 ```
 
 ### Step 5: Post-Execution Verification (10 minutes)
 
 ```bash
 # 1. Check JIRA for created tickets
-curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/search?jql=epic=AV11-500" \
+curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/search?jql=epic=AV12-500" \
   -H "Authorization: Basic $(echo -n "$API_USER:$JIRA_API_TOKEN" | base64)" | jq '.total'
 # Should show: 111 (1 epic + 110 tickets)
 
 # 2. Verify ticket count by sprint
 for sprint in 19 20 21 22 23; do
-  count=$(curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/search?jql=sprint=\"Sprint $sprint\" AND project=AV11" \
+  count=$(curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/search?jql=sprint=\"Sprint $sprint\" AND project=AV12" \
     -H "Authorization: Basic $(echo -n "$API_USER:$JIRA_API_TOKEN" | base64)" | jq '.total')
   echo "Sprint $sprint: $count tickets"
 done
 
 # 3. Link PR #13 to infrastructure tickets
 # PR: https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT/pull/13
-# Tickets: AV11-501 to AV11-520 (Sprint 19 infrastructure)
+# Tickets: AV12-501 to AV12-520 (Sprint 19 infrastructure)
 
 for ticket_num in {501..520}; do
-  curl -s -X POST "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV11-$ticket_num/remotelink" \
+  curl -s -X POST "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV12-$ticket_num/remotelink" \
     -H "Authorization: Basic $(echo -n "$API_USER:$JIRA_API_TOKEN" | base64)" \
     -H "Content-Type: application/json" \
     -d '{
@@ -217,7 +217,7 @@ for ticket_num in {501..520}; do
         "title": "Sprint 19 Infrastructure Commit"
       }
     }' > /dev/null
-  echo "Linked AV11-$ticket_num"
+  echo "Linked AV12-$ticket_num"
 done
 ```
 
@@ -231,8 +231,8 @@ If something goes wrong, you can delete all created tickets:
 # WARNING: This deletes all Sprint 19-23 tickets created today
 # Make sure before running!
 
-# Find all tickets linked to epic AV11-500
-curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/search?jql=epic=AV11-500&maxResults=200" \
+# Find all tickets linked to epic AV12-500
+curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/search?jql=epic=AV12-500&maxResults=200" \
   -H "Authorization: Basic $(echo -n "$API_USER:$JIRA_API_TOKEN" | base64)" | \
   jq '.issues[].key' | while read ticket; do
     echo "Deleting $ticket..."
@@ -242,7 +242,7 @@ curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/search?jql=epic=AV
   done
 
 # Delete the epic
-curl -s -X DELETE "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV11-500" \
+curl -s -X DELETE "https://aurigraphdlt.atlassian.net/rest/api/3/issue/AV12-500" \
   -H "Authorization: Basic $(echo -n "$API_USER:$JIRA_API_TOKEN" | base64)"
 ```
 
@@ -272,13 +272,13 @@ assign_ticket() {
 }
 
 # Assign Sprint 19 tickets to PM
-assign_ticket "AV11-501" "$PM_JIRA_ID"
-assign_ticket "AV11-502" "$PM_JIRA_ID"
+assign_ticket "AV12-501" "$PM_JIRA_ID"
+assign_ticket "AV12-502" "$PM_JIRA_ID"
 # ... etc
 
 # Assign Sprint 20 tickets (protocol buffers) to Tech Lead
 for i in {503..512}; do
-  assign_ticket "AV11-$i" "$TL_JIRA_ID"
+  assign_ticket "AV12-$i" "$TL_JIRA_ID"
 done
 ```
 
@@ -293,7 +293,7 @@ Once tickets are created, notify the team:
 # Subject: "✅ JIRA Tickets Ready: Sprint 19-23 Assignments"
 
 # Key points to include:
-# - Epic AV11-500 created
+# - Epic AV12-500 created
 # - 110 tickets across 5 sprints
 # - Assignment will be done by PM
 # - Start execution date: Jan 1, 2026 (after Sprint 19 gate)
@@ -307,7 +307,7 @@ Team,
 
 All 110 JIRA tickets have been created for Sprints 19-23:
 
-Epic: AV11-500 - Sprint 19-23 Pre-Deployment Verification & Production Launch
+Epic: AV12-500 - Sprint 19-23 Pre-Deployment Verification & Production Launch
 
 Breakdown:
 - Sprint 19: 20 tickets (Pre-deployment verification)
@@ -352,11 +352,11 @@ export JIRA_API_TOKEN="<fresh token from https://aurigraphdlt.atlassian.net/sett
 # Error: "Failed to create issue" or "Invalid project key"
 
 # Check:
-1. AV11 project exists
-2. User has access to AV11 project
+1. AV12 project exists
+2. User has access to AV12 project
 
 # Verify:
-curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/project/AV11" \
+curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/project/AV12" \
   -H "Authorization: Basic $(echo -n "$API_USER:$JIRA_API_TOKEN" | base64)"
 ```
 
@@ -388,7 +388,7 @@ curl -s -X GET "https://aurigraphdlt.atlassian.net/rest/api/3/project/AV11" \
 ✅ Execution is successful when:
 
 1. All 110 tickets are created
-2. Epic AV11-500 is created and linked
+2. Epic AV12-500 is created and linked
 3. All tickets have correct sprint assignment
 4. No authentication errors in logs
 5. Tickets are visible in JIRA UI

@@ -39,7 +39,7 @@
   # Check PostgreSQL
   psql --version
   
-  # Verify V11 codebase on V12 branch
+  # Verify V12 codebase on V12 branch
   cd aurigraph-av10-7/aurigraph-v11-standalone
   git branch  # Should show V12
   ```
@@ -68,7 +68,7 @@
   # Verify git access
   git status
   
-  # Verify you can cd to V11 directory
+  # Verify you can cd to V12 directory
   cd aurigraph-av10-7/aurigraph-v11-standalone
   ls -la
   ```
@@ -156,7 +156,7 @@ cd ~/Aurigraph-DLT && ls -la && echo "✓ Repo access"
 # Verify PostgreSQL running
 psql -h localhost -U postgres -c "SELECT 1;" && echo "✓ PostgreSQL"
 
-# Verify V11 codebase
+# Verify V12 codebase
 cd aurigraph-av10-7/aurigraph-v11-standalone
 git status
 git branch
@@ -222,8 +222,8 @@ test -x scripts/ci-cd/verify-sprint19-credentials.sh && echo "✓ Script executa
 # 3. Can reach Aurigraph-DLT repo?
 cd ~/Aurigraph-DLT && git status && echo "✓ Repo accessible"
 
-# 4. V11 codebase ready?
-cd aurigraph-av10-7/aurigraph-v11-standalone && git branch && echo "✓ V11 ready"
+# 4. V12 codebase ready?
+cd aurigraph-av10-7/aurigraph-v11-standalone && git branch && echo "✓ V12 ready"
 ```
 
 ---
@@ -265,7 +265,7 @@ By end of day tomorrow (EOD 5:00 PM):
 
 All materials are prepared. All scripts are tested. Everything you need is ready.
 
-**Tomorrow at 9:00 AM**: We verify that Aurigraph V11 Sprint 19 is ready to execute.
+**Tomorrow at 9:00 AM**: We verify that Aurigraph V12 Sprint 19 is ready to execute.
 
 See you at 9:00 AM! 🚀
 

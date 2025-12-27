@@ -4,7 +4,7 @@
 **Sprint**: 20 (Feature Parity with V10)  
 **Duration**: 10 business days  
 **Target Dates**: January 16-29, 2026 (Days 11-20 overall)  
-**Dependencies**: Sprint 19 completion + Gateway stable (AV11-611, AV11-615)  
+**Dependencies**: Sprint 19 completion + Gateway stable (AV12-611, AV12-615)  
 **Team Size**: 3 lead agents + 1 coordination agent  
 **Total Hours**: 176 person-hours  
 **Success Target**: 100% feature parity with V10, zero data loss, canary validated  
@@ -17,7 +17,7 @@
 **Role**: EVM Bytecode Engine Implementation (BOTTLENECK)  
 **Hours**: 76 (highest utilization in Sprint 20)  
 **Utilization**: 60%  
-**Stories**: AV11-618 (Smart Contracts)  
+**Stories**: AV12-618 (Smart Contracts)  
 **Critical Path**: Yes (delays entire Sprint 20 by 1 day per day of slip)  
 
 **Key Deliverable**: Working EVM that executes 95% of Ethereum opcodes correctly  
@@ -29,7 +29,7 @@
 **Role**: Real-Time Data Streaming (10K Concurrent)  
 **Hours**: 50  
 **Utilization**: 50%  
-**Stories**: AV11-617 (WebSocket)  
+**Stories**: AV12-617 (WebSocket)  
 **Critical Path**: Yes (gates push notifications, smart contract events)  
 
 **Key Deliverable**: WebSocket server handling 10K concurrent connections <100ms latency  
@@ -41,7 +41,7 @@
 **Role**: Real-World Asset Tokenization & Oracles  
 **Hours**: 50  
 **Utilization**: 50%  
-**Stories**: AV11-619 (RWA Registry)  
+**Stories**: AV12-619 (RWA Registry)  
 **Critical Path**: No (can run in parallel, less complex than contracts)  
 
 **Key Deliverable**: RWA token issuance, transfer, and oracle price feed integration  
@@ -66,7 +66,7 @@
 **Deliverables**:
 - [ ] Test REST-to-gRPC gateway with sample requests
 - [ ] Verify data sync working (<5 sec lag)
-- [ ] Confirm V10-V11 consistency (transactions matching)
+- [ ] Confirm V10-V12 consistency (transactions matching)
 - [ ] Review code quality from Sprint 19 (identify any debt)
 
 **Duration**: 4 hours (10:00 AM - 2:00 PM, afternoon slot)  
@@ -77,7 +77,7 @@
 #### Day 11 Task: EVM Architecture Design
 **Agent**: @J4CSmartContractAgent  
 **Duration**: 8 hours  
-**Story**: AV11-618 (Smart Contracts - Phase 1: Architecture)  
+**Story**: AV12-618 (Smart Contracts - Phase 1: Architecture)  
 
 **Deliverables**:
 - [ ] EVM bytecode engine design document (10 pages)
@@ -122,7 +122,7 @@ Question 4: Thread safety - single-threaded or concurrent execution?
 #### Day 11 Task: WebSocket Protocol Design
 **Agent**: @J4CWebSocketAgent  
 **Duration**: 8 hours  
-**Story**: AV11-617 (WebSocket - Phase 1: Design)  
+**Story**: AV12-617 (WebSocket - Phase 1: Design)  
 
 **Deliverables**:
 - [ ] WebSocket message schema specification (JSON format)
@@ -169,7 +169,7 @@ Server → Client Messages:
 #### Day 11 Task: RWA Registry & Oracle Design
 **Agent**: @J4CRWAAgent  
 **Duration**: 8 hours  
-**Story**: AV11-619 (RWA Registry - Phase 1: Design)  
+**Story**: AV12-619 (RWA Registry - Phase 1: Design)  
 
 **Deliverables**:
 - [ ] RWA token data model (struct with fields: id, name, symbol, totalSupply, balances)
@@ -249,7 +249,7 @@ Fallback: If oracle unavailable, use last-known price with warning
 
 **Code Skeleton**:
 ```java
-// src/main/java/io/aurigraph/v11/evm/EVMEngine.java
+// src/main/java/io/aurigraph/v12/evm/EVMEngine.java
 
 @ApplicationScoped
 public class EVMEngine {
@@ -333,7 +333,7 @@ public class EVMEngine {
 
 **Code Pattern**:
 ```java
-// src/main/java/io/aurigraph/v11/evm/Memory.java
+// src/main/java/io/aurigraph/v12/evm/Memory.java
 
 public class Memory {
   private byte[] data;
@@ -362,7 +362,7 @@ public class Memory {
   }
 }
 
-// src/main/java/io/aurigraph/v11/evm/ContractStorage.java
+// src/main/java/io/aurigraph/v12/evm/ContractStorage.java
 
 @ApplicationScoped
 public class ContractStorage {
@@ -409,7 +409,7 @@ Tier 4 (high): CALL, DELEGATECALL, STATICCALL (expensive external calls)
 
 **Code Pattern**:
 ```java
-// src/main/java/io/aurigraph/v11/evm/GasCalculator.java
+// src/main/java/io/aurigraph/v12/evm/GasCalculator.java
 
 public class GasCalculator {
   
@@ -513,7 +513,7 @@ contract ERC20Simple {
 # Compile with solc
 solc --bin --abi contracts/Counter.sol -o build/
 
-# Load bytecode into V11 EVM
+# Load bytecode into V12 EVM
 POST /api/v11/contracts/deploy
 {
   "bytecode": "60806040...", // compiled bytecode
@@ -555,7 +555,7 @@ GET /api/v11/contracts/0x1234.../storage?key=0
 
 **Code Skeleton**:
 ```java
-// src/main/java/io/aurigraph/v11/websocket/WebSocketEndpoint.java
+// src/main/java/io/aurigraph/v12/websocket/WebSocketEndpoint.java
 
 @ServerEndpoint("/api/v11/ws")
 @ApplicationScoped
@@ -655,7 +655,7 @@ public class WebSocketEndpoint {
 
 **Code Pattern**:
 ```java
-// src/main/java/io/aurigraph/v11/websocket/SubscriptionManager.java
+// src/main/java/io/aurigraph/v12/websocket/SubscriptionManager.java
 
 @ApplicationScoped
 public class SubscriptionManager {
@@ -737,7 +737,7 @@ public void submitTransaction(Transaction tx) {
 
 **Code Skeleton**:
 ```java
-// src/main/java/io/aurigraph/v11/rwa/RWATokenService.java
+// src/main/java/io/aurigraph/v12/rwa/RWATokenService.java
 
 @ApplicationScoped
 public class RWATokenService {
@@ -832,7 +832,7 @@ public class RWATokenService {
 
 **Code Pattern**:
 ```java
-// src/main/java/io/aurigraph/v11/rwa/OraclePriceFeed.java
+// src/main/java/io/aurigraph/v12/rwa/OraclePriceFeed.java
 
 @ApplicationScoped
 public class OraclePriceFeed {
@@ -944,7 +944,7 @@ public class OraclePriceFeed {
 ### **Days 18-19: Canary Deployment & Feature Parity Validation** 🎪
 
 #### Day 18: Canary Deployment (8 hours)
-Route 1% traffic to V11, validate smart contracts + WebSocket work correctly
+Route 1% traffic to V12, validate smart contracts + WebSocket work correctly
 
 **Test Scenarios**:
 - REST request → SmartContract.deploy() → via gateway → EVM executes → state returned ✓
@@ -954,7 +954,7 @@ Route 1% traffic to V11, validate smart contracts + WebSocket work correctly
 ---
 
 #### Day 19: Feature Parity Validation (8 hours)
-Validate ALL V10 features work in V11 via REST gateway
+Validate ALL V10 features work in V12 via REST gateway
 
 **Feature Checklist**:
 - [ ] All transaction types: normal transfer, batch, smart contract call
@@ -972,7 +972,7 @@ Validate ALL V10 features work in V11 via REST gateway
 ```
 ✅ PASS if ALL of the following are true:
 
-1. Smart Contracts (AV11-618)
+1. Smart Contracts (AV12-618)
    ✓ EVM executes 95% of opcodes correctly
    ✓ Gas metering accurate within 1%
    ✓ State persists across restarts
@@ -980,14 +980,14 @@ Validate ALL V10 features work in V11 via REST gateway
    ✓ Integration tests 100% passing
    ✓ Security audit: 0 critical, ≤2 high findings
 
-2. WebSocket (AV11-617)
+2. WebSocket (AV12-617)
    ✓ 10K concurrent connections sustained
    ✓ <100ms P99 message latency
    ✓ Authentication working (JWT validation)
    ✓ Subscriptions functional
    ✓ Automatic reconnection on failure
 
-3. RWA Registry (AV11-619)
+3. RWA Registry (AV12-619)
    ✓ Token mint/transfer/burn working
    ✓ Oracle price feed updating every 5 mins
    ✓ Price variance monitoring active
@@ -995,7 +995,7 @@ Validate ALL V10 features work in V11 via REST gateway
    ✓ All REST endpoints working
 
 4. Feature Parity (Overall)
-   ✓ 100% of V10 features functional in V11
+   ✓ 100% of V10 features functional in V12
    ✓ Canary test: <0.5% error rate on 1% traffic
    ✓ Load test: 10K WebSocket + 10K contracts/sec
    ✓ Zero data loss verified
@@ -1057,6 +1057,6 @@ Validate ALL V10 features work in V11 via REST gateway
 ---
 
 **Generated**: December 25, 2025  
-**For**: Aurigraph V11 Sprint 20 Deployment  
+**For**: Aurigraph V12 Sprint 20 Deployment  
 **Status**: 🟢 Ready for Agent Deployment (pending Sprint 19 completion)
 

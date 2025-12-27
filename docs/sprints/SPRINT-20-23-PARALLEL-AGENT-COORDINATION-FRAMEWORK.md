@@ -643,7 +643,7 @@ Team:
 
 JIRA:
 - [ ] 110 tickets created (sprints 19-23)
-- [ ] Epic linked (AV11-500)
+- [ ] Epic linked (AV12-500)
 - [ ] Sprints configured
 - [ ] Team assigned
 
