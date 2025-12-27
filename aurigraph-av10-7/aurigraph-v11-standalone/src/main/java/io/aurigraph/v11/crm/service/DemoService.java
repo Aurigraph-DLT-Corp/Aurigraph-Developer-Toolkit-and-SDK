@@ -5,9 +5,9 @@ import io.aurigraph.v11.crm.entity.DemoRequest;
 import io.aurigraph.v11.crm.repository.DemoRequestRepository;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;

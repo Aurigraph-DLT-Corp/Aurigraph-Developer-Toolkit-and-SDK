@@ -47,7 +47,7 @@ public class LeadResponse {
                 .firstName(lead.getFirstName())
                 .lastName(lead.getLastName())
                 .email(lead.getEmail())
-                .phone(lead.getPhone())
+                .phone(lead.getPhoneNumber())
                 .companyName(lead.getCompanyName())
                 .jobTitle(lead.getJobTitle())
                 .source(lead.getSource())

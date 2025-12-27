@@ -5,7 +5,7 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +48,7 @@ public class LeadRepository implements PanacheRepository<Lead> {
      */
     public List<Lead> findHighScoreLeads(Integer minScore) {
         return find("leadScore >= ?1", minScore)
-                .sort("leadScore", Sort.Direction.Descending)
+                .sort(Sort.by("leadScore", Sort.Direction.Descending))
                 .list();
     }
 
@@ -57,7 +57,7 @@ public class LeadRepository implements PanacheRepository<Lead> {
      */
     public List<Lead> findRecentLeads(ZonedDateTime since, int limit) {
         return find("createdAt >= ?1", since)
-                .sort("createdAt", Sort.Direction.Descending)
+                .sort(Sort.by("createdAt", Sort.Direction.Descending))
                 .page(Page.ofSize(limit))
                 .list();
     }
@@ -68,7 +68,7 @@ public class LeadRepository implements PanacheRepository<Lead> {
     public List<Lead> findLeadsNeedingFollowUp() {
         return find("status IN ?1 AND doNotContact = FALSE",
                 List.of(Lead.LeadStatus.NEW, Lead.LeadStatus.ENGAGED))
-                .sort("createdAt", Sort.Direction.Ascending)
+                .sort(Sort.by("createdAt", Sort.Direction.Ascending))
                 .list();
     }
 

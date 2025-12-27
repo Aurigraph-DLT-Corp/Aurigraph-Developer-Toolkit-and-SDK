@@ -4,7 +4,7 @@ import io.aurigraph.v11.crm.entity.DemoRequest;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Sort;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +23,7 @@ public class DemoRequestRepository implements PanacheRepository<DemoRequest> {
      */
     public List<DemoRequest> findByLeadId(UUID leadId) {
         return find("leadId", leadId)
-                .sort("scheduledAt", Sort.Direction.Descending)
+                .sort(Sort.by("scheduledAt", Sort.Direction.Descending))
                 .list();
     }
 
@@ -35,7 +35,7 @@ public class DemoRequestRepository implements PanacheRepository<DemoRequest> {
                 List.of(DemoRequest.DemoStatus.REQUESTED,
                         DemoRequest.DemoStatus.SCHEDULED,
                         DemoRequest.DemoStatus.CONFIRMED))
-                .sort("scheduledAt", Sort.Direction.Ascending)
+                .sort(Sort.by("scheduledAt", Sort.Direction.Ascending))
                 .list();
     }
 
@@ -47,7 +47,7 @@ public class DemoRequestRepository implements PanacheRepository<DemoRequest> {
         ZonedDateTime tomorrow = today.plusDays(1);
 
         return find("scheduledAt >= ?1 AND scheduledAt < ?2", today, tomorrow)
-                .sort("scheduledAt", Sort.Direction.Ascending)
+                .sort(Sort.by("scheduledAt", Sort.Direction.Ascending))
                 .list();
     }
 
@@ -56,7 +56,7 @@ public class DemoRequestRepository implements PanacheRepository<DemoRequest> {
      */
     public List<DemoRequest> findAwaitingConfirmation() {
         return find("status = ?1", DemoRequest.DemoStatus.SCHEDULED)
-                .sort("scheduledAt", Sort.Direction.Ascending)
+                .sort(Sort.by("scheduledAt", Sort.Direction.Ascending))
                 .list();
     }
 
@@ -66,7 +66,7 @@ public class DemoRequestRepository implements PanacheRepository<DemoRequest> {
     public List<DemoRequest> findCompletedAwaitingFollowUp() {
         return find("status = ?1 AND followUpEmailSent = FALSE",
                 DemoRequest.DemoStatus.COMPLETED)
-                .sort("completedAt", Sort.Direction.Ascending)
+                .sort(Sort.by("completedAt", Sort.Direction.Ascending))
                 .list();
     }
 

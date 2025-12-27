@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -65,6 +65,9 @@ public class Lead extends PanacheEntityBase {
 
     @Column(length = 100)
     private String industry;
+
+    @Column(length = 100)
+    private String jobTitle;
 
     @Column(length = 100)
     private String country;

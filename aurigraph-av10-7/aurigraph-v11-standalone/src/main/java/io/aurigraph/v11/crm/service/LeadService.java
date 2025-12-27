@@ -5,9 +5,9 @@ import io.aurigraph.v11.crm.entity.Lead;
 import io.aurigraph.v11.crm.repository.LeadRepository;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +53,7 @@ public class LeadService {
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
-                .phone(request.getPhone())
+                .phoneNumber(request.getPhone())
                 .companyName(request.getCompanyName())
                 .jobTitle(request.getJobTitle())
                 .source(request.getSource())

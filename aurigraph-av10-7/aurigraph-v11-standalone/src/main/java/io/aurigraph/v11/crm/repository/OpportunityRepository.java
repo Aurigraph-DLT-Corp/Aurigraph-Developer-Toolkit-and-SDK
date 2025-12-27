@@ -4,7 +4,7 @@ import io.aurigraph.v11.crm.entity.Opportunity;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Sort;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -24,7 +24,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
      */
     public List<Opportunity> findByLeadId(UUID leadId) {
         return find("leadId", leadId)
-                .sort("createdAt", Sort.Direction.Descending)
+                .sort(Sort.by("createdAt", Sort.Direction.Descending))
                 .list();
     }
 
@@ -33,7 +33,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
      */
     public List<Opportunity> findByOwnedBy(UUID userId) {
         return find("ownedByUserId", userId)
-                .sort("stage", Sort.Direction.Ascending)
+                .sort(Sort.by("stage", Sort.Direction.Ascending))
                 .list();
     }
 
@@ -42,7 +42,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
      */
     public List<Opportunity> findByStage(Opportunity.OpportunityStage stage) {
         return find("stage", stage)
-                .sort("probabilityPercent", Sort.Direction.Descending)
+                .sort(Sort.by("probabilityPercent", Sort.Direction.Descending))
                 .list();
     }
 
@@ -53,7 +53,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
         return find("stage NOT IN ?1",
                 List.of(Opportunity.OpportunityStage.CLOSED_WON,
                         Opportunity.OpportunityStage.CLOSED_LOST))
-                .sort("expectedCloseDate", Sort.Direction.Ascending)
+                .sort(Sort.by("expectedCloseDate", Sort.Direction.Ascending))
                 .list();
     }
 
@@ -62,7 +62,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
      */
     public List<Opportunity> findAtRisk() {
         return find("atRisk = TRUE")
-                .sort("probabilityPercent", Sort.Direction.Ascending)
+                .sort(Sort.by("probabilityPercent", Sort.Direction.Ascending))
                 .list();
     }
 
@@ -74,7 +74,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
                 daysFromNow,
                 List.of(Opportunity.OpportunityStage.CLOSED_WON,
                         Opportunity.OpportunityStage.CLOSED_LOST))
-                .sort("expectedCloseDate", Sort.Direction.Ascending)
+                .sort(Sort.by("expectedCloseDate", Sort.Direction.Ascending))
                 .list();
     }
 
@@ -83,7 +83,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
      */
     public List<Opportunity> findWonOpportunities() {
         return find("stage", Opportunity.OpportunityStage.CLOSED_WON)
-                .sort("actualCloseDate", Sort.Direction.Descending)
+                .sort(Sort.by("actualCloseDate", Sort.Direction.Descending))
                 .list();
     }
 
@@ -92,7 +92,7 @@ public class OpportunityRepository implements PanacheRepository<Opportunity> {
      */
     public List<Opportunity> findLostOpportunities() {
         return find("stage", Opportunity.OpportunityStage.CLOSED_LOST)
-                .sort("actualCloseDate", Sort.Direction.Descending)
+                .sort(Sort.by("actualCloseDate", Sort.Direction.Descending))
                 .list();
     }
 
