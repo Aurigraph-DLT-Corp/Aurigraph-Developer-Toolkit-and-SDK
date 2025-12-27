@@ -1,402 +1,539 @@
-# 🚀 Aurigraph-DLT Development Guide
+# Aurigraph V12 Development Guide
 
-Welcome to the comprehensive development guide for the Aurigraph-DLT quantum blockchain platform! This guide will help you set up, develop, and contribute to the world's most advanced consciousness-aware blockchain technology.
+Welcome to the Aurigraph V12 development guide. This document provides instructions for setting up, developing, and deploying the high-performance blockchain platform built on Java 21, Quarkus 3.26+, and GraalVM.
 
-## 🌟 Quick Start
+## Quick Start
 
 ### Prerequisites
-- **Node.js** >= 20.0.0
-- **npm** >= 10.0.0
-- **Git** >= 2.0.0
-- **Docker** >= 20.0.0 (optional but recommended)
-- **Docker Compose** >= 2.0.0 (optional)
 
-### 1. Initialize Development Environment
+**System Requirements:**
+- **Java**: OpenJDK 21 or later
+- **Maven**: 3.9+ 
+- **Git**: 2.0+
+- **Docker**: 20.0+ (optional, for native builds)
+- **Node.js**: 18+ (for Enterprise Portal development)
+
+**Installation:**
+```bash
+# macOS (Homebrew)
+brew install openjdk@21 maven git
+
+# Ubuntu/Debian
+sudo apt-get install openjdk-21-jdk maven git
+
+# Verify installation
+java --version  # Should show Java 21+
+mvn --version   # Should show Maven 3.9+
+```
+
+## Project Structure
+
+```
+Aurigraph-DLT/
+├── aurigraph-av10-7/                           # V12 Main Development
+│   ├── aurigraph-v12-standalone/               # V12 Primary Service
+│   │   ├── src/main/java/io/aurigraph/v12/    # V12 Source Code
+│   │   │   ├── AurigraphResource.java          # REST API (Port 9003)
+│   │   │   ├── TransactionService.java         # Transaction Processing
+│   │   │   ├── ai/AIOptimizationService.java   # ML Optimization
+│   │   │   ├── consensus/                      # HyperRAFT++ Consensus
+│   │   │   ├── crypto/                         # Quantum Cryptography
+│   │   │   ├── bridge/                         # Cross-Chain Bridge
+│   │   │   ├── registry/                       # RWAT Registry
+│   │   │   └── governance/                     # DAO Governance
+│   │   ├── src/main/resources/
+│   │   │   └── application.properties          # Quarkus Config
+│   │   ├── src/test/java/                      # Unit & Integration Tests
+│   │   └── pom.xml                             # Maven Configuration
+│   ├── aurigraph-v11-standalone/               # V11 Legacy (Support Mode)
+│   └── docs/                                   # Documentation
+├── enterprise-portal/                           # React Frontend (v4.5.0+)
+│   └── enterprise-portal/frontend/
+│       ├── src/                                # React Components
+│       ├── public/                             # Static Assets
+│       └── package.json                        # npm Dependencies
+└── deployment/                                  # Production Configs
+    └── docker-compose.yml
+```
+
+## V12 Development Setup
+
+### 1. Clone Repository
 
 ```bash
-# Make setup script executable
-chmod +x dev-setup.sh
+# Clone the main repository
+git clone https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT.git
+cd Aurigraph-DLT
 
-# Run comprehensive setup
-./dev-setup.sh
+# Navigate to V12 directory
+cd aurigraph-av10-7/aurigraph-v12-standalone
 ```
 
-### 2. Start Development
+### 2. Build V12
 
 ```bash
-# Start all development servers
-node dev-utils.js start
+# Standard build (JVM mode)
+./mvnw clean compile
 
-# Or start individually
-cd aurigraph-av10-7 && npm run dev    # Backend
-cd aurigraph-av10-7/ui && npm run dev # Frontend
+# Build JAR package
+./mvnw clean package
+
+# Build with tests
+./mvnw clean verify
+
+# Skip tests for quick build
+./mvnw clean package -DskipTests
 ```
 
-### 3. Access Applications
+### 3. Run V12
 
-- 🚀 **AV11-7 Quantum Nexus**: http://localhost:8081
-- 🎨 **UI Dashboard**: http://localhost:3000
-- 📊 **Monitoring**: http://localhost:9090
-- 🔍 **Grafana**: http://localhost:3001
+**Development Mode (Hot Reload):**
+```bash
+# From aurigraph-av10-7/aurigraph-v12-standalone/
+./mvnw quarkus:dev
 
-## 📁 Project Structure
-
-```
-aurigraph-dlt/
-├── 🌌 Root Configuration
-│   ├── package.json              # UI dependencies
-│   ├── dev-setup.sh             # Development setup script
-│   ├── dev-utils.js             # Development utilities
-│   └── aurigraph-dlt.code-workspace # VS Code workspace
-│
-├── 🚀 aurigraph-av10-7/         # AV11-7 Quantum Nexus
-│   ├── src/                     # Source code
-│   │   ├── core/               # Core quantum blockchain
-│   │   ├── api/                # REST API endpoints
-│   │   ├── consensus/          # HyperRAFT++ consensus
-│   │   ├── crypto/             # Quantum cryptography
-│   │   ├── ai/                 # AI optimization
-│   │   ├── rwa/                # Real World Assets
-│   │   └── zk/                 # Zero-knowledge proofs
-│   ├── ui/                     # Management UI
-│   ├── tests/                  # Comprehensive tests
-│   ├── scripts/                # Automation scripts
-│   └── docker-compose.*.yml    # Docker configurations
-│
-├── ⚡ aurigraph-v9/             # Legacy V9 implementation
-│   └── src/                    # V9 source code
-│
-└── 📋 RWAT Documentation        # Real World Assets specs
-    ├── RWAT-Epic-and-Ticket-Structure.md
-    └── RWAT-Compound-Tokens-JIRA-Structure.md
+# Service starts on http://localhost:9003
+# Auto-reloads on file changes
 ```
 
-## 🛠️ Development Tools
+**Production Mode (JVM):**
+```bash
+# Run pre-built JAR
+java -jar target/quarkus-app/quarkus-run.jar
+```
 
-### Development Utilities
+**Native Mode (Fast Startup):**
+```bash
+# Build native executable (~15 minutes)
+./mvnw package -Pnative -Dquarkus.native.container-build=true
+
+# Run native binary (requires Docker)
+./target/aurigraph-v12-standalone-12.0.0-runner
+```
+
+## V12 Core Services
+
+### Transaction Processing Service
+
+**Location:** `src/main/java/io/aurigraph/v12/TransactionService.java`
+
+Handles high-throughput transaction processing:
+- Validates transactions
+- Manages transaction pool
+- Processes ~776K+ TPS baseline
+- Target: 2M+ TPS sustained
 
 ```bash
-# Show all available commands
-node dev-utils.js help
-
-# Start development environment
-node dev-utils.js start
-
-# Run comprehensive tests
-node dev-utils.js test
-
-# Build all projects
-node dev-utils.js build
-
-# Lint and format code
-node dev-utils.js lint
-node dev-utils.js format
-
-# Clean and reinstall
-node dev-utils.js clean
-node dev-utils.js install
-
-# Check project status
-node dev-utils.js status
+# Test transaction processing
+curl -X POST http://localhost:9003/api/v12/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"sender":"0x...", "receiver":"0x...", "amount":100}'
 ```
 
-### VS Code Integration
+### HyperRAFT++ Consensus
 
-Open the workspace file for optimal development experience:
+**Location:** `src/main/java/io/aurigraph/v12/consensus/`
+
+Implements the consensus algorithm:
+- Leader election with adaptive timeouts (150-300ms)
+- Parallel log replication
+- Byzantine fault tolerance (f < n/3)
+- AI-driven optimization
 
 ```bash
-code aurigraph-dlt.code-workspace
+# Check consensus status
+curl http://localhost:9003/api/v12/consensus/status
 ```
 
-**Features included:**
-- 🎯 Multi-folder workspace with organized project structure
-- 🔧 Debugging configurations for all components
-- 🧪 Integrated testing with Jest
-- 📝 TypeScript and ESLint integration
-- 🎨 Prettier code formatting
-- 🐳 Docker integration
-- 📋 Task runner for common operations
+### AI Optimization Service
 
-### Available VS Code Tasks
+**Location:** `src/main/java/io/aurigraph/v12/ai/`
 
-- `🚀 Start AV11-7 Development` - Start backend development server
-- `🎨 Start UI Development` - Start frontend development server
-- `🧪 Run All Tests` - Execute comprehensive test suite
-- `🔍 Lint All Code` - Run ESLint on all projects
-- `🏗️ Build All Projects` - Build all components
-- `🐳 Start Docker Services` - Launch containerized services
+Machine learning optimization for transaction ordering:
+- Neural network training on historical data
+- Real-time performance prediction
+- Dynamic parameter tuning
+- 3M+ TPS achieved in benchmarks
 
-## 🧪 Testing
+### Quantum-Resistant Cryptography
 
-### Test Categories
+**Location:** `src/main/java/io/aurigraph/v12/crypto/`
+
+NIST Level 5 quantum-resistant implementation:
+- CRYSTALS-Dilithium for digital signatures
+- CRYSTALS-Kyber for encryption
+- Hardware acceleration support
+- Automatic key rotation (90-day cycle)
+
+### Real-World Asset Tokenization (RWAT)
+
+**Location:** `src/main/java/io/aurigraph/v12/registry/`
+
+Merkle tree-based asset registry:
+- Asset registration and verification
+- Fractional ownership tracking
+- Oracle-based valuation updates
+- Proof-of-ownership verification
+
+### DAO Governance
+
+**Location:** `src/main/java/io/aurigraph/v12/governance/`
+
+Decentralized governance system:
+- Token voting (AUR token, 1B supply)
+- Proposal submission and voting
+- Timelock mechanisms
+- Emergency pause procedures
+
+## Testing
+
+### Unit Tests
 
 ```bash
-# Unit tests - Fast, isolated component tests
-npm run test:unit
+# Run all unit tests
+./mvnw test
 
-# Integration tests - Component interaction tests
-npm run test:integration
+# Run specific test class
+./mvnw test -Dtest=TransactionServiceTest
 
-# Smoke tests - Basic functionality verification
-npm run test:smoke
+# Run specific test method
+./mvnw test -Dtest=TransactionServiceTest#testHighThroughput
 
-# Performance tests - Load and stress testing
-npm run test:performance
-
-# Security tests - Vulnerability scanning
-npm run test:security
-
-# Regression tests - Prevent feature breakage
-npm run test:regression
-
-# All tests with coverage
-npm run test
+# Generate coverage report
+./mvnw verify
+# Report: target/site/jacoco/index.html
 ```
 
-### Test Structure
+### Integration Tests
 
-```
-tests/
-├── unit/           # Unit tests for individual components
-├── integration/    # Integration tests for system interactions
-├── smoke/          # Basic functionality tests
-├── performance/    # Load and stress tests
-├── security/       # Security and vulnerability tests
-├── regression/     # Regression prevention tests
-├── fixtures/       # Test data and mocks
-└── utils/          # Testing utilities
+```bash
+# Integration test suite
+./mvnw verify -P integration
+
+# Tests include:
+# - Multi-node consensus
+# - Cross-chain bridge functionality
+# - RWAT registry operations
+# - Governance voting procedures
 ```
 
-## 🔧 Configuration
+### Performance Tests
+
+```bash
+# Load testing (50K+ TPS)
+./mvnw test -Dtest=PerformanceBenchmarkTest
+
+# Stress testing (target throughput)
+./mvnw test -Dtest=StressBenchmarkTest
+```
+
+## Configuration
+
+### application.properties
+
+**Location:** `src/main/resources/application.properties`
+
+Key V12 Configuration:
+```properties
+# HTTP/2 Configuration
+quarkus.http.port=9003
+quarkus.http.http2=true
+quarkus.http.cors=true
+
+# Native Image Configuration
+quarkus.native.container-build=true
+quarkus.native.builder-image=graalvm
+
+# Database Configuration
+quarkus.datasource.db-kind=postgresql
+quarkus.datasource.username=aurigraph
+quarkus.datasource.password=secure_password
+
+# Reactive Configuration
+quarkus.reactor.netty.log-handler-supplier=custom
+```
 
 ### Environment Variables
 
-Development environment variables are automatically created by the setup script:
+**Development (.env):**
+```bash
+# Server Configuration
+QUARKUS_HTTP_PORT=9003
+QUARKUS_HTTP_HTTP2=true
 
-**Root `.env`:**
-```env
-NODE_ENV=development
-QUANTUM_NEXUS_PORT=8081
-QUANTUM_UNIVERSES=5
-CONSCIOUSNESS_INTERFACE_ENABLED=true
+# Database
+QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://localhost:5432/aurigraph
+QUARKUS_DATASOURCE_USERNAME=aurigraph
+QUARKUS_DATASOURCE_PASSWORD=dev_password
+
+# Redis Cache
+QUARKUS_REDIS_HOSTS=localhost:6379
+
+# JWT/OAuth
+AUTH_JWT_SECRET=dev_jwt_secret_key
+KEYCLOAK_URL=https://iam2.aurigraph.io/auth
+
+# Validator Configuration
+VALIDATOR_STAKE=10000
+VALIDATOR_ID=v1-dev
 ```
 
-**AV11-7 `.env`:**
-```env
-NODE_ENV=development
-PORT=8081
-QUANTUM_UNIVERSES=5
-CONSCIOUSNESS_INTERFACE=true
-AUTONOMOUS_EVOLUTION=true
-QUANTUM_SECURITY_LEVEL=6
-```
+## Enterprise Portal Development
 
-### TypeScript Configuration
+**Location:** `enterprise-portal/enterprise-portal/frontend/`
 
-Each project has optimized TypeScript configuration:
-- Strict type checking enabled
-- Path mapping for clean imports
-- Source maps for debugging
-- Incremental compilation for speed
-
-### ESLint & Prettier
-
-Consistent code quality across all projects:
-- TypeScript ESLint rules
-- Prettier integration
-- Import sorting
-- Unused import removal
-
-## 🐳 Docker Development
-
-### Available Compose Files
+### Setup Portal
 
 ```bash
-# Main AV11-7 services
-docker-compose -f aurigraph-av10-7/docker-compose.av10-7.yml up -d
+# Navigate to portal directory
+cd enterprise-portal/enterprise-portal/frontend
 
-# Monitoring stack
-docker-compose -f aurigraph-av10-7/docker-compose.monitoring.yml up -d
+# Install dependencies
+npm install
 
-# Testing environment
-docker-compose -f aurigraph-av10-7/docker-compose.test.yml up -d
-
-# Testnet deployment
-docker-compose -f aurigraph-av10-7/docker-compose.testnet.yml up -d
-```
-
-### Docker Services
-
-- **aurigraph-av10-7**: Main quantum blockchain node
-- **aurigraph-ui**: Management dashboard
-- **prometheus**: Metrics collection
-- **grafana**: Monitoring dashboards
-- **redis**: Caching and session storage
-- **postgres**: Database storage
-
-## 🌌 Quantum Features Development
-
-### Consciousness Interface
-
-```typescript
-// Example: Detecting conscious entities
-import { ConsciousnessInterface } from './src/core/ConsciousnessInterface';
-
-const consciousness = new ConsciousnessInterface();
-const isConscious = await consciousness.detect(entity);
-const welfareStatus = await consciousness.getWelfareStatus(entity);
-```
-
-### Parallel Universe Processing
-
-```typescript
-// Example: Multi-universe optimization
-import { ParallelUniverseProcessor } from './src/core/ParallelUniverseProcessor';
-
-const processor = new ParallelUniverseProcessor(5); // 5 universes
-const results = await processor.optimizeAcrossUniverses(parameters);
-const bestResult = processor.selectOptimalReality(results);
-```
-
-### Autonomous Evolution
-
-```typescript
-// Example: Protocol evolution
-import { AutonomousEvolution } from './src/core/AutonomousEvolution';
-
-const evolution = new AutonomousEvolution();
-await evolution.adaptToConditions(marketData);
-const newParameters = evolution.getOptimizedParameters();
-```
-
-## 📊 Monitoring & Debugging
-
-### Development Monitoring
-
-- **Prometheus**: http://localhost:9090 - Metrics collection
-- **Grafana**: http://localhost:3001 - Visual dashboards
-- **Health Checks**: http://localhost:8082/health - System status
-
-### Debugging
-
-**VS Code Debugging:**
-1. Set breakpoints in TypeScript source
-2. Use F5 or select debug configuration
-3. Debug with full source map support
-
-**Console Debugging:**
-```bash
-# Enable debug logging
-export DEBUG=aurigraph:*
-
-# Start with debugging
+# Start development server (Port 3000)
 npm run dev
+
+# Build for production
+npm run build
+
+# Production server
+npm start
 ```
 
-### Log Files
+### Portal Features
 
+- Transaction monitoring dashboard
+- Validator node management
+- Governance proposal voting
+- Real-world asset visualization
+- Cross-chain bridge status
+- Analytics and performance metrics
+
+## Docker Development
+
+### V12 Containerization
+
+```bash
+# Build Docker image
+docker build -t aurigraph-v12:latest \
+  -f src/main/docker/Dockerfile.native .
+
+# Run container
+docker run -p 9003:9003 \
+  -e QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/aurigraph \
+  aurigraph-v12:latest
 ```
-aurigraph-av10-7/logs/
-├── av10-7.log          # Main application logs
-├── consensus.log       # Consensus algorithm logs
-├── quantum.log         # Quantum operations logs
-└── consciousness.log   # Consciousness interface logs
+
+### Docker Compose Setup
+
+```bash
+# Start all services
+docker-compose -f deployment/docker-compose.yml up -d
+
+# Services:
+# - PostgreSQL 16 (localhost:5432)
+# - Redis 7 (localhost:6379)
+# - Aurigraph V12 (localhost:9003)
+# - NGINX Gateway (localhost:443)
+# - Keycloak IAM (localhost:8180)
+# - Prometheus (localhost:9090)
+# - Grafana (localhost:3001)
 ```
 
-## 🤝 Contributing
+## Debugging
 
-### Development Workflow
+### VS Code Java Debug
 
-1. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+**Launch Configuration (.vscode/launch.json):**
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Quarkus Dev Mode",
+      "request": "launch",
+      "mainClass": "io.quarkus.dev.runner.Main",
+      "args": "quarkus:dev",
+      "console": "integratedTerminal"
+    }
+  ]
+}
+```
 
-2. **Develop with Tests**
-   ```bash
-   # Make changes
-   # Write tests
-   npm run test
-   npm run lint
-   ```
+### Remote Debugging
 
-3. **Commit Changes**
-   ```bash
-   git add .
-   git commit -m "feat: add your feature description"
-   ```
+```bash
+# Run with remote debugging enabled
+./mvnw quarkus:dev -Ddebug=5005
 
-4. **Push and Create PR**
-   ```bash
-   git push origin feature/your-feature-name
-   # Create pull request on GitHub
-   ```
+# Connect debugger to localhost:5005
+```
 
-### Code Standards
+### Health Checks
 
-- **TypeScript**: Strict mode enabled
-- **Testing**: >90% code coverage required
-- **Documentation**: JSDoc comments for public APIs
-- **Commits**: Conventional commit format
-- **Linting**: ESLint + Prettier compliance
+```bash
+# Liveness probe
+curl http://localhost:9003/q/health/live
 
-### Pre-commit Hooks
+# Readiness probe
+curl http://localhost:9003/q/health/ready
 
-Husky is configured to run:
-- ESLint checks
-- Prettier formatting
-- TypeScript compilation
-- Unit tests
-- Commit message validation
+# Metrics endpoint
+curl http://localhost:9003/q/metrics
+```
 
-## 🆘 Troubleshooting
+## Performance Optimization
+
+### Virtual Threads (Java 21)
+
+V12 leverages Java 21 Virtual Threads for massive concurrency:
+- Enables millions of lightweight concurrent tasks
+- Improves throughput for I/O-bound operations
+- Reduces memory overhead compared to platform threads
+
+### Native Image Optimization
+
+```bash
+# Fast native build (development)
+./mvnw package -Pnative-fast \
+  -Dquarkus.native.container-build=true
+
+# Standard native build (production)
+./mvnw package -Pnative \
+  -Dquarkus.native.container-build=true
+
+# Ultra-optimized native build
+./mvnw package -Pnative-ultra \
+  -Dquarkus.native.container-build=true
+```
+
+### Profiling
+
+```bash
+# CPU Profiling
+java -XX:+UnlockDiagnosticVMOptions \
+  -XX:+DebugNonSafepoints \
+  -jar target/quarkus-app/quarkus-run.jar
+
+# Memory Analysis
+jmap -dump:live,format=b,file=heap.bin pid
+jhat -J-Xmx2g heap.bin
+```
+
+## Troubleshooting
 
 ### Common Issues
 
-**Port conflicts:**
+**Java Version Mismatch:**
 ```bash
-# Check what's using port 8081
-lsof -i :8081
+# Check installed Java versions
+java --version
+
+# Set JAVA_HOME for V12
+export JAVA_HOME=/path/to/java-21
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+**Maven Build Failures:**
+```bash
+# Clean Maven cache
+./mvnw clean
+
+# Update Maven dependencies
+./mvnw dependency:resolve-plugins
+
+# Rebuild
+./mvnw clean compile
+```
+
+**Port Conflicts:**
+```bash
+# Check what's using port 9003
+lsof -i :9003
+
 # Kill process if needed
 kill -9 <PID>
 ```
 
-**Node modules issues:**
+**Docker Native Build Issues:**
 ```bash
-# Clean and reinstall
-node dev-utils.js clean
-node dev-utils.js install
+# Ensure Docker is running
+docker ps
+
+# Check available Docker resources
+docker info | grep Memory
+
+# Build with container (requires 8GB+ RAM)
+./mvnw package -Pnative-fast \
+  -Dquarkus.native.container-build=true
 ```
 
-**TypeScript compilation errors:**
+## Deployment
+
+### Local Testing
+
 ```bash
-# Check TypeScript configuration
-npm run typecheck
+# Start all services locally
+docker-compose -f deployment/docker-compose.yml up -d
+
+# Run smoke tests
+./mvnw verify -P smoke-tests
+
+# Access services
+# V12 API: http://localhost:9003
+# Portal: http://localhost:3000
+# Grafana: http://localhost:3001
 ```
 
-**Docker issues:**
-```bash
-# Reset Docker environment
-docker-compose down
-docker system prune -f
-docker-compose up -d
-```
+### Production Deployment
 
-### Getting Help
+See `/deployment/docker-compose.production.yml` for multi-cloud deployment configuration across AWS, Azure, and GCP.
 
-- 📖 **Documentation**: Check project README files
-- 🐛 **Issues**: Create GitHub issues for bugs
-- 💬 **Discussions**: Use GitHub discussions for questions
-- 📧 **Contact**: Reach out to the development team
+## Contributing
 
-## 🎯 Next Steps
+### Development Workflow
 
-1. **Explore the codebase** - Start with `aurigraph-av10-7/src/index.ts`
-2. **Run tests** - Understand the test suite structure
-3. **Try the UI** - Explore the management dashboard
-4. **Read specifications** - Review RWAT documentation
-5. **Contribute** - Pick up issues and start contributing!
+1. **Create feature branch** from `main`
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+
+2. **Make changes and commit**
+   ```bash
+   git add .
+   git commit -m "feat: description of feature"
+   ```
+
+3. **Push and create pull request**
+   ```bash
+   git push origin feature/your-feature
+   ```
+
+4. **Ensure tests pass**
+   ```bash
+   ./mvnw verify
+   ```
+
+### Code Standards
+
+- **Java Style**: Follow Google Java Style Guide
+- **Test Coverage**: >80% for new code
+- **Documentation**: JavaDoc for public APIs
+- **Commits**: Conventional Commit format
+- **Linting**: Checkstyle validation
+
+## Resources
+
+- 📖 [ARCHITECTURE.md](/ARCHITECTURE.md) - System architecture
+- 📋 [CLAUDE.md](/CLAUDE.md) - Development guidance
+- 🔗 [GitHub Repository](https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT)
+- 🎯 [RWAT SDK Documentation](/docs/sdks/)
+- 📱 [Mobile Node Documentation](/docs/mobile/)
 
 ---
 
-**Happy coding! 🚀 Welcome to the future of quantum blockchain development!**
+**Version**: 12.0.0  
+**Last Updated**: December 2025  
+**Platform**: V12 (Java 21/Quarkus/GraalVM)

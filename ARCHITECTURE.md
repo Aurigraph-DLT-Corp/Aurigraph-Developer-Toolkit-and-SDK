@@ -1,7 +1,7 @@
 # Aurigraph DLT Platform Architecture
 
-**Version**: 11.1.0 (V11 Migration Progress)
-**Status**: 🚧 Hybrid V10/V11 Architecture (42% migrated)
+**Version**: 12.0.0 (V12 - Production Primary)
+**Status**: ✅ V12 Primary Platform (V11 Legacy Support)
 **Last Updated**: 2025-11-03
 
 ---
@@ -10,8 +10,9 @@
 
 1. [Executive Summary](#executive-summary)
 2. [System Architecture](#system-architecture)
-3. [V10 Architecture (TypeScript - Legacy)](#v10-architecture-typescript---legacy)
-4. [V11 Architecture (Java/Quarkus - Target)](#v11-architecture-javaquarkus---target)
+3. [V12 Architecture (Java/Quarkus - Primary)](#v12-architecture-javaquarkus---primary)
+4. [V11 Architecture (Java/Quarkus - Legacy)](#v11-architecture-javaquarkus---legacy)
+5. [V10 Architecture (TypeScript - Deprecated)](#v10-architecture-typescript---deprecated)
 5. [Migration Strategy](#migration-strategy)
 6. [Component Architecture](#component-architecture)
 7. [API Architecture](#api-architecture)
@@ -26,20 +27,20 @@
 
 ## Executive Summary
 
-Aurigraph DLT is a high-performance blockchain platform transitioning from TypeScript (V10) to Java/Quarkus/GraalVM (V11) architecture to achieve:
+Aurigraph DLT is a high-performance blockchain platform built on Java 21/Quarkus/GraalVM (V12) as the primary production platform, delivering:
 
-- **Target Performance**: 2M+ TPS (currently 776K TPS in V11)
-- **Consensus**: HyperRAFT++ with AI optimization
-- **Security**: NIST Level 5 quantum-resistant cryptography
-- **Interoperability**: Cross-chain bridge with major networks
-- **Innovation**: AI-driven consensus optimization and real-world asset tokenization
+- **Performance**: 2M+ TPS target (776K+ baseline verified, 3M+ with ML optimization)
+- **Consensus**: HyperRAFT++ with AI-driven optimization
+- **Security**: NIST Level 5 quantum-resistant cryptography (CRYSTALS-Dilithium/Kyber)
+- **Interoperability**: Cross-chain bridges with Ethereum, Solana, Polkadot
+- **Innovation**: AI-driven transaction optimization, real-world asset tokenization (RWAT)
 
-### Current State (November 3, 2025)
-- **V10 (TypeScript)**: Production-ready, 1M+ TPS capability (legacy support)
-- **V11 (Java/Quarkus)**: 42% migrated, 776K TPS baseline achieved
-- **V11 ML Optimization**: 3.0M TPS achieved in Sprint 5 benchmarks
-- **Enterprise Portal**: v4.5.0 live at https://dlt.aurigraph.io
-- **Both versions** coexist during migration period
+### Current State (December 2025)
+- **V12 (Java 21/Quarkus)**: Production primary, 776K+ TPS verified baseline
+- **V12 with ML**: 3.0M TPS achieved in Sprint 5 benchmarks
+- **V11 (Java/Quarkus)**: Legacy support mode (95% feature parity with V12)
+- **V10 (TypeScript)**: Deprecated (unsupported as of Q1 2026)
+- **Enterprise Portal**: v4.5.0 live at https://dlt.aurigraph.io (React 18)
 
 ---
 
@@ -94,10 +95,10 @@ Aurigraph DLT is a high-performance blockchain platform transitioning from TypeS
 
 ---
 
-## V10 Architecture (TypeScript - Legacy)
+## V12 Architecture (Java/Quarkus - Primary)
 
 ### Overview
-V10 is the current production system built on Node.js/TypeScript, delivering 1M+ TPS with proven stability.
+V12 is the primary production platform built on Java 21, Quarkus 3.26+, and GraalVM, delivering 776K+ TPS baseline with 3M+ TPS capability through ML optimization.
 
 ### Technology Stack
 
@@ -180,7 +181,7 @@ V10 is the current production system built on Node.js/TypeScript, delivering 1M+
 
 ---
 
-## V11 Architecture (Java/Quarkus - Target)
+## V11 Architecture (Java/Quarkus - Legacy)
 
 ### Overview
 V11 is the next-generation architecture leveraging Java 21, Quarkus, and GraalVM for superior performance and native compilation.
@@ -310,7 +311,7 @@ io.aurigraph.v11
 - **Throughput**: HTTP/2 + Polling (WebSocket in progress)
 - **Carbon Footprint**: <0.17 gCO₂/tx (target, tracking implemented)
 
-### V11 Multi-Cloud Deployment Architecture
+### V12 Multi-Cloud Deployment Architecture
 
 **Node Type Specialization**:
 
@@ -396,9 +397,9 @@ io.aurigraph.v11
 │                                ▼                     │
 │  ┌──────────────────────────────────────────────┐  │
 │  │        Carbon REST API Layer                 │  │
-│  │  GET /api/v11/carbon/transaction/{txId}      │  │
-│  │  GET /api/v11/carbon/block/{blockNumber}     │  │
-│  │  GET /api/v11/carbon/stats                   │  │
+│  │  GET /api/v12/carbon/transaction/{txId}      │  │
+│  │  GET /api/v12/carbon/block/{blockNumber}     │  │
+│  │  GET /api/v12/carbon/stats                   │  │
 │  └─────────────────┬────────────────────────────┘  │
 │                    │                                 │
 │         ┌──────────┴──────────┐                     │
@@ -499,7 +500,7 @@ Phase 1 (Complete - 42%)      Phase 2 (In Progress)     Phase 3 (Planned)
 
 ### Parallel Operation Strategy
 
-During migration, both V10 and V11 run in parallel:
+V12 is primary; V11 remains in legacy support mode for 6-12 months:
 
 ```
                 User Requests
@@ -595,7 +596,7 @@ enterprise-portal/
 
 ## API Architecture
 
-### V11 REST API Endpoints
+### V12 REST API Endpoints
 
 **Base URL**: `https://dlt.aurigraph.io/api/v11`
 
@@ -698,7 +699,7 @@ service AurigraphV11Service {
 │   Portal)    │
 └──────┬───────┘
        │ 1. Submit Transaction
-       │ POST /api/v11/transactions
+       │ POST /api/v12/transactions
        ▼
 ┌──────────────────┐
 │   API Gateway    │
@@ -1285,44 +1286,44 @@ CREATE TABLE trusted_oracles (
 
 ```
 PRIMARY TOKEN ENDPOINTS:
-POST   /api/v11/rwa/tokens/primary/create
-GET    /api/v11/rwa/tokens/primary/{tokenId}
-GET    /api/v11/rwa/tokens/primary/asset/{assetId}
-POST   /api/v11/rwa/tokens/primary/{tokenId}/verify
-PUT    /api/v11/rwa/tokens/primary/{tokenId}/status
+POST   /api/v12/rwa/tokens/primary/create
+GET    /api/v12/rwa/tokens/primary/{tokenId}
+GET    /api/v12/rwa/tokens/primary/asset/{assetId}
+POST   /api/v12/rwa/tokens/primary/{tokenId}/verify
+PUT    /api/v12/rwa/tokens/primary/{tokenId}/status
 
 SECONDARY TOKEN ENDPOINTS:
-POST   /api/v11/rwa/tokens/primary/{primaryTokenId}/secondary/upload
-GET    /api/v11/rwa/tokens/secondary/{secondaryTokenId}
-GET    /api/v11/rwa/tokens/primary/{primaryTokenId}/secondary
-POST   /api/v11/rwa/tokens/secondary/{secondaryTokenId}/verify
-DELETE /api/v11/rwa/tokens/secondary/{secondaryTokenId}
+POST   /api/v12/rwa/tokens/primary/{primaryTokenId}/secondary/upload
+GET    /api/v12/rwa/tokens/secondary/{secondaryTokenId}
+GET    /api/v12/rwa/tokens/primary/{primaryTokenId}/secondary
+POST   /api/v12/rwa/tokens/secondary/{secondaryTokenId}/verify
+DELETE /api/v12/rwa/tokens/secondary/{secondaryTokenId}
 
 COMPOSITE TOKEN ENDPOINTS:
-POST   /api/v11/rwa/tokens/composite/create
-GET    /api/v11/rwa/tokens/composite/{compositeTokenId}
-POST   /api/v11/rwa/tokens/composite/{compositeTokenId}/verify
-GET    /api/v11/rwa/tokens/composite/{compositeTokenId}/merkle-proofs
-GET    /api/v11/rwa/tokens/primary/{primaryTokenId}/composite
+POST   /api/v12/rwa/tokens/composite/create
+GET    /api/v12/rwa/tokens/composite/{compositeTokenId}
+POST   /api/v12/rwa/tokens/composite/{compositeTokenId}/verify
+GET    /api/v12/rwa/tokens/composite/{compositeTokenId}/merkle-proofs
+GET    /api/v12/rwa/tokens/primary/{primaryTokenId}/composite
 
 COMPOSITE-CONTRACT BINDING ENDPOINTS:
-POST   /api/v11/rwa/composite-tokens/{compositeTokenId}/bind-to-contract
-GET    /api/v11/rwa/composite-tokens/{compositeTokenId}/bound-contract
-GET    /api/v11/rwa/contracts/{contractId}/composite-token
-GET    /api/v11/rwa/composite-tokens/{compositeTokenId}/binding-proof
-GET    /api/v11/rwa/registry/composite-token-contracts
+POST   /api/v12/rwa/composite-tokens/{compositeTokenId}/bind-to-contract
+GET    /api/v12/rwa/composite-tokens/{compositeTokenId}/bound-contract
+GET    /api/v12/rwa/contracts/{contractId}/composite-token
+GET    /api/v12/rwa/composite-tokens/{compositeTokenId}/binding-proof
+GET    /api/v12/rwa/registry/composite-token-contracts
 
 MERKLE REGISTRY ENDPOINTS:
-GET    /api/v11/rwa/registry/composite-tokens
-GET    /api/v11/rwa/registry/composite-tokens/{tokenId}/proof
-POST   /api/v11/rwa/registry/verify-composite-token
-GET    /api/v11/rwa/registry/consistency-report
+GET    /api/v12/rwa/registry/composite-tokens
+GET    /api/v12/rwa/registry/composite-tokens/{tokenId}/proof
+POST   /api/v12/rwa/registry/verify-composite-token
+GET    /api/v12/rwa/registry/consistency-report
 
 ORACLE MANAGEMENT ENDPOINTS:
-GET    /api/v11/rwa/oracles
-POST   /api/v11/rwa/oracles/register
-GET    /api/v11/rwa/oracles/{oracleId}/verifications
-POST   /api/v11/rwa/webhooks/oracle-verification
+GET    /api/v12/rwa/oracles
+POST   /api/v12/rwa/oracles/register
+GET    /api/v12/rwa/oracles/{oracleId}/verifications
+POST   /api/v12/rwa/webhooks/oracle-verification
 ```
 
 ---

@@ -1,9 +1,9 @@
 # Subject Matter Experts (SMEs) - Latest Skills & Expertise
 
-**Version**: 2.0  
-**Last Updated**: November 2025  
-**Project**: Aurigraph DLT V11 Migration  
-**Context**: Post-Sprint 18 (Production Hardening) - Ready for Sprint 19+
+**Version**: 2.1 (Phase 3-5 Integration)  
+**Last Updated**: December 27, 2025  
+**Project**: Aurigraph DLT V11 Migration + Phase 3-5 Legal/Governance  
+**Context**: Post-Sprint 18 (Production Hardening) + Phase 3-5 Complete - Ready for Sprint 19+ with Legal Team Support
 
 ---
 
@@ -692,6 +692,354 @@
 - **Intermediate**: Can execute complex tasks independently
 - **Advanced**: Can design systems and mentor others
 - **Expert**: Published work, recognized authority
+
+---
+
+## 9. Legal Team (Phase 4-5: Integrated Multi-Disciplinary Experts)
+
+### 9.1 Blockchain Lawyer
+
+**Role Name**: @BlockchainLawyer  
+**Primary Responsibility**: Regulatory compliance, DAO governance, securities law, multi-chain operations
+
+**Latest Skills**:
+- ✅ **Regulatory Framework** - SEC, CFTC, FinCEN, MiCA (EU), state-level regulations
+- ✅ **DAO Governance Compliance** - Token classification, governance documentation, voting procedures
+- ✅ **Smart Contract Liability** - Creator liability, token holder disputes, bug liability
+- ✅ **Multi-Chain Operations** - Bridge documentation, cross-border transactions, regulatory approval
+- ✅ **Token Classification** - Commodity, security, utility analysis, Howey test application
+- ✅ **AML/KYC Requirements** - Identity verification, sanctions screening (OFAC), reporting obligations
+- ✅ **International Compliance** - EU MiCA, Japan Payment Services Act, Singapore MAS
+- ✅ **Regulatory Submissions** - SEC comment letters, FinCEN guidance, regulatory filings
+
+**Tools & Expertise**:
+- Regulatory database access (SEC EDGAR, FinCEN)
+- DAO governance frameworks (Snapshot, Compound Governor)
+- Token economics modeling for regulatory compliance
+- Multi-jurisdiction regulatory mapping
+
+**Key Expertise**:
+- Phase 3: Token classification analysis (AUR governance token)
+- Phase 4: Multi-chain regulatory approval coordination
+- Validator network compliance documentation (KYC/AML procedures)
+- Emergency pause governance documentation
+
+**Certifications/Experience**:
+- JD from top law school + Securities Law specialization
+- 8+ years blockchain/cryptocurrency law
+- Led regulatory approval for 5+ blockchain projects
+- Published advisor to 2 cryptocurrency exchanges
+
+---
+
+### 9.2 IP/Patent Lawyer
+
+**Role Name**: @IPPatentLawyer  
+**Primary Responsibility**: Patent protection, open source compliance, trade secret management, IP licensing
+
+**Latest Skills**:
+- ✅ **Patent Strategy** - Provisional/non-provisional filings, freedom-to-operate analysis, prior art search
+- ✅ **Patent Drafting** - Technical specifications, claims drafting, international filings (PCT)
+- ✅ **Blockchain Patents** - HyperRAFT++, quantum crypto, AI optimization patentability
+- ✅ **Open Source Compliance** - Apache 2.0, GPL, BSD licensing, license compatibility
+- ✅ **Trade Secret Protection** - Source code confidentiality, algorithms, internal processes
+- ✅ **IP Licensing** - Technology licensing agreements, cross-licensing, IP monetization
+- ✅ **Copyright Management** - Code ownership, third-party attribution, licensing
+- ✅ **Design Patents** - UI/UX protection, distinctive features
+
+**Tools & Expertise**:
+- Patent databases (USPTO, Google Patents, WIPO, EPO)
+- License compatibility tools (SPDX, FOSSA)
+- Prior art search methodology
+- IP portfolio management systems
+
+**Key Expertise**:
+- Phase 3: 6-innovation patent portfolio strategy ($15K-$25K investment)
+- 5 provisional patents (Q1 2025): HyperRAFT++, quantum crypto, AI optimization, bridge security, RWAT
+- Freedom-to-operate analysis for all core technologies
+- 20-year protection strategy with non-provisional filings (Q1 2026)
+
+**Certifications/Experience**:
+- BS in Computer Science + JD (Patent Law track)
+- 10+ years patent prosecution
+- 5+ years blockchain IP strategy
+- 150+ patents prosecuted/managed
+- Registered patent agent with USPTO
+
+---
+
+### 9.3 Privacy Lawyer
+
+**Role Name**: @PrivacyLawyer  
+**Primary Responsibility**: GDPR/CCPA compliance, data protection, privacy by design, international privacy laws
+
+**Latest Skills**:
+- ✅ **GDPR Compliance** - Article 35 DPIA, data subject rights, international transfers, DPA management
+- ✅ **CCPA Compliance** - Consumer rights, opt-out mechanisms, privacy notice requirements
+- ✅ **LGPD** (Brazil) - Brazilian privacy law requirements, cross-border compliance
+- ✅ **Privacy by Design** - Architectural privacy measures, encryption, RBAC, minimal data collection
+- ✅ **Data Processing Agreements** - DPA drafting, processor-controller relationships
+- ✅ **Incident Response** - 72-hour GDPR notification, breach assessment, remediation
+- ✅ **Data Retention** - Schedule development, automatic deletion, archival procedures
+- ✅ **Privacy Impact Assessment** - Risk identification, mitigation strategies, documentation
+
+**Tools & Expertise**:
+- Privacy compliance frameworks (ISO 27001, NIST Privacy Framework)
+- Data flow mapping and PII identification
+- DPIA assessment and documentation
+- Multi-jurisdiction privacy requirement analysis
+
+**Key Expertise**:
+- Phase 3: Comprehensive DPIA completed (Data Protection Impact Assessment)
+- Mitigated 6 high-risk processing activities to LOW risk
+- Customer data isolation (blockchain-native architecture)
+- 90-day log retention with automatic deletion
+- Third-country transfer mechanisms (SCCs, data localization)
+
+**Certifications/Experience**:
+- JD + LLM in International Data Protection Law
+- GDPR-trained data protection officer (DPO)
+- 7+ years privacy law
+- Led GDPR compliance for 3 major platforms
+- Published author on blockchain privacy
+
+---
+
+### 9.4 Smart Contract Lawyer
+
+**Role Name**: @SmartContractLawyer  
+**Primary Responsibility**: Smart contract security, formal verification, governance contracts, reentrancy prevention
+
+**Latest Skills**:
+- ✅ **Smart Contract Security** - Reentrancy, overflow/underflow, access control vulnerabilities
+- ✅ **Formal Verification** - Mathematical proof of correctness, temporal logic, model checking
+- ✅ **EVM Architecture** - Bytecode analysis, gas optimization, contract upgrade patterns
+- ✅ **Solidity Best Practices** - Safe patterns, OpenZeppelin contracts, audit standards
+- ✅ **Governance Contracts** - Timelock implementation, voting mechanisms, emergency procedures
+- ✅ **Proxy Patterns** - UUPS, transparent proxies, initialization, upgrade safety
+- ✅ **Contract Auditing** - Security review, risk assessment, remediation advice
+- ✅ **Legal Enforceability** - Smart contract interpretation, dispute resolution, modification procedures
+
+**Tools & Expertise**:
+- Solidity development environment (Hardhat, Truffle)
+- Formal verification tools (Z3, SMT solvers)
+- Security scanning (Slither, Mythril, MythX)
+- Bytecode analysis and decompilation
+
+**Key Expertise**:
+- Phase 3: Governance contract security review
+- DAO voting contract validation (proposal, voting, execution)
+- Smart contract upgrade procedures and safety
+- Validator slashing smart contracts
+- Cross-chain bridge contract security
+
+**Certifications/Experience**:
+- JD + MS in Computer Science (Security)
+- Certified Ethereum Smart Contract Auditor
+- 6+ years smart contract law and security
+- Audited 50+ production smart contracts
+- Lead advisor to 3 DAO governance protocols
+
+---
+
+### 9.5 Real-World Assets (RWA) Lawyer
+
+**Role Name**: @RWALawyer  
+**Primary Responsibility**: Asset tokenization, custody solutions, fractional ownership, cross-border transfers
+
+**Latest Skills**:
+- ✅ **Asset Tokenization** - Legal framework for tokenizing real assets, proof of ownership
+- ✅ **Custody Solutions** - Third-party custody, self-custody, segregated accounts
+- ✅ **Fractional Ownership** - Splitting ownership, rights allocation, governance of shares
+- ✅ **Regulatory Compliance** - Securities law (tokenized assets), commodity law, real estate/art tokenization
+- ✅ **Cross-Border Transfer** - International asset movement, customs, tax treatment
+- ✅ **Escrow & Settlement** - Asset delivery vs. payment, settlement procedures
+- ✅ **Oracle Integration** - Third-party data feeds, valuation updates, reliability attestation
+- ✅ **Redemption Mechanics** - Converting tokens back to underlying assets, procedures
+
+**Tools & Expertise**:
+- Asset custody systems (Fidelity, BitGo, Coinbase Custody)
+- Valuation methodologies for diverse assets
+- International asset law (real estate, commodities, art)
+- Registry and title management systems
+
+**Key Expertise**:
+- Phase 3: RWAT Registry framework documentation
+- Merkle tree-based asset registry design
+- Fractional ownership smart contract development
+- Oracle-based asset valuation procedures
+- Cross-border real-world asset transfer
+
+**Certifications/Experience**:
+- JD with Real Estate Law + Securities Law specialization
+- 8+ years asset management law
+- 4+ years blockchain/tokenization law
+- Advised on $500M+ in real asset tokenization
+- Published research on asset-backed securities
+
+---
+
+### 9.6 Tax & Token Economics Lawyer
+
+**Role Name**: @TaxTokenEconomicsLawyer  
+**Primary Responsibility**: Cryptocurrency taxation, token economics design, DeFi tax issues, international tax planning
+
+**Latest Skills**:
+- ✅ **Cryptocurrency Taxation** - Capital gains, ordinary income, wash sales, like-kind exchanges
+- ✅ **Token Economics Design** - Emission schedules, incentive alignment, tax implications
+- ✅ **Validator Rewards Tax** - Income recognition, cost basis, reporting requirements
+- ✅ **DeFi Tax Issues** - Staking rewards, yield farming, impermanent loss
+- ✅ **Corporate Tax Planning** - Structure optimization, transfer pricing, tax treaties
+- ✅ **International Tax** - Cross-border regulations, FATCA, CRS compliance
+- ✅ **IRS Guidance** - Notice 2014-21, 2019-24, Notice 2023-2 compliance
+- ✅ **Tax Reporting** - Form 8949, Schedule D, Form 1099-K integration
+
+**Tools & Expertise**:
+- Tax software (TurboTax, H&R Block, ProTax)
+- Cryptocurrency tax calculators
+- Token economics modeling
+- International tax treaty databases
+
+**Key Expertise**:
+- Phase 3: Token economics analysis (AUR 1B supply, voting mechanics)
+- Validator reward tax treatment (5% annualized, income recognition)
+- Tax-efficient license structure ($5-10M ARR potential)
+- Multi-jurisdiction tax optimization (US, EU, Singapore, Japan)
+- Slashing event tax implications (deductibility of losses)
+
+**Certifications/Experience**:
+- JD with Tax Law specialization + CPA
+- 10+ years tax law (corporate, international)
+- 4+ years cryptocurrency/blockchain tax
+- Advised Fortune 500 companies on crypto taxation
+- Published author on blockchain tax treatment
+
+---
+
+### 9.7 ESG & Sustainability Lawyer
+
+**Role Name**: @ESGSustainabilityLawyer  
+**Primary Responsibility**: Carbon offset, ESG reporting, green finance, blockchain sustainability
+
+**Latest Skills**:
+- ✅ **Carbon Accounting** - GHG Protocol Scope 1/2/3, carbon footprint calculation
+- ✅ **Carbon Offset Programs** - Verified offset projects, carbon credits, compliance frameworks
+- ✅ **ESG Reporting** - TCFD, GRI, SASB standards, sustainability disclosures
+- ✅ **Green Finance** - Green bonds, impact financing, ESG fund criteria
+- ✅ **Climate Compliance** - EU Carbon Border Adjustment Mechanism (CBAM), Paris Agreement
+- ✅ **Blockchain Sustainability** - Energy efficiency metrics, renewable energy usage, network carbon
+- ✅ **Regulatory Risk** - SEC climate disclosure rules, ESG fund regulations
+- ✅ **Sustainable Development** - SDG alignment, impact metrics, stakeholder reporting
+
+**Tools & Expertise**:
+- Carbon accounting tools (Scope3, Persefoni)
+- ESG databases and ratings (MSCI, Refinitiv, Bloomberg)
+- GHG Protocol calculation tools
+- Blockchain energy consumption analysis
+
+**Key Expertise**:
+- Phase 3: Carbon footprint reduction strategy (0.022 gCO₂/tx target)
+- Blockchain sustainability metrics documentation
+- Green finance licensing tiers (environmental impact)
+- ESG reporting framework for Aurigraph platform
+- Carbon offset integration for enterprise customers
+
+**Certifications/Experience**:
+- JD + MA in Environmental Science
+- Certified ESG Professional (CEP)
+- 6+ years environmental law
+- 3+ years blockchain sustainability
+- Led ESG strategy for 2 blockchain platforms
+- Published author on blockchain environmental impact
+
+---
+
+### 9.8 Cybersecurity & Data Protection Lawyer
+
+**Role Name**: @CybersecurityDataProtectionLawyer  
+**Primary Responsibility**: Incident response, breach notification, compliance frameworks, forensic investigation support
+
+**Latest Skills**:
+- ✅ **Incident Response** - Detection, containment, eradication, recovery procedures
+- ✅ **Breach Notification** - 72-hour GDPR notification, state breach laws, customer notification
+- ✅ **Forensic Investigation** - Evidence preservation, investigation procedures, expert retention
+- ✅ **Compliance Frameworks** - NIST Cybersecurity Framework, ISO 27001, CIS Controls
+- ✅ **SOC 2 Compliance** - Type I/II audits, control design, evidence documentation
+- ✅ **PCI-DSS** - Payment security, encryption, access controls, audit procedures
+- ✅ **Cyber Insurance** - Policy selection, coverage review, claim procedures
+- ✅ **Legal Hold** - Evidence preservation for litigation, chain of custody
+
+**Tools & Expertise**:
+- SIEM systems (ELK, Splunk, ArcSight)
+- Incident response platforms (Rapid7, CrowdStrike)
+- Forensic tools (EnCase, FTK, Volatility)
+- Cybersecurity compliance frameworks and tooling
+
+**Key Expertise**:
+- Phase 3: Incident response legal procedures documentation
+- 72-hour GDPR breach notification procedures
+- Cybersecurity SLA commitments by tier (Platinum includes incident response)
+- Post-breach legal implications and litigation preparation
+- Forensic investigation support for security incidents
+
+**Certifications/Experience**:
+- JD + MS in Cybersecurity
+- Certified Information Systems Security Professional (CISSP)
+- 7+ years cybersecurity law
+- Managed 20+ high-impact security incidents
+- Led SOC 2 Type II compliance for 3 companies
+- Expert witness in cybersecurity litigation
+
+---
+
+### 9.9 Corporate & Finance Lawyer
+
+**Role Name**: @CorporateFinanceLawyer  
+**Primary Responsibility**: Entity structure, capital raising, M&A, securities law, corporate governance
+
+**Latest Skills**:
+- ✅ **Entity Structure** - C-corp, LLC, Delaware benefits, multi-subsidiary architecture
+- ✅ **Capital Raising** - Series A/B/C rounds, term sheet negotiation, investor relations
+- ✅ **Securities Law** - Reg D, Reg A+, Reg S, accredited investor verification
+- ✅ **Token Issuance** - Security vs. utility analysis, SAFT agreements, token allocation
+- ✅ **Mergers & Acquisitions** - Valuation, LOI, due diligence, representations/warranties
+- ✅ **Debt Financing** - Convertible notes, SAFEs, term loan covenants, credit agreements
+- ✅ **Corporate Governance** - Board structure, shareholder agreements, conflicts of interest
+- ✅ **Equity Management** - Stock options, RSUs, cap table management, 409A valuations
+
+**Tools & Expertise**:
+- Cap table management (Carta, Pulley, Ledgy)
+- Valuation models (DCF, comparable company analysis)
+- Securities compliance tools
+- Corporate governance documentation systems
+
+**Key Expertise**:
+- Phase 3: Enterprise licensing framework ($5-10M ARR potential)
+- Six license models: PaaS, self-hosted, IP licensing, OEM, developer, academic
+- Four SLA tiers: Platinum ($500K-$2M/yr), Gold ($150K-$500K), Silver ($50K-$150K), Bronze ($20K-$50K)
+- Capital structure optimization for blockchain company
+- M&A transaction support for strategic partnerships
+
+**Certifications/Experience**:
+- JD from top law school + MBA (Finance)
+- 12+ years corporate law
+- 5+ years blockchain/startup finance law
+- Led $100M+ in financing rounds
+- Advised on 15+ M&A transactions
+- Published author on blockchain corporate structures
+
+---
+
+### 9.10 Legal Team Coordination Matrix
+
+The 9 legal skills coordinate across three domains:
+
+| Domain | Core Skills | Collaboration |
+|--------|-----------|---------------|
+| **Compliance & Risk** | Blockchain, Privacy, Cybersecurity, IP | Weekly sync, shared risk assessments |
+| **Finance & Capital** | Tax, Corporate, IP, Blockchain | Monthly planning, investor updates |
+| **Operations & Governance** | Blockchain, RWA, Smart Contract, Corporate | Sprint-aligned, governance reviews |
+| **Commercial** | Corporate, IP, Tax, RWA | Quarterly licensing reviews |
 
 ---
 
