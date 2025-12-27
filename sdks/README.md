@@ -9,7 +9,17 @@
 
 ## 📦 Project Overview
 
-Build production-grade SDK libraries for Aurigraph V11 across TypeScript/JavaScript, Python, and Go, with gRPC support and wallet integration utilities.
+Build production-grade SDK libraries for Aurigraph V11 across TypeScript/JavaScript, Python, and Go, with **Real-World Asset Tokenization (RWAT)** support, gRPC, and wallet integration utilities.
+
+### 🌍 RWAT Capabilities
+
+The Aurigraph SDKs provide native support for tokenizing real-world assets (RWA) from 3rd party sources:
+- **Asset Registration**: Register any real-world asset (real estate, commodities, art, carbon credits, etc.)
+- **Token Creation**: Create fungible or non-fungible tokens backed by real assets
+- **Fractional Ownership**: Enable fractional ownership of high-value assets
+- **Oracle Integration**: Connect to data oracles for asset valuation and verification
+- **Smart Contracts**: Deploy asset-backed smart contracts
+- **Compliance**: Built-in KYC/AML and regulatory compliance hooks
 
 ## 📁 Project Structure
 

@@ -1,0 +1,10 @@
+pyproject.toml
+setup.py
+aurigraph/__init__.py
+aurigraph/client.py
+aurigraph/models.py
+aurigraph_sdk.egg-info/PKG-INFO
+aurigraph_sdk.egg-info/SOURCES.txt
+aurigraph_sdk.egg-info/dependency_links.txt
+aurigraph_sdk.egg-info/requires.txt
+aurigraph_sdk.egg-info/top_level.txt

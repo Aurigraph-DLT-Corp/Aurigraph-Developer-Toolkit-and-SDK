@@ -3,7 +3,7 @@ Aurigraph SDK Client - Async implementation
 """
 
 import logging
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, Union
 import aiohttp
 
 from .models import AurigraphClientConfig, Account, Transaction
@@ -37,7 +37,7 @@ class AurigraphClient:
         ```
     """
 
-    def __init__(self, config: AurigraphClientConfig | Dict[str, Any]) -> None:
+    def __init__(self, config: Union[AurigraphClientConfig, Dict[str, Any]]) -> None:
         """
         Initialize the Aurigraph client
 

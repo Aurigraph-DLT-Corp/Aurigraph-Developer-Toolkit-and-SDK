@@ -345,6 +345,84 @@ func main() {
               </div>
             </section>
 
+            {/* RWAT Section */}
+            <section className="mb-12 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-8 border border-emerald-200">
+              <h2 className="text-2xl font-bold mb-4 text-emerald-900">🌍 Real-World Asset Tokenization (RWAT)</h2>
+              <p className="text-gray-700 mb-6">
+                Aurigraph SDKs provide native support for tokenizing real-world assets from 3rd party sources, enabling fractional ownership and global trading of physical assets.
+              </p>
+
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-emerald-900 mb-3">🏪 Supported Assets</h3>
+                  <ul className="space-y-2 text-gray-700 text-sm">
+                    <li>✓ Real Estate (properties, land)</li>
+                    <li>✓ Commodities (gold, oil, agricultural)</li>
+                    <li>✓ Fine Art & Collectibles</li>
+                    <li>✓ Carbon Credits</li>
+                    <li>✓ Shipping & Logistics</li>
+                    <li>✓ Intellectual Property</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-bold text-emerald-900 mb-3">⚙️ RWAT Features</h3>
+                  <ul className="space-y-2 text-gray-700 text-sm">
+                    <li>✓ Asset registration & registration</li>
+                    <li>✓ Fungible & non-fungible tokens</li>
+                    <li>✓ Fractional ownership (any denomiation)</li>
+                    <li>✓ Oracle integration for valuations</li>
+                    <li>✓ Compliance hooks (KYC/AML)</li>
+                    <li>✓ Dividend distribution</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-emerald-900 mb-3">Example: Tokenize Real Estate (TypeScript)</h3>
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-auto">
+                  <pre>{`import { AurigraphClient } from '@aurigraph/sdk'
+
+const client = new AurigraphClient({
+  baseUrl: 'https://dlt.aurigraph.io/api/v11',
+  apiKey: process.env.AURIGRAPH_API_KEY
+})
+
+// Register a real estate asset
+const asset = await client.registerRWAT({
+  type: 'real_estate',
+  name: 'Downtown Commercial Property',
+  value: '5000000', // $5M valuation
+  location: 'New York, NY',
+  metadata: {
+    address: '123 Main St',
+    sqft: 50000,
+    yearBuilt: 2020,
+    oracleSource: 'zillow_premium'
+  }
+})
+
+// Create fungible tokens (5M tokens = 1 cent per token)
+const tokenization = await client.createRWATTokens({
+  assetId: asset.id,
+  totalSupply: '500000000', // 500M tokens
+  tokenSymbol: 'DLTNYRE', // Downtown NYC Real Estate
+  tokenDecimals: 2,
+  fractionalOwnership: true,
+  complianceHooks: {
+    requireKYC: true,
+    requireAML: true,
+    accreditedInvestorsOnly: true
+  }
+})
+
+// Verify tokenization
+console.log(\`Tokens created: \${tokenization.tokenAddress}\`)
+console.log(\`Circulating supply: \${tokenization.circulatingSupply}\`)`}</pre>
+                </div>
+              </div>
+            </section>
+
             {/* Integration Guide */}
             <section className="mb-12 bg-white rounded-lg p-8 border border-gray-200">
               <h2 className="text-2xl font-bold mb-4">Integration Guide</h2>
