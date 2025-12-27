@@ -1,6 +1,6 @@
 # Sub-Agent: JIRA Ticket Updater
 
-**Purpose**: Keep all JIRA tickets in Sprint 14 updated with progress from GitHub
+**Purpose**: Keep all JIRA tickets updated with progress from GitHub (Platform-agnostic)
 **Status**: Active (Runs continuously during sprint)
 **Agent Type**: J4C Background Agent
 **Responsibility**: Monitor GitHub activity and auto-update JIRA

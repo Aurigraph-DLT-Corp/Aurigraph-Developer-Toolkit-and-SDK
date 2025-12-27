@@ -1,6 +1,6 @@
 # Sub-Agent: GitHub ↔ JIRA Linker
 
-**Purpose**: Link GitHub code/PRs to JIRA tickets for full traceability
+**Purpose**: Link GitHub code/PRs to JIRA tickets for full traceability (V12 Baseline Ready)
 **Status**: Active (Runs continuously during sprint)
 **Agent Type**: J4C Background Agent
 **Responsibility**: Maintain bidirectional links between GitHub and JIRA

@@ -1,11 +1,11 @@
-# Aurigraph V11 Whitepaper: High-Performance, Quantum-Resistant Blockchain Platform
+# Aurigraph V12 Whitepaper: High-Performance, Quantum-Resistant Blockchain Platform
 
 **Version**: 3.1 (Post-Sprint 19 Update - Phase 3-5 Integration)  
 **Authors**: Aurigraph Technical Leadership  
 **Date**: December 27, 2025  
 **Abstract**:
 
-Aurigraph V11 represents the next generation of the Aurigraph blockchain platform, evolving from the TypeScript-based V10 to a Java/Quarkus architecture achieving 2M+ TPS with quantum-resistant cryptography. This whitepaper details the technical architecture, consensus protocol optimizations, security hardening, and multi-cloud deployment strategy.
+Aurigraph V12 represents the next generation of the Aurigraph blockchain platform, evolving from the TypeScript-based V10 to a Java/Quarkus architecture achieving 2M+ TPS with quantum-resistant cryptography. This whitepaper details the technical architecture, consensus protocol optimizations, security hardening, and multi-cloud deployment strategy.
 
 ---
 
@@ -13,7 +13,7 @@ Aurigraph V11 represents the next generation of the Aurigraph blockchain platfor
 
 ### 1.1 Background
 
-The original Aurigraph V10 platform, built on TypeScript/Node.js, demonstrated the viability of achieving 1M+ TPS with HyperRAFT++ consensus and AI-driven optimization. However, to meet emerging demands for higher throughput, reduced latency, and quantum resistance, a complete architectural refactor to Java/Quarkus is necessary.
+The original Aurigraph V10 platform, built on TypeScript/Node.js, demonstrated the viability of achieving 1M+ TPS with HyperRAFT++ consensus and AI-driven optimization. The V11 intermediate platform advanced to Java/Quarkus. V12 now represents the production-ready baseline with full enterprise hardening, multi-cloud deployment, and quantum-resistant cryptography.
 
 ### 1.2 Project Goals
 

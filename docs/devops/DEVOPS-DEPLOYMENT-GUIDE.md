@@ -69,7 +69,7 @@ docker-compose -f docker-compose.base.yml \
 **Included Services**:
 - PostgreSQL (transactions)
 - Redis (session cache)
-- V11 API service
+- V12 API service
 - Single validator node
 
 **Excluded Services**:
@@ -279,7 +279,7 @@ docker-compose -f docker-compose.base.yml \
 docker-compose ps
 
 # Check health endpoints
-curl http://localhost:9003/q/health        # V11 API
+curl http://localhost:9003/q/health        # V12 API
 curl http://localhost:5432/               # PostgreSQL
 curl http://localhost:3000/api/health      # Grafana
 ```
@@ -459,7 +459,7 @@ kubectl rollout status deployment/api-v11 -n aurigraph
 │  - Redis (6379)                         │
 │  - Hazelcast (5701)                     │
 │  - MinIO (9000)                         │
-│  - V11 API (9003)                       │
+│  - V12 API (9003)                       │
 │  - Validators (9100-9102)               │
 └─────────────┬───────────────────────────┘
               │
@@ -617,7 +617,7 @@ scrape_configs:
 #### Key Metrics to Monitor
 
 ```
-# V11 API Performance
+# V12 API Performance
 aurigraph_transactions_total          # Total transactions processed
 aurigraph_transactions_per_second     # Current TPS
 aurigraph_transaction_latency_ms      # P50, P95, P99 latencies

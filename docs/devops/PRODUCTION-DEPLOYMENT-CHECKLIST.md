@@ -1,4 +1,4 @@
-# Aurigraph DLT - Production Deployment Checklist
+# Aurigraph DLT - Production Deployment Checklist (V12 Baseline)
 
 **Version**: 1.0.0
 **Last Updated**: November 17, 2025

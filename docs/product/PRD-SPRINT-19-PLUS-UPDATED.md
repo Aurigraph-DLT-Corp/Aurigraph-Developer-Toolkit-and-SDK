@@ -1,15 +1,15 @@
-# Product Requirements Document (PRD) - V11 Production Migration & Beyond
+# Product Requirements Document (PRD) - V12 Production Migration & Beyond
 
 **Version**: 3.1 (Post-Sprint 19 Update - Phase 3-5 Integration)  
 **Last Updated**: December 27, 2025  
-**Project**: Aurigraph DLT V11 Migration  
+**Project**: Aurigraph DLT V12 Migration  
 **Audience**: Product, Engineering, Executive Leadership, Legal & Compliance
 
 ---
 
 ## Executive Summary
 
-The Aurigraph V11 migration has successfully completed 42% of the transition from TypeScript/Node.js (V10) to Java/Quarkus/GraalVM (V11). Sprint 18 achieved **production-ready security hardening** with comprehensive TLS/mTLS, automated certificate lifecycle management, and enterprise-grade observability (Prometheus, Grafana, ELK, OpenTelemetry).
+The Aurigraph V12 migration has successfully completed 42% of the transition from TypeScript/Node.js (V10) to Java/Quarkus/GraalVM (V12). Sprint 18 achieved **production-ready security hardening** with comprehensive TLS/mTLS, automated certificate lifecycle management, and enterprise-grade observability (Prometheus, Grafana, ELK, OpenTelemetry).
 
 **Current Baseline**: 776K TPS (verified production performance)  
 **Target After Sprint 21**: 2M+ TPS sustained throughput  

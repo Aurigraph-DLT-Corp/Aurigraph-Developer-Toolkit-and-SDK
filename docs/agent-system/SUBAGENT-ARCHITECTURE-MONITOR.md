@@ -9,7 +9,7 @@
 
 ## Overview
 
-This sub-agent automatically scans the V11 codebase for deviations from the established architecture, Product Requirements Document (PRD), and design specifications. It runs continuously in the background and alerts when it detects violations.
+This sub-agent automatically scans the V12 codebase for deviations from the established architecture, Product Requirements Document (PRD), and design specifications. It runs continuously in the background and alerts when it detects violations.
 
 ### What It Does
 
