@@ -1,0 +1,169 @@
+package io.aurigraph.v11.crm.repository;
+
+import io.aurigraph.v11.crm.entity.Opportunity;
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Sort;
+
+import javax.enterprise.context.ApplicationScoped;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * OpportunityRepository - Data access layer for Opportunity entities
+ *
+ * Provides pipeline analysis, revenue forecasting, and opportunity tracking
+ */
+@ApplicationScoped
+public class OpportunityRepository implements PanacheRepository<Opportunity> {
+
+    /**
+     * Find opportunities by lead
+     */
+    public List<Opportunity> findByLeadId(UUID leadId) {
+        return find("leadId", leadId)
+                .sort("createdAt", Sort.Direction.Descending)
+                .list();
+    }
+
+    /**
+     * Find opportunities by sales rep
+     */
+    public List<Opportunity> findByOwnedBy(UUID userId) {
+        return find("ownedByUserId", userId)
+                .sort("stage", Sort.Direction.Ascending)
+                .list();
+    }
+
+    /**
+     * Find opportunities by stage
+     */
+    public List<Opportunity> findByStage(Opportunity.OpportunityStage stage) {
+        return find("stage", stage)
+                .sort("probabilityPercent", Sort.Direction.Descending)
+                .list();
+    }
+
+    /**
+     * Find open opportunities (not closed)
+     */
+    public List<Opportunity> findOpenOpportunities() {
+        return find("stage NOT IN ?1",
+                List.of(Opportunity.OpportunityStage.CLOSED_WON,
+                        Opportunity.OpportunityStage.CLOSED_LOST))
+                .sort("expectedCloseDate", Sort.Direction.Ascending)
+                .list();
+    }
+
+    /**
+     * Find at-risk opportunities
+     */
+    public List<Opportunity> findAtRisk() {
+        return find("atRisk = TRUE")
+                .sort("probabilityPercent", Sort.Direction.Ascending)
+                .list();
+    }
+
+    /**
+     * Find opportunities closing soon
+     */
+    public List<Opportunity> findClosingSoon(LocalDate daysFromNow) {
+        return find("expectedCloseDate <= ?1 AND stage NOT IN ?2",
+                daysFromNow,
+                List.of(Opportunity.OpportunityStage.CLOSED_WON,
+                        Opportunity.OpportunityStage.CLOSED_LOST))
+                .sort("expectedCloseDate", Sort.Direction.Ascending)
+                .list();
+    }
+
+    /**
+     * Find won opportunities (closed won)
+     */
+    public List<Opportunity> findWonOpportunities() {
+        return find("stage", Opportunity.OpportunityStage.CLOSED_WON)
+                .sort("actualCloseDate", Sort.Direction.Descending)
+                .list();
+    }
+
+    /**
+     * Find lost opportunities
+     */
+    public List<Opportunity> findLostOpportunities() {
+        return find("stage", Opportunity.OpportunityStage.CLOSED_LOST)
+                .sort("actualCloseDate", Sort.Direction.Descending)
+                .list();
+    }
+
+    /**
+     * Calculate total pipeline value (estimated × probability)
+     */
+    public BigDecimal getTotalPipelineValue() {
+        List<Opportunity> openOpps = findOpenOpportunities();
+        return openOpps.stream()
+                .map(Opportunity::getWeightedValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Calculate pipeline value by stage
+     */
+    public BigDecimal getPipelineValueByStage(Opportunity.OpportunityStage stage) {
+        return findByStage(stage).stream()
+                .map(Opportunity::getWeightedValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Calculate total won revenue
+     */
+    public BigDecimal getTotalWonRevenue() {
+        List<Opportunity> wonOpps = findWonOpportunities();
+        return wonOpps.stream()
+                .map(opp -> opp.getActualValue() != null ? opp.getActualValue() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Get win rate
+     */
+    public double getWinRate() {
+        long totalClosed = count("stage IN ?1",
+                List.of(Opportunity.OpportunityStage.CLOSED_WON,
+                        Opportunity.OpportunityStage.CLOSED_LOST));
+        if (totalClosed == 0) return 0.0;
+
+        long wonCount = count("stage", Opportunity.OpportunityStage.CLOSED_WON);
+        return (double) wonCount / totalClosed * 100;
+    }
+
+    /**
+     * Update opportunity stage
+     */
+    public void updateStage(UUID opportunityId, Opportunity.OpportunityStage newStage) {
+        update("stage = ?1, stageChangedAt = ?2, updatedAt = ?2 WHERE id = ?3",
+                newStage, ZonedDateTime.now(), opportunityId);
+    }
+
+    /**
+     * Mark opportunity as at-risk
+     */
+    public void markAtRisk(UUID opportunityId, String reason, Integer riskProbability) {
+        update("atRisk = TRUE, atRiskReason = ?1, riskProbabilityPercent = ?2, updatedAt = ?3 WHERE id = ?4",
+                reason, riskProbability, ZonedDateTime.now(), opportunityId);
+    }
+
+    /**
+     * Pipeline statistics DTO
+     */
+    public record PipelineStatistics(
+            long totalOpportunities,
+            long openOpportunities,
+            long wonOpportunities,
+            long lostOpportunities,
+            BigDecimal totalPipelineValue,
+            BigDecimal totalWonRevenue,
+            double winRate
+    ) {}
+}
