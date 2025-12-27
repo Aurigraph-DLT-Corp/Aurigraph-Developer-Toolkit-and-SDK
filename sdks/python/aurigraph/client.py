@@ -6,7 +6,20 @@ import logging
 from typing import Optional, Any, Dict, Union
 import aiohttp
 
-from .models import AurigraphClientConfig, Account, Transaction
+from .models import (
+    AurigraphClientConfig,
+    Account,
+    Transaction,
+    ThirdPartyIntegration,
+    PaymentIntegration,
+    KYCIntegration,
+    OracleIntegration,
+    DataIntegration,
+    NotificationIntegration,
+    APICallConfig,
+    IntegrationResult,
+    WebhookEvent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -529,3 +542,666 @@ class AurigraphClient:
                     raise RuntimeError(f"Failed to claim dividends: {response.status}")
         except Exception as e:
             raise RuntimeError(f"Failed to claim dividends: {str(e)}") from e
+
+    # ===========================
+    # 3RD PARTY INTEGRATIONS
+    # ===========================
+
+    async def register_integration(self, integration: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Register a new 3rd party integration
+
+        Args:
+            integration: Integration configuration
+
+        Returns:
+            Registered integration with ID
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/register", json=integration) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to register integration: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to register integration: {str(e)}") from e
+
+    async def get_integration(self, integration_id: str) -> Dict[str, Any]:
+        """
+        Get integration details
+
+        Args:
+            integration_id: Integration ID
+
+        Returns:
+            Integration configuration
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.get(f"/integrations/{integration_id}") as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to get integration: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to get integration: {str(e)}") from e
+
+    async def list_integrations(self, integration_type: Optional[str] = None) -> list[Dict[str, Any]]:
+        """
+        List all integrations
+
+        Args:
+            integration_type: Optional integration type filter
+
+        Returns:
+            List of integrations
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            params = {"type": integration_type} if integration_type else {}
+            async with self._session.get("/integrations/list", params=params) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to list integrations: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to list integrations: {str(e)}") from e
+
+    async def update_integration(self, integration_id: str, config: Dict[str, Any]) -> None:
+        """
+        Update integration configuration
+
+        Args:
+            integration_id: Integration ID
+            config: Updated configuration
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.put(f"/integrations/{integration_id}", json=config) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Failed to update integration: {response.status}")
+                logger.info(f"✅ Integration updated: {integration_id}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to update integration: {str(e)}") from e
+
+    async def delete_integration(self, integration_id: str) -> None:
+        """
+        Delete an integration
+
+        Args:
+            integration_id: Integration ID
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.delete(f"/integrations/{integration_id}") as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Failed to delete integration: {response.status}")
+                logger.info(f"✅ Integration deleted: {integration_id}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to delete integration: {str(e)}") from e
+
+    async def test_integration(self, integration_id: str) -> bool:
+        """
+        Test an integration's connectivity
+
+        Args:
+            integration_id: Integration ID
+
+        Returns:
+            True if test passed, False otherwise
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post(f"/integrations/{integration_id}/test") as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result.get("success", False)
+                else:
+                    return False
+        except Exception as e:
+            logger.error(f"Integration test failed: {str(e)}")
+            return False
+
+    async def call_external_api(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Make a call to an external API through integration
+
+        Args:
+            config: APICallConfig as dictionary
+
+        Returns:
+            Integration result
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/call-api", json=config) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to call external API: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to call external API: {str(e)}") from e
+
+    # ===========================
+    # PAYMENT INTEGRATION
+    # ===========================
+
+    async def register_payment_integration(self, payment: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Register a payment processor integration
+
+        Args:
+            payment: PaymentIntegration configuration
+
+        Returns:
+            Registered payment integration
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/payment/register", json=payment) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to register payment integration: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to register payment integration: {str(e)}") from e
+
+    async def process_payment(
+        self,
+        integration_id: str,
+        amount: str,
+        currency: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Process a payment through integration
+
+        Args:
+            integration_id: Payment integration ID
+            amount: Payment amount
+            currency: Currency code
+            metadata: Optional metadata
+
+        Returns:
+            Payment result
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post(
+                f"/integrations/payment/{integration_id}/process",
+                json={"amount": amount, "currency": currency, "metadata": metadata},
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to process payment: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to process payment: {str(e)}") from e
+
+    # ===========================
+    # KYC INTEGRATION
+    # ===========================
+
+    async def register_kyc_integration(self, kyc: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Register a KYC provider integration
+
+        Args:
+            kyc: KYCIntegration configuration
+
+        Returns:
+            Registered KYC integration
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/kyc/register", json=kyc) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to register KYC integration: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to register KYC integration: {str(e)}") from e
+
+    async def start_kyc_session(
+        self,
+        integration_id: str,
+        user_id: str,
+        redirect_url: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Start a KYC verification session
+
+        Args:
+            integration_id: KYC integration ID
+            user_id: User ID
+            redirect_url: Optional redirect URL
+
+        Returns:
+            Session details
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post(
+                f"/integrations/kyc/{integration_id}/session",
+                json={"user_id": user_id, "redirect_url": redirect_url},
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to start KYC session: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to start KYC session: {str(e)}") from e
+
+    async def get_kyc_status(self, integration_id: str, user_id: str) -> Dict[str, Any]:
+        """
+        Get KYC verification status
+
+        Args:
+            integration_id: KYC integration ID
+            user_id: User ID
+
+        Returns:
+            KYC status
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.get(
+                f"/integrations/kyc/{integration_id}/status",
+                params={"user_id": user_id},
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to get KYC status: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to get KYC status: {str(e)}") from e
+
+    # ===========================
+    # ORACLE INTEGRATION
+    # ===========================
+
+    async def register_oracle_integration(self, oracle: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Register an oracle service integration
+
+        Args:
+            oracle: OracleIntegration configuration
+
+        Returns:
+            Registered oracle integration
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/oracle/register", json=oracle) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to register oracle integration: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to register oracle integration: {str(e)}") from e
+
+    async def get_oracle_price(self, integration_id: str, symbol: str) -> Dict[str, Any]:
+        """
+        Get price from oracle
+
+        Args:
+            integration_id: Oracle integration ID
+            symbol: Price symbol (e.g., BTC/USD)
+
+        Returns:
+            Price data
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.get(
+                f"/integrations/oracle/{integration_id}/price",
+                params={"symbol": symbol},
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to get oracle price: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to get oracle price: {str(e)}") from e
+
+    async def get_oracle_valuation(self, integration_id: str, asset_id: str) -> Dict[str, Any]:
+        """
+        Get asset valuation from oracle
+
+        Args:
+            integration_id: Oracle integration ID
+            asset_id: Asset ID
+
+        Returns:
+            Valuation data
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.get(
+                f"/integrations/oracle/{integration_id}/valuation",
+                params={"asset_id": asset_id},
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to get oracle valuation: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to get oracle valuation: {str(e)}") from e
+
+    async def subscribe_oracle_updates(
+        self,
+        integration_id: str,
+        symbol: str,
+        callback,
+    ) -> None:
+        """
+        Subscribe to real-time oracle updates via WebSocket
+
+        Args:
+            integration_id: Oracle integration ID
+            symbol: Price symbol
+            callback: Async callback function for updates
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            ws_url = f"{self.config.base_url.replace('http', 'ws')}/integrations/oracle/{integration_id}/updates"
+            async with self._session.ws_connect(ws_url, params={"symbol": symbol}) as ws:
+                async for msg in ws:
+                    if msg.type == aiohttp.WSMsgType.JSON:
+                        await callback(msg.json())
+                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                        logger.error(f"WebSocket error: {msg}")
+                        break
+        except Exception as e:
+            raise RuntimeError(f"Failed to subscribe to oracle updates: {str(e)}") from e
+
+    # ===========================
+    # DATA INTEGRATION
+    # ===========================
+
+    async def register_data_integration(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Register a data provider integration
+
+        Args:
+            data: DataIntegration configuration
+
+        Returns:
+            Registered data integration
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/data/register", json=data) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to register data integration: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to register data integration: {str(e)}") from e
+
+    async def query_data_provider(
+        self,
+        integration_id: str,
+        query: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Query a data provider
+
+        Args:
+            integration_id: Data integration ID
+            query: Query parameters
+
+        Returns:
+            Query result
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post(
+                f"/integrations/data/{integration_id}/query",
+                json=query,
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to query data provider: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to query data provider: {str(e)}") from e
+
+    # ===========================
+    # NOTIFICATION INTEGRATION
+    # ===========================
+
+    async def register_notification_integration(self, notification: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Register a notification service integration
+
+        Args:
+            notification: NotificationIntegration configuration
+
+        Returns:
+            Registered notification integration
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/notification/register", json=notification) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to register notification integration: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to register notification integration: {str(e)}") from e
+
+    async def send_notification(
+        self,
+        integration_id: str,
+        channel: str,
+        recipient: str,
+        message: str,
+        template_data: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Send a notification through integration
+
+        Args:
+            integration_id: Notification integration ID
+            channel: Notification channel (sms, email, webhook, push)
+            recipient: Recipient address
+            message: Message content
+            template_data: Optional template variables
+
+        Returns:
+            Notification result
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post(
+                f"/integrations/notification/{integration_id}/send",
+                json={
+                    "channel": channel,
+                    "recipient": recipient,
+                    "message": message,
+                    "template_data": template_data,
+                },
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to send notification: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to send notification: {str(e)}") from e
+
+    # ===========================
+    # WEBHOOK & MONITORING
+    # ===========================
+
+    async def handle_webhook(self, event: Dict[str, Any]) -> None:
+        """
+        Handle incoming webhook event
+
+        Args:
+            event: WebhookEvent as dictionary
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post("/integrations/webhook/handle", json=event) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Failed to handle webhook: {response.status}")
+                logger.info(f"✅ Webhook handled: {event.get('event_id')}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to handle webhook: {str(e)}") from e
+
+    async def get_integration_metrics(
+        self,
+        integration_id: str,
+        time_range: Optional[Dict[str, int]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Get integration performance metrics
+
+        Args:
+            integration_id: Integration ID
+            time_range: Optional time range {start, end} as timestamps
+
+        Returns:
+            Metrics data
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.get(
+                f"/integrations/{integration_id}/metrics",
+                params={"start": time_range.get("start"), "end": time_range.get("end")}
+                if time_range
+                else {},
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to get integration metrics: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to get integration metrics: {str(e)}") from e
+
+    async def get_integration_logs(
+        self,
+        integration_id: str,
+        limit: int = 100,
+    ) -> list[Dict[str, Any]]:
+        """
+        Get integration operation logs
+
+        Args:
+            integration_id: Integration ID
+            limit: Maximum number of logs
+
+        Returns:
+            List of logs
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.get(
+                f"/integrations/{integration_id}/logs",
+                params={"limit": limit},
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise RuntimeError(f"Failed to get integration logs: {response.status}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to get integration logs: {str(e)}") from e
+
+    async def configure_rate_limit(
+        self,
+        integration_id: str,
+        requests_per_second: int,
+        requests_per_day: Optional[int] = None,
+    ) -> None:
+        """
+        Configure rate limiting for integration
+
+        Args:
+            integration_id: Integration ID
+            requests_per_second: Requests per second limit
+            requests_per_day: Optional requests per day limit
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post(
+                f"/integrations/{integration_id}/rate-limit",
+                json={"requests_per_second": requests_per_second, "requests_per_day": requests_per_day},
+            ) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Failed to configure rate limit: {response.status}")
+                logger.info(f"✅ Rate limit configured: {integration_id}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to configure rate limit: {str(e)}") from e
+
+    async def set_integration_status(self, integration_id: str, enabled: bool) -> None:
+        """
+        Enable or disable an integration
+
+        Args:
+            integration_id: Integration ID
+            enabled: Whether integration is enabled
+        """
+        if not self.is_connected() or not self._session:
+            raise RuntimeError("Client not connected")
+
+        try:
+            async with self._session.post(
+                f"/integrations/{integration_id}/status",
+                json={"enabled": enabled},
+            ) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Failed to set integration status: {response.status}")
+                status = "enabled" if enabled else "disabled"
+                logger.info(f"✅ Integration {status}: {integration_id}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to set integration status: {str(e)}") from e
