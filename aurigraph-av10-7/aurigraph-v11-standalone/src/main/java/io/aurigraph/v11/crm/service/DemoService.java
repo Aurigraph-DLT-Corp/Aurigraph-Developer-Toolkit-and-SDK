@@ -2,7 +2,9 @@ package io.aurigraph.v11.crm.service;
 
 import io.aurigraph.v11.crm.dto.ScheduleDemoRequest;
 import io.aurigraph.v11.crm.entity.DemoRequest;
+import io.aurigraph.v11.crm.entity.Lead;
 import io.aurigraph.v11.crm.repository.DemoRequestRepository;
+import io.aurigraph.v11.crm.repository.LeadRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -10,6 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -17,10 +20,17 @@ import java.util.UUID;
  *
  * Handles:
  * - Demo request creation and scheduling
- * - Meeting platform integration (Zoom, Teams, Google Meet)
- * - Automated reminders (24h, 1h)
- * - Recording and follow-up workflows
- * - Demo outcome tracking
+ * - Meeting platform integration (Zoom, Teams, Google Meet, Webex)
+ * - Calendar invite generation with iCalendar format
+ * - Automated reminders (24h, 1h) via email
+ * - Recording retrieval and storage
+ * - Follow-up workflows
+ * - Demo outcome tracking and lead scoring
+ *
+ * Integration points:
+ * - MeetingPlatformService: Meeting provisioning
+ * - EmailService: Calendar invites and reminders
+ * - ReminderService: Scheduled reminder processing
  */
 @Slf4j
 @ApplicationScoped
@@ -30,7 +40,19 @@ public class DemoService {
     DemoRequestRepository demoRepository;
 
     @Inject
+    LeadRepository leadRepository;
+
+    @Inject
     LeadService leadService;
+
+    @Inject
+    EmailService emailService;
+
+    @Inject
+    MeetingPlatformService meetingPlatformService;
+
+    @Inject
+    ReminderService reminderService;
 
     /**
      * Create a new demo request
@@ -63,10 +85,11 @@ public class DemoService {
      */
     @Transactional
     public void scheduleDemo(UUID demoId, ScheduleDemoRequest request) {
-        DemoRequest demo = demoRepository.findById(demoId);
-        if (demo == null) {
+        Optional<DemoRequest> demoOpt = demoRepository.find("id", demoId).firstResultOptional();
+        if (demoOpt.isEmpty()) {
             throw new IllegalArgumentException("Demo not found: " + demoId);
         }
+        DemoRequest demo = demoOpt.get();
 
         log.info("Scheduling demo {} for {}", demoId, request.getStartTime());
 
@@ -83,35 +106,47 @@ public class DemoService {
     }
 
     /**
-     * Create meeting link (Zoom, Teams, Google Meet, etc.)
-     * This is a stub - actual integration would call the respective APIs
+     * Create meeting link via platform API (Zoom, Teams, Google Meet, Webex)
+     * Integrates with MeetingPlatformService for actual platform provisioning
      */
     @Transactional
-    public void createMeetingLink(UUID demoId, String platform) {
-        DemoRequest demo = demoRepository.findById(demoId);
-        if (demo == null) {
+    public String createMeetingLink(UUID demoId, String platform) {
+        log.info("Creating {} meeting for demo {}", platform, demoId);
+
+        Optional<DemoRequest> demoOpt = demoRepository.find("id", demoId).firstResultOptional();
+        if (demoOpt.isEmpty()) {
             throw new IllegalArgumentException("Demo not found: " + demoId);
         }
 
-        log.info("Creating {} meeting for demo {}", platform, demoId);
+        DemoRequest demo = demoOpt.get();
 
-        // TODO: Integrate with actual meeting platform APIs
-        // For now, generate mock meeting details
-        String meetingId = "meeting_" + UUID.randomUUID().toString().substring(0, 8);
-        String meetingUrl = "https://" + platform + ".com/j/" + meetingId;
+        try {
+            // Provision meeting via platform API
+            MeetingPlatformService.MeetingConfig config =
+                meetingPlatformService.createMeeting(demo, platform);
 
-        demo.setMeetingPlatform(platform);
-        demo.setMeetingId(meetingId);
-        demo.setMeetingUrl(meetingUrl);
-        demo.setMeetingJoinUrl(meetingUrl);
-        demo.setStatus(DemoRequest.DemoStatus.CONFIRMED);
-        demo.setUpdatedAt(ZonedDateTime.now());
+            // Enable recording
+            meetingPlatformService.enableRecording(platform, config.getMeetingId());
 
-        demoRepository.update("meetingPlatform = ?1, meetingId = ?2, meetingUrl = ?3, meetingJoinUrl = ?4, status = ?5, updatedAt = ?6 WHERE id = ?7",
-                platform, meetingId, meetingUrl, meetingUrl,
-                DemoRequest.DemoStatus.CONFIRMED, ZonedDateTime.now(), demoId);
+            // Persist meeting details
+            demoRepository.update(
+                "meetingPlatform = ?1, meetingId = ?2, meetingUrl = ?3, meetingJoinUrl = ?4, " +
+                "recordingEnabled = TRUE, status = ?5, updatedAt = ?6 WHERE id = ?7",
+                platform,
+                config.getMeetingId(),
+                config.getMeetingUrl(),
+                config.getJoinUrl(),
+                DemoRequest.DemoStatus.CONFIRMED,
+                ZonedDateTime.now(),
+                demoId
+            );
 
-        log.info("Meeting link created: {}", meetingUrl);
+            log.info("Meeting link created for demo {}: {}", demoId, config.getMeetingUrl());
+            return config.getMeetingUrl();
+        } catch (Exception e) {
+            log.error("Failed to create meeting for demo {} on platform {}", demoId, platform, e);
+            throw new RuntimeException("Failed to provision meeting", e);
+        }
     }
 
     /**
@@ -120,10 +155,11 @@ public class DemoService {
      */
     @Transactional
     public void sendCalendarInvite(UUID demoId) {
-        DemoRequest demo = demoRepository.findById(demoId);
-        if (demo == null) {
+        Optional<DemoRequest> demoOpt = demoRepository.find("id", demoId).firstResultOptional();
+        if (demoOpt.isEmpty()) {
             throw new IllegalArgumentException("Demo not found: " + demoId);
         }
+        DemoRequest demo = demoOpt.get();
 
         log.info("Sending calendar invite for demo {}", demoId);
 
@@ -140,10 +176,11 @@ public class DemoService {
      */
     @Transactional
     public void markCompleted(UUID demoId, String recordingUrl, Integer satisfaction, String feedback, DemoRequest.DemoOutcome outcome) {
-        DemoRequest demo = demoRepository.findById(demoId);
-        if (demo == null) {
+        Optional<DemoRequest> demoOpt = demoRepository.find("id", demoId).firstResultOptional();
+        if (demoOpt.isEmpty()) {
             throw new IllegalArgumentException("Demo not found: " + demoId);
         }
+        DemoRequest demo = demoOpt.get();
 
         log.info("Marking demo {} as completed", demoId);
 

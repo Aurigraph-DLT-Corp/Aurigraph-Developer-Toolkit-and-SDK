@@ -3,7 +3,6 @@ package io.aurigraph.v11.crm.repository;
 import io.aurigraph.v11.crm.entity.Lead;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
-import io.quarkus.panache.common.Sort;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.ZonedDateTime;
@@ -47,17 +46,14 @@ public class LeadRepository implements PanacheRepository<Lead> {
      * Find leads with high score (potential conversions)
      */
     public List<Lead> findHighScoreLeads(Integer minScore) {
-        return find("leadScore >= ?1", minScore)
-                .sort(Sort.by("leadScore", Sort.Direction.Descending))
-                .list();
+        return find("leadScore >= ?1 ORDER BY leadScore DESC", minScore).list();
     }
 
     /**
      * Find recently created leads
      */
     public List<Lead> findRecentLeads(ZonedDateTime since, int limit) {
-        return find("createdAt >= ?1", since)
-                .sort(Sort.by("createdAt", Sort.Direction.Descending))
+        return find("createdAt >= ?1 ORDER BY createdAt DESC", since)
                 .page(Page.ofSize(limit))
                 .list();
     }
@@ -66,9 +62,8 @@ public class LeadRepository implements PanacheRepository<Lead> {
      * Find leads needing follow-up
      */
     public List<Lead> findLeadsNeedingFollowUp() {
-        return find("status IN ?1 AND doNotContact = FALSE",
+        return find("status IN ?1 AND doNotContact = FALSE ORDER BY createdAt ASC",
                 List.of(Lead.LeadStatus.NEW, Lead.LeadStatus.ENGAGED))
-                .sort(Sort.by("createdAt", Sort.Direction.Ascending))
                 .list();
     }
 

@@ -79,11 +79,11 @@ public class LeadService {
      * Get lead by ID
      */
     public Lead getLead(UUID id) {
-        Lead lead = leadRepository.findById(id);
-        if (lead == null) {
+        Optional<Lead> leadOpt = leadRepository.find("id", id).firstResultOptional();
+        if (leadOpt.isEmpty()) {
             throw new IllegalArgumentException("Lead not found: " + id);
         }
-        return lead;
+        return leadOpt.get();
     }
 
     /**
