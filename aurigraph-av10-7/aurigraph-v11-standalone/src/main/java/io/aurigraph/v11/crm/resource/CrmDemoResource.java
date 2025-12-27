@@ -4,6 +4,7 @@ import io.aurigraph.v11.crm.dto.DemoResponse;
 import io.aurigraph.v11.crm.dto.ScheduleDemoRequest;
 import io.aurigraph.v11.crm.entity.DemoRequest;
 import io.aurigraph.v11.crm.service.DemoService;
+import io.aurigraph.v11.crm.service.ReminderService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,9 @@ public class CrmDemoResource {
 
     @Inject
     DemoService demoService;
+
+    @Inject
+    ReminderService reminderService;
 
     /**
      * Create a new demo request
@@ -94,11 +98,16 @@ public class CrmDemoResource {
                         .build();
             }
 
-            demoService.createMeetingLink(demoId, platform);
-            return Response.ok(new SuccessResponse("Meeting link created successfully")).build();
+            String meetingUrl = demoService.createMeetingLink(demoId, platform);
+            return Response.ok(new MeetingLinkResponse(meetingUrl)).build();
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(e.getMessage()))
+                    .build();
+        } catch (Exception e) {
+            log.error("Error creating meeting link", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse("Error creating meeting link"))
                     .build();
         }
     }
@@ -241,6 +250,29 @@ public class CrmDemoResource {
     }
 
     /**
+     * Get reminder statistics
+     * GET /api/v11/crm/demos/reminders/stats
+     */
+    @GET
+    @Path("/reminders/stats")
+    public Response getReminderStats() {
+        try {
+            ReminderService.ReminderStatistics stats = reminderService.getStatistics();
+            return Response.ok(new ReminderStatsResponse(
+                    stats.pending24hReminders(),
+                    stats.pending1hReminders(),
+                    stats.sentReminders24h(),
+                    stats.sentReminders1h()
+            )).build();
+        } catch (Exception e) {
+            log.error("Error fetching reminder statistics", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse("Error fetching reminder statistics"))
+                    .build();
+        }
+    }
+
+    /**
      * Request DTOs
      */
     @Data
@@ -276,5 +308,22 @@ public class CrmDemoResource {
     @AllArgsConstructor
     public static class SuccessResponse {
         private String message;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MeetingLinkResponse {
+        private String meetingUrl;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReminderStatsResponse {
+        private long pending24hReminders;
+        private long pending1hReminders;
+        private long sentReminders24h;
+        private long sentReminders1h;
     }
 }
