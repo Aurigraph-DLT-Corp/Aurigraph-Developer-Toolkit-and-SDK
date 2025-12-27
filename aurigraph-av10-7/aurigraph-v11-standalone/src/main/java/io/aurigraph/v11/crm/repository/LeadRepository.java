@@ -22,6 +22,13 @@ import java.util.UUID;
 public class LeadRepository implements PanacheRepository<Lead> {
 
     /**
+     * Find lead by UUID ID
+     */
+    public Lead findById(UUID id) {
+        return find("id = ?1", id).firstResult();
+    }
+
+    /**
      * Find lead by email
      */
     public Optional<Lead> findByEmail(String email) {

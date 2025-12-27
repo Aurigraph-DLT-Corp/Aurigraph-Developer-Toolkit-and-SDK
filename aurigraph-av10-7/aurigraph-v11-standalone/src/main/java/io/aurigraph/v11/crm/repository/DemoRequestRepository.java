@@ -18,6 +18,20 @@ import java.util.UUID;
 public class DemoRequestRepository implements PanacheRepository<DemoRequest> {
 
     /**
+     * Find demo by UUID ID
+     */
+    public DemoRequest findById(UUID id) {
+        return find("id = ?1", id).firstResult();
+    }
+
+    /**
+     * Delete demo by UUID ID
+     */
+    public void deleteById(UUID id) {
+        delete("id = ?1", id);
+    }
+
+    /**
      * Find demos for a lead
      */
     public List<DemoRequest> findByLeadId(UUID leadId) {

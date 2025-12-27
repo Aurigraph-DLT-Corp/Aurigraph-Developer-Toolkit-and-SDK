@@ -19,6 +19,13 @@ import java.util.UUID;
 public class OpportunityRepository implements PanacheRepository<Opportunity> {
 
     /**
+     * Find opportunity by UUID ID
+     */
+    public Opportunity findById(UUID id) {
+        return find("id = ?1", id).firstResult();
+    }
+
+    /**
      * Find opportunities by lead
      */
     public List<Opportunity> findByLeadId(UUID leadId) {

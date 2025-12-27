@@ -184,10 +184,7 @@ public class DemoRequestRepositoryTest {
     public void testMark24HourReminderSent() {
         DemoRequest demo = testDemos.get(0);
 
-        demoRepository.update(
-                "reminder24hSent = TRUE, reminder24hSentAt = ?1 WHERE id = ?2",
-                ZonedDateTime.now(), demo.getId()
-        );
+        demoRepository.markReminder24hSent(demo.getId());
 
         DemoRequest updated = demoRepository.findById(demo.getId());
         assertTrue(updated.isReminder24hSent());
@@ -199,10 +196,7 @@ public class DemoRequestRepositoryTest {
     public void testMark1HourReminderSent() {
         DemoRequest demo = testDemos.get(0);
 
-        demoRepository.update(
-                "reminder1hSent = TRUE, reminder1hSentAt = ?1 WHERE id = ?2",
-                ZonedDateTime.now(), demo.getId()
-        );
+        demoRepository.markReminder1hSent(demo.getId());
 
         DemoRequest updated = demoRepository.findById(demo.getId());
         assertTrue(updated.isReminder1hSent());
