@@ -1,0 +1,46 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: aurigraph
+    environment: production
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Website metrics
+  - job_name: 'website'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['website:3000']
+
+  # Mobile backend metrics
+  - job_name: 'mobile-backend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['mobile-backend:8080']
+
+  # PostgreSQL exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Node exporter (for host metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']

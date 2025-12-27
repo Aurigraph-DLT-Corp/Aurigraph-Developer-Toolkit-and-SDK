@@ -1,0 +1,102 @@
+version: '3.9'
+
+services:
+  # SDK Service
+  sdk:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.sdk
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    volumes:
+      - ../../sdks/typescript/src:/app/src
+    networks:
+      - aurigraph-dev
+
+  # Website Service
+  website:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.website
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_BASE: http://localhost:8080/api/v11
+    volumes:
+      - ../../website/aurigraph.io/src:/app/src
+    networks:
+      - aurigraph-dev
+
+  # Mobile Backend Service
+  mobile-backend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.mobile-backend
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/aurigraph
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - aurigraph-dev
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aurigraph
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-dev
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurigraph-dev
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - aurigraph-dev
+
+volumes:
+  postgres-data:
+  prometheus-data:
+
+networks:
+  aurigraph-dev:
+    driver: bridge

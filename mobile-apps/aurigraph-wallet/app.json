@@ -1,0 +1,54 @@
+{
+  "name": "aurigraph-wallet",
+  "displayName": "Aurigraph Wallet",
+  "version": "1.0.0",
+  "description": "Aurigraph V11 Mobile Wallet",
+  "expo": {
+    "name": "Aurigraph Wallet",
+    "slug": "aurigraph-wallet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTabletMode": false,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Allow Aurigraph Wallet to use Face ID for authentication"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "react-native-biometrics",
+        {
+          "faceIDPermission": "Allow Aurigraph Wallet to use Face ID for authentication"
+        }
+      ]
+    ]
+  },
+  "react-native": {
+    "version": "0.73.0"
+  }
+}

@@ -1,691 +1,648 @@
-# Aurigraph Business Mobile Node - Detailed Sprint Plan
-## 18 Sprints (Q2-Q4 2026) - 2-Week Sprint Cycles
+# Aurigraph Business Mobile Node - Detailed Sprint Implementation Plan
 
-**Planning Period**: April 2026 - December 2026  
-**Total Duration**: 36 weeks / 18 sprints  
-**Sprint Cycle**: 2 weeks per sprint  
-**Team Size**: 17 engineers (3 iOS, 3 Android, 2 core library, 2 backend, 1 PM, 2 designers, 2 QA, 1 DevOps, 1 Solutions Architect)  
-**Status**: Sprint Planning Phase  
-
----
-
-## PHASE 1: Mobile Foundation & iOS (Sprints 1-5, Weeks 1-10, April-May 2026)
-
-### Sprint 1: Architecture & Security Framework (Week 1-2)
-**Sprint Goal**: Finalize mobile architecture, security design, API contracts
-
-**Deliverables**:
-- [ ] Mobile validator architecture document
-- [ ] Security framework design (Keychain, biometric auth, key derivation)
-- [ ] Backend API specifications (REST + WebSocket)
-- [ ] Light client protocol design (HyperRAFT++ consensus)
-- [ ] Compliance framework outline (KYC/AML, audit trails)
-
-**Tasks**:
-1. Architecture design (iOS + Android) - Arch Lead + Mobile Tech Lead
-2. Security framework - Security Engineer
-3. Backend API spec - Backend Lead
-4. Light client design - Consensus Engineer
-5. Compliance framework - Legal / Architect
-
-**Success Metrics**:
-- Architecture approved by 5+ architects ✓
-- Security framework validated by external security team ✓
-- API spec complete with >90% coverage ✓
-- Light client design verified against HyperRAFT++ spec ✓
-
-**Risk**: Security design complexity → External security consulting
+**Document Type**: Sprint Implementation Plan  
+**Timeline**: Q2-Q4 2026 (9 months, 6 sprints)  
+**Launch Date**: June 1, 2026  
+**Status**: Ready for Implementation  
+**Owner**: Mobile Engineering Team  
+**Revision**: 1.0  
 
 ---
 
-### Sprint 2: iOS Foundation (Week 3-4)
-**Sprint Goal**: Setup iOS project, authentication, wallet functionality
+## Executive Summary
 
-**Deliverables**:
-- [ ] iOS project setup (Swift 5.9, SwiftUI, Xcode configuration)
-- [ ] Biometric authentication (Face ID, Touch ID)
-- [ ] Wallet creation and import flows
-- [ ] Keychain key storage (enterprise-grade encryption)
-- [ ] Unit tests (>80% coverage)
+This document provides the detailed sprint-by-sprint breakdown for the Aurigraph Business Mobile Node app development (9 months, 6 sprints). The plan covers architecture, JIRA tickets, team allocation, testing strategy, and launch preparation for iOS/Android validator participation platform targeting 10,000+ enterprise validators.
 
-**Tasks**:
-1. iOS project setup - iOS Lead
-2. Biometric auth implementation - iOS Engineer 1
-3. Wallet flows - iOS Engineer 2
-4. Keychain integration - iOS Engineer 1
-5. Unit tests - QA Engineer 1
+**Sprint Overview**:
 
-**Success Metrics**:
-- iOS project builds without warnings ✓
-- Biometric auth <500ms response time ✓
-- Wallet creation <30 seconds ✓
-- Keychain encryption verified ✓
-- >80% unit test coverage ✓
+| Sprint | Phase | Duration | Focus | Team Size | Outcomes |
+|--------|-------|----------|-------|-----------|----------|
+| Sprint 1 | Foundation | 3 weeks | Mobile architecture, key management, security | 7 | Architecture approved, design specs finalized |
+| Sprint 2 | iOS Dev | 3 weeks | iOS app, wallet, biometric auth | 6 | iOS alpha build, 1000+ beta testers |
+| Sprint 3 | Android Dev | 3 weeks | Android app, parity with iOS | 6 | Android alpha build, feature parity |
+| Sprint 4 | Consensus | 3 weeks | Mobile consensus, staking, rewards | 8 | Validator participation functional |
+| Sprint 5 | Enterprise | 3 weeks | Custody integration, audit logs, governance | 7 | Enterprise integrations, compliance ready |
+| Sprint 6 | Launch | 3 weeks | Testing, app store prep, beta coordination | 6 | App Store/Play Store ready, go-live |
 
-**Dependencies**: Sprint 1 architecture ✓
+**Total Team**: 17 FTE across 6 sprints (with overlap)
 
 ---
 
-### Sprint 3: iOS Blockchain Integration (Week 5-6)
-**Sprint Goal**: Implement light client, consensus participation, validator status
+## Sprint 1: Mobile Architecture & Security Foundation (Weeks 1-3)
 
-**Deliverables**:
-- [ ] HyperRAFT++ light client (Rust core + Swift bindings)
-- [ ] Block header validation logic
-- [ ] Validator participation proof signing
-- [ ] Network sync implementation (adaptive, WiFi-preferenced)
-- [ ] Validator status monitoring UI
+### Sprint Objectives
 
-**Tasks**:
-1. Light client Rust implementation - Core Library Engineer 1
-2. Swift bindings - iOS Engineer 1
-3. Consensus logic - Core Library Engineer 2
-4. Network sync - iOS Engineer 2
-5. Status UI - iOS Designer + iOS Engineer 2
+**Primary Goals**:
+1. Define mobile architecture supporting 10,000+ concurrent validators
+2. Design key management system (biometric + Keychain/Keystore)
+3. Create security framework (penetration test plan, threat model)
+4. Finalize tech stack (Swift/Kotlin/Rust decisions)
+5. Establish testing infrastructure and CI/CD pipeline
 
-**Success Metrics**:
-- Light client <50MB state ✓
-- Block header validation <100ms ✓
-- Network sync consumes <10MB/week (WiFi) ✓
-- Validator status updates real-time ✓
+**Success Criteria**:
+- Architecture document approved by 5+ technical leads
+- Security threat model completed (STRIDE analysis)
+- Tech stack finalized with vendor evaluation
+- Development environment ready (Xcode, Android Studio, Rust toolchain)
+- CI/CD pipeline configured for all platforms
 
-**Dependencies**: Sprint 1, 2
+### Team Composition (Sprint 1)
 
----
+| Role | Count | Responsibilities |
+|------|-------|------------------|
+| Solutions Architect | 1 | Overall architecture, tech stack decisions |
+| Security Lead | 1 | Threat modeling, key management design |
+| iOS Architect | 1 | iOS-specific architecture, SwiftUI patterns |
+| Android Architect | 1 | Android-specific architecture, Compose |
+| Core Library Architect | 1 | Rust core library design, FFI bindings |
+| DevOps Engineer | 1 | CI/CD pipeline, build infrastructure |
+| Mobile Product Manager | 1 | Requirements, mobile UX vision |
+| **Total** | **7** | |
 
-### Sprint 4: iOS Portfolio & Rewards (Week 7-8)
-**Sprint Goal**: Implement portfolio dashboard, rewards tracking, analytics
+### JIRA Tickets (25 tickets total)
 
-**Deliverables**:
-- [ ] Portfolio dashboard (staked amount, APY, pending rewards)
-- [ ] Rewards calculation and tracking
-- [ ] Performance analytics (uptime, participation rate)
-- [ ] Real-time notifications (reward earned, uptime alerts)
-- [ ] Portfolio export (CSV for accounting)
+**Architecture & Design (8 tickets)**:
+- AUR-M001: Light client architecture design (5d)
+- AUR-M002: Consensus participation model (5d)
+- AUR-M003: Transaction pool design (3d)
+- AUR-M004: Network stack (gossip protocol) (5d)
+- AUR-M005: Data persistence (SQLite, encryption) (3d)
+- AUR-M006: API contract specification (5d)
+- AUR-M007: Offline-first synchronization (3d)
+- AUR-M008: Performance targets & benchmarking (3d)
 
-**Tasks**:
-1. Dashboard UI - iOS Designer + iOS Engineer 1
-2. Portfolio data layer - iOS Engineer 2
-3. Rewards engine - Backend Engineer 1
-4. Notifications (push) - iOS Engineer 1
-5. Export functionality - iOS Engineer 2
+**Key Management & Security (10 tickets)**:
+- AUR-M009: Biometric auth framework (5d)
+- AUR-M010: Keychain integration (iOS) (5d)
+- AUR-M011: Android Keystore design (5d)
+- AUR-M012: Hardware wallet spec (Ledger/Trezor) (5d)
+- AUR-M013: Key derivation (BIP44 HD wallets) (3d)
+- AUR-M014: Threat model (STRIDE analysis) (5d)
+- AUR-M015: Jailbreak/rooting detection (3d)
+- AUR-M016: Certificate pinning strategy (3d)
+- AUR-M017: Security audit planning (3d)
+- AUR-M018: Key rotation & recovery (3d)
 
-**Success Metrics**:
-- Dashboard loads in <2 seconds ✓
-- Rewards calculated within 1 minute of earning ✓
-- Notifications delivered within 10 seconds ✓
-- Export format CPA-ready ✓
+**Tech Stack & Tools (5 tickets)**:
+- AUR-M019: iOS tech stack (Swift, SwiftUI) (3d)
+- AUR-M020: Android tech stack (Kotlin, Compose) (3d)
+- AUR-M021: Rust build system setup (5d)
+- AUR-M022: CI/CD pipeline (GitHub Actions) (5d)
+- AUR-M023: Monitoring & analytics (Sentry, Firebase) (3d)
 
-**Dependencies**: Sprint 2, 3
+**Process & Planning (2 tickets)**:
+- AUR-M024: Mobile testing strategy (3d)
+- AUR-M025: Development environment setup guide (3d)
 
----
+### Key Deliverables (Sprint 1)
 
-### Sprint 5: iOS Testing & Beta (Week 9-10)
-**Sprint Goal**: Comprehensive testing, beta launch preparation
+1. **Mobile Architecture Document** (15+ pages)
+   - Light client design (50MB vs 500GB+ full node)
+   - Consensus participation model
+   - Network synchronization strategy
+   - Data persistence and offline-first architecture
 
-**Deliverables**:
-- [ ] Integration test suite (validator participation workflows)
-- [ ] E2E tests (complete validator lifecycle)
-- [ ] UI testing (all user flows)
-- [ ] Performance tests (battery drain, data usage)
-- [ ] TestFlight beta build (1,000+ testers)
+2. **Security Framework** (20+ pages)
+   - Biometric authentication specification
+   - Key management and derivation (BIP44)
+   - Hardware wallet integration protocol
+   - Threat model (STRIDE analysis)
+   - Jailbreak/rooting detection
+   - Security audit RFP
 
-**Tasks**:
-1. Integration tests - QA Engineer 1
-2. E2E tests - QA Engineer 2
-3. UI tests - QA Engineer 1
-4. Performance tests - iOS Engineer 1
-5. TestFlight setup - DevOps Engineer
+3. **Tech Stack Decision**
+   - iOS: Swift 5.9+, SwiftUI, Keychain, LocalAuthentication
+   - Android: Kotlin 1.9+, Jetpack Compose, Keystore, BiometricPrompt
+   - Core: Rust 1.70+, cbindgen, cross-platform compilation
+   - Backend: Quarkus 3.26+, Java 21, PostgreSQL, Redis
 
-**Success Metrics**:
-- >70% integration test coverage ✓
-- All critical workflows E2E tested ✓
-- Battery drain <3% per 30 min usage ✓
-- Data usage <50MB/week ✓
-- TestFlight 1,000+ testers (target) ✓
-- App Store readiness verified ✓
+4. **CI/CD Infrastructure**
+   - GitHub Actions workflows (iOS, Android builds)
+   - Code signing certificates configured
+   - Automated testing pipeline
+   - Performance monitoring setup
 
-**Dependencies**: Sprint 2-4
+5. **Development Environment Guide**
+   - Xcode 15.0+ setup
+   - Android Studio setup
+   - Rust toolchain configuration
+   - Git workflow documentation
 
-**Phase 1 Completion**:
-- iOS app fully functional (core validator features)
-- Backend services operational
-- Security framework verified
-- 1,000+ beta testers
-- Ready for App Store submission
+### Performance Targets (Sprint 1)
 
----
+| Metric | Target | Owner |
+|--------|--------|-------|
+| App Size | <200MB (iOS), <100MB (Android) | Architects |
+| Startup | <2s cold start | Architects |
+| Battery | <5% drain per hour | iOS/Android |
+| Data Usage | <100MB/month (P95) | DevOps |
+| Architecture Approval | 5+ leads | Solutions Architect |
 
-## PHASE 2: Android & Cross-Platform (Sprints 6-10, Weeks 11-20, May-June 2026)
+### Sprint 1 Risk Assessment
 
-### Sprint 6: Android Foundation (Week 11-12)
-**Sprint Goal**: Setup Android project, authentication, wallet
-
-**Deliverables**:
-- [ ] Android project setup (Kotlin, Jetpack Compose)
-- [ ] Biometric authentication (fingerprint, face unlock)
-- [ ] Android Keystore key management
-- [ ] Wallet creation and import flows
-- [ ] Unit tests (>80% coverage)
-
-**Tasks**:
-1. Android project setup - Android Lead
-2. Biometric auth - Android Engineer 1
-3. Keystore integration - Android Engineer 1
-4. Wallet flows - Android Engineer 2
-5. Unit tests - QA Engineer 1
-
-**Success Metrics**:
-- Android project builds without errors ✓
-- Biometric auth <500ms response time ✓
-- Keystore encryption verified ✓
-- >80% unit test coverage ✓
-- Feature parity with iOS design ✓
-
-**Dependencies**: Sprint 2 (reference for iOS implementation)
-
----
-
-### Sprint 7: Android Blockchain Integration (Week 13-14)
-**Sprint Goal**: Light client on Android, consensus, network sync
-
-**Deliverables**:
-- [ ] Light client Rust core compiled for Android
-- [ ] Android JNI bindings (Rust ↔ Kotlin)
-- [ ] Block header validation
-- [ ] Validator participation signing
-- [ ] Network sync with connection management
-
-**Tasks**:
-1. Rust compilation for Android - Core Library Engineer 1
-2. JNI bindings - Core Library Engineer 2
-3. Consensus logic - Android Engineer 1
-4. Network sync - Android Engineer 2
-5. UI integration - Android Designer + Engineer 2
-
-**Success Metrics**:
-- Light client works on Android devices ✓
-- JNI bindings <50ms latency ✓
-- Network sync adapts to WiFi/cellular ✓
-- <50MB state on Android ✓
-
-**Dependencies**: Sprint 3 (light client design)
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|-----------|
+| Key management complexity | HIGH | HIGH | Expert hire, early prototyping |
+| Light client design challenges | MEDIUM | HIGH | Weekly architecture reviews |
+| Cross-platform build issues | MEDIUM | MEDIUM | Establish CI/CD early |
 
 ---
 
-### Sprint 8: Android Portfolio & Notifications (Week 15-16)
-**Sprint Goal**: Complete Android UI, portfolio, reward notifications
+## Sprint 2: iOS Development & Beta Launch (Weeks 4-6)
 
-**Deliverables**:
-- [ ] Portfolio dashboard (Android version)
-- [ ] Rewards tracking and display
-- [ ] Firebase Cloud Messaging integration
-- [ ] Performance analytics dashboard
-- [ ] Background services (validator operation when app closed)
+### Sprint Objectives
 
-**Tasks**:
-1. Dashboard UI - Android Engineer 1 + Designer
-2. Portfolio logic - Android Engineer 2
-3. FCM integration - Android Engineer 1
-4. Background services - Android Engineer 2
-5. Analytics - Backend Engineer 1
+**Primary Goals**:
+1. Implement iOS app with core validator features
+2. Achieve 1,000+ beta testers with 4.5+ stars
+3. Integrate biometric auth and Keychain
+4. Build staking dashboard and rewards tracking
+5. Complete App Store submission and approval
 
-**Success Metrics**:
-- Dashboard feature parity with iOS ✓
-- Rewards updating in real-time ✓
-- Push notifications delivered reliably ✓
-- Background service <5% battery drain ✓
+### Team Composition (Sprint 2)
 
-**Dependencies**: Sprint 4 (reference), Sprint 6-7
+| Role | Count |
+|------|-------|
+| iOS Lead | 1 |
+| iOS Engineers | 2 |
+| Core Library Engineer | 1 |
+| Backend Engineer | 1 |
+| QA Engineer (iOS) | 1 |
+| **Total** | **6** |
 
----
+### JIRA Tickets (35 tickets)
 
-### Sprint 9: Cross-Platform Testing (Week 17-18)
-**Sprint Goal**: Platform compatibility testing, performance, stability
+**iOS Core** (8 tickets):
+- AUR-M026-M033: Project structure, onboarding, wallet UI, auth, dashboard, transaction history, settings, error handling
 
-**Deliverables**:
-- [ ] Cross-platform test matrix (iOS + Android)
-- [ ] Performance benchmarks (both platforms)
-- [ ] Compatibility testing (device variations)
-- [ ] Beta build preparation for both platforms
-- [ ] PlayStore beta setup (Google Play beta track)
+**iOS Security** (5 tickets):
+- AUR-M034-M038: Keychain integration, biometric + PIN, jailbreak detection, certificate pinning, session management
 
-**Tasks**:
-1. Test matrix creation - QA Lead
-2. iOS performance tests - QA Engineer 1
-3. Android performance tests - QA Engineer 2
-4. Device compatibility - Both QA engineers
-5. Beta build setup - DevOps Engineer
+**Light Client Integration** (5 tickets):
+- AUR-M039-M043: Compile Rust for iOS, block validation, transaction signing, proof-of-participation, network sync
 
-**Success Metrics**:
-- >95% test pass rate on iOS + Android ✓
-- Performance metrics match (±10% variance) ✓
-- 10+ device types tested ✓
-- Beta builds ready for public launch ✓
+**API Integration** (4 tickets):
+- AUR-M044-M047: REST client, validator registry sync, rewards, compliance verification
 
-**Dependencies**: Sprint 5, 8
+**Testing & Performance** (5 tickets):
+- AUR-M048-M052: Unit tests, UI tests, performance profiling, analytics, beta plan
 
----
+**App Store Launch** (3 tickets):
+- AUR-M053-M055: Metadata, submission, TestFlight coordination
 
-### Sprint 10: Public Beta Launch (Week 19-20)
-**Sprint Goal**: Launch public beta for iOS + Android
+### Key Deliverables (Sprint 2)
 
-**Deliverables**:
-- [ ] TestFlight public beta (iOS)
-- [ ] Google Play beta track (Android)
-- [ ] Beta documentation and feedback forms
-- [ ] In-app feedback collection
-- [ ] 24/7 beta support setup
+1. **Functional iOS App**
+   - Onboarding flow (5 screens)
+   - Multi-account wallet management
+   - Biometric + PIN authentication
+   - Staking dashboard (live updates)
+   - Transaction history (paginated)
+   - Settings UI
 
-**Tasks**:
-1. TestFlight public beta setup - DevOps
-2. Play Store beta setup - DevOps
-3. Beta documentation - Technical Writer
-4. Feedback system - Portal Engineer
-5. Support team training - Solutions Architect
+2. **Security Implementation**
+   - Keychain key storage (secure enclave)
+   - Face ID/Touch ID integration
+   - Jailbreak detection active
+   - Certificate pinning for APIs
+   - Session timeout enforcement
 
-**Success Metrics**:
-- iOS TestFlight: 5,000+ testers (target) ✓
-- Android Play beta: 2,500+ testers (target) ✓
-- <4.5 star rating on both platforms ✓
-- <0.5% crash rate ✓
-- Support response <2h (P95) ✓
+3. **Backend Integration**
+   - REST API client (URLSession)
+   - Validator registry sync
+   - Rewards calculation display
+   - Compliance verification flow
 
-**Dependencies**: Sprint 5, 9
+4. **Testing & Quality**
+   - 95%+ unit test coverage
+   - UI test suite (Xcode)
+   - Performance benchmarks
+   - 1,000+ beta testers
+   - <0.1% crash rate
 
-**Phase 2 Completion**:
-- iOS app on App Store (public beta)
-- Android app on Play Store (public beta)
-- Feature parity between platforms
-- 7,500+ combined beta testers
-- Zero critical bugs
-- Enterprise integrations beginning
+5. **App Store Ready**
+   - Privacy policy approved
+   - Screenshots and description
+   - Terms of service
+   - Approved for distribution
 
----
+### Performance Targets (Sprint 2)
 
-## PHASE 3: Enterprise Features & Integrations (Sprints 11-15, Weeks 21-30, July-August 2026)
-
-### Sprint 11: Custody Integration (Week 21-22)
-**Sprint Goal**: Integrate enterprise custody providers
-
-**Deliverables**:
-- [ ] Fidelity Digital Assets API integration
-- [ ] Coinbase Custody integration
-- [ ] Fireblocks wallet integration (optional)
-- [ ] Custody verification flow
-- [ ] Multi-signature support (if applicable)
-
-**Tasks**:
-1. Fidelity integration - Solutions Architect + Backend Engineer
-2. Coinbase integration - Backend Engineer 1
-3. Fireblocks integration - Backend Engineer 2
-4. Verification flows - iOS + Android Engineers
-5. Testing - QA Engineers
-
-**Success Metrics**:
-- Fidelity API integration live ✓
-- Coinbase custody verified ✓
-- Custody verification <5 minutes ✓
-- 10+ pilot customers using custody ✓
-
-**Dependencies**: Phase 1-2 completion
+| Metric | Target | Required |
+|--------|--------|----------|
+| App Size | <200MB | MUST |
+| Startup | <2s | MUST |
+| Memory | <200MB | MUST |
+| Battery (8h) | 60%+ remaining | MUST |
+| Crash Rate | <0.1% | MUST |
 
 ---
 
-### Sprint 12: Compliance & Audit Framework (Week 23-24)
-**Sprint Goal**: Implement comprehensive compliance infrastructure
+## Sprint 3: Android Development & Parity (Weeks 7-9)
 
-**Deliverables**:
-- [ ] KYC/AML verification (ComplyAdvantage integration)
-- [ ] Sanctions screening (OFAC, EU, UK lists)
-- [ ] Audit trail system (immutable logging)
-- [ ] Compliance reporting (exportable format)
-- [ ] Tax reporting module (XLSX, CSV)
+### Sprint Objectives
 
-**Tasks**:
-1. KYC/AML integration - Backend Engineer 1
-2. Sanctions screening - Backend Engineer 2
-3. Audit trail - Backend Engineer 1
-4. Compliance reporting - Backend Engineer 2
-5. Tax module - Solutions Architect
+**Primary Goals**:
+1. Implement Android app with 100% feature parity to iOS
+2. Achieve 2,500+ beta testers
+3. Master Jetpack Compose and Material Design 3
+4. Integrate Android Keystore and BiometricPrompt
+5. Ensure consistent cross-platform experience
 
-**Success Metrics**:
-- KYC verified in <24h (SLA) ✓
-- Sanctions screening real-time ✓
-- Audit trail tamper-evident ✓
-- Tax report CPA-compatible ✓
-- 0% regulatory audit findings ✓
+### Team Composition (Sprint 3)
 
-**Dependencies**: Sprint 11, Phase 1-2
+| Role | Count |
+|------|-------|
+| Android Lead | 1 |
+| Android Engineers | 2 |
+| Shared Code Owner | 1 |
+| Backend Engineer | 1 |
+| QA Engineer (Android) | 1 |
+| **Total** | **6** |
 
----
+### JIRA Tickets (35 tickets)
 
-### Sprint 13: Multi-Account & Portfolio (Week 25-26)
-**Sprint Goal**: Support multiple validator accounts, portfolio aggregation
+**Android Core** (8 tickets):
+- AUR-M056-M063: Project structure, onboarding, wallet UI, biometric, dashboard, history, settings, notifications
 
-**Deliverables**:
-- [ ] Multi-account management (10+ accounts per user)
-- [ ] Account switching UI (iOS + Android)
-- [ ] Portfolio aggregation (combined view)
-- [ ] Per-account analytics (individual performance)
-- [ ] Reward consolidation and claiming
+**Android Security** (5 tickets):
+- AUR-M064-M068: Keystore integration, BiometricPrompt, root detection, certificate pinning, encrypted preferences
 
-**Tasks**:
-1. Multi-account backend - Backend Engineer 1
-2. Account management UI - iOS + Android Engineers
-3. Portfolio aggregation - Backend Engineer 2
-4. Analytics - Backend Engineer 1
-5. Reward claiming - iOS + Android Engineers
+**Cross-Platform** (5 tickets):
+- AUR-M069-M073: Rust compilation, light client parity, network sync, REST client, UI/UX consistency
 
-**Success Metrics**:
-- Multi-account switching <500ms ✓
-- Portfolio aggregation real-time ✓
-- Per-account analytics accurate ✓
-- Reward claiming atomic (no partial states) ✓
+**Testing & Performance** (5 tickets):
+- AUR-M074-M078: Unit tests, UI tests (Espresso), optimization, analytics, beta plan
 
-**Dependencies**: Phase 1-2
+**Play Store Launch** (2 tickets):
+- AUR-M079-M080: Metadata, submission
 
----
+**Cross-Platform Testing** (5 tickets):
+- AUR-M081-M085: Feature parity validation, device testing, network behavior, background sync, release coordination
 
-### Sprint 14: Advanced Networking (Week 27-28)
-**Sprint Goal**: Optimize network for mobile reliability
+### Key Deliverables (Sprint 3)
 
-**Deliverables**:
-- [ ] Connection pooling (reuse TCP connections)
-- [ ] Connection failover (WiFi ↔ cellular seamless)
-- [ ] Mesh network support (P2P between validators)
-- [ ] Bandwidth optimization (reduce by 50%+)
-- [ ] Offline mode (queue operations, sync later)
+1. **Functional Android App** (Feature parity with iOS)
+   - Material Design 3 UI (Jetpack Compose)
+   - Identical workflows to iOS
+   - Multi-account support
+   - Biometric + PIN authentication
+   - Staking dashboard
+   - Transaction history
 
-**Tasks**:
-1. Connection pooling - Core Library Engineer 1
-2. Failover logic - iOS + Android Engineers
-3. Mesh network - Core Library Engineer 2
-4. Bandwidth optimization - Backend Engineer 1
-5. Offline mode - iOS + Android Engineers
+2. **Security Features**
+   - Android Keystore integration
+   - BiometricPrompt (fingerprint, face)
+   - Root device detection
+   - Certificate pinning
+   - EncryptedSharedPreferences
 
-**Success Metrics**:
-- Failover <1 second (imperceptible) ✓
-- Bandwidth reduced by 60%+ ✓
-- Offline mode queues 100+ operations ✓
-- Mesh network functional (tested) ✓
+3. **Cross-Platform Alignment**
+   - 100% feature parity verification
+   - Identical transaction flows
+   - Same network behavior
+   - Consistent user experience
+   - OEM compatibility (Samsung, Google, OnePlus)
 
-**Dependencies**: Phase 1-2
+4. **Testing & Quality**
+   - 95%+ unit test coverage
+   - Espresso UI tests
+   - 2,500+ beta testers
+   - <0.1% crash rate
+   - OEM variation testing
+
+5. **Play Store Ready**
+   - App description and screenshots
+   - Privacy policy compliance
+   - Terms of service
 
 ---
 
-### Sprint 15: Performance & Optimization (Week 29-30)
-**Sprint Goal**: Final performance tuning, stability hardening
+## Sprint 4: Mobile Consensus & Rewards (Weeks 10-12)
 
-**Deliverables**:
-- [ ] Battery optimization (extend 8+ hour operation)
-- [ ] Memory optimization (reduce footprint)
-- [ ] CPU optimization (minimize utilization)
-- [ ] Stress testing (100K concurrent validators)
-- [ ] Performance report and recommendations
+### Sprint Objectives
 
-**Tasks**:
-1. Battery optimization - iOS + Android Engineers
-2. Memory profiling - QA Engineer 1
-3. CPU optimization - Core Library Engineer
-4. Stress testing - QA Engineer 2
-5. Report - Mobile Tech Lead
+**Primary Goals**:
+1. Implement HyperRAFT++ light client consensus
+2. Build staking and slashing mechanisms
+3. Implement automated rewards calculation
+4. Create real-time validator dashboard
+5. Achieve 99.9% uptime SLA
 
-**Success Metrics**:
-- 8+ hour operation on single charge ✓
-- Memory footprint <200MB ✓
-- CPU utilization <20% when idle ✓
-- Passes 100K concurrent validator stress test ✓
+### Team Composition (Sprint 4)
 
-**Dependencies**: Phase 1-2, Sprint 11-14
+| Role | Count |
+|------|-------|
+| Consensus Engineer | 1 |
+| iOS Engineer | 1 |
+| Android Engineer | 1 |
+| Backend Lead | 1 |
+| Backend Engineer | 1 |
+| QA Engineer | 1 |
+| DevOps Engineer | 1 |
+| **Total** | **8** |
 
-**Phase 3 Completion**:
-- Custody integrations live
-- Compliance framework production-ready
-- Multi-account support fully functional
-- Advanced networking deployed
-- Performance optimized
+### JIRA Tickets (35 tickets)
+
+**Mobile Consensus** (10 tickets):
+- AUR-M086-M095: Light client, leader election, participation signing, Byzantine tolerance, heartbeat, reconciliation, metrics, partition detection, audit logging, network failure testing
+
+**Staking & Rewards** (8 tickets):
+- AUR-M096-M103: Staking contract, lock-up mechanism, rewards calculation, distribution, slashing, uptime tracking, mobile SLA, withdrawal interface
+
+**Dashboard & Monitoring** (8 tickets):
+- AUR-M104-M111: Performance dashboard, real-time updates (WebSocket), earnings chart, Android parity, uptime alerts, peer comparison, network health, slashing predictor
+
+**Testing & Validation** (6 tickets):
+- AUR-M112-M117: Consensus simulation, network stress, rewards accuracy, slashing penalties, uptime monitoring, performance benchmarks
+
+**Backend Services** (3 tickets):
+- AUR-M118-M120: Validator registry API, rewards API, slashing penalty API
+
+### Key Deliverables (Sprint 4)
+
+1. **Mobile Consensus**
+   - HyperRAFT++ light client implementation
+   - Block header validation
+   - Leader election (150-300ms timeout)
+   - Byzantine fault tolerance (f < n/3)
+   - Network partition detection
+   - State reconciliation
+
+2. **Staking & Rewards**
+   - Staking contract ($10K minimum, 6-month lock-up)
+   - Rewards calculation (5% APY base, mobile adjustment)
+   - Automated distribution (daily accrual, monthly payout)
+   - Slashing mechanism (Byzantine penalties)
+   - Uptime tracking (85% mobile SLA)
+
+3. **Dashboard**
+   - Real-time uptime % (WebSocket updates)
+   - Earnings history (daily/weekly/monthly charts)
+   - Peer benchmarking
+   - Network metrics (validators, TVL, TPS)
+   - Slashing risk alerts
+
+4. **Testing**
+   - Consensus simulation (Byzantine scenarios)
+   - Network stress tests (latency, packet loss)
+   - Uptime SLA verification (99.9%)
+   - Performance benchmarks
+
+5. **Monitoring**
+   - 1,000+ active mobile validators
+   - 99.9% network uptime
+   - Rewards accuracy (<0.01% variance)
+   - Dashboard latency <100ms
+
+---
+
+## Sprint 5: Enterprise Features & Integrations (Weeks 13-15)
+
+### Sprint Objectives
+
+**Primary Goals**:
+1. Integrate custody providers (Fidelity, Coinbase)
+2. Implement compliance framework (KYC/AML, sanctions)
+3. Build audit logging and governance voting
+4. Create tax reporting and regulatory exports
+5. Enable 50+ pilot enterprise customers
+
+### Team Composition (Sprint 5)
+
+| Role | Count |
+|------|-------|
+| Integrations Engineer | 1 |
+| Compliance Engineer | 1 |
+| Backend Engineer | 1 |
+| iOS Engineer | 1 |
+| Android Engineer | 1 |
+| DevOps Engineer | 1 |
+| Solutions Architect | 1 |
+| **Total** | **7** |
+
+### JIRA Tickets (35 tickets)
+
+**Custody Integration** (8 tickets):
+- AUR-M121-M128: Fidelity API, Coinbase API, verification flow, multi-sig workflows, provider selection, managed keys, fee tracking, failover
+
+**Compliance & Governance** (9 tickets):
+- AUR-M129-M137: KYC/AML (ComplyAdvantage), OFAC screening, geographic restrictions, compliance dashboard, transaction reporting, audit trail, governance voting, delegation, voting transparency
+
+**Tax & Reporting** (5 tickets):
+- AUR-M138-M142: Tax export (XLSX), CPA format, gain/loss calculation, transaction detail, regulatory export (FINRA/SEC/FCA)
+
+**Advanced Features** (5 tickets):
+- AUR-M143-M147: Multi-account management, reward aggregation, rebalancing recommendations, performance analytics, mesh network support
+
+**Enterprise Support** (3 tickets):
+- AUR-M148-M150: Onboarding workflow, success portal, 24/7 escalation
+
+### Key Deliverables (Sprint 5)
+
+1. **Custody Integrations**
+   - Fidelity Digital Assets API
+   - Coinbase Custody API
+   - Multi-signature approval workflows
+   - Custody fee tracking
+   - Failover mechanisms
+
+2. **Compliance Framework**
+   - KYC/AML verification
+   - Sanctions screening (OFAC, EU, UK)
+   - Geographic restriction enforcement
+   - Transaction reporting (suspicious activity)
+   - Immutable audit trail
+
+3. **Governance & Voting**
+   - Proposal review interface
+   - Vote casting (signed)
+   - Delegation support
+   - Audit trail of votes
+
+4. **Tax & Reporting**
+   - Tax export (XLSX)
+   - CPA-ready format
+   - Gain/loss calculation
+   - Regulatory export
+
+5. **Portfolio Management**
+   - Multi-account support
+   - Reward aggregation
+   - Rebalancing recommendations
+   - Performance analytics
+
+### Deliverables Summary (Sprint 5)
+
+- 10+ custody partnerships
 - 50+ pilot customers active
-- Ready for public release
+- 100% compliance audit pass
+- Zero regulatory findings
+- <100MB data usage (P95)
+- 99.95% uptime SLA
 
 ---
 
-## PHASE 4: Scale & Ecosystem (Sprints 16-18, Weeks 31-36, September 2026)
+## Sprint 6: Launch Preparation & Beta Testing (Weeks 16-18)
 
-### Sprint 16: Public App Store Release (Week 31-32)
-**Sprint Goal**: Official launch on iOS App Store and Google Play Store
+### Sprint Objectives
 
-**Deliverables**:
-- [ ] iOS app live on App Store (v1.0)
-- [ ] Android app live on Google Play (v1.0)
-- [ ] Release notes and marketing materials
-- [ ] Launch webinar and blog post
-- [ ] Validator onboarding kit
+**Primary Goals**:
+1. Complete comprehensive testing (unit, integration, E2E)
+2. Execute security audit and penetration testing
+3. Finalize app store submissions (iOS/Android)
+4. Coordinate 3,500+ beta testers
+5. Prepare production launch (June 1, 2026)
 
-**Tasks**:
-1. App Store submission - DevOps + Solutions Architect
-2. Play Store submission - DevOps + Solutions Architect
-3. Release marketing - Marketing Manager
-4. Launch webinar - Product Manager + Solutions Architect
-5. Onboarding kit - Technical Writer
+### Team Composition (Sprint 6)
 
-**Success Metrics**:
-- Both apps live on official stores ✓
-- v1.0 stable and feature-complete ✓
-- 50K+ app downloads in first week (target) ✓
-- 4.5+ star rating on both platforms ✓
-- Launch press coverage (3+ publications) ✓
+| Role | Count |
+|------|-------|
+| QA Lead | 1 |
+| QA Engineer (iOS) | 1 |
+| QA Engineer (Android) | 1 |
+| Security Engineer | 1 |
+| DevOps Engineer | 1 |
+| Release Manager | 1 |
+| Documentation Lead | 1 |
+| **Total** | **7** |
 
-**Dependencies**: Phase 3 completion
+### JIRA Tickets (35 tickets)
 
----
+**Testing** (12 tickets):
+- AUR-M151-M162: Unit tests (95%+), integration tests, E2E flows, device testing, stress testing, network failures, Byzantine scenarios, security penetration, third-party audit, compliance verification, rewards accuracy, custodial integration
 
-### Sprint 17: Ecosystem Support Infrastructure (Week 33-34)
-**Sprint Goal**: Setup community, support, and developer resources
+**App Store Submissions** (6 tickets):
+- AUR-M163-M168: iOS submission, Android submission, launch notes (iOS), launch notes (Android), press release, monitoring setup
 
-**Deliverables**:
-- [ ] Community forum for mobile validators
-- [ ] Discord community with 2K+ members
-- [ ] Mobile validator documentation
-- [ ] Video tutorials (5+ basic walkthroughs)
-- [ ] Support ticketing system (Zendesk)
-- [ ] SLA documentation (99.95% uptime)
+**Beta Testing** (6 tickets):
+- AUR-M169-M174: iOS beta recruitment (1,000), Android beta (2,500), crash monitoring, feedback collection, issue triage, beta report
 
-**Tasks**:
-1. Community setup - DevRel Manager
-2. Discord server - DevRel Manager
-3. Documentation - Technical Writer
-4. Video tutorials - Marketing / Technical Writer
-5. Support setup - Operations Manager
+**Production Readiness** (5 tickets):
+- AUR-M175-M179: Production architecture, monitoring & alerting, incident runbooks, load testing, disaster recovery drill
 
-**Success Metrics**:
-- Forum with 500+ active threads ✓
-- Discord 2K+ members ✓
-- Documentation 100% coverage ✓
-- Video tutorials 50K+ views ✓
-- Support <2h response time (P95) ✓
+**Documentation** (4 tickets):
+- AUR-M180-M183: User guide, API documentation, support process, launch communications
 
-**Dependencies**: Phase 3 completion
+**Final Verification** (2 tickets):
+- AUR-M184-M185: Release readiness review, launch day coordination
 
----
+### Launch Readiness Checklist
 
-### Sprint 18: Scale to 10,000 Validators (Week 35-36)
-**Sprint Goal**: Network scaling, geographic expansion, final optimization
+**Must-Have Criteria**:
+- [ ] 95%+ unit test coverage
+- [ ] <0.1% crash rate (5-day stable)
+- [ ] 4.5+ stars (1,000+ iOS, 2,500+ Android)
+- [ ] iOS App Store approved
+- [ ] Android Play Store approved
+- [ ] Security audit: zero critical issues
+- [ ] Production infrastructure ready
+- [ ] 99.95% uptime verified
+- [ ] Support team trained
+- [ ] Documentation complete
 
-**Deliverables**:
-- [ ] Global validator network (50+ countries)
-- [ ] Localized support (12+ languages)
-- [ ] Regional payment methods
-- [ ] Network monitoring (99.95% SLA verification)
-- [ ] Final performance verification
+### Key Deliverables (Sprint 6)
 
-**Tasks**:
-1. Geographic expansion - Product Manager + Solutions Architect
-2. Localization - Technical Writer + Operations
-3. Payment integration - Backend Engineer
-4. Network monitoring - DevOps Engineer
-5. Performance verification - QA Engineer
+1. **Tested Applications**
+   - iOS app on App Store (4.5+ stars)
+   - Android app on Play Store (4.5+ stars)
+   - <2s startup
+   - <200MB size (iOS), <100MB (Android)
+   - <0.1% crash rate
 
-**Success Metrics**:
-- 10,000+ active mobile validators ✓
-- 50+ countries participating ✓
-- 99.95% network uptime (SLA met) ✓
-- <100ms block confirmation on mobile ✓
-- $3M-$5M annual revenue (target) ✓
+2. **Testing Evidence**
+   - Unit test report (95%+ coverage)
+   - Integration test report
+   - E2E test report
+   - Security audit report (third-party)
+   - Performance benchmarks
+   - Device compatibility matrix
 
-**Dependencies**: All Phase 3-4 sprints
+3. **Beta Results**
+   - 1,000+ iOS testers feedback
+   - 2,500+ Android testers feedback
+   - Issue triage and fixes
+   - Stability metrics
 
-**Phase 4 & Program Completion**:
-- iOS + Android apps v1.0 production release
-- 10,000+ active mobile validators
-- 50+ countries with participation
-- 100K+ app downloads
-- 99.95% uptime maintained
-- $3M-$5M annual revenue (staking + services)
+4. **Production Ready**
+   - Multi-region deployment
+   - Monitoring dashboards
+   - Alerting configured
+   - Disaster recovery tested
+   - Load testing results
+   - Incident runbooks
 
----
-
-## Cross-Sprint Themes
-
-### Security & Compliance (All Sprints)
-- Regular security audits (monthly)
-- Penetration testing (quarterly)
-- Key management verification (monthly)
-- Compliance reviews (per jurisdiction)
-- Bug bounty program (active)
-
-### Testing & Quality (All Sprints)
-- Unit test coverage: >90% required
-- Integration tests: Growing test suite
-- E2E tests: All critical paths covered
-- Device compatibility: 10+ devices tested
-- Performance benchmarking: Weekly
-
-### User Experience (All Sprints)
-- Design consistency: iOS + Android parity
-- Accessibility: WCAG 2.1 Level AA compliance
-- Performance: <2s app launch, <100ms interactions
-- Offline support: All critical operations
-- Localization: Support emerging markets
-
-### Community & Support (All Sprints)
-- Forum moderation: Daily responses
-- Discord engagement: 24/7 support
-- GitHub issues: Respond <24h
-- Support tickets: <2h response SLA
-- Feedback incorporation: Weekly reviews
-
-### Infrastructure & DevOps (All Sprints)
-- CI/CD pipeline: Automated testing, builds
-- App signing: Secure certificate management
-- Deployment: 0-downtime updates
-- Monitoring: Real-time metrics
-- Disaster recovery: Tested weekly
+5. **Launch Materials**
+   - User guide and help docs
+   - API documentation
+   - Support escalation process
+   - Press release
+   - Social media content
+   - Launch timeline
 
 ---
 
-## Sprint Cadence & Ceremonies
+## Overall Sprint Summary
 
-### Weekly Activities
-- **Monday**: Sprint kick-off (10am)
-- **Daily**: Standup (15 minutes, async-friendly)
-- **Wednesday**: Mid-sprint check-in
-- **Friday**: Demo + Retrospective (4pm)
+| Sprint | Phase | Weeks | Team | Tickets | Go-Live Criteria |
+|--------|-------|-------|------|---------|------------------|
+| 1 | Foundation | 1-3 | 7 | 25 | Approved architecture |
+| 2 | iOS | 4-6 | 6 | 35 | 1,000+ testers, App Store |
+| 3 | Android | 7-9 | 6 | 35 | 2,500+ testers, Play Store |
+| 4 | Consensus | 10-12 | 8 | 35 | 1,000+ validators, 99.9% |
+| 5 | Enterprise | 13-15 | 7 | 35 | 50+ pilots, 100% compliance |
+| 6 | Launch | 16-18 | 7 | 35 | Both apps live, June 1 |
 
-### Bi-Weekly Activities
-- **Sprint Review** (Friday, 2pm)
-- **Sprint Planning** (Friday, 3pm)
-- **Stakeholder updates** (Fri or Mon)
-
-### Monthly Activities
-- **All-hands** (1st Friday)
-- **Performance review** (metrics deep-dive)
-- **Security audit** (3rd week)
-- **Roadmap planning** (4th week)
-
-### Quarterly Activities
-- **Executive review** (strategic alignment)
-- **Roadmap update** (next quarter planning)
-- **Team retrospective** (what's working/not)
-- **Architecture review** (technical debt assessment)
+**Total**: 18 weeks (4.5 months), 17 FTE, 210 JIRA tickets
 
 ---
 
-## Definition of Done
+## Budget Summary
 
-For each sprint, tasks must meet:
+**Personnel** (9 months):
+- Senior Engineers (5): $1,125K
+- Mid-Level (7): $1,050K
+- Junior (3): $270K
+- Specialists (2): $375K
+- **Subtotal**: $2,820K
 
-### Code Quality
-- [ ] Code reviewed by 2+ engineers
-- [ ] Tests written for new code
-- [ ] >90% test pass rate
-- [ ] No critical/high-severity bugs
-- [ ] Static analysis (lint) passing
+**Infrastructure & Tools**: $118K
 
-### Documentation
-- [ ] Code comments for complex logic
-- [ ] User documentation updated
-- [ ] API documentation current
-- [ ] Release notes prepared
+**Contingency** (15%): $440K
 
-### Security
-- [ ] Security review completed (if applicable)
-- [ ] No new vulnerabilities introduced
-- [ ] Key management verified
-- [ ] Encryption validated
-
-### Performance
-- [ ] Performance impact measured
-- [ ] No regressions from baseline
-- [ ] Benchmarks documented
-- [ ] Memory/battery tested
-
-### Testing
-- [ ] Unit tests >80% coverage
-- [ ] Integration tests added
-- [ ] E2E scenarios validated
-- [ ] Manual testing completed
+**Total Budget**: **$3.378M**
 
 ---
 
-## Success Metrics by Phase
+## Success Metrics (June 1, 2026 Launch)
 
-### Phase 1 Completion (End Sprint 5)
-- iOS app fully functional ✓
-- 1,000+ beta testers ✓
-- All core validator features ✓
-- <3% battery drain per 30 min ✓
-- <50MB/week data usage ✓
+**Day 1-7**:
+- 5,000+ downloads
+- 500+ active validators
+- 4.5+ star rating
+- <1% crash rate
+- 99% uptime
 
-### Phase 2 Completion (End Sprint 10)
-- iOS + Android both public beta ✓
-- Feature parity between platforms ✓
-- 7,500+ combined beta testers ✓
-- 4.5+ stars on both platforms ✓
-- Zero critical bugs ✓
+**Month 1** (July):
+- 25,000+ downloads
+- 2,000+ validators
+- $50K MRR
 
-### Phase 3 Completion (End Sprint 15)
-- Enterprise integrations live ✓
-- Compliance framework production-ready ✓
-- 50+ pilot customers ✓
-- Multi-account fully functional ✓
-- Advanced networking optimized ✓
+**Month 3** (September):
+- 100,000+ downloads
+- 10,000+ validators
+- 99.95% uptime
+- $500K MRR
 
-### Phase 4 Completion (End Sprint 18)
-- iOS + Android v1.0 released ✓
-- 10,000+ active validators ✓
-- 50+ countries ✓
-- 100K+ app downloads ✓
-- $3M-$5M annual revenue ✓
+**Month 6** (December):
+- 500,000+ downloads
+- 50,000+ validators (stretch)
+- $1M+ MRR
 
 ---
 
-**Sprint Planning Status**: Complete - Ready for execution  
-**Kickoff Date**: April 7, 2026 (Monday)  
-**Cadence**: 2-week sprints, Friday demos  
-**Review Schedule**: Monthly executive reviews  
-**Retrospectives**: Every 5 sprints (phase boundaries)  
-**Owner**: Mobile Product Manager + Engineering Leads  
+**Document Status**: Ready for Implementation  
+**Next Review**: Monthly (sprint-based)  
+**Owner**: Mobile Engineering Team  
 
 Generated with Claude Code
-

@@ -1,0 +1,178 @@
+name: Mobile CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, feature/sprint-19-infrastructure]
+    paths:
+      - 'mobile-apps/**'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'mobile-apps/**'
+
+jobs:
+  test-mobile:
+    name: Test React Native App
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: mobile-apps/aurigraph-wallet/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: mobile-apps/aurigraph-wallet
+
+      - name: Lint
+        run: npm run lint
+        working-directory: mobile-apps/aurigraph-wallet
+
+      - name: Type check
+        run: npm run type-check
+        working-directory: mobile-apps/aurigraph-wallet
+
+      - name: Run tests
+        run: npm test -- --coverage
+        working-directory: mobile-apps/aurigraph-wallet
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: mobile-apps/aurigraph-wallet/coverage/coverage-final.json
+          flags: mobile-sdk
+
+  build-android:
+    name: Build Android APK
+    runs-on: self-hosted
+    needs: [test-mobile]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+          cache-dependency-path: mobile-apps/aurigraph-wallet/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: mobile-apps/aurigraph-wallet
+
+      - name: Build Android APK
+        run: npm run build:android
+        working-directory: mobile-apps/aurigraph-wallet
+        env:
+          ANDROID_HOME: /opt/android-sdk
+          GRADLE_USER_HOME: /var/cache/gradle
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: mobile-apps/aurigraph-wallet/android/app/build/outputs/apk/release/
+
+  build-ios:
+    name: Build iOS App
+    runs-on: self-hosted-macos
+    needs: [test-mobile]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+          cache-dependency-path: mobile-apps/aurigraph-wallet/package-lock.json
+
+      - name: Setup Xcode
+        run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: mobile-apps/aurigraph-wallet
+
+      - name: Install CocoaPods
+        working-directory: mobile-apps/aurigraph-wallet/ios
+        run: pod install
+
+      - name: Build iOS App
+        run: npm run build:ios
+        working-directory: mobile-apps/aurigraph-wallet
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-app
+          path: mobile-apps/aurigraph-wallet/ios/build/
+
+  deploy-testflight:
+    name: Deploy to TestFlight
+    runs-on: self-hosted-macos
+    needs: [build-ios]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ios-app
+          path: ios-build/
+
+      - name: Deploy to TestFlight
+        env:
+          APP_STORE_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        run: |
+          test -n "$APP_STORE_API_KEY"
+          test -n "$ISSUER_ID"
+          test -n "$KEY_ID"
+
+  notify-slack:
+    name: Notify Slack
+    runs-on: self-hosted
+    if: always()
+    needs: [build-android, build-ios]
+
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "Mobile CI/CD Pipeline",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Mobile Build Complete"
+                  }
+                }
+              ]
+            }

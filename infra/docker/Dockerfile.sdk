@@ -1,0 +1,35 @@
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+# Copy SDK packages
+COPY sdks/typescript/package*.json ./typescript/
+COPY sdks/typescript/tsconfig.json ./typescript/
+COPY sdks/typescript/src ./typescript/src
+
+COPY sdks/python/ ./python/
+COPY sdks/go/go.mod ./go/
+COPY sdks/go/go.sum ./go/
+
+WORKDIR /app/typescript
+
+# Build TypeScript SDK
+RUN npm ci
+RUN npm run build
+
+# Final stage
+FROM node:20-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/typescript/dist ./dist
+COPY --from=builder /app/typescript/package*.json ./
+
+RUN npm ci --only=production
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+CMD ["npm", "start"]

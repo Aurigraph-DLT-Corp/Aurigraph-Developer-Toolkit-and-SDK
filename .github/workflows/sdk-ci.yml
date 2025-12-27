@@ -1,0 +1,205 @@
+name: SDK CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, feature/sprint-19-infrastructure]
+    paths:
+      - 'sdks/**'
+      - '.github/workflows/sdk-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'sdks/**'
+
+env:
+  REGISTRY: registry.aurigraph.io
+  IMAGE_NAME: aurigraph/sdk
+
+jobs:
+  test-typescript:
+    name: Test TypeScript SDK
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: sdks/typescript/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: sdks/typescript
+
+      - name: Lint
+        run: npm run lint
+        working-directory: sdks/typescript
+
+      - name: Type check
+        run: npx tsc --noEmit
+        working-directory: sdks/typescript
+
+      - name: Run tests
+        run: npm test -- --coverage
+        working-directory: sdks/typescript
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: sdks/typescript/coverage/coverage-final.json
+          flags: typescript-sdk
+
+  test-python:
+    name: Test Python SDK
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: sdks/python/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+        working-directory: sdks/python
+
+      - name: Lint
+        run: flake8 aurigraph --max-line-length=100
+        working-directory: sdks/python
+
+      - name: Type check
+        run: mypy aurigraph
+        working-directory: sdks/python
+
+      - name: Run tests
+        run: pytest --cov=aurigraph --cov-report=xml
+        working-directory: sdks/python
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: sdks/python/coverage.xml
+          flags: python-sdk
+
+  test-go:
+    name: Test Go SDK
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        go-version: ['1.21', '1.22']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: true
+          cache-dependency-path: sdks/go/go.sum
+
+      - name: Run go vet
+        run: go vet ./...
+        working-directory: sdks/go
+
+      - name: Run tests
+        run: go test -v -coverprofile=coverage.out ./...
+        working-directory: sdks/go
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: sdks/go/coverage.out
+          flags: go-sdk
+
+  build-packages:
+    name: Build and Publish Packages
+    runs-on: self-hosted
+    needs: [test-typescript, test-python, test-go]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+          cache-dependency-path: sdks/typescript/package-lock.json
+
+      - name: Build TypeScript SDK
+        run: npm run build
+        working-directory: sdks/typescript
+
+      - name: Publish TypeScript SDK to npm
+        run: npm publish
+        working-directory: sdks/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Build Python SDK
+        run: python -m build
+        working-directory: sdks/python
+
+      - name: Publish Python SDK to PyPI
+        run: python -m twine upload dist/*
+        working-directory: sdks/python
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build Go SDK
+        run: go build -o bin/ ./...
+        working-directory: sdks/go
+
+  notify-slack:
+    name: Notify Slack
+    runs-on: self-hosted
+    if: always()
+    needs: [build-packages]
+
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "SDK CI/CD Pipeline Complete",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*SDK Build Status*: ${{ job.status }}"
+                  }
+                }
+              ]
+            }

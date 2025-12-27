@@ -1,0 +1,134 @@
+name: Website CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, feature/sprint-19-infrastructure]
+    paths:
+      - 'website/**'
+      - '.github/workflows/website-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'website/**'
+
+jobs:
+  test-website:
+    name: Test Next.js Website
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: website/aurigraph.io/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: website/aurigraph.io
+
+      - name: Lint
+        run: npm run lint
+        working-directory: website/aurigraph.io
+
+      - name: Type check
+        run: npm run type-check
+        working-directory: website/aurigraph.io
+
+      - name: Run tests
+        run: npm test -- --coverage
+        working-directory: website/aurigraph.io
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: website/aurigraph.io/coverage/coverage-final.json
+          flags: website
+
+  build-website:
+    name: Build Next.js Website
+    runs-on: self-hosted
+    needs: [test-website]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+          cache-dependency-path: website/aurigraph.io/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: website/aurigraph.io
+
+      - name: Build application
+        run: npm run build
+        working-directory: website/aurigraph.io
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: nextjs-build
+          path: website/aurigraph.io/.next/
+
+  build-docker:
+    name: Build Docker Image
+    runs-on: self-hosted
+    needs: [test-website]
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.aurigraph.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: website/aurigraph.io
+          push: true
+          tags: registry.aurigraph.io/aurigraph/website:latest
+          cache-from: type=registry,ref=registry.aurigraph.io/aurigraph/website:buildcache
+          cache-to: type=registry,ref=registry.aurigraph.io/aurigraph/website:buildcache,mode=max
+
+  notify-completion:
+    name: Notify Slack
+    runs-on: self-hosted
+    if: always()
+    needs: [build-docker]
+
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "Website CI/CD Pipeline Complete",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Website build and test pipeline has completed successfully"
+                  }
+                }
+              ]
+            }

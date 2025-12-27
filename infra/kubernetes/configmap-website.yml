@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+  namespace: aurigraph
+data:
+  api-base-url: "https://dlt.aurigraph.io/api/v11"
+  log-level: "info"
+  environment: "production"

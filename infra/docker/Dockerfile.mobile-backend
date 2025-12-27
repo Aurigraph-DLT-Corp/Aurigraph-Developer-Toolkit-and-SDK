@@ -1,0 +1,24 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Copy mobile backend code
+COPY mobile-apps/backend/package*.json ./
+COPY mobile-apps/backend/src ./src
+COPY mobile-apps/backend/tsconfig.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Build TypeScript
+RUN npm run build
+
+# Remove dev dependencies
+RUN npm prune --production
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8080/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+CMD ["npm", "start"]
