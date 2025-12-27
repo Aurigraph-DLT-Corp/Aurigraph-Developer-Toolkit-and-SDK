@@ -61,7 +61,7 @@ public class ReminderServiceTest {
                 .phoneNumber("+1987654321")
                 .companyName("Tech Solutions")
                 .jobTitle("COO")
-                .source("referral")
+                .source(Lead.LeadSource.PARTNER_REFERRAL)
                 .inquiryType("Platform Demo")
                 .companySizeRange("201-500")
                 .industry("Technology")
@@ -82,10 +82,10 @@ public class ReminderServiceTest {
     public void tearDown() {
         // Clean up test data
         if (testDemo != null) {
-            demoRepository.delete("id", testDemo.getId());
+            demoRepository.delete(testDemo);
         }
         if (testLead != null) {
-            leadRepository.delete("id", testLead.getId());
+            leadRepository.delete(testLead);
         }
     }
 

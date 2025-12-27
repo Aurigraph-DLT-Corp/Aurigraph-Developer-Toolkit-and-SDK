@@ -59,7 +59,7 @@ public class CrmDemoResourceTest {
                 .phoneNumber("+1555555555")
                 .companyName("Enterprise Co")
                 .jobTitle("VP Sales")
-                .source("inbound")
+                .source(Lead.LeadSource.WEBSITE_INQUIRY)
                 .inquiryType("Platform Demo")
                 .companySizeRange("1000+")
                 .industry("Financial Services")
@@ -83,14 +83,17 @@ public class CrmDemoResourceTest {
         // Clean up test data
         if (testDemoId != null) {
             try {
-                demoRepository.delete("id", testDemoId);
+                DemoRequest demo = demoRepository.findById(testDemoId);
+                if (demo != null) {
+                    demoRepository.delete(demo);
+                }
             } catch (Exception e) {
                 // Demo might already be deleted
             }
         }
         if (testLead != null) {
             try {
-                leadRepository.delete("id", testLead.getId());
+                leadRepository.delete(testLead);
             } catch (Exception e) {
                 // Lead might already be deleted
             }

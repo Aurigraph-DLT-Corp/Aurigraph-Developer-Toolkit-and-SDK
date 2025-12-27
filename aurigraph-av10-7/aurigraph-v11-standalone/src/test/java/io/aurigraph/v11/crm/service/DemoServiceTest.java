@@ -64,7 +64,7 @@ public class DemoServiceTest {
                 .phoneNumber("+1234567890")
                 .companyName("Acme Corp")
                 .jobTitle("CEO")
-                .source("website")
+                .source(Lead.LeadSource.WEBSITE_INQUIRY)
                 .inquiryType("Platform Demo")
                 .companySizeRange("500+")
                 .industry("Finance")
@@ -85,10 +85,10 @@ public class DemoServiceTest {
     public void tearDown() {
         // Clean up test data
         if (testDemo != null) {
-            demoRepository.delete("id", testDemo.getId());
+            demoRepository.delete(testDemo);
         }
         if (testLead != null) {
-            leadRepository.delete("id", testLead.getId());
+            leadRepository.delete(testLead);
         }
     }
 

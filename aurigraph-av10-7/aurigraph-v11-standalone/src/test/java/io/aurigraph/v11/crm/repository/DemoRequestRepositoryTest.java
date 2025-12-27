@@ -116,7 +116,7 @@ public class DemoRequestRepositoryTest {
     public void tearDown() {
         // Clean up test data
         for (DemoRequest demo : testDemos) {
-            demoRepository.delete("id", demo.getId());
+            demoRepository.delete(demo);
         }
     }
 
@@ -252,7 +252,6 @@ public class DemoRequestRepositoryTest {
                 .meetingId("zoom-123")
                 .meetingUrl("https://zoom.us/j/123")
                 .meetingJoinUrl("https://zoom.us/j/123?pwd=xxx")
-                .recordingEnabled(true)
                 .recordingUrl("https://zoom.us/rec/123")
                 .recordingAvailableAt(now.minus(1, ChronoUnit.HOURS))
                 .calendarInviteSent(true)
@@ -282,6 +281,6 @@ public class DemoRequestRepositoryTest {
         assertTrue(retrieved.isRecordingEnabled());
         assertTrue(retrieved.isFeedbackFormCompleted());
 
-        demoRepository.delete("id", fullDemo.getId());
+        demoRepository.deleteById(fullDemo.getId());
     }
 }

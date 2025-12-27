@@ -40,7 +40,9 @@ public class DemoRequest extends PanacheEntityBase {
         TECHNICAL_DEEP_DIVE,
         PROOF_OF_CONCEPT,
         PILOT_PROGRAM,
-        EXECUTIVE_BRIEFING
+        EXECUTIVE_BRIEFING,
+        PLATFORM_DEMO,
+        PARTNERSHIP
     }
 
     public enum DemoStatus {
@@ -198,5 +200,26 @@ public class DemoRequest extends PanacheEntityBase {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = ZonedDateTime.now();
+    }
+
+    // Helper methods for test compatibility
+    public Boolean isReminder24hSent() {
+        return reminder24hSent != null && reminder24hSent;
+    }
+
+    public Boolean isReminder1hSent() {
+        return reminder1hSent != null && reminder1hSent;
+    }
+
+    public Boolean isRecordingEnabled() {
+        return recordingUrl != null && !recordingUrl.isEmpty();
+    }
+
+    public Boolean isFeedbackFormCompleted() {
+        return feedbackFormCompleted != null && feedbackFormCompleted;
+    }
+
+    public Boolean isCalendarInviteSent() {
+        return calendarInviteSent != null && calendarInviteSent;
     }
 }
