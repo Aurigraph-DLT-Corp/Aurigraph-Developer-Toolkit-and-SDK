@@ -1,0 +1,46 @@
+{
+  "name": "@aurigraph/dlt-sdk",
+  "version": "1.2.0",
+  "description": "Official TypeScript SDK for Aurigraph DLT (V12 platform, V11 API)",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "aurigraph-sdk": "./dist/bin/cli.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:cli": "tsc && chmod +x dist/bin/cli.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "aurigraph",
+    "dlt",
+    "blockchain",
+    "sdk",
+    "rwat",
+    "tokenization"
+  ],
+  "author": "Aurigraph DLT Corp",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aurigraph-DLT-Corp/Aurigraph-DLT"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0",
+    "@types/node": "^20.11.0"
+  }
+}

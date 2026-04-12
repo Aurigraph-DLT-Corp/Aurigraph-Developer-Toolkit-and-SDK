@@ -1,0 +1,26 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+.idea/
+*.iml
+
+# TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.settings/
+.project
+.classpath
+
+# Env
+.env
+.env.local
