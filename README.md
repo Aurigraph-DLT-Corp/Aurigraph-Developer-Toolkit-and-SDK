@@ -2,6 +2,10 @@
 
 Official SDKs for integrating with the **Aurigraph DLT V12** platform (V11 API).
 
+**Repo**: `git@github.com:Aurigraph-DLT-Corp/Aurigraph-Developer-Toolkit-and-SDK.git`
+**JIRA Board**: [ADTS Product Board](https://aurigraphdlt.atlassian.net/jira/software/c/projects/ADTS/boards/1020)
+**Epic**: [ADTS-3 — Aurigraph Developer Toolkit & SDK Product Lifecycle](https://aurigraphdlt.atlassian.net/browse/ADTS-3)
+
 ## SDKs
 
 | Language | Path | Version | Status |
@@ -94,6 +98,17 @@ cd typescript && npm install && npm run build
 - **Endpoints**: 1,265+ REST, 100+ gRPC RPCs
 - **Auth**: `Authorization: ApiKey <appId>:<rawKey>`
 - **Docs**: `https://dlt.aurigraph.io/api-docs`
+
+## Roadmap
+
+| Version | Status | JIRA | Scope |
+|---------|--------|------|-------|
+| v1.0.0 | ✅ Done | [ADTS-4](https://aurigraphdlt.atlassian.net/browse/ADTS-4) | Initial Java + TypeScript (7 namespaces) |
+| v1.1.0 | ✅ Done | [ADTS-5](https://aurigraphdlt.atlassian.net/browse/ADTS-5) | Adapters + CLI wizard + offline queue |
+| v1.2.0 | ✅ Done | [ADTS-6](https://aurigraphdlt.atlassian.net/browse/ADTS-6) | Asset-agnostic + 7 new APIs + standalone repo |
+| v1.3 | ⏳ In Progress | [ADTS-7](https://aurigraphdlt.atlassian.net/browse/ADTS-7) | Python SDK + GraphQL full + WebSocket streaming |
+| v1.4 | 📋 Roadmap | [ADTS-8](https://aurigraphdlt.atlassian.net/browse/ADTS-8) | Rust SDK + native gRPC + iOS/Android mobile |
+| v2.0 | 📋 Roadmap | [ADTS-9](https://aurigraphdlt.atlassian.net/browse/ADTS-9) | Maven Central + npm + PyPI + SemVer |
 
 ## License
 
