@@ -98,6 +98,37 @@ except AurigraphServerError as e:
     print(f"Server error {e.status}: {e}")
 ```
 
+### Async Client
+
+For asyncio / ASGI applications, use `AsyncAurigraphClient`:
+
+```python
+import asyncio
+from aurigraph_sdk import AsyncAurigraphClient
+
+async def main():
+    async with AsyncAurigraphClient(
+        base_url="https://dlt.aurigraph.io",
+        app_id="your-app-id",
+        api_key="your-api-key",
+    ) as client:
+        health = await client.health()
+        print(f"Status: {health.status}")
+
+        stats = await client.stats()
+        print(f"TPS: {stats.tps}, Active Nodes: {stats.active_nodes}")
+
+        # Asset queries
+        gold_assets = await client.assets.list_by_use_case("UC_GOLD")
+        asset = await client.assets.get("asset-uuid")
+
+asyncio.run(main())
+```
+
+The async client mirrors the sync `AurigraphClient` API exactly -- all methods
+are `async def` and the client supports `async with` context management.
+Auto-retry with exponential backoff is preserved using `asyncio.sleep`.
+
 ## Requirements
 
 - Python 3.10+

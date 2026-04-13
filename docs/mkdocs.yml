@@ -1,0 +1,51 @@
+site_name: Aurigraph SDK Documentation
+site_url: https://sdk.aurigraph.io
+repo_url: https://github.com/Aurigraph-DLT-Corp/Aurigraph-Developer-Toolkit-and-SDK
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+    - scheme: slate
+      primary: blue
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - tables
+nav:
+  - Home: README.md
+  - Getting Started: getting-started.md
+  - Concepts:
+      - Authentication: authentication.md
+      - Handshake Protocol: handshake-protocol.md
+      - Asset-Agnostic Design: asset-agnostic-design.md
+      - Tier System: tier-system.md
+      - Multi-Channel: multi-channel.md
+      - GDPR Compliance: gdpr-compliance.md
+      - Error Handling: error-handling.md
+  - SDKs:
+      - Java: sdks/java.md
+      - TypeScript: sdks/typescript.md
+      - Python: sdks/python.md
+      - Rust: sdks/rust.md
+  - API Reference:
+      - Assets: api-reference/assets.md
+      - GDPR: api-reference/gdpr.md
+      - GraphQL: api-reference/graphql.md
+      - Tier: api-reference/tier.md
+      - Governance: api-reference/governance.md
+      - Wallet: api-reference/wallet.md
+      - Compliance: api-reference/compliance.md
+      - Nodes: api-reference/nodes.md
+      - Channels: api-reference/channels.md
+      - Transactions: api-reference/transactions.md
+      - DMRV: api-reference/dmrv.md
+      - Contracts: api-reference/contracts.md
+      - Handshake: api-reference/handshake.md
+  - Migration:
+      - v1.x to v2.0: migration/v1-to-v2.md

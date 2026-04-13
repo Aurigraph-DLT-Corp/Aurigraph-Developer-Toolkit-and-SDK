@@ -2,6 +2,7 @@
 
 __version__ = "1.3.0"
 
+from aurigraph_sdk.async_client import AsyncAurigraphClient
 from aurigraph_sdk.client import AurigraphClient
 
-__all__ = ["AurigraphClient", "__version__"]
+__all__ = ["AurigraphClient", "AsyncAurigraphClient", "__version__"]
