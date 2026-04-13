@@ -1,0 +1,73 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'DEVELOPER_GUIDE.md'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'SEMVER.md'
+      - 'BREAKING_CHANGES.md'
+      - 'DEPRECATIONS.md'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install MkDocs + plugins
+        run: |
+          pip install --upgrade pip
+          pip install mkdocs-material mkdocs-minify-plugin
+
+      - name: Sync top-level MDs into docs
+        run: |
+          cp DEVELOPER_GUIDE.md docs/developer-guide.md
+          cp CHANGELOG.md docs/changelog.md
+          cp SEMVER.md docs/semver.md
+          cp BREAKING_CHANGES.md docs/breaking-changes.md
+          cp DEPRECATIONS.md docs/deprecations.md
+          cp RELEASE.md docs/release-process.md
+
+      - name: Build MkDocs site
+        working-directory: docs
+        run: mkdocs build --strict --site-dir ../_site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, linux]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
