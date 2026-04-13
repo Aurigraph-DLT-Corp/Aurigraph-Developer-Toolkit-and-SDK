@@ -1,0 +1,125 @@
+# Aurigraph SDK — Weekly Security Audit
+# Scans all SDK languages for known CVEs in dependencies.
+# Fails on critical/high severity vulnerabilities.
+# ADTS-9: Automated security scanning
+# Security: No untrusted input is used in run: commands.
+
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Every Monday at 00:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: security-scan
+  cancel-in-progress: true
+
+jobs:
+  java-audit:
+    name: Java Dependency Audit
+    runs-on: [self-hosted, linux]
+    permissions:
+      contents: read
+      security-events: write
+    defaults:
+      run:
+        working-directory: java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: java/pom.xml
+
+      - name: OWASP Dependency Check
+        run: |
+          mvn -B org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=7 \
+            -Dformats=HTML,JSON,SARIF
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: java/target/dependency-check-report.sarif
+          category: java-dependencies
+
+  npm-audit:
+    name: npm Dependency Audit
+    runs-on: [self-hosted, linux]
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: typescript/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (critical + high)
+        run: npm audit --audit-level=high
+
+  pip-audit:
+    name: Python Dependency Audit
+    runs-on: [self-hosted, linux]
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: python/pyproject.toml
+
+      - name: Install SDK and pip-audit
+        run: |
+          pip install -e ".[dev]"
+          pip install pip-audit
+
+      - name: Run pip-audit
+        run: pip-audit --strict --desc
+
+  # Uncomment when rust/ directory is added
+  # cargo-audit:
+  #   name: Rust Dependency Audit
+  #   runs-on: [self-hosted, linux]
+  #   permissions:
+  #     contents: read
+  #   defaults:
+  #     run:
+  #       working-directory: rust
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up Rust
+  #       uses: dtolnay/rust-toolchain@stable
+  #
+  #     - name: Install cargo-audit
+  #       run: cargo install cargo-audit
+  #
+  #     - name: Run cargo audit
+  #       run: cargo audit

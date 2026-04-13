@@ -1,0 +1,1 @@
+"""Aurigraph SDK API namespaces."""

@@ -1,0 +1,52 @@
+# Aurigraph Java SDK — Maven Central Publishing
+# Requires Sonatype OSSRH account (s01.oss.sonatype.org) and GPG keypair.
+# Secrets needed: OSSRH_USERNAME, OSSRH_TOKEN, GPG_PRIVATE_KEY, GPG_PASSPHRASE
+# ADTS-9: Automated release on version tag
+# Security: No untrusted input is used in run: commands.
+
+name: Release Java SDK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: release-java-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to Maven Central
+    runs-on: [self-hosted, linux]
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: java/pom.xml
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Verify
+        run: mvn -B verify
+
+      - name: Deploy to Maven Central
+        run: mvn -B clean deploy -P release
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

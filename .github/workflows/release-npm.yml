@@ -1,0 +1,61 @@
+# Aurigraph TypeScript SDK — npm Publishing
+# Package: @aurigraph/dlt-sdk
+# Secrets needed: NPM_TOKEN (automation token from npmjs.com)
+# Note: package.json must have "publishConfig": { "registry": "https://registry.npmjs.org/", "access": "public" }
+# ADTS-9: Automated release on version tag
+# Security: No untrusted input is used in run: commands.
+
+name: Release TypeScript SDK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: release-npm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: [self-hosted, linux]
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: typescript/package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Pack tarball for GitHub Release
+        run: npm pack
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: typescript/aurigraph-dlt-sdk-*.tgz

@@ -1,0 +1,60 @@
+# Dependabot — Automated dependency updates for all SDK languages
+# ADTS-9: Dependency management
+
+version: 2
+
+updates:
+  # Java (Maven)
+  - package-ecosystem: maven
+    directory: /java
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - java
+
+  # TypeScript (npm)
+  - package-ecosystem: npm
+    directory: /typescript
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - typescript
+
+  # Python (pip)
+  - package-ecosystem: pip
+    directory: /python
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - python
+
+  # Rust (cargo) — activate when rust/ directory is added
+  # - package-ecosystem: cargo
+  #   directory: /rust
+  #   schedule:
+  #     interval: weekly
+  #     day: monday
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - dependencies
+  #     - rust
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci
