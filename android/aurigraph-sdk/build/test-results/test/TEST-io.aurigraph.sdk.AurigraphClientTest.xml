@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.aurigraph.sdk.AurigraphClientTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-04-14T01:34:36" hostname="Subbus-MacBook-Pro-2.local" time="0.179">
+  <properties/>
+  <testcase name="handshake hello returns parsed HelloResponse()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.14"/>
+  <testcase name="client error returns ClientError with ProblemDetails()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.007"/>
+  <testcase name="stats returns parsed PlatformStats()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.004"/>
+  <testcase name="client without appId sends X-API-Key header()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.005"/>
+  <testcase name="assets listByUseCase sends correct path()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.008"/>
+  <testcase name="server error returns ServerError on 500()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.004"/>
+  <testcase name="builder throws ConfigError when baseUrl is missing()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.0"/>
+  <testcase name="health returns parsed HealthResponse()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.004"/>
+  <testcase name="builder throws ConfigError when baseUrl is blank()" classname="io.aurigraph.sdk.AurigraphClientTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
