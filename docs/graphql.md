@@ -71,7 +71,7 @@ The HTTP response remains 200 unless there's a transport-level failure. This mat
 ## Limitations (v1.2.0)
 
 - **No mutations yet** — use REST endpoints for writes
-- **No subscriptions yet** — use WebSocket/SSE streaming for real-time (planned v1.3)
+- **No subscriptions yet** — use gRPC streaming for real-time (planned v1.3)
 - **No fragment composition** — the regex-based field detection doesn't support complex queries
 - **No variables** — variables are parsed but pass-through only
 - **No directives** (`@include`, `@skip`) — not honored
@@ -93,7 +93,7 @@ After v1.3 migration, native SmallRye GraphQL is comparable to REST (<1ms overhe
 
 **Use REST when**:
 - You need writes (mutations aren't implemented yet)
-- You need streaming (subscriptions aren't implemented yet)
+- You need streaming (use gRPC streaming namespace)
 - You want maximum performance for a single endpoint
 
 ## See Also
