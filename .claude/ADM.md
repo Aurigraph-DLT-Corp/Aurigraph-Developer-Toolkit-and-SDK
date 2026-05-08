@@ -384,6 +384,77 @@ Each phase requires:
 
 **Why memorize**: This rule closes the historical gap where a project shipped with strong Jest/JUnit unit coverage but zero pytest (Python paths) or zero Playwright (UI flows) — manual smoke tests passed in dev but regressions slipped past CI. Mandating both as canonical layers makes the top of the pyramid deterministic and gateable.
 
+#### Reference implementation (MEV Shield, May 9, 2026)
+
+The first project to ship a fully #TestStackMandate-compliant TDD suite. Use as the canonical example when standing up the mandate elsewhere.
+
+| Layer | Framework | Tests | Wall-time | Source |
+|-------|-----------|------:|----------:|--------|
+| Backend unit | Jest (Node native) | **1,051** | 9.5s | `backend-enterprise/tests/` |
+| **API contract** ⭐ | **pytest + httpx** | **24** | 1.5s | `tests/api/` |
+| Frontend E2E | Playwright | **158** | 108s | `tests/e2e/` |
+| **Combined** | | **1,233** | ~120s | 0 fail · 0 skip |
+
+Repo: `Aurigraph-DLT-Corp/MEV-Shield` at commit `e0026cb9`.
+
+#### Sub-rule: pytest as a value-add even when technically exempt
+
+**Rule**: Even when a project's stack triggers the skip exemption ("zero Python source files"), strongly consider adding pytest as an **API-contract layer** that exercises the deployed HTTPS surface from outside the runtime. **Recommended, not mandatory**, when exempt.
+
+**Why**: pytest at the contract layer catches things the language-native unit suite can't:
+- Real TLS/proxy/CDN behavior (not mocked)
+- JSON serialization edge cases at wire-level
+- Header behaviors (CORS, CSP, security headers)
+- Cross-language consumer perspective on the API contract — reveals contract drift the SPA might silently absorb
+- De-risks language-native unit tests accidentally over-stubbing reality
+
+**Contract**: pytest at the API-contract layer COMPLEMENTS Jest/JUnit (internals, mocked) and Playwright (UI flows). It does NOT replace either. ~70× faster per test than Playwright (HTTP-only, no browser) — right efficiency profile for fast contract-drift feedback.
+
+**Layer slot**:
+```
+[ Unit (Jest/JUnit/Vitest, mocked) ] ← internals
+[ API contract (pytest + httpx)     ] ← deployed surface, over-the-wire
+[ Frontend E2E (Playwright)          ] ← UI flows, browser-driven
+```
+
+**MEV Shield example**: Project is Node-only (zero Python source) so pytest is exempt under the skip rule. Suite was added anyway as 24 contract tests (auth gates + envelope shapes + agentic-AI surface). Caught real contract drift on `/auth/login` response shape (`{ data: { access_token }}` not `{ token }`) that mock-based Jest tests had silently absorbed.
+
+#### Sub-rule: worker-scoped admin session for production-target E2E
+
+**Rule**: When Playwright E2E tests target a production environment with rate-limited auth (e.g. `AUTH_RATE_LIMIT_MAX=30/15min`), authentication MUST be performed at **worker scope**, not per-test scope. Production rate-limiters are a real-world property worth testing through, not a test-infrastructure bug.
+
+**Why**: Per-test login attempts cascade — a 158-test suite × 1 login-per-test = 158 attempts in <2 minutes, far exceeding most rate-limit windows. Result: false-failure cascades, retry storms, hours debugging "test infrastructure" problems that are actually rate-limit math.
+
+**Pattern** (Playwright `test.extend()` with `scope: 'worker'`):
+```typescript
+type WorkerFixtures = { workerSession: AdminSession | null };
+
+export const test = base.extend<Fixtures, WorkerFixtures>({
+  workerSession: [
+    async ({ playwright }, use) => {
+      const ctx = await playwright.request.newContext({ baseURL: PROD_URL });
+      let sess: AdminSession | null = null;
+      try { sess = await new AdminApi(ctx).session(); }
+      catch { /* rate-limited; tests skip gracefully */ }
+      await use(sess);
+      await ctx.dispose();
+    },
+    { scope: 'worker' },
+  ],
+  adminPage: async ({ page, workerSession }, use) => {
+    if (!workerSession) { test.skip(true, 'auth unavailable'); return; }
+    await attachAdminSession(page, workerSession);
+    await use(page);
+  },
+});
+```
+
+**Result**: 2 logins per E2E run (workers=2 in config) instead of 50+. Stays well under the rate-limit ceiling. Tests dependent on auth skip gracefully if the worker login fails (rather than cascade-failing the whole suite).
+
+**MEV Shield example**: Before this pattern, full-suite runs against `https://mevshield.ai` exhausted the rate limiter and produced 7+ false failures per run. After: 158/158 GREEN consistently.
+
+**Companion**: pytest's `admin_session` fixture must use `scope="session"` for the same reason. Per pytest run = 1 login.
+
 ### TDD Workflow
 
 1. **RED Phase** — Write failing test
@@ -7157,4 +7228,29 @@ Both incidents bypass the existing image-drift detection (ADM-073) because they'
 
 ---
 
-**Last Updated**: 2026-05-08 (v2.11.6 — ADM-099 OLLAMA_NUM_PARALLEL ≤ 2 ceiling for gemma4:e4b on healthcare DLT + ADM-100 build_kg uningested-PDFs-first ordering; v2.11.5 carryover: ADM-094/095/096/097/098; v2.11.1: ADM-091/092/093; v2.11.0: ADM-088/089/090)
+## ADM-101 — Docs-Only Diffs to Canonical Reference Files (`ADM.md`, `INS.md`, kgraph seeds) MUST Auto-Pull on Read-Side Hosts; Carve-Out from ADM-097 (#MANDATORY — May 9, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-09). **Pairs with:** ADM-076 (kgraph-first), ADM-076-A (kgraph file watcher), ADM-097 (GHA deploy gated on workflow_dispatch). **Carves out from:** ADM-097 (only for docs-only diffs).
+
+**Rule:** Changes to canonical reference files that are read by running services as the source of operational truth — explicitly `ADM.md`, `INS.md`, and `j4c-api/app/kgraph/external_seeds/*.json` — MUST propagate to every read-side host's bind-mounted file within 5 minutes of being pushed to the canonical branch on GitHub. This propagation does NOT count as a "deploy" under ADM-068 / ADM-097: no L0–L4 cascade, no image rebuild, no service restart, no `workflow_dispatch` is required. The receiving file watcher (ADM-076-A) is responsible for re-ingesting into the kgraph; nothing else needs to happen.
+
+**Why ADM-097 created the hole:** ADM-097 (May 8, 2026) gated GHA `deploy` jobs on `workflow_dispatch` only to prevent accidental deploys. This was correct for code/compose/migration diffs. But the side effect was that pure docs-only commits (3 ADM-sync commits 2026-05-08) sat on `origin/main` for 12+ hours without reaching `/opt/j4c-portal/` on the j4c host. The kgraph at `https://j4c.aurigraph.io/api/v3/kgraph/data` stayed at the pre-ADM-091 snapshot (29 ADM nodes) while canonical advanced to ADM-100 (48 entries) — a 19-entry kgraph drift. Operators reading kgraph for "current state" got wrong answers; the ADM-076-A watcher had nothing to watch because the file on disk wasn't moving. Diagnosed and resolved 2026-05-09 by manual `git pull` (kgraph immediately repopulated to 49 ADM nodes).
+
+**Behaviour contract:**
+
+1. **Diff classification preserved.** Docs-only = a diff that touches ONLY `ADM.md`, `docs/ADM.md`, `docs/global-config/ADM.md`, `INS.md`, `docs/INS.md`, `j4c-api/app/kgraph/external_seeds/*.json`, or any `*.md` outside source-of-record code paths. ANY touch to `j4c-api/app/**/*.py`, `j4c-react/src/**`, `*/Dockerfile*`, `docker-compose*.yml`, `requirements*.txt`, `package.json`, `pnpm-lock.yaml`, `*.sql` migration files, or `*.yml` workflow files DISQUALIFIES the diff from this carve-out — those go through ADM-097's workflow_dispatch gate.
+2. **Implementation choice (one of):**
+   - (preferred) A separate GHA workflow `docs-sync.yml` triggered on `push` (NOT `workflow_dispatch`) with a path filter on the canonical doc paths, that SSHs to read-side hosts and runs `cd <deploy> && git pull --rebase` — no `docker compose` calls, no service restart.
+   - A host-side cron / systemd timer (e.g. `j4c-docs-sync.timer`, `*/5 * * * *`) on each read-side host that runs `git fetch && git diff --quiet origin/main <doc-paths>` and pulls only if the diff is docs-only.
+   - A GitHub webhook → small `j4c-portal` endpoint that authenticates the push event and triggers the same conditional pull.
+3. **Watcher contract (ADM-076-A) is unchanged.** The kgraph watcher already does the right thing once the file on disk changes; the carve-out is purely about getting the file there.
+4. **Auditing.** Each docs-only auto-pull MUST log to host journal with the commit SHA and the doc paths that changed. A 24h-window query like `journalctl -u j4c-docs-sync.timer --since "1 day ago"` should show every propagation. Failures (auth, rebase conflicts) MUST page or file a JIRA ticket — silent staleness is exactly what this ADM exists to prevent.
+5. **What is still forbidden by ADM-097.** A workflow_dispatch deploy with code/migration/compose changes still runs the full L0–L4 cascade. A docs-only auto-pull MUST refuse to run if the diff includes any non-docs path (defense in depth so a compromised webhook can't sneak code through).
+
+**Operational note (2026-05-09):** The implementation is not yet shipped. Until it is, operators MUST run `cd /opt/j4c-portal && git pull --rebase` on j4c (and analogous on every other host that reads canonical docs) after any ADM-sync commit. Track as a follow-up task; the ADM is binding and gates how the implementation will be reviewed when it lands.
+
+**Reference:** Diagnostic session 2026-05-09 (this session); kgraph drift observed at 29 nodes vs canonical 48 entries; resolved by manual pull at commit `9c35e2402`. Carve-out justification documented in `~/.claude/ADM.md` ADM-097 entry as a known limitation that ADM-101 closes.
+
+---
+
+**Last Updated**: 2026-05-09 (v2.11.7 — ADM-101 docs-only diffs auto-pull carve-out from ADM-097; v2.11.6: ADM-099/100 healthcare LLM ceilings + corpus ordering; v2.11.5: ADM-094..098 CI/deploy hardening; v2.11.1: ADM-091/092/093 OpenBao+Harbor production; v2.11.0: ADM-088/089/090 healthcare deploy recipes)
