@@ -1,10 +1,17 @@
-# Aurigraph Dev Mode (#ADM) — Complete Framework
+# Aurigraph Development Model Harness (#ADM) — Complete Framework
 
-> **Updated**: May 5, 2026 | **Version**: 2.10.7 — **Numbered registry**: ADM-056 → ADM-086 (Appendix A + operational sections below). **P0 cross-cuts**: 068 `@J4CDeploymentAgent` deploy binding; 069 sequential task queue; 070 OAuth email-domain allowlist; 071 DB-authoritative three-tier RBAC; 072 stub-mode integration adapters; 073 L1 image–source drift check; 074 RO source bind-mount (rec); 075 fleet `scripts/j4c-agent.py` + `.j4c-agent.json`; **076 / 076-A** kgraph-first reads + ADM file watcher re-ingest; **077–079** project-bound LLM gateway keys, completion-path smoke checks, and reboot-persistent AutoHeal Layer 2 timers; **080** external project-scoped kgraphs; **081** SPA `index.html` no-cache; **082** Express literal-prefix routes before `:id`; **083** web-hook ↔ API-route response-shape co-test; **084** `email_verified_at` is the single source of truth for verified state; **085** onboarding horizontal top-mounted stepper (rec); **086** per-repo operational profile in `docs/<Project>.md` + slim `CLAUDE.md` pointer (AurexV4 `docs/AurexV4.md`). **Platform**: 067 LLM Gateway (Gemma→Claude, hashed keys); 066 Healthcare CCAA on DLT + **067-A** nginx-gateway edge routing (Traefik labels inert on live DLT). **PR review**: Cursor **Bugbot** per repo — `cursor.com/dashboard/bugbot` (complements Tier-7 SCMAgent, does not replace it). | **Complete Specification**: All 11 components + 0b/0c
-> **KMS (OpenBao — J4C)**: **`https://j4c.aurigraph.io/openbao`** — secrets engine (KV v2, AppRole, etc.). Battua and sibling services use this **HTTPS API base** for KMS operations; it is **not** a Docker registry. Operational detail: `docs/J4C_OPENBAO.md`.
+> **Updated**: June 2, 2026 (eve) | **Version**: 3.0.4 — **ADM-169 added**: **Deploy Queue Discipline** (USER MANDATED) — j4C Deployment Agent MUST drain older deploys before starting new. Triggered by the 2026-06-02 V12 deploy incident: 3 deploys queued sequentially over 8-9h because push triggers piled on without queue check. New rule mandates Step 1 queue verification + push-trigger workflows must use `concurrency: cancel-in-progress: true`. See ADM-169 for full procedure. **Also v3.0.4 (cumulative)**: AurexV4 hardening loop; HCE2 reliability arc; Component 13 TDD/MTP Coverage Audit; ADM-111 cosmic-ray standardization; AV11-2913 Crypto Consolidation architecturally complete.
+> **Updated**: June 2, 2026 | **Version**: 3.0.3 — **ADM-111 extended**: cosmic-ray (≥8.4.0) is the new Aurigraph-platform-standard Python mutation testing tool for NEW adopters (replaces mutmut for narrow-module-path ratchet baselines). mutmut may stay installed for ad-hoc wide-scope; legacy adopters (HCE2) keep their `[tool.mutmut]` config. mutmut 4.x is **not** released on PyPI (verified AV11-2920 2026-06-02). Canonical reference: `Jeeves4Coder/j4c-api/cosmic-ray.toml`. **Also**: AV11-2913 Crypto Consolidation Epic architecturally complete — Phases 1-4.6 landed across V12 (proto + client + CryptoOps interface, commits b4359bf3..6489eb1d05) + Battua (server impl, commit 23569615). End-to-end V12→Battua sign/verify path exists.
+> **Updated**: May 31, 2026 | **Version**: 3.0.2 — **Component 13 added**: TDD/MTP Coverage Audit (quarterly mandate + 5 canonical adversarial RED-test categories: Path-Collision, Fuzz, Security, Chaos, Mutation-Baseline). First baseline audit shipped at `aurigraph-v12/docs/audit/TDD_MTP_Coverage_Audit_2026-05-31.md` — 19 products, 0/19 adversarial-category adoption (universal gap=5 baseline). Templates at `aurigraph-v12/docs/templates/red-tests/`. **3.0.1**: **AurexV4 hardening loop** (ADM-162 → ADM-165): MinIO creds fallback (AV4-737), watchdog two-vantage probe (AV4-738), LLM empty-payload fall-through (AV4-739), dashboard-as-upload-surface (AV4-736). **3.0.0 milestone**: HCE2 reliability arc (ADM-141 → ADM-152), AurexV4 platform hardening (ADM-153 → ADM-156), HCE2 quality gates (ADM-157 → ADM-160). **HCE2:** single Alembic tree, orphan-reconciler, MapLibre style resilience, Open-Meteo ERA5/CMIP6 split, climate Protocols, agent 8xxx + RFC 7807, deploy guards, zero-fallback UI, GHA Node trim, analysis UI primitives, pixel-wise carbon viz, `ENVIRONMENT=test` alias. **AurexV4:** Prisma v7 ESM/CJS bridge, Docker `.prisma/client` copy, j4c-watchdog SSH checkout, deploy `DATABASE_URL` fallback. Earlier: **ADM-140** OpenBao + Harbor; **ADM-139** node observability agent; **ADM-138** Battua Ollama; **ADM-137** LLM_GATEWAY host-gateway; **ADM-136–133** below.
+> **NEW (May 27, 2026)**: **v3.0.0** — full numbered sections for ADM-141 → ADM-160 (see below). HCE2 carbon-estimation: dual-alembic consolidation, `OrphanReconciler` Celery sweep, climate pipeline (forecast → ERA5 → CMIP6 → GDD), 50×50 pixel carbon viz, never-render-silent-zeros. AurexV4: Prisma v7 prod deploy (createRequire + `verify:esm`), Docker generated-client path, off-host watchdog without `GITHUB_TOKEN`.
+> **NEW (May 20, 2026)**: **ADM-140** — J4C **OpenBao + Harbor** integration plane: `POST /api/v3/integrations/projects` → `j4c-api/app/infra/{openbao,harbor,observability,publisher}.py`. See [ADM-140](#adm-140--j4c-openbao--harbor-integration-plane-mandatory--2026-05-20).
+> **NEW (May 20, 2026)**: **Component 12** — **Telemetry & Observability Platform**: unified metrics, logs, and traces for **applications** (OTel SDK / scrape) and **Aurigraph nodes** via a **mandatory embedded runtime agent** in every V12 node process (consensus + P2P + JVM signals, OTLP export with offline buffer). Control plane: J4C `/api/v1/telemetry/*` (J4C-252). Data plane: Prometheus + OTel Collector → Tempo/Loki. See [Component 12](#component-12-telemetry--observability-platform) and `docs/observability/OBSERVABILITY_STANDARDS.md`. **ADM-139**: embedded node agent is not optional in production node images.
+> **Updated**: May 18, 2026 | **Version**: 2.12.25 — **Numbered registry**: ADM-056 → ADM-136 (Appendix A + operational sections below). **P0 cross-cuts**: 068 `@J4CDeploymentAgent` deploy binding; 069 sequential task queue; 070 OAuth email-domain allowlist; 071 DB-authoritative three-tier RBAC; 072 stub-mode integration adapters; 073 L1 image–source drift check; 074 RO source bind-mount (rec); 075 fleet `scripts/j4c-agent.py` + `.j4c-agent.json`; **076 / 076-A** kgraph-first reads + ADM file watcher re-ingest; **077–079** project-bound LLM gateway keys, completion-path smoke checks, and reboot-persistent AutoHeal Layer 2 timers; **080** external project-scoped kgraphs; **081** SPA `index.html` no-cache; **082** Express literal-prefix routes before `:id`; **083** web-hook ↔ API-route response-shape co-test; **084** `email_verified_at` is the single source of truth for verified state; **085** onboarding horizontal top-mounted stepper (rec); **086** per-repo operational profile in `docs/<Project>.md` + slim `CLAUDE.md` pointer (AurexV4 `docs/AurexV4.md`); **122** FS-MTP **recursive testing** — #QAQC / @QAQCAgent + #AAT defect-driven re-passes for early plan closure (pairs ADM-116); **123** **Owner deploy** — **subbu@aurigraph.io** / GitHub **`SUBBUAURIGRAPH`** — no duplicate “approve deployment” gate beyond CI + post-deploy smoke (`deploy-j4c-docker.yml`). **Platform**: 067 LLM Gateway (Gemma→Claude, hashed keys); 066 Healthcare CCAA on DLT + **067-A** nginx-gateway edge routing (Traefik labels inert on live DLT). **PR review**: Cursor **Bugbot** per repo — `cursor.com/dashboard/bugbot` (complements Tier-7 SCMAgent, does not replace it). | **Complete Specification**: All 11 components + 0b/0c
+> **KMS (OpenBao — J4C)**: **`https://j4c.aurigraph.io/openbao`** — secrets engine (KV v2, AppRole, etc.). Battua and sibling services use this **HTTPS API base** for KMS operations; it is **not** a Docker registry. Operational detail: [`docs/J4C_OPENBAO.md`](docs/J4C_OPENBAO.md). Harbor: [`docs/J4C_HARBOR.md`](docs/J4C_HARBOR.md). #ADMDocs index: [`docs/ADMDOCS_INDEX.md`](docs/ADMDOCS_INDEX.md).
 > **Docker image registry (Harbor — J4C)**: **`https://j4c.aurigraph.io/harbor`** — OCI/Docker images (push/pull, projects, replication). **Do not confuse** with the OpenBao KMS URL above.
 > **Context Knowledge Graph (J4C)**: **`https://j4c.aurigraph.io/kgraph`** — ADM Component 7 interactive graph (context files, entities, edges). Local/embedded builds may expose **`/knowledge-graph`**; **J4C canonical path is `/kgraph`**. External project graphs use `/api/v3/kgraph/external/*` with project + graph selectors (ADM-080).
 > **Harbor (J4C) — extended**: UP (J4C server 151.242.51.57:2244). **Admin credentials**: use org vault / local `credentials.md` (gitignored) — do not embed in this file. Projects: `aurigraph-v12`, `battua`, `library`. Push via `localhost:5001` on J4C. **Known issue**: registry→core notification sink broken after config volume reset — push completes but artifacts don't appear in Harbor UI/API. Requires `prepare` script re-run to regenerate registry `config.yml`. Production images are deployed directly on DLT server via emergency deploy pattern.
+> **Observability (J4C)**: **`https://j4c.aurigraph.io/api/v1/telemetry/health`** — Cross-Project Telemetry Plane (Component 12). Grafana/Alertmanager on J4C (`observability` compose profile). **V12 nodes**: **Aurigraph Observability Runtime Agent** embedded in-process (Quarkus extension) — not scrape-only; `/q/metrics` remains a compatibility surface. Do not use J4C Postgres `telemetry_metrics` as the long-term TSDB for node TPS/consensus series.
 > **Principle**: Unified, autonomous development methodology executed end-to-end without manual intervention
 > **NEW (Apr 27, 2026)**: Component 5-6 — **Healthcare CCAA (Critical Care) on Aurigraph DLT**: Ship as a **separate** Docker Compose project (`name: healthcare-dlt` — not the main `Aurigraph-DLT` `docker compose` tree) on the **same** host as Traefik, joining the external `dlt-frontend` network. Public URL: **`https://dlt.aurigraph.io/healthcare/`** (static UI + FastAPI; API under `/healthcare/v1/…`, `URL_PREFIX=/healthcare`). **Deploy** from dev laptop: `scripts/deploy-dlt.sh` (default `rsync` → `/opt/healthcare-dlt`, `SERVER_PORT=2244` for `ssh -p 2244 subbu@dlt.aurigraph.io`). Traefik labels: **API router priority 100** (`PathPrefix /healthcare/v1` + `/healthcare/healthz`), **static router priority 10** (`PathPrefix /healthcare`) so APIs win. **Live edge (ADM-067-A):** `dlt.aurigraph.io` uses **`aurigraph-nginx-gateway`**, not Traefik — add `location` blocks to `dlt.conf`; SPA must not use a global **401 → `/login`** axios interceptor on public marketing routes (OWASP gate Apr 22). Repo: `healthcsare/healthcare` (FastAPI + React; optional Go calc parity). *Note: J4C Harbor on host `151.242.51.57:2244` is a different service than DLT SSH — do not conflate; both may use 2244 on different hosts.*
 > **NEW (Apr 22, 2026)**: Component 6 Enhancement — **OWASP Web Security Audit Gate**: Pre-deploy HTTP security header audit MANDATORY for all web-facing projects. Checklist: (1) `server_tokens off` + `app.disable('x-powered-by')` — no version disclosure, (2) HSTS with `preload`, (3) CSP without `unsafe-eval` (remove for Vite/Webpack prod builds), (4) Permissions-Policy blocking camera/mic/geo/payment, (5) COOP `same-origin` + CORP `same-origin`, (6) No deprecated headers (remove X-XSS-Protection), (7) Single CORS authority (NGINX strips backend CORS via `proxy_hide_header`), (8) API error routes return proper HTTP status (not 500 from response_model mismatch), (9) No global 401→/login redirect in API client interceptors (AuthContext `/auth/me` returns 401 for all unauthenticated visitors — interceptor must NOT navigate). Proven: Website V3 audit found 12 issues, all fixed in one PR (#29).
@@ -17,6 +24,7 @@
 > **NEW (Apr 22, 2026)**: Component 8 Enhancement — **3-Layer AutoHeal Defense**: Docker restart policy (Layer 1) + systemd watchdog timer (Layer 2) + external health monitor (Layer 3). Incident-driven: Provenews was down 12+ hours because watchdog script existed but was never installed on new server. Registry updated with actual server IPs. Post-deploy verification gate added.
 > **NEW (Apr 9, 2026)**: Component 2 Enhancement — **Multi-Wave Parallel AAT**: 4+ concurrent AATs per wave across multiple repos with zero-overlap scope boundaries. Proven: 8 AATs across 4 waves = 77 files in ~30 min wall-clock (Session DLT-7 Tier System).
 > **NEW (Apr 9, 2026)**: Component 2 Enhancement — **SPARC Sprint Framework**: Specification → Pseudocode → Architecture → Refinement → Completion mapped to parallel AAT waves. Allocate pending tasks to SPARC sprint → execute via 4× #AAT under #ADM.
+> **NEW (May 12, 2026)**: **FS-MTP recursive testing (ADM-122)** — @QAQCAgent / TestTeam and #AAT execute the **Full-Stack Master Test Plan** in **ordered passes** with **defect-driven expansion**: fast layers first → each failure opens a **targeted sub-wave** (new cases, fixtures, env matrix cells) → **re-run until green** or **JIRA-blocked** with recorded evidence; FS-MTP registry + run history (`/api/v3/mtp`, portal FS-MTP panel) and optional compose **`FS_MTP_AUTOMATION`** preserve continuity between waves (see ADM-076 kgraph health as cheap smoke adjunct).
 > **NEW (Apr 9, 2026)**: Component 5-6 Enhancement — **Emergency Deploy Pattern**: When CI runner / Harbor is down: local `mvn package` → SCP jar → `docker build` minimal image on server → `docker compose up --pull never --no-deps` → verify. Codified as INS-DEPLOY-DOCKER-CP.
 > **NEW (Apr 9, 2026)**: Component 10 Enhancement — **3-Layer Enforcement Chain**: rate limit (in-memory token bucket, <1ms) → tier gate (@TierRequired annotation, <5ms cached) → quota (atomic DB REQUIRES_NEW + PESSIMISTIC_WRITE). Each layer rejects at cheapest possible point.
 > **NEW (Apr 9, 2026)**: Component 10 Enhancement — **Channel-Segmented Contracts**: `channel_id` FK on `active_contracts` table; contracts created in one channel invisible to queries on other channels without separate databases.
@@ -48,13 +56,16 @@
 9. [Component 8: Auto-Recovery & Runtime Monitoring](#component-8-auto-recovery--runtime-monitoring)
 10. [Component 9: Documentation Consolidation](#component-9-documentation-consolidation)
 11. [Component 10: Platform-Layer Deployment Governance](#component-10-platform-layer-deployment-governance)
-12. [J4C Framework #ADM Integration](#j4c-framework-adm-integration)
+12. [Component 11: DMRV-Verified AI Model Quantization](#component-11-dmrv-verified-ai-model-quantization-mandatory-memorized--apr-13-2026)
+13. [Component 12: Telemetry & Observability Platform](#component-12-telemetry--observability-platform)
+14. [J4C Framework #ADM Integration](#j4c-framework-adm-integration)
+15. [#ReviewAndRefactor macro (USER MANDATED — 2026-06-04)](#reviewandrefactor-macro-mandatory-memorized--2026-06-04--user-mandated)
 
 ---
 
 ## Overview
 
-**Definition**: Aurigraph Dev Mode (#ADM) is THE unified development methodology combining requirements analysis, TDD, 4-tier validation, JIRA automation, git workflow, deployment, and runtime resilience—executed autonomously end-to-end.
+**Definition**: Aurigraph Development Model Harness (#ADM) is THE unified development methodology combining requirements analysis, TDD, 4-tier validation, JIRA automation, git workflow, deployment, and runtime resilience—executed autonomously end-to-end.
 
 **Rule**: ALL development follows #ADM by default. This is THE way we build software at Aurigraph.
 
@@ -103,6 +114,29 @@
 **Auto-trigger sequence**: User request → **WBS Decomposition** → #PreTaskVerificationGate → Component 0 (scope) → dispatch N #AAT streams (one per WBS item) → Component 1-10 pipeline.
 
 **No manual activation needed**: The moment a task is identified as code-producing work, #ADM Components 0-10 engage.
+
+### #ReviewAndRefactor macro (#MANDATORY #MEMORIZED — 2026-06-04 — USER MANDATED)
+
+**Rule**: Any user request phrased as **"review and refactor"** (or close variants — "review, research, refactor", "audit and enhance", "competitor-aware refactor") is a shorthand for a **4-stage workflow**, executed under #ADM + #AAT — never as freestyle edits.
+
+| Stage | What | Output artifact |
+|---|---|---|
+| 1. **Review** | Read the in-scope code/feature with #PreTaskVerificationGate (6 sources). Map dependencies, current behaviour, test coverage, known #INS-* gotchas. | Review note in `session.md` (current state, gaps, risks) |
+| 2. **Research competing products & enhance** | Identify 2-3 leading competing products / OSS analogues for the same surface area. Extract concrete enhancements (UX, perf, security, ergonomics) that apply. Cite sources. | Competitive scan + enhancement candidates list (in `session.md` or `docs/research/<topic>.md`) |
+| 3. **Refactor** | Translate Stage 1 gaps + Stage 2 enhancements into concrete WBS items per the WBS-First rule below. Each WBS item = one #AAT cycle. | WBS table with #AAT stream assignment |
+| 4. **Execute using #ADM + #AAT** | Run the full pipeline: #PreTaskVerificationGate → Component 0 → TDD (RED first) → 5-stream #AAT → Approver gate → SCMAgent → git → deploy verify → #PhaseReflection (Component 9). No stages skipped, no freestyle commits. | PR(s), JIRA tickets, `session.md` reflection, ratchet metrics (coverage, mutation, etc.) |
+
+**Why memorize**: Without this expansion, "review and refactor" is ambiguous — it can collapse into either (a) a quick read-and-edit (skipping competitor research and AAT) or (b) an open-ended rewrite (skipping WBS and the gate sequence). The macro pins down the contract: **all four stages, in order, every time**.
+
+**Skip criteria**: same as #ADM proper — pure research, single-line docs, <5 LOC hotfix. **No other exemptions.** If the request is "review and refactor X" and X is non-trivial, Stages 2 (competitive research) and 4 (full #ADM+AAT) are non-negotiable.
+
+**Pre-flight checklist** (Maker must produce BEFORE Stage 3 begins):
+- [ ] Review note in `session.md` cites file paths + line numbers, not just module names
+- [ ] Competitive scan names ≥2 named products/projects + concrete enhancements drawn from each
+- [ ] WBS table maps each enhancement → #AAT stream → expected acceptance test
+- [ ] #PreTaskVerificationGate run: nothing already shipped under a duplicate name
+
+**Approver gate addition**: when the trigger phrase was "review and refactor", the Approver MUST verify Stages 1-2 evidence exists in `session.md` before APPROVING. Missing competitive scan = automatic REJECT.
 
 ### WBS-First Decomposition (#MANDATORY — Apr 22, 2026 — USER MANDATED)
 
@@ -219,6 +253,8 @@ Each WBS item runs through full #AAT: Maker → Checker → QA → Approver. Ite
    - Time estimates
 
 **#ADMDocs QA Gate**: @QAQCAgent verifies all 5 primary docs exist + are non-empty before APPROVED verdict. Missing docs = automatic FAIL.
+
+**Platform integrations (May 2026)**: Full #ADMDocs bundle at `docs/j4c/integrations/` (PRD, Architecture, diagrams, DatabaseDesign, DeploymentGuide) + `docs/J4C_OPENBAO.md`, `docs/J4C_HARBOR.md`, `docs/observability/*`. Master index: [`docs/ADMDOCS_INDEX.md`](docs/ADMDOCS_INDEX.md). ADM decisions: ADM-140, ADM-092, ADM-093.
 
 ### Discovery & Audit Phase (#MANDATORY — Apr 22, 2026, Cherry-picked from SaaS Engineering Factory)
 
@@ -359,101 +395,6 @@ Each phase requires:
 ## Component 1: TDD (Test-Driven Development)
 
 **Rule**: Write tests FIRST, then implement minimum code to pass tests.
-
-### #TestStackMandate (#MANDATORY #MEMORIZED — May 8, 2026 — USER MANDATED)
-
-**Rule**: Every #ADM project's TDD suite MUST include **pytest** AND **Playwright** as first-class members, in addition to the language-native unit framework (Jest/Vitest for Node.js/TypeScript, JUnit for Java/Quarkus). Pytest and Playwright are NOT optional add-ons — they are required layers of the test pyramid.
-
-| Layer | Framework | Mandatory When |
-|-------|-----------|----------------|
-| Unit (language-native) | Jest / Vitest / JUnit / pytest | Always — based on language |
-| Unit (Python) | **pytest** + pytest-asyncio | Project contains any Python code |
-| Functional / Integration | pytest (Python) · Jest+supertest (Node) · TestContainers (Java) | Always |
-| Frontend E2E | **Playwright** (`playwright test`) | Project ships a user-facing frontend |
-| TDD RED phase | All applicable layers above must have RED tests written by QA Tier 3 BEFORE Maker GREEN phase begins | Always |
-
-**Skip rule** (the ONLY exemptions):
-- Pytest skipped when project has **zero** Python source files
-- Playwright skipped when project has **zero** user-facing UI
-
-**Coverage targets** (already in this component) apply to pytest output identically to Jest/JUnit: 95% critical, 90% business logic, 85% API/integration. Playwright coverage is measured as **flow coverage** — every user-reachable route + every primary CTA must have at least one E2E test.
-
-**CI enforcement** (#ADM Component 5): GitHub Actions self-hosted runners MUST execute `pytest tests/ -m "not e2e" --tb=short -q` on every PR for Python paths and `playwright test --reporter=line` on every PR for frontend paths. Both must PASS before any merge to `main`. CI failure on either is a hard gate — no override.
-
-**Approver gate** (#AAT Component 2 Tier 6): Approver verdict APPROVED is **forbidden** if applicable pytest or Playwright suites are missing OR red. Missing-suite verdict = REJECTED with reason "TestStackMandate violation".
-
-**Why memorize**: This rule closes the historical gap where a project shipped with strong Jest/JUnit unit coverage but zero pytest (Python paths) or zero Playwright (UI flows) — manual smoke tests passed in dev but regressions slipped past CI. Mandating both as canonical layers makes the top of the pyramid deterministic and gateable.
-
-#### Reference implementation (MEV Shield, May 9, 2026)
-
-The first project to ship a fully #TestStackMandate-compliant TDD suite. Use as the canonical example when standing up the mandate elsewhere.
-
-| Layer | Framework | Tests | Wall-time | Source |
-|-------|-----------|------:|----------:|--------|
-| Backend unit | Jest (Node native) | **1,051** | 9.5s | `backend-enterprise/tests/` |
-| **API contract** ⭐ | **pytest + httpx** | **24** | 1.5s | `tests/api/` |
-| Frontend E2E | Playwright | **158** | 108s | `tests/e2e/` |
-| **Combined** | | **1,233** | ~120s | 0 fail · 0 skip |
-
-Repo: `Aurigraph-DLT-Corp/MEV-Shield` at commit `e0026cb9`.
-
-#### Sub-rule: pytest as a value-add even when technically exempt
-
-**Rule**: Even when a project's stack triggers the skip exemption ("zero Python source files"), strongly consider adding pytest as an **API-contract layer** that exercises the deployed HTTPS surface from outside the runtime. **Recommended, not mandatory**, when exempt.
-
-**Why**: pytest at the contract layer catches things the language-native unit suite can't:
-- Real TLS/proxy/CDN behavior (not mocked)
-- JSON serialization edge cases at wire-level
-- Header behaviors (CORS, CSP, security headers)
-- Cross-language consumer perspective on the API contract — reveals contract drift the SPA might silently absorb
-- De-risks language-native unit tests accidentally over-stubbing reality
-
-**Contract**: pytest at the API-contract layer COMPLEMENTS Jest/JUnit (internals, mocked) and Playwright (UI flows). It does NOT replace either. ~70× faster per test than Playwright (HTTP-only, no browser) — right efficiency profile for fast contract-drift feedback.
-
-**Layer slot**:
-```
-[ Unit (Jest/JUnit/Vitest, mocked) ] ← internals
-[ API contract (pytest + httpx)     ] ← deployed surface, over-the-wire
-[ Frontend E2E (Playwright)          ] ← UI flows, browser-driven
-```
-
-**MEV Shield example**: Project is Node-only (zero Python source) so pytest is exempt under the skip rule. Suite was added anyway as 24 contract tests (auth gates + envelope shapes + agentic-AI surface). Caught real contract drift on `/auth/login` response shape (`{ data: { access_token }}` not `{ token }`) that mock-based Jest tests had silently absorbed.
-
-#### Sub-rule: worker-scoped admin session for production-target E2E
-
-**Rule**: When Playwright E2E tests target a production environment with rate-limited auth (e.g. `AUTH_RATE_LIMIT_MAX=30/15min`), authentication MUST be performed at **worker scope**, not per-test scope. Production rate-limiters are a real-world property worth testing through, not a test-infrastructure bug.
-
-**Why**: Per-test login attempts cascade — a 158-test suite × 1 login-per-test = 158 attempts in <2 minutes, far exceeding most rate-limit windows. Result: false-failure cascades, retry storms, hours debugging "test infrastructure" problems that are actually rate-limit math.
-
-**Pattern** (Playwright `test.extend()` with `scope: 'worker'`):
-```typescript
-type WorkerFixtures = { workerSession: AdminSession | null };
-
-export const test = base.extend<Fixtures, WorkerFixtures>({
-  workerSession: [
-    async ({ playwright }, use) => {
-      const ctx = await playwright.request.newContext({ baseURL: PROD_URL });
-      let sess: AdminSession | null = null;
-      try { sess = await new AdminApi(ctx).session(); }
-      catch { /* rate-limited; tests skip gracefully */ }
-      await use(sess);
-      await ctx.dispose();
-    },
-    { scope: 'worker' },
-  ],
-  adminPage: async ({ page, workerSession }, use) => {
-    if (!workerSession) { test.skip(true, 'auth unavailable'); return; }
-    await attachAdminSession(page, workerSession);
-    await use(page);
-  },
-});
-```
-
-**Result**: 2 logins per E2E run (workers=2 in config) instead of 50+. Stays well under the rate-limit ceiling. Tests dependent on auth skip gracefully if the worker login fails (rather than cascade-failing the whole suite).
-
-**MEV Shield example**: Before this pattern, full-suite runs against `https://mevshield.ai` exhausted the rate limiter and produced 7+ false failures per run. After: 158/158 GREEN consistently.
-
-**Companion**: pytest's `admin_session` fixture must use `scope="session"` for the same reason. Per pytest run = 1 login.
 
 ### TDD Workflow
 
@@ -776,7 +717,6 @@ Use `BashOutput` to poll tmux pane results when tmux IS used.
 - **TDD Output (Phase 1)**: RED test suite → handed to Maker on completion so GREEN phase can begin immediately
 - **Verdict**: PASS (proceed to Approver) | FAIL (return to Maker for fixes)
 - **Handoff**: Tested implementation → Approver for final sign-off
-- **#TestStackMandate (May 8, 2026 — USER MANDATED)**: QA's RED test plan MUST include **pytest** cases for any Python path AND **Playwright** cases for any user-visible UI flow, in addition to the language-native unit framework. Skipping either layer when applicable code exists = QA verdict FAIL with reason "TestStackMandate violation". Full spec: Component 1 → "#TestStackMandate".
 
 **Tier 4: Tech Arch (N agents)** — Architecture Review (Phase 1, concurrent — Added Feb 25, 2026)
 - **Role (Phase 1 — concurrent with Maker+Checker+QA)**: Review architecture decisions, API contracts, data-model choices, integration patterns, and scalability concerns IN PARALLEL — not blocked on Maker completion
@@ -799,7 +739,6 @@ Use `BashOutput` to poll tmux pane results when tmux IS used.
 - **Verdict**: APPROVED (→ SCMAgent Phase 3) | REJECTED (return to appropriate tier)
 - **Handoff**: APPROVED → SCMAgent for pre-commit code review gate
 - **Requirements Review** (Feb 18, 2026 — MANDATORY): Verify ALL functional requirements from spec are implemented and tested. Any unmet requirement = REJECTED.
-- **#TestStackMandate gate (May 8, 2026 — MANDATORY)**: Approver verdict APPROVED is **forbidden** when applicable pytest or Playwright suites are missing OR red. Decision matrix: project has Python code AND no pytest tests → REJECTED. Project has UI AND no Playwright tests for new user-visible flows → REJECTED. Both suites green = gate passes for this dimension. Full spec: Component 1 → "#TestStackMandate".
 - **NFR Review** (Feb 18, 2026 — MANDATORY): Verify non-functional requirements are met:
 
   | NFR Category | What Approver Checks |
@@ -2983,6 +2922,8 @@ Inject into `/opt/platform/deploy.sh` → `stop_containers()` → before `docker
 **Format**: Mermaid diagrams preferred (renders in GitHub). PlantUML acceptable.
 **Enforcement**: Mandatory since Feb 21, 2026. @QAQCAgent auto-rejects if missing.
 
+**J4C platform feature bundles** (integrations, observability): see [`docs/ADMDOCS_INDEX.md`](docs/ADMDOCS_INDEX.md) — each feature has its own `docs/<area>/` folder with the five artifacts or an equivalent structured set.
+
 ---
 
 **Rule**: Keep documentation lean, extract framework content to dedicated files.
@@ -3102,13 +3043,13 @@ Aurigraph-DLT/ (Project Repository)
 
 ## J4C Framework #ADM Integration
 
-**Achievement**: Full integration of Aurigraph Dev Mode (#ADM) into J4C Framework orchestrator
+**Achievement**: Full integration of Aurigraph Development Model Harness (#ADM) into J4C Framework orchestrator
 
 **Status**: ✅ Design Complete | 📋 Implementation Planned (4 phases, 2-3 weeks)
 
 ### Overview
 
-The J4C Framework now includes complete Aurigraph Dev Mode (#ADM) integration, enabling intelligent task routing through either a full 9-component autonomous pipeline or a streamlined 3-component pipeline based on task complexity.
+The J4C Framework now includes complete Aurigraph Development Model Harness (#ADM) integration, enabling intelligent task routing through either a full 9-component autonomous pipeline or a streamlined 3-component pipeline based on task complexity.
 
 **Key Innovation**: Hybrid execution model with AI/ML-powered auto-detection of task complexity and requirements.
 
@@ -4744,6 +4685,310 @@ Always keep the FP32 baseline in the registry — NEVER delete. Storage cost is 
 
 ---
 
+## Component 12: Telemetry & Observability Platform (#MANDATORY #MEMORIZED — May 20, 2026)
+
+> **Rule**: Every Aurigraph **application** and every **DLT node** MUST emit observable signals (metrics minimum; traces + logs where feasible), register with the **J4C Cross-Project Telemetry Plane**, and appear on the **platform Grafana** dashboards with consistent labels. Component 8 (AutoHeal) answers *"is it up?"*; Component 12 answers *"how is it performing and why did it fail?"*
+>
+> **Scope**: J4C Portal, Publisher, Enterprise Portal, Website V3, Battua, MEV Shield, Healthcare CCAA, **Aurigraph V12** (validators, business nodes, EI nodes), and all future `project_registry` entries.
+>
+> **References**:
+> - J4C-252 epic — `j4c-api/app/routers/telemetry.py`, `j4c-api/app/db/telemetry.py`
+> - Integrations orchestrator — `j4c-api/app/infra/orchestrator.py` (extend with `observability` adapter)
+> - V12 testnet pattern — `aurigraph-v11-standalone/test/prometheus.testnet.yml`
+> - Standards detail — [`docs/observability/OBSERVABILITY_STANDARDS.md`](docs/observability/OBSERVABILITY_STANDARDS.md)
+
+### Purpose & Separation from Component 8
+
+| Concern | Component 8 (AutoHeal) | Component 12 (Observability) |
+|---------|----------------------|------------------------------|
+| **Question** | Is the process alive? | Is SLO met? What broke? |
+| **Signal** | Health checks, 60s failure threshold | Metrics, traces, logs, alerts |
+| **Action** | Restart, escalate, JIRA | Dashboards, SLO review, capacity planning |
+| **Store** | J4C error API + incident log | Prometheus/Mimir + Tempo + Loki (+ J4C PG for alert state) |
+
+Both are mandatory. A service can pass health checks while failing SLO (high latency, silent errors).
+
+### Architecture (Control Plane + Data Plane)
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ APPLICATIONS (tier=application)     AURIGRAPH NODES (tier=node) — MANDATORY   │
+│  OTel SDK or /metrics scrape         ┌────────────────────────────────────┐  │
+│                                      │ V12 process (validator/business/EI) │  │
+│                                      │  HyperRAFT · TX · gRPC · JVM        │  │
+│                                      │       ↓ hooks                       │  │
+│                                      │  Observability Runtime Agent (in-proc)│  │
+│                                      │   · custom consensus/TPS meters     │  │
+│                                      │   · OTLP export + local buffer      │  │
+│                                      │   · /q/metrics (Micrometer bridge)  │  │
+│                                      └──────────────┬─────────────────────┘  │
+└───────────────┬────────────────────────────────────┼────────────────────────┘
+                │                                    │
+                ▼                                    ▼
+         ┌─────────────┐                    ┌─────────────┐
+         │ OTel        │◄───────────────────│ OTLP + optional│
+         │ Collector   │                    │ Prometheus scrape│
+         └──────┬──────┘                    └──────────────┘
+                │                                   │
+                ▼                                   ▼
+         ┌─────────────┐  ┌─────────────┐   ┌─────────────┐
+         │ Tempo       │  │ Loki        │   │ Alertmanager│
+         │ (traces)    │  │ (logs)      │   └──────┬──────┘
+         └─────────────┘  └─────────────┘          │
+                │                │                 ▼
+                └────────┬───────┘          ┌──────────────────┐
+                         ▼                │ J4C Telemetry API │
+                  ┌─────────────┐         │ alert webhook +   │
+                  │ Grafana     │◄────────│ query/SSE       │
+                  │ (SSO/IAM)   │         └──────────────────┘
+                  └─────────────┘
+                         ▲
+                         │ register project + telemetry_services row
+                  ┌──────┴──────┐
+                  │ J4C Portal   │ Integrations · Admin Hub · Agent Hub
+                  └─────────────┘
+```
+
+**Control plane** (already in repo): `POST /api/v1/telemetry/services`, ingest via `X-J4C-Project-Key`, `POST /api/v1/telemetry/query`, `GET /api/v1/telemetry/health`, Alertmanager webhook → `telemetry_alerts`.
+
+**Data plane** (rollout): Docker Compose profile `observability` on **J4C host** (`j4c.aurigraph.io`) for Prometheus + Grafana + Alertmanager + OTel Collector + Tempo + Loki. **DLT node scrape** may run on `dlt.aurigraph.io` with federation to J4C Grafana, or remote_write from DLT Prometheus — pick one host pair in Phase 0 (see standards doc).
+
+### Mandatory Label Schema (ADM-138)
+
+Every metric, trace, and log stream MUST include these labels (Prometheus) or resource attributes (OTel):
+
+| Label / attribute | Required | Example |
+|-------------------|----------|---------|
+| `aurigraph.project` | Yes | `battua`, `j4c`, `v12` |
+| `aurigraph.env` | Yes | `prod`, `staging`, `testnet` |
+| `aurigraph.tier` | Yes | `application` \| `node` |
+| `aurigraph.service` | Yes | `j4c-api`, `validator`, `publisher` |
+| `aurigraph.node_id` | Nodes only | `validator-3` |
+| `aurigraph.node_role` | Nodes only | `VALIDATOR`, `BUSINESS`, `EI` |
+
+**Forbidden** on labels: `user_id`, email, wallet address, full transaction hash, API keys. Use logs/traces for high-cardinality dimensions.
+
+### Golden Signals
+
+**Applications (RED)**
+
+| Signal | Metric examples | Alert threshold (starting point) |
+|--------|-------------------|----------------------------------|
+| **Rate** | `http_server_requests_seconds_count` | — |
+| **Errors** | 5xx rate / total | > 1% for 5m → P2 |
+| **Duration** | p95 latency | > 500ms (API), > 2s (batch) for 10m → P2 |
+
+**Nodes (USE + blockchain)**
+
+| Signal | Source | Alert threshold (starting point) |
+|--------|--------|----------------------------------|
+| **Utilization** | JVM heap, CPU, disk | heap > 85% for 15m → P2 |
+| **Saturation** | thread pools, DB connections | pool exhausted → P1 |
+| **Errors** | consensus errors, failed txs | sustained increase → P1 |
+| **TPS / finality** | custom Micrometer meters | < 50% baseline 15m → P1 |
+| **Up** | `up{job="validator-*"}` | any production validator down 2m → P1 |
+
+**`/q/metrics`** remains the Prometheus-compatible scrape surface (Micrometer + agent-enriched meters). **`/q/health`** is Component 8 liveness only — it does **not** replace the observability agent.
+
+### Embedded Node Runtime Agent (#MANDATORY — ADM-139)
+
+> **Rule**: Every production **Aurigraph V12 node** (validator, business, EI/light client archive) MUST ship with the **Aurigraph Observability Runtime Agent** compiled into the node binary. External scrape-only monitoring is **insufficient** — consensus, shard, peer, and finality signals exist inside the process and MUST be collected in-process.
+
+**Why embedded (not sidecar-only)**
+
+| Limitation of scrape-only | What the embedded agent adds |
+|---------------------------|------------------------------|
+| Only sees HTTP/gRPC Micrometer meters | HyperRAFT++ role, term, replication lag, vote failures |
+| Misses pre-HTTP failures (consensus stall) | Transaction pipeline stages, mempool depth, drop reasons |
+| No buffering when collector is down | Ring buffer + retry with back-pressure caps |
+| Hard to correlate peer events | Structured events → metrics + optional trace spans |
+| Fleet config drift per host | Agent reads node identity from env + OpenBao at boot |
+
+**Deployment model**
+
+| Mode | Status | Notes |
+|------|--------|-------|
+| **In-process (Quarkus extension)** | **Required** | Single native/JVM artifact; GraalVM-friendly; default for all node images |
+| **Co-located sidecar** | Optional dev/test | `otel-collector` in same compose service group — never replaces in-process agent |
+| **Host-level Promtail only** | Supplemental | Logs only; does not satisfy agent requirement |
+
+**Agent responsibilities** (implementation target: `io.aurigraph.v11.observability` module)
+
+1. **Bootstrap** — On `StartupEvent`: load `node_id`, `node_role`, `cluster_id`, `aurigraph.env` from config; fetch OTLP endpoint + `X-J4C-Project-Key` from OpenBao path `kv/aurigraph/{project}/observability/node` (or env override for testnet).
+2. **Instrument** — Register Micrometer meters + OTel SDK meters for:
+   - Consensus: leader state, term, commit index lag, election count, failed append entries
+   - Transactions: ingest rate, validation failures, ordering latency, TPS (sliding window)
+   - Network: peer reachability, gRPC stream counts (integrate with `GrpcMetricsCollector`)
+   - Storage: RocksDB compaction stall, WAL size, state DB latency (if exposed)
+   - Runtime: JVM heap/GC, virtual-thread pool saturation (Java 21)
+3. **Export** — Push OTLP/gRPC (metrics + logs + traces for sync RPC paths) to platform Collector every `observability.export.interval` (default 15s).
+4. **Buffer** — When Collector unreachable: retain last N minutes in bounded in-memory buffer; drop oldest on overflow; emit `aurigraph_obs_agent_export_failures_total`.
+5. **Heartbeat** — POST agent metadata to J4C (optional REST): version, build sha, last successful export, buffer depth — enables fleet dashboard in Agent Hub.
+6. **Expose** — Bridge the same registry to **`/q/metrics`** so Prometheus jobs in `prometheus.testnet.yml` keep working during migration.
+
+**Configuration** (`application.properties` / env)
+
+```properties
+aurigraph.observability.enabled=true
+aurigraph.observability.agent-id=${AURIGRAPH_NODE_ID}
+aurigraph.observability.node-role=${AURIGRAPH_NODE_ROLE}
+aurigraph.observability.collector.endpoint=${OTEL_EXPORTER_OTLP_ENDPOINT}
+aurigraph.observability.project-key=${J4C_TELEMETRY_PROJECT_KEY}
+aurigraph.observability.buffer.max-minutes=5
+aurigraph.observability.cardinality.limit=8000
+```
+
+**Production gate**: node container/image build MUST fail CI if `aurigraph.observability.enabled=false` on `validator` / `business` / `ei` profiles. Testnet may disable via profile `observability-disabled` with explicit JIRA waiver.
+
+**Fleet registration** (ties to Integrations API)
+
+When `POST /api/v3/integrations/projects` provisions `v12` (or per-cluster project):
+
+| Deliverable | Owner |
+|-------------|--------|
+| `telemetry_services` row `v12-cluster` (or per env) | observability adapter |
+| One-time project key → node env / OpenBao | secrets_once |
+| Prometheus `file_sd` or static targets per node port | platform ops |
+| Grafana folder **Aurigraph / V12 / Nodes** | platform ops |
+
+Per-node identity MUST be injected at deploy time (`AURIGRAPH_NODE_ID=validator-3`, `AURIGRAPH_NODE_ROLE=VALIDATOR`).
+
+### Project Onboarding (Integrations API)
+
+When an Aurigraph product is registered in J4C, observability is provisioned like Harbor and OpenBao:
+
+```http
+POST /api/v3/integrations/projects
+{
+  "id": "battua",
+  "name": "Battua",
+  "services": ["openbao", "harbor", "observability", "publisher"]
+}
+```
+
+**`observability` adapter** (`j4c-api/app/infra/observability.py` — ADM-138/140):
+
+| Step | Action |
+|------|--------|
+| 1 | Insert `telemetry_services` row (`name` = `j4c-{project_id}` or override) |
+| 2 | Return one-time `J4C_TELEMETRY_PROJECT_KEY` + `OTEL_EXPORTER_OTLP_ENDPOINT` in `secrets_once` |
+| 3 | Optional write `kv/aurigraph/{project_id}/telemetry` in OpenBao when admin token set |
+| 4 | Store metadata in `integration_credentials` |
+| 5 | Grafana folder / Prometheus scrape templates — operator follow-up per [`docs/observability/OBSERVABILITY_STANDARDS.md`](docs/observability/OBSERVABILITY_STANDARDS.md) |
+
+**Orchestrator order** (canonical): `openbao` → `harbor` → `observability` → `publisher` (secrets store first, registry second, telemetry third, app integrations last).
+
+### Instrumentation Requirements by Surface
+
+| Surface | Metrics | Traces | Logs | Registration |
+|---------|---------|--------|------|--------------|
+| **j4c-api** | OTel or `/metrics` | OTel FastAPI + SQLAlchemy | JSON + `trace_id` | `telemetry_services.name=j4c-api` |
+| **j4c-react** | Optional RUM (Faro) | Browser → Collector | console → Loki | project label only |
+| **publisher** | HTTP metrics endpoint | workflow `trace_id` in audit | structlog → Loki | `publisher` + `product_key` label |
+| **V12 node (each process)** | **Embedded runtime agent** + `/q/metrics` | OTel in-agent (consensus + gRPC) | agent → Loki via Collector | `telemetry_services` + per-node labels |
+| **New services** | Required before `/deploy` | Required for sync RPC paths | Required | J4C-252 service row |
+
+### Phased Rollout (JIRA epic: J4C-OBS)
+
+| Phase | Duration | Deliverable | Exit criteria |
+|-------|----------|-------------|---------------|
+| **0 — Standards** | 1 week | `OBSERVABILITY_STANDARDS.md`, label schema, ADM-138/139 | Agent API spec + config contract frozen |
+| **1a — Agent core** | 2–3 weeks | `aurigraph-observability-agent` Quarkus module; consensus + TPS meters; OTLP export | Unit + integration tests; testnet 3 nodes reporting |
+| **1b — Fleet** | 1–2 weeks | All 11 production targets; Grafana V12 Cluster; `up` + agent heartbeat | Agent version visible; buffer recovery tested |
+| **2 — Applications** | 2–4 weeks | OTel on j4c-api + publisher; trace correlation with `X-Request-Id` | RED dashboard per service; p95 visible |
+| **3 — Portal UX** | 2 weeks | Admin Hub tile; Integrations checkbox; Agent Hub `/components` | Admin sees health + link to Grafana |
+| **4 — Maturity** | ongoing | SLOs, recording rules, 24h load test metrics, federated multi-host | Post-deploy cascade emits synthetic metrics (L2) |
+
+### ADM Pipeline Integration
+
+| ADM Component | Observability hook |
+|---------------|-------------------|
+| **0 — Design** | PRD lists SLOs + required metrics; cardinality review |
+| **1 — TDD** | Tests assert metrics endpoints return 200; no label cardinality explosions |
+| **5-6 — Deploy** | L2 smoke includes `GET /api/v1/telemetry/health`; optional `up` check for new scrape targets |
+| **7 — Session** | Record Grafana dashboard URLs + alert rule IDs in `session.md` |
+| **8 — AutoHeal** | Alertmanager routes to same on-call; distinguish `up==0` (Heal) vs high latency (Observe) |
+| **12 — This component** | Gate: new production services MUST register telemetry before Approver sign-off on deploy |
+
+### Deploy & Compose (J4C host)
+
+Add profile to J4C `docker-compose.yml` (names illustrative):
+
+```yaml
+# docker compose --profile observability up -d
+services:
+  prometheus:
+    networks: [j4c-network]
+    volumes: [./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro]
+  grafana:
+    networks: [j4c-network]
+    environment:
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"   # Keycloak iam2.aurigraph.io
+  alertmanager:
+  otel-collector:
+  tempo:
+  loki:
+```
+
+**nginx** (`nginx-prod.conf`): Grafana at `/grafana/` (internal or SSO-gated); **never** expose Prometheus `:9090` publicly. Existing `location /metrics` → j4c-api remains **RFC1918 only**.
+
+**Secrets**: Grafana admin, remote_write tokens, scrape basic-auth → OpenBao `kv/aurigraph/j4c/observability` (see `scripts/j4c/integrations-ops.sh` pattern).
+
+### Storage Policy (J4C-252)
+
+| Data | Primary store | Retention | Notes |
+|------|---------------|-----------|-------|
+| Time series (high volume) | Prometheus / Mimir | 30d hot, 90d downsampled | Node TPS, HTTP histograms |
+| Traces | Tempo | 7d | Cross-service debugging |
+| Logs | Loki | 14d | Correlate with `trace_id` |
+| Alert state + rules | Postgres `telemetry_*` | 90d alerts | Already in schema |
+| Custom low-volume metrics | Postgres `telemetry_metrics` | 30d prune | OK for app-push via API; not for node scrape |
+
+Finish **Prometheus remote-write** protobuf path in `telemetry.py` OR standardize on Collector remote_write — do not run both half-implemented in production.
+
+### Dashboard Pack (minimum)
+
+1. **Platform overview** — all projects `up`, firing alerts, deploy version.
+2. **V12 cluster** — 11 nodes by role, TPS, leader map, JVM.
+3. **j4c-api** — RED, DB pool, integration adapter failures.
+4. **publisher** — workflow queue depth, channel publish errors.
+5. **Per-project** — template var `aurigraph.project`.
+
+### Enforcement Checklist (pre-production)
+
+- [ ] `telemetry_services` row exists for the deployable
+- [ ] **Embedded observability agent enabled** in node image (`aurigraph.observability.enabled=true`)
+- [ ] OTLP reaching Collector; `aurigraph_obs_agent_export_failures_total` near zero
+- [ ] Prometheus target added and `up==1` for 24h in staging ( `/q/metrics` )
+- [ ] `AURIGRAPH_NODE_ID` + `AURIGRAPH_NODE_ROLE` set in compose/systemd unit
+- [ ] Labels pass schema audit (no PII, no unbounded cardinality)
+- [ ] At least one P2 alert rule tested (fire → resolve)
+- [ ] Grafana dashboard linked in JIRA deploy ticket
+- [ ] Component 6 OWASP: Grafana not anonymously admin-accessible on public internet
+- [ ] Trace: `X-Request-Id` / W3C `traceparent` documented for the service
+
+### Agent Responsibilities
+
+| Agent | Role |
+|-------|------|
+| **@QAQCAgent** | Verify scrape targets after deploy; L2/L3 smoke includes telemetry health |
+| **@J4CDeploymentAgent** | Bring up `observability` profile; verify Alertmanager → J4C webhook |
+| **@Plan** | SLO definitions per epic |
+| **DevOps / Platform** | Prometheus rules, Grafana folders, OpenBao secrets |
+
+### Related ADMs
+
+- **ADM-072** — stub-mode adapters until observability stack configured
+- **ADM-092** — per-project provisioning via orchestrator (extend with `observability`)
+- **ADM-116** — pre-deploy testplan includes observability smoke
+- **ADM-122** — FS-MTP may use `/api/v1/telemetry/health` as cheap adjunct
+- **ADM-138** — mandatory label schema + no TSDB in J4C Postgres for node metrics
+- **ADM-139** — embedded observability runtime agent mandatory in V12 node processes
+
+**Added**: May 20, 2026 | **Canonical location**: `ADM.md` (Component 12) + `docs/observability/OBSERVABILITY_STANDARDS.md`
+
+---
+
 ## Infrastructure Standards (#MANDATORY #MEMORIZED)
 
 > Moved from global CLAUDE.md — Feb 19, 2026
@@ -6196,7 +6441,7 @@ Endpoint: `GET / PUT / DELETE /api/v1/me/org/financials`. Editable any time post
 
 Every Aurigraph project's LLM calls go through **one** shared gateway at **`https://j4c.aurigraph.io/llm-gateway`** (repo: `Aurigraph-DLT-Corp/llm-gateway`). Default model **Gemma 3-12B int4 on CPU via Ollama**, automatic fallback to **Anthropic Claude Haiku 4.5** on timeout / 5xx / rate-limit / transport error. The gateway is OpenAI-compatible (`POST /v1/chat/completions`, `Authorization: Bearer <project-key>`), so any project drops in via the `openai` SDK with a custom `base_url` — no provider-specific code in callers.
 
-**Project registration is a single atomic call** to J4C: `POST /api/v3/integrations/projects` (J4C router `j4c-api/app/routers/integrations.py`) fans out to OpenBao → Harbor → llm-gateway in declared order, rolls back in reverse on any failure, and returns one-time secrets via `secrets_once`. Per-service adapters live in `j4c-api/app/services/integrations/{openbao,harbor,llm_gateway}.py`. llm-gateway adapter is **real**; Harbor + OpenBao adapters are **stubs** until `HARBOR_ADMIN_*` and `OPENBAO_ADMIN_TOKEN` are set in `j4c-api/.env` (flipping each from stub to real is a single-file change with no caller impact).
+**Project registration is a single atomic call** to J4C: `POST /api/v3/integrations/projects` (`j4c-api/app/routers/integrations.py`) fans out through `j4c-api/app/infra/orchestrator.py` in canonical order **OpenBao → Harbor → observability → publisher**, rolls back in reverse on any failure, and returns one-time secrets via `secrets_once`. Adapters live in `j4c-api/app/infra/{openbao,harbor,observability,publisher}.py`. **LLM Gateway is NOT an integration adapter** (ADM-092) — projects consume `https://j4c.aurigraph.io/llm-gateway` as clients per ADM-067. Harbor + OpenBao run **stub mode** until admin env is set (ADM-072); observability adapter is always enabled (telemetry registry).
 
 ### **Contract**
 
@@ -6223,7 +6468,9 @@ Session 2026-04-27/28:
 
 | Project | Key location | Endpoint |
 |---|---|---|
-| J4C, Battua, Provenews, HCE2, Aurex, V12-DLT, AWD | `LLM_GATEWAY_PROJECT_KEYS` JSON in gateway `.env` (seed) → hashed in `/var/lib/llm-gateway/projects.json` | `https://j4c.aurigraph.io/llm-gateway/v1/chat/completions` |
+| J4C, HCE2, Aurex, V12-DLT, AWD | `LLM_GATEWAY_PROJECT_KEYS` JSON in gateway `.env` (seed) → hashed in `/var/lib/llm-gateway/projects.json` | `https://j4c.aurigraph.io/llm-gateway/v1/chat/completions` |
+| Battua | Optional — `BATTUA_GEMMA_API_BASE` override + J4C-issued key | **Primary (ADM-138):** host Ollama `http://127.0.0.1:11434/v1`, model `gemma4:latest` |
+| Provenews | Optional — env override | **Primary:** host Ollama (see Provenews `gemma_manifest.json`) |
 
 Rotation: `scripts/llmctl.py projects rotate <id>` (returns new raw key once). All rotations are also logged via the gateway's usage log.
 
@@ -6475,7 +6722,7 @@ A deploy with verdict "PARTIAL" is **not** complete. It must be tracked to PASS 
    harbor_admin_password: str = ""
    ```
 
-**Reference incident**: J4C Portal commit `a03c788f9` — `OpenBaoAdapter.__init__` was crashing on missing `openbao_url` field, which broke `POST /api/v3/integrations/projects` for ALL roles regardless of auth (RBAC guard was firing AFTER adapter instantiation). Fix added the missing Settings fields and confirmed all three adapters instantiate cleanly with empty env. Code: `j4c-api/app/services/integrations/{harbor,openbao,llm_gateway}.py`, `j4c-api/app/services/integrations/base.py::ProvisionResult`, `j4c-api/app/config.py::Settings`.
+**Reference incident**: J4C Portal commit `a03c788f9` — `OpenBaoAdapter.__init__` was crashing on missing `openbao_url` field, which broke `POST /api/v3/integrations/projects` for ALL roles regardless of auth (RBAC guard was firing AFTER adapter instantiation). Fix added the missing Settings fields and confirmed all adapters instantiate cleanly with empty env. Code: `j4c-api/app/infra/{openbao,harbor,observability,publisher}.py`, `j4c-api/app/infra/base.py::ProvisionResult`, `j4c-api/app/config.py::Settings`.
 
 ---
 
@@ -6899,7 +7146,7 @@ Split truth between `is_verified` and `email_verified_at` is a long-term operati
 
 **Why this carves out from ADM-067:** ADM-067's gateway hit two operational walls for healthcare's batch-ingest workload — Anthropic-fallback billing exhaustion (gemma3 primary times out under long clinical pages, falls through to Claude Haiku, burns project credits) and gemma3:4b inference timeouts on the shared box. Healthcare's ingest is **offline / non-interactive** (`build_kg` CLI), so the J4C gateway's hot-path fallback economics don't fit the workload. A dedicated `gemma4:e4b` on healthcare's own host (78 GB RAM, 10-core Skylake CPU, no GPU — confirmed adequate at ~5 GB resident, ~1-2 GB working set per AAT-4) keeps ingest local, predictable, and decoupled from cross-project contention. The OpenAI-compat shape is preserved (`ll_gateway` adapter unchanged), so a re-pivot to ADM-067 is one env-flip away — no caller code references the model name or transport.
 
-**Scope of carve-out:** **Healthcare only.** All other Aurigraph projects (Battua, Provenews, HCE2, AWD, V12-DLT, Aurex, J4C itself) remain on ADM-067's shared gateway. This is **not** a precedent for per-project LLM hosts at fleet scale; it's a project-level escape hatch for a workload mismatch.
+**Scope of carve-out:** **Healthcare only** (this entry). **Battua** (**ADM-138**) and **Provenews** (host-Ollama manifest) use local Ollama as primary — not ADM-067. Other projects (HCE2, AWD, V12-DLT, Aurex, J4C) remain on the shared gateway unless they adopt an explicit carve-out.
 
 **Hardening (per AAT-1/3/4 reviews, deployed 2026-05-05):**
 
@@ -7049,7 +7296,7 @@ for pid in (PID1, PID2, ...):
 
 **Status:** Applied (2026-05-08). **Pairs with:** ADM-067 (J4C llm-gateway shared mandate), ADM-068 (deploy mandate), ADM-091 (OpenBao production hardening).
 
-**Rule:** Every Aurigraph project that needs an OpenBao secrets namespace OR a Harbor registry project + robot account MUST be provisioned via the J4C portal's `IntegrationOrchestrator` (`POST /api/v3/integrations/projects` with `services: ["openbao", "harbor"]`). Adapter implementations live in `j4c-portal/j4c-api/app/services/integrations/{openbao,harbor}.py` and are the canonical owner of:
+**Rule:** Every Aurigraph project that needs an OpenBao secrets namespace OR a Harbor registry project + robot account MUST be provisioned via the J4C portal's `IntegrationOrchestrator` (`POST /api/v3/integrations/projects` with `services: ["openbao", "harbor"]` — optionally `observability`, `publisher`). Adapter implementations live in `j4c-api/app/infra/{openbao,harbor,observability,publisher}.py` and are the canonical owner of:
 
 - per-project OpenBao policy `j4c-{project_id}` granting CRUD on `kv/data/aurigraph/{project_id}/*`
 - per-project AppRole `{project_id}` bound to that policy
@@ -7091,7 +7338,7 @@ The **LLM Gateway is internal J4C infrastructure**, NOT a per-project provisiona
 
 **Behaviour contract:**
 
-1. The reference impl is J4C `j4c-api/app/services/integrations/harbor.py` after commit `ce824bf39`. Search for `_NO_CSRF_HEADERS`, `cookies.clear()`, `_robot_basename`, `_normalize` for the patterns.
+1. The reference impl is J4C `j4c-api/app/infra/harbor.py`. Search for `_NO_CSRF_HEADERS`, `cookies.clear()`, `_robot_basename`, `_normalize` for the patterns.
 2. Operator scripts that call Harbor outside the J4C orchestrator (e.g. ad-hoc `docker exec j4c-api python3 ...`, manual cURL) MUST follow the same patterns or risk CSRF 403 on the second mutating call.
 3. The empty `X-Harbor-CSRF-Token: ""` header is also set defensively; it is harmless without a session cookie and may help in edge cases where some Harbor middleware versions check for the header's presence regardless of cookie state.
 4. If Harbor upgrades to a version where Basic Auth is no longer exempt from CSRF (not announced as of 2026-05-08), this ADM MUST be revisited and the orchestrator must obtain a real CSRF token via a paired session.
@@ -7253,4 +7500,2315 @@ Both incidents bypass the existing image-drift detection (ADM-073) because they'
 
 ---
 
-**Last Updated**: 2026-05-09 (v2.11.7 — ADM-101 docs-only diffs auto-pull carve-out from ADM-097; v2.11.6: ADM-099/100 healthcare LLM ceilings + corpus ordering; v2.11.5: ADM-094..098 CI/deploy hardening; v2.11.1: ADM-091/092/093 OpenBao+Harbor production; v2.11.0: ADM-088/089/090 healthcare deploy recipes)
+## ADM-102 — `docker cp` Hot-Patches MUST NOT Be Used as Durable Deploys; Image Rebuild Required After ANY Container Restart (#MANDATORY — May 4, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-04). **Pairs with:** ADM-068 (j4c-deployment-agent binding), ADM-098 (schema/env drift gates pre-build).
+
+**Rule:** Incremental backend deploys via `docker cp <local-file> <container>:/app/<path>` followed by `docker compose restart <service>` are **temporary patches only**. They are **silently undone** the next time the container restarts for any reason (manual `docker restart`, GHA `Deploy` workflow `up -d`, host reboot, OOM kill, autoheal Layer 1 `restart: always` recovery). Any backend code change shipped via `docker cp` MUST be followed within the same deploy cycle by a real image rebuild (`docker compose build <service>` against the canonical `git reset --hard origin/main` tree on the deploy host) to bake the patch into the image. If the rebuild step is blocked (e.g., HCE2-376 — sudo not configured for the runner), the deploy is **incomplete** and the ticket MUST stay open until the rebuild lands; the cp-patched container is on borrowed time.
+
+**Why this is here:** Three separate regressions of the same field (`aoi_polygon` on `/api/v1/hyperspectral/analyses/{id}/geospatial`) inside 48 hours on HCE2 (commits `7c32187b` → `e69455f4` → recovery patch on 2026-05-03). Each cycle: developer ships code → @J4CDeploymentAgent does `docker cp` + `docker compose restart backend` → endpoint serves the new field → next deploy or restart wipes the cp'd file → endpoint regresses → recovery deploy → repeat. Root cause was HCE2-376 (passwordless sudo unconfigured for the runner user, blocking `sudo docker compose build`), which forced the agent into cp-only fallback. The fallback "worked" each time but each success was load-bearing on the container *not* restarting. The third regression made it clear: cp-only is not a deploy, it's a hotfix that decays.
+
+**Mandatory verification gate (post-deploy):**
+1. After ANY backend code deploy, `git log --oneline -1` on the deploy host MUST match the SHA the agent reported as deployed. If it doesn't, the cp path was used and the rebuild step is owed.
+2. The post-deploy probe must include `docker inspect <service> --format '{{.Image}}'` AND a content-hash check on the touched file inside the container vs the canonical file in the repo. Mismatch = pending rebuild.
+3. The agent's verdict object MUST include `image_rebuilt: true|false` and `cp_patches_outstanding: <list>`. A `PASS` verdict with `image_rebuilt: false` is a partial; the orchestrator MUST flag it for the next deploy cycle.
+
+**When cp-patches ARE acceptable:**
+- A genuine production hotfix where the queue-time of the image rebuild (5–8 min on the HCE2 backend image, ~9.5 GB) is unacceptable and the rebuild is queued to follow within minutes.
+- A test of a fix-candidate before committing the rebuild — but the cp MUST be reverted before the next deploy if the candidate is rejected.
+
+**When they are NOT:** as the durable deploy artifact, ever.
+
+**Reference:** Three-regression incident chain in HCE2, 2026-05-02 to 2026-05-03; ticket HCE2-376 (open, assigned `prashanth@aurigraph.io`); recovery deploy session 2026-05-03 captured in `session.md`.
+
+---
+
+## ADM-103 — Self-Hosted CI Runner Sudoers MUST Be Scoped, Not Blanket `NOPASSWD: ALL` (#MANDATORY — May 4, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-04). **Pairs with:** ADM-068 (deploy binding), ADM-091 (OpenBao production hardening — same defence-in-depth principle).
+
+**Rule:** When granting `subbu` (or any GHA self-hosted runner user) passwordless sudo, the sudoers entry MUST be **scoped to the explicit commands the workflow invokes**, not blanket `subbu ALL=(ALL) NOPASSWD: ALL`. The canonical form is:
+
+```
+# /etc/sudoers.d/<user>-gha-runner — chmod 0440
+<user> ALL=(root) NOPASSWD: /usr/bin/docker, /usr/bin/docker-compose, /usr/bin/apt-get, /usr/bin/apt, /opt/<project>/scripts/deploy-incremental.sh
+```
+
+Add additional binaries (e.g. `/bin/systemctl` if the deploy restarts a service unit) only when a specific workflow step demands them, and document each addition in the same comment block. After every change run `sudo visudo -c -f /etc/sudoers.d/<user>-gha-runner` and confirm `parsed OK` before logging out — a malformed sudoers file locks out all sudo access.
+
+**Why this is here:** A GHA self-hosted runner with `NOPASSWD: ALL` is functionally a remote root shell for anyone who can push to the watched branch (or trick the runner into executing). The scoped form preserves the runner's blast radius even if a malicious or buggy workflow tries `sudo rm -rf /` or `sudo passwd root`. The cost of being scoped is one line per command added to a workflow — trivial — and the benefit is that a workflow exfil compromise can't escalate to a full host takeover.
+
+**Mandatory checklist for every new self-hosted runner:**
+1. Provision the user without sudo by default.
+2. Identify every `sudo <cmd>` in the project's `.github/workflows/*.yml` (grep is sufficient).
+3. Author the scoped sudoers file with exactly those binaries + documented justification.
+4. `chmod 0440` and `visudo -c` validate before exiting the SSH session.
+5. Run a dry workflow to confirm each `sudo` call now succeeds.
+6. Audit quarterly — workflows accrete `sudo` calls; the sudoers file MUST grow alongside, not be loosened.
+
+**Anti-pattern:** the comfort of `NOPASSWD: ALL` while "we'll lock it down later." Later never comes; the scoping cost is the same on day 1 as day 90, and only on day 1 is the threat surface still small.
+
+**Reference:** HCE2-376 (assigned `prashanth@aurigraph.io`, comment 34732); proposed scoped sudoers for hce201 documented there. Distinct from ADM-091 OpenBao hardening but the same threat model: avoid blanket privilege grants on production-adjacent infrastructure.
+
+---
+
+## ADM-104 — User-Space Vendor-Extracted System Libraries Are an Acceptable Fallback for Self-Hosted Runners When Sudo is Unavailable (#REC — May 4, 2026)
+
+**Status:** Recommendation (2026-05-04). **Pairs with:** ADM-103 (the proper fix, when sudo is available).
+
+**Rule:** When a self-hosted runner needs a system library (`libicu`, `libssl`, `libstdc++` newer than host, etc.) and passwordless sudo is not yet configured (ADM-103 in flight), **`apt-get download` + `dpkg-deb -x` to a user-owned directory + `LD_LIBRARY_PATH` injection in the runner wrapper** is an acceptable interim solution. The runner becomes operational without blocking on sysadmin time. This is NOT a durable end state: once the proper sudo is configured, the user-space libs MUST be removed and `installdependencies.sh` re-run with sudo so the runner consumes the host-managed package.
+
+**Concrete recipe (proven on hce201, 2026-05-03):**
+
+```bash
+# 1. Fetch the .deb without sudo (apt-get download writes to cwd as the user)
+mkdir -p ~/actions-runner/vendor-libs && cd ~/actions-runner/vendor-libs
+apt-get download libicu74
+
+# 2. Extract to user-owned dir (no install, no sudo)
+dpkg-deb -x libicu74_*.deb .
+ICU_DIR=$(find . -name 'libicuuc.so*' -printf '%h\n' | head -1)
+
+# 3. Wrap the runner so LD_LIBRARY_PATH is set on every start
+cat > ~/actions-runner/run-with-icu.sh <<'WRAPPER'
+#!/usr/bin/env bash
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ICU_DIR="$(find "$SCRIPT_DIR/vendor-libs" -name 'libicuuc.so*' -printf '%h\n' | head -1)"
+export PATH="$HOME/bin:$PATH"   # also let user-space jq / etc. through
+export LD_LIBRARY_PATH="$ICU_DIR:$LD_LIBRARY_PATH"
+exec "$SCRIPT_DIR/run.sh" "$@"
+WRAPPER
+chmod +x ~/actions-runner/run-with-icu.sh
+nohup ~/actions-runner/run-with-icu.sh > ~/actions-runner/runner.log 2>&1 &
+```
+
+**Cleanup once sudo is available (per ADM-103 closing):**
+
+```bash
+sudo ~/actions-runner/bin/installdependencies.sh   # installs libicu system-wide
+rm -rf ~/actions-runner/vendor-libs                # drop the workaround
+# Optionally restore stock ./run.sh wrapper (or keep run-with-icu.sh — the
+# LD_LIBRARY_PATH prefix is harmless once the system libs match)
+```
+
+**Why this is "rec" not "mandatory":** the workaround is fragile (runner self-update can break the vendor-extracted ABI; reboot drops the nohup PID) and the real fix is one sudoers line. Use it to unblock CI/CD when sysadmin is hours away, not as steady state.
+
+**Reference:** HCE2-373 closure (2026-05-03) — actions-runner v2.319.1 on Ubuntu 24.04, libicu74 vendor-extracted. Operational notes also live in the project repo at `scripts/gha-health-check.install.md`.
+
+---
+
+## ADM-105 — Healthcare Vitest MUST Run From `web/` cwd; Repo-Root Invocation Pulls In Stale `.claude/worktrees/agent-*/` Test Files (#MANDATORY — May 9, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-09). **Pairs with:** ADM-088 (healthcare SPA build recipe), ADM-064 (worktree-isolated AAT pattern). **Triggered by:** Two empirical hits in this session — once when a `cd backend && vitest` slip ran with the wrong cwd; once when running `vitest run` from the healthcare repo root caused 12 spurious test failures because vitest auto-discovered and tried to run `.claude/worktrees/agent-aa1760a67f7acf443/web/src/AntimicrobialCdsPanel.test.tsx` and similar orphaned worktree paths that lack their own `node_modules` and `@testing-library/react`.
+
+**Rule:** Every healthcare SPA test invocation MUST be run from the `web/` subdirectory:
+
+```bash
+cd /Users/subbujois/subbuworkingdir/healthcsare/healthcare/web
+npx vitest run                # full suite
+npx vitest run src/X.test.tsx  # single file
+npx tsc --noEmit               # typecheck the SPA package
+```
+
+**Forbidden:** `npx vitest run` from the repo root or any other parent of `web/`. The `vitest.config.ts` (which OWNS the test discovery glob and the `node_modules` resolution path) is anchored at `web/` only.
+
+**Why running from repo root breaks:**
+
+1. **Worktree pollution.** ADM-064's `#4ParallelAAT` worktree pattern leaves `.claude/worktrees/agent-{id}/` directories in the repo. Most are cleaned up at agent completion; SOME survive across sessions (failed cleanups, interrupts, manual aborts). Vitest at repo root discovers `*.test.tsx` files INSIDE those orphaned worktrees, which CANNOT resolve their imports (their `node_modules` doesn't exist or is stale), and reports them as test-file-load failures interleaved with the real suite.
+2. **Ephemeral footgun:** the failures look like real regressions in the live test files — same paths (`web/src/Foo.test.tsx`), same test names, just sourced from a stale worktree copy. Easy to chase the wrong root cause.
+3. **No project-level vitest config exists** at the healthcare repo root. The error message ("Cannot find package '@testing-library/react'") is unhelpful.
+
+**Operational hygiene:**
+
+- The j4c-deployment-agent's "L1 vitest" step MUST `cd web/` before invoking. This is enforced via the `web/package.json` `test` script which runs from the package dir.
+- Periodic cleanup: `find .claude/worktrees -maxdepth 1 -type d -mtime +3 -exec rm -rf {} \;` removes orphaned worktrees older than 3 days. Run it from a repo-root cron/systemd-timer or before each long session.
+- A `vitest.config.ts` rule at the healthcare repo root that REJECTS running from there (or excludes `.claude/worktrees/**`) would be a structural fix; until it lands, this ADM is the operational rule.
+
+**Reference:** healthcare repo session 587b5a4b May 9, 2026 — observed `12 failed (12) | 4 failed (4)` cascade when `npx vitest run` was invoked from the healthcare repo root; resolved by `cd web/` and re-running, all 11/11 + 7/7 + 10/10 panels passed cleanly.
+
+---
+
+## ADM-106 — Hot-Patched Code That Backs Long-Running Workers Activates at Worker Restart, Not API Container Restart (#MANDATORY — May 9, 2026 — Refines ADM-090)
+
+**Status:** Applied (2026-05-09). **Refines:** ADM-090 (backend hot-patch via `docker cp` preserves long-running workers). **Triggered by:** Deploy 23 — the `app.ecw.cds.build_kg` ordering fix (HC-KG-INGEST-ORDERING) was hot-patched into `dlt-healthcare-api` via `docker cp` per ADM-090. The patch is verifiable in the container (importable, `--help` shows the new flag), but the CURRENTLY-RUNNING `build_kg` workers (PIDs spawned at the prior ralph-loop launch) hold the OLD module in memory and will continue running the alphabetical-first-bug code until they exit.
+
+**Rule:** When ADM-090's hot-patch pattern is used to land a code change that is consumed by a LONG-RUNNING WORKER PROCESS inside the container (not the uvicorn HTTP server), the deploy verdict MUST clearly distinguish two activation gates:
+
+1. **HTTP route activation** — at next `docker restart dlt-healthcare-api` (uvicorn re-imports the module graph). Existing ADM-090 already covers this case.
+2. **Worker activation** — at next worker LAUNCH (e.g. `tmux kill-session -t build-kg && bash scripts/ralph-loop-build-kg.sh N`). A `docker restart` of the API container would also kill the workers, but the workers don't auto-relaunch — operator action is required regardless. Existing workers retain the old in-memory module graph and will run the OLD code until they exit naturally OR are killed.
+
+The two gates are independent. The deploy session.md / todo.md MUST list both pending activations separately so the operator doesn't assume a single restart will activate everything.
+
+**Implementation contract:**
+
+- The j4c-deployment-agent's deploy verdict for backend hot-patches that touch worker-consumed modules (currently: `app.ecw.cds.build_kg`, `app.ecw.cds.gemma_extract`, anything imported transitively by build_kg) MUST add a "Pending worker activation" line to its session.md entry, naming the worker-restart command verbatim.
+- Per ADM-089, the worker-restart command requires `os.kill` hygiene (the slim base image lacks `kill`) — the deploy report should reference ADM-089's recipe by line, not re-state it.
+- The validation criterion (per ADM-100 for HC-KG-INGEST-ORDERING specifically) only fires AFTER worker activation. Don't claim "fix verified" until a fresh ralph-loop run has demonstrated the new behavior.
+
+**Why this matters operationally:** without this distinction, an operator can read "Deploy 23 PASS" and assume the partition fix is now affecting ingest progress. They'd then watch `sources` count for 30 minutes, see no change, and either (a) declare the fix broken and revert, or (b) start hunting a non-existent bug. The truth is mundane — the workers are running old code; relaunching them activates the fix. The session in question observed this exact phenomenon: at deploy 23, sources had been at 10/24 for hours; the deploy was correctly verified PASS via the in-container pytest + `--help` flag check; but progress remained at 10 because the running workers were unaffected.
+
+**Reference:** healthcare repo deploy 23 (commit `bafbc54`, 2026-05-09) — partition fix landed in container, verified importable, but workers PIDs from the 2026-05-08 08:45 UTC ralph-loop launch kept running the pre-fix code. Documented as a session.md entry with the explicit "Pending worker activation: kill+relaunch ralph-loop" line.
+
+---
+
+## ADM-107 — Self-Hosted Runner Health MUST Be Measured by Workflow Failure Rate, Not Just Queue Depth (#MANDATORY — May 4, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-04). **Pairs with:** ADM-068 (deploy binding), ADM-097 (workflow_dispatch gate), ADM-103 (scoped sudoers).
+
+**Rule:** A self-hosted GHA runner is **not healthy** simply because (a) it shows `status: online` and (b) the queue depth is 0. Health monitoring MUST also track the **last-N workflow conclusions** for that runner's labels and treat ≥ 3 consecutive `completed failure` runs (with the same error class) as an anomaly equivalent to "queue stuck." Reporting "GHA runner healthy" when the runner is consuming jobs but every job fails is **silent CI breakage** — the failures are real but the alert never fires.
+
+**Why this is here:** On 2026-05-04 the daily HCE2 GHA cron reported "GHA runner healthy" because `hce201` was online and the queue was empty. Both true. But every workflow run since the runner came back online (10/10) had `completed failure` — the runner was consuming jobs and immediately failing them on `sudo: a password is required` (HCE2-376). The cron's binary criterion was insufficient; an honest readout would have flagged the failure storm. The session was rescued only because a human operator inspected `gh run list` directly.
+
+**Mandatory monitoring contract:**
+
+1. **Three signals, all must be checked:**
+   - Runner registration / status (`gh api /repos/{owner}/{repo}/actions/runners`).
+   - Queue depth (`gh api /repos/{owner}/{repo}/actions/runs?status=queued`).
+   - **Recent failure rate** — `gh run list --limit 10 --json conclusion`. If the last 3+ `completed` runs all have `conclusion: failure` AND the failures cluster around the same error string, that's a runner-side or provisioning anomaly, not a code regression.
+2. **Anomaly thresholds (any one trips):**
+   - Queue depth ≥ 3 (existing rule), OR
+   - Runner status != online, OR
+   - **3 consecutive `completed failure` runs** since the last `success`.
+3. **Reporting form:** even on the green path, the daily probe MUST emit failure-rate metrics (e.g. "Runner online, queue 0, last-10 conclusions: 9 success / 1 failure"). The verbose form costs nothing and catches the case where the binary signals lie.
+
+**Implementation hint** (drop into the daily cron's bash):
+
+```bash
+RECENT=$(gh run list --repo "$REPO" --limit 10 --json conclusion --jq '[.[] | .conclusion] | join(",")')
+RECENT_3=$(echo "$RECENT" | cut -d, -f1-3)
+if [ "$RECENT_3" = "failure,failure,failure" ]; then
+  echo "ANOMALY: 3-run failure streak — investigate beyond queue depth"
+fi
+```
+
+**Reference:** HCE2 daily cron output 2026-05-04 ("GHA runner healthy" while every recent run failed); HCE2-376 (the underlying provisioning gap that caused the failure storm). The cron prompt itself should be updated to include the failure-rate check after this incident.
+
+---
+
+## ADM-108 — Recovery Deploys MUST Probe Live State Before Re-Applying Patches (Idempotency Gate) (#MANDATORY — May 4, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-04). **Pairs with:** ADM-068 (deploy binding), ADM-102 (cp is not durable), ADM-090/106 (worker activation gates).
+
+**Rule:** When a recovery deploy is invoked (a deploy that re-applies a previously-shipped patch after a suspected regression OR after an interrupted prior run), the deploy agent MUST first **probe the live system** to verify the patch is actually missing before re-applying. The probe is fixture-specific (an HTTP call, a file-content hash, an `openapi.json` field check, an in-container `python -c "import ..."`) and is documented in the deploy invocation. If the probe shows the patch is already live, the agent reports `NO_OP` and skips the re-apply. Re-applying when the patch is already present wastes effort, restarts containers unnecessarily (which under ADM-102 risks introducing the very regression it's trying to fix), and pollutes deploy logs.
+
+**Why this is here:** On 2026-05-03 a recovery deploy was invoked for HCE2 commit `e69455f4` after the prior run was interrupted by an Anthropic rate limit. The agent's pre-deploy probe (`curl /geospatial | jq 'has("aoi_polygon")'`) returned `true` — the deploy had in fact completed before the limit hit. The agent reported `NO_OP — yesterday's run completed fully before rate-limit hit`. Without the probe, the agent would have re-cp'd the file, restarted the backend container, and (per ADM-102) potentially regressed `aoi_polygon` again as a side effect of the restart. The probe saved one full container-restart cycle and the second-order regression risk that would have come with it.
+
+**Mandatory probe types by change kind:**
+
+| Change kind | Probe |
+|---|---|
+| Backend API field added / changed | `curl <endpoint> \| jq 'has(...)'` or `.field == expected` |
+| Backend behaviour fix (no schema change) | functional smoke that tickles the bug + asserts fixed behaviour |
+| Frontend chunk/route added | `curl <html>; grep <chunk-hash>` or `<route>` returns 200 |
+| Migration applied | `psql -c "SELECT version FROM alembic_version"` matches expected |
+| Config / env change | `docker exec <c> env \| grep <key>` matches expected |
+| Image rebuild (per ADM-102) | `docker inspect <c> --format '{{.Image}}'` matches the expected image SHA |
+| Worker-consumed module change (per ADM-106) | `docker exec <c> python -c "import <module>; print(<module>.<symbol>)"` returns the expected new value AND a `ps` showing the worker has been relaunched since the patch |
+
+**Agent verdict contract:**
+
+- `PASS` — patch was missing, re-applied, post-deploy probe confirms it's now live.
+- `NO_OP` — patch was already live; nothing was done. **This is a green outcome, not a partial.** Surface it in the verdict so the operator can audit that the deploy wasn't redundant.
+- `FAIL` — patch was missing, re-apply ran, post-deploy probe still shows it missing. Roll back; do not silently report success.
+
+**Reference:** Recovery deploy of `e69455f4` on 2026-05-03 (NO_OP outcome correctly reported); session log entry "Resume / re-deploy commit e69455f4". The probe-then-deploy pattern is also reflected in the @J4CDeploymentAgent's L1 cascade definition (ADM-068, where L1 = "verify the changed feature actually changed"), but ADM-108 makes the pre-deploy probe explicit so the redundancy detection is at deploy entry, not just at verification exit.
+
+---
+
+## ADM-109 — TDD Discipline: Tests-First, Zero Hardcoded Test Data, Given/When/Then Structure (#MANDATORY — May 4, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-04). **Pairs with:** ADM-014 (Tier 5 SCMAgent code review), ADM-068 (deploy binding), ADM-105 (vitest cwd discipline). **Supersedes:** the ad-hoc test conventions per project; the per-project specs (`TDD_STRATEGY.md`, `SPARC_TDD_SPRINT_PLAN.md`, etc.) are the implementation manuals — this ADM is the binding rule that scopes them.
+
+**Rule:** Every Aurigraph project MUST follow Test-Driven Development discipline for net-new code AND for any rewrite of existing code:
+
+1. **Red → Green → Refactor.** Write the failing test first, watch it fail with the expected error message, write the minimum code to pass, then refactor with the test as a safety net. A test that passes on first run is suspect — it either tested the wrong thing or was written after the code.
+2. **Zero hardcoded test data.** No literal magic numbers, dates, IDs, paths, or bytestrings inside test bodies. Use:
+   - **Pytest fixtures** (`conftest.py`) for shared state.
+   - **Factory libraries** (`factory_boy` for Python, `@faker-js/faker` for TS) for generated entities.
+   - **Parameterized tests** (`@pytest.mark.parametrize`, `it.each`) when the same assertion runs over a set of values.
+   - **Constants module** under `tests/constants.py` (or equivalent) for project-wide shared values like the test user email — never inline. The one acceptable inline literal is a representative example in a docstring.
+3. **Given/When/Then structure.** Each test body has three labelled sections (comments are sufficient; assertion library is not required). The test name reflects the GIVEN+WHEN+THEN compactly:
+   ```
+   def test_carbon_density_clamps_at_500_when_input_exceeds_limit():
+       # Given
+       est = CarbonEstimator(...)
+       # When
+       result = est.density(raw_value=999.0)
+       # Then
+       assert result == 500.0
+   ```
+4. **One assertion path per test.** Multiple `assert` statements are fine; they MUST all be aspects of the same behaviour. Tests that exercise two unrelated behaviours MUST be split.
+5. **No production-bypass mocks.** A test that mocks the function it's testing is verifying the mock, not the code. Allowed: mocks of EXTERNAL boundaries (HTTP, DB, filesystem). Forbidden: mocks of the unit-under-test's own collaborators within the same module.
+6. **Fast unit / slow integration / slowest E2E** layered with markers (`@pytest.mark.unit / .integration / .e2e`, `it()` / `it.todo()` / `describe.skip()`) so CI can run unit-only on every PR and the full pyramid pre-deploy.
+7. **Coverage thresholds are floors, not goals.** HCE2 currently gates at backend 60%, frontend 65%/55%; raising the floor is allowed, lowering is not without an ADR.
+
+**Why this is here:** A 2026-05-04 audit of the HCE2 test suite (1416 tests collected, 417 SKIPPED at module level due to `pytest.skip()` guards on stale `app.*` imports) showed how silent test rot accumulates: tests that "pass" because they don't run, tests that hardcode `2026-04-15` and break on date changes, tests that mock the SUT itself. The discipline above is what keeps the test suite a real safety net, not a green-checkmark theatre.
+
+**No-hardcoding enforcement (mechanical check):**
+
+```bash
+# Detect inline magic in pytest bodies (heuristic — not perfect, but cheap):
+grep -rn -E "assert .* == ['\"][a-zA-Z0-9_-]{8,}['\"]" tests/ \
+  | grep -v "fixture\|factory\|constants" \
+  || echo "PASS: no obvious hardcoded long-string assertions"
+```
+
+A pre-commit hook MAY enforce stricter rules (e.g. forbid literal UUIDs, ISO dates, file paths) per project — see project `TDD_STRATEGY.md` for the canonical pattern.
+
+**Scope of "test suite rewrite":** When a sprint mandates a TDD rewrite of an existing module, the order is:
+
+1. Write the new tests (failing) per the contract you want.
+2. Run them, confirm they fail with the expected errors.
+3. Mark old tests `@pytest.mark.deprecated` (do not delete yet).
+4. Rewrite the module to make new tests pass.
+5. Confirm new tests green; delete deprecated tests in the SAME commit as the module rewrite.
+6. Per ADM-068, deploy through `j4c-deployment-agent`. Per ADM-108, the post-deploy probe verifies the new behaviour is actually live.
+
+**Reference:** HCE2 TDD docs cluster — `backend/docs/testing/TDD_STRATEGY.md`, `backend/docs/planning/SPARC_TDD_SPRINT_PLAN.md`, `backend/TDD_TEST_EXECUTION_GUIDE.md`, `backend/docs/testing/TDD_QUICK_REFERENCE.md`. Audit session 2026-05-04 covered in `docs/TDD_PLAN.md` follow-up sprint plan.
+
+---
+
+---
+
+## ADM-110 — No Hardcoding in Tests or Product Code; Use Named Constants, Fixtures, or Config (#MANDATORY — May 9, 2026 — USER MANDATED — Strengthens ADM-109 §2)
+
+**Status:** Applied (2026-05-09 directive). **Pairs with:** ADM-095 (turbo `^build`), ADM-096 (vitest hookTimeout). **Replaces:** the de facto convention that was inconsistent across packages.
+
+**Rule:** Magic numbers and inline string literals MUST NOT appear in test assertions or product logic where the value carries semantic meaning. Specifically:
+
+1. **Test fixtures** — IDs, emails, role names, dates, percentages, and any value that two tests both assume MUST be declared as `const` at the top of the file (or in a shared `fixtures/` module). Inline `'00000000-...-aa'` UUIDs that recur across files MUST move to a `tests/fixtures/` shared module.
+2. **Service code** — TTLs, batch sizes, retry counts, percentile thresholds, rate-limit windows, model names, table-row caps MUST be declared as `const` with a documenting comment explaining the value's origin (PRD, patent, empirical SLA, etc.).
+3. **Seed data** — domain-specific values (NAICS codes, sector names, framework dimension keys) MUST live in seed files with named exports, not be re-inlined at consumer sites.
+4. **API routes** — error type URIs, problem detail titles, and HTTP status codes MUST resolve through a single problem-doc helper, not be inlined per-route.
+
+**Why:** Sprint hygiene scans (2026-05-09) repeatedly hit the same false-positive pattern — assertions like `expect(x).toBe(0.05)` where `0.05` is "the cache TTL fraction" in one place and "MAPE threshold" in another, with no comment to disambiguate. Tests pass but reviewer can't audit the value's provenance. Worse, when the underlying spec changes (e.g., MAPE bound moves from 5% to 10%), grep-for-`0.05` finds eleven false hits across unrelated files. Naming these values makes change-impact analysis a typecheck error rather than a manual sweep.
+
+**How to apply:** When adding a new test file or service, ensure:
+- Top of file: `const TEST_ORG_ID = '...'`, `const HORIZON_MONTHS = 12`, etc., with a one-line comment per non-obvious value.
+- Cross-file fixtures: extract to `apps/<pkg>/src/__fixtures__/` (or `packages/database/src/__fixtures__/` for shared seed-style fixtures).
+- Code review: reject PRs that introduce new inline magic numbers without a `// reason: …` comment immediately preceding them.
+
+**Sweep policy:** When touching an existing file with hardcoded values, the contributor MAY hoist them to constants as part of the same commit IF doing so doesn't expand the diff beyond ~10 lines. Don't gate small fixes on a comprehensive sweep, but don't add new hardcodes to an already-bad file either.
+
+**Reference:** AurexV4 commit series (2026-05-09 sprint hygiene + Sprint 1/3/5 ships) — repeated pattern of inline UUIDs, `60_000` timeouts, and inline percentile thresholds; this entry codifies the after-state.
+
+---
+
+## ADM-111 — TDD Test Suite MUST Include Mutation Testing: `mutmut` for Python, `stryker` for TypeScript (#MANDATORY — May 9, 2026 — USER MANDATED — Strengthens ADM-109)
+
+**Status:** Applied (2026-05-09 directive — HCE2-377 Sprint 5). **Pairs with:** ADM-109 (TDD Discipline), ADM-110 (No Hardcoding). **Codifies:** the convention that line/branch coverage alone is not a sufficient quality bar — assertion strength must also be measured.
+
+**Rule:** Every Aurigraph project's TDD test suite MUST integrate mutation testing as a parallel quality signal alongside line/branch coverage.
+
+1. **Python projects** — use **`cosmic-ray` (≥8.4.0)** for narrow-module-path ratchet baselines (the gate); `mutmut` (~=3.5.0) MAY be kept installed for ad-hoc wide-scope exploratory runs but MUST NOT be the canonical ratchet tool for new adopters. Config in `<repo>/cosmic-ray.toml`. **Why cosmic-ray over mutmut** (codified 2026-06-02, AV11-2920): mutmut 3.x couples `paths_to_mutate` with file-copy scope — narrow mutation breaks transitive imports on FastAPI / Quarkus-style codebases where the target module imports from `app.config`, `app.middleware.*`, etc. (verified on J4C j4c-api). cosmic-ray runs tests in the real project tree (no sandbox copy), so narrow `module-path` semantics JustWork. **mutmut 4.x is NOT released on PyPI** (verified 2026-06-02; latest available is 3.5.0; the copy/mutate-separation feature exists only on the cosmic-ray side). Score-target rules (≥70% kill rate per-module, ratchet that only shrinks) apply the same to either tool. **Canonical reference adopter**: `Jeeves4Coder/j4c-api/cosmic-ray.toml` + `tests/redtests/test_mutation_baseline_redtest.py` (baseline: 69 mutants, 8 killed, 61 surviving — ratchet ceiling `EXPECTED_MAX_SURVIVING_MUTANTS=61`).
+
+2. **TypeScript projects** — use `@stryker-mutator/core` + `@stryker-mutator/jest-runner` (or `vitest-runner`). Config in `<pkg>/stryker.config.json`. Same narrow-start, expand-by-PR principle. Mutate `src/utils/`, `src/services/api/`, and `src/hooks/` first; UI component mutation testing has poor signal-to-noise and should be deferred.
+
+3. **Score targets** — mutation kill rate ≥ **70%** per-module (HIGH=80, LOW=70, BREAK=60 in stryker thresholds). Below 70% means the tests assert on too few branches; below 60% breaks CI.
+
+4. **Cadence** — nightly cron on `main` (CI workflow), NOT per-PR. Mutation runs are multi-hour; per-PR would block the loop. Results MUST post to JIRA on regression — when the kill rate drops vs. the previous nightly baseline, the j4c-deployment-agent (or equivalent automation) files a bug to the project's tracking board.
+
+5. **Coverage floor stays separate** — mutation testing strengthens but does not replace `--cov-fail-under` / `coverageThreshold`. Both gates run; both MUST pass for CI to be green.
+
+**Why:** A test suite at 95% line coverage can still pass with assertions that are no-ops (e.g., `assert result is not None` when `result` is constructed unconditionally). Mutation testing flips operators and constants in the production code and re-runs the tests; if the suite still passes, the mutated line is "weakly covered" — the line was executed but no assertion would have flagged the change. This is the gap that line/branch coverage cannot detect. Sprint 3 of HCE2-377 added 152 characterization tests across 5 modules; without mutation testing we have no way to know whether those tests are actually load-bearing or just exercise-coverage padding.
+
+**How to apply (per-project bootstrap):**
+
+For Python (cosmic-ray — recommended for NEW adopters; AV11-2920):
+- Add `cosmic-ray>=8.4.0` to `requirements-dev.txt`.
+- Create `<repo>/cosmic-ray.toml` with:
+  ```toml
+  [cosmic-ray]
+  module-path = "app/<narrow-module-path>.py"
+  timeout = 30.0
+  test-command = ".venv/bin/python -m pytest tests/<target>.py -x -q --override-ini=addopts= --no-cov --cov-fail-under=0"
+  [cosmic-ray.distributor]
+  name = "local"
+  ```
+- Verify locally: `cosmic-ray init cosmic-ray.toml cosmic-ray.sqlite && cosmic-ray exec cosmic-ray.toml cosmic-ray.sqlite && cr-report cosmic-ray.sqlite`.
+- Wire nightly cron in `.github/workflows/<quality-or-mutation>.yml` (NOT in PR-trigger workflows per ADM-097).
+- Add `cosmic-ray.sqlite` to `.gitignore` — it's a per-run session db.
+
+For Python (mutmut — legacy adopters; HCE2 + projects already on mutmut may stay):
+- Existing `[tool.mutmut]` config in `pyproject.toml` remains valid for wide-scope nightly runs.
+- New adopters: prefer cosmic-ray unless there's a project-specific reason mutmut wins (rare).
+
+For TypeScript:
+- Add `@stryker-mutator/core` and `@stryker-mutator/jest-runner` (or `vitest-runner`) to `devDependencies`.
+- Create `stryker.config.json` with `testRunner`, `mutate` glob (start with `src/utils/**`, `src/services/api/**`, `src/hooks/use*.{ts,tsx}`), `coverageAnalysis: "perTest"`, `thresholds: {high: 80, low: 70, break: 60}`.
+- Add `"test:mutation": "stryker run"` to `package.json` scripts.
+- Same nightly-cron rule as Python — never per-PR.
+
+**Reference:** HCE2-377 Sprint 5 (commit `8a65597e`) — initial bootstrap of mutmut + stryker for HCE2 backend + frontend-v2; mutates the 8 Sprint-3 characterization-tested modules + the 3 frontend util/service/hook directories. First nightly baseline pending CI runner restoration (HCE2-379).
+
+**Carve-outs:**
+- **Pure data-fixture modules** (e.g., `tests/factories.py`, seed files) are NOT meaningful mutation targets — exclude via `mutate` glob.
+- **Generated code** (gRPC pb2 stubs, OpenAPI clients, prisma client) is NOT a mutation target — exclude.
+- **Performance-critical hot loops** that can't tolerate the perTest overhead during CI may opt out via `mutmut: ignore` line markers, but the carve-out must be explicitly noted in the module docstring with a JIRA reference.
+
+---
+
+## ADM-112 — Karate DSL as the API Contract Test Layer Alongside pytest + Vitest + Playwright (#MANDATORY — May 9, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-09). **Pairs with:** ADM-Component-1 #TestStackMandate (May 8, 2026), ADM-109/110 (TDD discipline + no-hardcoding), ADM-097 (GHA self-hosted runners), ADM-068 (deploy mandate). **Strengthens** the test pyramid by adding a deterministic API-contract layer that is framework-agnostic and reads as plain text.
+
+**Rule:** Every Aurigraph project that exposes an HTTP/gRPC API MUST add a Karate DSL test suite at `tests/karate/` covering its public surface as the **third active layer** of the #TestStackMandate gate (now 4 layers total: pytest/Vitest unit → Karate API contract → Playwright frontend E2E → mutation gates per ADM-111). Karate is mandatory wherever a project has any externally-callable HTTP endpoint; it is NOT optional, and it is NOT a substitute for pytest's unit/integration coverage. CI failure on the Karate layer is a hard merge gate — same as the other three layers.
+
+**Layout (canonical, every project):**
+
+```
+tests/karate/
+├── karate-config.js          # env-driven config (NO hardcoding per ADM-110)
+├── karate.jar                # standalone runner (auto-downloaded by run.sh)
+├── run.sh                    # local + CI entry point
+├── README.md
+└── features/
+    ├── smoke/                # @smoke — public endpoints, no auth, post-deploy probe
+    ├── auth/                 # login, callback, RBAC negative paths
+    ├── <domain>/             # one dir per Bounded-context (kgraph, integrations, …)
+    └── …
+```
+
+**Why Karate (selection rationale):**
+1. **Framework-agnostic.** Works against any HTTP/gRPC backend (FastAPI, Quarkus, Express, Quarkus). One toolchain across the Aurigraph fleet.
+2. **Plain-text Gherkin assertions.** Failures are deterministic and easy to diff in PRs; less brittle than Python/JS HTTP mocks across refactors.
+3. **No additional language toolchain.** Standalone JAR + JDK 21 (already installed for the Aurigraph V12 / DLT runners). No Maven/Gradle scaffolding.
+4. **Performance baselines via Karate Gatling** (future) without rewriting tests.
+5. **Anti-drift.** API contract changes that pytest mocks would silently absorb (e.g., the `/auth/login` `{token}` → `{data:{access_token}}` shape change documented as MEV-Shield #TestStackMandate sub-rule) cannot pass a Karate run that asserts the actual wire shape.
+
+**Behaviour contract:**
+
+1. **Config is env-driven.** `karate-config.js` reads `E2E_BASE_URL`, `E2E_ADMIN_TOKEN`, `E2E_MEMBER_TOKEN`, `KARATE_ENV` from system properties OR environment variables. Hardcoded URLs/tokens in feature files or config are forbidden (per ADM-110).
+2. **Tagging discipline.** Use `@smoke`, `@needsAdmin`, `@needsMember`, `@slow` tags. CI selects subsets by tag; default PR run is "everything except `@slow`". The smoke subset MUST run in <30s.
+3. **Token-aware skipping.** Features tagged `@needsAdmin` / `@needsMember` MUST `karate.abort()` early when their token is unset, never fail. This lets dev environments without secrets still get partial coverage.
+4. **Reports are CI artifacts.** Each run writes to `tests/karate/reports/<TS>/`. CI uploads on failure with 7-day retention. Local runs use the same convention.
+5. **Self-hosted runner.** Per #CICD / ADM-097: the `karate` GHA job runs on `[self-hosted, linux]` with JDK 21 from `actions/setup-java@v4`. `ubuntu-latest` is forbidden for production-target Karate runs.
+6. **Verdict gate.** The `teststack-verdict` job in `.github/workflows/teststack.yml` MUST aggregate all four layers (pytest, vitest, karate, playwright). Any one red = merge blocked. No override.
+7. **Standalone JAR pin.** `run.sh` pins `KARATE_VERSION` (default 1.5.1 as of 2026-05-09). Bumps go through a normal PR with the `tests/karate/run.sh` and karate jar replaced + a Karate report attached to the PR.
+8. **No state leakage.** Tests that mutate state (e.g. `@needsAdmin` ingest tests) MUST clean up via Background or a `cleanup.feature` `* call`. State leakage between runs is forbidden — production hosts cannot accumulate test artifacts.
+9. **Karate writes test data through the same API as humans.** No backdoor DB seeding for Karate scenarios; the suite is a black-box probe of the deployed surface, never a privileged client.
+
+**Reference impl (J4C portal, this commit):**
+- Config: `tests/karate/karate-config.js`
+- Runner: `tests/karate/run.sh`
+- Seed features: `tests/karate/features/{smoke/healthz,auth/login,kgraph/data,integrations/health}.feature`
+- Workflow: `.github/workflows/karate.yml` + Layer 3.5 in `teststack.yml` (`needs: [pytest, vitest]`, before playwright; verdict needs all 4)
+- Tag examples: `@smoke` for healthz, `@needsAdmin` for the integrations & kgraph-ingest features.
+
+**Carve-outs:**
+- Pure libraries / internal services without an HTTP surface (e.g. a CLI build script) are exempt.
+- Greenfield projects in their first 7 days may run with the smoke layer only; the full feature catalogue must land before the project leaves "early access" status.
+- Performance contract tests (Gatling profile) are NOT yet mandatory — flagged for a future ADM after the J4C reference suite proves stable for ≥2 sprints.
+
+**Reference:** J4C commit (this entry) introducing `tests/karate/` + `.github/workflows/karate.yml` + `teststack.yml` 4-layer verdict, 2026-05-09. MEV-Shield reference impl and the `auth/login` shape-drift incident that motivated it: ADM Component 1 #TestStackMandate sub-rule "pytest as a value-add even when technically exempt" (May 9, 2026).
+
+---
+
+## ADM-113 — Bidirectional ADM / CLAUDE.md / <project>.md Sync (#MANDATORY — May 10, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-10). **Pairs with:** ADM-101 (durable ADM auto-pull + watcher.py atomic-rename), ADM-076/076-A (kgraph-first reads + ADM file watcher re-ingest), ADM-086 (per-repo operational profile in `docs/<Project>.md` + slim `CLAUDE.md` pointer). **Replaces** the implicit assumption that "ADM update" is unidirectional.
+
+**Rule:** Any `ADM update` / `sync ADM` invocation is **bidirectional**. The sync direction is determined by **which side is ahead at run time**, NOT by a fixed source-of-truth. The rule applies to **three file classes** simultaneously:
+
+| File class | Canonical location | Mirrored locations |
+|---|---|---|
+| `CLAUDE.md` | `~/.claude/CLAUDE.md` | `<project>/.claude/CLAUDE.md`, `Jeeves4Coder/CLAUDE.md` |
+| `ADM.md` | `~/.claude/ADM.md` | `<project>/.claude/ADM.md`, `Jeeves4Coder/ADM.md` |
+| `<project>.md` | `<project>/<project-name>.md` (per ADM-086) | `Jeeves4Coder/<project-name>.md` if J4C-managed |
+
+After every sync, all copies of a given file class MUST be byte-identical (verify with `diff -q`).
+
+**Why:** Multiple agents write directly to different copies — the J4C self-sync watcher, mutation-testing automation, per-project #AAT loops, and the user's manual edits all run on independent schedules. A unidirectional `canonical → J4C` model silently drops content from whichever side ran most recently. The **May 10, 2026 inversion incident** is the precedent: canonical `~/.claude/ADM.md` was at v2.10.7 (7256 lines, behind by ADM-109/110/111/112) while J4C origin/main was at v2.12.4 (7550 lines, ahead). A naive `canonical → J4C` push would have regressed J4C; `git push` was correctly rejected by the remote, the bad local commit was reset, and the sync was reversed J4C → canonical instead.
+
+**How to apply (every "ADM update" invocation):**
+
+1. **Direction-check FIRST.** Before any `cp` or `git push`:
+   - Compare `wc -l` across all three copies of the file class.
+   - Compare the version-string tail (e.g. `tail -3 ADM.md | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1`).
+   - Compare `git log -1 --format=%cI` (committer date) on the J4C side.
+   The largest line-count + highest version + most-recent timestamp identifies the **ahead-side** for THIS sync.
+2. **Content-aware tiebreak.** If line counts are equal but content differs (concurrent edits), prefer the side with the higher version string. If versions also match, do `diff` and abort with a manual-merge prompt — never auto-pick.
+3. **Backup before overwrite.** Each side gets a `.bak-YYYYMMDD` backup before being overwritten. Backups live alongside the file (not in `/tmp`).
+4. **Mirror to all locations.** After identifying the ahead-side, `cp` to the other two. Verify byte-identical with `diff -q`.
+5. **Git-track project-local.** For `<project>/.claude/ADM.md` (tracked in the project repo), commit on the project's **main branch** (V12, main, etc.) — NEVER on a feature branch. Commit message format: `docs(adm): sync ADM from <ahead-side> — <date> (vX.Y.Z → vA.B.C)`.
+6. **Push J4C.** For `Jeeves4Coder/ADM.md`, commit + `git push origin main`. If push is rejected, that's a **direction-check failure** — re-run step 1, do not force-push.
+7. **No git for canonical.** `~/.claude/` is not git-tracked; `cp` is the only operation.
+8. **Skip-if-equal.** If all copies already byte-match the canonical-ahead, the sync is a no-op — log and exit.
+9. **`<project>.md` per ADM-086.** Per-repo state files (`aurigraph-dlt.md`, `mevshield.md`, `j4c-portal.md`, …) follow the same direction-check + mirror discipline within their project tree.
+
+**Detection signals (when to re-check direction):**
+- `git push` rejected with `! [rejected] main -> main (fetch first)` → remote moved → reverse direction likely.
+- `wc -l` differs between any two copies → one side has accumulated edits → check version tail.
+- `~/.claude/ADM.md` modified time newer than J4C `git log -1` time → canonical is ahead → forward-sync.
+- `git log origin/main..HEAD` non-empty on J4C local but those commits weren't authored in this session → likely stale local commits → reset to origin first.
+
+**Anti-patterns (forbidden):**
+- Hardcoded "canonical → J4C" push without direction check.
+- Committing the project-local ADM update on a feature branch (e.g. `feat/wc-wire-s1-kickoff`) — fragments project history; ADM updates belong on `V12`/`main`.
+- Force-pushing J4C `origin/main` to "win" — J4C may have a self-sync watcher that already re-synced; `git reset --hard origin/main` is the correct primitive.
+- Skipping the `.bak-YYYYMMDD` backup step — without it, accidental regressions are unrecoverable.
+
+**Reference incident (May 10, 2026 — inversion catch):**
+- Pre-sync: `~/.claude/ADM.md` v2.10.7 (7256 lines), `Jeeves4Coder/ADM.md` v2.9.6 (5075 lines), J4C origin/main v2.12.4 (7550 lines).
+- "ADM update" naively committed `canonical → J4C` overwrite (`9c1b9f5f0`).
+- `git push origin main` → REJECTED (`fetch first`).
+- Investigation: J4C origin had ADM-109/110/111/112 from the J4C self-sync watcher — canonical was BEHIND.
+- Recovery: `git reset --hard 6f0811fcc` (drop bad commit) → `git reset --hard origin/main` (drop 4 stale local-only commits) → `cp J4C/ADM.md ~/.claude/ADM.md` → propagate to `Aurigraph-DLT/.claude/ADM.md`. All three end at v2.12.4 (7550 lines, byte-identical).
+
+**Carve-outs:**
+- New rule additions (like THIS one) bypass the bidirectional dance because the adding side IS the canonical-ahead by construction. After adding, the standard sync flow (step 4–6) kicks in.
+- Greenfield projects without a `<project>.md` yet (per ADM-086) are exempt from the third file-class until the file is bootstrapped.
+- Worktrees (`.claude/worktrees/agent-*/.claude/ADM.md`) are session-scratch only — they MUST NOT participate in the bidirectional sync; they're cleaned by their parent #AAT agent.
+
+---
+
+## ADM-114 — Canonical Name: Aurigraph Development Model Harness (#ADM) (USER MANDATED — 2026-05-10)
+
+**ADM** expands to **Aurigraph Development Model Harness**.
+
+Previous informal expansion "Aurigraph Dev Mode" is retired. All documentation, headers, definitions, and verbal references use the canonical name going forward.
+
+**Why "Harness"**: the word captures that ADM is not just a model or a methodology document — it is an active execution harness: it binds agents, tools, test gates, deployment pipelines, credential management, knowledge graphs, and quality mandates into a single operative framework that runs automatically. "Model" alone (as in a reference architecture) understates what ADM does in practice; "Harness" signals that ADM *drives* the work, not merely *describes* it.
+
+**Scope of change:**
+- Line 1 heading: `# Aurigraph Development Model Harness (#ADM) — Complete Framework`
+- Overview definition block (line ~57): updated inline
+- Two cross-references in the J4C integration section: updated inline
+- All future ADM entries, CLAUDE.md references, and verbal usage MUST use the canonical expansion
+
+**Carve-outs:**
+- Existing JIRA ticket titles, commit messages, and archived session logs referencing "Dev Mode" are historical artefacts — do NOT retroactively rewrite them.
+- The hashtag `#ADM` and the numbered registry `ADM-NNN` are unchanged.
+
+---
+
+## ADM-115 — Token-Optimized Kgraph Access: Task-Scoped Queries Only (USER MANDATED — 2026-05-10)
+
+**Rule:** The J4C Knowledge Graph is purpose-built for **maximum context coverage at minimum token cost**. Access it with **task-scoped precision** — never load entire flat docs when the kgraph can answer the query in a fraction of the tokens.
+
+**Why:** The kgraph is a pre-indexed, semantically structured representation of all Aurigraph architectural knowledge. A targeted neighbor query (`GET /api/v3/kgraph/neighbors/{id}`) returns the exact subgraph relevant to the task in <5KB. Loading `context.md`, `session.md`, or all of `ADM.md` for the same answer can cost 50–200KB of tokens. The kgraph exists precisely to eliminate that waste. (USER MANDATED 2026-05-10 — "read the kgraph as optimally required for the tasks on hand, not the entire context.md")
+
+**Access hierarchy (lowest → highest token cost — stop at the first level that answers):**
+
+1. **`GET /api/v3/kgraph/neighbors/{node_id}`** — fetch the immediate subgraph for a specific entity (ADM entry, component, project, ticket). Use when you know the entity. Typical response: <5KB.
+2. **`GET /api/v3/kgraph/data` with client-side filter** — fetch the full snapshot and filter to relevant node types in the response. Use when the entity ID is unknown. Typical response: 20–80KB (still far less than loading flat docs).
+3. **`GET /api/v3/kgraph/external/{project}/{graph}`** — per-project code/architecture graphs (ADM-080). Use only for project-specific structural queries (file topology, call graphs).
+4. **Flat docs (`context.md`, `session.md`, `ADM.md`)** — **last resort only**, and even then read only the relevant section (use `offset`/`limit` on Read, not full file loads). Use only when the kgraph response is empty, unreachable, or explicitly incomplete for the query.
+
+**Forbidden patterns:**
+- Loading `context.md` or `session.md` in full at session start as a substitute for kgraph queries.
+- Calling `GET /api/v3/kgraph/data` and processing the entire graph when only 1–3 nodes are relevant.
+- Reading all 7000+ lines of `ADM.md` to find a single decision when `neighbors/adm_entry:<sha>` returns that decision's node + edges in one call.
+- Treating kgraph as a "nice to have" — it is the **primary and mandatory** context source per ADM-076.
+
+**Query decision tree (before any Read tool call):**
+```
+"I need context about X"
+  → Do I know X's node ID?
+      YES → GET /neighbors/{id}               (stop here if sufficient)
+      NO  → GET /kgraph/data + filter client-side
+              → Still missing? → READ flat doc, specific section only
+                  → Still missing? → kgraph may be stale → surface as kgraph gap
+```
+
+**Token budget guidance:**
+| Access method | Typical tokens | When to use |
+|---|---|---|
+| `/neighbors/{id}` | ~300–800 | Known entity, focused expansion |
+| `/kgraph/data` filtered | ~1,000–4,000 | Unknown entity, type-filtered sweep |
+| Flat doc section (offset+limit) | ~500–3,000 | kgraph gap, specific known section |
+| Flat doc full load | ~10,000–80,000 | **Forbidden unless kgraph unreachable** |
+
+**Amends ADM-076:** ADM-076 mandated kgraph-first reads. ADM-115 strengthens it with explicit token-optimization discipline: *how* to read the kgraph (task-scoped, neighbor-first) is now as mandatory as *whether* to read it.
+
+---
+
+## ADM-116 — Pre-Deployment #Testplan: Inherit TDD Suite + Functional + Regression + Smoke (#MANDATORY — May 11, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-11). **Pairs with:** Component 1 (TDD), ADM-056 / ADM-057 (security + infra gates), ADM-068 / Component 5–6 (deploy + verification cascade), ADM-097 (self-hosted CI), ADM-109–ADM-112 (TDD discipline, Karate contract layer, Playwright E2E mandate, mutation testing per ADM-111). **Clarifies:** The **deploy verification cascade (L1→L4)** is **not** ADM-056; ADM-056 is the **OWASP** gate (see below).
+
+**Rule:** No production deployment proceeds without an **executed #Testplan** that (1) **inherits** automated scope from the **TDD test suite** (unit/integration layers already mandated in Component 1), (2) adds an explicit **functional test plan** (acceptance criteria / role-based flows), (3) defines **regression** coverage for the release delta and unchanged collateral surfaces, and (4) mandates **smoke** gates per the frequency rules below. Execution MUST follow ordinary software-engineering practice: **plan → run → record evidence → go/no-go**.
+
+### 1. Mandatory stack tooling (by language — same toolchain as Component 1)
+
+| Stack | ADM-prescribed tooling |
+|-------|-------------------------|
+| Node / TypeScript | **Jest or Vitest**, **Supertest** (HTTP/API), **React Testing Library** (UI). |
+| Frontend browser E2E | **Playwright** (`@playwright/test`) — ADM labels this **“Frontend E2E (Playwright — ALL projects)”** with Page Object patterns and CI snippets (Component 1). |
+| Python (FastAPI) | **pytest**, **pytest-asyncio**, **httpx**; markers for unit / integration / e2e. |
+| Java / Quarkus | **JUnit 5**, **Mockito**, **REST Assured**, **TestContainers**. |
+
+**Parallel mandated layers** (where applicable to the project — see ADM-111 / ADM-112): **mutation testing** (Stryker / mutmut) and **Karate** API contract suites at `tests/karate/` are **merge and release gates**, not optional substitutes for unit tests.
+
+### 2. Security & infrastructure gates (numbered ADMs)
+
+- **ADM-056 — OWASP:** Security test stages run **after build** and block deploy until passing (`test:owasp:*` or project-equivalent).
+- **ADM-057 — nginx / HTTPS:** Edge validation runs when nginx/TLS/routing changes (`test:nginx:*` or project-equivalent).
+
+### 3. Deploy verification cascade (L1 → L4) — Component 5–6 / @J4CDeploymentAgent
+
+**Do not conflate with ADM-056.** The **L1→L4 cascade** is **functional/regression/E2E depth**, not OWASP:
+
+| Level | Typical scope |
+|-------|----------------|
+| **L1** | Unit + integration on **changed** components |
+| **L2** | **Smoke** on unchanged platform (collateral-damage check) |
+| **L3** | **Regression** on full release diff |
+| **L4** | **Full E2E** when L3 fails, policy requires it, or enhancement crosses UI/API boundaries |
+
+Failures escalate per deploy-agent / project playbook (JIRA logging, rollback consideration).
+
+### 4. Smoke vs E2E frequency (release hygiene)
+
+- **Smoke:** Run on **every build** in CI where feasible; run **full-platform smoke** as a **pre-deployment go/no-go** on the target environment.
+- **E2E (Playwright + fleet harnesses):** Run for **enhancements** that alter user journeys, auth, routing, or cross-service contracts; expand to **full E2E** when the cascade reaches **L4** or release notes demand it.
+
+### 5. Defect handling — JIRA
+
+Every failure during #Testplan execution MUST produce or update a **JIRA** issue (bug/task) with repro, logs, build/deploy correlation, and ownership. Silent deferrals without a ticket are forbidden for production-bound releases.
+
+### 6. #Testplan artifact (every project)
+
+Each repository MUST maintain a **detailed, version-controlled #Testplan** (recommended path: `docs/Testplan.md` or `docs/TESTPLAN.md`) containing at minimum:
+
+- Scope (in-scope paths, roles, environments)
+- Inherited automated suites (commands from TDD/CI)
+- Functional scenarios (acceptance / exploratory where needed)
+- Regression matrix (delta vs baseline)
+- Smoke checklist (build + pre-deploy platform)
+- Entry/exit criteria and **evidence** (CI run URLs, reports, timestamps)
+- Owners and schedule
+
+### 7. Fleet rollout via J4C
+
+Updates to the **canonical #Testplan template** and ADM test-policy changes propagate through **J4C**: ingest per **ADM-113** where applicable; **push to J4C origin** so all downstream project repos can merge or cherry-pick aligned templates. Individual projects remain responsible for repo-specific acceptance criteria and commands.
+
+---
+
+## ADM-117 — ADM Diff: Local vs J4C `origin/main` Latest (#MANDATORY — May 11, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-11). **Pairs with:** ADM-113 (bidirectional sync + direction-check), ADM-101 (durable ADM auto-pull / watcher), ADM-086 (footer semver is authoritative when header drift exists).
+
+**Rule:** Before treating an **ADM update** as complete, committing project-local `ADM.md`, or **pushing** ADM to **`Jeeves4Coder`**, every agent MUST **diff the local ADM revision against the latest J4C-published revision on `origin/main`** — not only line counts or footer semver in isolation. Remote may have moved since the last clone; **fetch-first + byte-level compare** prevents silent regressions and complements ADM-113 step 1.
+
+**Scope — which paths participate:**
+- **`ADM.md`** at the J4C git repository root (path varies by clone layout; see **nested-repo guard** below).
+- Mirrored copies under **`docs/ADM.md`** and **`docs/global-config/ADM.md`** MUST stay byte-identical to root **`ADM.md`** inside J4C after sync; diff those against local copies only **after** confirming root **`ADM.md`** matches `origin/main`.
+
+**Procedure (minimum):**
+1. **`git fetch origin`** in the **J4C git repository** (the repo whose `origin` is **`Aurigraph-DLT-Corp/Jeeves4Coder`** or successor remote).
+2. **Resolve git root:** `git rev-parse --show-toplevel` — do not assume `<clone>/ADM.md` depth; some layouts use `<clone>/Jeeves4Coder/ADM.md`.
+3. **Byte compare** local canonical **`~/.claude/ADM.md`** (and any project-local **`.claude/ADM.md`** about to be committed) against the remote object:
+   - `diff -q <(git show origin/main:ADM.md) ~/.claude/ADM.md` — adjust **`origin/main:ADM.md`** if the tracked path differs (e.g. monorepo subfolder — use the path J4C actually tracks).
+   - If `diff -q` is unavailable, compare **`shasum -a 256`** (or `wc -c` + `cmp`) of both sides.
+4. **Footer semver check:** On both sides, read the **`Last Updated`** tail (footer wins for registry semver when the long header block disagrees — project operational docs cite this discipline).
+5. **Interpretation:**
+   - **No diff** → local matches **latest J4C** for that path — ADM-113 **skip-if-equal** applies; proceed or no-op.
+   - **Diff** → run full **ADM-113 direction-check** (`wc -l`, semver, committer timestamps, content tie-break). Do **not** push until ahead-side is chosen and all mirrors are **`diff -q`** aligned.
+6. **Nested-repo guard:** Workstations MAY nest the real repo at **`…/Jeeves4Coder/Jeeves4Coder/`**. Always resolve **`show-toplevel`** before `git show origin/main:…` path assumptions.
+
+**Anti-patterns (forbidden):**
+- **`git push`** of ADM without **`git fetch origin`** in the same session (stale **`origin/main`** reference).
+- Assuming **`wc -l` equality** implies identical content — concurrent edits can preserve line count; require **`diff -q`** or hash.
+- Using only **`HEAD`** without **`origin/main`** — local **`main`** may be ahead/behind remote; the **latest fleet revision** is **`origin/main`** after fetch.
+
+**Carve-outs:**
+- **New ADM rows** added only under **`~/.claude/ADM.md`** with no J4C commit yet — local is ahead **by construction**; still **fetch** to prove **`origin/main`** did not gain concurrent edits, then apply ADM-113 steps 4–6.
+- **No `origin` remote** (greenfield offline clone) — skip remote diff until **`origin`** exists.
+
+---
+
+## ADM-118 — Missing #Testplan: E2E Plan First, Execute E2E, JIRA, Then Proceed (#MANDATORY — May 11, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-11). **Pairs with:** ADM-116 (pre-deployment #Testplan artifact + JIRA on failures), Component 1 (**Playwright** frontend E2E — ALL projects), ADM-112 (Playwright E2E mandate), ADM-068 / Components 5–6 (deploy only after gates). **Does not replace** ADM-116 inherited TDD / functional / regression / smoke scope — this entry adds a **hard ordering rule** when the **#Testplan file itself is absent**.
+
+**Rule:** If the repository **does not yet have** a version-controlled **#Testplan** at the prescribed path (**`docs/Testplan.md`** or **`docs/TESTPLAN.md`**) **or** the file exists but **fails ADM-116 §6 minimum content** (scope, inherited suites, functional scenarios, regression matrix, smoke checklist, evidence, owners — treated as *no plan*), the team MUST **not** proceed with production-bound deployment, release tagging, or “ship” milestones until the following sequence completes:
+
+1. **Author an E2E-first comprehensive test plan** — a written artifact (same paths as ADM-116) that **prioritizes end-to-end coverage**: full critical user journeys (auth → primary workflows → edge exits), environment matrix (local/stage/prod-like), test data / fixtures / roles, prerequisites, **explicit pass/fail criteria**, and linkage to **automated E2E commands** (typically **Playwright**). The plan MUST enumerate scenarios automation will cover and any gaps requiring manual E2E checks.
+2. **Execute E2E tests** against the target surface per Component 1 / ADM-112 — run the suite(s) referenced in the plan; capture logs, traces, and reports as **evidence** appended or linked from the #Testplan.
+3. **Log every failure to JIRA** immediately (bug/task) with repro, logs, correlation IDs, build/deploy SHA, and owner — same bar as ADM-116 §5; **no silent skips**.
+4. **Then proceed** — only after (a) the #Testplan file meets ADM-116 §6, (b) E2E execution for the current delta is **complete** (green **or** all reds ticketed with accepted disposition), and (c) remaining ADM-116 gates (inherited suites, functional/regression/smoke as applicable) are satisfied.
+
+**Ordering rationale:** Without a committed plan, “running E2E” is ad hoc and non-repeatable. **Plan → run → JIRA → proceed** ensures fleet traceability and prevents deploy-agent or release flows from bypassing documented E2E intent.
+
+**Anti-patterns (forbidden):**
+- Deploying or releasing while **`docs/Testplan.md`** / **`docs/TESTPLAN.md`** is missing or below ADM-116 §6 minimum — **even if** unit tests pass.
+- Creating only unit/integration docs while deferring **E2E plan sections** — ADM-118 requires **E2E comprehensiveness** in the **first** authored plan when none existed.
+- Closing E2E failures in chat or internal notes **without** a **JIRA** record.
+
+**Carve-outs:**
+- **Pure libraries / headless services with no UI or external HTTP surface** — follow ADM-116 carve-outs; E2E UI plans may be replaced by **API contract / integration journey** plans documented equivalently in #Testplan with **no Playwright** requirement where ADM-112 exempts the project.
+- **Hotfix** path still requires a **minimal** #Testplan addendum for the hotfix scope + executed automated checks; waiving E2E entirely requires **explicit** project steering documented in JIRA.
+
+---
+
+## ADM-119 — Feature / Architecture Delta → Update Regression + Master #Testplan (#MANDATORY — May 11, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-11). **Pairs with:** ADM-116 (§6 #Testplan artifact incl. regression matrix + smoke), ADM-118 (missing-plan discipline), Component 1 (TDD + Playwright / Karate layers), ADM-112 (Playwright). **Rule:** Every **new feature** or **new architectural component** MUST land together with an **updated regression test plan** and an **updated master #Testplan** — not as a deferred chore.
+
+**Triggers (non-exhaustive — when ANY of these occur, this ADM applies):**
+- **Feature:** new user-facing capability, API route surface, workflow, permission path, billing hook, integration, or materially changed business rules.
+- **Architectural component:** new module/layer boundary; new runtime dependency (queue, cache, identity broker); routing/TLS/ingress change; DB schema/migration affecting contracts; split monolith boundaries; new deployment unit or sidecar.
+
+**Definitions:**
+- **Master #Testplan:** the repository’s authoritative **`docs/Testplan.md`** or **`docs/TESTPLAN.md`** (ADM-116 §6 — scope, inherited suites, functional scenarios, **regression matrix**, smoke checklist, evidence, owners).
+- **Regression test plan:** the **regression matrix** (delta vs baseline, unchanged collateral surfaces, rerun cadence) within that same file **or** a **linked** regression appendix **`docs/RegressionTestplan.md`** / **`docs/regression-plan.md`** **only if** the project has explicitly adopted a split layout — in which case **both** files MUST be updated atomically and cross-linked from the master #Testplan.
+
+**Minimum updates (same PR as the change, or the immediate stacked PR before merge to protected `main` — no release between):**
+1. **Regression matrix:** add/adjust rows for new/changed surfaces; identify **collateral** areas at risk; specify **who reruns** what after merge.
+2. **Master #Testplan:** refresh **scope**, **inherited automated suite commands** (unit/integration/Karate/Playwright as applicable), **functional scenarios** touching the delta, **smoke checklist** if critical paths shift, **evidence** expectations (CI jobs, reports).
+3. **Traceability:** reference the **JIRA Epic/Story** driving the change and the **PR** that introduces it.
+
+**Anti-patterns (forbidden):**
+- Merging a feature or architectural change with **no diff** to #Testplan regression/master sections — including “TODO follow-up PR”.
+- Treating regression updates as **optional documentation** — they are **release hygiene gates**, same class as ADM-116 pre-deploy #Testplan execution.
+- Updating only **automated tests** without updating the **written plan** — code and plan drift breaks fleet audits.
+
+**Carve-outs:**
+- **Doc-only** edits (typography, comments in markdown, ADR wording) with **zero** behavioral or routing impact — no mandatory matrix expansion (still update #Testplan if the doc corrects test assumptions).
+- **Revert-only** PR restoring prior SHA — restore matching #Testplan section from that baseline unless partial revert demands partial plan trim.
+
+---
+
+## ADM-120 — GitHub Release + Release Notes Bound to Every Deployment (#MANDATORY — May 12, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-12). **Pairs with:** ADM-068 (`@J4CDeploymentAgent` deploy binding), Components **5–6** (deploy + verification), ADM-073 (image–source drift correlation via immutable tags), ADM-116 / ADM-118 (pre-deploy evidence discipline). **Rule:** Every **deployment** that promotes artifact(s) to an **environment tracked as release-bearing** (typically **staging** and **production**; exact names per project **`docs/<Project>.md`**) MUST be **traceable on GitHub** to a **`Release`** object (GitHub Releases UI — **tag + title + body**) that carries both a **release number** and **release notes**.
+
+**Definitions:**
+- **Release number:** the immutable **Git tag** published alongside the GitHub Release (e.g. **`v2.4.1`**, **`2026.05.12.1`** — project adopts **semver** or **dated/build** scheme in its operational profile; the scheme MUST be documented and consistently applied).
+- **Release notes:** the GitHub Release **body** (Markdown) listing **what shipped**, **risk/migrations**, **rollback posture**, **JIRA Epic/Story keys**, and the **`git` SHA(s)** / image digest(s) that the deploy agent or pipeline applied.
+
+**Minimum expectations:**
+1. **Before or during** the deploy pipeline step that touches the target environment, create or update the GitHub **`Release`** so its tag matches the artifact built from that commit — **no anonymous prod deploys** that cannot be named by tag from the GitHub UI.
+2. **Release notes MUST NOT be empty** for production — even a minimal bullet list beats silence; link **`CHANGELOG.md`** only as a supplement, not as a substitute body.
+3. **Deploy evidence** (session log, deploy-agent transcript, runbook, or ADM-116 #Testplan attachment) MUST cite **`Release` URL** or **`tag`** so auditors correlate **running bits ↔ GitHub**.
+
+**Anti-patterns (forbidden):**
+- Promoting **production** from **`main` HEAD** without a corresponding **GitHub Release + tag** visible on the repo for that promotion window.
+- Using **only** a branch tip pointer (“deployed main”) as the sole identifier — tags/releases are mandatory for fleet correlation.
+- Shipping **production** with placeholder release bodies (**“TBD”**, empty description) except under **emergency carve-out** below.
+
+**Carve-outs:**
+- **Local-only / disposable developer environments** — no GitHub Release required when no shared environment is mutated (document per-project).
+- **Emergency production hotfix:** MAY publish **abbreviated** notes within **4 hours** but MUST still create the **tag + Release** immediately with incident ticket, suspect SHA, and “full notes to follow” — then amend body before incident closure.
+- **Projects not hosted on GitHub** — substitute **equivalent VCS release artifact** (GitLab Release, Gitea tag + changelog) documented in **`docs/<Project>.md`**; the **same traceability bar** applies.
+
+---
+
+## ADM-121 — J4C Fleet Service-Admin JWTs + Playwright Token-Skip Hygiene (#MANDATORY — May 12, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-12). **Pairs with:** ADM-071 (RBAC DB-authoritative roles), ADM-110 / ADM-112 (env-driven E2E tokens), ADM-116 (CI evidence). **Rule:**
+
+1. **Service principals.** For **Aurigraph-classified** fleet projects (registry + monitor defaults per `github_org` / `github_repo` / `*.aurigraph.io` heuristic), J4C exposes **`GET /api/v3/projects/registry/aurigraph-project-candidates`** (superadmin) and **`POST /api/v3/projects/registry/issue-service-admin-tokens`** (superadmin). Each issuance upserts **`project-admin-{project_id}@bots.aurigraph.io`** into **`user_roles`** with role **admin**, then returns signed J4C JWTs (`token_kind=project_service_admin`, `project_id` claim). Optional **`persist_openbao: true`** writes **`j4c_service_admin_jwt`** into **`kv/aurigraph/{project_id}/credentials`**. **Forbidden:** minting via these endpoints without superadmin; storing tokens in git.
+
+2. **Playwright / local E2E.** Helpers that inject `localStorage` JWTs MUST **`test.skip`** when the role’s **`E2E_*_TOKEN`** is unset — **never throw** — so CI and laptops without secrets get a clean **skipped** matrix instead of false failures (see `j4c-react/e2e/_lib/auth.ts`).
+
+**Anti-patterns (forbidden):**
+- Using fleet service JWTs for interactive human SSO (bots subdomain is automation-only).
+- Dropping **`user_roles` upsert** while issuing admin-scoped tokens (RBAC would downgrade to member).
+
+---
+
+## ADM-122 — FS-MTP Recursive Testing for Early Plan Closure (#MANDATORY — May 12, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-12). **Pairs with:** ADM-116 / ADM-118 (#Testplan authoring + execution evidence), ADM-112 / ADM-111 (Karate + pytest/Vitest + mutation gates), Component 1 (TDD), Component 2 (#AAT QA stream), **FS-MTP** implementation (`j4c-api/app/routers/mtp.py`, portal **FS-MTP** panel, `docker-compose.yml` **`FS_MTP_AUTOMATION`**). **Rule:**
+
+**Objective.** Increase **coverage**, **defect yield**, **closure rate**, and **validation & verification (V&V)** for @QAQCAgent / TestTeam and #AAT by running the **Full-Stack Master Test Plan (FS-MTP)** as **recursive execution** — not a single batch run — so problems are found **early** and the **written plan** converges to **complete** before Approver sign-off and deploy.
+
+**Definitions:**
+- **FS-MTP**: The **registry + suites + run history** for full-stack quality (API, UI automation where applicable, smoke, regression per ADM-116), exposed via J4C **`/api/v3/mtp`** and recorded in PostgreSQL; optional **background smoke** when **`FS_MTP_AUTOMATION=true`**.
+- **Recursive pass**: A **sequence** of test executions where **pass N+1** is intentionally triggered by **outcomes of pass N** — failures → **narrowed scope** (component, route, role, data fixture) → **added or revised cases** → **re-execute** until pass or explicit **JIRA waiver** with risk owner.
+- **Early closure**: Achieved when (1) **all suites in scope** for the change have **recorded PASS** in FS-MTP or CI with linked evidence, (2) **open defects** are either fixed and re-verified or **tracked** with severity and deploy gate decision, (3) **#Testplan** and **regression matrix** match the **actual** automated scope (no plan–code drift).
+
+**Mandatory workflow (#QAQC / #AAT):**
+1. **Pass A — Smoke & sanity (minutes):** Run the smallest set that proves the environment matches the plan (health, auth sanity, critical path). J4C may use **`GET /api/v3/kgraph/health`** as a **cheap FS-MTP adjunct** (ADM-076) alongside service `/health` probes.
+2. **Pass B — Fast automated layers:** Unit + contract (Karate where ADM-112 applies) in dependency order; **fail-fast** allowed only if the team immediately schedules Pass C for the failing module (no silent deferral).
+3. **Pass C — Defect-driven depth:** For **each** failure cluster, add **targeted** cases (boundary, negative, concurrency, RBAC matrix cell), update fixtures, and **re-run only the expanded slice plus its upstream smoke** until **green** or **JIRA P0/P1** with Approver-visible block.
+4. **Pass D — E2E / journey confirmation:** Playwright (or project-equivalent per ADM-112) against **staged or prod-like** config; **recursive** here means **re-open** failed journeys after backend fixes — do **not** treat E2E as a single terminal sweep.
+5. **Pass E — Plan completion gate:** @QAQCAgent verifies **FS-MTP run history** and **CI artifacts** align with **#Testplan** sections; **gaps** require either new automated tests or **documented manual evidence** with date and executor — **empty sections forbidden** where ADM-116 applies.
+
+**Roles:**
+- **@QAQCAgent / Test Manager:** Owns **pass scheduling**, evidence bundles, JIRA linkage on failures, and **closure checklist** before Approver.
+- **#AAT QA stream:** Owns **test design** concurrent with Maker (Component 2) — ensures recursive passes have **pre-authored** scenarios so re-runs are fast.
+- **Approver:** Treats **missing recursive closure** (failures “hand-waved” without JIRA or re-run) as **REJECT** per ADM-116 discipline.
+
+**Anti-patterns (forbidden):**
+- **One-shot test fest** — running the full suite once after feature-complete with no **failure-driven** follow-up passes.
+- **Silent suite skips** — excluding failing tests from CI to “go green” without JIRA and Approver risk acceptance.
+- **FS-MTP / plan drift** — updating code without updating **suites** or **#Testplan** rows touched by the change (violates ADM-116 / ADM-119 intent).
+
+**Carve-outs:**
+- **Emergency hotfix** — MAY shorten Pass D to **smoke + focused regression** if ADM-120 emergency carve-out applies; MUST backfill full FS-MTP passes within the incident **follow-up** window defined in project profile.
+
+---
+
+## ADM-123 — Platform-Owner Deploy Authority (subbu@aurigraph.io) — No Duplicate Deployment Approval (#MANDATORY — May 12, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-12). **Pairs with:** ADM-068 / Component 5–6 (@J4CDeploymentAgent, CI gates, post-deploy smoke), ADM-120 (release traceability — unchanged), ADM-116 (pre-deploy test evidence). **Does not remove:** #AAT Approver, PR review, SCMAgent, or automated test gates — **only** removes redundant **human “Approve deployment”** queues in CI/CD that duplicate the platform owner’s authority.
+
+**Rule.**
+
+1. **Identity.** **Subbu** is the **platform deploy authority** for Aurigraph-classified fleet work when acting as **`subbu@aurigraph.io`** on trusted operators, or when a GitHub Actions workflow is initiated by GitHub user **`SUBBUAURIGRAPH`** (or future explicitly listed `github.actor` allowlist in the project’s operational profile). Documentation and runbooks may refer to this as **owner deploy**.
+
+2. **No second human in the loop for deploy.** For owner-identified deploys, **do not** require an additional human to click **Approve** in GitHub (or equivalent) **after** merge-ready code has already passed **branch protection**, **required checks**, and **#ADM deploy verification** (smoke / health / FS-MTP where applicable). Approver sign-off on the **change** remains mandatory before merge per Component 2; this rule addresses **deployment promotion** only.
+
+3. **GitHub Actions mechanics.** If a workflow uses `jobs.*.environment` with a GitHub **Environment** that has **Required reviewers**, the run will sit in **“Waiting for approval”** even for the owner. **Remediation (pick one per repo):**  
+   - **Preferred:** Remove **`environment:`** from deploy jobs that target J4C self-hosted runners (see **`deploy-j4c-docker.yml`** — deployment URL is still documented in the workflow summary and ADM).  
+   - **Alternative:** In **Repo → Settings → Environments → `production`**, remove required reviewers / wait timers for this repository, or use an unprotected environment name dedicated to self-hosted owner deploys.  
+   **Enterprise-only** “bypass rules” for specific actors may be used if available; portability favors omitting `environment` or relaxing Environment rules.
+
+4. **Security scope.** This rule **does not** authorize skipping **`main` protection**, **secrets**, **self-hosted runner labels**, or **post-deploy rollback** on failure. It **does** align **ADM** with **single-trusted-operator** reality on the J4C box where the runner and shell access are already under the same administrative control.
+
+**Anti-patterns (forbidden):**
+- Using ADM-123 to **skip CI** or **disable smoke tests** “because the owner said so.”
+- Adding **outside collaborators** to a bypass list without updating this ADM and the project operational profile.
+
+---
+
+## ADM-124 — j4c-deployment-agent owns Phase 0: commit + push before every deploy (USER MANDATED — 2026-05-13)
+
+**Amends:** ADM-060 (`/deploy` = commit + push + deploy atomic), ADM-068 (j4c-deployment-agent is the only sanctioned deploy path).
+
+**Rule:** After code-complete, the **j4c-deployment-agent** MUST execute Phase 0 (commit + push) as its **first action** before deploying to any remote server. The agent owns the full cycle:
+
+```
+Phase 0 (agent-owned):
+  1. git add -A (stage all changes)
+  2. git commit -m "<conventional-commit generated from diff>"  — skip if working tree is clean
+  3. git push origin main  — production always matches main
+
+Phase 1+ (unchanged):
+  Incremental deploy to remote server (git pull / docker rebuild per diff classification)
+  L0 → L1 → L2 → L3 → L4 test cascade
+  3-layer AutoHeal verification
+  JIRA bug logging on failure
+  session.md + todo.md update
+```
+
+**Why this strengthens ADM-060:** ADM-060 defined the commit+push+deploy contract but left it ambiguous whether the **assistant** or the **agent** performs the commit+push. In practice, the assistant committed+pushed manually before invoking the agent — creating a two-step hand-off that could be interrupted or skipped. ADM-124 closes that gap: the agent is the single actor responsible for the entire sequence from dirty working tree to deployed production.
+
+**Behaviour contract:**
+
+1. **Agent Phase 0 is non-optional.** If the working tree is dirty at agent invocation time, the agent commits before deploying. It does NOT ask for confirmation — it generates a terse conventional-commit message from the diff and commits immediately.
+2. **If the tree is clean** (no uncommitted changes), Phase 0 is a no-op and the agent proceeds directly to Phase 1.
+3. **Push must succeed before deploy.** If `git push` is rejected (e.g. remote has diverged), the agent surfaces the conflict to the user and halts — it does NOT deploy a state that is not on `origin/main`.
+4. **The assistant's pre-agent commit step is now redundant.** The assistant MAY still commit+push before invoking the agent (e.g. as part of a longer task), but it is no longer required — the agent will handle it if not done.
+5. **Rest of the deployment process is unchanged.** All L0–L4 cascade rules, AutoHeal verification, JIRA logging, session.md/todo.md updates, rollback semantics, and verdict definitions from ADM-068 remain in force.
+
+**Forbidden patterns (post ADM-124):**
+- Agent starting Phase 1 (deploy to remote) before Phase 0 is complete.
+- Agent deploying a commit that is not yet on `origin/main`.
+- Assistant performing the commit+push AND THEN instructing the agent to "skip Phase 0 since already pushed" — the agent's Phase 0 check is idempotent and safe to re-run.
+
+**Carve-outs:**
+- **Docs-only ADM sync commits** (ADM-101 / ADM-113) that go through the file-watcher auto-pull path are exempt from agent-owned Phase 0 — the watcher handles them autonomously.
+- **Hotfix rollback** scenarios where the agent explicitly reverses a commit to restore a prior state are exempt from the "conventional-commit message" requirement — the agent may use a `revert(...)` message.
+
+---
+
+## ADM-125 — AurexV4 Playwright L4 Auth Suite — FS-MTP Phase 6 Definition (#MANDATORY — 2026-05-14)
+
+**Context:** AurexV4 ships five Playwright spec files under `apps/web/e2e/` that form the **L4 browser E2E layer** of the Full-Stack Master Test Plan (FS-MTP Phase 6). This ADM records the canonical spec contract, QA account model, gate logic, and integration pattern so it is reproducible across environments and session boundaries.
+
+### Spec inventory
+
+| Spec file | Suite name | Auth account | Gate |
+|-----------|-----------|--------------|------|
+| `l4-smoke.spec.ts` | L4 smoke — public shell | none (unauthenticated) | always runs when `PLAYWRIGHT_E2E=1` |
+| `auth-session.spec.ts` | authenticated dashboard shell | `PLAYWRIGHT_TEST_EMAIL` / `PLAYWRIGHT_TEST_PASSWORD` | skip unless `authReady` |
+| `onboarding-workspace.spec.ts` | onboarding / workspace landing | same org_admin account | skip unless `authReady` |
+| `industry-data-auth.spec.ts` | Industry Data page (auth) | same org_admin account (needs extended nav) | skip unless `authReady`; self-skips if route unreachable |
+| `invitations-path-auth.spec.ts` | Invitations / PendingJoin path (auth) | **Path 2** invite-only account | skip unless `authReady`; **self-skips** when account already has org membership or invite has expired |
+
+`authReady = PLAYWRIGHT_E2E === '1' && email.length > 0 && password.length > 0`.
+
+### QA accounts (production — `aurex.in`)
+
+| Account | Email | Role | Covers |
+|---------|-------|------|--------|
+| QA org_admin | `qa-playwright@aurex.in` | `ORG_ADMIN` | l4-smoke, auth-session, onboarding-workspace, industry-data-auth |
+| QA Path 2 | `qa-playwright-path2@aurex.in` | pending invite (no OrgMember row) | invitations-path-auth (separate run) |
+
+Credentials stored in `credentials.md § Playwright L4 E2E` (gitignored). Never committed. Rotate via `apps/api/scripts/update-qa-password.ts` if needed.
+
+### Phase 6 runner
+
+`scripts/fs-mtp-playwright.mjs` — invoked by `pnpm fs-mtp` when `PLAYWRIGHT_E2E=1`.
+
+```
+PLAYWRIGHT_E2E=1 \
+PLAYWRIGHT_BASE_URL=https://aurex.in \
+PLAYWRIGHT_TEST_EMAIL=qa-playwright@aurex.in \
+PLAYWRIGHT_TEST_PASSWORD="<from credentials.md>" \
+pnpm fs-mtp
+```
+
+The runner executes `pnpm exec playwright test --reporter=json` from `apps/web/`, parses `stats.expected / stats.unexpected / stats.skipped`, writes the report to `.cache/fs-mtp/playwright-l4.json`, and gates on **`failed === 0`** (NOT `stats.ok` — Playwright sets `ok=false` on expected skips, which would be a false failure).
+
+### Expected baseline
+
+With `qa-playwright@aurex.in` (org_admin creds): **7 passed / 0 failed / 1 skipped** (invitations-path-auth self-skips as expected — counts as PASS in the gate).  
+With `qa-playwright-path2@aurex.in` (Path 2 creds): **1/1** for invitations-path-auth.
+
+### Rules
+
+1. **Phase 6 is opt-in** — `PLAYWRIGHT_E2E=1` must be set explicitly. Omitting it skips Phase 6 cleanly; `pnpm fs-mtp` without it exercises Phases 1–5 only.
+2. **Any unexpected failure exits FS-MTP non-zero.** The gate is binary: `failed === 0` ↔ Phase 6 PASS.
+3. **Expected self-skips are not failures.** `invitations-path-auth` self-skips when the QA account already has org membership or the invite has expired — this is by design and is counted in `stats.expected` (hence PASS).
+4. **Credentials must not be committed.** Use env vars or `credentials.md` (gitignored). CI uses repo secrets.
+5. **QA accounts must not be used for production activity.** They exist only to seed test state. Treat them as disposable service accounts.
+6. **Baseline: 7/0/1 (org_admin run).** Any drop in `passed` without a corresponding `skipped` increase is a regression — open an AV4 JIRA ticket and do not merge.
+
+**Amends:** ADM-121 (J4C Fleet Playwright token-skip hygiene — Phase 6 runner shares the skip-flag pattern defined there).  
+**Pairs with:** ADM-116 (pre-deploy #Testplan), ADM-122 (FS-MTP recursive testing).
+
+---
+
+## ADM-126 — Settings-Only Config in Adapters; Karate Exclusion of SSE/Streaming Endpoints (#MANDATORY — 2026-05-18 — FS-MTP Wave)
+
+**Status:** Applied (2026-05-18). **Pairs with:** ADM-110 (no hardcoding, named constants/fixtures/config), ADM-113 (Karate API contract layer), ADM-122 (FS-MTP recursive testing). **Discovered via:** J4C FS-MTP E2E wave 2026-05-18 — 10 test failures in `test_integrations_harbor.py` + `test_integrations_openbao.py` and Karate SSE timeout.
+
+### Rule 1 — Adapter `__init__` MUST source config from pydantic-settings exclusively
+
+**Rule:** Any service adapter, repository, or component class that reads configuration in its `__init__` method MUST use the `settings` object (pydantic-settings) exclusively. Direct `os.getenv()` fallbacks alongside `settings.*` are **forbidden** because they create test isolation gaps:
+
+```python
+# WRONG — os.getenv bypasses monkeypatch.setattr("module.settings", ...)
+self._url = (os.getenv("ADAPTER_URL") or "").strip() or settings.adapter_url
+
+# CORRECT — pydantic-settings already reads from env vars at startup
+self._url = (settings.adapter_url or "").rstrip("/")
+```
+
+pydantic-settings reads every env var at process startup and exposes it through the `settings` singleton. The `os.getenv` fallback is always redundant — it re-reads the same env var that pydantic-settings already processed — and silently overrides test fixtures, causing stub-mode assertions to fail in any environment where the live credentials are set (e.g., production containers).
+
+**Why:** J4C FS-MTP wave 2026-05-18 found 10 test failures: `HarborAdapter` and `OpenBaoAdapter` both used `os.getenv("HARBOR_ADMIN_URL") or settings.harbor_admin_url` pattern in `__init__`. Tests patched `settings` via `monkeypatch.setattr` but the `os.getenv` call still returned live production credentials, so `adapter.enabled` was always `True` and stub-mode paths were never exercised.
+
+**How to apply:** Audit any class `__init__` that reads config — if it contains `os.getenv("FOO") or settings.foo`, collapse to `settings.foo`. The settings object is the single source of truth.
+
+**Carve-out:** `os.getenv` is acceptable for config that is explicitly NOT modelled in pydantic-settings (e.g., one-off feature flags that have not yet been promoted to a settings field). In that case, add the field to settings to keep the pattern consistent.
+
+### Rule 2 — Karate feature files MUST NOT include SSE / long-poll / streaming endpoint scenarios
+
+**Rule:** Any endpoint that returns a persistent open connection (SSE, WebSocket, long-poll, chunked-transfer-encoding streams) MUST be excluded from Karate feature files. Karate's synchronous HTTP engine throws `java.net.SocketTimeoutException` on open streams (even with `configure readTimeout`) and treats the timeout as a test failure rather than yielding the captured status code.
+
+**Coverage alternative for streaming endpoints:**
+- **Pass A curl probe**: `curl -s -o /dev/null -m 3 -w "%{http_code}" <url>` — captures the status code before the connection is force-closed. Record result in FS-MTP `smoke` suite.
+- **Playwright (`page.request.get`)**: follows redirects, records status code, closes connection automatically after response headers arrive.
+
+**How to apply:** When writing Karate features, search for any `path '/api/v3/kgraph/events'` or similar SSE paths. Replace with a comment explaining why the scenario is absent and reference the Pass A probe that covers it.
+
+### Rule 3 — Auth-gate changes on previously-public endpoints MUST be reflected in FS-MTP contract tests
+
+**Rule:** When an endpoint transitions from public → auth-gated (or vice versa), the Karate and Playwright contract tests for that endpoint MUST be updated in the same commit that changes the auth guard. The contract tests MUST assert the NEW expected status code (e.g., 401 for an anonymous request to a now-auth-gated route) — not the old status code. Silent divergence between the live API and the test contract is a FS-MTP Pass C regression.
+
+**Example (J4C kgraph/data, 2026-05-18):** `GET /api/v3/kgraph/data` was originally public; a prior session added `require_ide_auth`. The Karate `healthz.feature` still expected `status 200`, causing a Pass C failure. Fix: `Then status 401` for the anonymous scenario + add a `@needsAdmin` scenario for the authenticated path.
+
+---
+
+## ADM-127 — Pydantic v2 `ValidationError` IS `ValueError`: narrow `except ValueError` in FastAPI endpoints (#MANDATORY — 2026-05-18)
+
+**Status:** Applied (2026-05-18). **Pairs with:** ADM-109/110 (TDD / no-hardcode, test-first), Component 1 (RED phase must exercise schema validation path). **Root cause:** HCE2-386 — `get_file_versions` returned HTTP 400 "Invalid file ID" for valid UUIDs because a missing `= None` default on a Pydantic `Optional[str]` field raised `ValidationError`; this was caught by a broad `except ValueError` intended only for UUID parse failures.
+
+**Rule:**
+
+In Pydantic v2, `ValidationError` inherits from `ValueError`. Any `except ValueError` that wraps Pydantic schema instantiation, field access, or any service/repo call that internally validates Pydantic models will silently absorb schema failures as user-input errors — masking a 500-class bug as a 400.
+
+**Required pattern:**
+
+```python
+# ✅ Correct — UUID parse isolated; Pydantic / service calls outside the ValueError scope
+try:
+    parsed_id = UUID(id_str)
+except ValueError:
+    raise HTTPException(status_code=400, detail="Invalid ID format")
+
+try:
+    result = service.get(parsed_id)   # may invoke Pydantic validators internally
+except HTTPException:
+    raise
+except Exception as exc:
+    logger.error("...", exc_info=True)
+    raise HTTPException(status_code=500, detail="Internal error")
+
+# ❌ Forbidden — service call inside except ValueError scope
+try:
+    parsed_id = UUID(id_str)
+    result = repo.get_versions(parsed_id)   # repo constructs Pydantic models
+except ValueError:
+    raise HTTPException(status_code=400, detail="Invalid ID")  # masks schema error
+```
+
+**How to apply:**
+
+- Keep `except ValueError` scope tightly around the parse call only (UUID, int, float conversions).
+- Wrap repo / service calls in a **separate** try/except: re-raise `HTTPException`, catch `Exception` as 500.
+- In TDD RED phase, write a test that exercises a schema with a missing default **before** writing the exception handler — confirm the test fails with `ValidationError`, not `ValueError`.
+- Fleet-wide audit: search for `except ValueError` in FastAPI endpoints and verify none wrap `service.*`, `repo.*`, or `Schema(...)` calls.
+
+---
+
+## ADM-128 — S3/MinIO multipart upload: validate non-last part size at application layer (#MANDATORY — 2026-05-18)
+
+**Status:** Applied (2026-05-18). **Pairs with:** ADM-109/110 (named constants, no magic numbers), ADM-122 (FS-MTP recursive testing). **Root cause:** HCE2-385 — `complete_multipart_upload` returned `EntityTooSmall` 500 for uploads whose non-last chunks were under 5 MiB; `upload_part` reported success, making the failure invisible until finalization.
+
+**Rule:**
+
+S3 and S3-compatible stores (MinIO, GCS, Azure Blob S3-compatible mode) reject non-last multipart upload parts smaller than **5,242,880 bytes (5 MiB)** with `EntityTooSmall`. This rejection is **deferred** — `upload_part` succeeds, `complete_multipart_upload` fails — surfacing as a confusing 500 during finalization rather than a 400 at upload time. Application code MUST validate part sizes **before** calling `upload_part`.
+
+**Required pattern:**
+
+```python
+_S3_MIN_PART_BYTES: int = 5 * 1024 * 1024   # module-level named constant — ADM-110
+
+is_last_part = chunk_index == total_chunks - 1
+if not is_last_part and len(data) < _S3_MIN_PART_BYTES:
+    raise ValueError(
+        f"Chunk {chunk_index} is {len(data):,} bytes — "
+        f"non-last parts must be ≥ {_S3_MIN_PART_BYTES:,} bytes (5 MiB)."
+    )
+```
+
+**Key facts:**
+
+- The **last** part has **no minimum size**; it may be 1 byte.
+- Only **non-last** parts are constrained: ≥ 5 MiB.
+- Use a **named module-level constant** (`_S3_MIN_PART_BYTES`), not `5242880`, in both product code and test fixtures (ADM-110).
+- Also define the constant in the E2E/integration test file — use the same name, import or redefine — never hard-code the magic number in assertions.
+- Expose the violation as HTTP 400 to callers; they must increase chunk size or restructure the upload.
+
+**How to apply:**
+
+- Any method that calls `upload_part`, `put_object_multipart_part`, or equivalent MUST add this guard immediately after receiving chunk data.
+- FS-MTP / E2E tests for chunked upload endpoints MUST include a `test_*_small_non_last_chunk_rejected` case that sends a sub-minimum chunk as part 0 of a 2-part upload and asserts HTTP 400 with the byte count in the error detail.
+- Callers (clients, SDKs) SHOULD document the 5 MiB minimum and advise setting chunk size to 8–16 MiB to avoid edge cases near the boundary.
+
+---
+
+## ADM-129 — AI Validation & Verification suite (Suite 7) mandatory in FS-MTP (#MANDATORY — 2026-05-18)
+
+Every AI implementation (algorithm, methodology, prompt pipeline, model inference endpoint) MUST be validated using a dual-evaluator harness (Gemma local + Claude cloud) to ensure outputs conform to stated requirements and minimize deviation from objectives.
+
+**Rule:**
+
+Six test categories are required under `tests/ai_eval/` (TC-AI-01 through TC-AI-06 per FS-MTP §10):
+
+| Test | What it validates |
+|------|-------------------|
+| TC-AI-01 | Endpoint output satisfies documented acceptance criteria (evaluator score ≥ 0.80) |
+| TC-AI-02 | Repeated calls on fixed input produce semantically consistent outputs (similarity ≥ 0.85) |
+| TC-AI-03 | Model/prompt changes do not degrade outputs vs. last passing baseline (pairwise Claude eval) |
+| TC-AI-04 | Adversarial inputs (prompt injection, OOD, Unicode) produce no 5xx and no unsafe content |
+| TC-AI-05 | SOM / planning outputs are within 10 % of optimal objective score; deviation logged |
+| TC-AI-06 | KGraph entity/relationship extraction meets precision ≥ 0.85, recall ≥ 0.80 on canonical fixtures |
+
+**Evaluators:**
+
+- **Gemma** (`gemma4:e4b`, `OLLAMA_NUM_PARALLEL ≤ 2` per ADM-099) — local, zero-latency CI gate.
+- **Claude** (`claude-sonnet-4-6`) — high-fidelity cross-check; used in nightly regression and pre-release gates.
+
+Evaluator prompts and rubrics are versioned fixtures; changes require a new fixture version and a passing diff test.
+
+**CI schedule:** Nightly cron (`0 2 * * *`) via `.github/workflows/ai-eval-nightly.yml`. Not run on every push — evaluator API calls add too much latency.
+
+**Coverage ratchet (ADM-129-A):** Iteration 1 minimum is **85 %** across all FS-MTP suites (code coverage) and **0.85** evaluator-score floor for AI V&V (TC-AI-01). Each subsequent sprint/release cycle raises the floor toward **100 %**. No PR may lower the committed floor. See FS-MTP §11 for the full schedule and tracking artifact (`docs/COVERAGE_RATCHET.md`).
+
+**Breach action:** TC-AI-01, TC-AI-03, TC-AI-04 failures block PR merge and require a JIRA ticket (`J4C` project). TC-AI-02 and TC-AI-05 produce a warning + trend log entry; TC-AI-05 > 20 % deviation blocks release.
+
+**Why:** AI endpoints whose outputs are never cross-validated against requirements silently drift — prompts change, models update, context windows shift — with no mechanism to detect degradation until users notice. The dual-evaluator approach catches both factual regressions (Gemma fast path) and nuanced alignment failures (Claude deep path).
+
+**How to apply:**
+
+- When a new AI-backed endpoint ships, add a rubric under `tests/ai_eval/rubrics/<endpoint>.md` and a fixture under `tests/ai_eval/fixtures/` in the same PR.
+- Baseline snapshots are committed to `tests/ai_eval/baselines/<date>/` on every passing nightly run.
+- TC-AI-03 compares new outputs against the most recent committed baseline; never against a previous PR's uncommitted run.
+- Deviation log (`tests/ai_eval/deviation_log.jsonl`) is append-only; never rewrite history.
+
+---
+
+## ADM-130 — FastAPI `HTTPBearer` MUST use `auto_error=False` + explicit 401 (#MANDATORY — 2026-05-18)
+
+**Status:** Applied (2026-05-18). **Root cause:** HCE2 auth breakage — all unauthenticated requests returned HTTP 403 instead of 401, breaking frontend refresh recovery logic. **Files:** `backend/app/api/deps.py` (all FastAPI security dependencies).
+
+**Rule:**
+
+`HTTPBearer` in FastAPI MUST always be instantiated with `auto_error=False`. The dependency function MUST perform an explicit `None`-check and raise `HTTP_401_UNAUTHORIZED`. Using the default `auto_error=True` causes FastAPI to return **HTTP 403** (not 401) for any request that lacks an `Authorization: Bearer` header — this is the framework's built-in behavior and it cannot be overridden by exception handlers.
+
+**Required pattern:**
+
+```python
+from typing import Optional
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+bearer_scheme = HTTPBearer(
+    scheme_name="Bearer",
+    description="JWT Bearer token for authentication",
+    auto_error=False,                          # MANDATORY — auto_error=True returns 403
+)
+
+async def get_current_user(
+    db: Session = Depends(get_db),
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(bearer_scheme),
+) -> User:
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = credentials.credentials
+    # ... token validation follows ...
+```
+
+**Why `auto_error=True` breaks auth:**
+
+- FastAPI's `HTTPBearer(auto_error=True)` returns `HTTP_403_FORBIDDEN` when the `Authorization` header is absent, not 401. This is intentional in the framework (it treats "scheme mismatch" as forbidden, not unauthorized).
+- Frontend refresh logic fires on 401. A 403 silently fails the refresh attempt, trapping the user in a broken state.
+- Additionally: exception handlers and middleware that intercept 401 to redirect to login will never fire for missing-token requests if the scheme returns 403.
+
+**Secondary fix (frontend):**
+
+When `HTTPBearer(auto_error=False)` cannot be deployed immediately, the frontend `directRequest` method MUST treat both 401 AND 403 as refresh triggers:
+
+```typescript
+if (response.status === 401 || response.status === 403) {
+    // attempt token refresh
+}
+```
+
+This is a defensive fallback only. The primary fix is always `auto_error=False` in the backend.
+
+**How to apply:**
+
+- Any FastAPI project with JWT auth: find every `HTTPBearer()` call, add `auto_error=False`, add explicit `if not credentials` 401 raise.
+- Grep check: `grep -r "HTTPBearer()" backend/` should return 0 hits (all calls must have `auto_error=False`).
+- E2E test: `GET /api/v1/protected` with no Authorization header MUST return 401 (not 403).
+
+---
+
+## ADM-131 — React SPA: `RequireAuth` layout route + `hce2:auth-expired` event on refresh failure (#MANDATORY — 2026-05-18)
+
+**Status:** Applied (2026-05-18). **Root cause:** HCE2 persistent 401s on `/api/v1/files/` — authenticated app pages had no route-level auth guard; additionally, React state (`isAuthenticated`) and localStorage tokens can diverge post-expiry with no mechanism to redirect to login. **Files:** `frontend-v2/src/App.tsx`, `frontend-v2/src/lib/api.ts`, `frontend-v2/src/context/AuthContext.tsx`.
+
+**Rule (three-part):**
+
+### Part 1 — `RequireAuth` layout route
+
+All authenticated routes in a React Router v6 SPA MUST nest under a `<Route element={<RequireAuth />}>` layout route. `ProtectedRoute` component wrappers are insufficient — they only run on initial render and do not block API calls during the render phase.
+
+```tsx
+function RequireAuth() {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <LoadingFallback />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <Outlet />;
+}
+
+// In App route tree:
+<Route element={<RequireAuth />}>
+  <Route path="/dashboard" element={<DashboardPage />} />
+  <Route path="/files" element={<FilesPage />} />
+  {/* ... all authenticated routes ... */}
+</Route>
+```
+
+Public routes (`/`, `/login`, `/register`, `/features`, catch-all `*`) MUST remain outside the `RequireAuth` wrapper.
+
+### Part 2 — `hce2:auth-expired` custom event on refresh failure
+
+When `request()` or `directRequest()` in the API client receives a 401/403 and the subsequent token refresh also fails, the client MUST:
+
+1. Clear the access token (`this.clearToken()`)
+2. Clear refresh token + user from localStorage
+3. Dispatch `new CustomEvent("hce2:auth-expired")` on `window`
+
+```typescript
+// On refresh failure in both request() and directRequest():
+this.clearToken();
+if (typeof window !== "undefined") {
+  localStorage.removeItem("hce2_refresh_token");
+  localStorage.removeItem("hce2_user");
+  window.dispatchEvent(new CustomEvent("hce2:auth-expired"));
+}
+```
+
+### Part 3 — `AuthContext` event listener
+
+`AuthContext` MUST listen for `hce2:auth-expired` and immediately clear React auth state + redirect:
+
+```tsx
+useEffect(() => {
+  const handleAuthExpired = () => {
+    setUser(null);
+    navigate("/login");
+  };
+  window.addEventListener("hce2:auth-expired", handleAuthExpired);
+  return () => window.removeEventListener("hce2:auth-expired", handleAuthExpired);
+}, [navigate]);
+```
+
+**Why React state diverges from localStorage:**
+
+`isAuthenticated` in React state is set when the component mounts and reflects user state at that moment. If a JWT expires while the user is on a page, `isAuthenticated` remains `true` in React state even though the localStorage token is invalid. When an API call returns 401 and the refresh token is also expired, there was previously no path that set `setUser(null)` — the component stayed rendered with stale auth state and every API call silently returned 401.
+
+The `hce2:auth-expired` event bridges the gap: the API client (which observes the 401/refresh failure) notifies the AuthContext (which owns the React auth state) to force a clean logout.
+
+**How to apply:**
+
+- Any React SPA with JWT auth using React Router v6: wrap all protected routes in `RequireAuth`.
+- API client: add the `hce2:auth-expired` dispatch to every code path where both access-token use AND refresh-token use fail.
+- AuthContext: add the event listener before `initAuth` so it is registered on first render.
+- E2E test: expire the localStorage token manually, navigate to a protected route — browser MUST redirect to `/login` within one API call cycle, not loop on 401.
+
+---
+
+## ADM-132 — Ollama / local-LLM extraction: 5 mandatory hardening rules (#MANDATORY — 2026-05-18)
+
+**Status:** Applied (2026-05-18). **Root cause:** AurexV4 annual-report extraction returned all-null with `confidence: "low"` on every upload. Five independent root causes found and fixed in sequence. **Files:** `apps/api/src/services/financials-extractor.service.ts`, `infrastructure/docker/docker-compose.yml`, `infrastructure/nginx/nginx-https.conf`, `/etc/systemd/system/ollama.service.d/timeout.conf` (on-host).
+
+**Rule (five mandatory parts):**
+
+### Part 1 — `GEMMA_LLM_MODEL` default MUST match the installed model
+
+Docker Compose `GEMMA_LLM_MODEL` default was `gemma3:27b`; only `gemma3:4b` is installed on the production host (4-CPU, 15 GB RAM, no GPU). Every Ollama call returned HTTP 404 `{"error":"model 'gemma3:27b' not found"}`. **Fix:** set default to `gemma3:4b` in `docker-compose.yml` AND write the override into the on-host `.env` so container re-rolls do not revert to the old value.
+
+### Part 2 — Prompt MUST fit within the model's context window
+
+`gemma3:4b` has a **4096-token context limit**. Sending 14,000 characters (≈ 4,200 tokens) overflows it — Ollama silently truncates or generates garbage. **Rule:** keep total prompt (instruction + document excerpt) under **1,500 characters (≈ 450 tokens)** for any gemma3:4b extraction call, leaving ≈ 3,600 tokens for the model response. For document extraction, send HEAD (financial section) + TAIL (sustainability section) from the document, not a single front-truncated window.
+
+### Part 3 — Never use Node.js global `fetch` for slow LLM calls; use `node:http.request`
+
+Node.js 20's global `fetch` is backed by **undici**, which has a hardcoded `bodyTimeout` of **300,000 ms (5 min)**. This timeout fires independently of any `AbortController` signal and cannot be overridden without importing undici directly. Any LLM inference call that takes longer than 5 min will receive `"fetch failed"` — regardless of how the service-level timeout is configured. **Fix:** replace `fetch()` with `http.request` / `https.request` from `node:http` / `node:https`, setting the `timeout` option on the socket. This gives full, explicit control over the connection lifecycle.
+
+### Part 4 — Ollama `OLLAMA_REQUEST_TIMEOUT` MUST be extended for CPU-only hosts
+
+Ollama's default `OLLAMA_REQUEST_TIMEOUT` is **300 s**. On a CPU-only host running `gemma3:4b` at ~0.30–0.46 tok/s, a 100-token response takes 220–330 s — routinely hitting the default. **Fix:** add a systemd drop-in `/etc/systemd/system/ollama.service.d/timeout.conf` with `Environment="OLLAMA_REQUEST_TIMEOUT=600"`. Also set `OLLAMA_NUM_PARALLEL=1` on single-user inference hosts to prevent context-switching slowdowns. Reload and restart: `systemctl daemon-reload && systemctl restart ollama`.
+
+### Part 5 — LLM JSON extraction MUST use best-effort partial-JSON recovery
+
+Even with `num_predict` capping output tokens, the LLM may be cut off mid-token — typically mid-string (`...,"lastField":"` with the opening quote never closed). A raw `JSON.parse()` will throw and the entire extraction returns all-null. **Fix:** implement `parseJsonBestEffort()` that:
+1. Tries `JSON.parse()` first.
+2. Strips any trailing open string literal: `.replace(/"[^"]*$/, '')`.
+3. Strips any remaining incomplete key fragment: key-without-value, key-without-colon, trailing comma.
+4. Appends `}` and retries `JSON.parse()`.
+
+This recovers all fully-written fields from a truncated response instead of discarding them.
+
+**Corollary — nginx proxy timeout for LLM-backed endpoints:**
+
+Any nginx `location` block that proxies to a slow LLM endpoint MUST have `proxy_read_timeout` and `proxy_send_timeout` set to match the LLM timeout + 20 % buffer. The default nginx 60 s and typical 120 s `/api/` settings will close the connection before the LLM responds. Add a specific location block for LLM routes (e.g. `/api/v1/me/org/financials/extract`, `/api/v11/agent/chat`) **before** the generic `/api/` block with `proxy_read_timeout 360s; proxy_send_timeout 360s;`.
+
+---
+
+## ADM-133 — Docker BuildKit MTU black hole on cloud NICs (#MANDATORY — 2026-05-18 — J4C Deploy Marathon)
+
+**Status:** Applied (2026-05-18). **Root cause:** J4CSRV01 host `ens3` MTU **1442**; default `docker0` bridge MTU **1500**. BuildKit build containers inherit bridge MTU; ICMP PMTUD is blocked on the provider network → large HTTPS downloads (PyTorch ~186 MB, pnpm bundles) **stall silently** after a few KB. Three consecutive GHA deploys timed out (30 min, then 60 min).
+
+**Rule:**
+
+1. **Permanent fix (preferred):** set `"mtu": 1442` in `/etc/docker/daemon.json`, then `systemctl restart docker`. Verify: `docker network inspect bridge | grep Mtu` → `1442`.
+2. **Interim fix (J4C proven):** add `network: host` under each service's `build:` section in `docker-compose.yml` for image builds that pull large packages (`j4c-api`, `j4c-react`). Remove after daemon MTU is corrected.
+3. **Do NOT** run `docker builder prune` before every CI build — it wipes layer cache and forces full re-download of torch/pnpm artifacts (compounds MTU pain).
+4. **Symptom signature:** build logs show apt/pip/curl progress then freeze mid-download with no error for 30+ minutes.
+
+**Pairs with:** global CLAUDE.md Docker Networking Troubleshooting (MTU 1442 + DNS).
+
+---
+
+## ADM-134 — J4C bind-mount TESTS+CONFIG deploy: `git pull` only (#MANDATORY — 2026-05-19 — Deploy #80/#81)
+
+**Status:** Applied (2026-05-19). **Pairs with:** ADM-068 / ADM-124 (@J4CDeploymentAgent Step 1 classification), ADM-074 (RO bind-mount source).
+
+**Rule:** On J4CSRV01 (`/opt/j4c-portal`), when the deploy diff contains **only** paths under `j4c-api/tests/`, `j4c-react/**/*.test.*`, `pytest.ini`, `vitest.config.ts`, `mutmut.toml`, and other test/coverage config — and **no** `j4c-api/app/**`, `j4c-react/src/**` (non-test), `requirements*.txt`, `Dockerfile*`, or `docker-compose.yml` — classify as **TESTS+CONFIG** and deploy with:
+
+```bash
+cd /opt/j4c-portal && git pull --ff-only origin main
+```
+
+**No** `docker restart`, **no** image rebuild, **no** `docker cp`. Bind-mounted test trees are visible to pytest/Vitest inside containers immediately after pull.
+
+**L1 verification:** run targeted pytest/Vitest on changed paths from the server checkout (or confirm file presence + `pytest --collect-only` for new modules). L2 platform smoke still runs (HTTP health, kgraph auth gate).
+
+**Proven:** Deploy #80 (coverage ratchet, 27 domain model tests, ConfirmDialog tests, threshold bumps) and Deploy #81 (TC-AI-03 fixture + `mutmut.toml` path fix) — both PASS with git-pull-only.
+
+**Forbidden:** restarting `j4c-api` / `j4c-react` for test-only changes "to be safe" — wastes uptime and triggers unnecessary ADM-076-A re-ingest noise.
+
+---
+
+## ADM-135 — `mutmut` `paths_to_mutate` MUST track live router layout (#MANDATORY — 2026-05-19)
+
+**Status:** Applied (2026-05-19). **Pairs with:** ADM-111 (mutation testing mandate). **Root cause:** J4C `mutmut.toml` still pointed at `app/services/aiml/` after routers moved to `app/api/routers/aiml/` — `mutmut run` completed with **zero mutations** (silent false green).
+
+**Rule:**
+
+1. After any backend package move or router refactor, **grep-verify** `paths_to_mutate` in `mutmut.toml` / `[tool.mutmut]` against `find app -name '*.py'` for the target modules.
+2. Post-change smoke: `python3 -m mutmut run --max-children 1` (or project runner) MUST report **>0** mutations attempted on the intended tree; **0 mutations** is a **configuration failure**, not a pass.
+3. Commit message when fixing: `fix(mutmut): align paths_to_mutate with app/api/routers/<pkg>/`.
+
+**Proven fix (J4C):** `app/services/aiml/` → `app/api/routers/aiml/` (Deploy #81, commit `e5283f187`).
+
+---
+
+## ADM-136 — TC-AI / kgraph eval fixtures: canonical node types only (#MANDATORY — 2026-05-19)
+
+**Status:** Applied (2026-05-19). **Pairs with:** ADM-129 (Suite 7 TC-AI-01..06), ADM-076 (kgraph-first reads).
+
+**Rule:** All kgraph seed JSON used by AI eval or precision/recall tests (`tests/ai_eval/fixtures/*.json`, `kgraph_seed.json`, ingest modals) MUST use the **canonical type enum** accepted by the kgraph ingest schema — e.g. `ADM_ENTRY`, `PROJECT`, `SESSION`, `COMPONENT`, `PERSON` — **not** informal lowercase aliases (`decision`, `project`, `sprint`).
+
+**Why:** Ingest may accept or coerce types inconsistently; TC-AI-06 (`kgraph_precision_recall`) and graph metrics then **skip or score zero** while the suite appears "green" on collection. Wrong types are a **test-data defect**, not an API defect.
+
+**How to apply:**
+
+1. Before adding TC-AI cases, read `app/kgraph/` (or OpenAPI) for the allowed `type` values.
+2. Grep fixtures: `rg -n '"type"' tests/ai_eval/fixtures/`.
+3. CI gate (recommended): a unit test that loads each fixture and asserts every `type` ∈ `ALLOWED_KGRAPH_TYPES`.
+
+**Open follow-up:** J4C-276 — update `kgraph_seed.json` from legacy lowercase types to canonical enums.
+
+---
+
+## ADM-140 — J4C OpenBao + Harbor Integration Plane (#MANDATORY — 2026-05-20)
+
+**Status:** Applied. **Pairs with:** ADM-067 (LLM Gateway — not an adapter), ADM-072 (stub mode), ADM-091 (OpenBao file-backed), ADM-092/093 (orchestrator + Harbor CSRF), ADM-138 (observability adapter), Component 12.
+
+### Two platform services — do not conflate
+
+| Service | Public URL | Purpose | Adapter |
+|---------|------------|---------|---------|
+| **OpenBao KMS** | `https://j4c.aurigraph.io/openbao` | KV v2 secrets, AppRole per project | `OpenBaoAdapter` |
+| **Harbor Registry** | `https://j4c.aurigraph.io/harbor` | OCI images, per-project robot CI | `HarborAdapter` |
+
+OpenBao is **not** a container registry. Harbor is **not** a secrets manager. CI pushes images to Harbor; runtimes read secrets from OpenBao.
+
+### Canonical registration API
+
+**Endpoint:** `POST /api/v3/integrations/projects` (admin JWT — `require_role("admin")` on register; auth on list/show/health per route).
+
+**Router:** `j4c-api/app/routers/integrations.py`  
+**Orchestrator:** `j4c-api/app/infra/orchestrator.py`  
+**Shim:** `j4c-api/app/services/integrations/orchestrator.py` (re-exports infra orchestrator)
+
+**Valid `services`:** `openbao`, `harbor`, `observability`, `publisher`  
+**Default when omitted:** all four, in order:
+
+```
+openbao → harbor → observability → publisher
+```
+
+Atomic provision: any adapter failure triggers rollback of earlier adapters (reverse order). Metadata persisted in `integration_credentials` (JSONB per project+service); **secrets never stored in Postgres** — only returned once in `secrets_once`.
+
+### OpenBao adapter (`j4c-api/app/infra/openbao.py`)
+
+**Enabled when:** `OPENBAO_URL` + `OPENBAO_ADMIN_TOKEN` set (else stub — ADM-072).
+
+**Per project `{project_id}` provisions:**
+
+| Artifact | Path / name |
+|----------|-------------|
+| ACL policy | `j4c-{project_id}` |
+| AppRole | `auth/approle/role/{project_id}` |
+| KV namespace | `{OPENBAO_KV_MOUNT}/aurigraph/{project_id}/` (default mount `kv`) |
+
+**`secrets_once` (one-time hand-off):**
+
+- `openbao_role_id`, `openbao_secret_id`
+- `openbao_url`, `openbao_kv_mount`, `openbao_kv_path`
+
+**Runtime (J4C itself):** `j4c-api/app/services/openbao_service.py` loads platform secrets at startup via AppRole (`OPENBAO_ROLE_ID` / `OPENBAO_SECRET_ID` in compose). Per-project loaders should read `kv/aurigraph/{project_id}/*` after onboarding.
+
+**Container:** `openbao-kms` in root `docker-compose.yml` — file-backed HCL, no host port; reach via `j4c-network` + nginx `/openbao/` proxy (ADM-091).
+
+**Env (j4c-api integration adapter):**
+
+```env
+OPENBAO_URL=https://openbao-kms:8200          # internal Docker DNS
+OPENBAO_ADMIN_TOKEN=<root or admin token>
+OPENBAO_KV_MOUNT=kv
+```
+
+### Harbor adapter (`j4c-api/app/infra/harbor.py`)
+
+**Enabled when:** `HARBOR_ADMIN_URL` + `HARBOR_ADMIN_USER` + `HARBOR_ADMIN_PASSWORD` (else stub — ADM-072).
+
+**Per project provisions:**
+
+| Artifact | Convention |
+|----------|------------|
+| Harbor project | `{project_id}` lowercased, `_` → `-` |
+| Robot (logical name) | `{project_id}-ci` (no `+` in name — ADM-093) |
+| Robot username (Harbor returns) | `robot$<project>+{project_id}-ci` |
+
+**`secrets_once`:**
+
+- `harbor_username`, `harbor_password` (robot token)
+- `harbor_registry_url`
+
+**CSRF:** `cookies={}` on client + `cookies.clear()` before every mutating call + `X-Harbor-CSRF-Token: ""` (ADM-093).
+
+**CI push target:** `harbor.j4c.aurigraph.io/<project>/...` using project robot — not shared `admin` account.
+
+**Deploy note:** Self-hosted runner pushes via `localhost:5001` HTTP when public Harbor HTTPS has cert/HSTS issues (see header Harbor extended note). Registry→core notification sink may be broken until `prepare` script re-run.
+
+**Env:**
+
+```env
+HARBOR_ADMIN_URL=http://localhost:5001    # or internal harbor-core URL
+HARBOR_ADMIN_USER=admin
+HARBOR_ADMIN_PASSWORD=<from credentials.md>
+```
+
+### Related adapters (same orchestrator)
+
+| Service | Adapter | Role |
+|---------|---------|------|
+| `observability` | `observability.py` | Telemetry API key + optional OpenBao `kv/.../telemetry` |
+| `publisher` | `publisher.py` | Publisher recipient list via `PUBLISHER_INTERNAL_URL` |
+
+**LLM Gateway:** NOT in orchestrator (ADM-092). Use ADM-067 shared gateway + per-project keys in gateway store.
+
+### Operator API surface
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/v3/integrations/projects` | Register + provision |
+| GET | `/api/v3/integrations/projects` | List |
+| GET | `/api/v3/integrations/projects/{id}` | Show + stored metadata |
+| PATCH | `/api/v3/integrations/projects/{id}` | Update registry fields |
+| POST | `/api/v3/integrations/projects/{id}/rotate/{service}` | Rotate OpenBao secret_id or Harbor robot token |
+| DELETE | `/api/v3/integrations/projects/{id}` | Deprovision (best-effort) |
+| GET | `/api/v3/integrations/health` | Per-adapter reachability (stub vs live) |
+
+### Example register (Battua)
+
+```bash
+curl -X POST https://j4c.aurigraph.io/api/v3/integrations/projects \
+  -H "Authorization: Bearer $J4C_ADMIN_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "battua",
+    "name": "Battua",
+    "services": ["openbao", "harbor", "observability"]
+  }'
+```
+
+Response `provision_results.*.secrets_once` must be copied immediately; re-fetch via rotate endpoints only.
+
+### Portal UI
+
+- **Integrations:** `/integrations` (`j4c-react/src/pages/IntegrationsPage.tsx`)
+- **OpenBao console:** `/services/openbao`, `/admin/openbao`
+- **Harbor browser:** `/harbor`, `/admin/harbor`
+- **Agent Hub:** provision wizard may list `openbao`, `harbor`, `publisher` — add `observability` when UI is updated to match API.
+
+### Verification
+
+```bash
+# Adapter health (no admin JWT required on health route — check router)
+curl -s https://j4c.aurigraph.io/api/v3/integrations/health | jq .
+
+# OpenBao sealed?
+docker exec openbao-kms bao status
+
+# Harbor systeminfo (from runner host)
+curl -s -o /dev/null -w "%{http_code}" http://localhost:5001/api/v2.0/systeminfo
+```
+
+### Cross-references
+
+- ADM-091 — OpenBao production (no `-dev`, unseal timer)
+- ADM-092 — orchestrator mandate; no llm-gateway adapter
+- ADM-093 — Harbor CSRF + robot naming
+- ADM-072 — stub mode until creds configured
+- `docs/observability/OBSERVABILITY_STANDARDS.md` — telemetry + OpenBao telemetry path
+
+---
+
+## ADM-137 — J4C internal `LLM_GATEWAY_URL`: host-gateway, not nginx path (#MANDATORY — 2026-05-20)
+
+**Status:** Applied (2026-05-20). **Pairs with:** ADM-067 (LLM Gateway), ADM-132 (gemma3:4b), Gemma routing commits `c02dfb3e2` / `4717ad4d7`.
+
+**Rule:** `j4c-api` container env **`LLM_GATEWAY_URL`** MUST be **`http://172.18.0.1:8080`** (Docker bridge gateway → host-published llm-gateway-api on port 8080). Set **`LLM_GATEWAY_MODEL=gemma3:4b`**.
+
+**Forbidden for in-container callers:** `http://nginx-gateway/llm-gateway` — nginx returns **301 Moved Permanently** to `https://nginx-gateway/...`, which fails inside the container with **TLS hostname mismatch** (cert is for `j4c.aurigraph.io`). Symptom: `llm_client` logs HTTP 301, AIML endpoints skip Gemma or waste minutes on Anthropic fallback.
+
+**Public/browser path (unchanged):** `https://j4c.aurigraph.io/llm-gateway` via `nginx-gateway` — correct for external clients and admin metrics (`LLM_GATEWAY_ADMIN_URL`).
+
+**Verification (from inside `j4c-api`):**
+```bash
+docker exec j4c-api python3 -c "
+import httpx, os
+r = httpx.get(os.environ['LLM_GATEWAY_URL']+'/v1/models',
+  headers={'Authorization':'Bearer '+os.environ['LLM_GATEWAY_KEY']}, timeout=10)
+print(r.status_code, r.text[:80])
+"
+# Expect: 200 {"object":"list","data":[{"id":"gemma3:4b"...
+```
+
+**Proven:** J4CSRV01 2026-05-20 — `172.18.0.1:8080` → 200; `nginx-gateway` path → 301/SSL error; `llm_client.generate('Say OK')` → `OK` in ~35s CPU.
+
+---
+
+## ADM-138 — Battua Wallet Copilot Uses Host-Local Ollama `gemma4:latest` (Carve-Out from ADM-067) (#MANDATORY — May 20, 2026 — USER MANDATED)
+
+**Status:** Applied (2026-05-20). **Amends:** ADM-067 (J4C llm-gateway shared-gateway mandate) for the **Battua** project only. **Pairs with:** ADM-132 (Ollama hardening), ADM-077–079 (project-bound LLM keys when J4C override is used), Battua **ADM-086** profile [`battua.md`](../battua.md), **#ADMDocs** [`docs/BATTUA_GEMMA_AGENT.md`](./BATTUA_GEMMA_AGENT.md), [`docs/BATTUA_DEPLOYMENT.md`](./BATTUA_DEPLOYMENT.md) §16.12.
+
+**Rule:** Battua agentic LLM calls — Wallet Copilot (`POST /api/v11/agent/chat`), T1 suggestions (`POST /api/v11/agent/suggest`), and default research (`POST /api/v11/wallet/ai/research` when `BATTUA_AI_PROVIDER=gemma`) — target **host-local Ollama** at OpenAI-compat base `http://127.0.0.1:11434/v1` with model **`gemma4:latest`**. Implementation: `BattuaGemmaLlmClient`, `BattuaGemmaModelRouter`, manifest `config/battua-gemma-model.json`. The shared `https://j4c.aurigraph.io/llm-gateway` is retained only as an **optional** override via `BATTUA_GEMMA_API_BASE` + J4C-issued `BATTUA_GEMMA_API_KEY` (central billing).
+
+**Why this carves out from ADM-067:** Battua's J4C gateway path rejected Google AI Studio keys on the Gemma Bearer path (401 `invalid api key`) and added cross-project latency for interactive wallet UX. Host Ollama on `battua.io` matches Provenews' transport pattern, keeps prompts on the wallet host, and preserves OpenAI-compat so re-pivot to J4C is one env change.
+
+**Deploy contract (battua.io):**
+
+1. On host: `ollama pull gemma4:latest`.
+2. In `/opt/battua/.env`: `BATTUA_GEMMA_AGENT_ENABLED=true`, `BATTUA_GEMMA_API_BASE=http://host.docker.internal:11434/v1`, `BATTUA_AI_PROVIDER=gemma`.
+3. `docker compose up -d --force-recreate` for `battua-app`; smoke `GET /api/v11/agent/llm-status` (JWT for chat).
+4. NGINX: agent routes need extended `proxy_read_timeout` per ADM-132 corollary when proxying slow LLM responses.
+
+**Optional Gemini research:** `BATTUA_AI_PROVIDER=google` + `BATTUA_GOOGLE_AI_API_KEY` + `BATTUA_GOOGLE_AI_API_BASE=https://generativelanguage.googleapis.com/v1beta` — does not replace the default Gemma agent path.
+
+**Reference:** Battua repo `feat/battua-gemma-agent-model` (local Ollama default, 2026-05-20). *(Registry note: ADM-134 in this file is J4C TESTS+CONFIG deploy — Battua Ollama carve-out is **ADM-138**; Component 12 telemetry label schema is a separate registry entry in §Component 12.)*
+
+---
+
+## ADM-139 — Aurigraph V12 Nodes MUST Embed Observability Runtime Agent (#MANDATORY — 2026-05-20)
+
+**Status:** Specified (implementation backlog J4C-OBS Phase 1a). **Pairs with:** Component 12, ADM-140, ADM-092 (per-project OpenBao paths).
+
+**Rule:** Production Aurigraph node images (validator, business, EI) MUST include the **in-process Observability Runtime Agent**. Scrape of `/q/metrics` alone does **not** satisfy Component 12 for nodes.
+
+**Minimum agent capabilities:**
+
+- In-process hooks on consensus, transaction pipeline, and gRPC (see Component 12 § Embedded Node Runtime Agent).
+- OTLP export to platform OTel Collector with bounded offline buffer (default 5 minutes).
+- Mandatory resource labels: `aurigraph.project`, `aurigraph.env`, `aurigraph.tier=node`, `aurigraph.node_id`, `aurigraph.node_role`.
+- CI fails if `aurigraph.observability.enabled=false` on production node Maven/Gradle profiles.
+
+**Forbidden:** Relying solely on host `node_exporter`, Docker stats, or external Promtail without the embedded agent on blockchain-critical meters.
+
+**Verification (testnet):**
+
+```bash
+# Agent registered meters present (examples — exact names in OBSERVABILITY_STANDARDS.md)
+curl -s http://localhost:19001/q/metrics | grep -E 'aurigraph_consensus|aurigraph_obs_agent'
+
+# OTLP path — Collector receives resource with node_id label (check Collector debug UI or Grafana Explore)
+```
+
+---
+
+## ADM-141 — HCE2: Single Canonical Alembic Revision Tree (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (HCE2 Sprints 5.10–5.22). **Pairs with:** ADM-147 (deploy guards), ADM-113 (ADM sync).
+
+**Rule:** One Alembic head chain under `backend/alembic/versions/`. **Forbidden:** bumping `alembic_version` via raw SQL, duplicate migration trees, or shipping schema changes only in the migrations Docker image without a matching revision file on `main`.
+
+**How to apply:** `alembic revision --autogenerate` → review → `alembic upgrade head` in CI and deploy. Deploy MUST rebuild the migrations image when `versions/` changes (HCE2-413).
+
+---
+
+## ADM-142 — HCE2: Per-Blob `OrphanReconciler` Weekly Celery Sweep (#MANDATORY — 2026-05-27)
+
+**Rule:** Long-running blob/storage pipelines register orphans via a reconciler task (weekly Celery beat). Reconciler deletes or re-links rows whose parent blob is gone — do not leave dangling FK rows that surface as silent zeros in analysis UIs.
+
+---
+
+## ADM-143 — HCE2: Failure-Resilient Inline MapLibre Style (#MANDATORY — 2026-05-27)
+
+**Rule:** Map layers MUST degrade gracefully when tile/style fetch fails (inline fallback style object, user-visible error state). **Forbidden:** blank map with no toast/banner — pairs with ADM-148.
+
+---
+
+## ADM-144 — HCE2: Open-Meteo Forecast vs ERA5 Historical vs CMIP6 Projection Split (#MANDATORY — 2026-05-27)
+
+**Rule:** Climate impact pipeline stages are separate services: **15-day forecast** (Open-Meteo), **historical baseline** (ERA5), **multi-scenario projection** (CMIP6), **GDD growth modifier**. Do not conflate time horizons in one adapter; label each output with `source` + `valid_time` metadata.
+
+---
+
+## ADM-145 — HCE2: Pluggable Forecast / Climate Protocols (#MANDATORY — 2026-05-27)
+
+**Rule:** Forecast and climate integrations implement shared `Protocol` interfaces in Python so tests can stub providers. **Forbidden:** hard-coded Open-Meteo HTTP calls inside route handlers.
+
+---
+
+## ADM-146 — HCE2: Agent 8xxx Error Taxonomy + RFC 7807 Wiring (#MANDATORY — 2026-05-27)
+
+**Rule:** Agent-facing API errors use the **8xxx** code range mapped to RFC 7807 `Problem` responses (`type`, `title`, `status`, `detail`, `code`). **Pairs with:** ADM-052 (AurexV4), ADM-130 (FastAPI bearer).
+
+---
+
+## ADM-147 — HCE2: Pre-Deploy Guard for `api.py`, Migrations Image, `__init__.py` (#MANDATORY — 2026-05-27)
+
+**Rule:** `scripts/deploy/*` (or equivalent) MUST fail fast when: (1) running `api.py` digest ≠ git `main`, (2) new Alembic revisions exist but migrations image was not rebuilt, (3) package `__init__.py` exports drift from router registration. Proven: HCE2-397, HCE2-413.
+
+---
+
+## ADM-148 — HCE2: Zero-Fallback BAN on Analysis Pages (#MANDATORY — 2026-05-27)
+
+**Rule:** Carbon/analysis pages MUST NOT render `0` or empty charts when data is missing — show `EmptyState`, skeleton, or explicit error. **Forbidden:** silent zeros that imply a successful zero-carbon measurement.
+
+---
+
+## ADM-149 — HCE2: Trim Redundant GHA Node.js Matrix Legs (#MANDATORY — 2026-05-27)
+
+**Rule:** Self-hosted workflows run one Node LTS version aligned with production (20.x unless project documents otherwise). Drop duplicate matrix legs that only burn runner minutes without coverage gain.
+
+---
+
+## ADM-150 — HCE2: Analysis UI Primitives — Skeleton, EmptyState, Sticky Tabs (#MANDATORY — 2026-05-27)
+
+**Rule:** New analysis surfaces reuse shared `Skeleton`, `EmptyState`, and sticky tab primitives — no one-off spinners or blank panels.
+
+---
+
+## ADM-151 — HCE2: Pixel-Wise Carbon Stock Visualization (50×50 Grid) (#MANDATORY — 2026-05-27)
+
+**Rule:** 2D/3D carbon stock views use a **50×50** cell grid (2,500 cells) with documented aggregation (mean/sum) and color scale legend. Performance: virtualize or downsample for WebGL; never block main thread >200 ms.
+
+---
+
+## ADM-152 — HCE2: `ENVIRONMENT='test'` Alias for Pytest Settings (#MANDATORY — 2026-05-27)
+
+**Rule:** Settings modules accept `ENVIRONMENT=test` (and `pytest`) interchangeably for DB URL, Redis, and feature flags. **Forbidden:** code paths that only check `os.getenv("ENVIRONMENT") == "pytest"` while CI sets `test`.
+
+---
+
+## ADM-153 — Prisma v7 + Node ESM: `createRequire` CJS Bridge (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (AurexV4 `1ebe0c1a`, AV4-619). **Pairs with:** ADM-094 (regenerate client before tsc), ADM-154 (Docker copy), ADM-132 (Ollama — separate concern).
+
+**Rule:** When `@aurex/database` (or any `"type": "module"` package) upgrades to **Prisma v7**, `@prisma/client` is **CJS-only**. Static ESM `import { PrismaClient } from '@prisma/client'` and `export { Prisma } from '@prisma/client'` **crash at runtime** in compiled `dist/`:
+
+`SyntaxError: Named export 'PrismaClient' not found. The requested module '@prisma/client' is a CommonJS module.`
+
+**Mandatory pattern:**
+
+1. Load runtime values via `createRequire(import.meta.url)('@prisma/client')`.
+2. Merge types with `export namespace Prisma { export type InputJsonValue = … }` alongside `export const Prisma = pkg.Prisma` in the **same module** (TypeScript namespace merge).
+3. Use `@prisma/adapter-pg` + lazy `Proxy` singleton so tests can `import { prisma }` without `DATABASE_URL` at module load.
+4. Move datasource URL to `prisma.config.ts` (v7 forbids `url` in `schema.prisma`).
+5. Run **`pnpm run verify:esm`** after every `@aurex/database` build — imports **`dist/index.js`**, not `tsx` on `src/` (**tsx false-greens this class of bug**).
+
+**Forbidden:** Merging Prisma v7 on green `tsx` soak only; shipping without `verify:esm`.
+
+**Reference:** AurexV4 ce11b6e7 rolled back at Gate 5 (ESM crash); fixed in `packages/database/src/prisma-runtime.ts` + `verify:esm` script.
+
+---
+
+## ADM-154 — Docker: Copy Generated `.prisma/client` Beside `@prisma` Scope (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (AurexV4 `apps/api/Dockerfile`, AV4-619). **Pairs with:** ADM-153, ADM-073 (image drift).
+
+**Rule:** `pnpm deploy` flattens `node_modules` but **drops** the generated `.prisma/client` tree. Production images MUST copy the build-stage generated client to **`node_modules/.prisma/client`** (sibling of the `@prisma` scope directory), for **every** `@prisma/client` package path in the deploy tree:
+
+```dockerfile
+target="$(dirname "$(dirname "$client_pkg")")/.prisma/client"
+```
+
+**Forbidden:** `node_modules/@prisma/.prisma/client` (wrong — v7 `default.js` requires `.prisma/client/default` relative to the scope parent).
+
+**Verification:** `docker run … find /app/node_modules -path '*/.prisma/client/default.js'` MUST return ≥1 path before deploy promote.
+
+**Reference:** MODULE_NOT_FOUND `.prisma/client/default` on AurexV4 prod 2026-05-27.
+
+---
+
+## ADM-155 — Off-Host `j4c-watchdog`: SSH Checkout, No `GITHUB_TOKEN` (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (AurexV4 AV4-727, `.github/workflows/j4c-watchdog.yml`). **Pairs with:** ADM-075 (fleet agent), ADM-107 (runner health).
+
+**Rule:** Scheduled watchdog workflows on **self-hosted runners** MUST NOT depend on `actions/checkout@v4` when the org installation token is revoked/suspended. Use:
+
+- `AUREX_RUNNER_DEPLOY_KEY` (or per-repo secret) materialized to a temp keyfile (`umask 077`, shredded on exit).
+- `git fetch` + sparse-checkout of only `scripts/j4c-agent.py`, `.j4c-agent.json`, `infrastructure/docker/docker-compose.yml`.
+- System Python (no `actions/setup-python` unless runner lacks it).
+
+**Forbidden:** Host-baked SSH keys tied to a single machine when the runner label lands on a different host (j4cserver01 vs hce2 incident).
+
+---
+
+## ADM-156 — Deploy Migrate: `DATABASE_URL` Fallback from Host `.env` (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (`scripts/deploy/deploy-to-remote.sh`, AurexV4). **Pairs with:** ADM-055, ADM-147.
+
+**Rule:** When `RUN_DB_PUSH=1`, read `DATABASE_URL` from the running API container env. If `docker inspect` returns empty `Config.Env` (rollback/backup images), construct from `${SRC_PATH}/infrastructure/docker/.env` (`DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_NAME`) before failing migrate.
+
+**Forbidden:** Aborting deploy after a successful image build solely because the backup container has no env snapshot.
+
+---
+
+## ADM-157 — mutmut Runner POSIX `env` Prefix (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (HCE2-412). **Pairs with:** ADM-111.
+
+**Rule:** `[tool.mutmut] runner` MUST use `env VAR=val python3 -m pytest …` — not `VAR=val python3 …` — because mutmut 3.x execs the runner without a shell (`FileNotFoundError: 'ADM_AAT_LIGHT=1'` otherwise). Nightly `timeout-minutes` MUST exceed observed wall-clock (HCE2: **360m** after 4h2m cancel).
+
+---
+
+## ADM-158 — Stryker Honest Baseline When Mutate/Test Scopes Are Disjoint (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (HCE2-418). **Pairs with:** ADM-111, ADM-160.
+
+**Rule:** If `mutate` globs have **no** adjacent unit tests, set `thresholds.break` to the measured indirect-coverage floor (HCE2: **15%**, observed 15.74%) until direct tests land. **Forbidden:** `break: 70` with zero co-located tests — false-red nightlies.
+
+---
+
+## ADM-159 — Orchestrator `except` Blocks MUST Log (#MANDATORY — 2026-05-27)
+
+**Status:** Applied (HCE2-416). **Pairs with:** ADM-146, Component 12.
+
+**Rule:** Orchestrator modules MUST NOT return error DTOs from `except Exception` without `logger.exception` / `logger.error` in the same block. HCE2 guard: `test_hce2_416_orchestrator_visibility.py` (static scan + caplog on J4C agent + CI/CD rollback paths).
+
+---
+
+## ADM-160 — Direct Jest Tests for Stryker `mutate` Scope (#MANDATORY — 2026-05-27)
+
+**Status:** Phase 1 applied (HCE2-420, 11/43 files, 77 tests). **Pairs with:** ADM-158, HCE2-419.
+
+**Rule:** Every file in `stryker.config.json` `mutate` globs gets adjacent tests under `__tests__/`. Ratchet `break` 15 → 70 → 75 only after per-scope kill rates justify it.
+
+---
+
+## ADM-161 — Karpathy 4-Principle Coding-Agent Discipline (#REC — 2026-05-27)
+
+**Source:** Karpathy CLAUDE.md (Andrej Karpathy's X post 2026-01-26 → distilled by Forrest Chang / multica-ai; 43k installs in week 1). The four principles below are **fleet-wide recommended defaults** for any coding-agent session — adopted alongside existing ADM mandates (068 deploy binding, 109/110 no-hardcode, 116/122 test-first, etc.), not in place of them.
+
+**The four principles:**
+
+1. **Think Before Coding** — Surface assumptions, tradeoffs, and confusion **before** writing.
+   - State what you're assuming explicitly; ask when uncertain.
+   - When the request is ambiguous, present **multiple interpretations** rather than picking silently.
+   - Mention simpler approaches and push back when warranted.
+   - Stop and name confusion rather than proceeding blindly.
+
+2. **Simplicity First** — Write the minimum code that solves what was asked.
+   - No speculative features. No "configurability" not requested.
+   - Avoid premature abstraction for single-use code.
+   - Don't handle scenarios that can't happen.
+   - Self-test: *Would a senior engineer call this overcomplicated?* If yes, rewrite.
+
+3. **Surgical Changes** — Modify only what's necessary; preserve existing style and patterns.
+   - Don't improve unrelated code, comments, or formatting.
+   - Skip refactoring things working fine.
+   - Match existing conventions even if you'd choose differently.
+   - Remove only imports/variables/functions **your changes** orphaned.
+   - Self-test: *Every changed line traces directly to the user's request.*
+
+4. **Goal-Driven Execution** — Define success **before** coding; verify after each step.
+   - Convert vague requests into measurable objectives.
+   - Write tests first for validation work or bug fixes.
+   - State multi-step plans with verification checkpoints.
+   - Use strong criteria ("tests pass") over weak ones ("make it work").
+
+**Relationship to existing ADM:**
+
+| Karpathy principle | Existing ADM mandate it pairs with |
+|---|---|
+| Think Before Coding | ADM-116 / ADM-122 (#PostWaveDocumentation surfaces tradeoffs upstream) |
+| Simplicity First | ADM-109 / ADM-110 (no-hardcode, no premature abstraction in tests) |
+| Surgical Changes | ADM-068 (deploy intent isolated to changed surface), ADM-102 (no drive-by hot-patches) |
+| Goal-Driven Execution | ADM-111 (mutation testing as ground truth), ADM-122 (FS-MTP defect-driven re-passes) |
+
+**Why #REC not #MANDATORY:** the principles are stylistic + behavioral, not architectural. Fleet ADM mandates remain binding; Karpathy's discipline is the **personality** of how an agent shows up in a session. Adopt by default; override with cause documented in PR description.
+
+**Reference repos:**
+
+- `multica-ai/andrej-karpathy-skills` — canonical CLAUDE.md (4 sections, ~65 lines)
+- `swarmclawai/andrej-karpathy-skills` — multi-tool port (Codex, Cursor, Gemini, OpenCode, Aider)
+- `TheRealSeanDonahoe/agents-md` — AGENTS.md fusion with Boris Cherny's Claude Code workflow
+
+**Suggested project adoption:** 1-line pointer in each project's `CLAUDE.md` (no body duplication — ADM-086 enforces single source of truth):
+
+```markdown
+| **ADM-161** | Karpathy 4-principle discipline default — see ADM.md §ADM-161. |
+```
+
+## ADM-162 — MinIO creds MUST fall back from MINIO_ROOT_USER/PASSWORD (#MANDATORY — 2026-05-27)
+
+**Status:** Live in `apps/api/src/services/file-store.service.ts` (AurexV4 AV4-737, commit `a2ba24e5`).
+
+**Rule:** The S3/MinIO client factory MUST read `MINIO_ACCESS_KEY` + `MINIO_SECRET_KEY` first, fall back to `MINIO_ROOT_USER` + `MINIO_ROOT_PASSWORD` when those are empty, and **throw** when neither pair is set. No silent `"minioadmin"/"minioadmin"` fallback that masks misconfiguration.
+
+**Why:** `docker-compose.yml` interpolates the MinIO creds at runtime:
+
+```yaml
+MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?MINIO_ROOT_USER required}
+MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
+```
+
+The AurexV4 deploy path is `docker run --env-file ...` (not `docker compose up`), so compose-side `${var}` interpolation never runs. The container inherits empty `MINIO_ACCESS_KEY/SECRET_KEY`. The pre-fix code defaulted to `"minioadmin"` (MinIO's stock root) but the prod container is provisioned with `MINIO_ROOT_USER=aurex-minio` + a 24-char password — every signed URL was rejected with 403 `InvalidAccessKeyId`. Bucket-init at boot logged `MinIO bucket init failed — file uploads may not work` for ~24h before the dashboard upload flow exposed it.
+
+**Pairs with:** ADM-156 (same pattern, `DATABASE_URL` deriving from `DB_USER`/`DB_PASSWORD`/`DB_NAME`). Both are compose-substitution gaps in env-file deploys.
+
+**Verification:** `docker exec aurex-api sh -c "echo \$MINIO_ACCESS_KEY"` is non-empty; API log shows `"MinIO buckets verified"` on boot, not `InvalidAccessKeyId`. 6 unit tests in `file-store.service.test.ts` cover the truth table.
+
+---
+
+## ADM-163 — Container watchdog MUST probe TWO vantages before restarting the API (#MANDATORY — 2026-05-27)
+
+**Status:** Live in `scripts/deploy/aurex-watchdog.sh` (AurexV4 AV4-738, commit `aaa8cb59`).
+
+**Rule:** The aurex-watchdog systemd timer (every 5 min) MUST probe BOTH:
+
+- **public** = `curl https://<host>/api/v1/health` (through nginx)
+- **internal** = `docker exec <nginx-container> curl http://<api-container>:<port>/api/v1/health` (nginx → api directly, bypasses public DNS)
+
+Decision matrix:
+
+| public | internal | action |
+|---|---|---|
+| 200 | n/a | no-op |
+| !=200 | 200 | `nginx -s reload` ONLY (api is fine, nginx upstream is stale) |
+| !=200 | !=200 | `docker restart aurex-api` AND `nginx -s reload` (api genuinely sick; new container will need fresh DNS) |
+
+**Why:** Pre-fix watchdog only probed the public URL. After a deploy that rolled the api container (new bridge-network IP), nginx kept the stale upstream IP → public 502 → watchdog ran `docker restart aurex-api` → new IP again → loop. Visible to the user as intermittent 502s from the dashboard upload flow until manual `nginx -s reload`.
+
+**Pairs with:** ADM-082 (variable `proxy_pass` requires nginx reload on container churn — AV4-588). The watchdog now embodies that rule rather than fighting it.
+
+**Verification:** `sudo journalctl -u aurex-watchdog.service --since "1 hour ago"` shows `OK: public health=200` lines and no spurious `docker restart aurex-api` invocations across multiple deploy/roll cycles.
+
+---
+
+## ADM-164 — Derivative chains MUST reject structurally-empty LLM payloads (#MANDATORY — 2026-05-27)
+
+**Status:** Live in `apps/api/src/services/annual-report-insights.service.ts` (AurexV4 AV4-739, commit `d697db06`).
+
+**Rule:** Any save-chain or derivative-artefact endpoint that consumes LLM JSON output MUST check the parsed payload is **materially non-empty** before treating it as success. A payload like `{summary: "", actionItems: []}` from a truncated Ollama response — recovered by `parseJsonBestEffort` as `{}` — MUST NOT be persisted as if the LLM produced useful content. The chain MUST fall through to the next provider, then to a deterministic rule-based synthesizer that always emits at least one artefact.
+
+**Minimum predicate:**
+
+```ts
+function isMateriallyEmpty(payload): boolean {
+  return payload.summary.trim().length === 0
+      && payload.actionItems.length === 0;
+}
+```
+
+**Corollary to:** ADM-132 (Ollama / local-LLM hardening — `num_predict` truncation handling). ADM-132 covers parser resilience; this ADM covers what to do with structurally-valid-but-semantically-empty parsed results.
+
+**Why:** AV4-739 incident 2026-05-27 ~05:41 UTC. User uploaded BGR Energy annual report via the dashboard drop-zone. Pipeline ran end-to-end (StoredFile created, AnnualReportInsight persisted, NetZeroRoadmap + CAMM assessment spawned), `aurex_llm.runs` audit recorded `status='success'` — but `summary=""` and `action_items_json=[]` because gemma3:4b truncated on the complex prompt. The dashboard widget had nothing to render. Net effect: user sees "upload worked" but no analysis, despite a roadmap + CAMM assessment now visible elsewhere with no narrative.
+
+**Verification:** Pre-fix BGR Energy upload produced `summary=""` + 0 items. Post-fix, the same low-confidence extract falls through to `degradedPayloadFromExtract` which emits 4 disclosure-gap action items based on `scope1/2/3Disclosed=false`. 8 new tests in `annual-report-insights.service.test.ts` cover the truth table (Ollama empty / Gemini empty / both empty / both throw + 4 predicate cases).
+
+---
+
+## ADM-165 — Dashboard surfaces SHOULD include their own upload affordance when they own the downstream artefact (#REC — 2026-05-27)
+
+**Status:** Live in `apps/web/src/components/dashboard/RecentAnnualReportWidget.tsx` (AurexV4 AV4-736, commit `5376cc7f`).
+
+**Recommendation:** When a dashboard widget renders an analysis derived from a user-uploaded artefact (annual report, evidence bundle, PDD, audit document), the widget itself SHOULD be the upload entry point on the dashboard — not a "click here to go to Settings → Financials" link. The widget MUST handle four states inline:
+
+1. **Loading** — skeleton.
+2. **No artefact yet (idle)** — drop-zone with drag-and-drop + click-to-browse.
+3. **Pipeline in flight** — progress card with phase labels (`uploading` → `extracting` → `saving` → `done`) and the drop-zone hidden so the user can't fire a second upload mid-flight.
+4. **Artefact ready** — summary card with a footer "Upload another" affordance.
+
+**Why:** Reduces the upload→analysis loop to a single page. Pre-fix the `/dashboard` widget showed `null` for first-time tenants (no insight yet), forcing a navigation to `/dashboard/settings/financials` to upload, then a navigation back. The dashboard surface is the natural location for the user's mental model of "did my upload turn into something useful?"
+
+**Implementation contract:** the widget reuses the same hook stack the dedicated settings page uses (`useStoreReport` → `useExtractStored` → `useSaveAnnualReportInsight`) so the idempotency + provider-fallback contracts in ADM-164 are preserved. On `saveInsight.onSuccess` the widget invalidates its own read-side query (`['<artefact>-insight', 'latest']`) so the new row flips into view without a page reload.
+
+**#REC not #MANDATORY:** the pattern is a UX recommendation, not a binding architectural rule. Apply when the dashboard widget is the primary surface for the artefact; skip when a dedicated upload page already exists with richer extraction-review UX (e.g. FinancialsPage's ExtractionReviewPanel — useful for power users).
+
+---
+
+
+## ADM-166 — J4C Publisher SPA ↔ publisher-dashboard JSON API Contract (#MANDATORY — 2026-05-23)
+
+**Status:** Applied (source). **Pairs with:** ADM-140 (`publisher` integration adapter — recipient lists only), ADM-071 (J4C JWT RBAC), ADM-081 (SPA `index.html` no-cache), ADM-068 (`@J4CDeploymentAgent` deploy binding).
+
+### Two different “integrations” surfaces — do not conflate
+
+| Surface | Host / path | Backend | Purpose |
+|---------|-------------|---------|---------|
+| **Platform project provisioning** | `https://j4c.aurigraph.io/api/v3/integrations/*` | `j4c-api:8000` | OpenBao + Harbor + observability + publisher **list** provision (ADM-140) |
+| **Publisher channel credentials + campaigns** | `https://j4c.aurigraph.io/publisher/api/*` | `publisher-dashboard:8766` | Mailchimp/Telegram keys, send campaigns, suppressions, lists |
+
+A `422` on admin key save that hits `/api/admin/integrations/...` (no `/publisher` prefix) is routed to **`j4c-api`** and is the **wrong service**. Canonical admin integrations path:
+
+```
+PUT /publisher/api/admin/integrations/{channel}
+```
+
+### NGINX routing (J4C Portal stack)
+
+| Prefix | Upstream |
+|--------|----------|
+| `^~ /publisher/api/` | `publisher-dashboard:8766` (`json_api` router) |
+| `^~ /publisher/` (SPA) | `j4c-react:3000` (React hub at `/publisher/campaigns`, `/publisher/admin`, …) |
+| `^~ /api/` | `j4c-api:8000` |
+
+**Auth:** React SPA sends J4C HS256 JWT (`localStorage` `j4c_token`). Publisher verifies with `J4C_JWT_SECRET` (must match `j4c-api` `SECRET_KEY`). Roles: `superadmin` / `admin` for admin routes; any authenticated role for campaign CRUD.
+
+### Admin integration config (`integration_configs` SQLite table)
+
+**Router:** `publisher/dashboard/json_api.py` (prefix `/publisher/api`).
+
+| Method | Path | Body |
+|--------|------|------|
+| GET | `/admin/integrations` | — |
+| PUT | `/admin/integrations/{channel}` | **`{ "values": { "<field_key>": "<secret>" } }`** |
+| POST | `/admin/integrations/{channel}/test` | — |
+
+**Channels / field keys** (see `publisher/integration_config.py`): `mailchimp` (`api_key`, `server_prefix`, `list_id`), `telegram` (`bot_token`, `default_chat_id`), `hubspot`, `heygen`, `mandrill`, `ga4`, `publisher_auth`, …
+
+**Legacy SPA compatibility (May 2026):** `ConfigValuesBody` also accepts a **flat** JSON object (`{ "bot_token": "…" }`) for bundles deployed before the `{ values: … }` wrapper fix. **Do not** POST masked placeholders (`***abcd`) back — UI must only send user-typed secrets.
+
+**Product-scoped keys:** `PUT /publisher/api/products/{product_key}/integrations/{channel}` uses the same `{ values }` shape (`product_integrations` table).
+
+### Send campaigns (`send_campaigns` table)
+
+**SPA routes:** `/publisher/campaigns`, `/publisher/campaigns/new`, `/publisher/campaigns/:id`, `/publisher/campaigns/:id/edit`.
+
+**API (canonical field names):**
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/send-campaigns` | Returns `{ "campaigns": [...], "total": N }` — **never** a bare array |
+| POST | `/send-campaigns` | Create draft |
+| GET/PUT/DELETE | `/send-campaigns/{id}` | Draft-only edit (PUT → 409 if not `draft`) |
+| POST | `/send-campaigns/{id}/send` | Channel fan-out (mailchimp, mandrill, telegram, hubspot, social stubs) |
+| POST | `/send-campaigns/{id}/schedule` | Body **`{ "scheduled_at": "<ISO-8601>" }`** required |
+| GET | `/send-campaigns/{id}/stats` | Flattens `stats_json` + Mailchimp report when applicable |
+
+**Canonical write shape:**
+
+```json
+{
+  "name": "Q2 launch",
+  "product_key": "aurigraph-dlt",
+  "channel": "telegram",
+  "list_id": "<recipient-list-uuid>",
+  "content": "<html or text>",
+  "content_type": "html",
+  "target": { "chat_id": "@channel" },
+  "subject": "",
+  "from_name": "",
+  "from_email": ""
+}
+```
+
+**SPA aliases accepted on create/update** (mapped server-side): `audience_list_id` → `list_id`; `content_html` / `content_text` → `content` + `content_type`; `audience_chat_id` / `audience_target` → `target.chat_id` / `target.link`. Responses include both canonical and alias keys for detail pages.
+
+**Lists API:** `GET /publisher/api/lists` returns `{ "lists": [{ "list_id", "name", "member_count", … }] }` — UI must bind **`list_id`**, not `id`.
+
+**Product integrations status:** `GET /publisher/api/products/{product_key}/integrations` returns `{ "channels": { "mailchimp": { "api_key": { "masked": "…" } } } }` — **object map**, not an array; `.find()` on the response will throw.
+
+### Frontend mapping module
+
+**Source of truth for SPA↔API mapping:** `j4c-react/src/lib/publisherCampaigns.ts` (`mapCampaignToApi`, `mapCampaignFromApi`, `normalizeMailingLists`, `isChannelConfigured`).
+
+### Deploy rule (#MANDATORY)
+
+Publisher Admin + Campaigns fixes require **both** images on J4CSRV01:
+
+1. **`publisher-dashboard`** — Python (`json_api.py`, `integration_config.py`, tests under `publisher/tests/`)
+2. **`j4c-react`** — Vite bundle (`PublisherAdminPage`, `CampaignWizardPage`, `CampaignsPage`)
+
+L1 smoke (unauthenticated — expect **401**, not 404/502):
+
+```bash
+curl -sk -o /dev/null -w "%{http_code}\n" https://j4c.aurigraph.io/publisher/api/send-campaigns
+curl -sk -o /dev/null -w "%{http_code}\n" https://j4c.aurigraph.io/publisher/api/admin/integrations
+```
+
+Post-deploy: hard-refresh `/publisher/admin` and `/publisher/campaigns`; verify PUT integrations returns **200** and campaign wizard saves non-empty `content` + `list_id` in DB.
+
+### Tests (publisher)
+
+- `publisher/tests/test_admin_integrations.py` — `{ values }` + flat legacy body
+- `publisher/tests/test_send_campaigns.py` — legacy SPA field names + list shape
+
+---
+
+
+---
+
+## ADM-167 — Cursor `stop` hook is the enforcement mechanism for auto-commit + push (#MANDATORY — 2026-05-25)
+
+**Status:** Applied. **Pairs with:** ADM-068 (`@J4CDeploymentAgent` deploy binding), [`Aurigraph Deployment Agent — Auto-Deploy After Build`](#aurigraph-deployment-agent--auto-deploy-after-build-mandatory--apr-22-2026--user-mandated) (the unnumbered Apr-22 rule that mandates the chain).
+
+### Problem (Macbook2 + any new dev host)
+
+The Apr-22 "Auto-Deploy After Build" rule mandates that after the agent finishes coding, the toolchain must run `git commit && git push && deploy`. The push triggers `.github/workflows/deploy-j4c-docker.yml` automatically via its `on.push.paths` filter (ADM-068), so the rule only needs the **first** step — auto `commit + push` — to be enforced locally.
+
+Until 2026-05-25, that first step had **no enforcement mechanism**: no Cursor hook, no `.git/hooks/post-commit`, no shell wrapper. Result: on hosts that didn't have undocumented user-level automation (e.g. `Macbook2`), the agent would finish coding and the changes would sit in the working tree until the developer remembered to `git commit && git push`. The `/deploy` skill (`.cursor/skills/deploy/SKILL.md`, 2026-05-25) is *invocable* but not *triggered*.
+
+### Decision
+
+A **project-scoped Cursor `stop` hook** is the canonical enforcement point. Checked into the repo at `.cursor/hooks.json` + `.cursor/hooks/auto-commit-push.sh`, it works on **every** machine that clones the repo — Macbook, Macbook2, future hosts — with zero per-host configuration.
+
+```json
+// .cursor/hooks.json
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "command": ".cursor/hooks/auto-commit-push.sh",
+        "timeout": 90,
+        "failClosed": false,
+        "loop_limit": 1
+      }
+    ]
+  }
+}
+```
+
+### Safety gates (each bails cleanly — `exit 0` with `{}`)
+
+| Condition | Action |
+|-----------|--------|
+| Branch != `main` | Skip (feature branches stay manual) |
+| Rebase / merge / cherry-pick / revert in progress | Skip |
+| Working tree clean | Skip |
+| < 20s since last commit (debounce) | Skip |
+| Env `CURSOR_AUTO_COMMIT_DISABLE=1` | Skip (per-host kill-switch) |
+| `git commit` fails (pre-commit hook) | Leave staged, surface `agent_message` |
+| `git push` fails (network / auth) | Keep commit local, surface `agent_message` |
+
+### Forbidden patterns
+
+- **Never** pass `--no-verify` — pre-commit gates (SCMAgent, secret scan, linters) MUST run. A pre-commit hook failure is a hard stop, not a bypass.
+- **Never** auto-commit on a feature branch — only `main` is in scope. The hook will refuse.
+- **Never** `gh workflow run deploy-j4c-docker.yml` from the hook — the path-filtered `on.push` trigger already runs the deploy when watched paths change. Doing both causes `concurrency.cancel-in-progress: false` to queue a redundant second run.
+
+### Verification
+
+- Local: `echo '{}' | .cursor/hooks/auto-commit-push.sh` (when working tree has changes) — must commit + push + log to `logs/cursor-auto-commit.log`.
+- Cursor: open the Hooks settings tab → verify the `stop` hook is listed with `enabled: true` and path resolves to `.cursor/hooks/auto-commit-push.sh`.
+- Audit trail: `tail -f logs/cursor-auto-commit.log` (gitignored).
+
+### Rollback / opt-out
+
+- Per machine: `export CURSOR_AUTO_COMMIT_DISABLE=1` in shell rc.
+- Per session: delete or rename `.cursor/hooks.json` (but do not commit the deletion — defeats the cross-host guarantee).
+- Per repo (permanent): revert this ADM entry and remove the two `.cursor/` artifacts via a documented JIRA ticket.
+
+### Related
+
+- Hook artifacts: [`.cursor/hooks.json`](../../.cursor/hooks.json), [`.cursor/hooks/auto-commit-push.sh`](../../.cursor/hooks/auto-commit-push.sh)
+- Deploy workflow: [`.github/workflows/deploy-j4c-docker.yml`](../../.github/workflows/deploy-j4c-docker.yml) (path filter is the actual deploy trigger)
+- `/deploy` skill: [`.cursor/skills/deploy/SKILL.md`](../../.cursor/skills/deploy/SKILL.md) (manual escape hatch when push didn't touch a watched path)
+
+---
+
+
+---
+
+## ADM-168 — CI Workflow Hygiene: Treat Latent Workflow Failures as First-Class Debt (#REC — 2026-05-28)
+
+**Pattern** — When a CI job fails on a commit whose diff does NOT touch the failing code path (app diff is docs-only, tests-only, or unrelated module), the failure is almost always **latent workflow infrastructure debt** that was hidden by an earlier-stage failure short-circuiting the workflow. The discipline:
+
+1. **Don't paper over with retries.** A pipeline that goes red on the same step across three unrelated commits is not flaky — it has an unfixed bug.
+2. **Diagnose root cause inside the workflow file.** Path expressions, timeouts, tool-dependency assumptions, threshold drift. The diff IS the bug, even though no developer wrote it on this commit.
+3. **Fix the workflow in a tiny, surgical commit.** No app code in the same commit; the bisect signal stays clean for future regressions.
+4. **Document the failure mode in the workflow itself** with an inline comment citing the run ID and the fix rationale. Future humans (and agents) need to know *why* the cache mode is min, *why* metadata is parsed with python3 not jq.
+
+**Concrete failure modes observed in HCE2 CI today** (all four landed in commits `3bbaa02e`, `97b00e55`, `5e4490d3`, `5a9f8057`):
+
+| Failure | Surface symptom | Root cause | Fix |
+|---|---|---|---|
+| Matrix path mismatch | `failed to read dockerfile: open Dockerfile: no such file or directory` | `matrix.component=backend` mapped to `./backend/Dockerfile` but file is at `./Dockerfile.backend` (root) | Per-component context/file mapping, not a uniform expression |
+| Mega-image cache export timeout | Job killed at 30:57 after `cache-to: type=gha,mode=max` exported 9.5 GB build cache | `mode=max` writes every intermediate layer; for PyTorch+CUDA bases that's 15+ min — alone enough to trip a 30-min job timeout | Use `mode=min`; trade marginal next-run speedup for reliability |
+| Tool PATH ghost on self-hosted runner | `jq: command not found` even though `/usr/bin/jq` exists and `.path` includes `/usr/bin` | Unreproducible PATH state between job invocations on the same self-hosted runner; not worth root-causing under deadline | Eliminate the dependency — swap `jq` for `python3` (guaranteed present) |
+| Coverage threshold drift | `Jest: "global" coverage threshold for statements (67%) not met: 63.56%` | New UX components shipped raising the denominator faster than tests raised the numerator | Lower floor to `measured − 5` (rounded), document the climb-back target in-file, file a ratchet JIRA |
+
+**Why:** Three CI failures on three different commits cost ~3-4 hours of babysitting and a polluted git log of "fix(ci): X" commits. Each individual fix was 1-5 lines. The cost was diagnosis. ADM-068 already mandates that deploy verification flows through the agent — this ADM extends the same first-class-debt treatment to CI failures so the discipline applies even when nothing is being deployed.
+
+**How to apply:**
+- Sequence the four fixes the same way the agent sequences a deploy: cleanest classification first (matrix/path bug → timeout → dep ghost → threshold drift) so each commit is independently bisectable.
+- Add an in-file comment beside every workflow change explaining what previously broke. The comment is the durable artifact; the JIRA closeout is ephemeral.
+- File a JIRA only when the fix requires app-code follow-up (e.g. HCE2-419 for coverage ratchet, HCE2-421 for the still-timing-out mutmut nightly). Pure workflow tweaks don't need a ticket.
+- Resist the temptation to combine fixes "while you're in there." The four CI fixes today shipped as four atomic commits — each commit message reads as a complete story and each fix is independently revertable.
+
+**Cross-refs:** ADM-068 (deploy through agent), ADM-097 (GHA `deploy` job gated on `workflow_dispatch` only), ADM-098 (deploy scripts run schema/env drift gates before build), ADM-101 (docs-only auto-pull carve-out — applies on the runtime side, not the CI gate side).
+
+---
+
+---
+
+## Component 13: TDD/MTP Coverage Audit (#MANDATORY #MEMORIZED — 2026-05-31 — USER MANDATED)
+
+**Rule**: Every Aurigraph product MUST undergo a quarterly **TDD/MTP Coverage Audit** that determines (a) whether TDD test suites include BOTH RED-phase and GREEN-phase tests, and (b) whether a Master Test Plan (MTP) exists, is current, and has been thoroughly executed. Gaps MUST be reported in a structured gap matrix.
+
+### Why mandated
+
+Programs frequently produce GREEN-only test suites (tests written alongside or after the implementation, going straight to GREEN). This masks two structural defects:
+
+1. **False-green coverage** — tests written by the same author at the same time as the implementation can pass for the wrong reason — matching the implementation rather than the spec.
+2. **Drift between spec/MTP and shipped tests** — without quarterly audits, the MTP's test pyramid (L0-L4) drifts from what's actually exercised.
+
+Per `#AAT` Tier 3 Phase 1 mandate: "QA's RED test plan ships at T=0 alongside Maker; not deferred to 'later'." This audit verifies adherence.
+
+### Per-product audit output
+
+Each audited product receives a gap-matrix report at `<product>/docs/audit/TDD_MTP_Coverage_Audit_<date>.md` with:
+
+| Section | Content |
+|---------|---------|
+| **Per-product test inventory** | Test file counts (unit / IT / contract / scaffold), production-file counts, ratio |
+| **TDD-phase classification** | Git-log evidence: tests-only commits (RED candidates) vs paired commits |
+| **MTP coverage** | Existence + age + L0-L4 row coverage vs shipped tests |
+| **Gap matrix** | Per-product table of missing categories (fuzz, security, chaos, mutation, load, RED-phase, MTP) |
+| **Risk-prioritized remediation plan** | High-blast-radius gaps surfaced first (crypto/auth/consensus) |
+
+### 5 RED test category templates (one per gap)
+
+Each audited product MUST have at least one test class for each of the 5 templates documented in **`aurigraph-v12/docs/templates/red-tests/`**:
+
+| RED template | Filename | Asserts (when RED-first written) |
+|--------------|----------|----------------------------------|
+| **Path-collision** | `PathCollisionRedTest.template.java` | "POST /api/v11/X cannot coexist with another class declaring @Path("/api/v11/X")" — would have RED-flagged S-ONB-1A.3b-2 |
+| **Fuzz / property** | `FuzzRedTest.template.java` | "For ANY String inputs, RECORD construction either succeeds OR throws @NotNull/IAE — never returns invalid state" (jqwik) |
+| **Security / auth** | `SecurityRedTest.template.java` | "Given a tampered JWT, an @RolesAllowed-protected endpoint returns 401 NOT 200 — written FIRST against existing endpoints" |
+| **Chaos / fault-injection** | `ChaosRedTest.template.java` | "Given Postgres connection drop mid-bind, @Transactional rolls back atomically — no torn state" |
+| **Mutation baseline** | `MutationBaselineRedTest.template.java` | "PIT/Pitest run captured; surviving-mutants count is the RED baseline; subsequent sprints reduce it" |
+
+These templates are language-stack-agnostic conceptually but ship as JUnit 5 / Java for the V12 reference. Each template:
+- Carries a `// TODO(product)` header naming the gap it closes
+- Includes 1-3 example test methods demonstrating the assertion pattern
+- Is intentionally LEFT FAILING until a per-product slice adapts + GREENs it
+
+### Audit cadence
+
+| Trigger | Owner |
+|---------|-------|
+| **Quarterly** (T+90 days from last audit) | Approver_T0 per #AAT |
+| **Pre-release** for products gated by `/deploy` to production | @QAQCAgent |
+| **Post-incident** when a regression slipped past GREEN-only tests | @code-reviewer + @QAQCAgent |
+| **On-demand** when user invokes `#TDDAudit` | Any agent |
+
+### Audit script logic
+
+For each Aurigraph product P under `~/subbuworkingdir/`:
+
+1. Detect language stack (Java/Quarkus, TypeScript, Python, etc.)
+2. Count production files vs test files (per `#TestStackMandate` patterns)
+3. `git log --format='%h %s' --diff-filter=A -- '*Test.java' '*IT.java' '*_test.py' '*.spec.ts'` — classify commits as tests-only (RED candidate) vs paired
+4. Locate MTP doc: `docs/mtp/MTP_*.md` or equivalent
+5. Cross-reference MTP L0-L4 rows against actual test inventory
+6. Identify uncovered categories (fuzz / security / chaos / mutation / load)
+7. Emit structured gap matrix
+
+### Gap matrix format (canonical)
+
+```markdown
+| Product | Test Files | Prod Files | RED-phase commits | MTP exists | MTP <90d | Fuzz | Security | Chaos | Mutation | Gap score |
+|---------|-----------:|-----------:|------------------:|:----------:|:--------:|:----:|:--------:|:-----:|:--------:|----------:|
+```
+
+**Gap score** = uncovered categories out of 9 (RED + MTP + 5 RED-test categories + 2 maintenance dimensions).
+
+### Acceptance criteria for "thoroughly tested"
+
+| Criterion | Threshold |
+|-----------|-----------|
+| GREEN unit test coverage | ≥ 90% line (per Component 1) |
+| RED-phase commit ratio | ≥ 10% of feature commits have a preceding tests-only RED commit |
+| MTP existence | YES |
+| MTP age | ≤ 90 days since last edit |
+| L0-L4 coverage | Each L tier has ≥ 1 shipped test class |
+| Adversarial test categories | At least 3 of {fuzz, security, chaos, mutation, load} have ≥ 1 shipped test |
+
+Products NOT meeting these criteria are flagged with a remediation sprint plan.
+
+### Cross-references
+
+- `~/.claude/CLAUDE.md` `#TestStackMandate` (May 8, 2026) — test stack composition
+- ADM Component 1 — TDD coverage targets
+- ADM Component 2 #AAT — Tier 3 QA Phase 1 RED test plan mandate
+- ADM-116 — FS-MTP evidence bundle per channel promotion
+- **Templates**: `aurigraph-v12/docs/templates/red-tests/` (5 canonical templates)
+- **Reference audit**: `aurigraph-v12/docs/audit/TDD_MTP_Coverage_Audit_2026-05-31.md`
+
+---
+
+---
+
+## ADM-169 — Deploy Queue Discipline: j4C Deployment Agent MUST drain older deploys before starting new (#MANDATORY — 2026-06-02 — USER MANDATED)
+
+**Status**: Applied (2026-06-02 directive). **Pairs with**: `/deploy` Step 1 (Pre-deployment infrastructure validation); ADM Component 5 (J4C Deployment Agent); ADM-068 (deploy binding). **Codifies**: a hard-learned lesson from 2026-06-02 when 3 V12 deploys queued back-to-back over 8-9 hours because pushes auto-triggered the workflow + each new push added a queued run without draining the prior one. The dispatcher couldn't keep up; runners stayed busy on stale/zombie work; cancellation propagation was delayed by hours.
+
+**Rule**: Before starting a new deploy on a target, the j4C Deployment Agent (or any deploy mechanism — `/deploy` skill, manual `gh workflow run`, push-triggered workflow) MUST first verify that older deploy workflows for the same target have completed (or been explicitly cancelled). If older deploys exist in `queued` or `in_progress` state, the agent MUST either:
+
+1. **WAIT for them to drain** (preferred) — if the older deploys are in good standing and will complete naturally, let them.
+2. **CANCEL older deploys explicitly** — only when older deploys are stale/zombie/known-bad. Use `gh run cancel <id>` or `gh api -X POST .../actions/runs/<id>/cancel` per run. Verify cancel propagation before triggering new deploy.
+
+**NEVER trigger a new deploy that piles on top of unresolved older deploys for the same target.** Doing so produces:
+- Cancel-propagation lag (gh API accepts cancel but display doesn't reflect for minutes-to-hours)
+- Runner saturation (Workers consumed by stale jobs; dispatcher can't allocate slots)
+- Zombie in_progress runs (Worker dies but GitHub doesn't detect for 15-30 min)
+- False "infrastructure broken" diagnoses (the queue IS draining; it's just deeply backlogged)
+
+**How to apply**:
+
+1. **`/deploy` skill — Step 1 check** (mandatory): before invoking `@J4CDeploymentAgent`, the skill runs:
+   ```bash
+   gh run list --workflow=<workflow> --branch=<branch> --status=queued --limit 5
+   gh run list --workflow=<workflow> --branch=<branch> --status=in_progress --limit 5
+   ```
+   If either returns non-empty: BLOCK + report queue state. Operator chooses: wait, cancel-all-older, or proceed (with explicit override flag).
+
+2. **Push-triggered deploy workflows**: MUST include a `concurrency:` block with `cancel-in-progress: true`:
+   ```yaml
+   concurrency:
+     group: ${{ github.workflow }}-${{ github.ref }}
+     cancel-in-progress: true
+   ```
+   This cancels older runs in the same group when a new push arrives — preferred over piling up.
+
+3. **For workflows that can't safely `cancel-in-progress: true`** (e.g., live mid-deploys shouldn't be killed): add a head-of-job concurrency check that **early-aborts** if a newer queued run for the same workflow + branch exists:
+   ```yaml
+   - name: Skip if newer queued
+     run: |
+       NEWER=$(gh run list --workflow=${{ github.workflow }} --branch=${{ github.ref_name }} --status=queued --limit 1 --json databaseId,createdAt --jq '.[] | select(.createdAt > "${{ github.event.head_commit.timestamp }}") | .databaseId')
+       if [ -n "$NEWER" ]; then echo "Newer queued run $NEWER exists; aborting"; exit 0; fi
+   ```
+
+4. **Carve-outs** (exempt from this rule):
+   - Smoke-test workflows (Upptime, FS-MTP gates, JIRA syncs) — idempotent / read-only, queue ordering doesn't matter
+   - Per-PR test workflows — each PR gets its own queue position
+   - Manual `workflow_dispatch` with explicit `--ref` override — operator explicitly takes responsibility
+
+**Why this matters beyond the 2026-06-02 incident**:
+- aurdlt01 has 3 self-hosted runners shared across 4+ projects (Aurigraph-DLT, Battua, healthcare, etc.). Cross-project queue contention is the norm, not exception.
+- A wedged Worker can consume 23+ GB memory + 2d 18h CPU before being detected (the 2026-06-02 zombie was the canonical example).
+- Cancel-propagation lag is non-trivial: 3 `gh run cancel` attempts + 1 direct API call took ~2 hours to resolve on a deeply-stuck queue.
+- The fix isn't more retries — it's **don't queue more work onto an already-stuck queue**.
+
+**Enforcement**: `/deploy` skill MUST run the Step 1 queue check before invoking `@J4CDeploymentAgent`. Skipping this check is **forbidden** per ADM Component 10 (forbidden actions).
+
+**Reference incident**: 2026-06-02 session. 3 V12 deploys queued sequentially over 8-9 hours; resolved via (a) triple-runner restart + (b) sweep-cancel 17 stale runs + (c) SIGTERM workers + (d) wait for dispatcher reset. Total recovery wall-time: ~30 minutes once intervention started. Could have been avoided entirely with this rule + `concurrency: cancel-in-progress: true` on the V12 deploy workflow.
+
+---
+
+## ADM-170 — #KnowledgeGraphFirst: Orient from Context Graph Before Wide Context Reads (#MANDATORY #MEMORIZED — Apr 26, 2026 — USER MANDATED)
+
+**Rule**: On **Aurigraph-DLT / enterprise-portal / V12** work, **orient from the Context Knowledge Graph BEFORE** doing a full read of project `CLAUDE.md`, `infinitecontext.md`, or a wide sweep of `memory/*.md` / full `ADM.md` passes.
+
+| Do first | Purpose | Where |
+|----------|---------|--------|
+| **Knowledge graph** | Entity/edge map (projects, servers, #ADM/#AAT, tickets, files) — **route** what to open next | Portal `/knowledge-graph` · API `GET /api/v11/knowledge-graph/data` · indexer: `aurigraph-v12/scripts/context-graph/graph_indexer.py --json-only` · local dev: from `aurigraph-enterprise-portal/`, `npm run graph:index` (writes `knowledge-graph.local.json`) |
+| Then | Standards + deep context | Global `~/.claude/CLAUDE.md` → `~/.claude/ADM.md` (targeted sections) → project `CLAUDE.md` → `session.md` / `todo.md` / `infinitecontext.md` (sliced, not whole-file) |
+
+**Why**: Graph is **structured** (nodes/edges + stats). Narrative context files are long prose. Graph-first reduces blind full-file pulls and duplicate re-reads both within a session and across sessions.
+
+**Token impact (honest bounds)**: No fixed % — depends on what you would have read without graph-first.
+- **Context priming slice only**: ~30–70% fewer tokens vs "read everything wide" when the alternative was pasting full `ADM.md` + `infinitecontext.md` + many `memory/*.md` chunks — or ~0% if you only ever opened one short `CLAUDE.md`.
+- **Whole turn**: smaller savings — implementation + tool I/O dominate; graph-first mainly trims orientation overhead.
+- **Session total (N turns)**: ~20–50% lower priming token accumulation when you pay graph orientation **once** then reuse the map. Still not measured in CI — treat as planning guidance, not a guarantee.
+
+**Do not claim exact %** without measuring (log cumulative input tokens: A = graph-first + slices, B = full re-read habit).
+
+**Status:** Applied (Aurigraph-DLT, J4C Portal, all V12 work). **Pairs with:** ADM-076/076-A (kgraph-first reads + ADM file watcher), ADM-171 (Session Startup sequence).
+
+---
+
+## ADM-171 — Session Startup Sequence + `<project-name>.md` Convention (#MANDATORY #MEMORIZED — May 3, 2026 — USER MANDATED)
+
+### Session startup (mandatory read order)
+
+1. **#KnowledgeGraphFirst** (ADM-170) — Aurigraph-DLT / V12 / portal context
+2. **Global `~/.claude/CLAUDE.md`** — enterprise standards overview (rules + pointers only)
+3. **`~/.claude/ADM.md`** — when implementing features/bugs/deploying; use **targeted sections** after graph orientation
+4. **`~/.claude/CLAUDE_example_code.md`** — 134 code examples; reference implementations
+5. **`~/.claude/CLAUDE_ARCHIVE.md`** — deprecated patterns; legacy investigation only
+6. **Project `CLAUDE.md`** — project-specific RULES + tech stack only (per `<project-name>.md` convention below)
+7. **`<project-name>.md`** at project root — project state, session log, deployment state (load after `CLAUDE.md`)
+8. **`session.md` / `todo.md` / `infinitecontext.md`** — slice to relevant sections when possible
+9. **Credentials**: `/Users/subbujois/Documents/GitHub/Aurigraph-DLT/doc/Credentials.md`
+10. **`git log -5 --oneline` + `git status`** — verify branch + uncommitted changes
+11. Resume from last known state in `session.md`
+
+### `<project-name>.md` convention (#MANDATORY — May 3, 2026 — USER MANDATED)
+
+**Rule**: Every project MUST have a `<project-name>.md` at the project root for state-y content (project context, session log, component status, deployment state, performance baselines). Project `CLAUDE.md` keeps RULES only.
+
+**Why**: `CLAUDE.md` loads into context on every prompt. Mixing rules with state means re-paying tokens on every turn for content that changes daily. Splitting lets rules stay tight (~5–10 KB) while state grows freely.
+
+**Naming**: kebab-case matching the working-directory name.
+- `Aurigraph-DLT/` → `aurigraph-dlt.md`
+- `Battua/` → `battua.md`
+- `Provenews/` → `provenews.md` (state) + `docs/Provenews.md` (ADM-086 ops profile)
+- `glowing-adventure/` (J4C Portal) → `j4c-portal.md` or `glowing-adventure.md`
+- `MEV Shield/` → `mev-shield.md`
+
+**Pointer rule**: every project `CLAUDE.md` MUST have a frontmatter line:
+> **Project state, session log, deployment state** → [`<project-name>.md`](./<project-name>.md)
+
+**First implemented**: `Aurigraph-DLT/aurigraph-dlt.md` (May 3, 2026). Roll out to all repos when next touched.
+
+**Status:** Applied. **Pairs with:** ADM-086 (per-repo operational profile), ADM-113 (bidirectional sync).
+
+---
+
+## ADM-172 — Agent Framework: Canonical Roster + Dispatch Patterns (#MEMORIZED — 2026-06-04)
+
+**Canonical agent roster:**
+
+| Agent | Role | Invocation |
+|-------|------|-----------|
+| `@J4cAgents` | Orchestrator | Direct reference |
+| `@JIRAAgent` | JIRA lifecycle | Background **after every task** (ADM-115); auth fallback → markdown report in `session.md` |
+| `@Plan` | Architecture | `@Plan` or Task tool |
+| `@code-explorer` | Codebase analysis | `feature-dev:code-explorer` |
+| `@code-architect` | Implementation plans | `feature-dev:code-architect` |
+| `@DeveloperAgent` | Feature dev | Direct or Task |
+| `@code-reviewer` / `@SCMAgent` | Security/quality + pre-commit review | `pr-review-toolkit:code-reviewer` (foreground, after Approver APPROVED) |
+| `@AIMLArchitect` | AI/ML layer | Direct |
+| `@frontend-design` | UI/UX | `frontend-design:frontend-design` |
+| `@J4CDeploymentAgent` | CI/CD | `/deploy` |
+| `@QAQCAgent` | Testing | Task tool |
+
+**V11 Specialists**: CAA, BDA, FDA, SCA, ADA, IBA, QAA, DDA — see `~/.claude/agents/AURIGRAPH-TEAM-AGENTS.md`.
+
+**Key dispatch patterns:**
+- **#AAT** = `Approver_T0 → [Maker + Checker + QA concurrent] → Approver_Gate` — Full spec: ADM.md Component 4
+- **#AAT uses Agent tool (`run_in_background: true`) — NEVER tmux** (tmux ONLY for #ralph-loop pytest >2 min + remote SSH builds)
+- **#4ParallelAAT** — 4 concurrent Bash agents writing to `/tmp/` staging — Full spec: ADM.md Component 4 → #ralph-loop
+  - Dual-dep-override: Override BOTH `get_db` AND `get_async_db` in `app.dependency_overrides`
+  - Route-conflict pre-check: `grep -n '"/stats/ENDPOINT"'` before every sprint
+- **#AgentAnalysisFramework**: 4-agent parallel (explorer + Plan + architect + reviewer)
+
+**Docs**: `~/.claude/agents/ORGANIZATIONAL_AGENTS_FRAMEWORK.md` | `~/.claude/agents/UNIFIED_AGENT_FRAMEWORK.md`
+
+**Status:** Reference. **Pairs with:** ADM Component 4 (#AAT full spec), ADM-115 (#JIRABackfillAfterEveryTask).
+
+---
+
+## ADM-173 — Recursive Improvement Operator Kit (#MANDATORY — Jun 5, 2026)
+
+**Status:** Applied (2026-06-05). **Pairs with:** ADM-113 (bidirectional ADM sync), ADM-170 (KGraph-first), ADM-122 (FS-MTP recursive testing), Component 13 (TDD/MTP audit).
+
+**Rule:** Close the loop from **incident → ADM-ID → test → deploy verify → telemetry**. Target **loop-closure ≥ 90%** (9+/10 recursive improvement AI).
+
+**Operator scripts** (repo root `scripts/`):
+
+| Script | Purpose |
+|--------|---------|
+| `adm-sync.sh --check \| --sync [--commit]` | ADM-113 direction-check + byte-identical mirror (Global ↔ Repo ↔ J4C) |
+| `adm-gate-log.sh <gate> <PASS\|SKIP\|FAIL\|BYPASS> "<reason>"` | Append to `docs/adm/gate-telemetry.jsonl` |
+| `adm-loop-scorecard.sh [--write]` | Weekly closure % → `docs/adm/LOOP_CLOSURE_SCORECARD.md` |
+| `adm-session-start.sh` | Session start: kgraph probe + ADM drift + scorecard summary |
+
+**Mandatory agent behaviors:**
+
+1. **Session start** — run `adm-session-start.sh` (or equivalent kgraph_health + `adm-sync.sh --check`).
+2. **Every gate skip** — `adm-gate-log.sh SCMAgent SKIP "<reason>"` before commit when SCMAgent/org limits block review.
+3. **Every `--no-verify`** — human or agent MUST log `adm-gate-log.sh PreCommit BYPASS "<reason>"` in the same session.
+4. **Post-incident** — ADM numbered entry + regression test + `adm-sync.sh --sync` within the same sprint.
+5. **Weekly** — `adm-loop-scorecard.sh --write`; SKIP count > 2/sprint triggers ADM review item.
+
+**Loop-closure formula (scorecard):**
+
+```
+closure% = (adm_sync_commits + ins_entries + iter_commits) × 100
+           / (adm_sync + ins + iter + gate_skips + gate_bypasses)
+```
+
+**Target grades:** ≥90% = 9+/10 · 75–89% = GOOD · <60% = NEEDS WORK.
+
+**Docs hub:** `docs/adm/README.md`
+
+---
+
+**Last Updated**: 2026-06-05 (v3.1.1 — ADM-173 Recursive Improvement Operator Kit; carried forward v3.1.0 ADM-170–172)
