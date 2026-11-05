@@ -110,6 +110,10 @@ cd typescript && npm install && npm run build
 | v1.4 | 📋 Roadmap | [ADTS-8](https://aurigraphdlt.atlassian.net/browse/ADTS-8) | Rust SDK + native gRPC + iOS/Android mobile |
 | v2.0 | 📋 Roadmap | [ADTS-9](https://aurigraphdlt.atlassian.net/browse/ADTS-9) | Maven Central + npm + PyPI + SemVer |
 
+## Relationship to Hermes
+
+[Hermes](https://hermes.aurigraph.io) is an algorithmic trading platform built by Aurigraph DLT Corp. It is a **client** of this platform, not a fork or a separate ledger: where a traded instrument is tokenized here and settlement is ledger-capable, Hermes anchors trades through this SDK's asset and transaction APIs. Hermes does not make independent claims about this platform's throughput, consensus, or cryptography — those are Aurigraph platform properties, published and evidenced separately from Hermes's own trading-system claims.
+
 ## License
 
 Proprietary - Aurigraph DLT Corp. All rights reserved.
