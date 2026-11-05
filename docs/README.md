@@ -138,3 +138,7 @@ All SDKs expose the same 13 namespace APIs:
 - **Content-Type**: `application/json`
 - **Error Format**: RFC 7807 (`application/problem+json`)
 - **Repository**: [GitHub](https://github.com/Aurigraph-DLT-Corp/Aurigraph-Developer-Toolkit-and-SDK)
+
+## Maintainers
+
+- [Deployment plan (DRAFT)](AurigraphDeveloperToolkitSDK-DeploymentPlan.md) -- how packages and this site are published
