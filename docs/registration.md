@@ -160,20 +160,83 @@ client.sdk().registerWebhook("https://your-app.io/webhook",
     List.of("asset.minted", "transaction.settled", "tier.upgraded"));
 ```
 
-The platform signs webhooks with HMAC-SHA256 using a per-webhook secret. Verify on receipt:
+### Webhook signatures
 
-```typescript
-// Express example
-app.post('/webhook', (req, res) => {
-  const signature = req.headers['x-aurigraph-signature'] as string;
-  const computed = hmacSha256(WEBHOOK_SECRET, req.rawBody);
-  if (!timingSafeEqual(signature, computed)) {
+Every webhook carries an `X-Aurigraph-Signature` header. It is an HMAC made with the platform's webhook signing key. The secret you receive when you register a webhook is stored hashed and is not the MAC key. Distribution of the verification key to partners is pending (AV11-3944); Aurigraph will issue you the key to verify with. There are two formats. Accept both during the migration.
+
+| Format | Header value | What is MACed | Replay protection |
+|---|---|---|---|
+| **v2** (AV11-3950 standard; what the emitter sends once the signing key is configured) | `t=<unix-seconds>,n=<32 hex>,v1=<64 hex>` | HMAC-SHA256 over `t + "." + n + "." + raw body bytes` | ±300 s window plus a single-use nonce |
+| **Legacy** (sent by builds before AV11-3950; accept during the migration) | `sha256=<64 hex>` | HMAC-SHA256 over the raw body bytes only | None. A captured delivery can be replayed. |
+
+**Status (2026-11-05).** The v2 header is what the AV11-3950 emitter produces once `aurigraph.webhook.signing-key` (32+ bytes) is configured on the platform. Until it is configured, outbound deliveries are marked FAILED and are not posted — nothing is sent unsigned, and nothing falls back to the legacy format (V12 `docs/security/AV11-3944-MAC-FLOOR.md`). Keep accepting the legacy `sha256=` format during the migration, for deliveries from builds before AV11-3950. Remove the legacy branch when Aurigraph announces the end of the migration.
+
+How to verify a v2 header:
+
+1. Use the **raw** request bytes. Never re-serialize a parsed JSON object, because key order and whitespace would change the MAC.
+2. Decode `v1` from hex and check that it is 32 bytes. Compare it with a **constant-time** function, such as `crypto.timingSafeEqual` on Buffers, `hmac.compare_digest`, `MessageDigest.isEqual` or `subtle.ConstantTimeCompare`. Never use `===` on strings.
+3. Check the time window **after** the MAC, so a forged header cannot probe your clock. Reject when `|now - t| > 300` seconds.
+4. Reject a nonce `n` you have already seen inside the window. If you run several receiver instances, use a store they all share.
+5. The verification key is at least 32 bytes (UTF-8). The v2 signer refuses to sign with a shorter key.
+
+**This is classical, symmetric cryptography.** HMAC-SHA256 with a shared secret proves the sender knew the secret. It is not a post-quantum signature (ML-DSA), and it is not a public-key signature. A 256-bit HMAC key is not considered at practical risk from known quantum attacks. Anyone who holds the key can forge deliveries, so keep the verification key in a secret manager.
+
+```javascript
+// Node 18+ (ESM). No SDK helper is needed.
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+const WINDOW_SECONDS = 300;
+const seenNonces = new Map(); // nonce -> unix seconds. Use a shared store (e.g. Redis) if you run several receivers.
+
+function equalHex(expectedHex, receivedHex) {
+  if (!/^[0-9a-f]{64}$/.test(receivedHex)) return false;
+  const a = Buffer.from(expectedHex, 'hex');
+  const b = Buffer.from(receivedHex, 'hex');
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+// rawBody must be the exact bytes received (a Buffer), never JSON.stringify(req.body).
+export function verifyAurigraphWebhook(secret, header, rawBody, now = Math.floor(Date.now() / 1000)) {
+  if (Buffer.byteLength(secret, 'utf8') < 32) return false;   // keys shorter than 32 bytes are refused
+  if (typeof header !== 'string') return false;
+
+  // v2 (AV11-3950): t=<unix>,n=<32 hex>,v1=<64 hex>
+  const f = Object.fromEntries(header.split(',').map((p) => p.trim().split('=', 2)));
+  if (f.t && f.n && f.v1) {
+    const t = Number.parseInt(f.t, 10);
+    if (!Number.isFinite(t) || !/^[0-9a-f]{32}$/.test(f.n)) return false;
+    const mac = createHmac('sha256', secret)
+      .update(Buffer.concat([Buffer.from(`${t}.${f.n}.`, 'ascii'), rawBody]))
+      .digest('hex');
+    if (!equalHex(mac, f.v1)) return false;                    // MAC first ...
+    if (Math.abs(now - t) > WINDOW_SECONDS) return false;      // ... then the time window
+    for (const [n, at] of seenNonces) if (at < now - WINDOW_SECONDS) seenNonces.delete(n);
+    if (seenNonces.has(f.n)) return false;                     // replayed delivery
+    seenNonces.set(f.n, now);
+    return true;
+  }
+
+  // Legacy (builds before AV11-3950; accept during the migration): sha256=<hex>, body only, no replay protection.
+  if (header.startsWith('sha256=')) {
+    const mac = createHmac('sha256', secret).update(rawBody).digest('hex');
+    return equalHex(mac, header.slice('sha256='.length));
+  }
+  return false;
+}
+
+// Express: keep the raw bytes.
+app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  if (!verifyAurigraphWebhook(process.env.AURIGRAPH_WEBHOOK_VERIFY_KEY, req.get('X-Aurigraph-Signature'), req.body)) {
     return res.status(401).send('Invalid signature');
   }
-  // Process event
+  const event = JSON.parse(req.body.toString('utf8'));
+  // Process event, then:
   res.status(200).send('OK');
 });
 ```
+
+You can check your verifier with this published **test** vector. It is a test value, not a production secret. Key `av11-3950-test-key-32-bytes-ok!!`, body `{"ok":true}`, now `1700000000`:
+`t=1700000000,n=0123456789abcdef0123456789abcdef,v1=aaa31b1100db0018d228f0903282d38b57e920daf2735e81fb47b3b1e5863c34` must verify. The same header with any other body must fail.
 
 ## Multi-Application Organizations
 

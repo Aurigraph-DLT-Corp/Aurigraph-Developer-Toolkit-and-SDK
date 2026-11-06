@@ -8,8 +8,8 @@ Aurigraph DLT is a high-performance distributed ledger platform designed for rea
 
 Key capabilities:
 
-- **1.9M+ TPS** throughput with HyperRAFT++ consensus
-- **Quantum-resistant cryptography** (NIST Level 5, ML-DSA-87/ML-KEM-1024)
+- **HyperRAFT++ consensus** with a 1.9M+ TPS design target (not a measured production figure)
+- **Post-quantum signatures available**: ML-DSA-87 (FIPS 204, Category 5) signing and verification are available; the consensus hot path is Ed25519-first dual-accept. The public HTTPS edge (`dlt.aurigraph.io`) negotiates hybrid X25519MLKEM768 key exchange with clients that offer it, and falls back to classical groups otherwise. Post-quantum key exchange on every internal hop is not yet claimed. Battua's crypto service is not yet the production signing path (it runs in-process). Webhook signatures are classical HMAC-SHA256 (see [Webhooks](registration.md#webhook-signatures)).
 - **Asset-agnostic design** -- one API for all asset types
 - **Multi-channel architecture** -- ASSET, TRANSACTION, and BRIDGE channels
 - **GDPR compliance** built in -- data export and right-to-erasure

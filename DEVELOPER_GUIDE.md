@@ -584,7 +584,8 @@ Before requesting a tier upgrade, verify:
 - [ ] `.env` is in `.gitignore`
 - [ ] API keys stored in a secret manager (AWS Secrets, HashiCorp Vault, etc.)
 - [ ] API keys rotated at least quarterly (set a calendar reminder)
-- [ ] Webhook HMAC signatures verified on every receipt
+- [ ] Webhook signatures verified on every receipt, using the raw body bytes and a constant-time compare. Accept v2 (`t=,n=,v1=`: ±300 s window, single-use nonce, verification key of at least 32 bytes) and, during the migration, legacy `sha256=`. See the "Webhook signatures" section of `docs/registration.md`.
+- [ ] Webhook signing is understood to be classical HMAC-SHA256 with a shared secret, not a post-quantum signature: the verification key is kept in a secret manager
 - [ ] No API keys in client-side code (browser, mobile)
 
 ### 8.2 Reliability
@@ -780,7 +781,13 @@ Aurigraph emits these metrics on `GET /q/metrics` (Prometheus format) if you sel
 
 **Scenario: Minting succeeds, webhook never arrives**
 - **Likely cause**: Your webhook endpoint is unreachable or rejecting
-- **Fix**: Check webhook URL, HMAC verification logic, non-200 responses
+- **Fix**: Check the webhook URL and non-200 responses, then check signature verification. Common failures:
+  - the MAC is computed over a re-serialized JSON body instead of the raw bytes
+  - the server clock is more than 300 s off (v2 window)
+  - a retried delivery reuses a nonce your cache already holds
+  - the secret is shorter than 32 bytes
+  - the verifier rejects legacy `sha256=` headers on deliveries retried from before the v2 upgrade
+  - the verifier uses the registration secret instead of the verification key Aurigraph issues (AV11-3944)
 - **Prevention**: Test webhooks in sandbox before production
 
 **Scenario: `ERR_COMPLIANCE_*` rejections**
