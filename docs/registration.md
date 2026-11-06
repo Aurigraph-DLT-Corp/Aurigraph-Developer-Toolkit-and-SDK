@@ -166,10 +166,10 @@ Every webhook carries an `X-Aurigraph-Signature` header. It is an HMAC made with
 
 | Format | Header value | What is MACed | Replay protection |
 |---|---|---|---|
-| **v2** (AV11-3950 standard; what production sends) | `t=<unix-seconds>,n=<32 hex>,v1=<64 hex>` | HMAC-SHA256 over `t + "." + n + "." + raw body bytes` | ±300 s window plus a single-use nonce |
+| **v2** (AV11-3950 standard; what the emitter sends once the signing key is configured) | `t=<unix-seconds>,n=<32 hex>,v1=<64 hex>` | HMAC-SHA256 over `t + "." + n + "." + raw body bytes` | ±300 s window plus a single-use nonce |
 | **Legacy** (sent by builds before AV11-3950; accept during the migration) | `sha256=<64 hex>` | HMAC-SHA256 over the raw body bytes only | None. A captured delivery can be replayed. |
 
-**Status (2026-11-05).** Production is on build `b7c97dd`, which includes the AV11-3950 v2 emitter, so live deliveries carry v2 headers. Keep accepting the legacy `sha256=` format during the migration, for example for deliveries retried from before the upgrade. Remove the legacy branch when Aurigraph announces the end of the migration.
+**Status (2026-11-05).** The v2 header is what the AV11-3950 emitter produces once `aurigraph.webhook.signing-key` (32+ bytes) is configured on the platform. Until it is configured, outbound deliveries are marked FAILED and are not posted — nothing is sent unsigned, and nothing falls back to the legacy format (V12 `docs/security/AV11-3944-MAC-FLOOR.md`). Keep accepting the legacy `sha256=` format during the migration, for deliveries from builds before AV11-3950. Remove the legacy branch when Aurigraph announces the end of the migration.
 
 How to verify a v2 header:
 
